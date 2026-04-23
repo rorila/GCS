@@ -93,19 +93,17 @@ export class VariableRefactoringService {
             });
         });
 
-        // 5. Update all stages
+        // 5. Update global objects (Blueprint)
+        if (project.objects) {
+            RefactoringUtils.replaceInObjectRecursive(project.objects, oldName, newName, undefined, false);
+        }
+
+        // 6. Update all stages
         if (project.stages) {
             project.stages.forEach(stage => {
-                // Update stage objects
+                // Update stage objects recursively (including nested TLabels in TGroupPanels)
                 if (stage.objects) {
-                    stage.objects.forEach(obj => {
-                        // String interpolation in properties
-                        for (const key in obj) {
-                            if (typeof (obj as any)[key] === 'string') {
-                                (obj as any)[key] = RefactoringUtils.replaceInterpolation((obj as any)[key], oldName, newName);
-                            }
-                        }
-                    });
+                    RefactoringUtils.replaceInObjectRecursive(stage.objects, oldName, newName, undefined, false);
                 }
 
                 // Update stage flow charts

@@ -48,7 +48,7 @@ export class RefactoringUtils {
      * Returns true if anything was changed
      * Schützt gegen zirkuläre Referenzen (z.B. __cachedProxy) via WeakSet
      */
-    public static replaceInObjectRecursive(obj: any, oldName: string, newName: string, _visited?: WeakSet<object>): boolean {
+    public static replaceInObjectRecursive(obj: any, oldName: string, newName: string, _visited?: WeakSet<object>, exactMatch: boolean = true): boolean {
         if (!obj || typeof obj !== 'object') return false;
 
         // Proxy-Objekte und spezielle interne Felder überspringen
@@ -70,7 +70,7 @@ export class RefactoringUtils {
 
         if (Array.isArray(obj)) {
             obj.forEach(item => {
-                if (this.replaceInObjectRecursive(item, oldName, newName, visited)) changed = true;
+                if (this.replaceInObjectRecursive(item, oldName, newName, visited, exactMatch)) changed = true;
             });
             return changed;
         }
@@ -90,7 +90,7 @@ export class RefactoringUtils {
             if (val === null || val === undefined) continue;
 
             if (typeof val === 'string') {
-                if (val === oldName) {
+                if (exactMatch && val === oldName) {
                     obj[key] = newName;
                     changed = true;
                 } else if (val.includes(`\${${oldName}`)) {
@@ -98,7 +98,7 @@ export class RefactoringUtils {
                     changed = true;
                 }
             } else if (typeof val === 'object') {
-                if (this.replaceInObjectRecursive(val, oldName, newName, visited)) changed = true;
+                if (this.replaceInObjectRecursive(val, oldName, newName, visited, exactMatch)) changed = true;
             }
         }
         return changed;

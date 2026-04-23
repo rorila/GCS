@@ -1,3 +1,11 @@
+[UC-2026-04-23-Variable-Rename-Nested-Bindings]
+Dateien:
+- src/editor/refactoring/VariableRefactoringService.ts
+  - `renameVariable` nutzt nun `replaceInObjectRecursive` für Global- und Stage-Objekte.
+- src/editor/refactoring/RefactoringUtils.ts
+  - `replaceInObjectRecursive` um `exactMatch`-Parameter erweitert.
+Beschreibung: Behebt das Problem, dass bei der Variablen-Umbenennung die Interpolations-Bindings (z.B. `${score}`) in Eigenschaften von tief verschachtelten Objekten (z.B. TLabel innerhalb TGroupPanel) oder globalen Objekten nicht mit aktualisiert wurden.
+
 [UC-2026-04-23-Hover-Cursor-Fix]
 Dateien:
 - src/editor/services/renderers/TextObjectRenderer.ts
