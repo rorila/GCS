@@ -8,6 +8,7 @@
   - **TToast**: Eigene Properties (fontSize, borderRadius, padding, textColor) synchronisieren nun mit style.* als Fallback.
   - **TStatusBar**: textColor, fontSize, fontFamily synchronisieren nun mit style.* als Fallback.
 - **Bugfix (TInfoWindow/TDialogRoot Reactivity):** Ein Reaktivitäts-Desync wurde behoben, bei dem sich InfoWindow/Dialog nach dem Schließen über die internen OK/Cancel/Close-Buttons nicht mehr per Action öffnen ließen. Die Button-Event-Handler im `ComplexComponentRenderer` modifizieren nun via `ctx.host.runtime.getRawObject(obj.id)` das echte reaktive Proxy-Objekt statt der `getObjects()`-Spread-Kopie. Dadurch weiß das Backend wieder, dass die Fenster geschlossen wurden.
+- **Bugfix (PropertyWatcher Logs):** Massive Log-Flut (`[Variable] *.style.opacity changed`) beim Wechseln der Stages im Debug-Log-Viewer behoben. `opacity` und `style.opacity` wurden als hochfrequente Animations-Properties deklariert (`HIGH_FREQ_ANIM_PROPS`) und werden nicht mehr sekündlich 60-mal für jedes animierte Objekt während des Fade-In-Übergangs in den Event-Log geschrieben.
 
 ### 2026-04-22 (Bugfixes: TInfoWindow Buttons & TGroupPanel Copy-Paste)
 - **Bugfix (TInfoWindow):** OK- und Cancel-Buttons im RunMode schließen das Fenster nun sofort, indem sie neben `visible = false` auch direkt das DOM-Element und das modale Overlay auf `display: none` setzen. Zuvor blieb das Fenster sichtbar, da die reaktive Pipeline den StageRenderer nicht schnell genug zum Verstecken aufgefordert hat.

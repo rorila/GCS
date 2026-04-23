@@ -829,4 +829,5 @@ Beteiligte Dateien:
 - src/editor/EditorViewManager.ts: renderManagementView() Zeile 652-657 - Stage-Fallback wenn coreStore.activeStageId null ist. handleManagerRowClick() Zeile 1056-1081 - Actions/Variables ohne switchView('stage') selektieren.
 Root Cause: FlowEditor.switchActionFlow() setzt coreStore.activeStageId auf null bei globalem Kontext (Zeile 588).
 -   T I n f o W i n d o w / T D i a l o g R o o t   R e a c t i v i t y   F i x :   s r c / e d i t o r / s e r v i c e s / r e n d e r e r s / C o m p l e x C o m p o n e n t R e n d e r e r . t s   ( r e n d e r I n f o W i n d o w ,   r e n d e r D i a l o g R o o t )  
+ -   P r o p e r t y W a t c h e r   L o g   S p a m   F i x :   s r c / r u n t i m e / P r o p e r t y W a t c h e r . t s   ( n o t i f y )  
  
