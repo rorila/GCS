@@ -1013,14 +1013,6 @@ export class StageRenderer {
             const transX = absPos.x * cellSize;
             const transY = absPos.y * cellSize;
 
-            // DIAGNOSTICS: log specific values
-            if (!(window as any)._animLogCounts) (window as any)._animLogCounts = {};
-            const logId = obj.id || obj.name;
-            if (((window as any)._animLogCounts[logId] || 0) < 60) {
-                console.log(`[ANIM-DIAG] Object ${obj.name}(${obj.id}) -> raw_x:${obj.x}, raw_y:${obj.y} | parentId:${obj.parentId} | absPos:(${absPos.x}, ${absPos.y}) | transX:${transX}, transY:${transY} | cellSize:${cellSize}`);
-                (window as any)._animLogCounts[logId] = ((window as any)._animLogCounts[logId] || 0) + 1;
-            }
-
             if (this.host.runMode) {
                 // ── Sichtbarkeits-Sync (Pool-Sprites) ──
                 let isVisible = obj.visible !== false;

@@ -1111,10 +1111,6 @@ export class GameRuntime implements IVariableHost {
                 }
             });
         };
-        
-        if (obj.className === 'TButton') {
-            console.log(`[DEBUG-BIND] ${obj.name} txt="${obj.text}" cap="${obj.caption}" Keys:`, Object.keys(obj).filter(k => k==='text' || k==='caption'));
-        }
 
         bindProps(obj);
     }
