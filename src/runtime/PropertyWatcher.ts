@@ -219,11 +219,15 @@ export class PropertyWatcher {
     }
 
     /**
-     * Clears all watchers (useful for cleanup)
+     * Clears all property-specific watchers (useful for cleanup on stage change).
+     * IMPORTANT: globalListeners are NOT cleared! They are the stable rendering
+     * bridge between ReactiveRuntime and StageRenderer, registered once in the
+     * GameRuntime constructor and must survive stage changes.
      */
     clear(): void {
         this.watchers.clear();
-        this.globalListeners.clear();
+        // DO NOT clear globalListeners here!
+        // See DEVELOPER_GUIDELINES: "PropertyWatcher.clear() darf globalListeners nicht löschen"
     }
 
     /**

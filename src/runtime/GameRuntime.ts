@@ -144,6 +144,7 @@ export class GameRuntime implements IVariableHost {
                         '_prevVelocityX', '_prevVelocityY', '_prevX', '_prevY'
                     ]);
                     let renderScheduled = false;
+
                     this.reactiveRuntime.getWatcher().addGlobalListener(
                         (obj: any, prop: string) => {
                             if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') return;
@@ -173,12 +174,8 @@ export class GameRuntime implements IVariableHost {
                             const isDialog = obj?.className === 'TDialogRoot' || obj?.className === 'TDialog' || obj?.className === 'TSidePanel' || obj?.constructor?.name === 'TDialogRoot';
 
                             // Targeted Rendering: Update nur eine einzelne Objektstruktur im DOM (für echte UI-Komponenten)
-                            // AUSNAHME 1: Dialoge erfordern einen Full-Render, da ihre Sichtbarkeit (Slide-In/Out)
+                            // AUSNAHME: Dialoge erfordern einen Full-Render, da ihre Sichtbarkeit (Slide-In/Out)
                             // sich auf alle untergeordneten Kinder auswirkt (Layout/Translate Rekursion).
-                            // AUSNAHME 2: Positions-Properties (x/y) erfordern einen Full-Render wenn das Objekt
-                            // Kinder hat, da Kinder-Positionen rekursiv vom Parent abhängen.
-                            // Ohne Full-Render bleiben Kinder an der initialen Off-Screen-Position
-                            // der Stage-Animation stehen (updateSingleObject aktualisiert keine Positionen).
                             const needsFullRender = isDialog;
 
                             if (obj && obj.id && options.onComponentUpdate && !needsFullRender) {
@@ -186,10 +183,9 @@ export class GameRuntime implements IVariableHost {
                                 return;
                             }
 
-                            // Fallback (sollte nun bei Variablen nicht mehr greifen)
+                            // Fallback: Voll-Render (sollte bei Variablen nicht mehr greifen)
                             if (!renderScheduled) {
                                 renderScheduled = true;
-                                console.warn(`💥 [Voll-Render Ausgelöst durch:] Objekt: ${obj?.name || obj?.id || 'Global Var/Array'}, Klasse: ${obj?.className || '-'}, Eigenschaft: ${prop}`);
                                 requestAnimationFrame(() => {
                                     renderScheduled = false;
                                     options.onRender!();
@@ -424,15 +420,12 @@ export class GameRuntime implements IVariableHost {
         }
 
         logger.info(`--- STAGE CHANGE: ${newStageId} ---`);
-        logger.debug(`Global Vars BEFORE reactive clear:`, this.reactiveRuntime.getContext());
 
         // IMPORTANT: Update ActionExecutor with new objects!
         if (this.options.makeReactive) {
             this.reactiveRuntime.clear(false); // DO NOT CLEAR VARIABLES! Keep the data state.
             this.clearAllTimers();
             AnimationManager.getInstance().clear();
-
-            logger.debug(`Global Vars AFTER reactive clear:`, this.reactiveRuntime.getContext());
 
             // Register ALL objects including global variables.
             // Global variables persist via clear(false) + cachedGlobalObjects.
@@ -456,9 +449,9 @@ export class GameRuntime implements IVariableHost {
             }
             this.reactiveRuntime.setVariable('isSplashActive', false);
 
-            // Keine zusätzlichen redundanten GlobalListeners einhängen.
-            // Der existierende Listener (aus dem Konstruktor) wird dank clear(false) 
-            // fortgesetzt und nutzt die intelligente Fast-Path / isDialog Weiche.
+            // GlobalListeners überleben clear(false) dank PropertyWatcher-Fix:
+            // PropertyWatcher.clear() löscht nur object-spezifische Watchers,
+            // NICHT die globalListeners (Rendering-Brücke aus dem Konstruktor).
 
             this.objects = this.reactiveRuntime.getObjects();
 
@@ -488,16 +481,16 @@ export class GameRuntime implements IVariableHost {
             this.stageController.setCurrentStageId(this.stage.id);
         }
 
-        const glm = GameLoopManager.getInstance();
-        const gridConfig = (this.stage && this.stage.grid) || this.project.stage?.grid || this.project.grid;
-        glm.init(
-            this.objects,
-            gridConfig,
-            this.options.onRender || (() => { }),
-            (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data),
-            this.options.onSpriteRender
-        );
+        // Alte Objekte sauber herunterfahren bevor die neuen starten.
+        // Verhindert Timer-Leaks und doppelte Event-Handler.
+        this.objects.forEach(obj => {
+            try {
+                if (typeof obj.onRuntimeStop === 'function') obj.onRuntimeStop();
+            } catch (e) { /* silent */ }
+        });
 
+        // glm.init() + glm.start() wird in initMainGame() erledigt.
+        // Kein doppeltes glm.init() hier nötig.
         this.start();
 
         // 2. AFTER Stage Change: Trigger onEnter and onRuntimeStart on the NEW stage
@@ -694,22 +687,17 @@ export class GameRuntime implements IVariableHost {
             return;
         }
 
-        // logger.info(`[DIAGNOSTIC] handleEvent entry: objId=${objectId}, event=${eventName}`);
         const obj = this.objects.find(o => o.id === objectId);
-        if (!obj) {
-            // logger.warn(`[DIAGNOSTIC] Object not found: ${objectId}`);
-            return;
-        }
+        if (!obj) return;
+
+
 
         const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
         const hasTaskMap = (obj.events && obj.events[eventName]) || ((obj as any).Tasks && (obj as any).Tasks[eventName]);
 
-        // logger.info(`[DIAGNOSTIC] Object found: ${obj.name}. hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}`);
-
         let eventLogId: string | undefined = undefined;
 
         if (hasOnEventMap || hasTaskMap) {
-            // Log to DebugLogService only if there's an actual mapping 
             eventLogId = DebugLogService.getInstance().log('Event', `Triggered: ${obj.name}.${eventName}`, {
                 objectName: obj.name,
                 eventName: eventName,

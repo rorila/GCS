@@ -1,5 +1,11 @@
 # Changelog (v3.31.0 - Unreleased)
 
+### 2026-04-23 (Bugfix: Runtime Freeze bei wiederholten Dialog-Interaktionen)
+- **Bugfix (TToast Endlosschleife — CRITICAL):** Die App fror ein wenn mehr als `maxVisible` Toasts gleichzeitig angezeigt werden sollten. Ursache: `removeToast()` führte `Array.splice()` erst nach 300ms im `setTimeout`-Callback aus (für die CSS-Animation), aber `show()` prüfte `_toasts.length` in einer synchronen `while`-Schleife. Da die Länge synchron nie sank, entstand eine Endlosschleife. Fix: `splice()` wird jetzt sofort synchron ausgeführt, nur die DOM-Animation wartet im `setTimeout`.
+- **Bugfix (PropertyWatcher GlobalListener — CRITICAL):** Nach einem Stage-Wechsel funktionierte das reaktive Rendering nicht mehr. Ursache: `PropertyWatcher.clear()` löschte auch die `globalListeners`, die die zentrale Rendering-Brücke zwischen `ReactiveRuntime` und `StageRenderer` bilden. Diese Listener werden einmalig im `GameRuntime`-Konstruktor registriert und müssen Stage-Wechsel überleben. Fix: `clear()` löscht jetzt nur object-spezifische Watchers, nicht die globalListeners.
+- **Bugfix (Doppelte GameLoopManager-Initialisierung):** `handleStageChange` rief `glm.init()` auf und danach `this.start()` → `initMainGame()` → nochmals `glm.init()`. Das redundante `glm.init()` in `handleStageChange` wurde entfernt. Zusätzlich werden alte Objekte jetzt vor `this.start()` via `onRuntimeStop()` sauber heruntergefahren, um Timer-Leaks zu verhindern.
+- **Cleanup:** Alle temporären Diagnose-Logs (`🔬 DIAG-CYCLE`, `🔬 STAGE-CHANGE`, `💥 Voll-Render`) aus `GameRuntime.ts` entfernt.
+
 ### 2026-04-23 (Bugfix: Inspector-Properties an Renderer anbinden)
 - **Bugfix (Inspector-Properties):** Umfassende Bereinigung wirkungsloser Inspector-Felder in 5 Komponenten. Die Renderer (`ComplexComponentRenderer`, `createRuntimeElement()`) lesen nun die `style.*`-Properties (borderRadius, color, fontSize, fontWeight, fontFamily, fontStyle, textAlign, boxShadow) tatsächlich aus dem Objekt, statt hardcoded Werte zu verwenden. Betroffene Komponenten:
   - **TInfoWindow**: borderRadius, Textfarbe, Schriftgröße, Schriftgewicht, Schriftart, Textausrichtung, boxShadow werden nun konfigurierbar. Duplikat-Property `borderRadius` zugunsten von `style.borderRadius` entfernt.

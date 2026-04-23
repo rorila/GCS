@@ -1,4 +1,4 @@
-﻿import { TWindow } from './TWindow';
+import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -152,9 +152,15 @@ export class TToast extends TWindow {
         toast.element.classList.remove('toast-visible');
         toast.element.classList.add('toast-hiding');
 
+        // CRITICAL: Remove from array IMMEDIATELY (synchron)!
+        // show() hat eine while-Schleife die _toasts.length synchron prüft.
+        // Wenn splice() erst im setTimeout nach 300ms passiert, sinkt die
+        // Länge nie → Endlosschleife → App-Freeze.
+        this._toasts.splice(index, 1);
+
+        // DOM-Element erst nach der CSS-Animation entfernen
         setTimeout(() => {
             toast.element.remove();
-            this._toasts.splice(index, 1);
         }, 300);
     }
 
