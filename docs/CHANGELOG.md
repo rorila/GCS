@@ -7,6 +7,7 @@
   - **TSidePanel**: Titel-Schriftfarbe, -größe, -gewicht, -art werden nun konfigurierbar (Editor + Runtime).
   - **TToast**: Eigene Properties (fontSize, borderRadius, padding, textColor) synchronisieren nun mit style.* als Fallback.
   - **TStatusBar**: textColor, fontSize, fontFamily synchronisieren nun mit style.* als Fallback.
+- **Bugfix (TInfoWindow/TDialogRoot Reactivity):** Ein Reaktivitäts-Desync wurde behoben, bei dem sich InfoWindow/Dialog nach dem Schließen über die internen OK/Cancel/Close-Buttons nicht mehr per Action öffnen ließen. Die Button-Event-Handler im `ComplexComponentRenderer` modifizieren nun via `ctx.host.runtime.getRawObject(obj.id)` das echte reaktive Proxy-Objekt statt der `getObjects()`-Spread-Kopie. Dadurch weiß das Backend wieder, dass die Fenster geschlossen wurden.
 
 ### 2026-04-22 (Bugfixes: TInfoWindow Buttons & TGroupPanel Copy-Paste)
 - **Bugfix (TInfoWindow):** OK- und Cancel-Buttons im RunMode schließen das Fenster nun sofort, indem sie neben `visible = false` auch direkt das DOM-Element und das modale Overlay auf `display: none` setzen. Zuvor blieb das Fenster sichtbar, da die reaktive Pipeline den StageRenderer nicht schnell genug zum Verstecken aufgefordert hat.

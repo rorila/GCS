@@ -180,7 +180,12 @@ export class ComplexComponentRenderer {
                 cancelBtn.style.cssText = `padding: 8px 20px; background: #6c757d; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;`;
                 cancelBtn.onclick = (e) => {
                     e.stopPropagation();
-                    obj.visible = false;
+                    if (ctx.host.runtime) {
+                        const raw = ctx.host.runtime.getRawObject(obj.id);
+                        if (raw) raw.visible = false;
+                    } else {
+                        obj.visible = false;
+                    }
                     el.style.display = 'none';
                     const overlay = document.getElementById(`dialog-overlay-${obj.id}`);
                     if (overlay) overlay.style.display = 'none';
@@ -195,7 +200,12 @@ export class ComplexComponentRenderer {
                 confirmBtn.style.cssText = `padding: 8px 20px; background: #4fc3f7; color: #000000; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;`;
                 confirmBtn.onclick = (e) => {
                     e.stopPropagation();
-                    obj.visible = false;
+                    if (ctx.host.runtime) {
+                        const raw = ctx.host.runtime.getRawObject(obj.id);
+                        if (raw) raw.visible = false;
+                    } else {
+                        obj.visible = false;
+                    }
                     el.style.display = 'none';
                     const overlay = document.getElementById(`dialog-overlay-${obj.id}`);
                     if (overlay) overlay.style.display = 'none';
