@@ -43,6 +43,7 @@ export class GameLoopManager {
     // Objects
     private sprites: TSprite[] = [];
     private inputControllers: any[] = [];
+    private panels: any[] = [];
 
     // Callbacks
     private renderCallback: (() => void) | null = null;
@@ -114,6 +115,10 @@ export class GameLoopManager {
             obj.className === 'TInputController' || obj.constructor?.name === 'TInputController'
         );
 
+        this.panels = objects.filter(obj =>
+            obj.className === 'TPanel' || obj.className === 'TGroupPanel' || obj.constructor?.name === 'TPanel' || obj.constructor?.name === 'TGroupPanel'
+        );
+
         // Find GameState component
         const gameStateObj = objects.find(obj =>
             obj.className === 'TGameState' || obj.constructor?.name === 'TGameState'
@@ -176,6 +181,7 @@ export class GameLoopManager {
         this.collidedThisFrame.clear();
         this.sprites = [];
         this.inputControllers = [];
+        this.panels = [];
         this.renderCallback = null;
         this.spriteRenderCallback = null;
         this.eventCallback = null;
@@ -409,6 +415,104 @@ export class GameLoopManager {
                 }
             }
         }
+
+        // --- SPRITE VS PANEL COLLISIONS ---
+        for (let i = 0; i < this.sprites.length; i++) {
+            for (let j = 0; j < this.panels.length; j++) {
+                const sprite = this.sprites[i];
+                const panel = this.panels[j];
+
+                // Skip invisible pool instances
+                if (!sprite.visible || !panel.visible) continue;
+                if (sprite.isAnimating || panel.isAnimating) continue;
+
+                // Panels are always rects. We construct a dummy hitbox for the panel
+                const panelHitbox = {
+                    x: panel.x,
+                    y: panel.y,
+                    w: panel.width,
+                    h: panel.height,
+                    shape: 'rect' as const
+                };
+
+                const spriteHb = sprite.getHitbox();
+
+                // Simple AABB vs Rect/Circle collision
+                let isColliding = false;
+                if (spriteHb.shape === 'rect') {
+                    isColliding = spriteHb.x < panelHitbox.x + panelHitbox.w &&
+                                  spriteHb.x + spriteHb.w > panelHitbox.x &&
+                                  spriteHb.y < panelHitbox.y + panelHitbox.h &&
+                                  spriteHb.y + spriteHb.h > panelHitbox.y;
+                } else if (spriteHb.shape === 'circle') {
+                    const r = spriteHb.w / 2;
+                    const cx = spriteHb.x + r;
+                    const cy = spriteHb.y + spriteHb.h / 2;
+                    const closestX = Math.max(panelHitbox.x, Math.min(cx, panelHitbox.x + panelHitbox.w));
+                    const closestY = Math.max(panelHitbox.y, Math.min(cy, panelHitbox.y + panelHitbox.h));
+                    const dx = cx - closestX;
+                    const dy = cy - closestY;
+                    isColliding = (dx * dx + dy * dy) < (r * r);
+                }
+
+                if (isColliding) {
+                    const now = performance.now();
+                    const pairKey = `panel_${sprite.id}_${panel.id}`;
+                    const lastCollision = this.collisionCooldowns.get(pairKey) || 0;
+
+                    if (now - lastCollision < this.COLLISION_COOLDOWN_MS) {
+                        continue;
+                    }
+                    this.collisionCooldowns.set(pairKey, now);
+
+                    // Calculate Overlap for Push-Out
+                    const dx = (spriteHb.x + spriteHb.w / 2) - (panelHitbox.x + panelHitbox.w / 2);
+                    const dy = (spriteHb.y + spriteHb.h / 2) - (panelHitbox.y + panelHitbox.h / 2);
+                    const combinedHalfWidths = (spriteHb.w + panelHitbox.w) / 2;
+                    const combinedHalfHeights = (spriteHb.h + panelHitbox.h) / 2;
+
+                    const overlapX = combinedHalfWidths - Math.abs(dx);
+                    const overlapY = combinedHalfHeights - Math.abs(dy);
+
+                    let hitSide = 'left';
+                    let depth = 0;
+
+                    if (overlapX < overlapY) {
+                        hitSide = dx > 0 ? 'left' : 'right'; // 'left' of sprite means it hit the right side of panel
+                        depth = overlapX;
+                    } else {
+                        hitSide = dy > 0 ? 'top' : 'bottom';
+                        depth = overlapY;
+                    }
+
+                    // Trigger Events (Sprite is the one triggering it)
+                    if (this.eventCallback) {
+                        this.eventCallback(sprite.id, 'onCollision', {
+                            other: panel.name,
+                            otherSprite: panel,
+                            hitSide: hitSide
+                        });
+                        this.eventCallback(sprite.id, `onCollision${this.capitalize(hitSide)}`, { other: panel });
+                        this.collidedThisFrame.add(sprite.id);
+                    }
+
+                    // Push out of collision ONLY IF the event is mapped!
+                    // This creates the "solid wall" effect
+                    const hasCollisionEvent = sprite.events?.onCollision || sprite.events?.[`onCollision${this.capitalize(hitSide)}`];
+                    
+                    if (hasCollisionEvent) {
+                        if (hitSide === 'left' || hitSide === 'right') {
+                            sprite.x -= (hitSide === 'left' ? -1 : 1) * depth;
+                            // Optionally stop velocity like bouncing
+                            if (this.boundaryMode === 'bounce') sprite.velocityX = -sprite.velocityX;
+                        } else {
+                            sprite.y -= (hitSide === 'top' ? -1 : 1) * depth;
+                            if (this.boundaryMode === 'bounce') sprite.velocityY = -sprite.velocityY;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private capitalize(s: string): string {
@@ -421,39 +525,49 @@ export class GameLoopManager {
     private checkBoundaries(): void {
         this.sprites.forEach(sprite => {
             // Skip invisible pool instances
-            if (!sprite.visible) {
-                return;
-            }
+            if (!sprite.visible) return;
 
             // Skip sprites that are currently animating
-            if (sprite.isAnimating) {
-                return;
-            }
+            if (sprite.isAnimating) return;
 
             // Skip sprites that collided with another object this frame
-            if (this.collidedThisFrame.has(sprite.id)) {
-                return;
+            if (this.collidedThisFrame.has(sprite.id)) return;
+
+            let bWidth = this.boundsWidth;
+            let bHeight = this.boundsHeight;
+            let bOffTop = this.boundsOffsetTop;
+            let bOffBottom = this.boundsOffsetBottom;
+
+            // Local Boundary Check if sprite is in a Panel
+            if (sprite.parent) {
+                const parent = sprite.parent as any;
+                if (parent && (parent.className === 'TPanel' || parent.className === 'TGroupPanel')) {
+                    bWidth = parent.width;
+                    bHeight = parent.height;
+                    bOffTop = 0; // Ignore global offsets when inside a panel
+                    bOffBottom = 0;
+                }
             }
 
-            const bounds = sprite.isWithinBounds(this.boundsWidth, this.boundsHeight);
+            const bounds = sprite.isWithinBounds(bWidth, bHeight, 0, 0);
 
             if (!bounds.left) {
-                this.triggerBoundaryEvent(sprite, 'left');
+                this.triggerBoundaryEvent(sprite, 'left', bWidth, bHeight, bOffTop, bOffBottom);
             }
             if (!bounds.right) {
-                this.triggerBoundaryEvent(sprite, 'right');
+                this.triggerBoundaryEvent(sprite, 'right', bWidth, bHeight, bOffTop, bOffBottom);
             }
-            if (sprite.y < this.boundsOffsetTop) {
-                this.triggerBoundaryEvent(sprite, 'top');
+            if (sprite.y < bOffTop) {
+                this.triggerBoundaryEvent(sprite, 'top', bWidth, bHeight, bOffTop, bOffBottom);
             }
-            const bottomBoundary = this.boundsHeight - this.boundsOffsetBottom;
+            const bottomBoundary = bHeight - bOffBottom;
             if (sprite.y + sprite.height > bottomBoundary) {
-                this.triggerBoundaryEvent(sprite, 'bottom');
+                this.triggerBoundaryEvent(sprite, 'bottom', bWidth, bHeight, bOffTop, bOffBottom);
             }
         });
     }
 
-    private triggerBoundaryEvent(sprite: TSprite, side: 'left' | 'right' | 'top' | 'bottom'): void {
+    private triggerBoundaryEvent(sprite: TSprite, side: 'left' | 'right' | 'top' | 'bottom', bWidth: number, bHeight: number, bOffTop: number, bOffBottom: number): void {
         const cooldownKey = `${sprite.id}_${side}`;
         const now = performance.now();
         const lastHit = this.boundaryCooldowns.get(cooldownKey) || 0;
@@ -462,7 +576,6 @@ export class GameLoopManager {
         if (now - lastHit < this.BOUNDARY_COOLDOWN_MS) return;
 
         // Velocity protection: Only trigger if the sprite is actually moving TOWARDS that boundary
-        // This prevents double-triggering when the task already flipped the velocity
         if (side === 'left' && sprite.velocityX >= 0) return;
         if (side === 'right' && sprite.velocityX <= 0) return;
         if (side === 'top' && sprite.velocityY >= 0) return;
@@ -470,41 +583,41 @@ export class GameLoopManager {
 
         this.boundaryCooldowns.set(cooldownKey, now);
 
-        // --- Mode-abhängiges Verhalten ---
-        if (this.boundaryMode === 'clamp') {
-            // Velocity stoppen und Position clampen (bisheriges Verhalten)
-            if (side === 'left' || side === 'right') {
-                (sprite as any)._prevVelocityX = sprite.velocityX;
-                sprite.velocityX = 0;
+        // ONLY apply physical clamp/bounce if the onBoundaryHit event is assigned!
+        const hasBoundaryEvent = sprite.events?.onBoundaryHit;
+
+        if (hasBoundaryEvent) {
+            // --- Mode-abhängiges Verhalten ---
+            if (this.boundaryMode === 'clamp') {
+                // Velocity stoppen und Position clampen
+                if (side === 'left' || side === 'right') {
+                    (sprite as any)._prevVelocityX = sprite.velocityX;
+                    sprite.velocityX = 0;
+                }
+                if (side === 'top' || side === 'bottom') {
+                    (sprite as any)._prevVelocityY = sprite.velocityY;
+                    sprite.velocityY = 0;
+                }
+                const EPSILON = 0.01;
+                if (side === 'left') sprite.x = EPSILON;
+                if (side === 'right') sprite.x = bWidth - sprite.width - EPSILON;
+                if (side === 'top') sprite.y = bOffTop + EPSILON;
+                if (side === 'bottom') sprite.y = bHeight - bOffBottom - sprite.height - EPSILON;
+            } else if (this.boundaryMode === 'bounce') {
+                // Velocity umkehren
+                if (side === 'left' || side === 'right') sprite.velocityX = -sprite.velocityX;
+                if (side === 'top' || side === 'bottom') sprite.velocityY = -sprite.velocityY;
+                
+                // Position minimal korrigieren damit kein Re-Trigger
+                const EPSILON = 0.01;
+                if (side === 'left') sprite.x = EPSILON;
+                if (side === 'right') sprite.x = bWidth - sprite.width - EPSILON;
+                if (side === 'top') sprite.y = bOffTop + EPSILON;
+                if (side === 'bottom') sprite.y = bHeight - bOffBottom - sprite.height - EPSILON;
             }
-            if (side === 'top' || side === 'bottom') {
-                (sprite as any)._prevVelocityY = sprite.velocityY;
-                sprite.velocityY = 0;
-            }
-            const EPSILON = 0.01;
-            if (side === 'left') sprite.x = EPSILON;
-            if (side === 'right') sprite.x = this.boundsWidth - sprite.width - EPSILON;
-            if (side === 'top') sprite.y = this.boundsOffsetTop + EPSILON;
-            if (side === 'bottom') sprite.y = this.boundsHeight - this.boundsOffsetBottom - sprite.height - EPSILON;
-        } else if (this.boundaryMode === 'bounce') {
-            // Velocity umkehren
-            if (side === 'left' || side === 'right') {
-                sprite.velocityX = -sprite.velocityX;
-            }
-            if (side === 'top' || side === 'bottom') {
-                sprite.velocityY = -sprite.velocityY;
-            }
-            // Position minimal korrigieren damit kein Re-Trigger
-            const EPSILON = 0.01;
-            if (side === 'left') sprite.x = EPSILON;
-            if (side === 'right') sprite.x = this.boundsWidth - sprite.width - EPSILON;
-            if (side === 'top') sprite.y = this.boundsOffsetTop + EPSILON;
-            if (side === 'bottom') sprite.y = this.boundsHeight - this.boundsOffsetBottom - sprite.height - EPSILON;
         }
-        // event-only: Kein Clamping, kein Bounce — Sprite fliegt weiter
 
         if (this.eventCallback) {
-            // logger.info(`[GameLoopManager] Boundary Hit: ${sprite.name} on ${side}. Task should handle bounce.`);
             this.eventCallback(sprite.id, 'onBoundaryHit', { hitSide: side });
         }
     }
@@ -514,13 +627,29 @@ export class GameLoopManager {
      * Wird nur im Modus 'event-only' relevant (bei 'clamp'/'bounce' können Sprites den Rand nicht verlassen).
      */
     private checkStageExits(): void {
-        if (this.boundaryMode === 'clamp' || this.boundaryMode === 'bounce') return;
-
+        // We now check Stage Exits regardless of boundary mode because sprites can fly off 
+        // if they don't have onBoundaryHit mapped!
         this.sprites.forEach(sprite => {
             if (sprite.isAnimating) return;
 
             const spriteKey = sprite.id || sprite.name;
             if (this.exitedSprites.has(spriteKey)) return; // Schon gefeuert
+
+            let bWidth = this.boundsWidth;
+            let bHeight = this.boundsHeight;
+            let bOffTop = this.boundsOffsetTop;
+            let bOffBottom = this.boundsOffsetBottom;
+
+            // Local Boundary Check if sprite is in a Panel
+            if (sprite.parent) {
+                const parent = sprite.parent as any;
+                if (parent && (parent.className === 'TPanel' || parent.className === 'TGroupPanel')) {
+                    bWidth = parent.width;
+                    bHeight = parent.height;
+                    bOffTop = 0;
+                    bOffBottom = 0;
+                }
+            }
 
             let exitSide: string | null = null;
 
@@ -529,15 +658,15 @@ export class GameLoopManager {
                 exitSide = 'left';
             }
             // Komplett rechts raus: linker Rand > Stage-Breite
-            else if (sprite.x > this.boundsWidth) {
+            else if (sprite.x > bWidth) {
                 exitSide = 'right';
             }
             // Komplett oben raus: unterer Rand < boundsOffsetTop
-            else if (sprite.y + sprite.height < this.boundsOffsetTop) {
+            else if (sprite.y + sprite.height < bOffTop) {
                 exitSide = 'top';
             }
             // Komplett unten raus: oberer Rand > Stage-Höhe
-            else if (sprite.y > this.boundsHeight - this.boundsOffsetBottom) {
+            else if (sprite.y > bHeight - bOffBottom) {
                 exitSide = 'bottom';
             }
 

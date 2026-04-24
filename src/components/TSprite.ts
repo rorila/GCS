@@ -1,4 +1,4 @@
-﻿import { TWindow } from './TWindow';
+import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { ImageFit, IMAGE_DEFAULTS } from './ImageCapable';
 
@@ -242,12 +242,12 @@ export class TSprite extends TWindow {
     /**
      * Check if sprite is within bounds
      */
-    public isWithinBounds(maxX: number, maxY: number): { left: boolean; right: boolean; top: boolean; bottom: boolean } {
+    public isWithinBounds(maxX: number, maxY: number, minX: number = 0, minY: number = 0): { left: boolean; right: boolean; top: boolean; bottom: boolean } {
         const hb = this.getHitbox();
         return {
-            left: hb.x >= 0,
+            left: hb.x >= minX,
             right: hb.x + hb.w <= maxX,
-            top: hb.y >= 0,
+            top: hb.y >= minY,
             bottom: hb.y + hb.h <= maxY
         };
     }

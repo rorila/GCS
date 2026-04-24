@@ -36,6 +36,17 @@ Dateien:
   - Methode `renderDropdown` (Zeile ~248): Fallback für fehlende `fontSize` auf `14` (skaliert) statt `inherit`.
 Beschreibung: Text in Komponenten (TLabel, TPanel, TButton, Inputs), die keine explizite Schriftgröße im JSON hinterlegt haben, nutzten den nativen Browser-Fallback (im Editor/CSS 14px, im IFrame-Runner 16px). Nach der CSS-Skalierung (transform) durch den Renderer führte dies im IFrame zu abweichenden Zeilenumbrüchen oder abgeschnittenen Texten (da 16px nach 2x Skalierung zu groß war). Die Renderer forcieren nun strikt einen Default-Wert von `14`, bevor sie die Skalierung anwenden.
 
+[UC-2026-04-24-Sprite-Panel-Physics]
+Dateien:
+- src/runtime/GameLoopManager.ts
+  - Methode `init` (Zeile ~100): Panels (`TPanel`, `TGroupPanel`) werden nun gesammelt und in `this.panels` abgelegt, und `this.allObjects` wird zwischengespeichert.
+  - Methode `checkCollisions` (Zeile ~420): Neue Physik-Kollisionslogik (`Sprite` vs `Panel`) implementiert, die auch `onCollision` zündet und optional abprallt (nur wenn Event belegt ist).
+  - Methode `checkBoundaries` (Zeile ~530): Sprite-Position wird bei parentId nun lokal gegen die Panel-Grenzen validiert.
+  - Methode `triggerBoundaryEvent` (Zeile ~580): Clamp/Bounce wird nur noch durchgeführt, wenn das Event `onBoundaryHit` existiert, ansonsten "Geister"-Verhalten.
+  - Methode `checkStageExits` (Zeile ~630): Aus Stage-/Panel-Austritt prüfen, um Flucht aus dem Screen zu detektieren, da nicht mehr zwingend gecleamt wird.
+- src/components/TSprite.ts
+  - Methode `isWithinBounds` (Zeile ~240): Signatur um `minX` und `minY` erweitert, um nicht mehr hardcodiert von `0,0` (Stage-Origin) auszugehen.
+
 [UC-2026-04-23-Inspector-Property-Binding-Fix]
 Dateien:
 - src/editor/services/renderers/ComplexComponentRenderer.ts

@@ -294,6 +294,7 @@
 - **`GameRuntime.start()` und Splash-Screen**: Bei aktivem Splash wird `initMainGame()` NICHT aufgerufen. Komponenten, die vorher funktionieren müssen, extern initialisieren.
 - **`resolveTarget`**: IMMER `context.eventData` als 4. Argument übergeben (enthält `{self, other, hitSide}`).
 - **Ghost-Sprites**: `collisionEnabled` ist standardmäßig `false`. Explizit `"collisionEnabled": true` setzen für Bounce/Hit-Events.
+- **Bedingte Physik / Panel-Kollision**: Sprites prallen an Stage-Grenzen, Panels oder anderen Sprites NUR DANN physikalisch ab (Clamp/Push-Out), wenn sie entsprechende Events (`onBoundaryHit`, `onCollision` etc.) definiert haben. Ohne Event zeigen sie "Geister-Verhalten" und durchfliegen Hindernisse. Panels triggern keine eigenen Physik-Events, sondern sind passive Boundaries.
 - **Scope Bleeding bei globalen Filtern**: NIEMALS globale `Set`/`Map` über Stage-Iterationen hinweg. Sets für Deduplikation INNERHALB der Stage-Schleife anlegen.
 - **String-Conditions bevorzugen**: `"condition": "${hitSide} == 'top'"` statt Objekt-Conditions. Letztere bereinigen Single-Quotes nicht.
 - **Calculate-Formeln**: Template-Syntax `${score} + 1` direkt verwenden. Keine Type-Cast-Hacks wie `Number(score || 0) + 1`.

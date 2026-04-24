@@ -1,5 +1,9 @@
 # Changelog (v3.31.0 - Unreleased)
 
+### 2026-04-24 (Feature: Sprite-Panel Physics Integration)
+- **Physik-Erweiterung:** Sprites können nun lokal innerhalb von Panels (TPanel, TGroupPanel) an deren Rändern abprallen und mit ihnen kollidieren.
+- **Bedingte Kollision:** Abprallen (an globalen sowie Panel-Rändern) und Kollisionen passieren nun nur noch exklusiv, wenn das Sprite das Event `onBoundaryHit` bzw. `onCollision` (oder entsprechende Richtungs-Events) belegt hat. Dies ermöglicht "Geister"-Verhalten durch Hindernisse.
+
 ### 2026-04-24 (Bugfix: Fehlende Hover-Events für Buttons und Runtime-Engine)
 - **Bugfix (Events)**: `onMouseEnter` und `onMouseLeave` (sowie `onDoubleClick`) fehlten in der Standard-Eventauswahl für UI-Komponenten (z.B. `TButton`) im Inspector und im Flow-Editor. Die abstrakte Basisklasse `TComponent` hat nun eine `getEvents()`-Methode erhalten, welche diese Events bereitstellt, und der Fallback in `ComponentRegistry.ts` wurde ebenfalls aktualisiert. Dadurch können Hover-Actions nun reibungslos angebunden werden.
 - **Bugfix (Runtime Engine)**: Die konfigurierten Hover-Events wurden in der Runtime-Engine nicht ausgelöst. Der `StageRenderer` bindet nun dynamisch alle im Task/Event-Objekt hinterlegten Maus-Interaktionen (`onMouseEnter`, `onMouseLeave`, `onDoubleClick`) an die generierten DOM-Elemente und leitet sie korrekt über `onEvent` an das Backend weiter. Für `TButton` wurde der `TextObjectRenderer` entsprechend ergänzt, da dieser visuelle Filter überschreibt.
