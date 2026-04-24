@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "FinaleGameBuilerDoku",
+    "name": "FinaleGameBuilerDoku2",
     "version": "1.0.0",
     "author": "RolloRie",
     "description": "",
-    "_sourcePath": "projects/FinaleGameBuilerDoku.json"
+    "_sourcePath": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/projects/FinaleGameBuilerDoku2.json"
   },
   "stage": {
     "grid": {
@@ -156,8 +156,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {
@@ -433,8 +433,8 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onConfirm": "ShowOkToast",
-            "onCancel": "ShowCancelToast"
+            "onConfirm": "",
+            "onCancel": ""
           },
           "visible": false,
           "x": 22,
@@ -478,7 +478,7 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onClick": "ShowHalloWorld"
+            "onClick": ""
           },
           "visible": true,
           "x": 29,
@@ -793,66 +793,444 @@
           "toastType": "warning"
         }
       ],
-      "tasks": [
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": false,
+        "backgroundColor": "${StageConfig.Hintergrund}"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_1f1e07cf-e8d1-4ca6-9722-ca47729653b5",
+      "name": "Stage_MovingComponent",
+      "type": "standard",
+      "objects": [
         {
-          "name": "ShowHalloWorld",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "Act_ShowInfoField",
-              "type": "action",
-              "layout": "horizontal"
-            },
-            {
-              "name": "Act_ShowTestToast",
-              "type": "action",
-              "layout": "horizontal"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "ShowHalloWorld": {
-              "x": 40,
-              "y": 40
-            },
-            "Act_ShowInfoField": {
-              "x": 260,
-              "y": 40
-            },
-            "Act_ShowTestToast": {
-              "x": 480,
-              "y": 40
-            },
-            "node-1776870555465": {
-              "x": 760,
-              "y": 360
-            }
+          "className": "TLabel",
+          "id": "obj_import_1777014706614_qxss",
+          "name": "LabelUeberschrift",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18,
+          "y": 2,
+          "width": 26,
+          "height": 3,
+          "zIndex": 1,
+          "align": "NONE",
+          "style": {
+            "color": "#4ec9b0",
+            "fontSize": 28,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
           },
-          "standaloneNodes": [
+          "text": "Informationen an den Spieler"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_import_1777014706614_31rd",
+          "name": "Btn_Start",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ShowOnClick",
+            "onFocus": "ShowOnFokus",
+            "onBlur": "ShowOnBlur",
+            "onMouseEnter": "LetTheButtonMove",
+            "onMouseLeave": "ShowOnMouseLeave"
+          },
+          "visible": true,
+          "x": 31,
+          "y": 31,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 10
+          },
+          "text": "Klick mich!",
+          "icon": ""
+        },
+        {
+          "className": "TToast",
+          "id": "obj_import_1777014706614_f2fu",
+          "name": "ToastTest",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 37,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "animation": "slide-left",
+          "position": "bottom-left",
+          "duration": 3000,
+          "maxVisible": 3,
+          "infoColor": "#2196F3",
+          "successColor": "#4CAF50",
+          "warningColor": "#FF9800",
+          "errorColor": "#F44336",
+          "textColor": "#ffffff",
+          "fontSize": 14,
+          "borderRadius": 8,
+          "padding": 12
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1777014706614_msq8",
+          "name": "GrPnl_Inhalt",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 9,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
             {
-              "id": "node-1776870555465",
-              "type": "comment",
-              "x": 760,
-              "y": 360,
-              "width": 160,
-              "height": 100,
-              "properties": {
-                "name": "",
-                "details": "",
-                "description": "",
-                "text": ""
+              "className": "TLabel",
+              "id": "obj_import_1777014706614_bn4x",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 0,
+              "width": 8,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
               },
-              "data": {}
+              "text": "WhiteText"
             }
           ]
         },
         {
-          "name": "ShowOkToast",
+          "className": "TGroupPanel",
+          "id": "obj_import_1777014706614_nast",
+          "name": "GrPnl_Inhalt_1",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 12,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TLabel",
+              "id": "obj_import_1777014706614_vdxl",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 0,
+              "width": 8,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "WhiteText"
+            }
+          ]
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1777014706614_fmcz",
+          "name": "GrPnl_Inhalt_2",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 15,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TLabel",
+              "id": "obj_import_1777014706614_41wd",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 0,
+              "width": 8,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "WhiteText"
+            }
+          ]
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1777014706614_6c64",
+          "name": "GrPnl_Inhalt_3",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 18,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TLabel",
+              "id": "obj_import_1777014706614_xslt",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 0,
+              "width": 8,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "WhiteText"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1776870551033",
+          "details": "",
+          "name": "Act_ShowInfoField",
+          "showDetails": false,
+          "target": "InfoWindow_HelloWorld",
+          "changes": {
+            "visible": true
+          }
+        },
+        {
+          "id": "node-1776886250349",
+          "details": "",
+          "name": "Act_ShowTestToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Auch ich grüße dich !!",
+          "toastType": "success"
+        },
+        {
+          "id": "node-1776930743666",
+          "details": "",
+          "name": "Act_ShowOkToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Du hast den Ok-Button geklickt",
+          "toastType": "success"
+        },
+        {
+          "id": "node-1776930896352",
+          "details": "",
+          "name": "act_ShowCancelToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Du hast cancel geklickt",
+          "toastType": "warning"
+        },
+        {
+          "id": "node-1777014873037",
+          "details": "",
+          "name": "MoveTheStartBtn",
+          "showDetails": false,
+          "type": "move_to",
+          "target": "Btn_Start",
+          "x": 50,
+          "y": 20,
+          "easing": "easeInOut"
+        },
+        {
+          "id": "node-1777015042989",
+          "details": "",
+          "name": "Act_ShowOnBlurToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Event: OnBlur"
+        },
+        {
+          "id": "node-1777017841379",
+          "details": "",
+          "name": "Act_ShowOnFokusToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Event: OnFokus"
+        },
+        {
+          "id": "node-1777017918638",
+          "details": "",
+          "name": "Act_ShowOnClickToast",
+          "showDetails": false
+        },
+        {
+          "id": "node-1777026749689",
+          "details": "",
+          "name": "Act_ShowOnMouseEnterToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Event: onMouseEnter"
+        },
+        {
+          "id": "node-1777026838648",
+          "details": "",
+          "name": "Act_ShowOnMouseLeaveToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Event: OnMouseLeave"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "LetTheButtonMove",
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_ShowOkToast",
+              "name": "MoveTheStartBtn",
               "type": "action",
               "layout": "horizontal"
             }
@@ -860,22 +1238,68 @@
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
-            "ShowOkToast": {
+            "LetTheButtonMove": {
               "x": 40,
               "y": 40
             },
-            "Act_ShowOkToast": {
+            "MoveTheStartBtn": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnBlur",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnBlurToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnBlur": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnFokus",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnFokusToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnFokus": {
+              "x": 40,
+              "y": 40
+            },
+            "Action1": {
               "x": 240,
               "y": 40
             }
           }
         },
         {
-          "name": "ShowCancelToast",
+          "name": "ShowOnClick",
           "description": "",
           "actionSequence": [
             {
-              "name": "act_ShowCancelToast",
+              "name": "Act_ShowOnClickToast",
               "type": "action",
               "layout": "horizontal"
             }
@@ -883,12 +1307,58 @@
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
-            "ShowCancelToast": {
+            "ShowOnClick": {
               "x": 40,
               "y": 40
             },
-            "act_ShowCancelToast": {
-              "x": 260,
+            "Act_ShowOnClickToast": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnMouseEnter",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnMouseEnterToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnMouseEnter": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnMouseLeave",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnMouseLeaveToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnMouseLeave": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ShowOnMouseLeaveToast": {
+              "x": 280,
               "y": 40
             }
           }
@@ -906,6 +1376,9 @@
       "flowCharts": {},
       "_supportedEvents": [
         "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
         "onDragStart",
         "onDragEnd",
         "onDrop",
@@ -2157,5 +2630,5 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "stage_1f1e07cf-e8d1-4ca6-9722-ca47729653b5"
 }

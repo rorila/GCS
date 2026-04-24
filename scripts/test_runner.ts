@@ -32,6 +32,7 @@ import { runTests as runVirtualGamepadTests } from '../tests/virtual_gamepad.tes
 import { runElectronSecurityTests } from '../tests/electron_security.test.js';
 import { runStageTransitionRegressionTests } from '../tests/stage_transition_regression.test.js';
 import { runTests as runSidePanelTests } from '../tests/side_panel.test.js';
+import { runComponentEventsTests } from '../tests/component_events.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -217,6 +218,10 @@ async function main() {
         // 22. SidePanel Component Unit Tests
         console.log('🏃 Starte SidePanel Tests...');
         allResults.push(...await runSidePanelTests());
+
+        // 23. Component Events Tests
+        console.log('🏃 Starte Component Events Tests...');
+        allResults.push(...await runComponentEventsTests());
 
         // 🌐 Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');

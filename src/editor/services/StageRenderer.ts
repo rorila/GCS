@@ -515,6 +515,39 @@ export class StageRenderer {
                 if (isNew) el.onclick = null;
             }
 
+            if (this.host.runMode) {
+                const hasMouseEnter = obj.events?.onMouseEnter || obj.Tasks?.onMouseEnter;
+                const hasMouseLeave = obj.events?.onMouseLeave || obj.Tasks?.onMouseLeave;
+                const hasDoubleClick = obj.events?.onDoubleClick || obj.Tasks?.onDoubleClick;
+
+                if (hasMouseEnter) {
+                    el.onmouseenter = (e: MouseEvent) => {
+                        e.stopPropagation();
+                        if (this.host.onEvent) this.host.onEvent(obj.id, 'onMouseEnter');
+                    };
+                } else if (isNew) {
+                    el.onmouseenter = null;
+                }
+
+                if (hasMouseLeave) {
+                    el.onmouseleave = (e: MouseEvent) => {
+                        e.stopPropagation();
+                        if (this.host.onEvent) this.host.onEvent(obj.id, 'onMouseLeave');
+                    };
+                } else if (isNew) {
+                    el.onmouseleave = null;
+                }
+
+                if (hasDoubleClick) {
+                    el.ondblclick = (e: MouseEvent) => {
+                        e.stopPropagation();
+                        if (this.host.onEvent) this.host.onEvent(obj.id, 'onDoubleClick');
+                    };
+                } else if (isNew) {
+                    el.ondblclick = null;
+                }
+            }
+
 
             // ─── Touch/Pointer Events (Tablet & Mobile Support) ───
             // Nutzt die Pointer Events API (vereint Maus, Touch, Stift).

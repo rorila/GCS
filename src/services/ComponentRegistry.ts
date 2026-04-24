@@ -329,7 +329,7 @@ export class ComponentRegistry {
             ComponentRegistry.logger.info(`Events für ${data.className} erfolgreich ermittelt:`, events);
             return events;
         }
-        return ['onClick', 'onDragStart', 'onDragEnd', 'onDrop', 'onTouchStart', 'onTouchMove', 'onTouchEnd']; // Fallback
+        return ['onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave', 'onDragStart', 'onDragEnd', 'onDrop', 'onTouchStart', 'onTouchMove', 'onTouchEnd']; // Fallback
     }
 
     /**

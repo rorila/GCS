@@ -1,3 +1,16 @@
+[UC-2026-04-24-UI-Component-Hover-Events]
+Dateien:
+- src/components/TComponent.ts
+  - `getEvents()`-Methode in Basisklasse integriert, die standardmäßig `onMouseEnter`, `onMouseLeave` und `onDoubleClick` bereitstellt.
+  - `getInspectorEvents()` nutzt nun `this.getEvents()`.
+- src/services/ComponentRegistry.ts
+  - Fallback-Events in `getEvents()` um `onMouseEnter`, `onMouseLeave` und `onDoubleClick` erweitert.
+- src/editor/services/StageRenderer.ts
+  - Die Events `onMouseEnter`, `onMouseLeave` und `onDoubleClick` werden nun via `el.onmouseenter` etc. dynamisch an alle gerenderten DOM-Elemente gebunden, sofern diese im Task/Event-Objekt hinterlegt sind.
+- src/editor/services/renderers/TextObjectRenderer.ts
+  - `renderButton()` ergänzt um `onMouseEnter`, `onMouseLeave` und `onDoubleClick` Dispatching, da die Button-Komponente die Event-Listener für visuelle Effekte (Filter) überschreibt.
+Beschreibung: Behebt das Problem, dass UI-Komponenten (wie TButton) keine passenden Hover-Events im Inspector und Flow-Editor zur Verfügung stellten und diese von der Runtime Engine nicht verarbeitet wurden. Zuvor versuchte man fälschlicherweise, Tastatur-Events (onFocus/onBlur) für Mauseingaben zu missbrauchen. Alle Interaktionen werden nun korrekt über die einheitliche `onEvent` Schnittstelle an die UniversalPlayer-Runtime weitergeleitet.
+
 [UC-2026-04-23-Variable-Rename-Nested-Bindings]
 Dateien:
 - src/editor/refactoring/VariableRefactoringService.ts

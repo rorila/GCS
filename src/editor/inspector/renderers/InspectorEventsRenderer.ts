@@ -21,20 +21,22 @@ export class InspectorEventsRenderer {
             eventsFile = './inspector_variable_events.json';
         }
 
-        if (!obj._supportedEvents || obj._supportedEvents.length === 0) {
-            // Versuch 1: Direkt vom Objekt (falls Prototyp/Methode vorhanden)
-            if (typeof obj.getEvents === 'function') {
-                obj._supportedEvents = obj.getEvents();
-            }
-            // Versuch 2: Falls getEvents() leer/undefined lieferte, über ComponentRegistry nachladen.
-            if (!obj._supportedEvents || obj._supportedEvents.length === 0) {
-                try {
-                    obj._supportedEvents = componentRegistry.getEvents(obj);
-                } catch (e) {
-                    logger.warn('Could not determine events for object:', obj);
-                }
+        // IMMER die Events frisch ermitteln (verhindert Caching-Probleme bei HMR / laufender Session)
+        let freshEvents: string[] = [];
+        // Versuch 1: Direkt vom Objekt (falls Prototyp/Methode vorhanden)
+        if (typeof obj.getEvents === 'function') {
+            freshEvents = obj.getEvents();
+        }
+        // Versuch 2: Falls getEvents() leer/undefined lieferte, über ComponentRegistry nachladen.
+        if (!freshEvents || freshEvents.length === 0) {
+            try {
+                freshEvents = componentRegistry.getEvents(obj);
+            } catch (e) {
+                logger.warn('Could not determine events for object:', obj);
             }
         }
+        // Objekt für das JSON-Template patchen
+        obj._supportedEvents = freshEvents;
 
         try {
             const uiObjects = await context.templateLoader.loadTemplate(eventsFile, obj);

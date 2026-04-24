@@ -211,10 +211,14 @@ export class TextObjectRenderer {
         const align = obj.style?.textAlign;
         el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
         if (ctx.host.runMode) {
-            el.onmouseenter = () => el.style.filter = 'brightness(1.1)';
+            el.onmouseenter = () => {
+                el.style.filter = 'brightness(1.1)';
+                if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onMouseEnter');
+            };
             el.onmouseleave = () => {
                 el.style.filter = 'none';
                 el.style.transform = el.style.transform.replace(' scale(0.98)', '');
+                if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onMouseLeave');
             };
             el.onmousedown = () => {
                 if (!el.style.transform.includes('scale(0.98)')) {
@@ -226,6 +230,12 @@ export class TextObjectRenderer {
                 e.stopPropagation();
                 if (ctx.host.onEvent) {
                     ctx.host.onEvent(obj.id, 'onClick');
+                }
+            };
+            el.ondblclick = (e: MouseEvent) => {
+                e.stopPropagation();
+                if (ctx.host.onEvent) {
+                    ctx.host.onEvent(obj.id, 'onDoubleClick');
                 }
             };
         }

@@ -359,6 +359,11 @@
   - DO: Legen Sie `pointer-events: none` auf die nicht-klickbaren Wrapper-Container. Nur die eigentlichen Touch-Flächen (Buttons) erhalten `pointer-events: auto;` sowie unbedingt `touch-action: none;`.
   - DO: Für kritische, schnelle Taps (wie Gamepad-Buttons) fängt Event-Delegation am Haupt-Container mit einem nicht-passiven `touchstart`-Listener das Event ab und ruft dort ein dediziertes `e.preventDefault()` auf, sobald das Event auf einer legitimen Schaltfläche ausgelöst wurde.
 
+- **Mouse & Hover Events für UI-Komponenten**:
+  - DO: Verwende ausschließlich `onMouseEnter`, `onMouseLeave` und `onDoubleClick` für Maus-Interaktionen auf UI-Komponenten.
+  - DON'T: Verwende niemals Tastatur-Events wie `onFocus` oder `onBlur`, um Hover-Zustände abzubilden.
+
+
 ### 13.16 Drag & Drop / Grid-Snapping
 
 - **Drag & Drop Snipping for Nested Blueprint Panels**: When dropping or panning items inside nested containers (especially Blueprint child objects which may have non-integer offsets due to `.align` configs), **always calculate the snapping on the relative coordinate**, not the absolute stage coordinate. Example: `Math.round((absMouseX - parentAbs.x) / cellSize)` instead of `Math.round(absMouseX / cellSize) - parentAbs.x`. Doing the latter will cause a sub-pixel shift against the visual grid boundary.

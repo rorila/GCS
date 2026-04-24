@@ -185,11 +185,18 @@ export abstract class TComponent implements IInspectable {
     }
 
     /**
+     * Liefert die Liste aller unterstützten Events für diese Komponente.
+     */
+    public getEvents(): string[] {
+        return ['onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave', 'onDragStart', 'onDragEnd', 'onDrop', 'onTouchStart', 'onTouchMove', 'onTouchEnd'];
+    }
+
+    /**
      * Events-Tab: Exportiert die Event-Bindings für den Inspector.
      */
     public getInspectorEvents(): { name: string; label: string; mappedTask?: string }[] {
         if (!this.events) return [];
-        const standardEvents = ['onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave', 'onDragStart', 'onDragEnd', 'onDrop', 'onTouchStart', 'onTouchMove', 'onTouchEnd'];
+        const standardEvents = this.getEvents();
         return standardEvents.map(eventName => ({
             name: eventName,
             label: eventName.replace(/^on/, ''),
