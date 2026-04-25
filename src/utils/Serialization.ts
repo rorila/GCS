@@ -26,10 +26,19 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
     objectsData.forEach((objData: any) => {
         if (!objData) return;
 
-        // Fallback für alte Projekte: Variablen, die keinen className haben
-        if (!objData.className && objData.isVariable) {
-            objData.className = 'TVariable';
-            logger.info(`Fallback: Zugeordneter className 'TVariable' für ${objData.name || objData.id}`);
+        // Fallback für alte Projekte und vom Agent generierte Variablen
+        const isLikelyVariable = objData.isVariable || 
+                                 (objData.id && typeof objData.id === 'string' && objData.id.startsWith('var_')) ||
+                                 (objData.type && ('scope' in objData || 'defaultValue' in objData || 'value' in objData));
+
+        if (!objData.className && isLikelyVariable) {
+            if (objData.type === 'boolean') objData.className = 'TBooleanVariable';
+            else if (objData.type === 'integer') objData.className = 'TIntegerVariable';
+            else if (objData.type === 'string') objData.className = 'TStringVariable';
+            else if (objData.type === 'float') objData.className = 'TFloatVariable';
+            else if (objData.type === 'list') objData.className = 'TListVariable';
+            else objData.className = 'TVariable';
+            logger.info(`Fallback: Zugeordneter className '${objData.className}' für ${objData.name || objData.id}`);
         }
 
         // IDEMPOTENCY: Already a live instance? Pass through safely.
@@ -107,6 +116,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             // 2. Variable Special Case: Force 'value' restoration if it exists
             if ((newObj as any).isVariable) {
                 if (objData.value !== undefined) (newObj as any).value = objData.value;
+                else if (objData.defaultValue !== undefined) (newObj as any).value = objData.defaultValue;
+                else if (objData.initialValue !== undefined) (newObj as any).value = objData.initialValue;
+                
                 // CRITICAL: Restore 'type' via setter (not _type) for correct morphing
                 if (objData.type !== undefined) {
                     logger.debug(`RESTORING type via explicit setter for "${newObj.name}":`, objData.type);

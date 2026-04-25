@@ -68,6 +68,7 @@ export class EditorViewManager {
             if (blueprint) {
                 if (!blueprint.variables) blueprint.variables = [];
                 changeVar = {
+                    className: 'TBooleanVariable',
                     id: 'var_isProjectChangeAvailable',
                     name: 'isProjectChangeAvailable',
                     type: 'boolean',

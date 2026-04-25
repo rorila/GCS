@@ -300,6 +300,10 @@ export class ExpressionParser {
 
             case 'BinaryExpression':
                 const left = this.evaluateAST(node.left, context, allowedCalls);
+                // Kurzschluss-Auswertung (Short-circuiting) für logische Operatoren in BinaryExpression (jsep legacy)
+                if (node.operator === '&&') return left && this.evaluateAST(node.right, context, allowedCalls);
+                if (node.operator === '||') return left || this.evaluateAST(node.right, context, allowedCalls);
+
                 const right = this.evaluateAST(node.right, context, allowedCalls);
                 switch (node.operator) {
                     case '+': return left + right;

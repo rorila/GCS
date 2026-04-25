@@ -104,6 +104,13 @@ export class ProjectBuilder {
         });
     }
 
+    addTaskParam(taskName: string, paramName: string, paramType: string, defaultValue: any): void {
+        const taskInfo = this.findTask(taskName);
+        if (!taskInfo) throw new Error(`Task '${taskName}' nicht gefunden`);
+        if (!taskInfo.task.params) taskInfo.task.params = [];
+        taskInfo.task.params.push({ name: paramName, type: paramType, defaultValue });
+    }
+
     // ─── Actions ───
     addAction(taskName: string, actionType: string, actionName: string, params: Record<string, any> = {}): void {
         // 1. Action global/stage definieren
@@ -130,6 +137,12 @@ export class ProjectBuilder {
     connectEvent(stageId: string, objectName: string, eventName: string, taskName: string): void {
         const stage = this.findStage(stageId);
         if (!stage) throw new Error(`Stage '${stageId}' nicht gefunden`);
+
+        if (objectName === 'stage' || objectName === stageId) {
+            if (!(stage as any).events) (stage as any).events = {};
+            (stage as any).events[eventName] = taskName;
+            return;
+        }
 
         // Objekt in objects oder variables suchen
         const obj = [...stage.objects, ...stage.variables].find((o: any) => o.name === objectName);
@@ -224,11 +237,11 @@ export class ProjectBuilder {
         const existing = this.project.variables.find((v: any) => v.name === name);
         if (existing) {
             existing.type = type;
-            existing.initialValue = initialValue;
+            existing.value = initialValue;
             existing.defaultValue = initialValue;
             existing.scope = scope;
         } else {
-            this.project.variables.push({ name, type, initialValue, defaultValue: initialValue, scope });
+            this.project.variables.push({ name, type, value: initialValue, defaultValue: initialValue, scope });
         }
     }
 
@@ -266,18 +279,43 @@ export class ProjectBuilder {
         conditionVariable: string,
         operator: string,
         conditionValue: any,
-        thenActions: string[],
-        elseActions: string[] = []
+        thenFn: (builder: any) => void,
+        elseFn?: (builder: any) => void
     ): void {
         const taskInfo = this.findTask(taskName);
         if (!taskInfo) throw new Error(`Task '${taskName}' nicht gefunden`);
+
+        const thenActions: any[] = [];
+        const elseActions: any[] = [];
+
+        const createBuilder = (targetList: any[]) => ({
+            addNewAction: (type: string, name: string, params: any = {}) => {
+                const actionDef: any = {
+                    id: `act_${++this.actionIdCounter}_${name.toLowerCase().replace(/\s/g, '_')}`,
+                    name: name,
+                    type: type,
+                    ...params
+                };
+                taskInfo.stage.actions.push(actionDef);
+                targetList.push({ type: 'action', name });
+            },
+            addExistingAction: (name: string) => {
+                targetList.push({ type: 'action', name });
+            },
+            addTaskCall: (name: string) => {
+                targetList.push({ type: 'task', name });
+            }
+        });
+
+        if (typeof thenFn === 'function') thenFn(createBuilder(thenActions));
+        if (typeof elseFn === 'function') elseFn(createBuilder(elseActions));
 
         taskInfo.task.actionSequence.push({
             type: 'condition',
             name: `Branch: ${conditionVariable} ${operator} ${conditionValue}`,
             condition: { variable: conditionVariable, operator, value: conditionValue },
-            then: thenActions.map(name => ({ type: 'action', name })),
-            else: elseActions.map(name => ({ type: 'action', name }))
+            then: thenActions,
+            else: elseActions
         });
     }
 

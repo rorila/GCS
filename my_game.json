@@ -1,0 +1,469 @@
+{
+  "version": "3.9.1",
+  "meta": {
+    "id": "pong",
+    "name": "Ping Pong",
+    "version": "1.0.0",
+    "author": "AgentController",
+    "description": "My First KI Game"
+  },
+  "variables": [
+    {
+      "name": "scoreLeft",
+      "type": "number",
+      "initialValue": 0,
+      "defaultValue": 0,
+      "scope": "global"
+    },
+    {
+      "name": "scoreRight",
+      "type": "number",
+      "initialValue": 0,
+      "defaultValue": 0,
+      "scope": "global"
+    },
+    {
+      "name": "gameState",
+      "type": "string",
+      "initialValue": "idle",
+      "defaultValue": "idle",
+      "scope": "global"
+    }
+  ],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#1e1e2e"
+      },
+      "objects": [],
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_main",
+      "name": "Pong Game",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#0f0c29"
+      },
+      "objects": [
+        {
+          "className": "TSprite",
+          "name": "Ball",
+          "x": 30,
+          "y": 20,
+          "width": 2,
+          "height": 2,
+          "velocityX": 1,
+          "velocityY": 1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "circle",
+          "spriteColor": "#ff6b6b",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333",
+            "borderWidth": 1,
+            "borderRadius": 999
+          },
+          "id": "obj_1777050437828_txfij",
+          "events": {
+            "onBoundaryHit": "HandleBoundary",
+            "onCollision": "HandlePaddleHit"
+          }
+        },
+        {
+          "className": "TSprite",
+          "name": "PaddleLeft",
+          "x": 2,
+          "y": 18,
+          "width": 2,
+          "height": 6,
+          "velocityX": 0,
+          "velocityY": 0,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333",
+            "borderWidth": 1,
+            "borderRadius": 0
+          },
+          "id": "obj_1777050437828_nae6g"
+        },
+        {
+          "className": "TSprite",
+          "name": "PaddleRight",
+          "x": 60,
+          "y": 18,
+          "width": 2,
+          "height": 6,
+          "velocityX": 0,
+          "velocityY": 0,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333",
+            "borderWidth": 1,
+            "borderRadius": 0
+          },
+          "id": "obj_1777050437828_4wdv3"
+        },
+        {
+          "className": "TLabel",
+          "name": "ScoreLeft",
+          "x": 20,
+          "y": 2,
+          "width": 6,
+          "height": 2,
+          "text": "${scoreLeft}",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 16,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent"
+          },
+          "id": "obj_1777050437828_rkeqa"
+        },
+        {
+          "className": "TLabel",
+          "name": "ScoreRight",
+          "x": 40,
+          "y": 2,
+          "width": 6,
+          "height": 2,
+          "text": "${scoreRight}",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 16,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent"
+          },
+          "id": "obj_1777050437828_qt6ga"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "StartGame",
+          "description": "Startet das Spiel",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "ResetScoreLeft"
+            },
+            {
+              "type": "action",
+              "name": "ResetScoreRight"
+            },
+            {
+              "type": "action",
+              "name": "ResetBallPosition"
+            },
+            {
+              "type": "action",
+              "name": "SetBallVelocity"
+            },
+            {
+              "type": "action",
+              "name": "SetGameStatePlaying"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "StartGame": {
+              "x": 40,
+              "y": 40
+            },
+            "ResetScoreLeft": {
+              "x": 40,
+              "y": 140
+            },
+            "ResetScoreRight": {
+              "x": 40,
+              "y": 240
+            },
+            "ResetBallPosition": {
+              "x": 40,
+              "y": 340
+            },
+            "SetBallVelocity": {
+              "x": 40,
+              "y": 440
+            },
+            "SetGameStatePlaying": {
+              "x": 40,
+              "y": 540
+            }
+          }
+        },
+        {
+          "name": "HandleBoundary",
+          "description": "Ball trifft Rand",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == top",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "top"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "BounceTop"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == bottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "BounceBottom"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == left",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "left"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "IncRightScore"
+                },
+                {
+                  "type": "action",
+                  "name": "ResetBallAfterLeft"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == right",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "right"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "IncLeftScore"
+                },
+                {
+                  "type": "action",
+                  "name": "ResetBallAfterRight"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "params": [
+            {
+              "name": "hitSide",
+              "type": "string",
+              "defaultValue": ""
+            }
+          ],
+          "flowLayout": {
+            "HandleBoundary": {
+              "x": 40,
+              "y": 40
+            },
+            "Branch: hitSide == top": {
+              "x": 40,
+              "y": 140
+            },
+            "Branch: hitSide == bottom": {
+              "x": 40,
+              "y": 240
+            },
+            "Branch: hitSide == left": {
+              "x": 40,
+              "y": 340
+            },
+            "Branch: hitSide == right": {
+              "x": 40,
+              "y": 440
+            }
+          }
+        },
+        {
+          "name": "HandlePaddleHit",
+          "description": "Ball trifft Paddle",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "BounceHorizontal"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "HandlePaddleHit": {
+              "x": 40,
+              "y": 40
+            },
+            "BounceHorizontal": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_1_resetscoreleft",
+          "name": "ResetScoreLeft",
+          "type": "set_variable",
+          "variableName": "scoreLeft",
+          "value": 0
+        },
+        {
+          "id": "act_2_resetscoreright",
+          "name": "ResetScoreRight",
+          "type": "set_variable",
+          "variableName": "scoreRight",
+          "value": 0
+        },
+        {
+          "id": "act_3_resetballposition",
+          "name": "ResetBallPosition",
+          "type": "property",
+          "target": "Ball",
+          "changes": {
+            "x": 30,
+            "y": 20
+          }
+        },
+        {
+          "id": "act_4_setballvelocity",
+          "name": "SetBallVelocity",
+          "type": "property",
+          "target": "Ball",
+          "changes": {
+            "velocityX": 1,
+            "velocityY": 1
+          }
+        },
+        {
+          "id": "act_5_setgamestateplaying",
+          "name": "SetGameStatePlaying",
+          "type": "set_variable",
+          "variableName": "gameState",
+          "value": "playing"
+        },
+        {
+          "id": "act_6_bouncetop",
+          "name": "BounceTop",
+          "type": "negate",
+          "target": "Ball",
+          "changes": {
+            "velocityY": 1
+          }
+        },
+        {
+          "id": "act_7_bouncebottom",
+          "name": "BounceBottom",
+          "type": "negate",
+          "target": "Ball",
+          "changes": {
+            "velocityY": 1
+          }
+        },
+        {
+          "id": "act_8_incrightscore",
+          "name": "IncRightScore",
+          "type": "calculate",
+          "resultVariable": "scoreRight",
+          "formula": "${scoreRight} + 1"
+        },
+        {
+          "id": "act_9_resetballafterleft",
+          "name": "ResetBallAfterLeft",
+          "type": "property",
+          "target": "Ball",
+          "changes": {
+            "x": 30,
+            "y": 20
+          }
+        },
+        {
+          "id": "act_10_incleftscore",
+          "name": "IncLeftScore",
+          "type": "calculate",
+          "resultVariable": "scoreLeft",
+          "formula": "${scoreLeft} + 1"
+        },
+        {
+          "id": "act_11_resetballafterright",
+          "name": "ResetBallAfterRight",
+          "type": "property",
+          "target": "Ball",
+          "changes": {
+            "x": 30,
+            "y": 20
+          }
+        },
+        {
+          "id": "act_12_bouncehorizontal",
+          "name": "BounceHorizontal",
+          "type": "negate",
+          "target": "Ball",
+          "changes": {
+            "velocityX": 1
+          }
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "gameName": "Pong Game",
+      "backgroundColor": "#0f0c29",
+      "events": {
+        "onRuntimeStart": "StartGame"
+      }
+    }
+  ],
+  "tasks": [],
+  "actions": [],
+  "objects": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "activeStageId": "stage_main"
+}

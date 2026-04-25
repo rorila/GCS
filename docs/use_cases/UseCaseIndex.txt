@@ -1,3 +1,19 @@
+[UC-2026-04-24-Memory-Game-Builder]
+Dateien:
+- scripts/MemoryGameBuilder.ts
+Beschreibung: Erstellung eines vollständig per Code generierten 4x4 Memory-Spiels.
+  - Das Skript nutzt den `ProjectBuilder` (AgentController) zur Definition der Spiellogik.
+  - Ein Fisher-Yates-Shuffle in TypeScript sorgt bei jeder Ausführung für ein zufälliges Karten-Layout.
+  - Formel-basierte Logik (Ternäre Operatoren im `ExpressionParser`) wurde genutzt, um Action-Verschachtelungen (`addBranch`) zu umgehen.
+
+[UC-2026-04-24-Agent-API-Reference-Update]
+Dateien:
+- docs/AGENT_API_REFERENCE.md
+Beschreibung: Umfassendes Audit und Refactoring der Agent API Referenz, um Kompatibilität mit dem aktuellen Projekt-Status und dem `AgentController` zu gewährleisten. 
+  - `addBranch` Syntax auf Callback-Builder umgestellt, um veraltete Objekt-Signaturen in den Rezepten (Pong-Ball, Theme-Switcher) und Anti-Patterns (§7.13) zu bereinigen.
+  - Pong-Ball Rezept für Panel-Ränder auf `onBoundaryHit` angepasst.
+  - Tabellen und Action-Typen (`variable` statt `set_variable`) konsolidiert, um LLMs korrekte Vorlagen zu liefern.
+
 [UC-2026-04-24-UI-Component-Hover-Events]
 Dateien:
 - src/components/TComponent.ts
@@ -849,34 +865,13 @@ U s e C a s e :   P r o j e c t - W i d e   R e n a m e   o f   N e s t e d   C 
  
  
 [UC-2026-04-19-StickyNotesInspectorFix]
-Dateien:
-- src/editor/services/FlowInteractionManager.ts (Zeile 229)
-  - Methode: mousedown event handler -> Erlaubt Input/Textarea-Elementen das Event zu bubbeln, stoppt aber die Canvas-Drag-Logik, damit der Inspector sich auf den Node fokussiert.
-- src/editor/flow/FlowCommentNode.ts (Zeile 106, 143, 185)
-  - propertiesName (Case-Fix): Angleichung von name/width/height an Name/Width/Height.
-Beschreibung: Sticky Notes lassen sich nun nahtlos Ober den Inspector synchron halten und behalten gleichzeitig nativen Eingabefokus beim Klicken.
-Sticky-Notes: TStickyNote (Stage) und FlowCommentNode (Flow) unterstuezten 4 Farbcodes fuer Entwickler-Notizen - src/components/TStickyNote.ts, src/editor/flow/FlowCommentNode.ts, public/editor/toolbox.json
-
-
-## [UseCase: TStickyNote Visuals & Toolbox]
-- \src/components/TStickyNote.ts\ (Zeile 7-77): Titel Property ('title') hinzugef�gt, Schatten-Design angepasst.
-- \src/editor/services/renderers/TextObjectRenderer.ts\ (Zeile 235-261): Neue draw-Methode \
-enderStickyNote\ mit Headline und Body.
-- \src/editor/services/StageRenderer.ts\ (Zeile 729-731): Routing f�r \TStickyNote\ Klassennamen eingebaut.
-- \public/editor/toolbox.json\ (Zeile 10): \expanded\ auf true gesetzt, damit Anwender StickyNotes sofort sehen.
-
-USE CASE: Sticky-Node Manager �bersicht (Project Navigation)
-Beteiligte Dateien:
-- src/editor/EditorViewManager.ts (ab Zeile 684): Hinzuf�gen der renderStickyNotesView() Methode zum Sammeln von Notizen (Stage & FlowCharts) gruppiert nach Farbe (yellow, green, blue, red), sowie Navigation-Klick Logik.
-
-USE CASE: Fix Manager Navigation f�r Actions und Variablen
-Beteiligte Dateien:
-- src/editor/EditorViewManager.ts: Korrigiere handleManagerRowClick(managerId, row) sodass Actions und VisualObjects �ber row.name respektive row.id mit selectObject() selektiert werden (statt switchActionFlow), damit sich der Inspector �ffnet.
-
-USE CASE: Manager-Tab leere Tabellen + Action-Verlust beheben
 Beteiligte Dateien:
 - src/editor/EditorViewManager.ts: renderManagementView() Zeile 652-657 - Stage-Fallback wenn coreStore.activeStageId null ist. handleManagerRowClick() Zeile 1056-1081 - Actions/Variables ohne switchView('stage') selektieren.
 Root Cause: FlowEditor.switchActionFlow() setzt coreStore.activeStageId auf null bei globalem Kontext (Zeile 588).
 -   T I n f o W i n d o w / T D i a l o g R o o t   R e a c t i v i t y   F i x :   s r c / e d i t o r / s e r v i c e s / r e n d e r e r s / C o m p l e x C o m p o n e n t R e n d e r e r . t s   ( r e n d e r I n f o W i n d o w ,   r e n d e r D i a l o g R o o t )  
  -   P r o p e r t y W a t c h e r   L o g   S p a m   F i x :   s r c / r u n t i m e / P r o p e r t y W a t c h e r . t s   ( n o t i f y )  
+ [ 2 0 2 6 - 0 4 - 2 4 ]   U C - 2 0 2 6 - 0 4 - 2 4 - V a r i a b l e H y d r a t i o n F i x  
+ -   B e s c h r e i b u n g :   B e h e b u n g   d e s   F e h l e r s ,   d a s s   v o m   A g e n t e n   o h n e   ' c l a s s N a m e '   g e n e r i e r t e   V a r i a b l e n   b e i   d e r   D e s e r i a l i s i e r u n g   i g n o r i e r t   w u r d e n .   D i e s   f u e h r t e   d a z u ,   d a s s   d i e s e   V a r i a b l e n   n i c h t   i n   d e n   P r o j e k t z u s t a n d   a u f g e n o m m e n   u n d   i m   R u n - M o d e   ( z .   B .   i m   T a s k E x e c u t o r )   a l s   ' u n d e f i n e d '   a u s g e w e r t e t   w u r d e n ,   w a s   L o g i k f e h l e r   w i e   f e h l s c h l a g e n d e   C o n d i t i o n s   ( ' C a n F l i p _ 1   = =   f a l s e ' )   v e r u r s a c h t e .   E i n   e r w e i t e r t e r   F a l l b a c k   i n   ' S e r i a l i z a t i o n . t s '   e r k e n n t   n u n   a u c h   V a r i a b l e n   a n   t y p i s c h e n   A t t r i b u t e n   w i e   ' d e f a u l t V a l u e '   u n d   ' s c o p e '   u n d   w e i s t   d e n   k o r r e k t e n   ' c l a s s N a m e '   z u .  
+ -   D a t e i e n :  
+     -   s r c / u t i l s / S e r i a l i z a t i o n . t s   ( M e t h o d e :   h y d r a t e O b j e c t s ,   Z e i l e n   2 6 - 3 8   -   E r w e i t e r t e r   i s L i k e l y V a r i a b l e - G u a r d )  
  

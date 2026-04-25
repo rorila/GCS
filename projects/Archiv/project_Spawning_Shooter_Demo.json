@@ -75,10 +75,13 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "isGlobal": true,
-          "description": "System internal flag to track unsaved changes"
+          "description": "System internal flag to track unsaved changes",
+          "uiScope": "stage",
+          "uiEmoji": "🎭",
+          "usageCount": 0
         }
       ],
       "flowCharts": {},
@@ -657,7 +660,7 @@
       ]
     }
   ],
-  "activeStageId": "stage-1",
+  "activeStageId": "blueprint",
   "objects": [],
   "actions": [],
   "tasks": [],

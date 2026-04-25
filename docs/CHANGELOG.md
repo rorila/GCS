@@ -1,5 +1,25 @@
 # Changelog (v3.31.0 - Unreleased)
 
+## [2026-04-24] - Memory Game Builder (KI-generiertes Spiel)
+### Added
+- `scripts/MemoryGameBuilder.ts`: Ein vollständiges Builder-Skript zur Erzeugung eines 4x4 Memory-Spiels über die Headless-CLI.
+  - Generiert 16 interaktive Karten mit 8 Emoji-Paaren, die via TypeScript gemischt werden.
+  - Komplexe Timer-Logik für das Auf- und Zudecken der Karten nach 1 Sekunde.
+  - Robuste Nutzung von formel-basierten Conditionals (`ExpressionParser`), um lineare Actions statt verschachtelter `addBranch`-Aufrufe zu nutzen.
+
+### Fixed
+- **Serialization (TVariable):** Behebung eines kritischen Fehlers, durch den Variablen aus generierten JSONs mit `undefined` statt ihrem Standardwert initialisiert wurden. `ProjectBuilder` setzt nun explizit das `value` Feld und `Serialization.ts` weicht bei fehlendem `value` auf `defaultValue` / `initialValue` aus.
+- **Bugfix (Variable Hydration)**: Ein kritischer Fehler in `Serialization.ts` wurde behoben. Variablen, die dynamisch ohne explizites `className`-Attribut generiert wurden (z. B. durch `MemoryGameBuilder.ts`), wurden zuvor als fehlerhaft klassifiziert und stillschweigend verworfen. Die Hydrierungslogik verwendet nun eine erweiterte Fallback-Erkennung (z.B. Vorhandensein von typischen Variablen-Attributen wie `defaultValue`, `scope` oder `value` kombiniert mit `type`), um Variablenobjekte zur Laufzeit zuverlässig zu instanziieren und korrekte Startwerte (z.B. false statt undefined) sicherzustellen. Dies behebt Logik-Fehler wie fehlschlagende if-Bedingungen.
+- **Bugfix (Logische Operatoren)**: Implementierung von Kurzschluss-Auswertung (Short-Circuiting) für logische Operatoren in `ExpressionParser.ts` zur Unterstützung von `&&` und `||`.
+- **Bugfix (Koordinaten)**: Umstellung der Koordinatenberechnung in `MemoryGameBuilder.ts` von absoluten Pixelwerten auf Grid-Zellen-Einheiten.
+- **Serialization (EditorViewManager):** Fehlende `className` (`TBooleanVariable`) bei der automatischen Generierung von `var_isProjectChangeAvailable` ergänzt, um den FATAL-Error bei der Deserialisierung zu beheben.
+
+### 2026-04-24 (Dokumentation: AGENT_API_REFERENCE.md Überarbeitung)
+- **Dokumentation (Agent API):** Umfassendes Review und Korrektur der Agent API Reference (`AGENT_API_REFERENCE.md`). 
+  - Die `addBranch` Signatur wurde auf die moderne Callback-Variante aktualisiert, um veraltete Object-Signaturen in den Anti-Patterns und Workflow-Rezepten zu beheben.
+  - Das Rezept für Ball-Physik wurde so korrigiert, dass es nun richtigerweise `onBoundaryHit` statt den inakkuraten `onCollisionLeft` / `onCollisionRight` verwendet.
+  - Die Komponentendokumentation für `TSprite` und `TPanel` wurde um das "Lokale Bounds"-Verhalten ergänzt (Sprites in Panels beziehen ihre Grenzen und Kollisionen nun lokal).
+  - Veraltete Action-Typen (z.B. `set_variable` statt `variable`) wurden konsistent in Tabellen korrigiert, um falsche Agent-Skript-Generierungen zu unterbinden.
 ### 2026-04-24 (Feature: Sprite-Panel Physics Integration)
 - **Physik-Erweiterung:** Sprites können nun lokal innerhalb von Panels (TPanel, TGroupPanel) an deren Rändern abprallen und mit ihnen kollidieren.
 - **Bedingte Kollision:** Abprallen (an globalen sowie Panel-Rändern) und Kollisionen passieren nun nur noch exklusiv, wenn das Sprite das Event `onBoundaryHit` bzw. `onCollision` (oder entsprechende Richtungs-Events) belegt hat. Dies ermöglicht "Geister"-Verhalten durch Hindernisse.
