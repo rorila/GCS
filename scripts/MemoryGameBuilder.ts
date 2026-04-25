@@ -1,177 +1,318 @@
-export default function build(agent: any) {
-    agent.setMeta('memory_game', 'Memory', 'Ein KI-generiertes Memory-Spiel');
+/**
+ * Memory-Spiel (v2) — deklarativ mit TForEach + Collection-Actions
+ *
+ * Nutzt die drei neuen Features (A/B/C):
+ *   • Event-Context (Magic-Variable ${self.*})
+ *   • Collection-Actions (list_shuffle, list_get, list_push, ...)
+ *   • TForEach (deklarativer Repeater mit Diff-Reconciliation)
+ *
+ * Aufruf:
+ *   npx tsx scripts/agent-run.ts scripts/MemoryGameBuilder.ts my_memory_game.json
+ */
+import { ProjectBuilder } from './agent-run';
 
-    // 1. Blueprint Setup
-    agent.createStage('stage_blueprint', 'Blueprint', 'blueprint');
+export default function build(agent: ProjectBuilder): void {
 
-    agent.addObject('stage_blueprint', { className: 'TGameLoop', name: 'GameLoop', enabled: true, x: 10, y: 10 });
-    agent.addObject('stage_blueprint', { className: 'TGameState', name: 'GameState', active: true, x: 10, y: 50 });
-    agent.addObject('stage_blueprint', { 
-        className: 'TDialogRoot', 
-        name: 'WinDialog', 
-        visible: false, 
-        modal: true, 
-        title: '🏆 Gewonnen!', 
-        x: 10, 
-        y: 90 
+    // ═══════════════════════════════════════
+    // SCHRITT 1: META
+    // ═══════════════════════════════════════
+    agent.setMeta(
+        'memory_game_v2',
+        'Memory (TForEach)',
+        'Klassisches Memory-Spiel — deklarativ gebaut mit TForEach, Collection-Actions und Magic-Variablen.'
+    );
+
+    // ═══════════════════════════════════════
+    // SCHRITT 2: STAGES
+    // ═══════════════════════════════════════
+    // Blueprint existiert bereits (ProjectBuilder-Default); main neu anlegen.
+    agent.createStage('stage_main', 'Memory', 'standard');
+
+    // ═══════════════════════════════════════
+    // SCHRITT 3: BLUEPRINT-OBJEKTE
+    // ═══════════════════════════════════════
+    agent.addObject('stage_blueprint', {
+        className: 'TGameLoop', name: 'GameLoop',
+        x: 2, y: 2, width: 3, height: 1,
+        isService: true, isHiddenInRun: true, targetFPS: 60,
+        style: { backgroundColor: '#2196f3', borderColor: '#1565c0', borderWidth: 2, color: '#fff' }
     });
 
-    // 2. Memory Stage
-    agent.createStage('stage_main', 'Memory Game', 'standard');
+    agent.addObject('stage_blueprint', {
+        className: 'TGameState', name: 'GameState',
+        x: 6, y: 2, width: 4, height: 1,
+        isVariable: true, isService: true, isHiddenInRun: true,
+        state: 'idle',
+        style: { backgroundColor: '#4caf50', color: '#fff' }
+    });
 
-    // --- Game State Variables (Global) ---
-    agent.addVariable('FirstCard', 'string', '');
-    agent.addVariable('FirstCardValue', 'string', '');
-    agent.addVariable('SecondCard', 'string', '');
-    agent.addVariable('SecondCardValue', 'string', '');
-    agent.addVariable('State', 'string', 'idle'); 
-    agent.addVariable('Matches', 'integer', 0);
-    agent.addVariable('Tries', 'integer', 0);
+    agent.addObject('stage_blueprint', {
+        className: 'TDialogRoot', name: 'WinDialog',
+        x: 16, y: 12, width: 32, height: 10,
+        visible: false, modal: true,
+        title: '🏆 Gewonnen!',
+        text: 'Geschafft mit ${attempts} Versuchen!',
+        style: { backgroundColor: '#1a1a2e', color: '#f7c948', borderColor: '#f7c948', borderWidth: 2, borderRadius: 12 }
+    });
 
-    // --- Shuffle Cards via TS ---
-    const pairs = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍒', '🥝', '🍍'];
-    const deck = [...pairs, ...pairs];
-
-    for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
+    // ═══════════════════════════════════════
+    // SCHRITT 4: CARD-DATEN (Build-Time)
+    // ═══════════════════════════════════════
+    // 8 Werte × 2 = 16 Karten. Shuffle erfolgt zur Runtime via list_shuffle.
+    const faces = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍒', '🥝', '🍍'];
+    const cardData: any[] = [];
+    for (let i = 0; i < faces.length; i++) {
+        cardData.push({ idx: i * 2,     value: faces[i], displayText: '?', face: false, matched: false });
+        cardData.push({ idx: i * 2 + 1, value: faces[i], displayText: '?', face: false, matched: false });
     }
 
-    // --- Cards and their Variables ---
-    const CARD_SIZE = 4; // 4 Zellen (80 Pixel)
-    const SPACING = 1;   // 1 Zelle (20 Pixel)
-    const START_X = 4;   // Spalte 4
-    const START_Y = 6;   // Zeile 6
+    // ═══════════════════════════════════════
+    // SCHRITT 5: VARIABLEN (Stage-Objekte)
+    // ═══════════════════════════════════════
 
-    for (let i = 0; i < 16; i++) {
-        const id = (i + 1).toString();
-        const row = Math.floor(i / 4);
-        const col = i % 4;
-        const x = START_X + col * (CARD_SIZE + SPACING);
-        const y = START_Y + row * (CARD_SIZE + SPACING);
+    // --- Karten-Liste ---
+    agent.addObject('stage_main', {
+        className: 'TListVariable', name: 'cards',
+        x: 2, y: 2, width: 4, height: 1,
+        isVariable: true, isHiddenInRun: true,
+        value: cardData, defaultValue: cardData,
+        style: { backgroundColor: '#1e1e2e', color: '#fff' }
+    });
 
-        agent.addVariable(`Card${id}_State`, 'integer', 0);
-        agent.addVariable(`Card${id}_Value`, 'string', deck[i]);
-        agent.addVariable(`Card${id}_Display`, 'string', '❓');
+    // --- Spiel-Zustand ---
+    const intVar = (name: string, init: number, x: number) => agent.addObject('stage_main', {
+        className: 'TIntegerVariable', name,
+        x, y: 2, width: 3, height: 1,
+        isVariable: true, isHiddenInRun: true,
+        value: init, defaultValue: init, type: 'integer',
+        style: { backgroundColor: '#d1c4e9', borderColor: '#9575cd', borderWidth: 1 }
+    });
 
-        agent.addObject('stage_main', {
+    intVar('firstIdx',   -1,  7);  // Index der 1. aufgedeckten Karte (-1 = keine)
+    intVar('secondIdx',  -1, 11);  // Index der 2. aufgedeckten Karte (-1 = keine)
+    intVar('score',       0, 15);  // Gefundene Paare
+    intVar('attempts',    0, 19);  // Versuchs-Zähler
+    intVar('clickedIdx', -1, 23);  // Zwischenspeicher für geklickten Index
+
+    // Hilfsvariablen (werden in Tasks überschrieben)
+    agent.addObject('stage_main', {
+        className: 'TStringVariable', name: 'clickedIdxStr',
+        x: 27, y: 2, width: 3, height: 1,
+        isVariable: true, isHiddenInRun: true,
+        value: '', defaultValue: '', type: 'string'
+    });
+    agent.addObject('stage_main', {
+        className: 'TObjectVariable', name: 'tempCard',
+        x: 31, y: 2, width: 3, height: 1,
+        isVariable: true, isHiddenInRun: true,
+        value: null, defaultValue: null
+    });
+    agent.addObject('stage_main', {
+        className: 'TObjectVariable', name: 'firstCard',
+        x: 35, y: 2, width: 3, height: 1,
+        isVariable: true, isHiddenInRun: true,
+        value: null, defaultValue: null
+    });
+    agent.addObject('stage_main', {
+        className: 'TBooleanVariable', name: 'canFlip',
+        x: 39, y: 2, width: 3, height: 1,
+        isVariable: true, isHiddenInRun: true,
+        value: false, defaultValue: false, type: 'boolean'
+    });
+    agent.addObject('stage_main', {
+        className: 'TBooleanVariable', name: 'isFirst',
+        x: 43, y: 2, width: 3, height: 1,
+        isVariable: true, isHiddenInRun: true,
+        value: false, defaultValue: false, type: 'boolean'
+    });
+    agent.addObject('stage_main', {
+        className: 'TBooleanVariable', name: 'isMatch',
+        x: 47, y: 2, width: 3, height: 1,
+        isVariable: true, isHiddenInRun: true,
+        value: false, defaultValue: false, type: 'boolean'
+    });
+
+    // ═══════════════════════════════════════
+    // SCHRITT 6: UI
+    // ═══════════════════════════════════════
+
+    agent.createLabel('stage_main', 'Title', 22, 4, '🎴 Memory', {
+        width: 24, height: 3, fontSize: 36, fontWeight: 'bold',
+        color: '#f7c948', textAlign: 'center'
+    });
+
+    agent.createLabel('stage_main', 'StatsLabel', 22, 8,
+        'Paare: ${score} / 8  |  Versuche: ${attempts}', {
+        width: 24, height: 2, fontSize: 18, fontWeight: 'normal',
+        color: '#b9b9d4', textAlign: 'center'
+    });
+
+    // --- TForEach: das Herzstück ---
+    agent.addObject('stage_main', {
+        className: 'TForEach', name: 'MemoryGrid',
+        x: 22, y: 11, width: 24, height: 24,
+        source: 'cards',
+        layout: 'grid',
+        cols: 4, rows: 4,
+        gap: 1,
+        itemWidth: 5, itemHeight: 5,
+        namePattern: 'Card_{index}',
+        template: {
             className: 'TButton',
-            name: `Btn_Card${id}`,
-            caption: `\${Card${id}_Display}`,
-            x: x,
-            y: y,
-            width: CARD_SIZE,
-            height: CARD_SIZE,
-            style: { fontSize: '32px' }
-        });
-    }
-
-    // --- UI Labels ---
-    agent.addObject('stage_main', {
-        className: 'TLabel',
-        name: 'LblStats',
-        text: 'Versuche: ${Tries}  |  Gefunden: ${Matches} / 8',
-        x: START_X,
-        y: START_Y - 3,
-        width: 20,
-        height: 2
-    });
-
-    // --- Timer for hiding cards ---
-    agent.addObject('stage_main', {
-        className: 'TTimer',
-        name: 'CheckTimer',
-        interval: 1000, 
-        enabled: false,
-        autoReset: false,
-        x: 10,
-        y: 10
-    });
-
-    // --- Task: CheckMatch ---
-    agent.createTask('stage_main', 'CheckMatch');
-    agent.addAction('CheckMatch', 'calculate', 'IncTries', { formula: 'Tries + 1', resultVariable: 'Tries' });
-    
-    agent.addBranch('CheckMatch', 'FirstCardValue', '==', '${SecondCardValue}', (then: any) => {
-        // Match!
-        then.addNewAction('calculate', 'IncMatches', { formula: 'Matches + 1', resultVariable: 'Matches' });
-        
-        for (let i = 1; i <= 16; i++) {
-            then.addNewAction('calculate', `SetState2First_${i}`, { 
-                formula: `FirstCard == "${i}" ? 2 : Card${i}_State`, 
-                resultVariable: `Card${i}_State` 
-            });
-            then.addNewAction('calculate', `SetState2Second_${i}`, { 
-                formula: `SecondCard == "${i}" ? 2 : Card${i}_State`, 
-                resultVariable: `Card${i}_State` 
-            });
-        }
-    }, (elseBranch: any) => {
-        // No Match! Hide flipped cards
-        for (let i = 1; i <= 16; i++) {
-            elseBranch.addNewAction('calculate', `ResetState0_${i}`, { 
-                formula: `Card${i}_State == 1 ? 0 : Card${i}_State`, 
-                resultVariable: `Card${i}_State` 
-            });
-            // When hiding, set display back to ?
-            elseBranch.addNewAction('calculate', `ResetDisplay_${i}`, { 
-                formula: `Card${i}_State == 0 ? "❓" : Card${i}_Display`, 
-                resultVariable: `Card${i}_Display` 
-            });
+            text: '${item.displayText}',
+            _idx: '${index}',
+            style: {
+                fontSize: 28, fontWeight: 'bold',
+                backgroundColor: '#3a3a5c',
+                borderColor: '#5a5a8c',
+                borderWidth: 2,
+                borderRadius: 8,
+                color: '#ffffff',
+                textAlign: 'center'
+            },
+            events: { onClick: 'OnCardClick' }
         }
     });
-    
-    agent.addBranch('CheckMatch', 'Matches', '==', 8, (win: any) => {
-        win.addNewAction('call_method', 'ShowWinDialog', { target: 'WinDialog', method: 'show' });
+
+    // ═══════════════════════════════════════
+    // SCHRITT 7: TASKS
+    // ═══════════════════════════════════════
+
+    // ────────────────────────────────────────
+    // InitGame — shuffle + reset state
+    // ────────────────────────────────────────
+    agent.createTask('stage_main', 'InitGame', 'Karten mischen, Spiel-Zustand zurücksetzen');
+    agent.addAction('InitGame', 'list_shuffle', 'ShuffleCards', { target: 'cards' });
+    agent.addAction('InitGame', 'calculate', 'ResetFirstIdxInit',  { formula: '-1', resultVariable: 'firstIdx' });
+    agent.addAction('InitGame', 'calculate', 'ResetSecondIdxInit', { formula: '-1', resultVariable: 'secondIdx' });
+    agent.addAction('InitGame', 'calculate', 'ResetScoreInit',     { formula: '0',  resultVariable: 'score' });
+    agent.addAction('InitGame', 'calculate', 'ResetAttemptsInit',  { formula: '0',  resultVariable: 'attempts' });
+
+    // ────────────────────────────────────────
+    // ResetFlippedCards — klappt firstIdx + secondIdx zurück
+    // ────────────────────────────────────────
+    agent.createTask('stage_main', 'ResetFlippedCards', 'Vorheriges Nicht-Paar zurückklappen');
+    agent.addAction('ResetFlippedCards', 'list_get', 'GetFirstFlip', {
+        target: 'cards', index: '${firstIdx}', resultVariable: 'tempCard'
+    });
+    agent.addAction('ResetFlippedCards', 'property', 'HideFirstFlip', {
+        target: 'tempCard', changes: { face: false, displayText: '?' }
+    });
+    agent.addAction('ResetFlippedCards', 'list_get', 'GetSecondFlip', {
+        target: 'cards', index: '${secondIdx}', resultVariable: 'tempCard'
+    });
+    agent.addAction('ResetFlippedCards', 'property', 'HideSecondFlip', {
+        target: 'tempCard', changes: { face: false, displayText: '?' }
+    });
+    agent.addAction('ResetFlippedCards', 'calculate', 'ResetFirstIdxFlip',  { formula: '-1', resultVariable: 'firstIdx' });
+    agent.addAction('ResetFlippedCards', 'calculate', 'ResetSecondIdxFlip', { formula: '-1', resultVariable: 'secondIdx' });
+
+    // ────────────────────────────────────────
+    // HandleMatch — bei Paar: beide Karten markieren, Score++
+    // ────────────────────────────────────────
+    agent.createTask('stage_main', 'HandleMatch', 'Paar gefunden: markieren, Score erhöhen');
+    agent.addAction('HandleMatch', 'property', 'MatchFirst',  { target: 'firstCard', changes: { matched: true } });
+    agent.addAction('HandleMatch', 'property', 'MatchSecond', { target: 'tempCard',  changes: { matched: true } });
+    agent.addAction('HandleMatch', 'calculate', 'IncScore',   { formula: 'score + 1', resultVariable: 'score' });
+    agent.addAction('HandleMatch', 'calculate', 'ResetFirstIdxMatch',  { formula: '-1', resultVariable: 'firstIdx' });
+    agent.addAction('HandleMatch', 'calculate', 'ResetSecondIdxMatch', { formula: '-1', resultVariable: 'secondIdx' });
+
+    // ────────────────────────────────────────
+    // ProcessSecondCard — zweite Karte: Match prüfen
+    // ────────────────────────────────────────
+    agent.createTask('stage_main', 'ProcessSecondCard', 'Zweite Karte: secondIdx setzen, Match prüfen');
+    agent.addAction('ProcessSecondCard', 'variable', 'SetSecondIdx', {
+        variableName: 'secondIdx', value: '${clickedIdx}'
+    });
+    agent.addAction('ProcessSecondCard', 'calculate', 'IncAttempts', {
+        formula: 'attempts + 1', resultVariable: 'attempts'
+    });
+    agent.addAction('ProcessSecondCard', 'list_get', 'GetFirstCard', {
+        target: 'cards', index: '${firstIdx}', resultVariable: 'firstCard'
+    });
+    agent.addAction('ProcessSecondCard', 'calculate', 'EvalMatch', {
+        formula: 'firstCard.value == tempCard.value', resultVariable: 'isMatch'
+    });
+    agent.addBranch('ProcessSecondCard', 'isMatch', '==', true, (matchThen: any) => {
+        matchThen.addTaskCall('HandleMatch');
     });
 
-    // Common for both: Reset FirstCard, SecondCard, State
-    agent.addAction('CheckMatch', 'calculate', 'ResetFirstCard', { formula: '""', resultVariable: 'FirstCard' });
-    agent.addAction('CheckMatch', 'calculate', 'ResetSecondCard', { formula: '""', resultVariable: 'SecondCard' });
-    agent.addAction('CheckMatch', 'calculate', 'ResetState', { formula: '"idle"', resultVariable: 'State' });
+    // ────────────────────────────────────────
+    // ProcessCardClick — aufdecken + erste/zweite Karte
+    //   (Wird nur aufgerufen wenn canFlip == true.)
+    // ────────────────────────────────────────
+    agent.createTask('stage_main', 'ProcessCardClick', 'Karte aufdecken, erste oder zweite Karte einsortieren');
+    // 1. Karte aufdecken
+    agent.addAction('ProcessCardClick', 'property', 'FlipUp', {
+        target: 'tempCard', changes: { face: true, displayText: '${tempCard.value}' }
+    });
+    // 2. Ist es die erste Karte dieses Paars?
+    agent.addAction('ProcessCardClick', 'calculate', 'EvalIsFirst', {
+        formula: 'firstIdx == -1', resultVariable: 'isFirst'
+    });
+    agent.addBranch('ProcessCardClick', 'isFirst', '==', true,
+        (firstThen: any) => {
+            firstThen.addNewAction('variable', 'SetFirstIdx', {
+                variableName: 'firstIdx', value: '${clickedIdx}'
+            });
+        },
+        (secondElse: any) => {
+            secondElse.addTaskCall('ProcessSecondCard');
+        }
+    );
 
-    agent.connectEvent('stage_main', 'CheckTimer', 'onTimer', 'CheckMatch');
+    // ────────────────────────────────────────
+    // CheckWin — bei Score==8: WinDialog
+    // ────────────────────────────────────────
+    agent.createTask('stage_main', 'CheckWin', 'Prüfen ob alle 8 Paare gefunden');
+    agent.addBranch('CheckWin', 'score', '==', 8, (winThen: any) => {
+        winThen.addNewAction('call_method', 'ShowWinDialog', {
+            target: 'WinDialog', method: 'show'
+        });
+    });
 
-    // --- Tasks: OnClick_CardX ---
-    for (let i = 1; i <= 16; i++) {
-        const taskId = `OnClick_Card${i}`;
-        agent.createTask('stage_main', taskId);
-        
-        // 1. Can Flip?
-        agent.addVariable(`CanFlip_${i}`, 'boolean', false);
-        agent.addAction(taskId, 'calculate', `EvalCanFlip_${i}`, {
-            formula: `State == "idle" && Card${i}_State == 0`, resultVariable: `CanFlip_${i}`
-        });
+    // ────────────────────────────────────────
+    // OnCardClick — Haupt-Einsprungspunkt (Template-Event)
+    // ────────────────────────────────────────
+    agent.createTask('stage_main', 'OnCardClick', 'Klick auf beliebige Memory-Karte');
 
-        // 2. Do Flip if allowed
-        agent.addBranch(taskId, `CanFlip_${i}`, '==', true, (canFlip: any) => {
-            canFlip.addNewAction('calculate', `FlipState_${i}`, { formula: '1', resultVariable: `Card${i}_State` });
-            canFlip.addNewAction('variable', `FlipDisplay_${i}`, { source: `Card${i}_Value`, variableName: `Card${i}_Display` });
-        });
+    // 1. Klick-Index aus Magic-Variable ${self._idx} extrahieren
+    agent.addAction('OnCardClick', 'variable', 'GetIdxStr', {
+        variableName: 'clickedIdxStr', value: '${self._idx}'
+    });
+    agent.addAction('OnCardClick', 'calculate', 'ParseIdx', {
+        formula: 'parseInt(clickedIdxStr)', resultVariable: 'clickedIdx'
+    });
 
-        // 3. Is First Card? (CanFlip AND FirstCard is empty)
-        agent.addVariable(`IsFirst_${i}`, 'boolean', false);
-        agent.addAction(taskId, 'calculate', `EvalIsFirst_${i}`, {
-            formula: `CanFlip_${i} && FirstCard == ""`, resultVariable: `IsFirst_${i}`
-        });
-        agent.addBranch(taskId, `IsFirst_${i}`, '==', true, (isFirst: any) => {
-            isFirst.addNewAction('calculate', `SetFirstCard_${i}`, { formula: `"${i}"`, resultVariable: 'FirstCard' });
-            isFirst.addNewAction('variable', `SetFirstCardVal_${i}`, { source: `Card${i}_Value`, variableName: 'FirstCardValue' });
-        });
+    // 2. Falls schon zwei Karten offen → erst zurückklappen
+    agent.addBranch('OnCardClick', 'secondIdx', '!=', -1, (resetThen: any) => {
+        resetThen.addTaskCall('ResetFlippedCards');
+    });
 
-        // 4. Is Second Card? (CanFlip AND FirstCard NOT empty AND FirstCard is NOT this card)
-        agent.addVariable(`IsSecond_${i}`, 'boolean', false);
-        agent.addAction(taskId, 'calculate', `EvalIsSecond_${i}`, {
-            // Need string quotes around "${i}" so it evaluates FirstCard != "3" 
-            formula: `CanFlip_${i} && FirstCard != "" && FirstCard != "${i}"`, resultVariable: `IsSecond_${i}`
-        });
-        agent.addBranch(taskId, `IsSecond_${i}`, '==', true, (isSecond: any) => {
-            isSecond.addNewAction('calculate', `SetSecondCard_${i}`, { formula: `"${i}"`, resultVariable: 'SecondCard' });
-            isSecond.addNewAction('variable', `SetSecondCardVal_${i}`, { source: `Card${i}_Value`, variableName: 'SecondCardValue' });
-            isSecond.addNewAction('calculate', `SetWaiting_${i}`, { formula: '"waiting"', resultVariable: 'State' });
-            isSecond.addNewAction('call_method', `StartTimer_${i}`, { target: 'CheckTimer', method: 'start' });
-        });
-        
-        agent.connectEvent('stage_main', `Btn_Card${i}`, 'onClick', taskId);
-    }
+    // 3. Geklickte Karte holen + prüfen ob aufdeckbar
+    agent.addAction('OnCardClick', 'list_get', 'GetClicked', {
+        target: 'cards', index: '${clickedIdx}', resultVariable: 'tempCard'
+    });
+    agent.addAction('OnCardClick', 'calculate', 'EvalCanFlip', {
+        formula: '!tempCard.matched && !tempCard.face', resultVariable: 'canFlip'
+    });
+
+    // 4. Nur wenn aufdeckbar: weiter verarbeiten
+    agent.addBranch('OnCardClick', 'canFlip', '==', true, (flipThen: any) => {
+        flipThen.addTaskCall('ProcessCardClick');
+    });
+
+    // 5. Nach jedem Klick: Win-Check
+    agent.addTaskCall('OnCardClick', 'CheckWin');
+
+    // ═══════════════════════════════════════
+    // SCHRITT 8: EVENTS
+    // ═══════════════════════════════════════
+
+    // Stage-Load → Init
+    agent.connectEvent('stage_main', 'stage', 'onRuntimeStart', 'InitGame');
+
+    // Die Card-Click-Events sind im TForEach-Template definiert
+    // (events: { onClick: 'OnCardClick' }) und werden für jeden Klon
+    // automatisch gebunden.
 }

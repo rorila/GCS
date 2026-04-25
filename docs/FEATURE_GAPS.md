@@ -1666,3 +1666,69 @@ Pro „Nein"-Antwort: kleine Anpassung der Spec-Annahmen, aber das Gesamt-Design
 
 **Ende der Spezifikation.**
 
+---
+
+## §8 Implementations-Audit
+
+> **Vollständiger Audit-Bericht:** [`IMPLEMENTATION_AUDIT.md`](./IMPLEMENTATION_AUDIT.md)
+>
+> **Initial-Audit:** 25.04.2026, 6:51 · **Re-Audit:** 25.04.2026, 8:11 · **2. Re-Audit:** 25.04.2026, 8:24
+>
+> Dieser Abschnitt fasst den **aktuellen Stand** kompakt zusammen.
+
+### §8.1 Erfüllungs-Grad pro Feature (Stand 25.04.2026, 8:24)
+
+| Feature | Status | Showstopper? |
+|:---|:---:|:---:|
+| **A: Event-Context** | 🟢 95 % (Pfad-basiert spec-konform aufgelöst) | Nein |
+| **B: Collection-Actions** | 🟢 95 % (alle 14 Actions + Pflicht-Param-Validierung) | Nein |
+| **C: TForEach** | 🟢 **98 %** (Diff-Reconciliation + Item-Updates + emptyMessage + rows-Limit) | Nein |
+
+### §8.2 Erfüllungs-Quote pro Schwere
+
+| Schwere | Initial offen | Jetzt offen | Geschlossen |
+|:---|:---:|:---:|:---:|
+| 🔴 **Kritisch (KL-1/2/3)** | 3 | **0** | 3/3 ✅ |
+| 🟡 **Mittel (MA-1/2/3)** | 3 | 1 (akzeptabel) | 2/3 ✅ |
+| 🟢 **Kosmetisch (KK-1..7)** | 5 | 1 (KK-7 Bonus) | **6/7** ✅ |
+
+### §8.3 Detail-Status
+
+| ID | Lücke | Status | Beleg / Anmerkung |
+|:---|:---|:---:|:---|
+| **KL-1** | `${$event.source.*}` aufgelöst | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/runtime/PropertyHelper.ts:142-150` |
+| **KL-2** | Magic-Name-Konsistenz (`$event` + `$eventData`) | ✅ | beide Namen in allen Action-Handlern injiziert |
+| **KL-3** | `${self.*}` Resolution | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/runtime/PropertyHelper.ts:151-159` |
+| **MA-1** | Reactive-Subscription | ❌ bewusst offen | Hash-Polling-Strategie pragmatisch akzeptiert |
+| **MA-2** | Diff-Reconciliation | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/components/TForEach.ts:142-190` |
+| **MA-3** | Reactive Item-Bindings | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/components/TForEach.ts:195-221` |
+| **KK-1** | `onItemSpawn` / `onItemDestroy` Events | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/components/TForEach.ts:155-156, :279-281` |
+| **KK-2** | `emptyMessage` rendert | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/components/TForEach.ts:159-163, :191-222` (spawnt TLabel) |
+| **KK-3** | `layout: 'absolute'` | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/components/TForEach.ts:37, :379-380` |
+| **KK-4** | `rows`-Property als hartes Limit | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/components/TForEach.ts:151-157` (`items.slice(0, rows*cols)`) |
+| **KK-5** | ActionType-Union erweitert | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/model/types.ts:88-93` |
+| **KK-6** | Pflicht-Param-Validierung | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/services/AgentController.ts:241-273` |
+| **KK-7** | Bracket-Map-Lookup | ⚠️ | nur in `calculate`-Action via JSEP; Workaround `map_get(key='${var}')` |
+| **KK-8** | TForEach-Validation in `addObject` | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/services/AgentController.ts:112-120` |
+| **KL-4** | (Fehlbefund — korrigiert): `RESERVED_VARIABLE_NAMES` genutzt | ✅ | `@C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/services/AgentController.ts:9, :133-135` |
+
+### §8.4 Memory-Spiel-Status
+
+**Alle drei kritischen Showstopper sind behoben.** Das Memory-Spiel-Smoke-Test-Skript aus `§5` sollte 1:1 lauffähig sein:
+
+- `${$event.source.name}` ✅ (delegiert an `eventData.X`)
+- `${self.x}` ✅
+- Konsistente Magic-Variablen-Auflösung in allen Action-Handlern ✅
+- TForEach mit Diff-Reconciliation → kein Flicker bei Card-Mutationen ✅
+- Reactive Item-Bindings → CSS-State, Animationen bleiben erhalten ✅
+
+### §8.5 Verbleibende kleinere Punkte
+
+| Punkt | Auswirkung | Dringlichkeit |
+|:---|:---|:---:|
+| MA-1 (Hash-Polling) | Performance-Penalty bei großen Listen (>500 Items). Bei Memory unsichtbar. | niedrig |
+| KK-7 (Bracket-Lookup) | Nur in `calculate` (via JSEP). Workaround `map_get(key='${var}')` vorhanden. | sehr niedrig (Bonus) |
+
+→ Detail-Belege siehe [`IMPLEMENTATION_AUDIT.md §0'`](./IMPLEMENTATION_AUDIT.md).
+
+

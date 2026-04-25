@@ -139,6 +139,25 @@ export class PropertyHelper {
             if (trimmedPath === 'false') return 'false';
             if (!isNaN(Number(trimmedPath))) return trimmedPath;
 
+            // Magic-Variable-Pfade auflösen ($event.source.* und self.*)
+            if (trimmedPath.startsWith('$event.source.')) {
+                const subPath = trimmedPath.slice('$event.source.'.length);
+                const evt = vars.$event ?? vars.$eventData;
+                if (evt) {
+                    const val = this.getPropertyValue(evt, subPath);
+                    if (val !== undefined) return String(val);
+                }
+            }
+            if (trimmedPath === 'self' || trimmedPath.startsWith('self.')) {
+                const evt = vars.$event ?? vars.$eventData;
+                if (evt) {
+                    if (trimmedPath === 'self') return String(evt?.name ?? '');
+                    const subPath = trimmedPath.slice('self.'.length);
+                    const val = this.getPropertyValue(evt, subPath);
+                    if (val !== undefined) return String(val);
+                }
+            }
+
             // 1. Try objects first (Live components have priority)
             if (objects) {
                 if (trimmedPath.includes('.')) {

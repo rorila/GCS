@@ -444,3 +444,7 @@ Die Plattform nutzt eine hierarchische Struktur in `game-server/data/db.json`:
 ---
 
 *Letzte Aktualisierung: Merge von Root + `docs/` + `game-server/` Developer-Guidelines (v3.30.x, 2026-04-23). Duplikate entfernt, Encoding auf UTF-8 normalisiert.*
+
+## Learnings: KI-Generierung (TForEach / EventContext)
+- Nutze TForEach mit Diff-Reconciliation für dynamische Kartenspiele. Ersetze nie das Array komplett, wenn du Flackern vermeiden willst.
+- Greife auf Properties des aufrufenden Objekts via ${self.propertyName} oder ${.source.propertyName} zu.

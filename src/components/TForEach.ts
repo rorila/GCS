@@ -34,12 +34,14 @@ export class TForEach extends TWindow {
     // ─── Design-Time Properties ───
     public source: string = '';                     // Name der Quell-Variable
     public template: any = null;                    // Komponenten-Template (JSON)
-    public layout: 'grid' | 'horizontal' | 'vertical' = 'grid';
+    public layout: 'grid' | 'horizontal' | 'vertical' | 'absolute' = 'grid';
     public cols: number = 4;                        // Spalten bei grid-Layout
+    public rows?: number;                           // Max. Zeilen (optional)
     public gap: number = 1;                         // Abstand in Grid-Cells
     public itemWidth: number = 4;                   // Breite pro Item (Grid-Cells)
     public itemHeight: number = 4;                  // Höhe pro Item (Grid-Cells)
     public namePattern: string = '{name}_{index}';  // Naming-Pattern
+    public emptyMessage: string = '';               // Nachricht, wenn Liste leer ist
 
     // ─── Runtime State ───
     private spawnedIds: string[] = [];              // IDs aller erzeugten Klone
@@ -67,12 +69,14 @@ export class TForEach extends TWindow {
         return [
             ...props,
             { name: 'source', label: 'Quell-Variable', type: 'string', group: 'DATEN', hint: 'Name einer Listen- oder Map-Variable' },
-            { name: 'layout', label: 'Layout', type: 'select', options: ['grid', 'horizontal', 'vertical'], group: 'DATEN' },
+            { name: 'layout', label: 'Layout', type: 'select', options: ['grid', 'horizontal', 'vertical', 'absolute'], group: 'DATEN' },
             { name: 'cols', label: 'Spalten (grid)', type: 'number', group: 'DATEN', min: 1, max: 20 },
+            { name: 'rows', label: 'Zeilen (max)', type: 'number', group: 'DATEN', min: 1, max: 20 },
             { name: 'gap', label: 'Abstand (Grid-Cells)', type: 'number', group: 'DATEN', min: 0, max: 10 },
             { name: 'itemWidth', label: 'Item-Breite (Cells)', type: 'number', group: 'DATEN', min: 1, max: 40 },
             { name: 'itemHeight', label: 'Item-Höhe (Cells)', type: 'number', group: 'DATEN', min: 1, max: 40 },
             { name: 'namePattern', label: 'Name-Pattern', type: 'string', group: 'DATEN', hint: '{name}_{index}' },
+            { name: 'emptyMessage', label: 'Leer-Nachricht', type: 'string', group: 'DATEN' },
         ];
     }
 
@@ -141,38 +145,117 @@ export class TForEach extends TWindow {
             return;
         }
 
-        // 1. Alte Klone entfernen
-        this.destroyAllClones();
-
-        // 2. Source-Daten laden
         const sourceData = this.resolveSourceData();
-        if (!sourceData) {
-            logger.debug(`TForEach "${this.name}": Source "${this.source}" ist leer/undefined.`);
-            this.lastSourceHash = '';
-            return;
+        let items = this.extractItems(sourceData ?? []);
+
+        // KK-4: rows-Property als hartes Limit
+        if (this.layout === 'grid' && this.rows && this.cols) {
+            const maxItems = this.rows * this.cols;
+            if (items.length > maxItems) {
+                items = items.slice(0, maxItems);
+            }
         }
 
-        // 3. Items aus Source extrahieren (Array oder Map)
-        const items = this.extractItems(sourceData);
-        if (items.length === 0) {
-            this.lastSourceHash = this.computeHash(sourceData);
-            return;
+        const emptyMessageId = `${this.id}_empty_msg`;
+        const newKeys = new Set(items.map((_, i) => `${this.id}_foreach_${i}`));
+        if (items.length === 0 && this.emptyMessage) {
+            newKeys.add(emptyMessageId);
         }
 
-        logger.info(`TForEach "${this.name}": Spawne ${items.length} Klone aus "${this.source}"`);
+        // 1. Entfernen: Klone die nicht mehr gebraucht werden
+        for (const id of [...this.spawnedIds]) {
+            if (!newKeys.has(id)) {
+                if ((this as any).emit && id !== emptyMessageId) {
+                    (this as any).emit('onItemDestroy', { id });
+                }
+                if (this.runtimeCallbacks.removeObject) {
+                    this.runtimeCallbacks.removeObject(id);
+                } else if (this.runtimeCallbacks.objects) {
+                    const idx = this.runtimeCallbacks.objects.findIndex((o: any) => o.id === id);
+                    if (idx >= 0) this.runtimeCallbacks.objects.splice(idx, 1);
+                }
+                this.spawnedIds = this.spawnedIds.filter(s => s !== id);
+            }
+        }
 
-        // 4. Für jedes Item: Template klonen + binden + spawnen
+        // 2. Hinzufügen / Updaten
         for (let i = 0; i < items.length; i++) {
-            const { key, value } = items[i];
-            this.spawnClone(i, key, value);
+            const id = `${this.id}_foreach_${i}`;
+            if (this.spawnedIds.includes(id)) {
+                this.updateClone(id, items[i].value, i, items[i].key);
+            } else {
+                this.spawnClone(i, items[i].key, items[i].value);
+            }
         }
 
-        // 5. Hash für Change-Detection
+        // Handle emptyMessage (KK-2)
+        if (items.length === 0 && this.emptyMessage) {
+            if (this.spawnedIds.includes(emptyMessageId)) {
+                const obj = this.runtimeCallbacks.objects?.find((o: any) => o.id === emptyMessageId);
+                if (obj) obj.text = this.emptyMessage;
+            } else {
+                const labelData = {
+                    id: emptyMessageId,
+                    className: 'TLabel',
+                    name: `${this.name}_empty`,
+                    text: this.emptyMessage,
+                    x: this.x,
+                    y: this.y,
+                    width: this.itemWidth,
+                    height: 2,
+                    isTransient: true,
+                    _forEachParent: this.id
+                };
+                try {
+                    const hydrated = hydrateObjects([labelData]);
+                    if (hydrated && hydrated.length > 0) {
+                        const obj: any = hydrated[0];
+                        if (typeof obj.initRuntime === 'function') obj.initRuntime(this.runtimeCallbacks);
+                        if (this.runtimeCallbacks.addObject) this.runtimeCallbacks.addObject(obj);
+                        else if (this.runtimeCallbacks.objects) this.runtimeCallbacks.objects.push(obj);
+                        this.spawnedIds.push(obj.id);
+                    }
+                } catch (e) {
+                    logger.error('Failed to spawn emptyMessage label', e);
+                }
+            }
+        }
+
         this.lastSourceHash = this.computeHash(sourceData);
 
-        // 6. Re-Render
         if (this.runtimeCallbacks.render) {
             this.runtimeCallbacks.render();
+        }
+    }
+
+    /**
+     * Aktualisiert einen bestehenden Klon, ohne ihn neu zu hydrieren.
+     */
+    private updateClone(id: string, item: any, index: number, key: string | number): void {
+        const obj = this.runtimeCallbacks.objects?.find((o: any) => o.id === id);
+        if (!obj) return;
+        
+        // Neues Binding-Context für Updates
+        const bindingContext: Record<string, any> = {
+            item: item,
+            index: index,
+            key: key,
+            $index: index,
+            $item: item
+        };
+
+        // Rekursive Auflösung analog zu spawnClone, aber auf dem laufenden Objekt
+        // Um alte Werte nicht zu überschreiben, klonen wir das Template neu
+        const cloneData = JSON.parse(JSON.stringify(this.template));
+        this.resolveBindings(cloneData, bindingContext);
+
+        // Übertrage neu berechnete Properties (außer ID, ClassName, Position)
+        for (const k of Object.keys(cloneData)) {
+            if (k !== 'id' && k !== 'name' && k !== 'x' && k !== 'y' && k !== 'width' && k !== 'height' && k !== 'className' && k !== 'style') {
+                PropertyHelper.setPropertyValue(obj, k, PropertyHelper.autoConvert(cloneData[k]));
+            } else if (k === 'style' && cloneData.style) {
+                obj.style = { ...obj.style, ...cloneData.style };
+            }
         }
     }
 
@@ -232,6 +315,9 @@ export class TForEach extends TWindow {
                 }
 
                 this.spawnedIds.push(obj.id);
+                if ((this as any).emit) {
+                    (this as any).emit('onItemSpawn', { id: obj.id, index, name: cloneName });
+                }
                 logger.debug(`  Klon #${index}: "${cloneName}" @ (${cloneData.x}, ${cloneData.y})`);
             }
         } catch (err) {
@@ -244,6 +330,9 @@ export class TForEach extends TWindow {
      */
     private destroyAllClones(): void {
         for (const id of this.spawnedIds) {
+            if ((this as any).emit) {
+                (this as any).emit('onItemDestroy', { id });
+            }
             if (this.runtimeCallbacks.removeObject) {
                 this.runtimeCallbacks.removeObject(id);
             } else if (this.runtimeCallbacks.objects) {
@@ -326,6 +415,8 @@ export class TForEach extends TWindow {
      */
     private calculatePosition(index: number): { x: number; y: number } {
         switch (this.layout) {
+            case 'absolute':
+                return { x: 0, y: 0 };
             case 'horizontal':
                 return {
                     x: index * (this.itemWidth + this.gap),

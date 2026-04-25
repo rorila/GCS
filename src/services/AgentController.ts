@@ -238,6 +238,40 @@ export class AgentController {
         const task = this.getTaskByName(taskName);
         if (!task) throw new Error(`Task '${taskName}' not found.`);
 
+        // Validate required params for new actions
+        const requiredParams: Record<string, string[]> = {
+            'list_push': ['target', 'value'],
+            'list_pop': ['target'],
+            'list_get': ['target', 'index'],
+            'list_set': ['target', 'index', 'value'],
+            'list_remove': ['target', 'index'],
+            'list_clear': ['target'],
+            'list_shuffle': ['target'],
+            'list_contains': ['target', 'value'],
+            'list_length': ['target'],
+            'map_get': ['target', 'key'],
+            'map_set': ['target', 'key', 'value'],
+            'map_delete': ['target', 'key'],
+            'map_has': ['target', 'key'],
+            'map_keys': ['target']
+        };
+
+        if (requiredParams[actionType]) {
+            for (const param of requiredParams[actionType]) {
+                // Backward-compat: target | listName | mapName sind Aliasse für die Collection-Variable
+                if (param === 'target') {
+                    if (params['target'] === undefined && params['listName'] === undefined && params['mapName'] === undefined) {
+                        throw new Error(`ActionType '${actionType}' requires parameter 'target' (or alias 'listName'/'mapName'). Provided params: ${JSON.stringify(Object.keys(params))}`);
+                    }
+                } else {
+                    // Alle anderen Pflicht-Params (value, index, key, ...) müssen direkt vorhanden sein
+                    if (params[param] === undefined) {
+                        throw new Error(`ActionType '${actionType}' requires parameter '${param}'. Provided params: ${JSON.stringify(Object.keys(params))}`);
+                    }
+                }
+            }
+        }
+
         // 2. Define Action Globally (Identity)
         // Check if action already exists with DIFFERENT type -> Error
         let actionDef = this.getActionByName(actionName);

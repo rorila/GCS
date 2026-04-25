@@ -72,16 +72,30 @@
           "objectModel": ""
         },
         {
+          "className": "TBooleanVariable",
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
           "type": "boolean",
           "defaultValue": false,
           "value": false,
-          "isGlobal": true,
-          "description": "System internal flag to track unsaved changes",
-          "uiScope": "stage",
-          "uiEmoji": "🎭",
-          "usageCount": 0
+          "objectModel": ""
         }
       ],
       "flowCharts": {},
@@ -660,7 +674,7 @@
       ]
     }
   ],
-  "activeStageId": "blueprint",
+  "activeStageId": "stage-1",
   "objects": [],
   "actions": [],
   "tasks": [],

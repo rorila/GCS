@@ -75,12 +75,14 @@ function writeVariable(name: string, value: any, context: any): void {
     }
 }
 
-/**
- * Interpoliert einen Wert (kann ${...}-Expressions enthalten).
- */
 function interpolateValue(value: any, context: any): any {
     if (typeof value === 'string' && value.includes('${')) {
-        return PropertyHelper.interpolate(value, { ...context.contextVars, ...context.vars, $event: context.eventData }, context.objects);
+        return PropertyHelper.interpolate(value, { 
+            ...context.contextVars, 
+            ...context.vars, 
+            $event: context.eventData, 
+            $eventData: context.eventData 
+        }, context.objects);
     }
     return value;
 }

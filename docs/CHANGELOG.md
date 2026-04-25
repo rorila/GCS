@@ -1,7 +1,13 @@
 # Changelog (v3.31.0 - Unreleased)
 
-## [2026-04-25] - Feature Gaps: KI-Spiele-Engine Architektur-Erweiterung
+## [2026-04-25] - Feature Gaps: KI-Spiele-Engine Architektur-Erweiterung & Audit Fixes
 ### Added
+- **TForEach Diff-Reconciliation:** Intelligentes Update von Klonen statt ständigem Recreate zur Vermeidung von Flackern.
+- **TForEach Limits:** Layout `absolute`, Property `rows` und `emptyMessage` hinzugefügt, sowie Events `onItemSpawn`/`onItemDestroy`.
+- **Magic-Namen ($event.source.* und self.*):** PropertyHelper löst nun diese Spezialpfade automatisch aus dem Live-Event-Kontext auf.
+- **Validation:** AgentController prüft nun rudimentär Pflichtparameter beim Hinzufügen von Collection-Actions.
+### Fixed
+- **Magic-Namen-Konsistenz:** `$event` und `$eventData` stehen in allen Action-Handlern (Collection, Variable, Property) gleichwertig zur Verfügung.
 - **Feature A (Event-Context):** Automatische Injektion von `$event` (EventContext) und `self` (Live-Objekt-Referenz) bei jedem Event-Trigger. Zugriff auf Quell-Objekt-Daten via `${$event.source.name}`, `${self.x}` etc. in Expressions.
   - Neue Datei: `src/runtime/EventContext.ts` (Interface, Factory, Reserved-Names)
   - Geändert: `GameRuntime.handleEvent()` — baut und injiziert `$event` + `self`

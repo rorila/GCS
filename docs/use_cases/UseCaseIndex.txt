@@ -912,3 +912,10 @@ Root Cause: FlowEditor.switchActionFlow() setzt coreStore.activeStageId auf null
  -   D a t e i e n :  
      -   s r c / u t i l s / S e r i a l i z a t i o n . t s   ( M e t h o d e :   h y d r a t e O b j e c t s ,   Z e i l e n   2 6 - 3 8   -   E r w e i t e r t e r   i s L i k e l y V a r i a b l e - G u a r d )  
  
+[Task: Architektur-Gaps] TForEach Diffing, EventContext & Magic Pfade
+- src/components/TForEach.ts (Diff-Reconciliation updateClone: L175-L200)
+- src/runtime/PropertyHelper.ts (Magic Path .source.*: L141-L157)
+- src/runtime/actions/handlers/CollectionActions.ts (interpolateValue: L79-L86)
+- src/runtime/actions/handlers/VariableActions.ts (interpolateValue: L43-L50)
+- src/runtime/actions/handlers/PropertyActions.ts (interpolateValue: L8-L14)
+- src/services/AgentController.ts (addAction validation: L238-L260)

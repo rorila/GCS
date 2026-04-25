@@ -6,8 +6,13 @@ import { resolveTarget } from '../ActionHelper';
 export function registerPropertyActions() {
     const handler = (action: any, context: any) => {
         const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
-        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target && action.changes) {
+            const combinedContext = { 
+                ...context.contextVars, 
+                ...context.vars, 
+                $eventData: context.eventData, 
+                $event: context.eventData 
+            };
             Object.keys(action.changes).forEach(prop => {
                 const rawValue = action.changes[prop];
                 const value = PropertyHelper.interpolate(String(rawValue), combinedContext, context.objects);
@@ -63,7 +68,12 @@ export function registerPropertyActions() {
 
         const child = findChild(parent.children);
         if (child && action.changes) {
-            const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+            const combinedContext = { 
+                ...context.contextVars, 
+                ...context.vars, 
+                $eventData: context.eventData, 
+                $event: context.eventData 
+            };
             Object.keys(action.changes).forEach(prop => {
                 const rawValue = action.changes[prop];
                 const value = PropertyHelper.interpolate(String(rawValue), combinedContext, context.objects);

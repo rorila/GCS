@@ -43,7 +43,12 @@ export function registerVariableActions() {
 
         // 4. FIX (v3.3.17): Direkt definierten Literal-Wert verwenden
         if ((val === undefined || (!action.source && !action.sourceProperty)) && action.value !== undefined) {
-            const combinedCtx = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+            const combinedCtx = { 
+                ...context.contextVars, 
+                ...context.vars, 
+                $eventData: context.eventData, 
+                $event: context.eventData 
+            };
             val = PropertyHelper.interpolate(String(action.value), combinedCtx, context.objects);
         }
 

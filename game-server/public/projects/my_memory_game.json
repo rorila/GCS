@@ -24,7 +24,7 @@
       "objects": [
         {
           "className": "TGameLoop",
-          "id": "obj_1777087446829_0jx77",
+          "id": "obj_1777088421617_cag24",
           "name": "GameLoop",
           "scope": "stage",
           "isService": true,
@@ -52,7 +52,7 @@
         },
         {
           "className": "TGameState",
-          "id": "obj_1777087446829_kh1n5",
+          "id": "obj_1777088421617_fnedi",
           "name": "GameState",
           "scope": "stage",
           "isVariable": true,
@@ -84,7 +84,7 @@
         },
         {
           "className": "TDialogRoot",
-          "id": "obj_1777087446829_n21nj",
+          "id": "obj_1777088421617_4psmt",
           "name": "WinDialog",
           "scope": "stage",
           "draggable": false,
@@ -118,14 +118,2605 @@
       "actions": [],
       "variables": [
         {
+          "className": "TStringVariable",
+          "name": "FirstCard",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "FirstCardValue",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "SecondCard",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "SecondCardValue",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "idle",
+          "value": "idle",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Matches",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Tries",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card1_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card1_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍎",
+          "value": "🍎",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card1_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card2_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card2_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍒",
+          "value": "🍒",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card2_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card3_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card3_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍌",
+          "value": "🍌",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card3_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card4_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card4_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍒",
+          "value": "🍒",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card4_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card5_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card5_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍇",
+          "value": "🍇",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card5_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card6_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card6_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍎",
+          "value": "🍎",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card6_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card7_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card7_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍇",
+          "value": "🍇",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card7_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card8_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card8_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍓",
+          "value": "🍓",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card8_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card9_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card9_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍍",
+          "value": "🍍",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card9_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card10_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card10_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🥝",
+          "value": "🥝",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card10_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card11_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card11_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍉",
+          "value": "🍉",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card11_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card12_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card12_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍍",
+          "value": "🍍",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card12_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card13_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card13_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍌",
+          "value": "🍌",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card13_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card14_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card14_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍓",
+          "value": "🍓",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card14_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card15_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card15_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🍉",
+          "value": "🍉",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card15_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "Card16_State",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card16_Value",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "🥝",
+          "value": "🥝",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "name": "Card16_Display",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "❓",
+          "value": "❓",
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_1",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_1",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_1",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_2",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_2",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_2",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_3",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_3",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_3",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_4",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_4",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_4",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_5",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_5",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_5",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_6",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_6",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_6",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_7",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_7",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_7",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_8",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_8",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_8",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_9",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_9",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_9",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_10",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_10",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_10",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_11",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_11",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_11",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_12",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_12",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_12",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_13",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_13",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_13",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_14",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_14",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_14",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_15",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_15",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_15",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "CanFlip_16",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsFirst_16",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "IsSecond_16",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
           "className": "TBooleanVariable",
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
           "type": "boolean",
           "defaultValue": true,
           "value": true,
-          "isGlobal": true,
-          "description": "System internal flag to track unsaved changes"
+          "objectModel": ""
         }
       ],
       "flowCharts": {}
@@ -144,7 +2735,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1777087446829_3xhg6",
+          "id": "obj_1777088421617_y7lf1",
           "name": "Btn_Card1",
           "scope": "stage",
           "draggable": false,
@@ -176,7 +2767,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_72z96",
+          "id": "obj_1777088421617_jrhni",
           "name": "Btn_Card2",
           "scope": "stage",
           "draggable": false,
@@ -208,7 +2799,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_v13rw",
+          "id": "obj_1777088421617_hvlrk",
           "name": "Btn_Card3",
           "scope": "stage",
           "draggable": false,
@@ -240,7 +2831,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_9novr",
+          "id": "obj_1777088421617_5qyzb",
           "name": "Btn_Card4",
           "scope": "stage",
           "draggable": false,
@@ -272,7 +2863,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_yilg0",
+          "id": "obj_1777088421617_86b6v",
           "name": "Btn_Card5",
           "scope": "stage",
           "draggable": false,
@@ -304,7 +2895,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_h7i7p",
+          "id": "obj_1777088421617_gr4bh",
           "name": "Btn_Card6",
           "scope": "stage",
           "draggable": false,
@@ -336,7 +2927,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_s18kw",
+          "id": "obj_1777088421617_q47ix",
           "name": "Btn_Card7",
           "scope": "stage",
           "draggable": false,
@@ -368,7 +2959,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_mxz9s",
+          "id": "obj_1777088421617_c31f8",
           "name": "Btn_Card8",
           "scope": "stage",
           "draggable": false,
@@ -400,7 +2991,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_f25ea",
+          "id": "obj_1777088421617_65lgg",
           "name": "Btn_Card9",
           "scope": "stage",
           "draggable": false,
@@ -432,7 +3023,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_kuur7",
+          "id": "obj_1777088421617_7tpq8",
           "name": "Btn_Card10",
           "scope": "stage",
           "draggable": false,
@@ -464,7 +3055,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_h0wv0",
+          "id": "obj_1777088421617_2pwhi",
           "name": "Btn_Card11",
           "scope": "stage",
           "draggable": false,
@@ -496,7 +3087,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_1c4wx",
+          "id": "obj_1777088421617_v5tfz",
           "name": "Btn_Card12",
           "scope": "stage",
           "draggable": false,
@@ -528,7 +3119,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_287cq",
+          "id": "obj_1777088421617_gyu40",
           "name": "Btn_Card13",
           "scope": "stage",
           "draggable": false,
@@ -560,7 +3151,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_qtsmh",
+          "id": "obj_1777088421617_96etc",
           "name": "Btn_Card14",
           "scope": "stage",
           "draggable": false,
@@ -592,7 +3183,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_0lc8c",
+          "id": "obj_1777088421617_4ysjr",
           "name": "Btn_Card15",
           "scope": "stage",
           "draggable": false,
@@ -624,7 +3215,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777087446829_fvb5g",
+          "id": "obj_1777088421617_7ptm6",
           "name": "Btn_Card16",
           "scope": "stage",
           "draggable": false,
@@ -656,7 +3247,7 @@
         },
         {
           "className": "TLabel",
-          "id": "obj_1777087446829_7eia7",
+          "id": "obj_1777088421617_kpjna",
           "name": "LblStats",
           "scope": "stage",
           "draggable": false,
@@ -670,7 +3261,7 @@
           "zIndex": 0,
           "align": "NONE",
           "style": {
-            "color": "#f3ecec",
+            "color": "#000000",
             "fontSize": 14,
             "fontFamily": "Arial",
             "fontWeight": "normal",
@@ -689,309 +3280,308 @@
           "description": "",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "IncTries"
+              "name": "IncTries",
+              "type": "action"
             },
             {
-              "type": "condition",
-              "name": "Branch: FirstCardValue == ${SecondCardValue}",
               "condition": {
                 "variable": "FirstCardValue",
                 "operator": "==",
                 "value": "${SecondCardValue}"
               },
-              "then": [
+              "type": "condition",
+              "body": [
                 {
-                  "type": "action",
-                  "name": "IncMatches"
+                  "name": "IncMatches",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_1"
+                  "name": "SetState2First_1",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_1"
+                  "name": "SetState2Second_1",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_2"
+                  "name": "SetState2First_2",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_2"
+                  "name": "SetState2Second_2",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_3"
+                  "name": "SetState2First_3",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_3"
+                  "name": "SetState2Second_3",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_4"
+                  "name": "SetState2First_4",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_4"
+                  "name": "SetState2Second_4",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_5"
+                  "name": "SetState2First_5",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_5"
+                  "name": "SetState2Second_5",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_6"
+                  "name": "SetState2First_6",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_6"
+                  "name": "SetState2Second_6",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_7"
+                  "name": "SetState2First_7",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_7"
+                  "name": "SetState2Second_7",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_8"
+                  "name": "SetState2First_8",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_8"
+                  "name": "SetState2Second_8",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_9"
+                  "name": "SetState2First_9",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_9"
+                  "name": "SetState2Second_9",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_10"
+                  "name": "SetState2First_10",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_10"
+                  "name": "SetState2Second_10",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_11"
+                  "name": "SetState2First_11",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_11"
+                  "name": "SetState2Second_11",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_12"
+                  "name": "SetState2First_12",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_12"
+                  "name": "SetState2Second_12",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_13"
+                  "name": "SetState2First_13",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_13"
+                  "name": "SetState2Second_13",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_14"
+                  "name": "SetState2First_14",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_14"
+                  "name": "SetState2Second_14",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_15"
+                  "name": "SetState2First_15",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_15"
+                  "name": "SetState2Second_15",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2First_16"
+                  "name": "SetState2First_16",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "SetState2Second_16"
+                  "name": "SetState2Second_16",
+                  "type": "action"
                 }
               ],
-              "else": [
+              "elseBody": [
                 {
-                  "type": "action",
-                  "name": "ResetState0_1"
+                  "name": "ResetState0_1",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_1"
+                  "name": "ResetDisplay_1",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_2"
+                  "name": "ResetState0_2",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_2"
+                  "name": "ResetDisplay_2",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_3"
+                  "name": "ResetState0_3",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_3"
+                  "name": "ResetDisplay_3",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_4"
+                  "name": "ResetState0_4",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_4"
+                  "name": "ResetDisplay_4",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_5"
+                  "name": "ResetState0_5",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_5"
+                  "name": "ResetDisplay_5",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_6"
+                  "name": "ResetState0_6",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_6"
+                  "name": "ResetDisplay_6",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_7"
+                  "name": "ResetState0_7",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_7"
+                  "name": "ResetDisplay_7",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_8"
+                  "name": "ResetState0_8",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_8"
+                  "name": "ResetDisplay_8",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_9"
+                  "name": "ResetState0_9",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_9"
+                  "name": "ResetDisplay_9",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_10"
+                  "name": "ResetState0_10",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_10"
+                  "name": "ResetDisplay_10",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_11"
+                  "name": "ResetState0_11",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_11"
+                  "name": "ResetDisplay_11",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_12"
+                  "name": "ResetState0_12",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_12"
+                  "name": "ResetDisplay_12",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_13"
+                  "name": "ResetState0_13",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_13"
+                  "name": "ResetDisplay_13",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_14"
+                  "name": "ResetState0_14",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_14"
+                  "name": "ResetDisplay_14",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_15"
+                  "name": "ResetState0_15",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_15"
+                  "name": "ResetDisplay_15",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetState0_16"
+                  "name": "ResetState0_16",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "ResetDisplay_16"
+                  "name": "ResetDisplay_16",
+                  "type": "action"
+                },
+                {
+                  "condition": {
+                    "variable": "Matches",
+                    "operator": "==",
+                    "value": 8
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "ShowWinDialog",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "name": "ResetFirstCard",
+                      "type": "action"
+                    },
+                    {
+                      "name": "ResetSecondCard",
+                      "type": "action"
+                    },
+                    {
+                      "name": "ResetState",
+                      "type": "action"
+                    }
+                  ]
                 }
               ]
-            },
-            {
-              "type": "condition",
-              "name": "Branch: Matches == 8",
-              "condition": {
-                "variable": "Matches",
-                "operator": "==",
-                "value": 8
-              },
-              "then": [
-                {
-                  "type": "action",
-                  "name": "ShowWinDialog"
-                }
-              ],
-              "else": []
-            },
-            {
-              "type": "action",
-              "name": "ResetFirstCard"
-            },
-            {
-              "type": "action",
-              "name": "ResetSecondCard"
-            },
-            {
-              "type": "action",
-              "name": "ResetState"
             }
           ],
           "params": [],
@@ -1008,21 +3598,285 @@
               "x": 40,
               "y": 240
             },
-            "Branch: Matches == 8": {
+            "IncMatches": {
+              "x": 360,
+              "y": 240
+            },
+            "SetState2First_1": {
+              "x": 880,
+              "y": 360
+            },
+            "SetState2Second_1": {
+              "x": 880,
+              "y": 460
+            },
+            "SetState2First_2": {
+              "x": 880,
+              "y": 560
+            },
+            "SetState2Second_2": {
+              "x": 880,
+              "y": 660
+            },
+            "SetState2First_3": {
+              "x": 880,
+              "y": 760
+            },
+            "SetState2Second_3": {
+              "x": 880,
+              "y": 860
+            },
+            "SetState2First_4": {
+              "x": 880,
+              "y": 960
+            },
+            "SetState2Second_4": {
+              "x": 880,
+              "y": 1060
+            },
+            "SetState2First_5": {
+              "x": 880,
+              "y": 1160
+            },
+            "SetState2Second_5": {
+              "x": 880,
+              "y": 1260
+            },
+            "SetState2First_6": {
+              "x": 880,
+              "y": 1360
+            },
+            "SetState2Second_6": {
+              "x": 880,
+              "y": 1460
+            },
+            "SetState2First_7": {
+              "x": 880,
+              "y": 1560
+            },
+            "SetState2Second_7": {
+              "x": 880,
+              "y": 1660
+            },
+            "SetState2First_8": {
+              "x": 880,
+              "y": 1760
+            },
+            "SetState2Second_8": {
+              "x": 880,
+              "y": 1860
+            },
+            "SetState2First_9": {
+              "x": 880,
+              "y": 1960
+            },
+            "SetState2Second_9": {
+              "x": 880,
+              "y": 2060
+            },
+            "SetState2First_10": {
+              "x": 880,
+              "y": 2160
+            },
+            "SetState2Second_10": {
+              "x": 880,
+              "y": 2260
+            },
+            "SetState2First_11": {
+              "x": 880,
+              "y": 2360
+            },
+            "SetState2Second_11": {
+              "x": 880,
+              "y": 2460
+            },
+            "SetState2First_12": {
+              "x": 880,
+              "y": 2560
+            },
+            "SetState2Second_12": {
+              "x": 880,
+              "y": 2660
+            },
+            "SetState2First_13": {
+              "x": 880,
+              "y": 2760
+            },
+            "SetState2Second_13": {
+              "x": 880,
+              "y": 2860
+            },
+            "SetState2First_14": {
+              "x": 880,
+              "y": 2960
+            },
+            "SetState2Second_14": {
+              "x": 880,
+              "y": 3060
+            },
+            "SetState2First_15": {
+              "x": 880,
+              "y": 3160
+            },
+            "SetState2Second_15": {
+              "x": 880,
+              "y": 3260
+            },
+            "SetState2First_16": {
+              "x": 880,
+              "y": 3360
+            },
+            "SetState2Second_16": {
+              "x": 880,
+              "y": 3460
+            },
+            "ResetState0_1": {
               "x": 40,
               "y": 340
             },
-            "ResetFirstCard": {
+            "ResetDisplay_1": {
               "x": 40,
               "y": 440
             },
-            "ResetSecondCard": {
+            "ResetState0_2": {
               "x": 40,
               "y": 540
             },
-            "ResetState": {
+            "ResetDisplay_2": {
               "x": 40,
               "y": 640
+            },
+            "ResetState0_3": {
+              "x": 40,
+              "y": 740
+            },
+            "ResetDisplay_3": {
+              "x": 40,
+              "y": 840
+            },
+            "ResetState0_4": {
+              "x": 40,
+              "y": 940
+            },
+            "ResetDisplay_4": {
+              "x": 40,
+              "y": 1040
+            },
+            "ResetState0_5": {
+              "x": 40,
+              "y": 1140
+            },
+            "ResetDisplay_5": {
+              "x": 40,
+              "y": 1240
+            },
+            "ResetState0_6": {
+              "x": 40,
+              "y": 1340
+            },
+            "ResetDisplay_6": {
+              "x": 40,
+              "y": 1440
+            },
+            "ResetState0_7": {
+              "x": 40,
+              "y": 1540
+            },
+            "ResetDisplay_7": {
+              "x": 40,
+              "y": 1640
+            },
+            "ResetState0_8": {
+              "x": 40,
+              "y": 1740
+            },
+            "ResetDisplay_8": {
+              "x": 40,
+              "y": 1840
+            },
+            "ResetState0_9": {
+              "x": 40,
+              "y": 1940
+            },
+            "ResetDisplay_9": {
+              "x": 40,
+              "y": 2040
+            },
+            "ResetState0_10": {
+              "x": 40,
+              "y": 2140
+            },
+            "ResetDisplay_10": {
+              "x": 40,
+              "y": 2240
+            },
+            "ResetState0_11": {
+              "x": 40,
+              "y": 2340
+            },
+            "ResetDisplay_11": {
+              "x": 40,
+              "y": 2440
+            },
+            "ResetState0_12": {
+              "x": 40,
+              "y": 2540
+            },
+            "ResetDisplay_12": {
+              "x": 40,
+              "y": 2640
+            },
+            "ResetState0_13": {
+              "x": 40,
+              "y": 2740
+            },
+            "ResetDisplay_13": {
+              "x": 40,
+              "y": 2840
+            },
+            "ResetState0_14": {
+              "x": 40,
+              "y": 2940
+            },
+            "ResetDisplay_14": {
+              "x": 40,
+              "y": 3040
+            },
+            "ResetState0_15": {
+              "x": 40,
+              "y": 3140
+            },
+            "ResetDisplay_15": {
+              "x": 40,
+              "y": 3240
+            },
+            "ResetState0_16": {
+              "x": 40,
+              "y": 3340
+            },
+            "ResetDisplay_16": {
+              "x": 40,
+              "y": 3440
+            },
+            "Branch: Matches == 8": {
+              "x": 40,
+              "y": 3540
+            },
+            "ShowWinDialog": {
+              "x": 360,
+              "y": 3540
+            },
+            "ResetFirstCard": {
+              "x": 40,
+              "y": 3640
+            },
+            "ResetSecondCard": {
+              "x": 40,
+              "y": 3740
+            },
+            "ResetState": {
+              "x": 40,
+              "y": 3840
             }
           }
         },
@@ -1031,83 +3885,84 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "EvalCanFlip_1",
-              "type": "action"
+              "type": "action",
+              "name": "EvalCanFlip_1"
             },
             {
+              "type": "condition",
+              "name": "Branch: CanFlip_1 == true",
               "condition": {
                 "variable": "CanFlip_1",
                 "operator": "==",
                 "value": true
               },
-              "type": "condition",
-              "body": [
+              "then": [
                 {
-                  "name": "FlipState_1",
-                  "type": "action"
+                  "type": "action",
+                  "name": "FlipState_1"
                 },
                 {
-                  "name": "FlipDisplay_1",
-                  "type": "action"
+                  "type": "action",
+                  "name": "FlipDisplay_1"
                 }
               ],
-              "elseBody": [
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "EvalIsFirst_1"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: IsFirst_1 == true",
+              "condition": {
+                "variable": "IsFirst_1",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
                 {
-                  "name": "EvalIsFirst_1",
-                  "type": "action"
+                  "type": "action",
+                  "name": "SetFirstCard_1"
                 },
                 {
-                  "condition": {
-                    "variable": "IsFirst_1",
-                    "operator": "==",
-                    "value": true
-                  },
-                  "type": "condition",
-                  "body": [
-                    {
-                      "name": "SetFirstCard_1",
-                      "type": "action"
-                    },
-                    {
-                      "name": "SetFirstCardVal_1",
-                      "type": "action"
-                    }
-                  ],
-                  "elseBody": [
-                    {
-                      "name": "EvalIsSecond_1",
-                      "type": "action"
-                    },
-                    {
-                      "condition": {
-                        "variable": "IsSecond_1",
-                        "operator": "==",
-                        "value": true
-                      },
-                      "type": "condition",
-                      "body": [
-                        {
-                          "name": "SetSecondCard_1",
-                          "type": "action"
-                        },
-                        {
-                          "name": "SetSecondCardVal_1",
-                          "type": "action"
-                        },
-                        {
-                          "name": "SetWaiting_1",
-                          "type": "action"
-                        },
-                        {
-                          "name": "StartTimer_1",
-                          "type": "action"
-                        }
-                      ],
-                      "elseBody": []
-                    }
-                  ]
+                  "type": "action",
+                  "name": "SetFirstCardVal_1"
                 }
-              ]
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "EvalIsSecond_1"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: IsSecond_1 == true",
+              "condition": {
+                "variable": "IsSecond_1",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "SetSecondCard_1"
+                },
+                {
+                  "type": "action",
+                  "name": "SetSecondCardVal_1"
+                },
+                {
+                  "type": "action",
+                  "name": "SetWaiting_1"
+                },
+                {
+                  "type": "action",
+                  "name": "StartTimer_1"
+                }
+              ],
+              "else": []
             }
           ],
           "params": [],
@@ -1120,57 +3975,25 @@
               "x": 40,
               "y": 140
             },
-            "CanFlip_1 == true": {
+            "Branch: CanFlip_1 == true": {
               "x": 40,
               "y": 240
-            },
-            "FlipState_1": {
-              "x": 260,
-              "y": 240
-            },
-            "FlipDisplay_1": {
-              "x": 720,
-              "y": 360
             },
             "EvalIsFirst_1": {
               "x": 40,
               "y": 340
             },
-            "IsFirst_1 == true": {
+            "Branch: IsFirst_1 == true": {
               "x": 40,
               "y": 440
-            },
-            "SetFirstCard_1": {
-              "x": 260,
-              "y": 440
-            },
-            "SetFirstCardVal_1": {
-              "x": 720,
-              "y": 560
             },
             "EvalIsSecond_1": {
               "x": 40,
               "y": 540
             },
-            "IsSecond_1 == true": {
+            "Branch: IsSecond_1 == true": {
               "x": 40,
               "y": 640
-            },
-            "SetSecondCard_1": {
-              "x": 260,
-              "y": 640
-            },
-            "SetSecondCardVal_1": {
-              "x": 720,
-              "y": 760
-            },
-            "SetWaiting_1": {
-              "x": 720,
-              "y": 860
-            },
-            "StartTimer_1": {
-              "x": 720,
-              "y": 960
             }
           }
         },
@@ -1413,83 +4236,84 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "EvalCanFlip_4",
-              "type": "action"
+              "type": "action",
+              "name": "EvalCanFlip_4"
             },
             {
+              "type": "condition",
+              "name": "Branch: CanFlip_4 == true",
               "condition": {
                 "variable": "CanFlip_4",
                 "operator": "==",
                 "value": true
               },
-              "type": "condition",
-              "body": [
+              "then": [
                 {
-                  "name": "FlipState_4",
-                  "type": "action"
+                  "type": "action",
+                  "name": "FlipState_4"
                 },
                 {
-                  "name": "FlipDisplay_4",
-                  "type": "action"
+                  "type": "action",
+                  "name": "FlipDisplay_4"
                 }
               ],
-              "elseBody": [
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "EvalIsFirst_4"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: IsFirst_4 == true",
+              "condition": {
+                "variable": "IsFirst_4",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
                 {
-                  "name": "EvalIsFirst_4",
-                  "type": "action"
+                  "type": "action",
+                  "name": "SetFirstCard_4"
                 },
                 {
-                  "condition": {
-                    "variable": "IsFirst_4",
-                    "operator": "==",
-                    "value": true
-                  },
-                  "type": "condition",
-                  "body": [
-                    {
-                      "name": "SetFirstCard_4",
-                      "type": "action"
-                    },
-                    {
-                      "name": "SetFirstCardVal_4",
-                      "type": "action"
-                    }
-                  ],
-                  "elseBody": [
-                    {
-                      "name": "EvalIsSecond_4",
-                      "type": "action"
-                    },
-                    {
-                      "condition": {
-                        "variable": "IsSecond_4",
-                        "operator": "==",
-                        "value": true
-                      },
-                      "type": "condition",
-                      "body": [
-                        {
-                          "name": "SetSecondCard_4",
-                          "type": "action"
-                        },
-                        {
-                          "name": "SetSecondCardVal_4",
-                          "type": "action"
-                        },
-                        {
-                          "name": "SetWaiting_4",
-                          "type": "action"
-                        },
-                        {
-                          "name": "StartTimer_4",
-                          "type": "action"
-                        }
-                      ],
-                      "elseBody": []
-                    }
-                  ]
+                  "type": "action",
+                  "name": "SetFirstCardVal_4"
                 }
-              ]
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "EvalIsSecond_4"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: IsSecond_4 == true",
+              "condition": {
+                "variable": "IsSecond_4",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "SetSecondCard_4"
+                },
+                {
+                  "type": "action",
+                  "name": "SetSecondCardVal_4"
+                },
+                {
+                  "type": "action",
+                  "name": "SetWaiting_4"
+                },
+                {
+                  "type": "action",
+                  "name": "StartTimer_4"
+                }
+              ],
+              "else": []
             }
           ],
           "params": [],
@@ -1502,57 +4326,25 @@
               "x": 40,
               "y": 140
             },
-            "CanFlip_4 == true": {
+            "Branch: CanFlip_4 == true": {
               "x": 40,
               "y": 240
-            },
-            "FlipState_4": {
-              "x": 280,
-              "y": 240
-            },
-            "FlipDisplay_4": {
-              "x": 720,
-              "y": 360
             },
             "EvalIsFirst_4": {
               "x": 40,
               "y": 340
             },
-            "IsFirst_4 == true": {
+            "Branch: IsFirst_4 == true": {
               "x": 40,
               "y": 440
-            },
-            "SetFirstCard_4": {
-              "x": 280,
-              "y": 440
-            },
-            "SetFirstCardVal_4": {
-              "x": 720,
-              "y": 560
             },
             "EvalIsSecond_4": {
               "x": 40,
               "y": 540
             },
-            "IsSecond_4 == true": {
+            "Branch: IsSecond_4 == true": {
               "x": 40,
               "y": 640
-            },
-            "SetSecondCard_4": {
-              "x": 280,
-              "y": 640
-            },
-            "SetSecondCardVal_4": {
-              "x": 720,
-              "y": 760
-            },
-            "SetWaiting_4": {
-              "x": 720,
-              "y": 860
-            },
-            "StartTimer_4": {
-              "x": 720,
-              "y": 960
             }
           }
         },
@@ -4688,7 +7480,7 @@
       "variables": [
         {
           "className": "TTimer",
-          "id": "obj_1777087446829_n6jj1",
+          "id": "obj_1777088421617_6if6k",
           "name": "CheckTimer",
           "scope": "stage",
           "isVariable": true,
