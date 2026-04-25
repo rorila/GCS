@@ -1,3 +1,12 @@
+[UC-2026-04-25-FlipAnimation]
+Dateien:
+- src/runtime/AnimationManager.ts (Methode: flip, Zeilen ~571-608)
+- src/components/TComponent.ts (Methode: getEvents, Zeile ~191 - Hinzufügen von onFlipMidpoint)
+- src/runtime/actions/handlers/AnimationActions.ts (Zeile ~61-63, 94-97 - Hinzufügen des flip Effekts)
+- src/components/TWindow.ts (Methode: flip, Zeile ~178-184)
+- src/editor/dialogs/utils/DialogDomainHelper.ts (Zeile ~129-136 - Hinzufügen zu methodMap)
+Beschreibung: Implementierung einer generischen Flip-Animation mit einem onFlipMidpoint Event bei 50% der Ausführungszeit. Ermöglicht nahtlose Vorder-/Rückseiten-Wechsel für UI Komponenten wie TButton, TImage, TPanel, TCard.
+
 [UC-2026-04-25-EventContext]
 Dateien:
 - src/runtime/EventContext.ts (NEU)

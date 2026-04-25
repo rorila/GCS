@@ -568,6 +568,44 @@ export class AnimationManager {
             target.imageIndex = frame;
         });
     }
+
+    /**
+     * Flip-Effekt: Dreht das Objekt visuell um (scaleX 1 -> 0 -> 1).
+     * Feuert bei exakt 50% der Dauer das Event "onFlipMidpoint", damit
+     * Inhalte (Bilder/Texte) gewechselt werden können.
+     */
+    public flip(target: any, duration: number = 600): void {
+        if (!target) return;
+        let midpointFired = false;
+
+        this.addTween(target, '_virtual', 1, duration, 'easeInOut', () => {
+            target.style.transform = ''; // Reset am Ende
+            // Fallback falls es übersehen wurde
+            if (!midpointFired) {
+                midpointFired = true;
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('componentEvent', {
+                        detail: { id: target.id, event: 'onFlipMidpoint', data: {} }
+                    }));
+                }
+            }
+        }, (val) => {
+            // Bei exakt 50% oder knapp drüber feuern wir das Event
+            if (val >= 0.5 && !midpointFired) {
+                midpointFired = true;
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('componentEvent', {
+                        detail: { id: target.id, event: 'onFlipMidpoint', data: {} }
+                    }));
+                }
+            }
+
+            // Visueller 3D-Flip über Skalierung (Absolutwert verhindert spiegelverkehrte Darstellung)
+            const scale = Math.abs(Math.cos(val * Math.PI));
+            if (!target.style) target.style = {};
+            target.style.transform = `scaleX(${scale})`;
+        });
+    }
 }
 
 

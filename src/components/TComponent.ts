@@ -188,7 +188,7 @@ export abstract class TComponent implements IInspectable {
      * Liefert die Liste aller unterstützten Events für diese Komponente.
      */
     public getEvents(): string[] {
-        return ['onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave', 'onDragStart', 'onDragEnd', 'onDrop', 'onTouchStart', 'onTouchMove', 'onTouchEnd'];
+        return ['onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave', 'onDragStart', 'onDragEnd', 'onDrop', 'onTouchStart', 'onTouchMove', 'onTouchEnd', 'onFlipMidpoint'];
     }
 
     /**

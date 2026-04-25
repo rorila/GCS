@@ -175,6 +175,15 @@ export class TWindow extends TComponent {
     }
 
     /**
+     * Führt eine Flip-Animation (Umdrehen) auf der Komponente aus.
+     * @param duration Dauer in Millisekunden (default: 600)
+     */
+    public flip(duration: number = 600): void {
+        const manager = AnimationManager.getInstance();
+        manager.flip(this, duration);
+    }
+
+    /**
      * Get available events for this component
      * Override in subclasses to add more events
      */

@@ -61,6 +61,9 @@ export function registerAnimationActions() {
                     case 'wobble':
                         animManager.wobble(targetObj, Number(action.intensity) || 15, duration);
                         break;
+                    case 'flip':
+                        animManager.flip(targetObj, duration);
+                        break;
                     default: {
                         // Legacy-Effekte: shake, pulse, bounce, fade
                         if (typeof (animManager as any)[effect] === 'function') {
@@ -95,7 +98,7 @@ export function registerAnimationActions() {
             { name: 'effect', label: 'Effekt', type: 'select', options: [
                 'shake', 'pulse', 'bounce', 'fade', 
                 'grow', 'shrink', 'explode', 'pop',
-                'fadeIn', 'fadeOut', 'spin', 'wobble'
+                'fadeIn', 'fadeOut', 'spin', 'wobble', 'flip'
             ], defaultValue: 'shake' },
             { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500, hint: 'Zeit in Millisekunden' },
             { name: 'targetScale', label: 'Ziel-Skalierung', type: 'number', defaultValue: 2.0, hint: 'Für grow/shrink', visibleWhen: { field: 'effect', values: ['grow', 'shrink', 'pulse'] } },

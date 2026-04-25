@@ -1,5 +1,12 @@
 # Changelog (v3.31.0 - Unreleased)
 
+## [2026-04-25] - Flip-Animation & Midpoint-Event
+### Added
+- **AnimationManager:** Neue `flip`-Methode hinzugefügt, die eine 3D-Karten-Umdreh-Animation über eine `scaleX`-Interpolation simuliert.
+- **Midpoint-Event:** `TComponent` und `AnimationManager` unterstützen nun das Event `onFlipMidpoint`, das exakt bei 50% der Flip-Dauer feuert, um Inhaltswechsel (Vorder-/Rückseite) zu ermöglichen.
+- **Action-Erweiterung:** Der Effekt `'flip'` ist nun im Dropdown der `animate`-Action (in `AnimationActions.ts`) verfügbar.
+- **DialogDomainHelper:** Methode `flip` für die Komponenten `TCard`, `TImage`, `TGroupPanel`, `TPanel` und `TButton` freigeschaltet (für Aufruf über `call_method`).
+
 ## [2026-04-25] - Memory-Game Rendering Fixes
 ### Fixed
 - **TListVariable Runtime-Binding:** `TForEach` wurde gepatched, sodass es nun die Eigenschaft `items` (die von `TListVariable` als primärer Datenspeicher genutzt wird) für die Generierung von Klonen korrekt auswertet, anstatt weiterhin blind auf `value` zuzugreifen.
