@@ -2923,13 +2923,14 @@ agent.addVariable('stage_main', {
 
 ### §5.H.7 `TListVariable` — Array
 
-**Properties:** `type: 'list'`, `defaultValue` (Array), `value`
+**Properties:** `type: 'list'`, `items` (Array für Datenspeicherung)
+**Achtung:** Im Gegensatz zu anderen Variablen speichert `TListVariable` seine Daten im Property `items` und **NICHT** in `value`. Komponenten wie `TForEach` erkennen dies automatisch.
 **Events:** `onValueChanged` (auch `onItemAdded`, `onItemRemoved`)
 
 ```typescript
 agent.addVariable('stage_main', {
   className: 'TListVariable', name: 'Highscores',
-  type: 'list', defaultValue: []
+  type: 'list', items: []
 });
 ```
 

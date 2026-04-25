@@ -1,5 +1,11 @@
 # Changelog (v3.31.0 - Unreleased)
 
+## [2026-04-25] - Memory-Game Rendering Fixes
+### Fixed
+- **TListVariable Runtime-Binding:** `TForEach` wurde gepatched, sodass es nun die Eigenschaft `items` (die von `TListVariable` als primärer Datenspeicher genutzt wird) für die Generierung von Klonen korrekt auswertet, anstatt weiterhin blind auf `value` zuzugreifen.
+- **Standalone Player Bundle:** Die Laufzeitumgebung `runtime-standalone.js` wurde mit `npm run bundle:runtime` neu gebaut, sodass die TForEach-Fixes auch im Player (über `iframe-runner.html`) wirksam sind und die Memory-Karten gerendert werden.
+- **Dokumentation:** `AGENT_API_REFERENCE.md` (Abschnitt §5.H.7) um den Hinweis ergänzt, dass `TListVariable` ihre Array-Daten im Property `items` speichert.
+
 ## [2026-04-25] - Feature Gaps: KI-Spiele-Engine Architektur-Erweiterung & Audit Fixes
 ### Added
 - **TForEach Diff-Reconciliation:** Intelligentes Update von Klonen statt ständigem Recreate zur Vermeidung von Flackern.

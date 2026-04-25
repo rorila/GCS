@@ -355,7 +355,8 @@ export class TForEach extends TWindow {
         for (const obj of this.runtimeCallbacks.objects) {
             if (obj.name === this.source || obj.id === this.source) {
                 if (obj.isVariable || obj.className?.includes('Variable')) {
-                    return obj.value;
+                    // TListVariable verwendet 'items', normale Variablen 'value'
+                    return (obj as any).items !== undefined ? (obj as any).items : (obj as any).value;
                 }
                 return obj;
             }

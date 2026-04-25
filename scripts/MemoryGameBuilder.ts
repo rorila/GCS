@@ -75,7 +75,7 @@ export default function build(agent: ProjectBuilder): void {
         className: 'TListVariable', name: 'cards',
         x: 2, y: 2, width: 4, height: 1,
         isVariable: true, isHiddenInRun: true,
-        value: cardData, defaultValue: cardData,
+        items: cardData,
         style: { backgroundColor: '#1e1e2e', color: '#fff' }
     });
 
