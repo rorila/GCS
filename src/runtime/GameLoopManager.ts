@@ -539,14 +539,18 @@ export class GameLoopManager {
             let bOffBottom = this.boundsOffsetBottom;
 
             // Local Boundary Check if sprite is in a Panel
-            if (sprite.parent) {
-                const parent = sprite.parent as any;
-                if (parent && (parent.className === 'TPanel' || parent.className === 'TGroupPanel')) {
-                    bWidth = parent.width;
-                    bHeight = parent.height;
-                    bOffTop = 0; // Ignore global offsets when inside a panel
-                    bOffBottom = 0;
-                }
+            let parentPanel: any = null;
+            if ((sprite as any).parentId) {
+                parentPanel = this.panels.find(p => p.id === (sprite as any).parentId || p.name === (sprite as any).parentId);
+            } else if (sprite.parent) {
+                parentPanel = sprite.parent;
+            }
+
+            if (parentPanel && (parentPanel.className === 'TPanel' || parentPanel.className === 'TGroupPanel')) {
+                bWidth = parentPanel.width;
+                bHeight = parentPanel.height;
+                bOffTop = 0; // Ignore global offsets when inside a panel
+                bOffBottom = 0;
             }
 
             const bounds = sprite.isWithinBounds(bWidth, bHeight, 0, 0);
@@ -641,14 +645,18 @@ export class GameLoopManager {
             let bOffBottom = this.boundsOffsetBottom;
 
             // Local Boundary Check if sprite is in a Panel
-            if (sprite.parent) {
-                const parent = sprite.parent as any;
-                if (parent && (parent.className === 'TPanel' || parent.className === 'TGroupPanel')) {
-                    bWidth = parent.width;
-                    bHeight = parent.height;
-                    bOffTop = 0;
-                    bOffBottom = 0;
-                }
+            let parentPanel: any = null;
+            if ((sprite as any).parentId) {
+                parentPanel = this.panels.find(p => p.id === (sprite as any).parentId || p.name === (sprite as any).parentId);
+            } else if (sprite.parent) {
+                parentPanel = sprite.parent;
+            }
+
+            if (parentPanel && (parentPanel.className === 'TPanel' || parentPanel.className === 'TGroupPanel')) {
+                bWidth = parentPanel.width;
+                bHeight = parentPanel.height;
+                bOffTop = 0;
+                bOffBottom = 0;
             }
 
             let exitSide: string | null = null;

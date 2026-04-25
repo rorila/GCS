@@ -1,0 +1,8 @@
+# Changelog
+
+## 2026-04-25
+### Fixed
+- **GameLoopManager (Panel Boundaries)**: Behebung eines Fehlers, bei dem Sprites nicht mehr an den Rändern ihres Panels (z.B. `TGroupPanel`), sondern an den Rändern der Stage abgeprallt sind. Da Objekte zur Laufzeit für das Rendering flach strukturiert werden (`parentId`), schlug die Suche nach `sprite.parent` fehl. Der Boundary-Check nutzt nun korrekterweise `sprite.parentId`, um das Parent-Panel zu finden und die Kollisionsgrenzen lokal zu berechnen.
+- **System-Variable (hitSide)**: Behebung eines Tippfehlers in den Flow-Bedingungen. Das System-Event `onBoundaryHit` übergibt die Variable `hitSide` (Kamelhöcker). Im Dropdown des Flow-Editors wurde diese jedoch fälschlicherweise klein geschrieben (`hitside`) angeboten, wodurch die Bedingungsauswertung fehlschlug. Dies wurde auf `hitSide` korrigiert.
+- **PropertyPicker (Nested Container Bug)**: Behebung eines Fehlers in der "Eigenschaft ändern"-Aktion. Wenn das Ziel-Objekt der Aktion sich tief verschachtelt innerhalb eines Containers (`TGroupPanel`, `TCard`) befand, öffnete sich der modale Auswahldialog für Eigenschaften nicht mehr, sondern legte stattdessen direkt ein leeres Eingabefeld an. Der Inspector durchsucht Stage-Objekte nun rekursiv (`flattenObjects`), um auch auf Kinder-Objekte Zugriff zu haben.
+- **Tauri UI Bug (Z-Index)**: Modale Dialoge (Eigenschaften-Auswahl, Variablen-Auswahl, RichText-Editor) wurden in der Tauri-Version von anderen Inspector- bzw. UI-Komponenten verdeckt. Der Z-Index der Overlays wurde von 10000 auf 99999 (bzw. 100000 für geschachtelte Dialoge wie im RichTextEditor) erhöht, um konsistent mit ConfirmDialog/NotificationToast immer im Vordergrund zu sein.

@@ -179,9 +179,18 @@ export class EditorCommandManager {
         });
 
         for (const stage of sortedStages) {
-            const objIdx = (stage.objects || []).findIndex(o => o.id === id);
-            if (objIdx !== -1) {
-                stage.objects!.splice(objIdx, 1);
+            let removed = false;
+            const removeDeep = (arr: any[]) => {
+                const idx = arr.findIndex(o => o.id === id);
+                if (idx !== -1) { arr.splice(idx, 1); removed = true; return; }
+                for (const child of arr) {
+                    if (child.children) removeDeep(child.children);
+                    if (removed) return;
+                }
+            };
+            
+            if (stage.objects) removeDeep(stage.objects);
+            if (removed) {
                 EditorCommandManager.logger.debug(`Removed from stage ${stage.name} (${stage.id}) objects`);
                 return;
             }

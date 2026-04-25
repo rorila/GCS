@@ -448,3 +448,9 @@ Die Plattform nutzt eine hierarchische Struktur in `game-server/data/db.json`:
 ## Learnings: KI-Generierung (TForEach / EventContext)
 - Nutze TForEach mit Diff-Reconciliation fÃ¼r dynamische Kartenspiele. Ersetze nie das Array komplett, wenn du Flackern vermeiden willst.
 - Greife auf Properties des aufrufenden Objekts via ${self.propertyName} oder ${.source.propertyName} zu.
+
+### Container & Verschachtelung
+Objekte wie \TGroupPanel\ oder \TCard\ können Kinder enthalten (\isContainer = true\). Bei jeglicher Iteration über \stage.objects\ (z.B. in Registry oder CommandManager zum Löschen) **MUSS** rekursiv iteriert werden (z.B. mittels \lattenObjects\ oder \emoveDeep\), da sonst tief verschachtelte Elemente in Dropdowns fehlen oder als Dateileichen zurückbleiben.
+
+### Tauri UI / Electron UI
+Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) müssen zwingend einen extrem hohen z-index (z.B. 99999) für ihr Overlay verwenden, da in der Tauri-App ansonsten andere UI-Layer des Editors die Dialoge überlagern und diese unsichtbar machen.

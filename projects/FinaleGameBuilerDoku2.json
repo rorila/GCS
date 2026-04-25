@@ -57,6 +57,7 @@
           "width": 8,
           "height": 4,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -71,6 +72,39 @@
           "isOnMainStage": false,
           "isOnSplashStage": false
         },
+        {
+          "className": "TGameLoop",
+          "id": "obj_1777131429163_k211bfdxl",
+          "name": "GameLoop",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 10,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "boundaryMode": "clamp",
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
         {
           "className": "TStringMap",
           "id": "7ef3bf06-fdd1-4986-b279-4de2552157ca",
@@ -87,6 +121,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -117,6 +152,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -127,11 +163,7 @@
           "entries": {
             "Hintergrund": "#0d1117"
           }
-        }
-      ],
-      "actions": [],
-      "tasks": [],
-      "variables": [
+        },
         {
           "className": "TVariable",
           "id": "var_project_change",
@@ -148,6 +180,7 @@
           "width": 10,
           "height": 4,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#000000",
@@ -176,6 +209,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -217,6 +251,7 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -245,6 +280,7 @@
           "width": 24,
           "height": 3,
           "zIndex": 1,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#4ec9b0",
@@ -277,6 +313,7 @@
           "width": 13,
           "height": 4.35,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -300,6 +337,7 @@
               "width": 5,
               "height": 1,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -328,6 +366,7 @@
               "width": 12,
               "height": 1,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -410,6 +449,7 @@
           "width": 26,
           "height": 3,
           "zIndex": 1,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#4ec9b0",
@@ -442,6 +482,7 @@
           "width": 24,
           "height": 12,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -486,6 +527,7 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -518,6 +560,7 @@
           "width": 16,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "transparent",
@@ -552,6 +595,7 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -575,6 +619,7 @@
               "width": 8,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -606,6 +651,7 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -629,6 +675,7 @@
               "width": 8,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -660,6 +707,7 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -683,6 +731,7 @@
               "width": 8,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -714,6 +763,7 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -737,6 +787,7 @@
               "width": 8,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -833,6 +884,7 @@
           "width": 26,
           "height": 3,
           "zIndex": 1,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#4ec9b0",
@@ -868,6 +920,7 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -900,6 +953,7 @@
           "width": 16,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "transparent",
@@ -934,6 +988,7 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -957,6 +1012,7 @@
               "width": 8,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -988,6 +1044,7 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -1011,6 +1068,7 @@
               "width": 8,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -1042,6 +1100,7 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -1065,6 +1124,7 @@
               "width": 8,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -1096,6 +1156,7 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -1119,6 +1180,7 @@
               "width": 8,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -1388,6 +1450,2336 @@
       ]
     },
     {
+      "id": "stage_7cf27703-59f7-48e2-842c-d5581c2bf337",
+      "name": "Stage_MovingSprites",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "obj_import_1777130775929_83bm",
+          "name": "LabelUeberschrift",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18,
+          "y": 2,
+          "width": 26,
+          "height": 3,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#4ec9b0",
+            "fontSize": 28,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Informationen an den Spieler"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_import_1777130775929_dlas",
+          "name": "Btn_Start",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ShowOnClick",
+            "onFocus": "ShowOnFokus",
+            "onBlur": "ShowOnBlur",
+            "onMouseEnter": "LetTheButtonMove",
+            "onMouseLeave": "ShowOnMouseLeave"
+          },
+          "visible": true,
+          "x": 22,
+          "y": 30,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 10
+          },
+          "text": "Klick mich!",
+          "icon": ""
+        },
+        {
+          "className": "TToast",
+          "id": "obj_import_1777130775929_nbk7",
+          "name": "ToastTest",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 37,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "animation": "slide-left",
+          "position": "bottom-left",
+          "duration": 3000,
+          "maxVisible": 3,
+          "infoColor": "#2196F3",
+          "successColor": "#4CAF50",
+          "warningColor": "#FF9800",
+          "errorColor": "#F44336",
+          "textColor": "#ffffff",
+          "fontSize": 14,
+          "borderRadius": 8,
+          "padding": 12
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1777130775929_fzed",
+          "name": "GrPnl_Inhalt",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 9,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TLabel",
+              "id": "obj_import_1777130775929_9f03",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 0,
+              "width": 8,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "WhiteText"
+            }
+          ]
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1777130775929_9f03",
+          "name": "K3T1_4",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "WhiteText"
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1777130775929_64i5",
+          "name": "GrPnl_Inhalt_1",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 12,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TLabel",
+              "id": "obj_import_1777130775929_jjv1",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 0,
+              "width": 8,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "WhiteText"
+            }
+          ]
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1777130775929_jjv1",
+          "name": "K3T1_4",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "WhiteText"
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1777130775929_x9if",
+          "name": "GrPnl_Inhalt_2",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 15,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TLabel",
+              "id": "obj_import_1777130775929_uq7o",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 0,
+              "width": 8,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "WhiteText"
+            }
+          ]
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1777130775929_uq7o",
+          "name": "K3T1_4",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "WhiteText"
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1777130775929_b0xw",
+          "name": "GrPnl_Inhalt_3",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 18,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TLabel",
+              "id": "obj_import_1777130775929_5nw9",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 0,
+              "width": 8,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "WhiteText"
+            }
+          ]
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1777130775929_5nw9",
+          "name": "K3T1_4",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "WhiteText"
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "14ee5970-230f-4906-8004-47560b53670c",
+          "name": "GroupPanelBlue",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 21,
+          "y": 6,
+          "width": 35,
+          "height": 22,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TSprite",
+              "id": "0f7b15ab-5076-4286-960f-9ba85730085d",
+              "name": "PanelSprite",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onBoundaryHit": "CheckBourdary"
+              },
+              "visible": true,
+              "x": 12,
+              "y": 7,
+              "width": 1,
+              "height": 1,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "#ff6b6b",
+                "borderColor": "#333333",
+                "borderWidth": 1
+              },
+              "velocityX": 0.3,
+              "velocityY": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "default",
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "backgroundImage": "",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            }
+          ]
+        },
+        {
+          "className": "TSprite",
+          "id": "0f7b15ab-5076-4286-960f-9ba85730085d",
+          "name": "PanelSprite",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckBourdary"
+          },
+          "visible": true,
+          "x": 12,
+          "y": 7,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.3,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TButton",
+          "id": "02a0d34e-1d7b-4bf6-8a05-bc84647c9d73",
+          "name": "Btn_Start_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ShowOnClick",
+            "onFocus": "ShowOnFokus",
+            "onBlur": "ShowOnBlur",
+            "onMouseEnter": "LetTheButtonMove",
+            "onMouseLeave": "ShowOnMouseLeave"
+          },
+          "visible": true,
+          "x": 51,
+          "y": 30,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 10
+          },
+          "text": "Klick mich!",
+          "icon": ""
+        },
+        {
+          "id": "32deeead-b926-45a0-9d01-0dd6ae571937",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "2054e200-95af-4057-814b-117a555d25b0",
+            "name": "GrPnl_Inhalt",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "events": {
+              "onClick": "ShowHelloWorldStage"
+            },
+            "visible": true,
+            "x": 4.15,
+            "y": 5.4,
+            "width": 13,
+            "height": 4.35,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "32deeead-b926-45a0-9d01-0dd6ae571937",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 0.2999999999999998,
+                "y": 0.75,
+                "width": 5,
+                "height": 1,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "Hello World"
+              },
+              {
+                "className": "TPanel",
+                "id": "obj_1776959004334_7r0djkldi",
+                "name": "Panel_33",
+                "scope": "stage",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 0,
+                "y": 2.3000000000000007,
+                "width": 12,
+                "height": 1,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 12,
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 1
+                },
+                "caption": "Komponenen: TInfoWindow und TToast",
+                "showGrid": false,
+                "gridColor": "#000000",
+                "gridStyle": "lines"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 0.2999999999999998,
+          "y": 0.75,
+          "width": 5,
+          "height": 1,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "Hello World",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "85155d66-13d3-4b76-a5ad-8c4ddc0bdd56",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "f40bd89a-56aa-4de7-82ea-af73b21738f1",
+            "name": "GrPnl_Inhalt",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 6,
+            "y": 9,
+            "width": 10,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "85155d66-13d3-4b76-a5ad-8c4ddc0bdd56",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 8,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "efb163a3-a651-44d8-bc72-291e38219cc8",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "43e4a277-4693-4e2e-bdb6-56d33dd7dfd0",
+            "name": "GrPnl_Inhalt_1",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 6,
+            "y": 12,
+            "width": 10,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "efb163a3-a651-44d8-bc72-291e38219cc8",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 8,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "1ddaa45d-1274-4d54-a571-29dc97e04a8c",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "001b444e-55ca-4359-9296-2e2911ed18cf",
+            "name": "GrPnl_Inhalt_2",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 6,
+            "y": 15,
+            "width": 10,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "1ddaa45d-1274-4d54-a571-29dc97e04a8c",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 8,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "417cec12-8248-43d3-858f-d190e0baa512",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "4a3ac5b0-eba6-4371-ac70-c3d4f15b2856",
+            "name": "GrPnl_Inhalt_3",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 6,
+            "y": 18,
+            "width": 10,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "417cec12-8248-43d3-858f-d190e0baa512",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 8,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "obj_import_1777014706614_bn4x",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "obj_import_1777014706614_msq8",
+            "name": "GrPnl_Inhalt",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 6,
+            "y": 9,
+            "width": 10,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "obj_import_1777014706614_bn4x",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 8,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "obj_import_1777014706614_vdxl",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "obj_import_1777014706614_nast",
+            "name": "GrPnl_Inhalt_1",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 6,
+            "y": 12,
+            "width": 10,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "obj_import_1777014706614_vdxl",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 8,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "obj_import_1777014706614_41wd",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "obj_import_1777014706614_fmcz",
+            "name": "GrPnl_Inhalt_2",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 6,
+            "y": 15,
+            "width": 10,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "obj_import_1777014706614_41wd",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 8,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "obj_import_1777014706614_xslt",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "obj_import_1777014706614_6c64",
+            "name": "GrPnl_Inhalt_3",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 6,
+            "y": 18,
+            "width": 10,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "obj_import_1777014706614_xslt",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 8,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "27d1283f-aaca-452f-96ee-63c02a4aa90a",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "a5e7e587-8975-4356-85a4-27d759c9d98f",
+            "name": "GrPnl_Inhalt",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 2,
+            "y": 6,
+            "width": 14,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(33,150,243,0.15)",
+              "borderColor": "#2196f3",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "27d1283f-aaca-452f-96ee-63c02a4aa90a",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 12,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 12,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "d831a823-b2c0-4459-bfa8-288ea7407515",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "85534206-f75a-41ad-bd76-218b683b073f",
+            "name": "GroupPanelRed_1",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 10,
+            "y": 19,
+            "width": 7,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(233,30,99,0.15)",
+              "borderColor": "#e91e63",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "d831a823-b2c0-4459-bfa8-288ea7407515",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 5,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "9c3ca85b-2fb0-4fb1-8d64-69a706ef7175",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "26310efa-1058-4bce-ba52-2ed6ec5ba7bc",
+            "name": "GroupPanelGreen_1",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 10,
+            "y": 22,
+            "width": 7,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "color": "rgba(76,175,80,0.15)",
+              "backgroundColor": "rgba(76,175,80,0.15)",
+              "borderColor": "#4caf50",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "9c3ca85b-2fb0-4fb1-8d64-69a706ef7175",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 5,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "id": "0f4b796b-8c13-477a-9c7d-be7dfad1ee02",
+          "name": "K3T1_4",
+          "className": "TLabel",
+          "parent": {
+            "className": "TGroupPanel",
+            "id": "2ee5c398-9c59-4e6c-a86e-3ffc6b62b770",
+            "name": "GroupPanelYellow_1",
+            "scope": "stage",
+            "isHiddenInRun": false,
+            "draggable": false,
+            "droppable": false,
+            "dragMode": "move",
+            "visible": true,
+            "x": 10,
+            "y": 25,
+            "width": 7,
+            "height": 2,
+            "zIndex": 0,
+            "rotation": 0,
+            "align": "NONE",
+            "style": {
+              "backgroundColor": "rgba(255,152,0,0.15)",
+              "borderColor": "#ff9800",
+              "borderWidth": 1,
+              "borderRadius": 15
+            },
+            "caption": "",
+            "children": [
+              {
+                "className": "TLabel",
+                "id": "0f4b796b-8c13-477a-9c7d-be7dfad1ee02",
+                "name": "K3T1_4",
+                "scope": "global",
+                "draggable": false,
+                "droppable": false,
+                "dragMode": "move",
+                "visible": true,
+                "x": 1,
+                "y": 0,
+                "width": 5,
+                "height": 2,
+                "zIndex": 0,
+                "rotation": 0,
+                "align": "NONE",
+                "style": {
+                  "color": "#d4d4d4",
+                  "fontSize": 15,
+                  "fontFamily": "Segoe UI, Arial, sans-serif",
+                  "fontWeight": "normal",
+                  "fontStyle": "normal",
+                  "textAlign": "center",
+                  "backgroundColor": "transparent",
+                  "borderColor": "transparent",
+                  "borderWidth": 0
+                },
+                "text": "WhiteText"
+              }
+            ]
+          },
+          "children": [],
+          "events": {},
+          "scope": "global",
+          "isVariable": false,
+          "isTransient": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 0,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "_align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 15,
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, Arial, sans-serif"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
+          "_winVisible": true,
+          "text": "WhiteText",
+          "rotation": 0,
+          "isAnimating": false,
+          "_initialized": true,
+          "isInherited": true
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_1777137855428_393ykg6nm",
+          "name": "StageSprite",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageBoundary"
+          },
+          "visible": true,
+          "x": 6,
+          "y": 27,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 1,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1776870551033",
+          "details": "",
+          "name": "Act_ShowInfoField",
+          "showDetails": false,
+          "target": "InfoWindow_HelloWorld",
+          "changes": {
+            "visible": true
+          }
+        },
+        {
+          "id": "node-1776886250349",
+          "details": "",
+          "name": "Act_ShowTestToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Auch ich grüße dich !!",
+          "toastType": "success"
+        },
+        {
+          "id": "node-1776930743666",
+          "details": "",
+          "name": "Act_ShowOkToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Du hast den Ok-Button geklickt",
+          "toastType": "success"
+        },
+        {
+          "id": "node-1776930896352",
+          "details": "",
+          "name": "act_ShowCancelToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Du hast cancel geklickt",
+          "toastType": "warning"
+        },
+        {
+          "id": "node-1777014873037",
+          "details": "",
+          "name": "MoveTheStartBtn",
+          "showDetails": false,
+          "type": "move_to",
+          "target": "Btn_Start",
+          "x": 50,
+          "y": 20,
+          "easing": "easeInOut"
+        },
+        {
+          "id": "node-1777015042989",
+          "details": "",
+          "name": "Act_ShowOnBlurToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Event: OnBlur"
+        },
+        {
+          "id": "node-1777017841379",
+          "details": "",
+          "name": "Act_ShowOnFokusToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Event: OnFokus"
+        },
+        {
+          "id": "node-1777017918638",
+          "details": "",
+          "name": "Act_ShowOnClickToast",
+          "showDetails": false
+        },
+        {
+          "id": "node-1777026749689",
+          "details": "",
+          "name": "Act_ShowOnMouseEnterToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Event: onMouseEnter"
+        },
+        {
+          "id": "node-1777026838648",
+          "details": "",
+          "name": "Act_ShowOnMouseLeaveToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Event: OnMouseLeave"
+        },
+        {
+          "id": "node-1777133065598",
+          "details": "",
+          "name": "Act_BounceR",
+          "showDetails": false,
+          "target": "PanelSprite",
+          "changes": {
+            "velocityX": 0.3
+          }
+        },
+        {
+          "id": "node-1777136426041",
+          "details": "",
+          "name": "ActBounceL",
+          "showDetails": false,
+          "target": "PanelSprite",
+          "changes": {
+            "velocityX": -0.3
+          }
+        },
+        {
+          "id": "node-1777137608843",
+          "details": "",
+          "name": "Act_StageBounceR",
+          "showDetails": false,
+          "target": "StageSprite",
+          "changes": {
+            "velocityX": 1
+          }
+        },
+        {
+          "id": "node-1777137693363",
+          "details": "",
+          "name": "Act_StageBounceL",
+          "showDetails": false,
+          "target": "StageSprite",
+          "changes": {
+            "velocityX": -0.5
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "LetTheButtonMove",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "MoveTheStartBtn",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LetTheButtonMove": {
+              "x": 40,
+              "y": 40
+            },
+            "MoveTheStartBtn": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnBlur",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnBlurToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnBlur": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnFokus",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnFokusToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnFokus": {
+              "x": 40,
+              "y": 40
+            },
+            "Action1": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnClick",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnClickToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnClick": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ShowOnClickToast": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnMouseEnter",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnMouseEnterToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnMouseEnter": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowOnMouseLeave",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOnMouseLeaveToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOnMouseLeave": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ShowOnMouseLeaveToast": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "CheckBourdary",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftType": "variable",
+                "leftValue": "${hitSide}",
+                "rightValue": "left"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_BounceR",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "rightValue": "right",
+                    "leftValue": "${hitSide}"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "ActBounceL",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckBourdary": {
+              "x": 40,
+              "y": 40
+            },
+            "${hitSide} == left": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_BounceR": {
+              "x": 260,
+              "y": 140
+            },
+            "${hitSide} == right": {
+              "x": 40,
+              "y": 240
+            },
+            "ActBounceL": {
+              "x": 260,
+              "y": 240
+            }
+          }
+        },
+        {
+          "name": "CheckStageBoundary",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "rightValue": "left",
+                "leftValue": "${hitSide}"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_StageBounceR",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "rightValue": "right",
+                    "leftValue": "${hitSide}"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Act_StageBounceL",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckStageBoundary": {
+              "x": 40,
+              "y": 40
+            },
+            "${hitSide} == left": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_StageBounceR": {
+              "x": 300,
+              "y": 140
+            },
+            "${hitSide} == right": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_StageBounceL": {
+              "x": 300,
+              "y": 240
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": false,
+        "backgroundColor": "${StageConfig.Hintergrund}"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
       "id": "stage_import_1776868018446_hc",
       "name": "Projekt-Aufbau",
       "type": "standard",
@@ -1406,6 +3798,7 @@
           "width": 24,
           "height": 3,
           "zIndex": 1,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#4ec9b0",
@@ -1434,6 +3827,7 @@
           "width": 56,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -1462,6 +3856,7 @@
           "width": 58,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
@@ -1488,6 +3883,7 @@
               "width": 56,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -1518,6 +3914,7 @@
           "width": 54,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -1544,6 +3941,7 @@
           "width": 52,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -1572,6 +3970,7 @@
           "width": 50,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(76,175,80,0.15)",
@@ -1598,6 +3997,7 @@
           "width": 48,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -1626,6 +4026,7 @@
           "width": 46,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
@@ -1652,6 +4053,7 @@
           "width": 44,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -1680,6 +4082,7 @@
           "width": 56,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#dcdcaa",
@@ -1708,6 +4111,7 @@
           "width": 56,
           "height": 5,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -1756,6 +4160,7 @@
           "width": 26,
           "height": 3,
           "zIndex": 1,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#4ec9b0",
@@ -1785,6 +4190,7 @@
           "width": 14,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -1808,6 +4214,7 @@
               "width": 12,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -1856,6 +4263,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "${BluePanelConfig.Hintergrundfarbe}",
@@ -1882,6 +4290,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
@@ -1908,6 +4317,7 @@
           "width": 8,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -1936,6 +4346,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(76,175,80,0.15)",
@@ -1962,6 +4373,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
@@ -1988,6 +4400,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -2017,6 +4430,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -2040,6 +4454,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -2069,6 +4484,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
@@ -2093,6 +4509,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "rgba(76,175,80,0.15)",
@@ -2118,6 +4535,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
@@ -2141,6 +4559,7 @@
           "width": 8,
           "height": 3,
           "zIndex": 1,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#4ec9b0",
@@ -2169,6 +4588,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -2198,6 +4618,7 @@
           "width": 7,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -2221,6 +4642,7 @@
               "width": 5,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -2252,6 +4674,7 @@
           "width": 7,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
@@ -2275,6 +4698,7 @@
               "width": 5,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -2306,6 +4730,7 @@
           "width": 7,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "rgba(76,175,80,0.15)",
@@ -2330,6 +4755,7 @@
               "width": 5,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -2361,6 +4787,7 @@
           "width": 7,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
@@ -2384,6 +4811,7 @@
               "width": 5,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
               "style": {
                 "color": "#d4d4d4",
@@ -2414,6 +4842,7 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -2444,6 +4873,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -2472,6 +4902,7 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -2502,6 +4933,7 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -2532,6 +4964,7 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -2562,6 +4995,7 @@
           "width": 10,
           "height": 8,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#ffffff",
@@ -2600,6 +5034,7 @@
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
           "style": {
             "color": "#d4d4d4",
@@ -2628,7 +5063,24 @@
       },
       "gameName": "${Allgemein.Projektname}",
       "flowCharts": {}
+    },
+    {
+      "id": "stage-1777130749278",
+      "name": "Stage 5",
+      "type": "standard",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
     }
   ],
-  "activeStageId": "stage_1f1e07cf-e8d1-4ca6-9722-ca47729653b5"
+  "activeStageId": "stage_7cf27703-59f7-48e2-842c-d5581c2bf337"
 }

@@ -132,7 +132,7 @@ export class PropertyPickerDialog {
 
     private static createOverlay(): HTMLDivElement {
         const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:10000; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(2px);';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(2px);';
         return overlay;
     }
 

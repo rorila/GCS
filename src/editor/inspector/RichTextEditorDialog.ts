@@ -9,7 +9,7 @@ export class RichTextEditorDialog {
     public static show(initialHtml: string): Promise<string | null> {
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:10000; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(3px);';
+            overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(3px);';
 
             const dialog = document.createElement('div');
             dialog.style.cssText = 'width:600px; max-height:80vh; background:#12122a; border:1px solid #333; border-radius:12px; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.6); overflow:hidden;';
@@ -173,7 +173,7 @@ export class RichTextEditorDialog {
     private static showLinkDialog(parentOverlay: HTMLElement): Promise<string | null> {
         return new Promise(resolve => {
             const modal = document.createElement('div');
-            modal.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a2e; border:1px solid #444; border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:12px; z-index:10001; box-shadow:0 10px 40px rgba(0,0,0,0.8); min-width:300px; color:#fff; font-family:sans-serif;';
+            modal.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a2e; border:1px solid #444; border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:12px; z-index:100000; box-shadow:0 10px 40px rgba(0,0,0,0.8); min-width:300px; color:#fff; font-family:sans-serif;';
             
             const title = document.createElement('div');
             title.innerText = '🔗 Link einfügen';

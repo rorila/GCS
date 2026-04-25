@@ -1,3 +1,32 @@
+[UC-2026-04-25-PanelBoundaryBounceFix]
+Dateien:
+- src/runtime/GameLoopManager.ts (Methode: checkBoundaries / checkStageExits, Zeilen ~541, 647)
+Beschreibung: Behebung eines Fehlers in der Boundary-Collision. Wenn ein Sprite als Kind eines Panels definiert war, sollte es am Rand des Panels abprallen. Da die GameRuntime für das Rendering alle Stage-Objekte in eine flache Liste (`parentId` statt echter `children`-Referenz) konvertiert, lief die Prüfung auf `sprite.parent` ins Leere. Das Sprite verhielt sich so, als wäre es direkt auf der Stage. Durch den Fix sucht der GameLoopManager nun das Panel via `sprite.parentId` im `this.panels` Array, woraufhin die Panel-Kanten korrekt als Kollisionsgrenzen genutzt werden.
+
+[UC-2026-04-25-SystemVariableHitSideFix]
+Dateien:
+- src/editor/flow/FlowCondition.ts (Methode: getInspectorProperties, Zeilen ~121, 154)
+Beschreibung: Behebung eines Case-Sensitivity Tippfehlers bei den von der Engine an Flow-Conditions übergebenen System-Variablen. Das Event `onBoundaryHit` wirft die Variable `hitSide` (Kamelhöcker). Im Dropdown des Editors war stattdessen fälschlicherweise `hitside` (alles klein) hinterlegt, wodurch Skripte fehlgeschlagen sind. Dies wurde auf `hitSide` korrigiert.
+
+[UC-2026-04-25-TauriDialogZIndexFix]
+Dateien:
+- src/editor/inspector/PropertyPickerDialog.ts (Methode: createOverlay, Zeile ~135)
+- src/editor/inspector/VariablePickerDialog.ts (Methode: createOverlay, Zeile ~167)
+- src/editor/inspector/RichTextEditorDialog.ts (Methode: show, Zeile ~12; showLinkDialog, Zeile ~177)
+Beschreibung: Behebung eines UI-Bugs in der Tauri-Version, bei dem modale Dialoge (Eigenschaften-Auswahl, Variablen-Auswahl, RichText-Editor) nicht angezeigt wurden, weil sie von UI-Elementen mit höherem Z-Index verdeckt wurden. Der Z-Index der Overlays wurde von 10000 auf 99999 (bzw. 100000 für geschachtelte Dialoge) erhöht, analog zum ConfirmDialog.
+
+[UC-2026-04-25-PropertyPickerContainerFix]
+Dateien:
+- src/editor/inspector/renderers/InspectorSectionRenderer.ts (Methode: renderProperty, Zeile ~330)
+Beschreibung: Behebung eines UI-Bugs, bei dem der modale Eigenschafts-Auswahldialog ("Eigenschaft hinzufügen" Button) in Flow-Actions nicht geöffnet wurde, wenn das Ziel-Objekt innerhalb eines Containers (TGroupPanel, TCard) verschachtelt war. Der Inspector durchsucht `stage.objects` und globale Objekte nun rekursiv via `flattenObjects()`, um die Typ-Eigenschaften tief verschachtelter Ziel-Objekte aufzulösen.
+
+[UC-2026-04-25-UIFixes]
+Dateien:
+- src/editor/flow/FlowCondition.ts (Methode: getInspectorProperties, Zeilen ~118-123, 150-155 - Systemvariablen wie hitside hinzugefügt)
+- src/editor/services/EditorCommandManager.ts (Methode: removeObjectSilent, Zeilen ~179-186 - Rekursives Löschen von Kind-Elementen in Stage-Objekten)
+- src/services/registry/ObjectRegistry.ts (Methode: getObjects, Zeilen ~26-60, 81-98 - flattenObjects Helfer implementiert für rekursive Objekt-Auflistung)
+Beschreibung: Behebung von 3 UI-Bugs: Systemvariablen waren nicht konfigurierbar in FlowConditions. Kind-Elemente von TGroupPanel / Containern ließen sich nicht löschen. Verschachtelte Objekte tauchten in Action-Dropdowns nicht mehr auf.
+
 [UC-2026-04-25-PuzzleFeatures]
 Dateien:
 - src/components/TWindow.ts (Methode: Konstruktor, Zeilen ~94-96, 239 - Eigenschaft rotation hinzugefügt)

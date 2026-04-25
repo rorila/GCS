@@ -23,10 +23,19 @@ class ObjectRegistry {
         const activeStage = coreStore.activeStageId ? project.stages?.find((s: any) => s.id === coreStore.activeStageId) : null;
         const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint' || activeStage?.id === 'blueprint';
 
+        const flattenObjects = (arr: any[]): any[] => {
+            let res: any[] = [];
+            for (const o of arr) {
+                res.push(o);
+                if (o.children && Array.isArray(o.children)) res.push(...flattenObjects(o.children));
+            }
+            return res;
+        };
+
         if (project.stages && project.stages.length > 0) {
             if (activeStage) {
                 const stageItems = [
-                    ...(activeStage.objects || []),
+                    ...flattenObjects(activeStage.objects || []),
                     ...(activeStage.variables || []) as unknown as ComponentData[]
                 ];
                 stageItems.forEach((obj: any) => {
@@ -46,12 +55,12 @@ class ObjectRegistry {
 
                 if (scopeFilter === 'all') {
                     stageItemsToInclude = [
-                        ...(stage.objects || []).map((o: any) => ({ ...o, uiScope: isStageBlueprint ? 'global' : `stage: ${stage.name || stage.id}` })),
+                        ...flattenObjects(stage.objects || []).map((o: any) => ({ ...o, uiScope: isStageBlueprint ? 'global' : `stage: ${stage.name || stage.id}` })),
                         ...(stage.variables || []).map((v: any) => ({ ...v, uiScope: isStageBlueprint ? 'global' : `stage: ${stage.name || stage.id}` })) as unknown as ComponentData[]
                     ];
                 } else {
                     stageItemsToInclude = [
-                        ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj) || isStageBlueprint),
+                        ...flattenObjects(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj) || isStageBlueprint),
                         ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global' || isStageBlueprint) as unknown as ComponentData[]
                     ];
                 }
@@ -69,7 +78,7 @@ class ObjectRegistry {
             if (scopeFilter === 'stage-only') {
                 const actStage = project.stages.find((s: any) => s.id === coreStore.activeStageId);
                 return [
-                    ...(actStage?.objects || []),
+                    ...flattenObjects(actStage?.objects || []),
                     ...(actStage?.variables || []) as unknown as ComponentData[]
                 ].filter(o => o.name);
             }
@@ -77,7 +86,7 @@ class ObjectRegistry {
 
         if (isBlueprint) {
             const rootGlobals = [
-                ...(project.objects || []).filter(obj => (obj as any).scope === 'global'),
+                ...flattenObjects(project.objects || []).filter((obj: any) => obj.scope === 'global'),
                 ...(project.variables || []).filter(v => (v as any).scope === 'global') as unknown as ComponentData[]
             ];
             rootGlobals.forEach(gObj => {
@@ -90,7 +99,7 @@ class ObjectRegistry {
 
         if (allObjects.length === 0 && (!project.stages || project.stages.length === 0)) {
             const legacyItems = [
-                ...(project.objects || []),
+                ...flattenObjects(project.objects || []),
                 ...(project.variables || []) as unknown as ComponentData[]
             ];
             return legacyItems.filter(o => o.name);

@@ -1,5 +1,11 @@
 # Changelog (v3.31.0 - Unreleased)
 
+## [2026-04-25] - UI Inspector & Editor Fixes
+### Fixed
+- **Systemvariablen in FlowCondition:** Systemvariablen wie `hitside`, `score`, `lives`, `loopIndex` und `deltaTime` sind nun regulär über die Dropdowns (Links/Rechts) in der Condition-Konfiguration auswählbar.
+- **Löschen von GroupPanel-Kindern:** Beim Betätigen der Entfernen-Taste werden nun Objekte rekursiv über alle Stage-Hierarchien (inklusive in Child-Containern wie `TGroupPanel` oder `TCard` verschachtelte Elemente) korrekt gelöscht (`removeDeep` in `EditorCommandManager.ts`).
+- **Objekt-Auswahl für Actions:** Action-Dropdowns (z. B. "Eigenschaft ändern") enthalten nun wieder sämtliche Elemente auf der Stage, da `ObjectRegistry.ts` die Objekte mithilfe der neuen `flattenObjects`-Methode rekursiv tief iteriert anstatt nur flach.
+
 ## [2026-04-25] - Puzzle-Features: Rotation & Container-Karten
 ### Added
 - **Rotation:** `TComponent` und `TWindow` verfügen nun über die Eigenschaft `rotation` (0-360 Grad). Diese wird via CSS `transform: rotate(...)` auf die Elemente angewandt. Im Inspector unter "GEOMETRIE" editierbar (Schrittweite 90 Grad).

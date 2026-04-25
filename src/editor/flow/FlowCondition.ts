@@ -118,7 +118,8 @@ export class FlowCondition extends FlowElement {
         if (this.LeftOperandType === 'variable') {
             const legacyVars = projectVariableRegistry.getVariables(undefined, true, 'all').map(v => v.name);
             const compVars = projectObjectRegistry.getObjects('all').filter(c => (c.className || c.type || '').endsWith('Variable')).map(c => c.name);
-            const allVars = Array.from(new Set([...legacyVars, ...compVars]));
+            const systemVars = ['hitSide', 'loopIndex', 'loopItem', 'score', 'lives', 'pointerX', 'pointerY', 'deltaTime', 'key', 'targetId', 'sourceId'];
+            const allVars = Array.from(new Set([...systemVars, ...legacyVars, ...compVars]));
             const options = allVars.map(n => `\${${n}}`);
             props.push({ group: 'Condition', name: 'LeftOperandValue', type: 'select', label: 'Links Variable', options: options.length ? options : ['(Keine Variable gefunden)'] });
         } else if (this.LeftOperandType === 'property') {
@@ -150,7 +151,8 @@ export class FlowCondition extends FlowElement {
         if (this.RightOperandType === 'variable') {
             const legacyVars = projectVariableRegistry.getVariables(undefined, true, 'all').map(v => v.name);
             const compVars = projectObjectRegistry.getObjects('all').filter(c => (c.className || c.type || '').endsWith('Variable')).map(c => c.name);
-            const allVars = Array.from(new Set([...legacyVars, ...compVars]));
+            const systemVars = ['hitSide', 'loopIndex', 'loopItem', 'score', 'lives', 'pointerX', 'pointerY', 'deltaTime', 'key', 'targetId', 'sourceId'];
+            const allVars = Array.from(new Set([...systemVars, ...legacyVars, ...compVars]));
             const options = allVars.map(n => `\${${n}}`);
             props.push({ group: 'Condition', name: 'RightOperandValue', type: 'select', label: 'Rechts Variable', options: options.length ? options : ['(Keine Variable gefunden)'] });
         } else if (this.RightOperandType === 'property') {

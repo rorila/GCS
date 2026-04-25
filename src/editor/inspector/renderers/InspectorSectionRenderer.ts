@@ -326,11 +326,30 @@ export class InspectorSectionRenderer {
             let targetObj: any = null;
             if (obj.target && (obj as any).projectRef) {
                 const project = (obj as any).projectRef;
+
+                const flattenObjects = (arr: any[]): any[] => {
+                    let res: any[] = [];
+                    for (const o of arr) {
+                        res.push(o);
+                        if (o.children && Array.isArray(o.children)) res.push(...flattenObjects(o.children));
+                    }
+                    return res;
+                };
+
                 for (const stage of (project.stages || [])) {
-                    const found = (stage.objects || []).find((o: any) => o.name === obj.target || o.id === obj.target);
+                    const allStageObjects = flattenObjects(stage.objects || []);
+                    const found = allStageObjects.find((o: any) => o.name === obj.target || o.id === obj.target);
                     if (found) { targetObj = found; break; }
                     const foundVar = (stage.variables || []).find((v: any) => v.name === obj.target || v.id === obj.target);
                     if (foundVar) { targetObj = foundVar; break; }
+                }
+
+                if (!targetObj) {
+                    const allGlobalObjects = flattenObjects(project.objects || []);
+                    targetObj = allGlobalObjects.find((o: any) => o.name === obj.target || o.id === obj.target);
+                }
+                if (!targetObj) {
+                    targetObj = (project.variables || []).find((v: any) => v.name === obj.target || v.id === obj.target);
                 }
                 if (targetObj?.className) {
                     const props = componentRegistry.getInspectorProperties({ className: targetObj.className });
