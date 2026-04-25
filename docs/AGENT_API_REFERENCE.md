@@ -5228,7 +5228,141 @@ Alle unter `docs/schemas/` (bereits referenziert in §5):
 
 | Version | Datum | Änderungen |
 |:---|:---|:---|
-| 1.0 | 2025-XX | Initiale Version: §1-§9 vollständig erstellt |
+| 1.1 | 2026-04-25 | Feature A: Event-Context ($event + self), Feature B: 14 Collection-Actions, Feature C: TForEach Repeater |
+
+---
+
+## §10 Feature-Erweiterungen (April 2026)
+
+### §10.1 Event-Context: `$event` und `self` (Feature A)
+
+Bei jedem Event-Trigger werden automatisch zwei Magic-Variablen injiziert:
+
+| Variable | Typ | Beschreibung |
+|:---|:---|:---|
+| `$event` | `EventContext` | Kontext des ausgelösten Events |
+| `self` | Live-Objekt-Referenz | Das Objekt, das das Event ausgelöst hat |
+
+**`$event`-Struktur:**
+```json
+{
+  "source": { "name": "Card_3", "className": "TButton", "stageId": "stage_main" },
+  "event": "onClick",
+  "data": { "x": 100, "y": 200 },
+  "timestamp": 12345.67
+}
+```
+
+**Verwendung in Expressions:**
+```
+${$event.source.name}     → "Card_3"
+${$event.event}           → "onClick"
+${$event.data.x}          → 100
+${self.x}                 → Position des auslösenden Objekts
+${self.visible}           → Sichtbarkeit
+```
+
+**Reservierte Namen:** `$event`, `self`, `$index`, `$item` können nicht als Variablen-Namen verwendet werden.
+
+---
+
+### §10.2 Collection-Actions (Feature B)
+
+14 neue ActionTypes für Listen- und Map-Operationen:
+
+#### Listen-Operationen (9)
+
+| ActionType | Parameter | Beschreibung |
+|:---|:---|:---|
+| `list_push` | `target`, `value` | Element an Liste anhängen |
+| `list_pop` | `target`, `resultVariable?` | Letztes Element entfernen |
+| `list_get` | `target`, `index`, `resultVariable`, `defaultValue?` | Element per Index lesen |
+| `list_set` | `target`, `index`, `value` | Element per Index setzen |
+| `list_remove` | `target`, `index`, `resultVariable?` | Element per Index entfernen |
+| `list_clear` | `target` | Liste leeren |
+| `list_shuffle` | `target`, `seed?` | Fisher-Yates Shuffle |
+| `list_contains` | `target`, `value`, `resultVariable` | Element enthalten? → boolean |
+| `list_length` | `target`, `resultVariable` | Länge ermitteln → number |
+
+#### Map-Operationen (5)
+
+| ActionType | Parameter | Beschreibung |
+|:---|:---|:---|
+| `map_get` | `target`, `key`, `resultVariable`, `defaultValue?` | Wert per Key lesen |
+| `map_set` | `target`, `key`, `value` | Wert per Key setzen |
+| `map_delete` | `target`, `key` | Key entfernen |
+| `map_has` | `target`, `key`, `resultVariable` | Key vorhanden? → boolean |
+| `map_keys` | `target`, `resultVariable` | Alle Keys als Liste |
+
+**Beispiel (Memory-Spiel: Karten mischen):**
+```typescript
+agent.addVariable('CardData', 'list', ['🍎','🍎','🍊','🍊','🍋','🍋','🍇','🍇']);
+agent.addAction('InitGame', 'list_shuffle', 'ShuffleCards', { target: 'CardData' });
+```
+
+**Dynamische Keys mit $event:**
+```typescript
+agent.addAction('OnCardClick', 'map_get', 'GetCardState', {
+    target: 'CardStates', key: '${$event.source.name}', resultVariable: 'CurrentState'
+});
+```
+
+---
+
+### §10.3 TForEach-Repeater (Feature C)
+
+Deklarativer Container, der zur Laufzeit für jedes Element einer Listen-/Map-Variable
+dynamisch eine Kinder-Komponente erzeugt.
+
+**Properties:**
+
+| Property | Typ | Default | Beschreibung |
+|:---|:---|:---|:---|
+| `source` | string | `''` | Name der Quell-Variable (Array oder Object) |
+| `template` | object | `null` | JSON-Definition der zu klonenden Komponente |
+| `layout` | `'grid'` \| `'horizontal'` \| `'vertical'` | `'grid'` | Layout-Modus |
+| `cols` | number | `4` | Spalten bei grid-Layout |
+| `gap` | number | `1` | Abstand in Grid-Cells |
+| `itemWidth` | number | `4` | Item-Breite (Grid-Cells) |
+| `itemHeight` | number | `4` | Item-Höhe (Grid-Cells) |
+| `namePattern` | string | `'{name}_{index}'` | Naming-Pattern für Klone |
+
+**Template-Bindings:**
+
+| Binding | Beschreibung |
+|:---|:---|
+| `{item}` | Aktuelles Element (Wert oder Objekt) |
+| `${item.property}` | Property eines Objekt-Elements |
+| `{index}` | 0-basierter Index |
+| `{key}` | Schlüssel bei Map-Iteration |
+
+**Beispiel (Memory-Grid):**
+```typescript
+agent.addVariable('CardData', 'list', ['🍎','🍎','🍊','🍊','🍋','🍋','🍇','🍇']);
+
+agent.addObject('stage_main', {
+    className: 'TForEach',
+    name: 'CardGrid',
+    x: 2, y: 2,
+    source: 'CardData',
+    layout: 'grid',
+    cols: 4,
+    gap: 1,
+    itemWidth: 4,
+    itemHeight: 4,
+    template: {
+        className: 'TButton',
+        text: '{item}',
+        events: { onClick: 'HandleCardClick' }
+    }
+});
+```
+
+**Wichtig:**
+- Template-Bindings werden beim Spawn **sofort aufgelöst** (V1-Strategie)
+- Bei Datenänderung (z.B. via `list_push`) wird automatisch re-reconciled (Destroy + Re-Spawn)
+- Klone sind `isTransient=true` (werden nicht serialisiert)
+- Events im Template funktionieren automatisch (Klone werden in `GameRuntime.objects[]` registriert)
 
 ---
 

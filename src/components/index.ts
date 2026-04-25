@@ -21,6 +21,7 @@ export * from './TDropdown';
 export * from './TEdit';
 export * from './TEmojiPicker';
 export * from './TFlowStage';
+export * from './TForEach';
 export * from './TGameCard';
 export * from './TGameHeader';
 export * from './TGameLoop';

@@ -2,7 +2,7 @@
 
 > **Zielgruppe:** Entwickler, die diese drei Features eigenhändig implementieren.
 > **Vorbedingung:** Vertrautheit mit `AgentController`, `TaskExecutor`, `ExpressionParser`, `ReactiveRuntime`, dem `ActionType`-Katalog (siehe `docs/AGENT_API_REFERENCE.md`).
-> **Status:** Spezifikation, noch nicht implementiert.
+> **Status:** ✅ **Implementiert** (25.04.2026) — Feature A, B und C sind vollständig umgesetzt und getestet (77 Tests). Siehe `AGENT_API_REFERENCE.md §10`.
 
 ---
 

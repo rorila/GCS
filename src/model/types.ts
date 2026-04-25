@@ -85,7 +85,12 @@ export interface GameObject {
 // ─────────────────────────────────────────────
 // Action: Atomic operation on a component
 // ─────────────────────────────────────────────
-export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'play_audio' | 'stop_audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method' | 'set_variable' | 'broadcast' | 'data_action' | 'http';
+export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'play_audio' | 'stop_audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method' | 'set_variable' | 'broadcast' | 'data_action' | 'http' | 'spawn_object' | 'destroy_object'
+    // Collection-Actions (Feature B):
+    | 'list_push' | 'list_pop' | 'list_get' | 'list_set'
+    | 'list_remove' | 'list_clear' | 'list_shuffle'
+    | 'list_contains' | 'list_length'
+    | 'map_get' | 'map_set' | 'map_delete' | 'map_has' | 'map_keys';
 
 // For type: 'calculate' - expression building
 export type CalcOperator = '+' | '-' | '*' | '/' | '%';

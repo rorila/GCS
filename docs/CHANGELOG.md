@@ -1,5 +1,25 @@
 # Changelog (v3.31.0 - Unreleased)
 
+## [2026-04-25] - Feature Gaps: KI-Spiele-Engine Architektur-Erweiterung
+### Added
+- **Feature A (Event-Context):** Automatische Injektion von `$event` (EventContext) und `self` (Live-Objekt-Referenz) bei jedem Event-Trigger. Zugriff auf Quell-Objekt-Daten via `${$event.source.name}`, `${self.x}` etc. in Expressions.
+  - Neue Datei: `src/runtime/EventContext.ts` (Interface, Factory, Reserved-Names)
+  - Geändert: `GameRuntime.handleEvent()` — baut und injiziert `$event` + `self`
+  - Geändert: `AgentController.addVariable()` — blockiert reservierte Magic-Variablen-Namen
+- **Feature B (Collection-Actions):** 14 neue ActionTypes für Listen- und Map-Operationen:
+  - Listen: `list_push`, `list_pop`, `list_get`, `list_set`, `list_remove`, `list_clear`, `list_shuffle`, `list_contains`, `list_length`
+  - Maps: `map_get`, `map_set`, `map_delete`, `map_has`, `map_keys`
+  - Neue Datei: `src/runtime/actions/handlers/CollectionActions.ts`
+  - Fisher-Yates Shuffle mit optionalem deterministischem Seed (Mulberry32 PRNG)
+- **Feature C (TForEach-Repeater):** Deklarativer Container für datengetriebene UI-Generierung.
+  - Neue Datei: `src/components/TForEach.ts`
+  - Unterstützt `grid`, `horizontal`, `vertical` Layouts
+  - Template-Bindings: `{item}`, `${item.property}`, `{index}`, `{key}`
+  - V1-Strategie: Sofortige Auflösung beim Spawn, Destroy-and-Recreate bei Datenänderung
+  - `GameRuntime.initMainGame()` erweitert um `addObject`/`removeObject` Callbacks
+- **Tests:** 77 neue Tests (21 Event-Context + 28 Collection-Actions + 28 TForEach)
+- **Dokumentation:** `AGENT_API_REFERENCE.md` um §10 (Feature-Erweiterungen) ergänzt
+
 ## [2026-04-24] - Memory Game Builder (KI-generiertes Spiel)
 ### Added
 - `scripts/MemoryGameBuilder.ts`: Ein vollständiges Builder-Skript zur Erzeugung eines 4x4 Memory-Spiels über die Headless-CLI.

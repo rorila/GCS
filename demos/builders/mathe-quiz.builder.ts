@@ -329,8 +329,15 @@ export default function build(agent: ProjectBuilder): void {
     if (taskInfo) taskInfo.task.actionSequence = []; // Reset für sauberen Branch-Aufbau
 
     agent.addBranch('AntwortPruefen', 'AntwortInput.text', '==', '${Ergebnis}',
-        ['ScoreErhoehen', 'FeedbackRichtig', 'FeedbackRichtigFarbe'],
-        ['FeedbackFalsch', 'FeedbackFalschFarbe']
+        (then: any) => {
+            then.addExistingAction('ScoreErhoehen');
+            then.addExistingAction('FeedbackRichtig');
+            then.addExistingAction('FeedbackRichtigFarbe');
+        },
+        (elseBranch: any) => {
+            elseBranch.addExistingAction('FeedbackFalsch');
+            elseBranch.addExistingAction('FeedbackFalschFarbe');
+        }
     );
     agent.addAction('AntwortPruefen', 'calculate', 'AufgabenNrErhoehen2', {
         formula: 'AufgabenNr + 1', resultVariable: 'AufgabenNr'

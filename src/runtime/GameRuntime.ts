@@ -14,6 +14,7 @@ import { DESIGN_VALUES } from '../components/TComponent';
 import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { SpritePool } from './SpritePool';
 import { AudioManager } from './AudioManager';
+import { buildEventContext } from './EventContext';
 import { Logger } from '../utils/Logger';
 
 const logger = Logger.get('GameRuntime', 'Runtime_Execution');
@@ -318,7 +319,19 @@ export class GameRuntime implements IVariableHost {
             handleEvent: (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data),
             render: this.options.onRender || (() => { }),
             gridConfig,
-            objects: this.objects
+            objects: this.objects,
+            // Feature C: TForEach-Callbacks für dynamisches Spawning/Destroying
+            addObject: (obj: any) => {
+                this.objects.push(obj);
+                // Reactive Proxy registrieren, falls aktiv
+                if (this.reactiveRuntime && obj.name) {
+                    this.reactiveRuntime.registerObject(obj.name, obj, true);
+                }
+            },
+            removeObject: (id: string) => {
+                const idx = this.objects.findIndex((o: any) => o.id === id);
+                if (idx >= 0) this.objects.splice(idx, 1);
+            }
         };
 
         this.objects.forEach(obj => {
@@ -733,10 +746,19 @@ export class GameRuntime implements IVariableHost {
                 const eventVars: Record<string, any> = typeof data === 'object' && data !== null
                     ? { ...data, eventData: data, sender: obj }
                     : { eventData: data, sender: obj };
+
+                // ─── FEATURE A: Event-Context ($event + self) ───
+                const $event = buildEventContext(
+                    { name: obj.name, className: obj.className || '', stageId: this.stage?.id || '' },
+                    eventName,
+                    typeof data === 'object' && data !== null ? data : { value: data }
+                );
+                eventVars['$event'] = $event;
+                eventVars['self'] = obj;  // Live-Referenz auf das Source-Objekt
+
                 // Komponentenobjekte injizieren, damit Property-Conditions (z.B. Button_36.visible)
                 // vom TaskConditionEvaluator aufgelöst werden können.
                 this.objects.forEach(o => { if (o.name && !(o.name in eventVars)) eventVars[o.name] = o; });
-                console.log("==> TRIGGERING TASK EXECUTOR:", taskName);
                 this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
             }
         } finally {

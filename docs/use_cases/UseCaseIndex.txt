@@ -1,3 +1,40 @@
+[UC-2026-04-25-EventContext]
+Dateien:
+- src/runtime/EventContext.ts (NEU)
+  - Interface: EventContext (source, event, data, timestamp)
+  - Factory: buildEventContext()
+  - Konstante: EMPTY_EVENT_CONTEXT
+  - Set: RESERVED_VARIABLE_NAMES ($event, self, $index, $item)
+- src/runtime/GameRuntime.ts (Methode: handleEvent, Zeilen ~730-745 - Injection von $event + self in eventVars)
+- src/services/AgentController.ts (Methode: addVariable, Zeilen ~106-114 - Reserved-Names-Check)
+- tests/event_context.test.ts (NEU, 21 Tests)
+Beschreibung: Feature A: Automatische Injektion von $event (EventContext) und self (Live-Objekt-Referenz) bei jedem Event-Trigger. Ermöglicht KI-Skripten den Zugriff auf das auslösende Objekt via ${$event.source.name} und ${self.x}.
+
+[UC-2026-04-25-CollectionActions]
+Dateien:
+- src/runtime/actions/handlers/CollectionActions.ts (NEU, ~380 Zeilen)
+  - Funktion: registerCollectionActions() — registriert 14 ActionTypes
+  - Listen: list_push, list_pop, list_get, list_set, list_remove, list_clear, list_shuffle, list_contains, list_length
+  - Maps: map_get, map_set, map_delete, map_has, map_keys
+  - Hilfsoperationen: mulberry32() PRNG, shuffleArray() Fisher-Yates, resolveCollection(), writeVariable()
+- src/runtime/actions/StandardActions.ts (Zeilen ~26-27 — Import + Aufruf von registerCollectionActions)
+- src/model/types.ts (Zeilen ~88-94 — ActionType-Union um 14 Collection-Types erweitert)
+- tests/collection_actions.test.ts (NEU, 28 Tests)
+Beschreibung: Feature B: 14 Collection-Actions für Listen- und Map-Operationen. Alle mit Inspector-Metadata, Fehlerbehandlung und DebugLog-Integration. Fisher-Yates-Shuffle mit optionalem deterministischem Seed.
+
+[UC-2026-04-25-TForEach]
+Dateien:
+- src/components/TForEach.ts (NEU, ~310 Zeilen)
+  - Klasse: TForEach extends TWindow
+  - Properties: source, template, layout, cols, gap, itemWidth, itemHeight, namePattern
+  - Methoden: initRuntime(), onRuntimeStart(), onRuntimeUpdate(), onRuntimeStop(), reconcile(), spawnClone(), destroyAllClones(), resolveSourceData(), extractItems(), resolveBindings(), calculatePosition(), computeHash()
+  - Auto-Registration via ComponentRegistry
+- src/components/index.ts (Zeile 24 — Export von TForEach)
+- src/runtime/GameRuntime.ts (Methode: initMainGame, Zeilen ~317-335 — addObject/removeObject Callbacks)
+- src/services/AgentController.ts (Methode: addObject, Zeilen ~114-122 — TForEach-Validierung für source+template)
+- tests/foreach_repeater.test.ts (NEU, 28 Tests)
+Beschreibung: Feature C: TForEach ist ein deklarativer Repeater-Container, der zur Laufzeit für jedes Element einer Listen-/Map-Variable dynamisch Kinder-Komponenten erzeugt. V1-Strategie: Sofortige Binding-Auflösung ({item}, {index}, {key}) beim Spawn, Destroy-and-Recreate bei Datenänderung.
+
 [UC-2026-04-24-Memory-Game-Builder]
 Dateien:
 - scripts/MemoryGameBuilder.ts

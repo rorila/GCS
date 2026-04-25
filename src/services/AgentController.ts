@@ -6,6 +6,7 @@ import { GameProject, BaseAction, GameTask, ActionType, SequenceItem, ConditionO
 import { mediatorService } from './MediatorService';
 import { serviceRegistry } from './ServiceRegistry';
 import { Logger } from '../utils/Logger';
+import { RESERVED_VARIABLE_NAMES } from '../runtime/EventContext';
 
 /**
  * BranchBuilder
@@ -107,6 +108,17 @@ export class AgentController {
         if (!stage) throw new Error(`Stage '${stageId}' not found.`);
 
         if (!stage.objects) stage.objects = [];
+
+        // Feature C: TForEach-Validierung
+        if (objectData.className === 'TForEach') {
+            if (!objectData.source) throw new Error('TForEach requires "source" property (Name einer List/Map-Variable).');
+            if (!objectData.template?.className) throw new Error('TForEach.template must have a className property.');
+            if (objectData.template.name) {
+                AgentController.logger.warn('TForEach.template should not have a fixed name; use namePattern instead.');
+                delete objectData.template.name;
+            }
+        }
+
         stage.objects.push(objectData);
 
         AgentController.logger.info(`Object '${objectData.name}' added to stage '${stageId}'.`);
@@ -116,6 +128,12 @@ export class AgentController {
     /** Registriert eine globale Variable im Projekt. */
     public addVariable(name: string, type: any, initialValue: any, scope: string = 'global'): void {
         this.validateProjectLoaded();
+
+        // Feature A: Reservierte Magic-Variablen-Namen blockieren
+        if (RESERVED_VARIABLE_NAMES.has(name)) {
+            throw new Error(`Variable name '${name}' is reserved (Magic-Variable). Reserviert: ${[...RESERVED_VARIABLE_NAMES].join(', ')}`);
+        }
+
         if (!this.project!.variables) this.project!.variables = [];
 
         const classNameMap: Record<string, string> = {
