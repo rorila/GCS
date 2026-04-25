@@ -47,7 +47,7 @@ export class TextObjectRenderer {
         el.style.alignItems = 'center';
     }
 
-    public static renderCard(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+    public static renderCard(_ctx: IRenderContext, el: HTMLElement, obj: any): void {
         const title = obj.title || '';
         const subtitle = obj.subtitle || '';
         
