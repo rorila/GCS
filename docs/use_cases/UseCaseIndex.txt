@@ -1,3 +1,11 @@
+[UC-2026-04-25-PuzzleFeatures]
+Dateien:
+- src/components/TWindow.ts (Methode: Konstruktor, Zeilen ~94-96, 239 - Eigenschaft rotation hinzugefügt)
+- src/components/TCard.ts (Zeile ~15 - isContainer = true hinzugefügt)
+- src/editor/services/StageRenderer.ts (Zeilen ~321, 451, 830, 1095, 1113 - CSS transform rotate() Logik integriert und TCard Rendering Fallback hinzugefügt)
+- src/editor/services/renderers/TextObjectRenderer.ts (Methode: renderCard, Zeilen ~50-70 - Renderer für Karten-Inhalte)
+Beschreibung: Hinzufügen der Eigenschaft rotation für alle UI-Komponenten (besonders für Puzzle-Spiele, Rasterung in 90-Grad-Schritten im Inspector). Aufwertung von TCard zu einem Container-Element für verschachtelte UI-Layouts und Implementierung eines visuellen Text-Renderers für Kartentitel.
+
 [UC-2026-04-25-FlipAnimation]
 Dateien:
 - src/runtime/AnimationManager.ts (Methode: flip, Zeilen ~571-608)

@@ -93,6 +93,9 @@ export class TWindow extends TComponent {
 
     public text: string = "";
 
+    // Rotation in Grad (0-360)
+    public rotation: number = 0;
+
     // Animation flag - wenn true, wird Physik pausiert
     public isAnimating: boolean = false;
 
@@ -107,6 +110,7 @@ export class TWindow extends TComponent {
         this._align = 'NONE';
         this._winVisible = true;
         this.text = "";
+        this.rotation = 0;
         this.style = {
             backgroundColor: 'transparent',
             borderColor: 'transparent',
@@ -241,6 +245,7 @@ export class TWindow extends TComponent {
             { name: 'width', label: 'Breite', type: 'number', group: 'GEOMETRIE', min: 1, max: gc.wMax, step: 1, inline: true },
             { name: 'height', label: 'Höhe', type: 'number', group: 'GEOMETRIE', min: 1, max: gc.hMax, step: 1, inline: true },
             { name: 'zIndex', label: 'Z-Index', type: 'number', group: 'GEOMETRIE', min: 0, max: 9999, step: 1, inline: true },
+            { name: 'rotation', label: 'Rotation', type: 'number', group: 'GEOMETRIE', min: 0, max: 360, step: 90, hint: 'Winkel in Grad' },
             { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'], inline: true },
             { name: 'style.color', label: 'Textfarbe', type: 'color', group: 'TYPOGRAFIE' },
             { name: 'style.fontSize', label: 'Schriftgröße', type: 'number', group: 'TYPOGRAFIE', min: 6, max: 120, step: 1, inline: true },

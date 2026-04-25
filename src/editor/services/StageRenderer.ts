@@ -318,11 +318,11 @@ export class StageRenderer {
                     el.style.transition = '';
                     (el.style as any).translate = `${finalX}px ${finalY}px`;
                 }
-                if (obj.style && obj.style.transform) {
-                    el.style.transform = obj.style.transform;
-                } else {
-                    el.style.transform = '';
+                let transformStr = (obj.style && obj.style.transform) ? obj.style.transform : '';
+                if (obj.rotation) {
+                    transformStr += ` rotate(${obj.rotation}deg)`;
                 }
+                el.style.transform = transformStr.trim();
 
                 // Log all objects in Run-Mode to trace layout issues (Metrics)
                 const isMetric = obj.name?.includes('Metric') || obj.id?.includes('metric');
@@ -448,11 +448,11 @@ export class StageRenderer {
                 // Transform wird jetzt zusammen mit der Positions-Zuweisung berechnet,
                 // damit das translate3d() (Basis-Positionierung) nicht zerstört wird.
                 if (!this.host.runMode) {
-                    if (obj.style && obj.style.transform) {
-                        el.style.transform = obj.style.transform;
-                    } else if (el.style.transform) {
-                        el.style.transform = '';
+                    let transformStr = (obj.style && obj.style.transform) ? obj.style.transform : '';
+                    if (obj.rotation) {
+                        transformStr += ` rotate(${obj.rotation}deg)`;
                     }
+                    el.style.transform = transformStr.trim();
                 }
                 // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor + glowBlur + glowSpread
                 if (obj.style.boxShadow) {
@@ -754,6 +754,7 @@ export class StageRenderer {
         else if (className === 'TNumberInput') InputRenderer.renderNumberInput(ctx, el, obj, isNew);
         else if (className === 'TEdit' || className === 'TTextInput') InputRenderer.renderTextInput(ctx, el, obj, isNew);
         else if (className === 'TGameCard') TextObjectRenderer.renderGameCard(ctx, el, obj, isNew);
+        else if (className === 'TCard') TextObjectRenderer.renderCard(ctx, el, obj);
         else if (className === 'TButton') TextObjectRenderer.renderButton(ctx, el, obj, isNew);
         else if (className === 'TEmojiPicker') EmojiPickerRenderer.renderEmojiPicker(el, obj, this.host.grid.cellSize, this.host.onEvent?.bind(this.host));
         else if (className === 'TTable' || className === 'TObjectList') TableRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host), this.host.grid.cellSize);
@@ -827,7 +828,9 @@ export class StageRenderer {
             }
             if (obj.style.fontFamily !== undefined) el.style.fontFamily = obj.style.fontFamily;
             if (obj.style.fontSize !== undefined) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
-            if (obj.style.transform !== undefined) el.style.transform = obj.style.transform;
+            let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
+            if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
+            el.style.transform = tStr.trim();
         } else if (obj.opacity !== undefined) {
             el.style.opacity = String(obj.opacity);
         }
@@ -1092,11 +1095,11 @@ export class StageRenderer {
                     (el.style as any).translate = `${transX}px ${transY}px`;
                 }
                 
-                if (obj.style && obj.style.transform !== undefined) {
-                    el.style.transform = obj.style.transform;
-                } else {
-                    el.style.transform = '';
+                let transformStr = (obj.style && obj.style.transform !== undefined) ? obj.style.transform : '';
+                if (obj.rotation) {
+                    transformStr += ` rotate(${obj.rotation}deg)`;
                 }
+                el.style.transform = transformStr.trim();
 
                 if (obj.style && obj.style.opacity !== undefined) {
                     el.style.opacity = String(obj.style.opacity);
@@ -1110,7 +1113,9 @@ export class StageRenderer {
                 if (obj.y !== undefined) el.style.top = `${transY}px`;
                 
                 if (obj.style) {
-                    if (obj.style.transform !== undefined) el.style.transform = obj.style.transform;
+                    let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
+                    if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
+                    if (tStr.trim()) el.style.transform = tStr.trim();
                     if (obj.style.opacity !== undefined) el.style.opacity = String(obj.style.opacity);
                 } else if (obj.opacity !== undefined) {
                     el.style.opacity = String(obj.opacity);

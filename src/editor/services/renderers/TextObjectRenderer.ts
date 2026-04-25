@@ -47,6 +47,30 @@ export class TextObjectRenderer {
         el.style.alignItems = 'center';
     }
 
+    public static renderCard(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        const title = obj.title || '';
+        const subtitle = obj.subtitle || '';
+        
+        let html = '';
+        if (obj.showHeader !== false && title) {
+            html += `<div style="font-weight: bold; font-size: 1.2em; margin-bottom: 4px; color: ${obj.style?.color || '#333'};">${title}</div>`;
+        }
+        if (subtitle) {
+            html += `<div style="font-size: 0.9em; opacity: 0.7; color: ${obj.style?.color || '#666'};">${subtitle}</div>`;
+        }
+        
+        // Wrap in a padding container
+        const finalHtml = `<div style="padding: 12px; width: 100%; height: 100%; box-sizing: border-box; display: flex; flex-direction: column;">${html}</div>`;
+
+        if (el.innerHTML !== finalHtml) {
+            el.innerHTML = finalHtml;
+        }
+
+        const align = obj.style?.textAlign || 'left';
+        el.style.alignItems = align === 'center' ? 'center' : (align === 'right' ? 'flex-end' : 'flex-start');
+        el.style.justifyContent = 'flex-start';
+    }
+
     public static renderRichText(ctx: IRenderContext, el: HTMLElement, obj: any): void {
         let textValue = obj.htmlContent || (ctx.host.runMode ? '' : `<i>${obj.name} (leeres RichText)</i>`);
 

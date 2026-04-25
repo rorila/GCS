@@ -1,5 +1,11 @@
 # Changelog (v3.31.0 - Unreleased)
 
+## [2026-04-25] - Puzzle-Features: Rotation & Container-Karten
+### Added
+- **Rotation:** `TComponent` und `TWindow` verfügen nun über die Eigenschaft `rotation` (0-360 Grad). Diese wird via CSS `transform: rotate(...)` auf die Elemente angewandt. Im Inspector unter "GEOMETRIE" editierbar (Schrittweite 90 Grad).
+- **TCard als Container:** `TCard` wurde zu einem Container aufgewertet (`isContainer = true`). Objekte können nun wie bei `TGroupPanel` per Drag & Drop auf eine Karte gezogen werden.
+- **TCard Renderer:** `TextObjectRenderer` um die Methode `renderCard` erweitert. `TCard` zeichnet nun visuell seinen Titel und Subtitel (inkl. `showHeader` Toggle).
+
 ## [2026-04-25] - Flip-Animation & Midpoint-Event
 ### Added
 - **AnimationManager:** Neue `flip`-Methode hinzugefügt, die eine 3D-Karten-Umdreh-Animation über eine `scaleX`-Interpolation simuliert.

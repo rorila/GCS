@@ -1,4 +1,4 @@
-﻿import { TPanel } from './TPanel';
+import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -10,6 +10,9 @@ export class TCard extends TPanel {
     public subtitle: string = 'Subtitel';
     public showHeader: boolean = true;
     public showFooter: boolean = false;
+    
+    // Flaggt diese Komponente als Drop-Target für den StageInteractionManager
+    public isContainer: boolean = true;
 
     constructor(name: string = 'Card', x: number = 0, y: number = 0) {
         // Standardgröße: 8x10 Zellen
