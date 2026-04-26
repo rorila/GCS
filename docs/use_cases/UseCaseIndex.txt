@@ -1,3 +1,8 @@
+[UC-2026-04-26-ObjectReparentingFlatStructure]
+Dateien:
+- src/services/ProjectStore.ts (Methode: reduceReparentObject, Zeilen ~459-467)
+Beschreibung: Behebung eines Fehlers beim Herausziehen von Sprites aus einem Panel. Da das Datenmodell zur Laufzeit flach strukturiert ist, landete das Objekt beim Drag-and-Drop auf der Stage im gleichen Ziel-Array (`stage.objects`). Die Funktion `reduceReparentObject` brach daraufhin vorzeitig ab, ohne die Eigenschaft `parentId` des Sprites zu löschen. Durch die Behebung wird die `parentId` nun bei Reparenting-Vorgängen innerhalb desselben Flat-Arrays zwingend gelöscht oder aktualisiert, was das "Hängenbleiben" im Parent-Container beseitigt.
+
 [UC-2026-04-25-PanelBoundaryBounceFix]
 Dateien:
 - src/runtime/GameLoopManager.ts (Methode: checkBoundaries / checkStageExits, Zeilen ~541, 647)
@@ -965,3 +970,26 @@ Root Cause: FlowEditor.switchActionFlow() setzt coreStore.activeStageId auf null
 - src/runtime/actions/handlers/VariableActions.ts (interpolateValue: L43-L50)
 - src/runtime/actions/handlers/PropertyActions.ts (interpolateValue: L8-L14)
 - src/services/AgentController.ts (addAction validation: L238-L260)
+
+
+[2026-04-26] UC-2026-04-26-CoordinateBinding-And-Render-Jitter
+- Beschreibung: Behebung des Render-Jitters bei Kind-Elementen (z.B. Sprite in GroupPanel). GameRuntime.getObjects gibt jetzt Original-Referenzen statt Spread-Kopien zurueck. ReactiveRuntime loest Bindings sofort bei Registrierung auf. CoordinateBinding.test.ts auf neue Architektur umgeschrieben.
+- Dateien:
+  - src/runtime/GameRuntime.ts (Methode: getObjects)
+  - src/runtime/CoordinateBinding.test.ts (Methode: runTests)
+  - DEVELOPER_GUIDELINES.md (Aktualisierung Architektur/Mutations-Regel)
+
+
+[2026-04-26] UC-2026-04-26-Hierarchy-Destruction-Fix
+- Beschreibung: Behebung der 'Ghost'-Positionierungen und des Zappelns im Run-Mode nach Drag & Drop in Containern. Der Setter 'currentObjects' im EditorStageManager zerstoerte die Baumstruktur durch das Ueberschreiben mit einer flachen Array-Liste. Der Setter wurde vollstaendig entfernt, um die originale JSON-Hierarchie von activeStage.objects zu schuetzen.
+- Dateien:
+  - src/editor/Editor.ts (Setter currentObjects entfernt)
+  - src/editor/EditorStageManager.ts (Methode setCurrentObjects komplett entfernt)
+  - src/editor/services/EditorCommandManager.ts (Setter currentObjects aus addObject und removeObject entfernt)
+  - src/editor/services/EditorDataManager.ts (Setter currentObjects aus morphVariable entfernt)
+
+[2026-04-26] UC-2026-04-26-Coordinate-Space-Collisions
+- Beschreibung: Behebung der Endlos-Kollisionen (Zappeln) von Sprites innerhalb von Panels. Die GameLoopManager checkCollisions() Schleife vergleicht nun nur noch Objekte miteinander, die denselben logischen Parent haben (Coordinate Space Isolation). Kollisionen eines Kindes mit seinem eigenen Parent-Container werden vollstaendig ignoriert, da dies ueber checkBoundaries (lokale Waende) sauberer geregelt wird.
+- Dateien:
+  - src/runtime/GameLoopManager.ts (checkCollisions Logik)
+  - public/runtime-standalone.js (Bundle neu gebaut)

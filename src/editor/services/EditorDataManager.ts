@@ -781,15 +781,6 @@ export class EditorDataManager {
             this.host.project.variables.push(newInstance);
         }
 
-        // 4.1 VERY IMPORTANT: Replace in currentObjects (Live Engine)
-        const allObjs = this.host.stageManager.currentObjects();
-        const stageObjIdx = allObjs.findIndex((o: any) => o.id === variable.id);
-        if (stageObjIdx !== -1) {
-            allObjs[stageObjIdx] = newInstance as any;
-            this.host.stageManager.setCurrentObjects(allObjs);
-            EditorDataManager.logger.info(`SUCCESS: Replaced in currentObjects[${stageObjIdx}] (LIVE ENGINE).`);
-        }
-
         // 5. Update UI
         this.host.commandManager.selectObject(null);
         setTimeout(() => {

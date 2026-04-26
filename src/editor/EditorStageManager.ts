@@ -35,31 +35,6 @@ export class EditorStageManager {
         return projectObjectRegistry.getObjects();
     }
 
-    public setCurrentObjects(objs: ComponentData[]) {
-        const activeStage = this.getActiveStage();
-        if (activeStage) {
-            const localObjs = objs.filter(obj => {
-                const isAlreadyLocal = (activeStage.objects || []).some(o => o.id === obj.id) ||
-                    (activeStage.variables || []).some(v => (v as any).id === obj.id);
-                if (isAlreadyLocal) return true;
-
-                // Falls es NEU ist (in keiner Stage vorhanden), gehört es hierher.
-                const existsElsewhere = (this.project.stages || []).some(s =>
-                    s.id !== activeStage.id && (
-                        (s.objects || []).some(o => o.id === obj.id) ||
-                        (s.variables || []).some(v => (v as any).id === obj.id)
-                    )
-                ) || (this.project.objects || []).some(o => o.id === obj.id)
-                    || (this.project.variables || []).some(v => (v as any).id === obj.id);
-
-                return !existsElsewhere;
-            });
-
-            // STRIKTE TRENNUNG: Aufteilen in Objekte und Variablen
-            activeStage.objects = localObjs.filter(o => !o.isVariable && !o.isTransient);
-            activeStage.variables = localObjs.filter(o => o.isVariable && !o.isTransient) as any;
-        }
-    }
 
     public currentActions(): GameAction[] {
         const activeStageId = this.project.activeStageId;

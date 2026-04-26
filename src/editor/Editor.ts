@@ -22,6 +22,8 @@ import { EditorStageManager } from './EditorStageManager';
 
 import { libraryService } from '../services/LibraryService';
 import { EditorViewManager, IViewHost, ViewType } from './EditorViewManager';
+import { projectActionRegistry } from '../services/registry/ActionRegistry';
+import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
 import { projectStore } from '../services/ProjectStore';
 import { mediatorService, MediatorEvents } from '../services/MediatorService';
 import { EditorCommandManager } from './services/EditorCommandManager';
@@ -282,8 +284,9 @@ export class Editor implements IViewHost {
 
 
     // --- GETTERS ---
-    public get currentObjects(): ComponentData[] { return this.stageManager.currentObjects(); }
-    public set currentObjects(objs: ComponentData[]) { this.stageManager.setCurrentObjects(objs); }
+    public get currentObjects(): ComponentData[] {
+        return projectObjectRegistry.getObjects('all');
+    }
     public get currentActions(): GameAction[] { return this.stageManager.currentActions(); }
     public get currentTasks(): GameTask[] { return this.stageManager.currentTasks(); }
     public get currentVariables(): ProjectVariable[] { return this.stageManager.currentVariables(); }

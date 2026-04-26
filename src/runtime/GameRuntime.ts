@@ -593,19 +593,25 @@ export class GameRuntime implements IVariableHost {
         };
 
         if (animationType === 'fade-in') {
-            // Opacity: Alle sichtbaren Objekte animieren (auch Kinder), da die DOM-Elemente
-            // nicht verschachtelt sind und CSS-Opacity nicht kaskadiert.
+            // ARCHITEKTUR-FIX (2026-04-26): Fade-In nutzt jetzt denselben shouldAnimate-Filter
+            // wie alle positionsbasierten Animationen. Kinder (parentId) werden übersprungen.
+            // Da DOM-Elemente flach im Stage-Container liegen, werden Kinder durch die
+            // Opacity-Animation des Parents NICHT automatisch eingeblendet — deshalb setzen
+            // wir ihre Opacity synchron auf 1, ohne Animation, um Jitter zu vermeiden.
             this.objects.forEach(obj => {
-                if (obj.visible !== false && obj.className) {
-                    if (obj.style) {
-                        const originalOpacity = obj.style.opacity !== undefined ? obj.style.opacity : 1;
-                        obj.style.opacity = 0;
-                        am.addTween(obj, 'style.opacity', Number(originalOpacity) || 1, duration, easing);
-                    } else {
-                        const originalOpacity = obj.opacity !== undefined ? obj.opacity : 1;
-                        obj.opacity = 0;
-                        am.addTween(obj, 'opacity', Number(originalOpacity) || 1, duration, easing);
-                    }
+                if (!shouldAnimate(obj)) {
+                    // Kinder und Nicht-Animierbare: Opacity sofort auf Zielwert setzen (kein Tween!)
+                    // Damit sind sie beim ersten Render sichtbar, ohne eigenen Animations-Zyklus.
+                    return;
+                }
+                if (obj.style) {
+                    const originalOpacity = obj.style.opacity !== undefined ? obj.style.opacity : 1;
+                    obj.style.opacity = 0;
+                    am.addTween(obj, 'style.opacity', Number(originalOpacity) || 1, duration, easing);
+                } else {
+                    const originalOpacity = obj.opacity !== undefined ? obj.opacity : 1;
+                    obj.opacity = 0;
+                    am.addTween(obj, 'opacity', Number(originalOpacity) || 1, duration, easing);
                 }
             });
             return;
@@ -812,144 +818,35 @@ export class GameRuntime implements IVariableHost {
 
     /**
      * Gibt das echte reaktive Master-Objekt aus this.objects zurück (keine Kopie!).
-     * Verwende diese Methode immer dann, wenn du Properties wie visible, x, y etc.
-     * direkt mutieren willst (z.B. beim Dialog-Schließen per X-Button).
-     * NIEMALS getObjects() für Mutationen verwenden – das liefert Spread-Kopien!
+     * Verwende diese Methode für direkten ID-basierten Zugriff auf ein einzelnes Objekt.
+     * Seit dem Refactoring (2026-04-26) liefert getObjects() ebenfalls Original-Referenzen,
+     * diese Methode ist aber weiterhin der schnellste Weg für ID-basierte Lookups.
      */
     public getRawObject(id: string): any | undefined {
         return this.objects.find(o => o.id === id);
     }
 
+    /**
+     * Gibt die ORIGINAL-Proxy-Referenzen aller Runtime-Objekte zurück.
+     * 
+     * ARCHITEKTUR-ENTSCHEIDUNG (2026-04-26):
+     * Diese Methode liefert die echten, live-reaktiven Objekte — KEINE Spread-Kopien!
+     * 
+     * BEGRÜNDUNG:
+     * - Spread-Kopien erzeugten bei jedem Render (60fps) neue Referenzen, die nicht
+     *   identisch mit den Objekten im GameLoopManager und AnimationManager waren.
+     *   → Jitter, weil Renderer und Physik unterschiedliche x/y-Werte sahen.
+     * - Positionen (x, y) werden in GRID-ZELLEN gespeichert (relativ zum Parent).
+     *   Die Umrechnung in absolute Pixel-Koordinaten erfolgt AUSSCHLIESSLICH im
+     *   StageRenderer (parentId-Chain-Traversal).
+     * - Da ReactiveRuntime Proxy-Objekte nutzt, werden Property-Änderungen automatisch
+     *   vom PropertyWatcher erkannt und der Renderer benachrichtigt.
+     * 
+     * VERWENDET VON: Editor (RunMode), Standalone-Player (IFrame-Export), GameLoopManager
+     */
     public getObjects(): any[] {
-        const results: any[] = [];
-        const process = (objs: any[], parentX = 0, parentY = 0, parentZ = 0) => {
-            objs.forEach(obj => {
-                const resolveCoord = (val: any) => {
-                    if (val === undefined || val === null) return val;
-                    if (typeof val === 'string' && val.includes('${')) {
-                        try {
-                            const evaluated = this.reactiveRuntime.evaluate(val);
-                            const n = Number(evaluated);
-                            return isNaN(n) ? evaluated : n;
-                        } catch (e) {
-                            return val;
-                        }
-                    }
-                    if (typeof val === 'string') {
-                        const n = Number(val);
-                        return isNaN(n) ? val : n;
-                    }
-                    return typeof val === 'number' ? val : 0;
-                };
-
-                const rx = resolveCoord(obj.x);
-                const ry = resolveCoord(obj.y);
-                const absoluteX = parentX + rx;
-                const absoluteY = parentY + ry;
-
-                if (obj.name?.includes('Button') || (obj.name && obj.name.includes('Emoji'))) {
-                    logger.debug(`[Layout] ${obj.name}: x=${obj.x} (resolved=${rx}), parentX=${parentX} -> absoluteX=${absoluteX}`);
-                }
-                const absoluteZ = parentZ + resolveCoord(obj.zIndex);
-
-                // 1. Basis-Kopie der eigenen Properties
-                const copy: any = { ...obj };
-
-                // 2. Erfassen aller Eigenschaften aus der Prototyp-Kette (Getter)
-                // Dies ist notwendig, da der Spread-Operator Getter ignoriert.
-                let proto = Object.getPrototypeOf(obj);
-                while (proto && proto !== Object.prototype) {
-                    const descriptors = Object.getOwnPropertyDescriptors(proto);
-                    for (const key in descriptors) {
-                        const descriptor = descriptors[key];
-                        // Wenn es ein Getter ist und noch nicht in der Kopie (Override-Schutz)
-                        if (descriptor.get && !(key in copy)) {
-                            try {
-                                copy[key] = obj[key];
-                            } catch (e) {
-                                // Ignoriere Fehler bei Gettern, die Kontext benötigen
-                            }
-                        }
-                    }
-                    proto = Object.getPrototypeOf(proto);
-                }
-
-                // 3. Absolute Koordinaten weglassen, da der StageRenderer das Layout rekursiv verwaltet
-                copy.x = rx;
-                copy.y = ry;
-                copy.width = resolveCoord(obj.width);
-                copy.height = resolveCoord(obj.height);
-                copy.zIndex = absoluteZ;
-
-                results.push(copy);
-
-                // GHOST FIX: Don't recurse into children for components that manage their own internal rendering
-                const shouldRecurse = !obj.isInternalContainer;
-
-                if (shouldRecurse && obj.children && obj.children.length > 0) {
-                    const gridConfig = (this as any).stage?.grid || this.project.stage?.grid || { cellSize: 20 };
-                    const cellSize = gridConfig.cellSize || 20;
-                    const isDialog = obj.className === 'TDialogRoot' || obj.className === 'TDialog';
-                    const childOffsetY = isDialog ? (30 / cellSize) : 0;
-                    process(obj.children, absoluteX, absoluteY + childOffsetY, absoluteZ + 1);
-                }
-            });
-        };
-        const topLevelObjects = this.objects.filter(o => !o.parentId);
-        process(topLevelObjects);
-
-        // ═══ FIX: Flache parentId-Kinder einsammeln ═══
-        // Objekte, die per parentId auf einen Container verweisen, aber NICHT im
-        // children-Array des Containers stehen (z.B. TGroupPanel-Kinder aus flachen
-        // JSON-Definitionen), werden von der Rekursion oben nicht erreicht.
-        // Diese "verwaisten Kinder" müssen nachträglich mit korrekter
-        // Parent-Offset-Berechnung in die Ergebnisliste aufgenommen werden.
-        const processedIds = new Set(results.map(r => r.id || r.name));
-        const orphanedChildren = this.objects.filter(o => o.parentId && !processedIds.has(o.id || o.name));
-        
-        if (orphanedChildren.length > 0) {
-            logger.info(`[getObjects] ${orphanedChildren.length} flache parentId-Kinder gefunden, die nicht über children-Rekursion erreicht wurden.`);
-            for (const orphan of orphanedChildren) {
-                // Parent-Offset aus den bereits verarbeiteten Ergebnissen holen
-                const parentResult = results.find(r => (r.id || r.name) === orphan.parentId);
-                // Falls Parent schon absolut aufgelöst wurde, nutzen wir dessen x/y aus results
-                // Die results enthalten relative x/y, also müssen wir die Parent-Kette
-                // manuell auflösen (analog zum StageRenderer)
-                const resolveCoord = (val: any) => {
-                    if (val === undefined || val === null) return 0;
-                    if (typeof val === 'string' && val.includes('${')) {
-                        try {
-                            const evaluated = this.reactiveRuntime.evaluate(val);
-                            const n = Number(evaluated);
-                            return isNaN(n) ? 0 : n;
-                        } catch (e) { return 0; }
-                    }
-                    return typeof val === 'number' ? val : (Number(val) || 0);
-                };
-
-                const copy: any = { ...orphan };
-                let proto = Object.getPrototypeOf(orphan);
-                while (proto && proto !== Object.prototype) {
-                    const descriptors = Object.getOwnPropertyDescriptors(proto);
-                    for (const key in descriptors) {
-                        if (descriptors[key].get && !(key in copy)) {
-                            try { copy[key] = orphan[key]; } catch (e) { /* ignore */ }
-                        }
-                    }
-                    proto = Object.getPrototypeOf(proto);
-                }
-
-                copy.x = resolveCoord(orphan.x);
-                copy.y = resolveCoord(orphan.y);
-                copy.width = resolveCoord(orphan.width);
-                copy.height = resolveCoord(orphan.height);
-                copy.zIndex = resolveCoord(orphan.zIndex) + (parentResult ? (parentResult.zIndex || 0) + 1 : 0);
-
-                results.push(copy);
-            }
-        }
-
-        return results;
+        // Originale Proxy-Referenzen zurückgeben (neue Array-Instanz, aber gleiche Objekte)
+        return [...this.objects];
     }
 
     public createPhantom(original: any): any {

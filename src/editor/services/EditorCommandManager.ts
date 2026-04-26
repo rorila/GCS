@@ -101,8 +101,10 @@ export class EditorCommandManager {
             newObj.y = newObj.y - parentDialog.y;
             parentDialog.addChild(newObj);
         } else {
-            const list = [...this.editor.currentObjects, newObj];
-            (this.editor as any).currentObjects = list;
+            if (activeStage) {
+                if (!activeStage.objects) activeStage.objects = [];
+                activeStage.objects.push(newObj);
+            }
         }
 
         this.editor.render();
@@ -147,7 +149,6 @@ export class EditorCommandManager {
             this.removeObjectSilent(id);
         });
 
-        this.editor.currentObjects = (this.editor.currentObjects || []).filter(o => !ids.includes(o.id));
         this.editor.selectObject(null);
         this.editor.render();
         this.editor.autoSaveToLocalStorage();

@@ -456,8 +456,15 @@ export class ProjectStore {
             targetArray = targetGroup.children;
         }
 
-        // Gleiches Array? Nichts zu tun was Reparenting angeht
+        // Gleiches Array? Array bleibt gleich, aber Parent-Zuweisung muss aktualisiert werden
         if (sourceArray === targetArray) {
+            // WICHTIG: Bei flachen Strukturen (Flat Array) sind Quelle und Ziel identisch (stage.objects).
+            // Dennoch muss die parentId zwingend neu gesetzt oder gelöscht werden!
+            if (m.targetParentId) {
+                foundObj.parentId = m.targetParentId;
+            } else {
+                delete foundObj.parentId;
+            }
             return true;
         }
 

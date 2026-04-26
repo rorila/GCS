@@ -1463,8 +1463,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 18,
-          "y": 2,
+          "x": 23,
+          "y": 1,
           "width": 26,
           "height": 3,
           "zIndex": 1,
@@ -1492,15 +1492,15 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onClick": "ShowOnClick",
+            "onClick": "StartPanelSpriteMoving",
             "onFocus": "ShowOnFokus",
             "onBlur": "ShowOnBlur",
             "onMouseEnter": "LetTheButtonMove",
             "onMouseLeave": "ShowOnMouseLeave"
           },
           "visible": true,
-          "x": 22,
-          "y": 30,
+          "x": 18,
+          "y": 29,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -1567,8 +1567,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 6,
-          "y": 9,
+          "x": 4,
+          "y": 5,
           "width": 10,
           "height": 2,
           "zIndex": 0,
@@ -1591,7 +1591,7 @@
               "droppable": false,
               "dragMode": "move",
               "visible": true,
-              "x": 1,
+              "x": 0,
               "y": 0,
               "width": 8,
               "height": 2,
@@ -1622,7 +1622,7 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 1,
+          "x": 0,
           "y": 0,
           "width": 8,
           "height": 2,
@@ -1652,8 +1652,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 6,
-          "y": 12,
+          "x": 4,
+          "y": 8,
           "width": 10,
           "height": 2,
           "zIndex": 0,
@@ -1737,8 +1737,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 6,
-          "y": 15,
+          "x": 4,
+          "y": 11,
           "width": 10,
           "height": 2,
           "zIndex": 0,
@@ -1822,8 +1822,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 6,
-          "y": 18,
+          "x": 4,
+          "y": 14,
           "width": 10,
           "height": 2,
           "zIndex": 0,
@@ -1907,8 +1907,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 21,
-          "y": 6,
+          "x": 18,
+          "y": 5,
           "width": 35,
           "height": 22,
           "zIndex": 0,
@@ -1924,20 +1924,21 @@
           "children": [
             {
               "className": "TSprite",
-              "id": "0f7b15ab-5076-4286-960f-9ba85730085d",
+              "id": "obj_1777194406862_euh1tlwm6",
               "name": "PanelSprite",
               "scope": "stage",
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
               "events": {
-                "onBoundaryHit": "CheckBourdary"
+                "onCollision": "CheckPanelSpriteCollision",
+                "onBoundaryHit": "CheckPanelSpriteBourdary"
               },
               "visible": true,
-              "x": 10,
-              "y": 27,
-              "width": 1,
-              "height": 1,
+              "x": 3,
+              "y": 11,
+              "width": 5,
+              "height": 2,
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
@@ -1946,7 +1947,7 @@
                 "borderColor": "#333333",
                 "borderWidth": 1
               },
-              "velocityX": 0.3,
+              "velocityX": 0,
               "velocityY": 0,
               "lerpSpeed": 0.1,
               "collisionEnabled": true,
@@ -1965,90 +1966,32 @@
               "hitboxHeight": 0
             },
             {
-              "className": "TSprite",
-              "id": "obj_1777137855428_393ykg6nm",
-              "name": "StageSprite",
+              "className": "TPanel",
+              "id": "obj_1777195616248_jpc688tgm",
+              "name": "Panel_93",
               "scope": "stage",
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
-              "events": {
-                "onBoundaryHit": "CheckStageBoundary"
-              },
               "visible": true,
-              "x": 10,
-              "y": 11,
-              "width": 1,
-              "height": 1,
+              "x": 14,
+              "y": 7,
+              "width": 5,
+              "height": 13,
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
               "style": {
-                "backgroundColor": "#ff6b6b",
-                "borderColor": "#333333",
+                "backgroundColor": "#f0f0f0",
+                "borderColor": "#999999",
                 "borderWidth": 1
               },
-              "velocityX": 1,
-              "velocityY": 0,
-              "lerpSpeed": 0.1,
-              "collisionEnabled": true,
-              "collisionGroup": "default",
-              "shape": "rect",
-              "spriteColor": "#ff6b6b",
-              "backgroundImage": "",
-              "objectFit": "contain",
-              "imageListId": "",
-              "imageIndex": 0,
-              "customHitbox": false,
-              "hitboxShape": "auto",
-              "hitboxOffsetX": 0,
-              "hitboxOffsetY": 0,
-              "hitboxWidth": 0,
-              "hitboxHeight": 0
+              "caption": "",
+              "showGrid": false,
+              "gridColor": "#000000",
+              "gridStyle": "lines"
             }
           ]
-        },
-        {
-          "className": "TSprite",
-          "id": "0f7b15ab-5076-4286-960f-9ba85730085d",
-          "name": "PanelSprite",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onBoundaryHit": "CheckBourdary"
-          },
-          "visible": true,
-          "x": 12,
-          "y": 7,
-          "width": 1,
-          "height": 1,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "#ff6b6b",
-            "borderColor": "#333333",
-            "borderWidth": 1
-          },
-          "velocityX": 0.3,
-          "velocityY": 0,
-          "lerpSpeed": 0.1,
-          "collisionEnabled": true,
-          "collisionGroup": "default",
-          "shape": "rect",
-          "spriteColor": "#ff6b6b",
-          "backgroundImage": "",
-          "objectFit": "contain",
-          "imageListId": "",
-          "imageIndex": 0,
-          "customHitbox": false,
-          "hitboxShape": "auto",
-          "hitboxOffsetX": 0,
-          "hitboxOffsetY": 0,
-          "hitboxWidth": 0,
-          "hitboxHeight": 0
         },
         {
           "className": "TButton",
@@ -2464,6 +2407,115 @@
             "borderWidth": 0
           },
           "text": "WhiteText"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777185709578_txzqvl6ky",
+          "name": "Button_63",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "StartPanelSpriteMoving"
+          },
+          "visible": true,
+          "x": 26,
+          "y": 29,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "start PanelSprite",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777195102269_0udt12qf6",
+          "name": "Btn_StageSpriteStart",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "StarteStageSprite"
+          },
+          "visible": true,
+          "x": 36,
+          "y": 29,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "starteStageSprite",
+          "icon": ""
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_1777195146795_elegrw700",
+          "name": "StageSprite",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": "CheckStageSpriteCollision"
+          },
+          "visible": true,
+          "x": 6,
+          "y": 21,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
         }
       ],
       "actions": [
@@ -2558,7 +2610,7 @@
           "details": "",
           "name": "Act_BounceR",
           "showDetails": false,
-          "target": "PanelSprite",
+          "target": "StageSprite",
           "changes": {
             "velocityX": 0.3
           }
@@ -2568,29 +2620,51 @@
           "details": "",
           "name": "ActBounceL",
           "showDetails": false,
-          "target": "PanelSprite",
+          "target": "StageSprite",
           "changes": {
             "velocityX": -0.3
           }
         },
         {
-          "id": "node-1777137608843",
+          "id": "node-1777184132709",
           "details": "",
-          "name": "Act_StageBounceR",
+          "name": "Act_ChangeStageSpriteDirection",
           "showDetails": false,
-          "target": "StageSprite",
           "changes": {
-            "velocityX": 1
+            "velocityX": ""
+          },
+          "target": "StageSprite",
+          "type": "negate"
+        },
+        {
+          "id": "node-1777184471578",
+          "details": "",
+          "name": "act_ChangePanelSpriteDirection",
+          "showDetails": false,
+          "type": "negate",
+          "target": "PanelSprite",
+          "changes": {
+            "velocityX": ""
           }
         },
         {
-          "id": "node-1777137693363",
+          "id": "node-1777185457020",
           "details": "",
-          "name": "Act_StageBounceL",
+          "name": "Act_SetPanelX_VelocityToMove",
+          "showDetails": false,
+          "target": "PanelSprite",
+          "changes": {
+            "velocityX": 0.3
+          }
+        },
+        {
+          "id": "node-1777194967389",
+          "details": "",
+          "name": "Act_StartStageSprite",
           "showDetails": false,
           "target": "StageSprite",
           "changes": {
-            "velocityX": -0.5
+            "velocityX": -0.3
           }
         }
       ],
@@ -2734,121 +2808,163 @@
           }
         },
         {
-          "name": "CheckBourdary",
+          "name": "CheckPanelSpriteBourdary",
           "description": "",
           "actionSequence": [
             {
-              "condition": {
-                "leftType": "variable",
-                "leftValue": "${hitSide}",
-                "rightValue": "left"
-              },
-              "type": "condition",
-              "body": [
-                {
-                  "name": "Act_BounceR",
-                  "type": "action"
-                }
-              ],
-              "elseBody": [
-                {
-                  "condition": {
-                    "rightValue": "right",
-                    "leftValue": "${hitSide}"
-                  },
-                  "type": "condition",
-                  "body": [
-                    {
-                      "name": "ActBounceL",
-                      "type": "action"
-                    }
-                  ],
-                  "elseBody": []
-                }
-              ]
+              "name": "act_ChangePanelSpriteDirection",
+              "type": "action",
+              "layout": "horizontal"
             }
           ],
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
-            "CheckBourdary": {
+            "CheckPanelSpriteBourdary": {
               "x": 40,
               "y": 40
             },
-            "${hitSide} == left": {
-              "x": 40,
-              "y": 140
-            },
-            "Act_BounceR": {
-              "x": 260,
-              "y": 140
-            },
-            "${hitSide} == right": {
-              "x": 40,
-              "y": 240
-            },
-            "ActBounceL": {
-              "x": 260,
-              "y": 240
+            "act_ChangePanelSpriteDirection": {
+              "x": 340,
+              "y": 40
             }
           }
         },
         {
-          "name": "CheckStageBoundary",
+          "name": "CheckStageSpriteBoundary",
           "description": "",
           "actionSequence": [
             {
-              "condition": {
-                "rightValue": "left",
-                "leftValue": "${hitSide}"
-              },
-              "type": "condition",
-              "body": [
-                {
-                  "name": "Act_StageBounceR",
-                  "type": "action"
-                }
-              ],
-              "elseBody": [
-                {
-                  "condition": {
-                    "rightValue": "right",
-                    "leftValue": "${hitSide}"
-                  },
-                  "type": "condition",
-                  "body": [
-                    {
-                      "name": "Act_StageBounceL",
-                      "type": "action"
-                    }
-                  ],
-                  "elseBody": []
-                }
-              ]
+              "name": "Act_ChangeStageSpriteDirection",
+              "type": "action",
+              "layout": "horizontal"
             }
           ],
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
-            "CheckStageBoundary": {
+            "CheckStageSpriteBoundary": {
               "x": 40,
               "y": 40
             },
-            "${hitSide} == left": {
+            "Act_ChangeStageSpriteDirection": {
+              "x": 340,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "CheckCollision",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ChangeStageSpriteDirection",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckCollision": {
               "x": 40,
-              "y": 140
+              "y": 40
             },
-            "Act_StageBounceR": {
-              "x": 300,
-              "y": 140
-            },
-            "${hitSide} == right": {
+            "Act_ChangePanelSpriteDirection": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "CheckPanelSpriteCollision",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "act_ChangePanelSpriteDirection",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckPanelSpriteCollision": {
               "x": 40,
-              "y": 240
+              "y": 40
             },
-            "Act_StageBounceL": {
-              "x": 300,
-              "y": 240
+            "act_ChangePanelSpriteDirection": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "CheckStageSpriteCollision",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ChangeStageSpriteDirection",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckStageSpriteCollision": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ChangeStageSpriteDirection": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "StartPanelSpriteMoving",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetPanelX_VelocityToMove",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StartPanelSpriteMoving": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetPanelX_VelocityToMove": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "StarteStageSprite",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_StartStageSprite",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StarteStageSprite": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_StartStageSprite": {
+              "x": 260,
+              "y": 40
             }
           }
         }

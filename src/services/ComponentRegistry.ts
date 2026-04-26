@@ -278,8 +278,9 @@ export class ComponentRegistry {
 
         const Constructor = this.registry.get(className);
         if (!Constructor) {
-            // Suppress error if the type is actually a registered action (e.g., 'toggle_dialog')
-            if (className.includes('_') || className === 'toggle_dialog') {
+            // Suppress error if the type is actually a registered action or system type
+            const actionTypes = ['standard', 'system', 'data_action', 'if_condition', 'event_listener', 'action', 'toggle_dialog'];
+            if (className.includes('_') || actionTypes.includes(className)) {
                 ComponentRegistry.logger.debug(`Action-Type "${className}" wird im ComponentRegistry ignoriert.`);
                 return null;
             }

@@ -230,7 +230,7 @@ export class AnimationManager {
                     if (tween.onUpdate) {
                         tween.onUpdate(tween.to, tween.target);
                     }
-                    logger.info(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
+                    // logger.info(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
                     completedTweens.push(tween);
                 }
             } catch (error) {

@@ -354,6 +354,13 @@ export class GameLoopManager {
                     continue;
                 }
 
+                // Coordinate space isolation: Only collide sprites in the same container
+                const parentA = (spriteA as any).parentId || (spriteA.parent ? spriteA.parent.id : null);
+                const parentB = (spriteB as any).parentId || (spriteB.parent ? spriteB.parent.id : null);
+                if (parentA !== parentB) {
+                    continue;
+                }
+
                 const overlap = spriteA.getCollisionOverlap(spriteB);
                 if (overlap) {
                     // Check cooldown
@@ -425,6 +432,19 @@ export class GameLoopManager {
                 // Skip invisible pool instances
                 if (!sprite.visible || !panel.visible) continue;
                 if (sprite.isAnimating || panel.isAnimating) continue;
+
+                const spriteParentId = (sprite as any).parentId || (sprite.parent ? sprite.parent.id : null);
+                
+                // Skip if the panel IS the sprite's parent (inside walls are handled by checkBoundaries)
+                if (spriteParentId === panel.id || spriteParentId === panel.name) {
+                    continue;
+                }
+
+                // Coordinate space isolation: Only collide if both are in the same container
+                const panelParentId = (panel as any).parentId || (panel.parent ? panel.parent.id : null);
+                if (spriteParentId !== panelParentId) {
+                    continue;
+                }
 
                 // Panels are always rects. We construct a dummy hitbox for the panel
                 const panelHitbox = {
