@@ -77,10 +77,11 @@ class ObjectRegistry {
 
             if (scopeFilter === 'stage-only') {
                 const actStage = project.stages.find((s: any) => s.id === coreStore.activeStageId);
-                return [
+                const stageResult = [
                     ...flattenObjects(actStage?.objects || []),
                     ...(actStage?.variables || []) as unknown as ComponentData[]
                 ].filter(o => o.name);
+                return Object.freeze(stageResult) as ComponentData[];
             }
         }
 
@@ -102,10 +103,10 @@ class ObjectRegistry {
                 ...flattenObjects(project.objects || []),
                 ...(project.variables || []) as unknown as ComponentData[]
             ];
-            return legacyItems.filter(o => o.name);
+            return Object.freeze(legacyItems.filter(o => o.name)) as ComponentData[];
         }
 
-        return allObjects.filter(o => o.name);
+        return Object.freeze(allObjects.filter(o => o.name)) as ComponentData[];
     }
 
     public getFlowObjects(): any[] {

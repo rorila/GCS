@@ -18,6 +18,7 @@ import { runRenamingRobustnessTests } from '../tests/renaming_robustness.test.js
 import { runTests as runActionRegistrationTests } from '../tests/action_registration.test.js';
 import { runTests as runActionCRUDTests } from '../tests/action_crud.test.js';
 import { runTests as runCoordinateTests } from '../src/runtime/CoordinateBinding.test.js';
+import { runTests as runGameLoopManagerTests } from '../tests/game_loop_manager.test.js';
 import { runTests as runAgentControllerTests } from '../tests/agent_controller.test.js';
 import { runTests as runRocketCountdownTests } from '../tests/rocket_countdown.test.js';
 import { runSyncValidatorTests } from '../tests/sync_validator.test.js';
@@ -125,6 +126,15 @@ async function main() {
         // 15. Coordinate Binding Tests
         console.log('🏃 Starte Coordinate Binding Tests...');
         allResults.push(...await runCoordinateTests());
+
+        // 15.5 GameLoopManager Physics Tests
+        console.log('🏃 Starte GameLoopManager Physics Tests...');
+        try {
+            runGameLoopManagerTests();
+            allResults.push({ name: 'GameLoopManager Tests', passed: true, type: 'Physics', expectedSuccess: true, actualSuccess: true });
+        } catch (e: any) {
+            allResults.push({ name: 'GameLoopManager Tests', passed: false, type: 'Physics', expectedSuccess: true, actualSuccess: false, details: e.message });
+        }
 
         // 16. AgentController Tests
         console.log('🏃 Starte AgentController Tests...');
