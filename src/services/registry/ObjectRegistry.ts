@@ -46,10 +46,12 @@ class ObjectRegistry {
                 });
             }
 
+            const actualBlueprintId = project.stages.find((s: any) => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint')?.id;
+
             project.stages.forEach((stage: any) => {
                 if (stage.id === coreStore.activeStageId) return;
 
-                const isStageBlueprint = stage.type === 'blueprint' || stage.id === 'stage_blueprint' || stage.id === 'blueprint';
+                const isStageBlueprint = stage.id === actualBlueprintId;
                 
                 let stageItemsToInclude: any[];
 
@@ -80,8 +82,12 @@ class ObjectRegistry {
                 const stageResult = [
                     ...flattenObjects(actStage?.objects || []),
                     ...(actStage?.variables || []) as unknown as ComponentData[]
-                ].filter(o => o.name);
-                return Object.freeze(stageResult) as ComponentData[];
+                ];
+                const uniqueByName = new Map<string, any>();
+                stageResult.forEach(o => {
+                    if (o.name && !uniqueByName.has(o.name)) uniqueByName.set(o.name, o);
+                });
+                return Object.freeze(Array.from(uniqueByName.values()).sort((a, b) => a.name.localeCompare(b.name))) as ComponentData[];
             }
         }
 
@@ -103,10 +109,18 @@ class ObjectRegistry {
                 ...flattenObjects(project.objects || []),
                 ...(project.variables || []) as unknown as ComponentData[]
             ];
-            return Object.freeze(legacyItems.filter(o => o.name)) as ComponentData[];
+            const uniqueLegacy = new Map<string, any>();
+            legacyItems.forEach(o => {
+                if (o.name && !uniqueLegacy.has(o.name)) uniqueLegacy.set(o.name, o);
+            });
+            return Object.freeze(Array.from(uniqueLegacy.values()).sort((a, b) => a.name.localeCompare(b.name))) as ComponentData[];
         }
 
-        return Object.freeze(allObjects.filter(o => o.name)) as ComponentData[];
+        const uniqueAll = new Map<string, any>();
+        allObjects.forEach(o => {
+            if (o.name && !uniqueAll.has(o.name)) uniqueAll.set(o.name, o);
+        });
+        return Object.freeze(Array.from(uniqueAll.values()).sort((a, b) => a.name.localeCompare(b.name))) as ComponentData[];
     }
 
     public getFlowObjects(): any[] {

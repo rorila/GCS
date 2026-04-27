@@ -9,21 +9,6 @@ export class ObjectRefactoringService {
     public static renameObject(project: GameProject, oldName: string, newName: string): void {
         if (!oldName || !newName || oldName === newName) return;
 
-        // 1. Update object name itself (Global + Stages)
-        project.objects.forEach(obj => {
-            if (obj.name === oldName) obj.name = newName;
-        });
-
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.objects) {
-                    stage.objects.forEach(obj => {
-                        if (obj.name === oldName) obj.name = newName;
-                    });
-                }
-            });
-        }
-
         // 2. Update related actions and their targets
         const allActions = [...project.actions];
         if (project.stages) {
@@ -124,7 +109,7 @@ export class ObjectRefactoringService {
             });
         }
         allObjectsToScan.forEach(obj => {
-            RefactoringUtils.replaceInObjectRecursive(obj, oldName, newName);
+            RefactoringUtils.replaceInObjectRecursive(obj, oldName, newName, undefined, true, ['name', 'id', 'className', 'type']);
         });
     }
 

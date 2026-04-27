@@ -461,3 +461,10 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mï¿½ssen zwin
 ### 17. Single Source of Truth für den Komponenten-Baum
 - **DO NOT** ersetze das gesamte ctiveStage.objects-Array durch eine abgeflachte Liste aus der Registry (projectObjectRegistry.getObjects()). Das Zerstören der Baumstruktur (mit children-Arrays) führt dazu, dass Container-Kinder ihre parentId-Bindungen doppelt generieren oder verlieren, was zu unvorhersehbarem Zappeln im Run-Mode (Konflikt global vs. relativ) und kaputtem Drag & Drop führt.
 - **DO** operiere stets direkt auf dem referenzierten Baum (ctiveStage.objects.push() oder splice() über rekursive Finder wie emoveObjectSilent) und belasse die Array-Referenz unangetastet.
+- NIEMALS Core-Runtime-Ã„nderungen (AnimationManager, GameRuntime etc.) durchfÃ¼hren, ohne anschlieÃŸend 
+pm run bundle:runtime auszufÃ¼hren! Der Standalone-Player (IFrame-Run-Mode) verwendet das vorkompilierte Bundle public/runtime-standalone.js. Ohne Neubau werden im Editor funktionierende Ã„nderungen im IFrame schlichtweg ignoriert.
+
+### 18. Refactoring & Objektnamen
+- **DO NOT** ersetze beim Umbenennen eines Objekts blind alle Objekte mit demselben Namen (wie bisher in ObjectRefactoringService.ts). Es darf nur das ausgewaehlte Objekt umbenannt werden (was der ProjectStore bereits via SET_PROPERTY erledigt), sowie dessen *Referenzen* (in Actions, Tasks, Conditions).
+- Nutze fuer replaceInObjectRecursive die ignoreKeys-Whitelist (z.B. ['name', 'id', 'type', 'className']), um bei der Referenz-Aktualisierung nicht aus Versehen die Metadaten anderer Objekte zu ueberschreiben.
+

@@ -245,6 +245,7 @@ export class ComponentRegistry {
         this.typeMapping.set('DataStore', 'TDataStore');
         this.typeMapping.set('DataList', 'TDataList');
         this.typeMapping.set('SidePanel', 'TSidePanel');
+        this.typeMapping.set('Card', 'TCard');
     }
 
     /**

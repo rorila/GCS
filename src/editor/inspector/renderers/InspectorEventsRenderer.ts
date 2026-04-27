@@ -53,10 +53,12 @@ export class InspectorEventsRenderer {
                 if (!cb.availableTasks || cb.availableTasks.length === 0) {
                     const tasks = projectTaskRegistry.getTasks('all');
                     if (tasks && tasks.length > 0) {
-                        cb.availableTasks = tasks.map(t => ({
+                        const mappedTasks = tasks.map(t => ({
                             value: t.name,
                             label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
                         }));
+                        mappedTasks.unshift({ value: '', label: '- Task auswählen... -' });
+                        cb.availableTasks = mappedTasks;
                     }
                 }
             }

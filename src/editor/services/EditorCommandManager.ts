@@ -1,4 +1,5 @@
 import { projectActionRegistry } from '../../services/registry/ActionRegistry';
+import { coreStore } from '../../services/registry/CoreStore';
 import { Editor } from '../Editor';
 import { TWindow } from '../../components/TWindow';
 import { componentRegistry } from '../../services/ComponentRegistry';
@@ -51,7 +52,8 @@ export class EditorCommandManager {
 
         // Scoping Rules
         const activeStage = this.editor.getActiveStage();
-        newObj.scope = (activeStage && activeStage.type === 'blueprint') ? 'global' : 'stage';
+        const actualBlueprintId = coreStore.project?.stages?.find(s => s.id === 'stage_blueprint' || s.id === 'blueprint' || s.type === 'blueprint')?.id;
+        newObj.scope = (activeStage && activeStage.id === actualBlueprintId) ? 'global' : 'stage';
         // className: Instanz hat bereits den korrekten className aus dem Konstruktor
         // (z.B. 'TThresholdVariable'). Nur setzen wenn die Instanz keinen hat.
         if (!(newObj as any).className) {

@@ -218,10 +218,12 @@ export class InspectorContextBuilder {
                     });
                 }
                 
-                return allTasks.map(t => ({
+                const mappedTasks = allTasks.map(t => ({
                     value: t.name,
                     label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
                 }));
+                mappedTasks.unshift({ value: '', label: '- Task auswählen... -' });
+                return mappedTasks;
             })(),
 
             // UseCase Diagnostic System

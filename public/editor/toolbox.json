@@ -25,6 +25,11 @@
                     "label": "Group Container"
                 },
                 {
+                    "type": "Card",
+                    "icon": "📇",
+                    "label": "Card"
+                },
+                {
                     "type": "Button",
                     "icon": "🔘",
                     "label": "Button"

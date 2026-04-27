@@ -64,11 +64,39 @@ export class ProjectStore {
     // Project-Verwaltung
     // =========================================================================
 
-    /**
-     * Setzt das aktive Projekt. Leert den SnapshotManager-Stack.
-     */
     public setProject(project: GameProject): void {
         this.project = project;
+
+        // SANITIZATION: Bereinige korrupte globale Scopes und kopierte Blueprint-Typen
+        try {
+            const actualBlueprintStage = project.stages?.find(s => s.id === 'stage_blueprint' || s.id === 'blueprint' || s.type === 'blueprint');
+            const globalServiceClasses = [
+                'TStageController', 'TGameLoop', 'TGameState', 'TGameServer',
+                'TInputController', 'THandshake', 'THeartbeat', 'TToast', 'TStatusBar',
+                'TAPIServer', 'TDataStore'
+            ];
+
+            project.stages?.forEach(stage => {
+                if (stage !== actualBlueprintStage) {
+                    if (stage.type === 'blueprint') stage.type = 'standard';
+                    
+                    if (stage.objects) {
+                        const sanitizeScope = (objects: any[]) => {
+                            objects.forEach(o => {
+                                if (o.scope === 'global' && !o.isVariable && !globalServiceClasses.includes(o.className)) {
+                                    o.scope = 'stage';
+                                }
+                                if (o.children) sanitizeScope(o.children);
+                            });
+                        };
+                        sanitizeScope(stage.objects);
+                    }
+                }
+            });
+        } catch(e) {
+            ProjectStore.logger.error('Fehler bei der Projekt-Bereinigung (Sanitization):', e);
+        }
+
         snapshotManager.clear();
         ProjectStore.logger.info(`Projekt geladen: "${(project as any).name || 'Unbenannt'}"`);
     }

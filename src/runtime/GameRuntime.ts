@@ -712,8 +712,13 @@ export class GameRuntime implements IVariableHost {
 
 
         const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
-        const hasTaskMap = (obj.events && obj.events[eventName]) || ((obj as any).Tasks && (obj as any).Tasks[eventName]);
-
+        
+        let hasTaskMap: any = undefined;
+        if (obj.events && eventName in obj.events) {
+            hasTaskMap = obj.events[eventName];
+        } else if ((obj as any).Tasks && eventName in (obj as any).Tasks) {
+            hasTaskMap = (obj as any).Tasks[eventName];
+        }
         let eventLogId: string | undefined = undefined;
 
         if (hasOnEventMap || hasTaskMap) {

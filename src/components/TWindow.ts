@@ -197,8 +197,8 @@ export class TWindow extends TComponent {
         if (this.isHiddenInRun) {
             return [];
         }
-        // Kombiniere die Standard-Events von TComponent (inkl. Hover, Click, Touch) mit Focus/Blur
-        return Array.from(new Set([...super.getEvents(), 'onFocus', 'onBlur']));
+        // Kombiniere die Standard-Events von TComponent (inkl. Hover, Click, Touch) mit Focus/Blur/Flip
+        return Array.from(new Set([...super.getEvents(), 'onFocus', 'onBlur', 'onFlipMidpoint']));
     }
 
     /**

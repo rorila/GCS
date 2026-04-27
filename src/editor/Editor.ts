@@ -22,7 +22,6 @@ import { EditorStageManager } from './EditorStageManager';
 
 import { libraryService } from '../services/LibraryService';
 import { EditorViewManager, IViewHost, ViewType } from './EditorViewManager';
-import { projectActionRegistry } from '../services/registry/ActionRegistry';
 import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
 import { projectStore } from '../services/ProjectStore';
 import { mediatorService, MediatorEvents } from '../services/MediatorService';

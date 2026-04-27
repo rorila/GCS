@@ -123,7 +123,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1777195986754_ik5wsarjm",
+          "id": "obj_1777312055044_c5q29fp98",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -150,18 +150,48 @@
           },
           "text": "Button_3",
           "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777312055395_41zu0u3rl",
+          "name": "Button_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Button_4",
+          "icon": ""
         }
       ],
       "actions": [
         {
-          "id": "node-1777195971688",
+          "id": "node-1777312039979",
           "details": "",
           "name": "ShowTheHighscoreStage_Unique",
           "showDetails": false,
           "type": "navigate_stage"
         },
         {
-          "id": "node-1777195974620",
+          "id": "node-1777312042996",
           "details": "",
           "name": "Action1",
           "showDetails": false
@@ -191,7 +221,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1777195974620",
+              "id": "node-1777312042996",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -224,7 +254,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1777195979686",
+      "id": "stage-1777312048195",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

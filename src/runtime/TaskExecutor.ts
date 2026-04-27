@@ -271,7 +271,7 @@ export class TaskExecutor {
             if (!node || visited.has(node.id)) return;
             visited.add(node.id);
 
-            const nodeType = node.type;
+            const nodeType = String(node.type || '').toLowerCase();
             const name = node.properties?.name || node.data?.name || node.data?.actionName;
 
             // Skip the task node itself (it's just the entry point)
@@ -368,7 +368,7 @@ export class TaskExecutor {
                 return;
             }
 
-            if (nodeType === 'task' || nodeType === 'task') {
+            if (nodeType === 'task') {
                 // Execute sub-task
                 await this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
 
@@ -384,7 +384,7 @@ export class TaskExecutor {
                 return;
             }
 
-            if (nodeType === 'data_action' || nodeType === 'data_action') {
+            if (nodeType === 'data_action' || nodeType === 'dataaction') {
                 // Execute DataAction
                 const action = this.resolveAction({ type: 'data_action', name: name }) || node.data;
 
@@ -426,7 +426,7 @@ export class TaskExecutor {
                 return;
             }
 
-            if (nodeType === 'condition' || nodeType === 'condition') {
+            if (nodeType === 'condition') {
                 const condition = node.data?.condition;
                 if (!condition) {
                     logger.warn(`Condition node without condition data: ${node.id} `);

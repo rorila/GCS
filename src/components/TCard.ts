@@ -49,6 +49,10 @@ export class TCard extends TPanel {
             showFooter: this.showFooter
         };
     }
+
+    public getEvents(): string[] {
+        return Array.from(new Set([...super.getEvents(), 'onFlipMidpoint']));
+    }
 }
 
 // --- Auto-Registration ---

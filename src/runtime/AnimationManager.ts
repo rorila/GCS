@@ -584,7 +584,7 @@ export class AnimationManager {
             if (!midpointFired) {
                 midpointFired = true;
                 if (typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('componentEvent', {
+                    window.dispatchEvent(new CustomEvent('GameRuntime_Event', {
                         detail: { id: target.id, event: 'onFlipMidpoint', data: {} }
                     }));
                 }
@@ -594,7 +594,7 @@ export class AnimationManager {
             if (val >= 0.5 && !midpointFired) {
                 midpointFired = true;
                 if (typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('componentEvent', {
+                    window.dispatchEvent(new CustomEvent('GameRuntime_Event', {
                         detail: { id: target.id, event: 'onFlipMidpoint', data: {} }
                     }));
                 }
