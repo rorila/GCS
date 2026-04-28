@@ -33,6 +33,12 @@
                     "label": "Vom Server neu laden (Force)",
                     "action": "force-reload",
                     "icon": "🔄"
+                },
+                {
+                    "id": "export-theme",
+                    "label": "Theme aus Stage exportieren",
+                    "action": "export-theme",
+                    "icon": "🎨"
                 }
             ]
         },

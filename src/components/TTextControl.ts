@@ -13,14 +13,6 @@ export class TTextControl extends TWindow {
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
-
-        // Default Text Style
-        this.style.fontSize = 14;
-        this.style.color = '#000000';
-        this.style.fontWeight = 'normal';
-        this.style.fontStyle = 'normal';
-        this.style.textAlign = 'left';
-        this.style.fontFamily = 'Arial';
     }
 
     public getInspectorProperties(): TPropertyDef[] {
@@ -37,3 +29,4 @@ export class TTextControl extends TWindow {
 // --- Auto-Registration ---
 import { ComponentRegistry } from '../utils/ComponentRegistry';
 ComponentRegistry.register('TTextControl', (objData: any) => new TTextControl(objData.name, objData.x, objData.y, objData.width, objData.height));
+

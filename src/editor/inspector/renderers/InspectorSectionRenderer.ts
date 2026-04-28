@@ -6,6 +6,7 @@ import { mediatorService } from '../../../services/MediatorService';
 import { componentRegistry } from '../../../services/ComponentRegistry';
 import { NotificationToast } from '../../ui/NotificationToast';
 import { PropertyPickerDialog } from '../PropertyPickerDialog';
+import { MediaPickerDialog } from '../MediaPickerDialog';
 
 
 export class InspectorSectionRenderer {
@@ -83,6 +84,23 @@ export class InspectorSectionRenderer {
                     if (el) body.appendChild(el);
                     i++;
                 }
+            }
+
+            // Theme-Reset Button für die STIL Sektion hinzufügen
+            if (colorKey === 'STIL' && (obj as any).style && Object.keys((obj as any).style).length > 0) {
+                const resetBtn = document.createElement('button');
+                resetBtn.innerText = 'Auf Theme zurücksetzen';
+                resetBtn.style.cssText = 'margin-top: 8px; width: 100%; padding: 6px; background: rgba(255,100,100,0.2); border: 1px solid rgba(255,100,100,0.4); color: #ffcccc; border-radius: 4px; cursor: pointer; font-size: 11px; transition: background 0.2s;';
+                resetBtn.onmouseenter = () => { resetBtn.style.background = 'rgba(255,100,100,0.3)'; };
+                resetBtn.onmouseleave = () => { resetBtn.style.background = 'rgba(255,100,100,0.2)'; };
+                resetBtn.onclick = () => {
+                    if (confirm('Möchtest du alle manuellen Stilanpassungen dieser Komponente entfernen und sie auf das aktive Theme zurücksetzen?')) {
+                        // Alle eigenen style-Eigenschaften löschen, außer Pflicht-Properties falls vorhanden
+                        (obj as any).style = {};
+                        mediatorService.notifyDataChanged({ property: 'style', value: {}, oldValue: null, object: obj }, 'inspector'); context.update(obj);
+                    }
+                };
+                body.appendChild(resetBtn);
             }
         });
     }
@@ -520,6 +538,9 @@ export class InspectorSectionRenderer {
                         valElement = numInput;
 
                     } else {
+                        const valWrapper = document.createElement('div');
+                        valWrapper.style.cssText = 'display:flex;gap:4px;flex:1;';
+
                         const valInput = document.createElement('input');
                         valInput.type = 'text';
                         valInput.value = String(value);
@@ -532,7 +553,33 @@ export class InspectorSectionRenderer {
                             newChanges[key] = (!isNaN(num) && raw !== '') ? num : raw;
                             applyChanges(newChanges);
                         };
-                        valElement = valInput;
+                        valWrapper.appendChild(valInput);
+
+                        const lowerKey = key.toLowerCase();
+                        const isImage = lowerKey.includes('image') || key === 'src' || key === 'icon';
+                        const isAudio = lowerKey.includes('sound') || lowerKey.includes('audio') || key === 'bgm' || key === 'sfx';
+                        
+                        if (isImage || isAudio) {
+                            const browseBtn = document.createElement('button');
+                            browseBtn.textContent = isImage ? '🖼️' : '🔊';
+                            browseBtn.title = isImage ? 'Bild auswählen' : 'Audio auswählen';
+                            browseBtn.style.cssText = 'padding:2px 6px;background:#2a2a3e;color:#fff;border:1px solid #555;border-radius:3px;cursor:pointer;font-size:11px;flex-shrink:0;transition:all 0.15s;';
+                            browseBtn.onmouseenter = () => { browseBtn.style.borderColor = '#89b4fa'; browseBtn.style.background = '#3a3a4e'; };
+                            browseBtn.onmouseleave = () => { browseBtn.style.borderColor = '#555'; browseBtn.style.background = '#2a2a3e'; };
+                            browseBtn.onclick = async () => {
+                                const chosen = await MediaPickerDialog.show({
+                                    mode: isImage ? 'image' : 'audio',
+                                    currentValue: String(value || '')
+                                });
+                                if (chosen !== null) {
+                                    valInput.value = chosen;
+                                    valInput.onchange!(new Event('change'));
+                                }
+                            };
+                            valWrapper.appendChild(browseBtn);
+                        }
+
+                        valElement = valWrapper;
                     }
 
                     const delBtn = document.createElement('button');
@@ -890,3 +937,5 @@ export class InspectorSectionRenderer {
         return container;
     }
 }
+
+
