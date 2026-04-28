@@ -1,3 +1,12 @@
+[UC-2026-04-28-DynamicThemeCascade]
+Dateien:
+- src/runtime/ThemeRegistry.ts (Neu)
+- src/model/types.ts
+- src/editor/services/StageRenderer.ts (Methode: updateSingleObject, renderObjects)
+- src/editor/services/EditorDataManager.ts (Methode: exportTheme)
+- src/editor/inspector/renderers/InspectorSectionRenderer.ts
+Beschreibung: Einbindung eines dynamischen und kaskadierenden Theme-Systems in den Game-Builder. Die festkodierten Styles der UI-Komponenten (TButton, TPanel, TCard, etc.) wurden entfernt. Eine ThemeRegistry Singleton-Instanz verwaltet die Basisfarben und Fonts und liefert ein Default Modern-Glass Theme. Der StageRenderer mergt die Theme-Styles zur Laufzeit in die Objekte via shallow-copy. Zusätzlich gibt es im Inspector einen 'Auf Theme zurücksetzen' Button und im Menu einen 'Theme exportieren' Button.
+
 [UC-2026-04-27-ObjectRegistryDeduplication]
 Beschreibung: Deduplizierung von Objekten im Inspector/Action Editor, um identische Namen durch kopierte Blueprint-Stages auszufiltern.
 Dateien: src/services/registry/ObjectRegistry.ts (Methode: getObjects, Zeilen ~78-110)
@@ -1048,3 +1057,36 @@ Zeilen: ca. 270-435
 Methoden: executeFlowChart
 Zweck: Behebung eines Fehlers, durch den im FlowEditor verbundene Action-Knoten in der Runtime stillschweigend Ã¼bergangen wurden. Der AusfÃ¼hrungsbaum verlangte exakt 'action' als node.type, das JSON vom Flow-Editor lieferte jedoch oft 'Action'. Typ-PrÃ¼fung konvertiert nun alles konsequent in Kleinbuchstaben.
 
+
+[AutoSave-Ziel Anzeige in MenÃ¼leiste]
+Dateien: src/editor/services/EditorDataManager.ts
+Zeilen: ca. 64-74
+Methoden: updateProjectPathDisplay
+Zweck: UI-Verbesserung. Anzeige des tatsÃ¤chlichen Speicherorts je nach Umgebung (Dev-Server, Electron, Lokal) statt nur des Ladepfads, um Klarheit beim automatischen Speichern zu schaffen.
+
+
+[Dynamisches Eigenschaften-Diagramm fÃ¼r alle Target-Actions]
+Dateien: src/editor/inspector/InspectorRenderer.ts
+Zeilen: 386-388, 475-476
+Methoden: renderActionParams
+Zweck: Wenn eine Action ein Zielobjekt ('target') und eine 'changes'-Eigenschaft besitzt, wird dynamisch das KeyValue-Diagramm (Eigenschaften-Diagramm) angezeigt, anstatt einer fixen Whitelist an Typen.
+
+
+[Media Picker in KeyValue Editor]
+Dateien: src/editor/inspector/renderers/InspectorSectionRenderer.ts
+Zeilen: ca. 523-535
+Methoden: renderSections (keyvalue block)
+Zweck: Wenn im Eigenschaften-Diagramm (KeyValue) eine Eigenschaft definiert wird, die sich auf Bilder oder Sounds bezieht (z.B. src, image, sound), wird automatisch ein Button zum Oeffnen des MediaPickerDialogs (Bild/Audio Auswahl) angezeigt.
+
+
+
+
+## Bugfix: GameLoopManager Iframe Physics Jitter
+- **Dateien:**
+  - src/runtime/GameLoopManager.ts
+- **Methoden:**
+  - loop() (Zeile ~258): Time-Step Clamping auf max 30FPS für Lade-Lags.
+  - checkCollisions() (Zeile ~497): Velocity-Aware Collision Resolution.
+  - checkBoundaries() (Zeile ~566): Abzug der Border-Width von panelHitbox.
+  - checkStageExits() (Zeile ~671): Abzug der Border-Width.
+- **Beschreibung:** Behebt das Problem, dass Sprites im Iframe nach der ersten Kollision springen und über Panel-Ränder gleiten.

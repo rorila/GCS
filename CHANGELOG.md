@@ -31,3 +31,17 @@
 ### TaskExecutor (Runtime)
 - **BUGFIX**: FlowChart-Ausführung ignorierte verbundene Action-Nodes, weil der Typ case-sensitive ('action' statt 'Action') geprüft wurde. Die Runtime konvertiert nun node.type konsequent in Kleinbuchstaben, bevor sie Flow-Elemente evaluiert. Dadurch werden im Flow-Editor verknüpfte Actions (wie Act_ChangPanelSpriteDirecktion) wieder zuverlässig beim Eintreten des Events aufgerufen.
 
+
+### UI & Editor
+- **VERBESSERUNG**: Die Pfadanzeige in der Menüzeile wurde überarbeitet. Sie zeigt nun präzise das tatsächliche *AutoSave-Ziel* an (z.B. 'AutoSave-Ziel (Dev-Server): game-server/public/projects/...') statt nur den ursprünglichen Ladepfad, um Verwirrung über den Speicherort im Browser-Modus zu vermeiden.
+
+
+### Inspector & UI
+- **VERBESSERUNG**: Der KeyValue-Editor (Eigenschaften-Diagramm) fr die *changes*-Eigenschaft wird nun dynamisch fr *alle* Action-Arten angezeigt, die ein 'target'-Objekt besitzen, anstatt nur fr eine hartkodierte Liste von Typen.
+
+
+### Inspector & UI
+- **FEATURE**: Im Eigenschaften-Diagramm (KeyValue-Editor) werden fr Eigenschaften, die auf Bilder oder Audio-Dateien verweisen (wie 'image', 'src', 'sound', 'audio', etc.), nun automatisch die 'Media Picker'-Dialoge (Verzeichnis-Dialoge fr Images und Sounds) als Browse-Button angezeigt, anstatt Pfade manuell abtippen zu mssen.
+
+
+

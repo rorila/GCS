@@ -258,8 +258,8 @@ export class GameLoopManager {
         // um stotternde Vektor-Bewegungen (Micro-Physics-Jitter) zu eliminieren.
         if (deltaTime > 0.014 && deltaTime < 0.019) {
             deltaTime = 0.01666666; 
-        } else if (deltaTime > 0.1) {
-            deltaTime = 0.1; // Verhindert Tunneling/Wall-Clips nach Tab-Wechsel
+        } else if (deltaTime > 0.033) {
+            deltaTime = 0.033; // HARTES CLAMPING für Iframe-Lade-Lags (max 30fps step)
         }
 
         // Update input controllers first
@@ -497,13 +497,30 @@ export class GameLoopManager {
                     let hitSide = 'left';
                     let depth = 0;
 
-                    if (overlapX < overlapY) {
-                        hitSide = dx > 0 ? 'left' : 'right'; // 'left' of sprite means it hit the right side of panel
+                    // VELOCITY-AWARE COLLISION RESOLUTION
+                    const vX = sprite.velocityX || 0;
+                    const vY = sprite.velocityY || 0;
+                    
+                    if (Math.abs(vX) > Math.abs(vY)) {
+                        hitSide = dx > 0 ? 'left' : 'right';
                         depth = overlapX;
-                    } else {
+                        console.log('[PHYSICS] Velocity-Horizontal: vX=' + vX + ', vY=' + vY + ', hitSide=' + hitSide + ', depth=' + depth);
+                    } else if (Math.abs(vY) > Math.abs(vX)) {
                         hitSide = dy > 0 ? 'top' : 'bottom';
                         depth = overlapY;
+                        console.log('[PHYSICS] Velocity-Vertical: vX=' + vX + ', vY=' + vY + ', hitSide=' + hitSide + ', depth=' + depth);
+                    } else {
+                        if (overlapX < overlapY) {
+                            hitSide = dx > 0 ? 'left' : 'right';
+                            depth = overlapX;
+                            console.log('[PHYSICS] Geometric-Horizontal: overlapX=' + overlapX + ' < overlapY=' + overlapY + ', hitSide=' + hitSide + ', depth=' + depth);
+                        } else {
+                            hitSide = dy > 0 ? 'top' : 'bottom';
+                            depth = overlapY;
+                            console.log('[PHYSICS] Geometric-Vertical: overlapY=' + overlapY + ' <= overlapX=' + overlapX + ', hitSide=' + hitSide + ', depth=' + depth);
+                        }
                     }
+                    console.log('[PHYSICS] pre-resolution y: ' + sprite.y + ', hitSide: ' + hitSide);
 
                     // Trigger Events (Sprite is the one triggering it)
                     if (this.eventCallback) {
@@ -529,6 +546,7 @@ export class GameLoopManager {
                             sprite.y -= (hitSide === 'top' ? -1 : 1) * depth;
                             if (this.boundaryMode === 'bounce') sprite.velocityY = -sprite.velocityY;
                         }
+                        console.log('[PHYSICS] post-resolution y: ' + sprite.y + ', resolved on ' + hitSide);
                     }
                 }
             }
@@ -567,8 +585,12 @@ export class GameLoopManager {
             }
 
             if (parentPanel && (parentPanel.className === 'TPanel' || parentPanel.className === 'TGroupPanel')) {
-                bWidth = parentPanel.width;
-                bHeight = parentPanel.height;
+                let bw = 0;
+                if (parentPanel.style?.borderWidth) {
+                    bw = parseInt(String(parentPanel.style.borderWidth), 10) || 0;
+                }
+                bWidth = parentPanel.width - (bw * 2);
+                bHeight = parentPanel.height - (bw * 2);
                 bOffTop = 0; // Ignore global offsets when inside a panel
                 bOffBottom = 0;
             }
@@ -673,8 +695,12 @@ export class GameLoopManager {
             }
 
             if (parentPanel && (parentPanel.className === 'TPanel' || parentPanel.className === 'TGroupPanel')) {
-                bWidth = parentPanel.width;
-                bHeight = parentPanel.height;
+                let bw = 0;
+                if (parentPanel.style?.borderWidth) {
+                    bw = parseInt(String(parentPanel.style.borderWidth), 10) || 0;
+                }
+                bWidth = parentPanel.width - (bw * 2);
+                bHeight = parentPanel.height - (bw * 2);
                 bOffTop = 0;
                 bOffBottom = 0;
             }
@@ -705,3 +731,8 @@ export class GameLoopManager {
         });
     }
 }
+
+
+
+
+
