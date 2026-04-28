@@ -18,10 +18,7 @@ export class TCard extends TPanel {
         // Standardgröße: 8x10 Zellen
         super(name, x, y, 8, 10);
 
-        this.style.backgroundColor = '#ffffff';
-        this.style.borderColor = 'rgba(0,0,0,0.05)';
-        this.style.borderWidth = 1;
-        this.style.borderRadius = 12;
+        // Default style wird nun über ThemeRegistry gesteuert
         // Schatten wird im Rendering/CSS via Klassen gelöst, 
         // hier setzen wir die Basis-Stile.
     }

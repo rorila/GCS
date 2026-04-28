@@ -1,4 +1,4 @@
-﻿import { TTextControl } from './TTextControl';
+import { TTextControl } from './TTextControl';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -23,9 +23,7 @@ export class TNumberLabel extends TTextControl {
         this.startValue = startValue;
         this.value = startValue;
 
-        this.style.backgroundColor = 'transparent';
-        this.style.color = '#000000';
-        this.style.textAlign = 'center';
+        // Default style wird nun über ThemeRegistry gesteuert
     }
 
     /**

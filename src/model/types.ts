@@ -465,6 +465,10 @@ export interface GameProject {
     stages?: StageDefinition[];   // Alle Stages des Projekts
     activeStageId?: string;       // Aktuell im Editor angezeigte Stage
 
+    // Theme System
+    themes?: any[];               // In das Projekt eingebettete Themes
+    activeThemeId?: string;       // Aktives Theme (ID)
+
     // Legacy (wird bei Migration nach stages übertragen)
     objects: ComponentData[];           // Hauptspiel-Objekte (Legacy, wird zu main-Stage)
     splashObjects?: ComponentData[];    // Splash-Objekte (Legacy, wird zu splash-Stage)

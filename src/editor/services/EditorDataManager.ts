@@ -65,11 +65,25 @@ export class EditorDataManager {
         const menuBar = (this.host as any).menuBar;
         if (menuBar && typeof menuBar.setInfoText === 'function') {
             let path = this.currentSavePath || '(nicht gespeichert)';
-            // Nativer Datei-Handle? Zeige "[Lokal]" Präfix im UI an
-            if (this.currentFileHandle) {
-                path = `[Lokal] ${this.currentFileHandle.name}`;
+            let prefix = 'AutoSave-Ziel';
+
+            const isElectron = !!(window as any).electronFS;
+            const hasNativeHandle = !!this.currentFileHandle;
+
+            if (isElectron && this.currentSavePath) {
+                path = this.currentSavePath;
+                prefix = 'AutoSave-Ziel (Electron)';
+            } else if (hasNativeHandle) {
+                path = this.currentFileHandle.name;
+                prefix = 'AutoSave-Ziel (Lokal)';
+            } else {
+                // Browser-Fallback
+                const sourcePath = this.host.project?.meta?._sourcePath || 'projects/project.json';
+                path = `game-server/public/${sourcePath}`;
+                prefix = 'AutoSave-Ziel (Dev-Server)';
             }
-            menuBar.setInfoText(`Aktueller Projektpfad: ${path}`);
+
+            menuBar.setInfoText(`${prefix}: ${path}`);
         }
     }
 
@@ -391,6 +405,46 @@ export class EditorDataManager {
         if (this.host.flowEditor) this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
         this.host.syncStageObjectsToProject();
         await projectPersistenceService.exportJSONCompressed(this.host.project);
+    }
+
+    public async exportTheme() {
+        this.host.syncStageObjectsToProject();
+        
+        // Extrahiere alle aktuellen Styles der Objekte auf der Stage als Theme
+        const themeDef: any = {
+            id: 'custom-theme-' + Date.now(),
+            name: 'Custom Theme',
+            components: {}
+        };
+        
+        // Iteriere über alle Objekte in der aktuellen Stage (oder allen Stages)
+        if (this.host.project && this.host.project.stages) {
+            this.host.project.stages.forEach(stage => {
+                if (stage.objects) {
+                    stage.objects.forEach(obj => {
+                        const className = obj.className || 'TObject';
+                        if (obj.style && Object.keys(obj.style).length > 0) {
+                            if (!themeDef.components[className]) {
+                                themeDef.components[className] = {};
+                            }
+                            // Mische die aktuellen Styles als Vorlage für dieses Theme
+                            themeDef.components[className] = { ...themeDef.components[className], ...obj.style };
+                        }
+                    });
+                }
+            });
+        }
+        
+        const jsonStr = JSON.stringify(themeDef, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${themeDef.id}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     public loadProject(data: any, sourcePath?: string) {

@@ -10,10 +10,7 @@ export class TPanel extends TWindow {
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
-        // Default style for a panel
-        this.style.backgroundColor = '#f0f0f0';
-        this.style.borderColor = '#999999';
-        this.style.borderWidth = 1;
+        // Default style wird nun über ThemeRegistry gesteuert
     }
 
 

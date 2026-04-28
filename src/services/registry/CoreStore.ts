@@ -1,5 +1,6 @@
 import { GameProject } from '../../model/types';
 import { Logger } from '../../utils/Logger';
+import { themeRegistry } from '../../runtime/ThemeRegistry';
 
 class CoreStore {
     public project: GameProject | null = null;
@@ -10,6 +11,17 @@ class CoreStore {
         this.project = project;
         if (project.activeStageId) {
             this.activeStageId = project.activeStageId;
+        }
+        
+        // Theme System Initialisierung
+        if (project.themes) {
+            themeRegistry.loadProjectThemes(project.themes);
+        }
+        if (project.activeThemeId) {
+            themeRegistry.setActiveTheme(project.activeThemeId);
+        } else {
+            // Default Fallback für neue Projekte
+            themeRegistry.setActiveTheme('modern-glass');
         }
     }
 

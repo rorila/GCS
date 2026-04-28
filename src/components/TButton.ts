@@ -10,13 +10,7 @@ export class TButton extends TTextControl {
         // Use inherited text property
         this.text = text !== undefined ? text : name;
 
-        // Default Button Style
-        this.style.backgroundColor = '#007bff';
-        this.style.borderColor = '#000000';
-        this.style.borderWidth = 1;
-        this.style.color = '#ffffff'; // Text Color from TTextControl
-        this.style.textAlign = 'center'; // Buttons default to center
-        this.style.fontWeight = 'bold'; // Buttons default to bold
+        // Default Button Style wird nun über ThemeRegistry gesteuert
     }
 
     public getInspectorProperties(): TPropertyDef[] {

@@ -14,13 +14,7 @@ export class TStickyNote extends TTextControl {
         
         this.isHiddenInRun = true; // Niemals im Spiel anzeigen!
 
-        // Base styles for Post-It look
-        this.style.fontFamily = "'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', 'Comic Neue', sans-serif";
-        this.style.fontSize = 14;
-        this.style.color = '#333333';
-        this.style.borderRadius = 0; // Square like a post-it
-        this.style.boxShadow = '2px 4px 10px rgba(0,0,0,0.2)'; // Wie FlowCommentNode
-        this.style.borderWidth = 0;
+        // Base styles werden nun über ThemeRegistry gesteuert
         this.style.opacity = 1.0; // Sicherstellen, dass es deckend ist
         
         this.title = 'Notiz';

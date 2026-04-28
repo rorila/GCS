@@ -24,6 +24,7 @@ export interface EditorMenuHost {
     exportHTMLCompressed(): void;
     exportJSON(): void;
     exportJSONCompressed(): void;
+    exportTheme(): void;
     createStage(type: StageType): void;
     deleteCurrentStage(): void;
     createStageFromTemplate(): void;
@@ -91,6 +92,7 @@ export class EditorMenuManager {
             case 'export-html-gzip': this.host.exportHTMLCompressed(); break;
             case 'export-json': this.host.exportJSON(); break;
             case 'export-json-gzip': this.host.exportJSONCompressed(); break;
+            case 'export-theme': this.host.exportTheme(); break;
             case 'export-exe': NotificationToast.show('Exe-Export ist für eine zukünftige Version geplant.', 'info'); break;
             case 'multiplayer':
                 const lobby = document.getElementById('multiplayer-lobby');

@@ -383,8 +383,8 @@ export class InspectorRenderer {
             row.style.gap = '2px';
 
             // Label: Nicht für Key-Value-Editor rendern (dort hat der Container einen eigenen Header)
-            const isKeyValueParam = ['property', 'negate', 'increment', 'decrement', 'toggle'].includes(type)
-                && param.name === 'changes';
+            const hasTargetParam = meta.parameters.some((p: any) => p.name === 'target');
+            const isKeyValueParam = hasTargetParam && param.name === 'changes';
             if (!isKeyValueParam) {
                 const label = this.renderLabel(param.label);
                 row.appendChild(label);
@@ -472,8 +472,8 @@ export class InspectorRenderer {
                         // SPECIAL: Key-Value-Editor für property-Actions
                         // Statt rohem JSON → dynamische Zeilen mit Property-Dropdown
                         // ═══════════════════════════════════════════════════
-                        const isKeyValueAction = ['property', 'negate', 'increment', 'decrement', 'toggle'].includes(type);
-                        if (isKeyValueAction && param.name === 'changes') {
+                        const hasTargetParam = meta.parameters.some((p: any) => p.name === 'target');
+                        if (hasTargetParam && param.name === 'changes') {
                             // Lookup: Bestehende Daten von der Action-Definition im Projekt holen
                             const actionName = selectedObject.Name || selectedObject.name || '';
                             let resolvedChanges = currentValue;

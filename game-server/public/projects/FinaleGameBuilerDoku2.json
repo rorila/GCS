@@ -1081,8 +1081,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 18,
-          "y": 2,
+          "x": 23.95,
+          "y": 1.45,
           "width": 26,
           "height": 3,
           "zIndex": 1,
@@ -1246,8 +1246,8 @@
             "onCollision": "CheckStageSpriteCollision"
           },
           "visible": true,
-          "x": 2,
-          "y": 5,
+          "x": 1.4500000000000375,
+          "y": 4.25,
           "width": 5,
           "height": 2,
           "zIndex": 0,
@@ -1275,6 +1275,115 @@
           "hitboxOffsetY": 0,
           "hitboxWidth": 0,
           "hitboxHeight": 0
+        },
+        {
+          "className": "TAudio",
+          "id": "obj_1777371318354_733yb827a",
+          "name": "Audio_47",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1777394080080_dx1ajgov2",
+          "name": "Panel_49",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 5.4094,
+          "y": 19.05,
+          "width": 9.75,
+          "height": 8.75,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1777394267792_jtcttbhov",
+          "name": "Label_49",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 27.7094,
+          "y": 34.65,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Label_49"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777394295533_1i5uix1yz",
+          "name": "Button_50",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 5.359375,
+          "y": 13.95,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_50",
+          "icon": ""
         }
       ],
       "actions": [
@@ -1340,6 +1449,17 @@
             "velocityX": ""
           },
           "type": "negate"
+        },
+        {
+          "id": "node-1777370332416",
+          "details": "",
+          "name": "Act_ChangeStageSpriteY",
+          "showDetails": false,
+          "target": "StageSprite",
+          "changes": {
+            "y": -0.5
+          },
+          "type": "calculate"
         }
       ],
       "tasks": [
@@ -1466,6 +1586,11 @@
               "name": "Act_ChangeStagePanelXDirection",
               "type": "action",
               "layout": "horizontal"
+            },
+            {
+              "name": "Act_ChangeStageSpriteY",
+              "type": "action",
+              "layout": "horizontal"
             }
           ],
           "triggerMode": "local-sync",
@@ -1477,6 +1602,10 @@
             },
             "Act_ChangeStagePanelXDirection": {
               "x": 320,
+              "y": 40
+            },
+            "Act_ChangeStageSpriteY": {
+              "x": 660,
               "y": 40
             }
           }
@@ -1533,9 +1662,9 @@
         "cols": 64,
         "rows": 40,
         "cellSize": 20,
-        "snapToGrid": true,
+        "snapToGrid": false,
         "visible": false,
-        "backgroundColor": "${StageConfig.Hintergrund}"
+        "backgroundColor": "#173464"
       },
       "flowCharts": {},
       "_supportedEvents": [

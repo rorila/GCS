@@ -12,6 +12,7 @@ import { SystemComponentRenderer } from './renderers/SystemComponentRenderer';
 import { VirtualGamepadRenderer } from './renderers/VirtualGamepadRenderer';
 import { TextObjectRenderer } from './renderers/TextObjectRenderer';
     import { ComplexComponentRenderer } from './renderers/ComplexComponentRenderer';
+import { themeRegistry } from '../../runtime/ThemeRegistry';
 const logger = Logger.get('StageRenderer', 'Component_Manipulation');
 
 /**
@@ -204,7 +205,12 @@ export class StageRenderer {
         });
 
         // Update or Create elements
-        sortedObjects.forEach((obj) => {
+        sortedObjects.forEach((rawObj) => {
+            // --- INJECT THEME STYLES ---
+            const mergedStyle = themeRegistry.getMergedStyle(rawObj.className || 'TObject', rawObj.style);
+            const obj = { ...rawObj, style: mergedStyle }; 
+            // ---------------------------
+            
             const objId = obj.id || obj.name;
             if (!objId) return;
 
@@ -784,6 +790,11 @@ export class StageRenderer {
      */
     public updateSingleObject(obj: any): void {
         if (!this.host || !this.host.element || !obj || !obj.id) return;
+        
+        // --- INJECT THEME STYLES ---
+        const mergedStyle = themeRegistry.getMergedStyle(obj.className || 'TObject', obj.style);
+        obj = { ...obj, style: mergedStyle }; 
+        // ---------------------------
         
         // SONDERFALL: Wenn das Objekt die Stage selbst ist (z.B. Hintergrund/Grid wird reaktiv geändert)
         if (obj.className === 'TStage' || obj.type === 'main' || obj.type === 'splash' || obj.type === 'blueprint' || obj.grid) {

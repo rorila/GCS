@@ -36,10 +36,7 @@ export class TDialogRoot extends TWindow {
     constructor(name: string, x: number = 5, y: number = 5, width: number = 20, height: number = 15) {
         super(name, x, y, width, height);
 
-        // Dialog-appropriate styling
-        this.style.backgroundColor = 'rgba(26, 26, 46, 0.98)';
-        this.style.borderColor = '#4fc3f7';
-        this.style.borderWidth = 2;
+        // Default style wird nun über ThemeRegistry gesteuert
         // Im Editor sichtbar zum Editieren
         this.style.visible = true;  
 

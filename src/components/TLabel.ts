@@ -8,9 +8,7 @@ export class TLabel extends TTextControl {
         super(name, x, y, 8, 2);
         this.text = text !== undefined ? text : name;
 
-        this.style.backgroundColor = 'transparent';
-        this.style.color = '#000000';
-        this.style.textAlign = 'left';
+        // Default style wird nun über ThemeRegistry gesteuert
     }
 
     public getInspectorProperties(): TPropertyDef[] {

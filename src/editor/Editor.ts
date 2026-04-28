@@ -717,6 +717,7 @@ export class Editor implements IViewHost {
     public exportHTMLCompressed() { this.dataManager.exportHTMLCompressed(); }
     public exportJSON() { this.dataManager.exportJSON(); }
     public exportJSONCompressed() { this.dataManager.exportJSONCompressed(); }
+    public exportTheme() { this.dataManager.exportTheme(); }
     public loadFromServer() { this.dataManager.loadFromServer(); }
     public startMultiplayer() {
         const lobby = document.getElementById('multiplayer-lobby');
