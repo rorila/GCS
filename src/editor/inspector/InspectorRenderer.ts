@@ -391,7 +391,25 @@ export class InspectorRenderer {
             }
 
             let input: HTMLElement | null = null;
-            const currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name) ?? (param.defaultValue || '');
+            // FIX: For FlowNodes, action parameters like 'x','y' are shadowed by canvas position.
+            // Read from the linked action definition (SSoT) or node.data first.
+            let currentValue: any;
+            const isFlowNode = selectedObject.isFlowNode === true || typeof selectedObject.setShowDetails === 'function';
+            if (isFlowNode) {
+                // 1. Try linked action definition via SSoT registry
+                const actionDefName = selectedObject.Name || selectedObject.name || selectedObject.data?.name;
+                const linkedDef = actionDefName ? projectActionRegistry.findOriginalAction(actionDefName) : null;
+                if (linkedDef && param.name in linkedDef) {
+                    currentValue = (linkedDef as any)[param.name];
+                } else if (selectedObject.data && param.name in selectedObject.data) {
+                    currentValue = selectedObject.data[param.name];
+                } else {
+                    currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
+                }
+            } else {
+                currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
+            }
+            currentValue = currentValue ?? (param.defaultValue || '');
 
             // --- SPECIAL: Dynamic Method Parameters for call_method ---
             if (type === 'call_method' && param.name === 'params') {
