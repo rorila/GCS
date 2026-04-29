@@ -10,7 +10,12 @@ export function registerVariableActions() {
     const handler = (action: any, context: any) => {
         let val: any = undefined;
         const sourceName = action.source;
-        const variableName = action.variableName;
+        // FIX: Strip ${...} wrapper from variableName if present (Editor V-Button bug)
+        let rawVarName = action.variableName;
+        if (rawVarName && rawVarName.startsWith('${') && rawVarName.endsWith('}')) {
+            rawVarName = rawVarName.slice(2, -1);
+        }
+        const variableName = rawVarName;
 
         // 1. Quelle auflösen (Objekt oder Variable)
         const srcObj = resolveTarget(sourceName, context.objects, context.vars, context.eventData);

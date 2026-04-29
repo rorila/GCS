@@ -10,6 +10,10 @@ const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 export function registerCalculateActions() {
     // 3. Berechnung
     actionRegistry.register('calculate', (action, context) => {
+        // FIX: Strip ${...} wrapper from resultVariable if present (Editor V-Button bug)
+        if (action.resultVariable && action.resultVariable.startsWith('${') && action.resultVariable.endsWith('}')) {
+            action = { ...action, resultVariable: action.resultVariable.slice(2, -1) };
+        }
         // COMPATIBILITY FIX: Detect misclassified variable actions
         if (action.source && action.sourceProperty && action.variableName) {
             const srcObj = resolveTarget(action.source, context.objects, context.vars, context.eventData);
@@ -109,21 +113,34 @@ export function registerCalculateActions() {
                 runtimeLogger.info(`CalcSteps result for "${action.name}": ${result} (Target: ${action.resultVariable})`);
 
                 if (action.resultVariable) {
-                    context.contextVars[action.resultVariable] = result;
-                    if (context.vars) {
-                        context.vars[action.resultVariable] = result;
-                    }
-                    const varObj = context.objects.find((o: any) =>
-                        (o.name === action.resultVariable || o.id === action.resultVariable) &&
-                        (o.isVariable === true || o.className?.includes('Variable'))
-                    );
-                    if (varObj) {
-                        varObj.value = result;
-                        DebugLogService.getInstance().log('Variable',
-                            `${action.resultVariable}.value changed: ${result}`, {
-                            objectName: action.resultVariable,
-                            flatten: true
-                        });
+                    if (action.resultVariable.includes('.')) {
+                        const parts = action.resultVariable.split('.');
+                        const rootName = parts[0];
+                        const propPath = parts.slice(1).join('.');
+                        const rootObj = resolveTarget(rootName, context.objects, context.vars, context.eventData) || evalContext[rootName];
+                        if (rootObj && typeof rootObj === 'object') {
+                            PropertyHelper.setPropertyValue(rootObj, propPath, result);
+                            runtimeLogger.info(`Calc property set: ${rootName}.${propPath} = ${result}`);
+                        } else {
+                            runtimeLogger.warn(`Calc property set failed: object '${rootName}' not found.`);
+                        }
+                    } else {
+                        context.contextVars[action.resultVariable] = result;
+                        if (context.vars) {
+                            context.vars[action.resultVariable] = result;
+                        }
+                        const varObj = context.objects.find((o: any) =>
+                            (o.name === action.resultVariable || o.id === action.resultVariable) &&
+                            (o.isVariable === true || o.className?.includes('Variable'))
+                        );
+                        if (varObj) {
+                            varObj.value = result;
+                            DebugLogService.getInstance().log('Variable',
+                                `${action.resultVariable}.value changed: ${result}`, {
+                                objectName: action.resultVariable,
+                                flatten: true
+                            });
+                        }
                     }
                 }
             } catch (err) {
@@ -138,21 +155,34 @@ export function registerCalculateActions() {
                 runtimeLogger.info(`Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`);
 
                 if (action.resultVariable) {
-                    context.contextVars[action.resultVariable] = result;
-                    if (context.vars) {
-                        context.vars[action.resultVariable] = result;
-                    }
-                    const varObj = context.objects.find((o: any) =>
-                        (o.name === action.resultVariable || o.id === action.resultVariable) &&
-                        (o.isVariable === true || o.className?.includes('Variable'))
-                    );
-                    if (varObj) {
-                        varObj.value = result;
-                        DebugLogService.getInstance().log('Variable',
-                            `${action.resultVariable}.value changed: ${result}`, {
-                            objectName: action.resultVariable,
-                            flatten: true
-                        });
+                    if (action.resultVariable.includes('.')) {
+                        const parts = action.resultVariable.split('.');
+                        const rootName = parts[0];
+                        const propPath = parts.slice(1).join('.');
+                        const rootObj = resolveTarget(rootName, context.objects, context.vars, context.eventData) || evalContext[rootName];
+                        if (rootObj && typeof rootObj === 'object') {
+                            PropertyHelper.setPropertyValue(rootObj, propPath, result);
+                            runtimeLogger.info(`Calc property set: ${rootName}.${propPath} = ${result}`);
+                        } else {
+                            runtimeLogger.warn(`Calc property set failed: object '${rootName}' not found.`);
+                        }
+                    } else {
+                        context.contextVars[action.resultVariable] = result;
+                        if (context.vars) {
+                            context.vars[action.resultVariable] = result;
+                        }
+                        const varObj = context.objects.find((o: any) =>
+                            (o.name === action.resultVariable || o.id === action.resultVariable) &&
+                            (o.isVariable === true || o.className?.includes('Variable'))
+                        );
+                        if (varObj) {
+                            varObj.value = result;
+                            DebugLogService.getInstance().log('Variable',
+                                `${action.resultVariable}.value changed: ${result}`, {
+                                objectName: action.resultVariable,
+                                flatten: true
+                            });
+                        }
                     }
                 }
             } catch (err) {
