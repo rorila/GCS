@@ -323,20 +323,32 @@ export class InspectorActionHandler {
 
 
     /**
-     * Finds the original action definition in the project JSON data.
+     * Finds the original object/action/variable definition in the project JSON data.
      */
-    private findOriginalAction(actionId: string): any {
-        if (!actionId || !this.project) return null;
-        const matchIdOrName = (item: any) => item.id === actionId || item.name === actionId;
+    private findOriginalAction(objId: string): any {
+        if (!objId || !this.project) return null;
+        const match = (item: any) => item.id === objId || item.name === objId;
 
-        // Check global actions
-        let original = this.project.actions?.find(matchIdOrName);
+        // Global level
+        let original: any = this.project.actions?.find(match);
+        if (original) return original;
+        original = this.project.variables?.find(match);
+        if (original) return original;
+        original = (this.project as any).objects?.find(match);
+        if (original) return original;
+        original = this.project.tasks?.find(match);
         if (original) return original;
 
-        // Check stage-level actions
+        // Stage level
         if (this.project.stages) {
             for (const stage of this.project.stages) {
-                original = stage.actions?.find(matchIdOrName);
+                original = stage.actions?.find(match);
+                if (original) return original;
+                original = stage.variables?.find(match);
+                if (original) return original;
+                original = stage.objects?.find(match);
+                if (original) return original;
+                original = stage.tasks?.find(match);
                 if (original) return original;
             }
         }
