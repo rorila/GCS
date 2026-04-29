@@ -124,6 +124,11 @@ export function registerCalculateActions() {
                         } else {
                             runtimeLogger.warn(`Calc property set failed: object '${rootName}' not found.`);
                         }
+                        // FIX: Also store as flat key so interpolate() can resolve ${Var.value}
+                        context.contextVars[action.resultVariable] = result;
+                        if (context.vars) {
+                            context.vars[action.resultVariable] = result;
+                        }
                     } else {
                         context.contextVars[action.resultVariable] = result;
                         if (context.vars) {
@@ -165,6 +170,11 @@ export function registerCalculateActions() {
                             runtimeLogger.info(`Calc property set: ${rootName}.${propPath} = ${result}`);
                         } else {
                             runtimeLogger.warn(`Calc property set failed: object '${rootName}' not found.`);
+                        }
+                        // FIX: Also store as flat key so interpolate() can resolve ${Var.value}
+                        context.contextVars[action.resultVariable] = result;
+                        if (context.vars) {
+                            context.vars[action.resultVariable] = result;
                         }
                     } else {
                         context.contextVars[action.resultVariable] = result;

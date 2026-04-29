@@ -62,6 +62,22 @@ export function registerVariableActions() {
             context.vars[variableName] = val;
             context.contextVars[variableName] = val;
 
+            // FIX: If variableName contains a dot (e.g. "MyVar.value"), also set the property
+            // on the actual runtime object. This ensures JSEP-based evaluations in CalculateActions
+            // can resolve "MyVar.value" via property access on the object in evalContext.
+            if (variableName.includes('.')) {
+                const parts = variableName.split('.');
+                const rootName = parts[0];
+                const propPath = parts.slice(1).join('.');
+                const rootObj = context.objects.find((o: any) =>
+                    o.name === rootName || o.id === rootName
+                );
+                if (rootObj) {
+                    PropertyHelper.setPropertyValue(rootObj, propPath, val);
+                    runtimeLogger.info(`Variable dot-path write: ${rootName}.${propPath} = ${val}`);
+                }
+            }
+
             // FIX: Auch das TVariable-Objekt in context.objects aktualisieren
             const varObj = context.objects.find((o: any) =>
                 (o.name === variableName || o.id === variableName) &&
