@@ -450,7 +450,8 @@ Die Plattform nutzt eine hierarchische Struktur in `game-server/data/db.json`:
 - Greife auf Properties des aufrufenden Objekts via ${self.propertyName} oder ${.source.propertyName} zu.
 
 ### Container & Verschachtelung
-Objekte wie \TGroupPanel\ oder \TCard\ kï¿½nnen Kinder enthalten (\isContainer = true\). Bei jeglicher Iteration ï¿½ber \stage.objects\ (z.B. in Registry oder CommandManager zum Lï¿½schen) **MUSS** rekursiv iteriert werden (z.B. mittels \lattenObjects\ oder \emoveDeep\), da sonst tief verschachtelte Elemente in Dropdowns fehlen oder als Dateileichen zurï¿½ckbleiben.
+Objekte wie \TGroupPanel\ oder \TCard\ kï¿½nnen Kinder enthalten (\isContainer = true\). Bei jeglicher Iteration ï¿½ber \stage.objects\ (z.B. in Registry oder CommandManager zum Lï¿½schen) **MUSS** rekursiv iteriert werden (z.B. mittels \lattenObjects\ oder \
+emoveDeep\), da sonst tief verschachtelte Elemente in Dropdowns fehlen oder als Dateileichen zurï¿½ckbleiben.
 
 ### Tauri UI / Electron UI
 Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mï¿½ssen zwingend einen extrem hohen z-index (z.B. 99999) fï¿½r ihr Overlay verwenden, da in der Tauri-App ansonsten andere UI-Layer des Editors die Dialoge ï¿½berlagern und diese unsichtbar machen.
@@ -460,11 +461,20 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mï¿½ssen zwin
 
 ### 17. Single Source of Truth für den Komponenten-Baum
 - **DO NOT** ersetze das gesamte ctiveStage.objects-Array durch eine abgeflachte Liste aus der Registry (projectObjectRegistry.getObjects()). Das Zerstören der Baumstruktur (mit children-Arrays) führt dazu, dass Container-Kinder ihre parentId-Bindungen doppelt generieren oder verlieren, was zu unvorhersehbarem Zappeln im Run-Mode (Konflikt global vs. relativ) und kaputtem Drag & Drop führt.
-- **DO** operiere stets direkt auf dem referenzierten Baum (ctiveStage.objects.push() oder splice() über rekursive Finder wie emoveObjectSilent) und belasse die Array-Referenz unangetastet.
+- **DO** operiere stets direkt auf dem referenzierten Baum (ctiveStage.objects.push() oder splice() über rekursive Finder wie 
+emoveObjectSilent) und belasse die Array-Referenz unangetastet.
 - NIEMALS Core-Runtime-Ã„nderungen (AnimationManager, GameRuntime etc.) durchfÃ¼hren, ohne anschlieÃŸend 
 pm run bundle:runtime auszufÃ¼hren! Der Standalone-Player (IFrame-Run-Mode) verwendet das vorkompilierte Bundle public/runtime-standalone.js. Ohne Neubau werden im Editor funktionierende Ã„nderungen im IFrame schlichtweg ignoriert.
 
 ### 18. Refactoring & Objektnamen
 - **DO NOT** ersetze beim Umbenennen eines Objekts blind alle Objekte mit demselben Namen (wie bisher in ObjectRefactoringService.ts). Es darf nur das ausgewaehlte Objekt umbenannt werden (was der ProjectStore bereits via SET_PROPERTY erledigt), sowie dessen *Referenzen* (in Actions, Tasks, Conditions).
 - Nutze fuer replaceInObjectRecursive die ignoreKeys-Whitelist (z.B. ['name', 'id', 'type', 'className']), um bei der Referenz-Aktualisierung nicht aus Versehen die Metadaten anderer Objekte zu ueberschreiben.
+
+### 19. Variable-Binding in numerischen Inspector-Feldern
+- **DO NOT**: `input.type = 'number'` verwenden wenn der Wert ein Binding-String (`${...}`) sein koennte. Browser blockieren nicht-numerische Zeichen in number-Inputs und setzen den Wert stillschweigend auf 0.
+- **DO**: Pruefen ob der aktuelle Wert ein Binding ist: `const isBinding = typeof val === 'string' && val.includes('${')`. Falls ja: `input.type = 'text'` setzen.
+- **DO NOT**: V-Button (`pickVariable`) bei `param.type === 'number'` blockieren. Numerische Felder muessen auch Variable-Bindings akzeptieren koennen.
+- **DO NOT**: In `onchange`-Handlern Binding-Strings durch `Number()` oder `autoConvert()` verarbeiten. Pruefen ob `raw.includes('${')` und den Wert als String belassen.
+- **ExpressionParser BUG (behoben)**: Im `MemberExpression`-Case darf das Identifier-Objekt NICHT via `resolveValue` aufgeloest werden, weil sonst TVariable-Objekte vorzeitig zu Primitiven werden und `.value`-Zugriff `undefined` ergibt.
+- **VariableActions/CalculateActions**: Wenn `variableName` oder `resultVariable` einen Punkt enthält (z.B. `MyVar.value`), muss der Wert sowohl als flacher Key in `context.vars` als auch via `setPropertyValue` auf dem TVariable-Objekt geschrieben werden.
 
