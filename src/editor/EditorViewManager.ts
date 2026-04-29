@@ -156,7 +156,13 @@ export class EditorViewManager {
         if (flowPanel) flowPanel.style.display = 'none';
         if (codePanel) codePanel.style.display = 'none';
         if (managementPanel) managementPanel.style.display = 'none';
-        if (iframePanel) iframePanel.style.display = 'none';
+        if (iframePanel) {
+            iframePanel.style.display = 'none';
+            if (view !== 'iframe') {
+                // Ensure iframe process is terminated when hidden
+                iframePanel.innerHTML = '';
+            }
+        }
 
         // Hide standard toolboxes
         // Hide flow toolbox if it exists

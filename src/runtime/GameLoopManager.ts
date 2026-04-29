@@ -504,23 +504,23 @@ export class GameLoopManager {
                     if (Math.abs(vX) > Math.abs(vY)) {
                         hitSide = dx > 0 ? 'left' : 'right';
                         depth = overlapX;
-                        console.log('[PHYSICS] Velocity-Horizontal: vX=' + vX + ', vY=' + vY + ', hitSide=' + hitSide + ', depth=' + depth);
+                        // console.log('\[PHYSICS\] Velocity-Horizontal: vX=' + vX + ', vY=' + vY + ', hitSide=' + hitSide + ', depth=' + depth);
                     } else if (Math.abs(vY) > Math.abs(vX)) {
                         hitSide = dy > 0 ? 'top' : 'bottom';
                         depth = overlapY;
-                        console.log('[PHYSICS] Velocity-Vertical: vX=' + vX + ', vY=' + vY + ', hitSide=' + hitSide + ', depth=' + depth);
+                        // console.log('\[PHYSICS\] Velocity-Vertical: vX=' + vX + ', vY=' + vY + ', hitSide=' + hitSide + ', depth=' + depth);
                     } else {
                         if (overlapX < overlapY) {
                             hitSide = dx > 0 ? 'left' : 'right';
                             depth = overlapX;
-                            console.log('[PHYSICS] Geometric-Horizontal: overlapX=' + overlapX + ' < overlapY=' + overlapY + ', hitSide=' + hitSide + ', depth=' + depth);
+                            // console.log('\[PHYSICS\] Geometric-Horizontal: overlapX=' + overlapX + ' < overlapY=' + overlapY + ', hitSide=' + hitSide + ', depth=' + depth);
                         } else {
                             hitSide = dy > 0 ? 'top' : 'bottom';
                             depth = overlapY;
-                            console.log('[PHYSICS] Geometric-Vertical: overlapY=' + overlapY + ' <= overlapX=' + overlapX + ', hitSide=' + hitSide + ', depth=' + depth);
+                            // console.log('\[PHYSICS\] Geometric-Vertical: overlapY=' + overlapY + ' <= overlapX=' + overlapX + ', hitSide=' + hitSide + ', depth=' + depth);
                         }
                     }
-                    console.log('[PHYSICS] pre-resolution y: ' + sprite.y + ', hitSide: ' + hitSide);
+                    // console.log('\[PHYSICS\] pre-resolution y: ' + sprite.y + ', hitSide: ' + hitSide);
 
                     // Trigger Events (Sprite is the one triggering it)
                     if (this.eventCallback) {
@@ -546,7 +546,7 @@ export class GameLoopManager {
                             sprite.y -= (hitSide === 'top' ? -1 : 1) * depth;
                             if (this.boundaryMode === 'bounce') sprite.velocityY = -sprite.velocityY;
                         }
-                        console.log('[PHYSICS] post-resolution y: ' + sprite.y + ', resolved on ' + hitSide);
+                        // console.log('\[PHYSICS\] post-resolution y: ' + sprite.y + ', resolved on ' + hitSide);
                     }
                 }
             }
