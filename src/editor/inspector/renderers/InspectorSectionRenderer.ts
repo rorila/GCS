@@ -629,9 +629,25 @@ export class InspectorSectionRenderer {
                         });
 
                         if (chosen) {
-                            const newChanges = { ...changes };
-                            newChanges[key] = '${' + chosen + '}';
-                            applyChanges(newChanges);
+                            console.log('[V-Button] Chosen variable:', chosen, 'key:', key);
+                            const actualInput = valElement instanceof HTMLInputElement ? valElement : valElement.querySelector('input');
+                            console.log('[V-Button] actualInput found?', actualInput !== null, 'valElement:', valElement);
+                            if (actualInput instanceof HTMLInputElement) {
+                                console.log('[V-Button] setting actualInput.value...');
+                                actualInput.type = 'text';
+                                actualInput.value = '';
+                                if (typeof actualInput.onchange === 'function') {
+                                    console.log('[V-Button] triggering onchange');
+                                    actualInput.onchange(new Event('change'));
+                                } else {
+                                    console.log('[V-Button] no onchange found on actualInput');
+                                }
+                            } else {
+                                console.log('[V-Button] falling back to applyChanges');
+                                const newChanges = { ...changes };
+                                newChanges[key] = '';
+                                applyChanges(newChanges);
+                            }
                         }
                     };
 
