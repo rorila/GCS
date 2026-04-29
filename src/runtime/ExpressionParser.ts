@@ -221,7 +221,21 @@ export class ExpressionParser {
                 return PropertyHelper.resolveValue(val);
 
             case 'MemberExpression':
-                const obj = this.evaluateAST(node.object, context, allowedCalls);
+                // FIX: For member access, we need the RAW object (not resolveValue'd).
+                // Otherwise TVariable.value gets pre-resolved to a primitive,
+                // and then obj["value"] on a number/string returns undefined -> NaN.
+                let obj: any;
+                if (node.object.type === 'Identifier') {
+                    // Direct lookup without resolveValue
+                    const rawName = node.object.name;
+                    if (rawName === 'Math') obj = Math;
+                    else if (rawName === 'Number') obj = Number;
+                    else if (rawName === 'String') obj = String;
+                    else if (rawName === 'Boolean') obj = Boolean;
+                    else obj = context[rawName]; // RAW, no resolveValue!
+                } else {
+                    obj = this.evaluateAST(node.object, context, allowedCalls);
+                }
                 const propName = node.computed ? this.evaluateAST(node.property, context, allowedCalls) : node.property.name;
                 
                 if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
