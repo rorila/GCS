@@ -7,7 +7,7 @@ import { componentRegistry } from '../../../services/ComponentRegistry';
 import { NotificationToast } from '../../ui/NotificationToast';
 import { PropertyPickerDialog } from '../PropertyPickerDialog';
 import { MediaPickerDialog } from '../MediaPickerDialog';
-import { VariablePickerDialog } from '../VariablePickerDialog';
+
 
 
 export class InspectorSectionRenderer {
@@ -608,8 +608,8 @@ export class InspectorSectionRenderer {
                                     if (currentParent.className === 'TDataList' || currentParent.type === 'DataList') {
                                         const dsName = currentParent.dataSource;
                                         if (dsName) {
-                                            const { projectActionRegistry } = await import('../../../../services/registry/ActionRegistry');
-                                            const action = projectActionRegistry.getActions('all', false).find(a => (a as any).resultVariable === dsName || a.name === dsName);
+                                            const { projectActionRegistry } = await import('../../../services/registry/ActionRegistry');
+                                            const action = projectActionRegistry.getActions('all', false).find((a: any) => a.resultVariable === dsName || a.name === dsName);
                                             if (action && (action as any).selectFields) {
                                                 const fieldsStr = (action as any).selectFields;
                                                 repeaterFields = fieldsStr === '*' ? ['*'] : fieldsStr.split(',').map((f: string) => f.trim()).filter((f: string) => f);
@@ -1003,6 +1003,9 @@ export class InspectorSectionRenderer {
         return container;
     }
 }
+
+
+
 
 
 
