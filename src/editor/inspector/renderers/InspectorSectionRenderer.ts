@@ -608,7 +608,7 @@ export class InspectorSectionRenderer {
                                     if (currentParent.className === 'TDataList' || currentParent.type === 'DataList') {
                                         const dsName = currentParent.dataSource;
                                         if (dsName) {
-                                            const { projectActionRegistry } = await import('../../../services/ProjectActionRegistry');
+                                            const { projectActionRegistry } = await import('../../../../services/registry/ActionRegistry');
                                             const action = projectActionRegistry.getActions('all', false).find(a => (a as any).resultVariable === dsName || a.name === dsName);
                                             if (action && (action as any).selectFields) {
                                                 const fieldsStr = (action as any).selectFields;
@@ -1003,6 +1003,7 @@ export class InspectorSectionRenderer {
         return container;
     }
 }
+
 
 
 
