@@ -306,17 +306,45 @@ export class InspectorActionHandler {
             projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: newValue });
         }
 
-        // FIX: Also update the original JSON object for persistence (same as handleControlChange)
-        const objId = obj?.id || obj?.name;
-        const originalObj = (obj as any).__rawSource || this.findOriginalAction(objId);
-        if (originalObj && originalObj !== obj) {
-            if (index !== undefined && propName === 'params') {
-                projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: 'params', value: PropertyHelper.getPropertyValue(obj, 'params') });
-            } else {
-                projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: propName, value: newValue });
+        // FIX: Sync original action/task definition in project JSON for persistence.
+        // FlowAction nodes are proxies – the serializer reads from the original definition
+        // in stage.actions[]. Use the same lookup as FlowNodeHandler.handlePropertyChange.
+        const nodeName = obj.Name || obj.name;
+        const nodeType = obj.type || obj.nodeType;
+        const isFlowNode = obj.isFlowNode === true || typeof obj.setShowDetails === 'function';
+
+        if (isFlowNode && nodeName) {
+            // Find the REAL action/task definition via SSoT registries (same as FlowNodeHandler)
+            if (nodeType === 'action' || nodeType === 'data_action' || nodeType === 'http' || nodeType === 'move_to' ||
+                projectActionRegistry.findOriginalAction(nodeName)) {
+                const actionDef = projectActionRegistry.findOriginalAction(nodeName);
+                if (actionDef) {
+                    if (index !== undefined && propName === 'params') {
+                        PropertyHelper.setPropertyValue(actionDef, 'params', PropertyHelper.getPropertyValue(obj, 'params'));
+                    } else {
+                        PropertyHelper.setPropertyValue(actionDef, propName, newValue);
+                    }
+                    logger.info(`[pickVariable] Synced original action "${nodeName}".${propName} = ${newValue}`);
+                } else {
+                    logger.warn(`[pickVariable] Original action "${nodeName}" NOT FOUND in SSoT registry!`);
+                }
             }
-            logger.info(`[pickVariable] Synced original JSON object for "${objId}".${propName} = ${newValue}`);
+        } else {
+            // Non-FlowNode: try __rawSource or project-level lookup
+            const objId = obj?.id || obj?.name;
+            const originalObj = (obj as any).__rawSource || this.findOriginalAction(objId);
+            if (originalObj && originalObj !== obj) {
+                if (index !== undefined && propName === 'params') {
+                    projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: 'params', value: PropertyHelper.getPropertyValue(obj, 'params') });
+                } else {
+                    projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: propName, value: newValue });
+                }
+                logger.info(`[pickVariable] Synced original object "${objId}".${propName} = ${newValue}`);
+            }
         }
+
+        // Notify data change for auto-save
+        mediatorService.notifyDataChanged({ property: propName, value: newValue, object: obj }, 'inspector');
 
         this.host.update(obj);
     }
