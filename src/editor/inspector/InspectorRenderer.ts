@@ -401,10 +401,13 @@ export class InspectorRenderer {
                 const linkedDef = actionDefName ? projectActionRegistry.findOriginalAction(actionDefName) : null;
                 if (linkedDef && param.name in linkedDef) {
                     currentValue = (linkedDef as any)[param.name];
+                    logger.info(`[InspectorRenderer] FlowNode parameter ${param.name} resolved from linkedDef (${actionDefName}): ${currentValue}`);
                 } else if (selectedObject.data && param.name in selectedObject.data) {
                     currentValue = selectedObject.data[param.name];
+                    logger.info(`[InspectorRenderer] FlowNode parameter ${param.name} resolved from node.data: ${currentValue}`);
                 } else {
                     currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
+                    logger.info(`[InspectorRenderer] FlowNode parameter ${param.name} resolved from proxy: ${currentValue}`);
                 }
             } else {
                 currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
