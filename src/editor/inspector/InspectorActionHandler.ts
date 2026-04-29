@@ -278,7 +278,7 @@ export class InspectorActionHandler {
         });
 
         // Validierung (nur für nicht-Repeater)
-        if (!isRepeater) {
+        if (!isRepeater && !varNameInput.includes('.')) {
             const baseVarName = varNameInput.split('.')[0];
             const baseVar = variables.find(v => v.name === baseVarName);
             if (!baseVar) {
@@ -289,15 +289,20 @@ export class InspectorActionHandler {
 
         // Wert in das Objekt schreiben
         let newValue: any;
+        const propType = buttonDef.propertyType; // newly added!
 
         if (index !== undefined && propName === 'params') {
             const params = PropertyHelper.getPropertyValue(obj, 'params') || [];
-            newValue = `\${${varNameInput}}`;
+            newValue = propType === 'variable' ? varNameInput : `\${${varNameInput}}`;
             const newParams = Array.isArray(params) ? [...params] : [];
             newParams[index] = newValue;
             projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'params', value: newParams });
         } else {
-            newValue = `\${${varNameInput}}`;
+            if (propType === 'variable') {
+                newValue = varNameInput;
+            } else {
+                newValue = `\${${varNameInput}}`;
+            }
             projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: newValue });
         }
 

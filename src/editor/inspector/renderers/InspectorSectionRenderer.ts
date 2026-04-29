@@ -306,7 +306,7 @@ export class InspectorSectionRenderer {
             pickVarBtn.onclick = () => {
                 if (context.actionHandler) {
                     (context.actionHandler as any).handleAction(
-                        { action: 'pickVariable', property: propDef.name },
+                        { action: 'pickVariable', property: propDef.name, propertyType: propDef.type },
                         obj
                     );
                 }
@@ -950,7 +950,7 @@ export class InspectorSectionRenderer {
                 pickVarBtn.onclick = () => {
                     if (context.actionHandler) {
                         (context.actionHandler as any).handleAction(
-                            { action: 'pickVariable', property: propDef.name },
+                            { action: 'pickVariable', property: propDef.name, propertyType: propDef.type },
                             obj
                         );
                     }
@@ -986,7 +986,7 @@ export class InspectorSectionRenderer {
                 pickVarBtn.onclick = () => {
                     if (context.actionHandler) {
                         (context.actionHandler as any).handleAction(
-                            { action: 'pickVariable', property: propDef.name },
+                            { action: 'pickVariable', property: propDef.name, propertyType: propDef.type },
                             obj
                         );
                     }
