@@ -287,101 +287,47 @@ export class InspectorActionHandler {
             }
         }
 
-        // Wert in das Objekt schreiben
+        // Wert ermitteln
         let newValue: any;
-        const propType = buttonDef.propertyType; // newly added!
+        const propType = buttonDef.propertyType;
 
         if (index !== undefined && propName === 'params') {
             const params = PropertyHelper.getPropertyValue(obj, 'params') || [];
             newValue = propType === 'variable' ? varNameInput : `\${${varNameInput}}`;
             const newParams = Array.isArray(params) ? [...params] : [];
             newParams[index] = newValue;
-            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'params', value: newParams });
+            newValue = newParams;
         } else {
             if (propType === 'variable') {
                 newValue = varNameInput;
             } else {
                 newValue = `\${${varNameInput}}`;
             }
-            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: newValue });
         }
 
-        // FIX: Sync original action/task definition in project JSON for persistence.
-        // FlowAction nodes are proxies – the serializer reads from the original definition
-        // in stage.actions[]. Use the same lookup as FlowNodeHandler.handlePropertyChange.
-        const nodeName = obj.Name || obj.name;
-        const nodeType = obj.type || obj.nodeType;
-        const isFlowNode = obj.isFlowNode === true || typeof obj.setShowDetails === 'function';
-
-        if (isFlowNode && nodeName) {
-            // Find the REAL action/task definition via SSoT registries (same as FlowNodeHandler)
-            if (nodeType === 'action' || nodeType === 'data_action' || nodeType === 'http' || nodeType === 'move_to' ||
-                projectActionRegistry.findOriginalAction(nodeName)) {
-                const actionDef = projectActionRegistry.findOriginalAction(nodeName);
-                if (actionDef) {
-                    if (index !== undefined && propName === 'params') {
-                        PropertyHelper.setPropertyValue(actionDef, 'params', PropertyHelper.getPropertyValue(obj, 'params'));
-                    } else {
-                        PropertyHelper.setPropertyValue(actionDef, propName, newValue);
-                    }
-                    logger.info(`[pickVariable] Synced original action "${nodeName}".${propName} = ${newValue}`);
-                } else {
-                    logger.warn(`[pickVariable] Original action "${nodeName}" NOT FOUND in SSoT registry!`);
-                }
+        // FIX: Statt die komplexen Sync-Logiken von FlowNodeHandler hier zu duplizieren
+        // (was bei Inline-Actions fehlschlägt), nutzen wir exakt die gleiche Pipeline
+        // wie bei einer normalen Texteingabe durch den Benutzer.
+        const mockDef = { property: propName };
+        const event = this.host.eventHandler.handleControlChange(propName, newValue, obj, mockDef);
+        
+        if (event) {
+            // Der eventHandler gibt ein PropertyChangeEvent zurück.
+            // Der InspectorHost leitet das normalerweise an den spezifischen Handler weiter.
+            // Das machen wir hier auch:
+            const handler = (await import('./InspectorRegistry')).InspectorRegistry.getHandler(obj);
+            if (handler) {
+                const runtime = (this.host as any).runtime || (window as any).runtime;
+                handler.handlePropertyChange(event, this.project, runtime);
             }
-        } else {
-            // Non-FlowNode: try __rawSource or project-level lookup
-            const objId = obj?.id || obj?.name;
-            const originalObj = (obj as any).__rawSource || this.findOriginalAction(objId);
-            if (originalObj && originalObj !== obj) {
-                if (index !== undefined && propName === 'params') {
-                    projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: 'params', value: PropertyHelper.getPropertyValue(obj, 'params') });
-                } else {
-                    projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: propName, value: newValue });
-                }
-                logger.info(`[pickVariable] Synced original object "${objId}".${propName} = ${newValue}`);
-            }
+            
+            // Notify data change for auto-save (just like InspectorHost does)
+            mediatorService.notifyDataChanged(event, 'inspector');
         }
-
-        // Notify data change for auto-save
-        mediatorService.notifyDataChanged({ property: propName, value: newValue, object: obj }, 'inspector');
 
         this.host.update(obj);
     }
 
-
-    /**
-     * Finds the original object/action/variable definition in the project JSON data.
-     */
-    private findOriginalAction(objId: string): any {
-        if (!objId || !this.project) return null;
-        const match = (item: any) => item.id === objId || item.name === objId;
-
-        // Global level
-        let original: any = this.project.actions?.find(match);
-        if (original) return original;
-        original = this.project.variables?.find(match);
-        if (original) return original;
-        original = (this.project as any).objects?.find(match);
-        if (original) return original;
-        original = this.project.tasks?.find(match);
-        if (original) return original;
-
-        // Stage level
-        if (this.project.stages) {
-            for (const stage of this.project.stages) {
-                original = stage.actions?.find(match);
-                if (original) return original;
-                original = stage.variables?.find(match);
-                if (original) return original;
-                original = stage.objects?.find(match);
-                if (original) return original;
-                original = stage.tasks?.find(match);
-                if (original) return original;
-            }
-        }
-        return null;
-    }
 
     private handleAppendField(_buttonDef: any, obj: any, value: string): void {
         if (!value) return;
