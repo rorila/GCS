@@ -1,4 +1,4 @@
-import { IInspectable } from '../types';
+ï»¿import { IInspectable } from '../types';
 import { IInspectorContext } from './IInspectorContext';
 import { GROUP_COLORS } from '../../../components/TComponent';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
@@ -596,7 +596,7 @@ export class InspectorSectionRenderer {
 
                     const pickVarBtn = document.createElement('button');
                     pickVarBtn.textContent = 'V';
-                    pickVarBtn.title = 'Variable verknüpfen (Bind)';
+                    pickVarBtn.title = 'Variable verknï¿½pfen (Bind)';
                     pickVarBtn.style.cssText = 'padding:2px 4px;background:#e67e22;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;flex-shrink:0;';
                     pickVarBtn.onclick = async () => {
                         let repeaterFields: string[] = [];
@@ -620,7 +620,7 @@ export class InspectorSectionRenderer {
                                     currentParent = editor.findParentContainer(currentParent.id);
                                 }
                             }
-                        } catch (e) { console.error('Fehler beim Auflösen der Repeater-Bindings:', e); }
+                        } catch (e) { console.error('Fehler beim Auflï¿½sen der Repeater-Bindings:', e); }
 
                         const { VariablePickerDialog } = await import('../VariablePickerDialog');
                         const chosen = await VariablePickerDialog.show({
@@ -635,7 +635,7 @@ export class InspectorSectionRenderer {
                             if (actualInput instanceof HTMLInputElement) {
                                 console.log('[V-Button] setting actualInput.value...');
                                 actualInput.type = 'text';
-                                actualInput.value = '';
+                                actualInput.value = '${' + chosen + '}';
                                 if (typeof actualInput.onchange === 'function') {
                                     console.log('[V-Button] triggering onchange');
                                     actualInput.onchange(new Event('change'));
@@ -645,7 +645,7 @@ export class InspectorSectionRenderer {
                             } else {
                                 console.log('[V-Button] falling back to applyChanges');
                                 const newChanges = { ...changes };
-                                newChanges[key] = '';
+                                newChanges[key] = '${' + chosen + '}';
                                 applyChanges(newChanges);
                             }
                         }
@@ -1019,6 +1019,8 @@ export class InspectorSectionRenderer {
         return container;
     }
 }
+
+
 
 
 
