@@ -306,9 +306,42 @@ export class InspectorActionHandler {
             projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: newValue });
         }
 
+        // FIX: Also update the original JSON object for persistence (same as handleControlChange)
+        const objId = obj?.id || obj?.name;
+        const originalObj = (obj as any).__rawSource || this.findOriginalAction(objId);
+        if (originalObj && originalObj !== obj) {
+            if (index !== undefined && propName === 'params') {
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: 'params', value: PropertyHelper.getPropertyValue(obj, 'params') });
+            } else {
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: propName, value: newValue });
+            }
+            logger.info(`[pickVariable] Synced original JSON object for "${objId}".${propName} = ${newValue}`);
+        }
+
         this.host.update(obj);
     }
 
+
+    /**
+     * Finds the original action definition in the project JSON data.
+     */
+    private findOriginalAction(actionId: string): any {
+        if (!actionId || !this.project) return null;
+        const matchIdOrName = (item: any) => item.id === actionId || item.name === actionId;
+
+        // Check global actions
+        let original = this.project.actions?.find(matchIdOrName);
+        if (original) return original;
+
+        // Check stage-level actions
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                original = stage.actions?.find(matchIdOrName);
+                if (original) return original;
+            }
+        }
+        return null;
+    }
 
     private handleAppendField(_buttonDef: any, obj: any, value: string): void {
         if (!value) return;
