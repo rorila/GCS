@@ -1090,3 +1090,30 @@ Zweck: Wenn im Eigenschaften-Diagramm (KeyValue) eine Eigenschaft definiert wird
   - checkBoundaries() (Zeile ~566): Abzug der Border-Width von panelHitbox.
   - checkStageExits() (Zeile ~671): Abzug der Border-Width.
 - **Beschreibung:** Behebt das Problem, dass Sprites im Iframe nach der ersten Kollision springen und über Panel-Ränder gleiten.
+
+
+## Feature: Media-Picker für Strings im Inspector
+- **Dateien:**
+  - src/editor/inspector/renderers/InspectorSectionRenderer.ts
+- **Methoden:**
+  - renderControl(): Wrapper für String-Inputs mit 'Bild/Audio auswählen' Button.
+- **Beschreibung:** Erlaubt das Öffnen des MediaPickerDialogs für Standard-String-Eigenschaften, die 'image', 'src', 'icon', 'audio', 'sound', 'bgm' oder 'sfx' heißen.
+
+
+## Feature: Berechnung (Calculation) für Objekteigenschaften
+- **Dateien:**
+  - src/editor/inspector/InspectorActionHandler.ts
+  - src/runtime/actions/handlers/CalculateActions.ts
+- **Methoden:**
+  - handlePickVariable(): Erlaubt die Auswahl von Objekt-Variablen (mit .) im VariablePicker.
+  - calculate(): Schreibt das Ergebnis nativ über PropertyHelper in Objekt-Eigenschaften (anstatt nur ins contextVars-Dictionary), sofern ein Punkt im resultVariable-Namen existiert.
+UseCase: Bugfix IFrame Runtime Leak
+Files: src/editor/EditorViewManager.ts
+Methods: switchView
+Lines: 159
+
+UseCase: Inspector Property Variable Picker
+Files: src/editor/inspector/renderers/InspectorSectionRenderer.ts
+Methods: renderSections (keyvalue block)
+Lines: 585
+

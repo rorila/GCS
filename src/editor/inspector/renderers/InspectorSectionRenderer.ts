@@ -7,6 +7,7 @@ import { componentRegistry } from '../../../services/ComponentRegistry';
 import { NotificationToast } from '../../ui/NotificationToast';
 import { PropertyPickerDialog } from '../PropertyPickerDialog';
 import { MediaPickerDialog } from '../MediaPickerDialog';
+import { VariablePickerDialog } from '../VariablePickerDialog';
 
 
 export class InspectorSectionRenderer {
@@ -592,9 +593,52 @@ export class InspectorSectionRenderer {
                         applyChanges(newChanges);
                     };
 
+
+                    const pickVarBtn = document.createElement('button');
+                    pickVarBtn.textContent = 'V';
+                    pickVarBtn.title = 'Variable verkn�pfen (Bind)';
+                    pickVarBtn.style.cssText = 'padding:2px 4px;background:#e67e22;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;flex-shrink:0;';
+                    pickVarBtn.onclick = async () => {
+                        let repeaterFields: string[] = [];
+                        try {
+                            const editor = (window as any).editor;
+                            if (editor && editor.findParentContainer) {
+                                let currentParent = editor.findParentContainer(obj.id);
+                                while (currentParent) {
+                                    if (currentParent.className === 'TDataList' || currentParent.type === 'DataList') {
+                                        const dsName = currentParent.dataSource;
+                                        if (dsName) {
+                                            const { projectActionRegistry } = await import('../../../services/ProjectActionRegistry');
+                                            const action = projectActionRegistry.getActions('all', false).find(a => (a as any).resultVariable === dsName || a.name === dsName);
+                                            if (action && (action as any).selectFields) {
+                                                const fieldsStr = (action as any).selectFields;
+                                                repeaterFields = fieldsStr === '*' ? ['*'] : fieldsStr.split(',').map((f: string) => f.trim()).filter((f: string) => f);
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    currentParent = editor.findParentContainer(currentParent.id);
+                                }
+                            }
+                        } catch (e) { console.error('Fehler beim Aufl�sen der Repeater-Bindings:', e); }
+
+                        const { VariablePickerDialog } = await import('../VariablePickerDialog');
+                        const chosen = await VariablePickerDialog.show({
+                            objectId: obj.id || obj.name,
+                            repeaterFields
+                        });
+
+                        if (chosen) {
+                            const newChanges = { ...changes };
+                            newChanges[key] = '${' + chosen + '}';
+                            applyChanges(newChanges);
+                        }
+                    };
+
                     row.appendChild(keyElement);
                     row.appendChild(sep);
                     row.appendChild(valElement);
+                    row.appendChild(pickVarBtn);
                     row.appendChild(delBtn);
                     rowsContainer.appendChild(row);
                 });
@@ -927,6 +971,28 @@ export class InspectorSectionRenderer {
                 };
 
                 wrapper.appendChild(input);
+                
+                const lowerName = (propDef.name || '').toLowerCase();
+                const isImage = lowerName.includes('image') || propDef.name === 'src' || propDef.name === 'icon';
+                const isAudio = lowerName.includes('sound') || lowerName.includes('audio') || propDef.name === 'bgm' || propDef.name === 'sfx';
+                
+                if ((isImage || isAudio) && propDef.type !== 'number') {
+                    const browseBtn = document.createElement('button');
+                    browseBtn.textContent = isImage ? '🖼️' : '🎵';
+                    browseBtn.title = isImage ? 'Bild auswählen' : 'Audio auswählen';
+                    browseBtn.style.cssText = 'padding: 4px; background: #2a2a3e; color: #fff; border: 1px solid #555; border-radius: 3px; cursor: pointer; font-size: 11px; width: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;';
+                    browseBtn.onclick = async () => {
+                        const chosen = await MediaPickerDialog.show({
+                            mode: isImage ? 'image' : 'audio',
+                            currentValue: input.value
+                        });
+                        if (chosen !== null) {
+                            input.value = chosen;
+                            submitChange();
+                        }
+                    };
+                    wrapper.appendChild(browseBtn);
+                }
                 wrapper.appendChild(pickVarBtn);
                 outerWrapper.appendChild(wrapper);
                 outerWrapper.appendChild(hintEl);
@@ -937,5 +1003,7 @@ export class InspectorSectionRenderer {
         return container;
     }
 }
+
+
 
 
