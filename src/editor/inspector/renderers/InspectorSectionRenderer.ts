@@ -526,14 +526,20 @@ export class InspectorSectionRenderer {
                         valElement = colorRow;
 
                     } else if (propType === 'number') {
+                        const isBinding = typeof value === 'string' && value.includes('${');
                         const numInput = document.createElement('input');
-                        numInput.type = 'number';
+                        numInput.type = isBinding ? 'text' : 'number';
                         numInput.value = String(value ?? '');
                         numInput.title = 'Numerischer Wert';
                         numInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#4fc3f7;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
                         numInput.onchange = () => {
                             const newChanges = { ...changes };
-                            newChanges[key] = Number(numInput.value) || 0;
+                            const raw = numInput.value.trim();
+                            if (raw.includes('${')) {
+                                newChanges[key] = raw;
+                            } else {
+                                newChanges[key] = Number(raw) || 0;
+                            }
                             applyChanges(newChanges);
                         };
                         valElement = numInput;
@@ -1019,6 +1025,7 @@ export class InspectorSectionRenderer {
         return container;
     }
 }
+
 
 
 
