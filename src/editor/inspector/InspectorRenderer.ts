@@ -447,7 +447,7 @@ export class InspectorRenderer {
                         cont.style.gap = '4px';
                         cont.appendChild(ed);
 
-                        if (onAction && sigParam.type !== 'number') {
+                        if (onAction) {
                             const b = document.createElement('button');
                             b.innerText = 'V';
                             b.style.cssText = 'width: 32px; padding: 4px; background-color: #e67e22; color: white; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';
@@ -572,12 +572,13 @@ export class InspectorRenderer {
                                     valInput.type = 'checkbox';
                                     valInput.checked = val;
                                     valInput.style.cssText = 'width: 20px; height: 20px; cursor: pointer;';
-                                } else if (typeof val === 'number') {
+                                } else if (typeof val === 'number' || (typeof val === 'string' && val.includes('${'))) {
                                     valInput = document.createElement('input');
-                                    valInput.type = 'number';
+                                    const isBinding = typeof val === 'string' && val.includes('${');
+                                    valInput.type = isBinding ? 'text' : 'number';
                                     valInput.value = String(val);
-                                    valInput.step = '0.1';
-                                    valInput.style.cssText = 'flex: 1; background-color: #222; color: #4fc3f7; border: 1px solid #444; border-radius: 3px; padding: 4px; font-size: 12px;';
+                                    if (!isBinding) valInput.step = '0.1';
+                                    valInput.style.cssText = 'flex: 1; background-color: #222; color: ' + (isBinding ? '#e67e22' : '#4fc3f7') + '; border: 1px solid #444; border-radius: 3px; padding: 4px; font-size: 12px;';
                                 } else {
                                     valInput = document.createElement('input');
                                     valInput.type = 'text';
@@ -609,7 +610,14 @@ export class InspectorRenderer {
                                     if (typeof val === 'boolean') {
                                         newChanges[key] = (valInput as HTMLInputElement).checked;
                                     } else {
-                                        newChanges[key] = PropertyHelper.autoConvert(valInput.value);
+                                        const raw = valInput.value.trim();
+                                        if (raw.includes('${')) {
+                                            newChanges[key] = raw;
+                                            // Switch to text mode for binding display
+                                            if (valInput.type === 'number') valInput.type = 'text';
+                                        } else {
+                                            newChanges[key] = PropertyHelper.autoConvert(raw);
+                                        }
                                     }
                                     onUpdate(param.name, newChanges);
                                 };
@@ -765,7 +773,7 @@ export class InspectorRenderer {
                         cont.style.width = '100%';
                         cont.appendChild(edit);
 
-                        if (onAction && param.type !== 'number' && param.type !== 'boolean') {
+                        if (onAction && param.type !== 'boolean') {
                             const b = document.createElement('button');
                             b.innerText = 'V';
                             b.style.cssText = 'width: 32px; padding: 4px; background-color: #e67e22; color: white; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';

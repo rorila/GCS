@@ -786,9 +786,12 @@ export class InspectorSectionRenderer {
                 input = context.renderer.renderTextArea(String(currentValue));
             } else if (propDef.type === 'number') {
                 // VALIDIERUNG: Number-Inputs bekommen nativen type='number' + Constraints
+                // FIX: Bei Binding-Werten auf type='text' umschalten
+                const isBindingValue = typeof currentValue === 'string' && currentValue.includes('${');
                 input = document.createElement('input');
-                input.type = 'number';
+                input.type = isBindingValue ? 'text' : 'number';
                 input.value = String(currentValue);
+                if (isBindingValue) input.style.color = '#e67e22';
                 input.className = 'inspector-input';
                 input.style.cssText = 'width:100%;background:#222;color:#fff;border:1px solid #444;border-radius:3px;padding:4px 6px;font-size:12px;outline:none;box-sizing:border-box;';
                 if (propDef.min !== undefined) (input as HTMLInputElement).min = String(propDef.min);
