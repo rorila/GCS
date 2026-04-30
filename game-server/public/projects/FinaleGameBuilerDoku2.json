@@ -1593,6 +1593,10 @@
           "actionSequence": [
             {
               "name": "Act_ChangeStagePanelXDirection",
+              "type": "action"
+            },
+            {
+              "name": "action",
               "type": "action",
               "layout": "horizontal"
             }
@@ -1605,8 +1609,12 @@
               "y": 40
             },
             "Act_ChangeStagePanelXDirection": {
-              "x": 340,
-              "y": 40
+              "x": 40,
+              "y": 140
+            },
+            "action": {
+              "x": 20,
+              "y": 380
             }
           }
         },
