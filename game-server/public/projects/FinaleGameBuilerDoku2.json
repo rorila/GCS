@@ -1426,6 +1426,34 @@
           },
           "type": "Variable",
           "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1777522816455_5h715kd5d",
+          "name": "StageSpriteSprungWeite",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 9.3844,
+          "y": 29.1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 2,
+          "objectModel": ""
         }
       ],
       "actions": [
@@ -1493,7 +1521,7 @@
           "showDetails": false,
           "type": "calculate",
           "resultVariable": "${NextYPositionStageSprite.value}",
-          "formula": "${CurrentYPositionStageSprite.value} +0.5"
+          "formula": "${CurrentYPositionStageSprite.value} +${StageSpriteSprungWeite.value}"
         },
         {
           "id": "node-1777482270650",
@@ -1596,9 +1624,20 @@
               "type": "action"
             },
             {
+              "name": "Act_GetStageSpriteXPosition",
+              "type": "action"
+            },
+            {
+              "name": "Act_GetStageSpriteYPosition",
+              "type": "action"
+            },
+            {
+              "name": "Act_CalculateNewStageSpriteYPosition",
+              "type": "action"
+            },
+            {
               "name": "action",
-              "type": "action",
-              "layout": "horizontal"
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -1612,9 +1651,21 @@
               "x": 40,
               "y": 140
             },
-            "action": {
-              "x": 20,
+            "Act_GetStageSpriteXPosition": {
+              "x": 40,
+              "y": 260
+            },
+            "Act_GetStageSpriteYPosition": {
+              "x": 40,
               "y": 380
+            },
+            "Act_CalculateNewStageSpriteYPosition": {
+              "x": 40,
+              "y": 500
+            },
+            "action": {
+              "x": 40,
+              "y": 620
             }
           }
         },
