@@ -391,27 +391,30 @@ export class InspectorRenderer {
             }
 
             let input: HTMLElement | null = null;
-            // FIX: For FlowNodes, action parameters like 'x','y' are shadowed by canvas position.
-            // Read from the linked action definition (SSoT) or node.data first.
+            // FIX: For FlowNodes (FlowAction etc.), action parameters like 'x','y' are
+            // shadowed by canvas-position fields inherited from FlowElement.
+            // PropertyHelper.getPropertyValue(selectedObject, 'x') returns the canvas coordinate (e.g. 40),
+            // not the action parameter (e.g. '${MyVar.value}').
+            //
+            // Solution: Use getActionDefinition() – the SAME method that all FlowAction
+            // property getters (target, formula, value, etc.) use internally.
+            // This returns the original JSON object from stage.actions[], which contains
+            // the correct parameter values.
             let currentValue: any;
             const isFlowNode = selectedObject.isFlowNode === true || typeof selectedObject.setShowDetails === 'function';
-            if (isFlowNode) {
-                // 1. Is it a linked global action or an inline action?
-                const isLinked = selectedObject.data?.isLinked === true || selectedObject.isLinked === true || selectedObject.data?.scope === 'global';
-                const actionDefName = selectedObject.Name || selectedObject.name || selectedObject.data?.name;
-                
-                // FIX: ALWAYS prioritize selectedObject.data if the parameter is explicitly set there!
-                // This prevents generic name collisions (like multiple actions named "action") from returning 
-                // the wrong global action definition which might not have the correct parameter values (like 'x' or 'y').
-                if (selectedObject.data && selectedObject.data[param.name] !== undefined) {
+            if (isFlowNode && typeof selectedObject.getActionDefinition === 'function') {
+                const actionDef = selectedObject.getActionDefinition();
+                if (actionDef && param.name in actionDef) {
+                    currentValue = actionDef[param.name];
+                } else if (selectedObject.data && param.name in selectedObject.data) {
                     currentValue = selectedObject.data[param.name];
-                } else if (isLinked && actionDefName) {
-                    const linkedDef = projectActionRegistry.findOriginalAction(actionDefName);
-                    if (linkedDef && param.name in linkedDef) {
-                        currentValue = (linkedDef as any)[param.name];
-                    } else {
-                        currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
-                    }
+                } else {
+                    currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
+                }
+            } else if (isFlowNode) {
+                // FlowNode without getActionDefinition (e.g. FlowTask, FlowCondition)
+                if (selectedObject.data && param.name in selectedObject.data) {
+                    currentValue = selectedObject.data[param.name];
                 } else {
                     currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
                 }

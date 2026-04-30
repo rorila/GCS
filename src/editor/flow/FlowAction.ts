@@ -196,7 +196,7 @@ export class FlowAction extends FlowElement {
      * Robust resolution: Always prefers project/stage definition if a name match exists,
      * to ensure Single Source of Truth consistency.
      */
-    protected getActionDefinition(): any | null {
+    public getActionDefinition(): any | null {
         if (!this.Name) {
             return this.data;
         }

@@ -75,30 +75,35 @@ export class FlowNodeHandler implements IInspectorHandler {
 
         if (type === 'action' || type === 'data_action' || type === 'http') {
             FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Searching Action Definition for "${nodeName}" (ID: ${nodeId})...`);
-            let actionDef = this.findActionDefinition(nodeName, project);
+            // FIX: Use getActionDefinition() to write to the correct JSON object.
+            // PropertyHelper.setPropertyValue(object, 'x') would overwrite the canvas position!
+            // getActionDefinition() returns the same SSoT object that all FlowAction getters use.
+            if (typeof object.getActionDefinition === 'function') {
+                const actionDef = object.getActionDefinition();
+                if (actionDef) {
+                    FlowNodeHandler.logger.info(`[FLOW-CHANGE-TRACE] FOUND Action Definition for "${nodeName}" via getActionDefinition().`);
+                    PropertyHelper.setPropertyValue(actionDef, propertyName, convertedValue);
 
-            if (!actionDef && nodeId) {
-                FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Not found in index, searching in FlowCharts for ID "${nodeId}"...`);
-                actionDef = this.findActionInFlowCharts(nodeId, nodeName, project);
-            }
-
-            if (actionDef) {
-                FlowNodeHandler.logger.info(`[FLOW-CHANGE-TRACE] FOUND Action Definition for "${nodeName}". Original Object Type: ${(actionDef as any).type}`);
-                PropertyHelper.setPropertyValue(actionDef, propertyName, convertedValue);
-
-                // Extra Log für Typsynchronität
-                if (propertyName === 'type') {
-                    FlowNodeHandler.logger.info(`[FLOW-CHANGE-TRACE] CRITICAL: Changed type from ${(actionDef as any).type} to ${convertedValue}`);
+                    // Extra Log für Typsynchronität
+                    if (propertyName === 'type') {
+                        FlowNodeHandler.logger.info(`[FLOW-CHANGE-TRACE] CRITICAL: Changed type to ${convertedValue}`);
+                    }
+                } else {
+                    FlowNodeHandler.logger.error(`[FLOW-CHANGE-TRACE] getActionDefinition() returned null for "${nodeName}"!`);
                 }
             } else {
-                FlowNodeHandler.logger.error(`[FLOW-CHANGE-TRACE] Action Definition NOT FOUND for "${nodeName}" (ID: ${nodeId})! Persistenz wird fehlschlagen.`);
+                // Legacy path: no getActionDefinition available
+                let actionDef = this.findActionDefinition(nodeName, project);
+                if (!actionDef && nodeId) {
+                    actionDef = this.findActionInFlowCharts(nodeId, nodeName, project);
+                }
+                if (actionDef) {
+                    PropertyHelper.setPropertyValue(actionDef, propertyName, convertedValue);
+                }
             }
-
-            // FIX: Action parameters must go into object.data if they conflict with FlowNode getters/setters (like 'x', 'y')
-            if (object.data && (propertyName === 'x' || propertyName === 'y')) {
+            // Also sync to object.data (the proxy's local storage) for immediate UI feedback
+            if (object.data) {
                 object.data[propertyName] = convertedValue;
-            } else {
-                PropertyHelper.setPropertyValue(object, propertyName, convertedValue);
             }
 
         } else if (type === 'task') {

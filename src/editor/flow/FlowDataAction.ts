@@ -82,7 +82,7 @@ export class FlowDataAction extends FlowAction {
         logger.info(`[FlowDataAction] Resulting URL in model: ${action?.url || this.data.url}`);
     }
 
-    protected getActionDefinition(): any | null {
+    public getActionDefinition(): any | null {
         if (!this.projectRef || !this.Name) return this.data;
 
         // 1. Linked Mode: Get from project/stage (Single Source of Truth)
