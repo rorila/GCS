@@ -94,7 +94,12 @@ export class FlowNodeHandler implements IInspectorHandler {
                 FlowNodeHandler.logger.error(`[FLOW-CHANGE-TRACE] Action Definition NOT FOUND for "${nodeName}" (ID: ${nodeId})! Persistenz wird fehlschlagen.`);
             }
 
-            PropertyHelper.setPropertyValue(object, propertyName, convertedValue);
+            // FIX: Action parameters must go into object.data if they conflict with FlowNode getters/setters (like 'x', 'y')
+            if (object.data && (propertyName === 'x' || propertyName === 'y')) {
+                object.data[propertyName] = convertedValue;
+            } else {
+                PropertyHelper.setPropertyValue(object, propertyName, convertedValue);
+            }
 
         } else if (type === 'task') {
             FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Searching Task Definition for "${nodeName}"...`);

@@ -396,18 +396,24 @@ export class InspectorRenderer {
             let currentValue: any;
             const isFlowNode = selectedObject.isFlowNode === true || typeof selectedObject.setShowDetails === 'function';
             if (isFlowNode) {
-                // 1. Try linked action definition via SSoT registry
+                // 1. Is it a linked global action or an inline action?
+                const isLinked = selectedObject.data?.isLinked === true || selectedObject.isLinked === true || selectedObject.data?.scope === 'global';
                 const actionDefName = selectedObject.Name || selectedObject.name || selectedObject.data?.name;
-                const linkedDef = actionDefName ? projectActionRegistry.findOriginalAction(actionDefName) : null;
-                if (linkedDef && param.name in linkedDef) {
-                    currentValue = (linkedDef as any)[param.name];
-                    logger.info(`[InspectorRenderer] FlowNode parameter ${param.name} resolved from linkedDef (${actionDefName}): ${currentValue}`);
-                } else if (selectedObject.data && param.name in selectedObject.data) {
+                
+                // FIX: ALWAYS prioritize selectedObject.data if the parameter is explicitly set there!
+                // This prevents generic name collisions (like multiple actions named "action") from returning 
+                // the wrong global action definition which might not have the correct parameter values (like 'x' or 'y').
+                if (selectedObject.data && selectedObject.data[param.name] !== undefined) {
                     currentValue = selectedObject.data[param.name];
-                    logger.info(`[InspectorRenderer] FlowNode parameter ${param.name} resolved from node.data: ${currentValue}`);
+                } else if (isLinked && actionDefName) {
+                    const linkedDef = projectActionRegistry.findOriginalAction(actionDefName);
+                    if (linkedDef && param.name in linkedDef) {
+                        currentValue = (linkedDef as any)[param.name];
+                    } else {
+                        currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
+                    }
                 } else {
                     currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
-                    logger.info(`[InspectorRenderer] FlowNode parameter ${param.name} resolved from proxy: ${currentValue}`);
                 }
             } else {
                 currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name);
