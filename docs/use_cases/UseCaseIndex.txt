@@ -1117,3 +1117,8 @@ Files: src/editor/inspector/renderers/InspectorSectionRenderer.ts
 Methods: renderSections (keyvalue block)
 Lines: 585
 
+
+ [ 2 0 2 6 - 0 4 - 2 9 ]   I n s p e c t o r :   S u p p o r t   V - B u t t o n   b i n d i n g   f o r   n u m e r i c   p r o p e r t i e s 
+ -   s r c / e d i t o r / i n s p e c t o r / r e n d e r e r s / I n s p e c t o r S e c t i o n R e n d e r e r . t s   ( r e n d e r S e c t i o n s ,   l i n e   ~ 5 3 0 ) 
+  
+ 

@@ -920,26 +920,10 @@
           "easing": "easeInOut"
         },
         {
-          "id": "node-1777017841379",
-          "details": "",
-          "name": "Act_ShowOnFokusToast",
-          "showDetails": false,
-          "type": "show_toast",
-          "message": "Event: OnFokus"
-        },
-        {
           "id": "node-1777017918638",
           "details": "",
           "name": "Act_ShowOnClickToast",
           "showDetails": false
-        },
-        {
-          "id": "node-1777026749689",
-          "details": "",
-          "name": "Act_ShowOnMouseEnterToast",
-          "showDetails": false,
-          "type": "show_toast",
-          "message": "Event: onMouseEnter"
         },
         {
           "id": "node-1777026838648",
@@ -993,29 +977,6 @@
             },
             "Act_ShowOnClickToast": {
               "x": 240,
-              "y": 40
-            }
-          }
-        },
-        {
-          "name": "ShowOnMouseEnter",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "Act_ShowOnMouseEnterToast",
-              "type": "action",
-              "layout": "horizontal"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "ShowOnMouseEnter": {
-              "x": 40,
-              "y": 40
-            },
-            "action": {
-              "x": 280,
               "y": 40
             }
           }
@@ -1187,7 +1148,7 @@
                 "borderColor": "#333333",
                 "borderWidth": 1
               },
-              "velocityX": 0.3,
+              "velocityX": 0,
               "velocityY": 0,
               "lerpSpeed": 0.1,
               "collisionEnabled": true,
@@ -1246,8 +1207,8 @@
             "onCollision": "CheckStageSpriteCollision"
           },
           "visible": true,
-          "x": 1.4500000000000375,
-          "y": 4.25,
+          "x": 2.75,
+          "y": 4.75,
           "width": 5,
           "height": 2,
           "zIndex": 0,
@@ -1384,6 +1345,87 @@
           },
           "text": "Button_50",
           "icon": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1777471018754_a6kxnvxjc",
+          "name": "XPositionStageSprite",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2.459375,
+          "y": 28.95,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "Variable",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1777471065271_5de0lbsdt",
+          "name": "CurrentYPositionStageSprite",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2.609375,
+          "y": 32,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1777473636849_xfxp6j203",
+          "name": "NextYPositionStageSprite",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 9.9094,
+          "y": 31.95,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "Variable",
+          "objectModel": ""
         }
       ],
       "actions": [
@@ -1399,26 +1441,10 @@
           "easing": "easeInOut"
         },
         {
-          "id": "node-1777017841379",
-          "details": "",
-          "name": "Act_ShowOnFokusToast",
-          "showDetails": false,
-          "type": "show_toast",
-          "message": "Event: OnFokus"
-        },
-        {
           "id": "node-1777017918638",
           "details": "",
           "name": "Act_ShowOnClickToast",
           "showDetails": false
-        },
-        {
-          "id": "node-1777026749689",
-          "details": "",
-          "name": "Act_ShowOnMouseEnterToast",
-          "showDetails": false,
-          "type": "show_toast",
-          "message": "Event: onMouseEnter"
         },
         {
           "id": "node-1777026838648",
@@ -1451,15 +1477,44 @@
           "type": "negate"
         },
         {
-          "id": "node-1777370332416",
+          "id": "node-1777473181114",
           "details": "",
-          "name": "Act_ChangeStageSpriteY",
+          "name": "Act_GetStageSpriteYPosition",
           "showDetails": false,
+          "type": "variable",
+          "variableName": "${CurrentYPositionStageSprite.value}",
+          "source": "StageSprite",
+          "sourceProperty": "y"
+        },
+        {
+          "id": "node-1777473508202",
+          "details": "",
+          "name": "Act_CalculateNewStageSpriteYPosition",
+          "showDetails": false,
+          "type": "calculate",
+          "resultVariable": "${NextYPositionStageSprite.value}",
+          "formula": "${CurrentYPositionStageSprite.value} +0.5"
+        },
+        {
+          "id": "node-1777482270650",
+          "details": "",
+          "name": "Act_GetStageSpriteXPosition",
+          "showDetails": false,
+          "type": "variable",
+          "target": "PanelSprite",
+          "variableName": "${XPositionStageSprite.value}",
+          "source": "StageSprite",
+          "sourceProperty": "x"
+        },
+        {
+          "id": "node-1777484607193",
+          "details": "",
+          "name": "action",
+          "showDetails": false,
+          "type": "move_to",
           "target": "StageSprite",
-          "changes": {
-            "y": -0.5
-          },
-          "type": "calculate"
+          "x": "${XPositionStageSprite.value}",
+          "y": "${NextYPositionStageSprite.value}"
         }
       ],
       "tasks": [
@@ -1505,29 +1560,6 @@
             },
             "Act_ShowOnClickToast": {
               "x": 240,
-              "y": 40
-            }
-          }
-        },
-        {
-          "name": "ShowOnMouseEnter",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "Act_ShowOnMouseEnterToast",
-              "type": "action",
-              "layout": "horizontal"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "ShowOnMouseEnter": {
-              "x": 40,
-              "y": 40
-            },
-            "action": {
-              "x": 280,
               "y": 40
             }
           }
@@ -1584,13 +1616,23 @@
           "actionSequence": [
             {
               "name": "Act_ChangeStagePanelXDirection",
-              "type": "action",
-              "layout": "horizontal"
+              "type": "action"
             },
             {
-              "name": "Act_ChangeStageSpriteY",
-              "type": "action",
-              "layout": "horizontal"
+              "name": "Act_GetStageSpriteXPosition",
+              "type": "action"
+            },
+            {
+              "name": "Act_GetStageSpriteYPosition",
+              "type": "action"
+            },
+            {
+              "name": "Act_CalculateNewStageSpriteYPosition",
+              "type": "action"
+            },
+            {
+              "name": "action",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -1601,12 +1643,24 @@
               "y": 40
             },
             "Act_ChangeStagePanelXDirection": {
-              "x": 320,
-              "y": 40
+              "x": 40,
+              "y": 140
             },
-            "Act_ChangeStageSpriteY": {
-              "x": 660,
-              "y": 40
+            "Act_GetStageSpriteXPosition": {
+              "x": 40,
+              "y": 260
+            },
+            "Act_GetStageSpriteYPosition": {
+              "x": 40,
+              "y": 380
+            },
+            "Act_CalculateNewStageSpriteYPosition": {
+              "x": 40,
+              "y": 500
+            },
+            "action": {
+              "x": 40,
+              "y": 620
             }
           }
         },
@@ -1909,26 +1963,10 @@
           "easing": "easeInOut"
         },
         {
-          "id": "node-1777017841379",
-          "details": "",
-          "name": "Act_ShowOnFokusToast",
-          "showDetails": false,
-          "type": "show_toast",
-          "message": "Event: OnFokus"
-        },
-        {
           "id": "node-1777017918638",
           "details": "",
           "name": "Act_ShowOnClickToast",
           "showDetails": false
-        },
-        {
-          "id": "node-1777026749689",
-          "details": "",
-          "name": "Act_ShowOnMouseEnterToast",
-          "showDetails": false,
-          "type": "show_toast",
-          "message": "Event: onMouseEnter"
         },
         {
           "id": "node-1777026838648",
@@ -2004,29 +2042,6 @@
             },
             "Act_ShowOnClickToast": {
               "x": 240,
-              "y": 40
-            }
-          }
-        },
-        {
-          "name": "ShowOnMouseEnter",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "Act_ShowOnMouseEnterToast",
-              "type": "action",
-              "layout": "horizontal"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "ShowOnMouseEnter": {
-              "x": 40,
-              "y": 40
-            },
-            "action": {
-              "x": 280,
               "y": 40
             }
           }

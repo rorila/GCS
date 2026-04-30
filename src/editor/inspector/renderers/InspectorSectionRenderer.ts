@@ -1,4 +1,4 @@
-﻿import { IInspectable } from '../types';
+import { IInspectable } from '../types';
 import { IInspectorContext } from './IInspectorContext';
 import { GROUP_COLORS } from '../../../components/TComponent';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
@@ -162,7 +162,49 @@ export class InspectorSectionRenderer {
             container.appendChild(label);
         }
 
-        const currentValue = PropertyHelper.getPropertyValue(obj, propDef.name) ?? propDef.defaultValue ?? '';
+        // FIX: For FlowNodes (FlowAction), PropertyHelper.getPropertyValue(obj, 'x') reads
+        // FlowElement.x (canvas position, e.g. 40) instead of the action parameter (e.g. '${MyVar}').
+        // Use getActionDefinition() – the same SSoT method all FlowAction getters use internally.
+        let currentValue: any;
+        const isFlowNode = obj.isFlowNode === true || typeof obj.setShowDetails === 'function';
+        
+        // === DIAGNOSTIC LOGGING START ===
+        const paramName = propDef.name;
+        console.warn(`[SECTION-RENDER] ===== Param: "${paramName}" =====`);
+        console.warn(`[SECTION-RENDER] obj.isFlowNode=${obj.isFlowNode}, hasSetShowDetails=${typeof obj.setShowDetails === 'function'}, isFlowNode=${isFlowNode}`);
+        console.warn(`[SECTION-RENDER] obj.Name="${obj.Name}", obj.name="${obj.name}", obj.type="${obj.type}"`);
+        console.warn(`[SECTION-RENDER] hasGetActionDefinition=${typeof obj.getActionDefinition === 'function'}`);
+        console.warn(`[SECTION-RENDER] obj.data keys:`, obj.data ? Object.keys(obj.data) : 'NO DATA');
+        console.warn(`[SECTION-RENDER] obj.data["${paramName}"]=${obj.data ? obj.data[paramName] : 'N/A'}`);
+        console.warn(`[SECTION-RENDER] obj.x=${obj.x}, obj.y=${obj.y} (canvas position)`);
+        console.warn(`[SECTION-RENDER] PropertyHelper.getPropertyValue(obj, "${paramName}")=${PropertyHelper.getPropertyValue(obj, paramName)}`);
+        
+        if (isFlowNode && typeof obj.getActionDefinition === 'function') {
+            const actionDef = obj.getActionDefinition();
+            console.warn(`[SECTION-RENDER] actionDef found:`, actionDef ? 'YES' : 'NULL');
+            if (actionDef) {
+                console.warn(`[SECTION-RENDER] actionDef keys:`, Object.keys(actionDef));
+                console.warn(`[SECTION-RENDER] "${paramName}" in actionDef: ${paramName in actionDef}`);
+                console.warn(`[SECTION-RENDER] actionDef["${paramName}"]=${actionDef[paramName]}`);
+            }
+            
+            if (actionDef && paramName in actionDef) {
+                currentValue = actionDef[paramName];
+                console.warn(`[SECTION-RENDER] → RESOLVED from actionDef: "${currentValue}"`);
+            } else if (obj.data && paramName in obj.data) {
+                currentValue = obj.data[paramName];
+                console.warn(`[SECTION-RENDER] → RESOLVED from obj.data: "${currentValue}"`);
+            } else {
+                currentValue = PropertyHelper.getPropertyValue(obj, paramName);
+                console.warn(`[SECTION-RENDER] → RESOLVED from PropertyHelper (FALLBACK): "${currentValue}"`);
+            }
+            currentValue = currentValue ?? propDef.defaultValue ?? '';
+        } else {
+            currentValue = PropertyHelper.getPropertyValue(obj, paramName) ?? propDef.defaultValue ?? '';
+            console.warn(`[SECTION-RENDER] → NOT FlowNode or no getActionDefinition, using PropertyHelper: "${currentValue}"`);
+        }
+        console.warn(`[SECTION-RENDER] ===== FINAL currentValue for "${paramName}": "${currentValue}" =====`);
+        // === DIAGNOSTIC LOGGING END ===
 
         if (propDef.type === 'select') {
             let options = propDef.options || [];
