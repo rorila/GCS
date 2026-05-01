@@ -59,7 +59,7 @@ export class VariablePickerDialog {
             const objects = projectObjectRegistry.getObjects().map(o => ({ ...o, _isComp: true }));
             const globalComps = objects.filter(o => o.scope === 'global');
             const stageComps = [
-                { name: 'self', className: 'TGameSprite', _isComp: true, scope: 'local', uiEmoji: '👤' },
+                { name: 'self', className: 'TSprite', _isComp: true, scope: 'local', uiEmoji: '👤' },
                 ...objects.filter(o => o.scope !== 'global')
             ];
 
