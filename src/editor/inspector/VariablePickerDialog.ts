@@ -1,6 +1,7 @@
 import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
 import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 import { componentRegistry } from '../../services/ComponentRegistry';
+import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
 import { dataService } from '../../services/DataService';
 
 /**
@@ -63,6 +64,18 @@ export class VariablePickerDialog {
                 ...objects.filter(o => o.scope !== 'global')
             ];
 
+            // Task Variablen (aus dem aktuellen FlowContext)
+            const currentTaskName = localStorage.getItem('gcs_last_flow_context');
+            let taskVars: any[] = [];
+            if (currentTaskName && currentTaskName !== 'global' && currentTaskName !== 'event-map' && currentTaskName !== 'element-overview') {
+                const task = projectTaskRegistry.findOriginalTask(currentTaskName);
+                if (task && task.standaloneNodes) {
+                    taskVars = task.standaloneNodes
+                        .filter((n: any) => n.type === 'VariableDecl' && n.data?.variable)
+                        .map((n: any) => ({ ...n.data.variable, _isVar: true }));
+                }
+            }
+
             const selectVar = (varName: string) => {
                 overlay.remove();
                 resolve(varName);
@@ -86,6 +99,14 @@ export class VariablePickerDialog {
                     const filtered = VariablePickerDialog.filterVars(stageVars, filterLower);
                     if (filtered.length > 0) {
                         content.appendChild(VariablePickerDialog.createSection('🎭 Stage-Variablen', filtered, selectVar, filterLower));
+                    }
+                }
+
+                // Task Variablen
+                if (taskVars.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(taskVars, filterLower);
+                    if (filtered.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('⚡ Task-Variablen (Lokal)', filtered, selectVar, filterLower));
                     }
                 }
 
@@ -269,10 +290,15 @@ export class VariablePickerDialog {
 
             // Sub-Fields Container
             const subContainer = document.createElement('div');
-            subContainer.style.cssText = `overflow:hidden; transition:max-height 0.3s ease; max-height:${isExpanded ? '500px' : '0'}; padding-left:24px;`;
+            subContainer.style.cssText = `overflow:hidden; transition:max-height 0.3s ease; max-height:${isExpanded ? '2500px' : '0'}; padding-left:24px;`;
 
             if (hasSubFields) {
                 subFields.forEach(field => {
+                    // Filter subfields if search is active
+                    if (filter && !field.toLowerCase().includes(filter) && !v.name?.toLowerCase().includes(filter)) {
+                        return;
+                    }
+                    
                     const subRow = document.createElement('div');
                     subRow.style.cssText = 'display:flex; align-items:center; padding:4px 16px; cursor:pointer; transition:background 0.15s;';
                     subRow.onmouseenter = () => subRow.style.background = '#1a1a3e';
@@ -301,7 +327,7 @@ export class VariablePickerDialog {
                 if (hasSubFields) {
                     isExpanded = !isExpanded;
                     arrow.style.transform = `rotate(${isExpanded ? '90' : '0'}deg)`;
-                    subContainer.style.maxHeight = isExpanded ? '500px' : '0';
+                    subContainer.style.maxHeight = isExpanded ? '2500px' : '0';
                 } else {
                     onSelect(v.name);
                 }

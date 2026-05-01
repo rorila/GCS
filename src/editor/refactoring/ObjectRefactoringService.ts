@@ -9,6 +9,20 @@ export class ObjectRefactoringService {
     public static renameObject(project: GameProject, oldName: string, newName: string): void {
         if (!oldName || !newName || oldName === newName) return;
 
+        // 1. Rename the object itself
+        const renameInArray = (objects: any[]) => {
+            if (!objects) return;
+            const obj = objects.find(o => o.name === oldName);
+            if (obj) obj.name = newName;
+            objects.forEach(parent => {
+                if (parent.children) renameInArray(parent.children);
+            });
+        };
+        renameInArray(project.objects);
+        if (project.stages) {
+            project.stages.forEach(stage => renameInArray(stage.objects));
+        }
+
         // 2. Update related actions and their targets
         const allActions = [...project.actions];
         if (project.stages) {
@@ -30,16 +44,25 @@ export class ObjectRefactoringService {
             if (anyAction.source === oldName) anyAction.source = newName;
 
             if (anyAction.changes) {
+                const newChanges: any = {};
                 for (const key in anyAction.changes) {
                     let val = anyAction.changes[key];
+                    
+                    let newKey = key;
+                    if (key === oldName || key.startsWith(`${oldName}.`)) {
+                        newKey = key === oldName ? newName : `${newName}.${key.slice(oldName.length + 1)}`;
+                    }
+
                     if (typeof val === 'string') {
                         if (val === oldName) {
-                            anyAction.changes[key] = newName;
+                            val = newName;
                         } else if (val.includes(`\${${oldName}`)) {
-                            anyAction.changes[key] = RefactoringUtils.replaceObjectInterpolation(val, oldName, newName);
+                            val = RefactoringUtils.replaceObjectInterpolation(val, oldName, newName);
                         }
                     }
+                    newChanges[newKey] = val;
                 }
+                anyAction.changes = newChanges;
             }
 
             if (anyAction.serviceParams) {

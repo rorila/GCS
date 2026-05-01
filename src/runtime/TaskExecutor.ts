@@ -275,11 +275,16 @@ export class TaskExecutor {
         for (const varNode of localVarNodes) {
             const v = varNode.data.variable;
             if (v.name) {
+                let initValue = v.defaultValue ?? v.value ?? '';
+                if (typeof initValue === 'string' && (initValue.includes('${') || initValue.startsWith('self.'))) {
+                    initValue = TaskConditionEvaluator.resolveValue(initValue.includes('${') ? initValue : `\${${initValue}}`, vars, globalVars);
+                }
+
                 // Create a TVariable-like object so ${varName.value} works
                 vars[v.name] = {
                     name: v.name,
                     type: v.type || 'string',
-                    value: v.defaultValue ?? v.value ?? '',
+                    value: initValue,
                     className: 'TVariable'
                 };
                 logger.debug(`FlowChart: Initialized local variable "${v.name}" = ${JSON.stringify(vars[v.name].value)} (type: ${v.type})`);
@@ -474,6 +479,16 @@ export class TaskExecutor {
                 } else if (!result && falseConn) {
                     const falseNode = elements.find((e: any) => e.id === falseConn.endTargetId);
                     if (falseNode) await executeNode(falseNode);
+                }
+                return;
+            }
+
+            // Pass-through logic for data nodes (VariableDecl, Comment)
+            if (nodeType === 'variabledecl' || nodeType === 'comment') {
+                const outgoing = connections.find((c: any) => c.startTargetId === node.id);
+                if (outgoing) {
+                    const nextNode = elements.find((e: any) => e.id === outgoing.endTargetId);
+                    if (nextNode) await executeNode(nextNode);
                 }
                 return;
             }

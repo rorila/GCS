@@ -5,47 +5,74 @@ import { resolveTarget } from '../ActionHelper';
 
 export function registerPropertyActions() {
     const handler = (action: any, context: any) => {
-        const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
-        if (target && action.changes) {
+        if (action.changes) {
             const combinedContext = { 
                 ...context.contextVars, 
                 ...context.vars, 
                 $eventData: context.eventData, 
                 $event: context.eventData 
             };
-            Object.keys(action.changes).forEach(prop => {
-                const rawValue = action.changes[prop];
+            
+            Object.keys(action.changes).forEach(key => {
+                const rawValue = action.changes[key];
                 const value = PropertyHelper.interpolate(String(rawValue), combinedContext, context.objects);
                 const finalValue = PropertyHelper.autoConvert(value);
-                PropertyHelper.setPropertyValue(target, prop, finalValue);
 
-                DebugLogService.getInstance().log('Variable', `${target.name || target.id}.${prop} = ${finalValue}`, {
-                    objectName: target.name || target.id,
-                    flatten: true
-                });
+                // Split key into root object and property path (e.g., "Player1.x" -> "Player1" and "x")
+                // If there's no dot, we assume it's a variable or a direct object (like a global var)
+                const parts = key.split('.');
+                const rootName = parts[0];
+                const propPath = parts.length > 1 ? parts.slice(1).join('.') : '';
+
+                // Resolve target using ActionHelper
+                const target = resolveTarget(rootName, context.objects, context.vars, context.eventData);
+
+                if (target) {
+                    if (propPath) {
+                        PropertyHelper.setPropertyValue(target, propPath, finalValue);
+                    } else {
+                        // Direct variable assignment
+                        if (context.vars[rootName] !== undefined) {
+                            context.vars[rootName] = finalValue;
+                            context.contextVars[rootName] = finalValue;
+                            const varObj = context.objects.find((o: any) => (o.name === rootName || o.id === rootName) && (o.isVariable === true || o.className?.includes('Variable')));
+                            if (varObj) varObj.value = finalValue;
+                        } else {
+                            // Target found, but no property path provided. Might be an error or setting value directly.
+                            PropertyHelper.setPropertyValue(target, 'value', finalValue);
+                        }
+                    }
+
+                    DebugLogService.getInstance().log('Variable', `${key} = ${finalValue}`, {
+                        objectName: rootName,
+                        flatten: true
+                    });
+                } else {
+                    // Fallback if not found in objects/vars (e.g. creating a new local var)
+                    context.vars[rootName] = finalValue;
+                    context.contextVars[rootName] = finalValue;
+                }
             });
         }
     };
 
-    // 1. Property ändern
+    // 1. Property ändern (Universal Data Setter)
     actionRegistry.register('property', handler, {
         type: 'property',
-        label: 'Eigenschaft ändern',
-        description: 'Ändert eine oder mehrere Eigenschaften eines Objekts.',
+        label: 'Daten / Eigenschaft setzen',
+        description: 'Setzt eine oder mehrere Datenquellen (Variablen oder Objekteigenschaften) auf neue Werte.',
         parameters: [
-            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
-            { name: 'changes', label: 'Änderungen (JSON)', type: 'json', hint: 'Beispiel: { "text": "Hallo", "visible": true }' }
+            { name: 'changes', label: 'Zuweisungen', type: 'keyvalue', hint: 'Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu.' }
         ]
     });
 
     // 1b. Alias: 'action' → identisch mit 'property'
     actionRegistry.register('action', handler, {
         type: 'action',
-        label: 'Eigenschaft ändern',
-        description: 'Alias für property — ändert eine oder mehrere Eigenschaften eines Objekts.',
+        label: 'Daten / Eigenschaft setzen',
+        description: 'Alias für property — ändert Datenquellen.',
         parameters: [
-            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
-            { name: 'changes', label: 'Änderungen (JSON)', type: 'json', hint: 'Beispiel: { "text": "Hallo", "visible": true }' }
+            { name: 'changes', label: 'Zuweisungen', type: 'keyvalue', hint: 'Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu.' }
         ]
     });
 

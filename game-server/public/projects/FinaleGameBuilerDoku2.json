@@ -1108,8 +1108,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 21,
-          "y": 6,
+          "x": 18.75,
+          "y": 5.3,
           "width": 35,
           "height": 22,
           "zIndex": 0,
@@ -1123,49 +1123,6 @@
           },
           "caption": "",
           "children": [
-            {
-              "className": "TSprite",
-              "id": "obj_1777137855428_393ykg6nm",
-              "name": "PanelSprite",
-              "scope": "stage",
-              "draggable": false,
-              "droppable": false,
-              "dragMode": "move",
-              "events": {
-                "onBoundaryHit": "CheckPanelSpriteBoundary",
-                "onCollision": "CheckPanelSpriteCollision"
-              },
-              "visible": true,
-              "x": 12,
-              "y": 9,
-              "width": 6,
-              "height": 2,
-              "zIndex": 0,
-              "rotation": 0,
-              "align": "NONE",
-              "style": {
-                "backgroundColor": "#ff6b6b",
-                "borderColor": "#333333",
-                "borderWidth": 1
-              },
-              "velocityX": 0,
-              "velocityY": 0,
-              "lerpSpeed": 0.1,
-              "collisionEnabled": true,
-              "collisionGroup": "default",
-              "shape": "rect",
-              "spriteColor": "#ff6b6b",
-              "backgroundImage": "",
-              "objectFit": "contain",
-              "imageListId": "",
-              "imageIndex": 0,
-              "customHitbox": false,
-              "hitboxShape": "auto",
-              "hitboxOffsetX": 0,
-              "hitboxOffsetY": 0,
-              "hitboxWidth": 0,
-              "hitboxHeight": 0
-            },
             {
               "className": "TPanel",
               "id": "obj_1777312866351_0cf151c24",
@@ -1191,81 +1148,137 @@
               "showGrid": false,
               "gridColor": "#000000",
               "gridStyle": "lines"
+            },
+            {
+              "className": "TSprite",
+              "id": "8d58089d-d852-4096-b2ee-e8e1a3abf54c",
+              "name": "StageSprite_2",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onBoundaryHit": "CheckStageSpriteBoundary",
+                "onCollision": "CheckStageSpriteCollision"
+              },
+              "visible": true,
+              "x": 28.159399999999998,
+              "y": 5.1000000000000005,
+              "width": 5,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "#6bff9c",
+                "borderColor": "#333333",
+                "borderWidth": 1
+              },
+              "velocityX": 0.2,
+              "velocityY": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "default",
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "backgroundImage": "",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            },
+            {
+              "className": "TSprite",
+              "id": "obj_1777309623740_46ve4xn8y",
+              "name": "StageSprite",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onBoundaryHit": "CheckStageSpriteBoundary",
+                "onCollision": "CheckStageSpriteCollision"
+              },
+              "visible": true,
+              "x": 1.8000000000000007,
+              "y": 4.000000000000001,
+              "width": 5,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "#6bff9c",
+                "borderColor": "#333333",
+                "borderWidth": 1
+              },
+              "velocityX": 0.2,
+              "velocityY": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "default",
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "backgroundImage": "",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            },
+            {
+              "className": "TSprite",
+              "id": "60e31f1d-dff6-4af0-a1ab-cbc791782c52",
+              "name": "StageSprite_1",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onBoundaryHit": "CheckStageSpriteBoundary",
+                "onCollision": "CheckStageSpriteCollision"
+              },
+              "visible": true,
+              "x": 12.209399999999999,
+              "y": 0.7999999999999998,
+              "width": 5,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "#6bff9c",
+                "borderColor": "#333333",
+                "borderWidth": 1
+              },
+              "velocityX": 0.2,
+              "velocityY": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "default",
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "backgroundImage": "",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
             }
           ]
-        },
-        {
-          "className": "TSprite",
-          "id": "obj_1777309623740_46ve4xn8y",
-          "name": "StageSprite",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onBoundaryHit": "CheckStageSpriteBoundary",
-            "onCollision": "CheckStageSpriteCollision"
-          },
-          "visible": true,
-          "x": 2.75,
-          "y": 5,
-          "width": 5,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "#ff6b6b",
-            "borderColor": "#333333",
-            "borderWidth": 1
-          },
-          "velocityX": 0.2,
-          "velocityY": 0,
-          "lerpSpeed": 0.1,
-          "collisionEnabled": true,
-          "collisionGroup": "default",
-          "shape": "rect",
-          "spriteColor": "#ff6b6b",
-          "backgroundImage": "",
-          "objectFit": "contain",
-          "imageListId": "",
-          "imageIndex": 0,
-          "customHitbox": false,
-          "hitboxShape": "auto",
-          "hitboxOffsetX": 0,
-          "hitboxOffsetY": 0,
-          "hitboxWidth": 0,
-          "hitboxHeight": 0
-        },
-        {
-          "className": "TAudio",
-          "id": "obj_1777371318354_733yb827a",
-          "name": "Audio_47",
-          "scope": "stage",
-          "isVariable": true,
-          "isService": true,
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 4,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#fff",
-            "backgroundColor": "#7e57c2",
-            "borderColor": "#512da8",
-            "borderWidth": 2
-          },
-          "src": "",
-          "volume": 1,
-          "loop": false,
-          "preload": true
         },
         {
           "className": "TPanel",
@@ -1294,35 +1307,6 @@
           "gridStyle": "lines"
         },
         {
-          "className": "TLabel",
-          "id": "obj_1777394267792_jtcttbhov",
-          "name": "Label_49",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 27.7094,
-          "y": 34.65,
-          "width": 8,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#000000",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "normal",
-            "fontStyle": "normal",
-            "textAlign": "left",
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Label_49"
-        },
-        {
           "className": "TButton",
           "id": "obj_1777394295533_1i5uix1yz",
           "name": "Button_50",
@@ -1331,8 +1315,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 5.359375,
-          "y": 13.95,
+          "x": 6.2094000000000005,
+          "y": 13.7,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -1347,204 +1331,8 @@
           "icon": ""
         },
         {
-          "className": "TVariable",
-          "id": "obj_1777471018754_a6kxnvxjc",
-          "name": "XPositionStageSprite",
-          "scope": "stage",
-          "isVariable": true,
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 2.459375,
-          "y": 28.95,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#000000",
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "type": "Variable",
-          "objectModel": ""
-        },
-        {
-          "className": "TVariable",
-          "id": "obj_1777471065271_5de0lbsdt",
-          "name": "CurrentYPositionStageSprite",
-          "scope": "stage",
-          "isVariable": true,
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 2.609375,
-          "y": 32,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#000000",
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "type": "integer",
-          "objectModel": ""
-        },
-        {
-          "className": "TVariable",
-          "id": "obj_1777473636849_xfxp6j203",
-          "name": "NextYPositionStageSprite",
-          "scope": "stage",
-          "isVariable": true,
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 9.9094,
-          "y": 31.95,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#000000",
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "type": "Variable",
-          "objectModel": ""
-        },
-        {
-          "className": "TVariable",
-          "id": "obj_1777522816455_5h715kd5d",
-          "name": "StageSpriteSprungWeite",
-          "scope": "stage",
-          "isVariable": true,
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 9.3844,
-          "y": 29.1,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#000000",
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "type": "integer",
-          "defaultValue": 2,
-          "value": 2,
-          "objectModel": ""
-        },
-        {
           "className": "TSprite",
-          "id": "73ef4bac-9367-4e69-8fce-9035923d943b",
-          "name": "StageSprite_1",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onBoundaryHit": "CheckStageSpriteBoundary",
-            "onCollision": "CheckStageSpriteCollision"
-          },
-          "visible": true,
-          "x": 1.459375,
-          "y": 16.4,
-          "width": 5,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "#ff6b6b",
-            "borderColor": "#333333",
-            "borderWidth": 1
-          },
-          "velocityX": 0.2,
-          "velocityY": 0,
-          "lerpSpeed": 0.1,
-          "collisionEnabled": true,
-          "collisionGroup": "default",
-          "shape": "rect",
-          "spriteColor": "#ff6b6b",
-          "backgroundImage": "",
-          "objectFit": "contain",
-          "imageListId": "",
-          "imageIndex": 0,
-          "customHitbox": false,
-          "hitboxShape": "auto",
-          "hitboxOffsetX": 0,
-          "hitboxOffsetY": 0,
-          "hitboxWidth": 0,
-          "hitboxHeight": 0
-        },
-        {
-          "className": "TSprite",
-          "id": "5b48a14a-315a-4666-8ad5-eb8f39b82a5c",
-          "name": "StageSprite_2",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onBoundaryHit": "CheckStageSpriteBoundary",
-            "onCollision": "CheckStageSpriteCollision"
-          },
-          "visible": true,
-          "x": 1,
-          "y": 1,
-          "width": 5,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "#ff6b6b",
-            "borderColor": "#333333",
-            "borderWidth": 1
-          },
-          "velocityX": 0.2,
-          "velocityY": 0,
-          "lerpSpeed": 0.1,
-          "collisionEnabled": true,
-          "collisionGroup": "default",
-          "shape": "rect",
-          "spriteColor": "#ff6b6b",
-          "backgroundImage": "",
-          "objectFit": "contain",
-          "imageListId": "",
-          "imageIndex": 0,
-          "customHitbox": false,
-          "hitboxShape": "auto",
-          "hitboxOffsetX": 0,
-          "hitboxOffsetY": 0,
-          "hitboxWidth": 0,
-          "hitboxHeight": 0
-        },
-        {
-          "className": "TSprite",
-          "id": "d9ce54e9-deac-42ac-b5dd-4cf4cfe7eaa7",
+          "id": "5158190c-125c-44f9-9a47-cb477717d0e2",
           "name": "StageSprite_3",
           "scope": "stage",
           "draggable": false,
@@ -1555,8 +1343,94 @@
             "onCollision": "CheckStageSpriteCollision"
           },
           "visible": true,
-          "x": 52.769000000000005,
-          "y": 3,
+          "x": 2.309375,
+          "y": 1.8,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.2,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "cb71e4e3-f13e-4dcd-9e38-3d6ff237532e",
+          "name": "StageSprite_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": "CheckStageSpriteCollision"
+          },
+          "visible": true,
+          "x": 5.168775,
+          "y": 9.35,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.2,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "c0f00beb-1027-492a-a50d-df7d04e3340b",
+          "name": "StageSprite_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": "CheckStageSpriteCollision"
+          },
+          "visible": true,
+          "x": 56.86877500000001,
+          "y": 7.35,
           "width": 5,
           "height": 2,
           "zIndex": 0,
@@ -1618,21 +1492,19 @@
           "name": "Act_ChangePanelSpriteXDirection",
           "showDetails": false,
           "type": "negate",
-          "target": "PanelSprite",
           "changes": {
-            "velocityX": ""
+            "PanelSprite.velocityX": ""
           }
         },
         {
           "id": "node-1777312703616",
           "details": "",
-          "name": "Act_ChangeStagePanelXDirection",
+          "name": "Act_ChangeStageSpriteXDirection",
           "showDetails": false,
-          "target": "self",
           "changes": {
-            "velocityX": ""
+            "self.velocityX": true
           },
-          "type": "action"
+          "type": "negate"
         },
         {
           "id": "node-1777473181114",
@@ -1667,18 +1539,31 @@
         {
           "id": "node-1777484607193",
           "details": "",
-          "name": "action",
+          "name": "MoveTheSprite",
           "showDetails": false,
           "type": "move_to",
           "target": "self",
-          "x": "${XPositionStageSprite.value}",
-          "y": "${NextYPositionStageSprite.value}"
+          "x": "${currentXPos}",
+          "y": "${newYPos}"
         },
         {
-          "id": "node-1777613867542",
+          "id": "node-1777646755979",
           "details": "",
-          "name": "Action1",
-          "showDetails": false
+          "name": "CalcNextYPos",
+          "showDetails": false,
+          "type": "calculate",
+          "resultVariable": "${newYPos}",
+          "formula": "${self.y} +2"
+        },
+        {
+          "id": "node-1777648034483",
+          "details": "",
+          "name": "GetXPos",
+          "showDetails": false,
+          "type": "variable",
+          "variableName": "${currentXPos}",
+          "sourceProperty": "${self.x}",
+          "value": "${self.x}"
         }
       ],
       "tasks": [
@@ -1756,24 +1641,8 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_ChangeStagePanelXDirection",
-              "type": "action"
-            },
-            {
-              "name": "Act_GetStageSpriteXPosition",
-              "type": "action"
-            },
-            {
-              "name": "Act_GetStageSpriteYPosition",
-              "type": "action"
-            },
-            {
-              "name": "Act_CalculateNewStageSpriteYPosition",
-              "type": "action"
-            },
-            {
-              "name": "action",
-              "type": "action"
+              "type": "task",
+              "name": "CheckStageSpriteCollision"
             }
           ],
           "triggerMode": "local-sync",
@@ -1783,79 +1652,30 @@
               "x": 40,
               "y": 40
             },
-            "Act_ChangeStagePanelXDirection": {
+            "CheckStageSpriteCollision": {
               "x": 40,
               "y": 140
-            },
-            "Act_GetStageSpriteXPosition": {
-              "x": 40,
-              "y": 240
-            },
-            "Act_GetStageSpriteYPosition": {
-              "x": 40,
-              "y": 340
-            },
-            "Act_CalculateNewStageSpriteYPosition": {
-              "x": 40,
-              "y": 440
-            },
-            "action": {
-              "x": 40,
-              "y": 540
-            },
-            "🔒 📦 neueVariabel: integer: string [lokal]": {
-              "x": 500,
-              "y": 240
             }
-          },
-          "standaloneNodes": [
-            {
-              "id": "node-1777614261916",
-              "type": "VariableDecl",
-              "x": 500,
-              "y": 240,
-              "width": 320,
-              "height": 60,
-              "properties": {
-                "name": "🔒 📦 neueVariabel: integer: string [lokal]",
-                "details": "",
-                "description": "",
-                "text": "🔒 📦 neueVariabel: integer: string [lokal]"
-              },
-              "data": {
-                "variable": {
-                  "name": "📦 neueVariabel: integer",
-                  "type": "string",
-                  "scope": "local",
-                  "defaultValue": "",
-                  "isVariable": true
-                }
-              }
-            }
-          ]
+          }
         },
         {
           "name": "CheckStageSpriteCollision",
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_ChangeStagePanelXDirection",
+              "name": "Act_ChangeStageSpriteXDirection",
               "type": "action"
             },
             {
-              "name": "Act_GetStageSpriteXPosition",
+              "name": "GetXPos",
               "type": "action"
             },
             {
-              "name": "Act_GetStageSpriteYPosition",
+              "name": "CalcNextYPos",
               "type": "action"
             },
             {
-              "name": "Act_CalculateNewStageSpriteYPosition",
-              "type": "action"
-            },
-            {
-              "name": "action",
+              "name": "MoveTheSprite",
               "type": "action"
             }
           ],
@@ -1866,36 +1686,114 @@
               "x": 40,
               "y": 40
             },
-            "Act_ChangeStagePanelXDirection": {
+            "Act_ChangeStageSpriteXDirection": {
               "x": 40,
               "y": 140
             },
-            "Act_GetStageSpriteXPosition": {
+            "GetXPos": {
               "x": 40,
               "y": 260
             },
-            "Act_GetStageSpriteYPosition": {
+            "CalcNextYPos": {
               "x": 40,
               "y": 380
             },
-            "Act_CalculateNewStageSpriteYPosition": {
+            "MoveTheSprite": {
               "x": 40,
               "y": 500
             },
-            "action": {
-              "x": 40,
-              "y": 620
+            "currentYPos": {
+              "x": 560,
+              "y": 200
+            },
+            "currentXPos": {
+              "x": 560,
+              "y": 100
+            },
+            "newYPos": {
+              "x": 560,
+              "y": 300
             }
-          }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1777644346614",
+              "type": "VariableDecl",
+              "x": 560,
+              "y": 200,
+              "width": 240,
+              "height": 60,
+              "properties": {
+                "name": "currentYPos",
+                "details": "",
+                "description": "",
+                "text": "🔒 currentYPos: string [lokal]"
+              },
+              "data": {
+                "variable": {
+                  "name": "currentYPos",
+                  "type": "string",
+                  "scope": "local",
+                  "value": "${self.y}",
+                  "isVariable": true
+                }
+              }
+            },
+            {
+              "id": "node-1777645527148",
+              "type": "VariableDecl",
+              "x": 560,
+              "y": 100,
+              "width": 240,
+              "height": 60,
+              "properties": {
+                "name": "currentXPos",
+                "details": "",
+                "description": "",
+                "text": "🔒 currentXPos: integer [lokal]"
+              },
+              "data": {
+                "variable": {
+                  "name": "currentXPos",
+                  "type": "integer",
+                  "scope": "local",
+                  "value": "${self.x}",
+                  "defaultValue": "",
+                  "isVariable": true
+                }
+              }
+            },
+            {
+              "id": "node-1777647264967",
+              "type": "VariableDecl",
+              "x": 560,
+              "y": 300,
+              "width": 240,
+              "height": 60,
+              "properties": {
+                "name": "newYPos",
+                "details": "",
+                "description": "",
+                "text": "🔒 newYPos: integer [lokal]"
+              },
+              "data": {
+                "variable": {
+                  "name": "newYPos",
+                  "type": "integer",
+                  "scope": "local",
+                  "isVariable": true
+                }
+              }
+            }
+          ]
         },
         {
           "name": "CheckPanelSpriteBoundary",
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_ChangePanelSpriteXDirection",
-              "type": "action",
-              "layout": "horizontal"
+              "type": "task",
+              "name": "CheckStageSpriteCollision"
             }
           ],
           "triggerMode": "local-sync",
@@ -1905,9 +1803,9 @@
               "x": 40,
               "y": 40
             },
-            "Act_ChangePanelSpriteXDirection": {
-              "x": 340,
-              "y": 40
+            "CheckStageSpriteCollision": {
+              "x": 40,
+              "y": 140
             }
           }
         },
@@ -1916,9 +1814,8 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_ChangePanelSpriteXDirection",
-              "type": "action",
-              "layout": "horizontal"
+              "type": "task",
+              "name": "CheckStageSpriteCollision"
             }
           ],
           "triggerMode": "local-sync",
@@ -1928,9 +1825,9 @@
               "x": 40,
               "y": 40
             },
-            "Act_ChangePanelSpriteXDirection": {
-              "x": 320,
-              "y": 40
+            "CheckStageSpriteCollision": {
+              "x": 40,
+              "y": 140
             }
           }
         }
@@ -2207,9 +2104,8 @@
           "showDetails": false,
           "type": "negate",
           "changes": {
-            "velocityX": ""
-          },
-          "target": "StageSprite"
+            "StageSprite.velocityX": ""
+          }
         },
         {
           "id": "node-1777309046267",
@@ -2217,9 +2113,8 @@
           "name": "Act_ChangPanelSpriteDirecktion",
           "showDetails": false,
           "type": "negate",
-          "target": "PanelSprite",
           "changes": {
-            "velocityX": ""
+            "PanelSprite.velocityX": ""
           }
         }
       ],

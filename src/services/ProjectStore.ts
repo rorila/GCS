@@ -69,6 +69,24 @@ export class ProjectStore {
 
         // SANITIZATION: Bereinige korrupte globale Scopes und kopierte Blueprint-Typen
         try {
+            // Action Reduzierung Migration: target aus data_actions entfernen und als Key-Prefix nutzen
+            const migrateActions = (actions: any[]) => {
+                if (!actions) return;
+                actions.forEach(a => {
+                    if ((a.type === 'property' || a.type === 'action' || a.type === 'increment' || a.type === 'negate') && a.target && a.changes) {
+                        const newChanges: any = {};
+                        Object.keys(a.changes).forEach(k => {
+                            newChanges[`${a.target}.${k}`] = a.changes[k];
+                        });
+                        a.changes = newChanges;
+                        delete a.target;
+                        ProjectStore.logger.info(`Migrierte Action '${a.name}': target entfernt, changes:`, a.changes);
+                    }
+                });
+            };
+            migrateActions(project.actions || []);
+            project.stages?.forEach(stage => migrateActions(stage.actions || []));
+
             const actualBlueprintStage = project.stages?.find(s => s.id === 'stage_blueprint' || s.id === 'blueprint' || s.type === 'blueprint');
             const globalServiceClasses = [
                 'TStageController', 'TGameLoop', 'TGameState', 'TGameServer',

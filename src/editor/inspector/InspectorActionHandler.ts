@@ -277,6 +277,20 @@ export class InspectorActionHandler {
             actionId: (obj as any).id || (obj as any).name
         });
 
+        // Task Variablen für Validierung hinzufügen (aus dem aktuellen FlowContext)
+        const currentTaskName = localStorage.getItem('gcs_last_flow_context');
+        if (currentTaskName && currentTaskName !== 'global' && currentTaskName !== 'event-map' && currentTaskName !== 'element-overview') {
+            const { projectTaskRegistry } = await import('../../services/registry/TaskRegistry');
+            const task = projectTaskRegistry.findOriginalTask(currentTaskName);
+            if (task && task.standaloneNodes) {
+                task.standaloneNodes
+                    .filter((n: any) => n.type === 'VariableDecl' && n.data?.variable)
+                    .forEach((n: any) => {
+                        variables.push({ ...n.data.variable, _isVar: true } as any);
+                    });
+            }
+        }
+
         // Validierung (nur für nicht-Repeater)
         if (!isRepeater && !varNameInput.includes('.')) {
             const baseVarName = varNameInput.split('.')[0];

@@ -155,6 +155,17 @@ export class FlowSyncManager {
                     delete task.standaloneNodes;
                 }
 
+                const standaloneConnections = connections.filter((c: any) => 
+                    !visitedSet.has(c.startTargetId) || !visitedSet.has(c.endTargetId)
+                );
+
+                if (standaloneConnections.length > 0) {
+                    task.standaloneConnections = standaloneConnections;
+                    FlowSyncManager.logger.info(`[TRACE] syncToProject: ${standaloneConnections.length} standalone Connection(s) gespeichert für "${currentContext}"`);
+                } else {
+                    delete task.standaloneConnections;
+                }
+
                 delete task.flowChart;
                 if ((task as any).flowGraph) delete (task as any).flowGraph;
                 this.cleanupLegacyFlowData(currentContext);

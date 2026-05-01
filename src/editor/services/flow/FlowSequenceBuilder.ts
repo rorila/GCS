@@ -38,6 +38,17 @@ export class FlowSequenceBuilder {
 
             let nodeType = (node.type || '').toLowerCase();
 
+            // Data nodes should not be part of the execution flow sequence,
+            // but we must traverse through them so the execution chain doesn't break if the user connected them.
+            if (nodeType === 'variabledecl' || nodeType === 'comment') {
+                visited.delete(nodeId);
+                const nextConns = connections.filter(c => c.startTargetId === nodeId);
+                if (nextConns.length > 0) {
+                    nextConns.forEach(nc => buildSequence(nc.endTargetId, targetSeq, stopSet, nc.data?.startAnchorType));
+                }
+                return;
+            }
+
             if (nodeType === 'action' && (node.data?.type === 'data_action' || node.data?.isLinked)) {
                 const actionName = node.data?.name || node.properties?.name;
                 if (node.data?.type === 'data_action') {

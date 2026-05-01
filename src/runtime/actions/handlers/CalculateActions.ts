@@ -213,35 +213,81 @@ export function registerCalculateActions() {
 
     // 3b. Negate
     actionRegistry.register('negate', (action, context) => {
-        const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
-        if (target && action.changes) {
-            Object.keys(action.changes).forEach(prop => {
-                const currentValue = PropertyHelper.getPropertyValue(target, prop);
-                if (typeof currentValue === 'number') {
-                    let valueToNegate = currentValue;
-                    if (currentValue === 0) {
-                        const prevKey = `_prev${prop.charAt(0).toUpperCase()}${prop.slice(1)}`;
-                        const prevVal = (target as any)[prevKey];
-                        if (typeof prevVal === 'number' && prevVal !== 0) {
-                            valueToNegate = prevVal;
-                            runtimeLogger.info(`Negate: Using saved previous ${prop}: ${prevVal} (current was 0)`);
+        if (action.changes) {
+            Object.keys(action.changes).forEach(key => {
+                const parts = key.split('.');
+                const rootName = parts[0];
+                const propPath = parts.length > 1 ? parts.slice(1).join('.') : '';
+                
+                const target = resolveTarget(rootName, context.objects, context.vars, context.eventData);
+
+                if (target && propPath) {
+                    const currentValue = PropertyHelper.getPropertyValue(target, propPath);
+                    if (typeof currentValue === 'number') {
+                        let valueToNegate = currentValue;
+                        if (currentValue === 0) {
+                            const prevKey = `_prev${propPath.charAt(0).toUpperCase()}${propPath.slice(1)}`;
+                            const prevVal = (target as any)[prevKey];
+                            if (typeof prevVal === 'number' && prevVal !== 0) {
+                                valueToNegate = prevVal;
+                            }
                         }
+                        const negated = valueToNegate * -1;
+                        PropertyHelper.setPropertyValue(target, propPath, negated);
                     }
-                    const negated = valueToNegate * -1;
-                    PropertyHelper.setPropertyValue(target, prop, negated);
-                    runtimeLogger.info(`Negate: ${target.name || target.id}.${prop}: ${currentValue} -> ${negated}`);
-                } else {
-                    runtimeLogger.warn(`Negate: ${target.name || target.id}.${prop} ist kein numerischer Wert`);
+                } else if (target && !propPath) { // Global Variable
+                    const currentValue = context.vars[rootName] !== undefined ? context.vars[rootName] : context.contextVars[rootName];
+                    if (typeof currentValue === 'number') {
+                        const negated = currentValue * -1;
+                        context.vars[rootName] = negated;
+                        context.contextVars[rootName] = negated;
+                        const varObj = context.objects.find((o: any) => (o.name === rootName || o.id === rootName));
+                        if (varObj) varObj.value = negated;
+                    }
                 }
             });
         }
     }, {
         type: 'negate',
         label: 'Wert negieren',
-        description: 'Negiert numerische Eigenschaften eines Objekts.',
+        description: 'Negiert numerische Eigenschaften oder Variablen (- wird zu +, + wird zu -).',
         parameters: [
-            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
-            { name: 'changes', label: 'Properties (JSON)', type: 'json', hint: 'z.B. { "velocityX": true }' }
+            { name: 'changes', label: 'Zuweisungen', type: 'keyvalue', hint: 'Wähle Datenquellen (links) aus, die negiert werden sollen.' }
+        ]
+    });
+
+    // 3c. Increment
+    actionRegistry.register('increment', (action, context) => {
+        if (action.changes) {
+            Object.keys(action.changes).forEach(key => {
+                const rawValue = action.changes[key];
+                const incrementAmount = Number(PropertyHelper.interpolate(String(rawValue), { ...context.vars, ...context.contextVars, $eventData: context.eventData }, context.objects)) || 0;
+
+                const parts = key.split('.');
+                const rootName = parts[0];
+                const propPath = parts.length > 1 ? parts.slice(1).join('.') : '';
+                
+                const target = resolveTarget(rootName, context.objects, context.vars, context.eventData);
+
+                if (target && propPath) {
+                    const currentValue = Number(PropertyHelper.getPropertyValue(target, propPath)) || 0;
+                    PropertyHelper.setPropertyValue(target, propPath, currentValue + incrementAmount);
+                } else if (target && !propPath) { // Global Variable
+                    const currentValue = Number(context.vars[rootName] !== undefined ? context.vars[rootName] : context.contextVars[rootName]) || 0;
+                    const newValue = currentValue + incrementAmount;
+                    context.vars[rootName] = newValue;
+                    context.contextVars[rootName] = newValue;
+                    const varObj = context.objects.find((o: any) => (o.name === rootName || o.id === rootName));
+                    if (varObj) varObj.value = newValue;
+                }
+            });
+        }
+    }, {
+        type: 'increment',
+        label: 'Werte addieren',
+        description: 'Addiert numerische Werte auf bestehende Variablen oder Eigenschaften.',
+        parameters: [
+            { name: 'changes', label: 'Zuweisungen', type: 'keyvalue', hint: 'Wähle Datenquellen (links) und den Wert, der addiert werden soll (rechts).' }
         ]
     });
 }

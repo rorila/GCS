@@ -221,6 +221,12 @@ export class PascalCodeGenerator {
                 activeStage?.actions?.find((a: any) => a.name === actionName)
             ) as any;
             if (action?.target) targetNames.add(action.target);
+            if (action?.changes) {
+                Object.keys(action.changes).forEach(k => {
+                    const parts = k.split('.');
+                    if (parts.length > 1) targetNames.add(parts[0]);
+                });
+            }
             // Variablen aus den referenzierten Action-Definitionen
             if (action) {
                 if (action.variableName) usedVarNames.add(action.variableName);
@@ -522,12 +528,21 @@ export class PascalCodeGenerator {
         if (!action) return `${this.span(actionName, '#dcdcaa', asHtml)} (); `;
 
         let code = '';
-        if (action.type === 'property' && action.target && action.changes) {
+        if ((action.type === 'property' || action.type === 'keyvalue') && action.changes) {
             const parts: string[] = [];
             Object.keys(action.changes).forEach(key => {
                 const value = action.changes[key];
                 if (value === undefined || value === null) return;
-                const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+                
+                let target = 'self';
+                let prop = key;
+                if (key.includes('.')) {
+                    const split = key.split('.');
+                    target = split[0];
+                    prop = split.slice(1).join('.');
+                }
+
+                const capitalizedKey = prop.charAt(0).toUpperCase() + prop.slice(1);
                 let valStr = String(value);
                 let color = '#ce9178';
 
@@ -542,7 +557,7 @@ export class PascalCodeGenerator {
                 } else if (typeof value === 'number') {
                     color = '#b5cea8';
                 }
-                parts.push(`${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(valStr, color, asHtml)}; `);
+                parts.push(`${this.span(target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(valStr, color, asHtml)}; `);
             });
             code = parts.join(' ');
         } else if (action.type === 'negate' && action.target) {

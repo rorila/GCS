@@ -299,7 +299,7 @@ export class PascalCodeParser {
 
                 let action = (targetStage?.actions || project.actions).find((a: any) => a.name === actionName);
                 if (!action) {
-                    action = { name: actionName, type: 'property', target: objName, changes: {} };
+                    action = { name: actionName, type: 'property', changes: {} };
                     (targetStage?.actions || project.actions).push(action);
                 }
 
@@ -307,10 +307,12 @@ export class PascalCodeParser {
                 const incMatch = source.match(new RegExp(`^${objName}\\.${propName}\\s*\\+\\s*(.+)$`, 'i'));
                 if (incMatch) {
                     action.type = 'increment';
+                    action.target = objName;
                     action.changes[propName] = parseFloat(incMatch[1]) || 1;
                 } else {
                     action.type = 'property';
-                    action.changes[propName] = val;
+                    delete action.target;
+                    action.changes[`${objName}.${propName}`] = val;
                 }
 
                 return { type: 'action', name: actionName };

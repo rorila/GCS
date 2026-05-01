@@ -602,7 +602,7 @@ export class FlowAction extends FlowElement {
         // 'action' ist ein generischer Fallback-Typ → wie 'property' behandeln
         const effectiveType = (type === 'action') ? 'property' : type;
 
-        if (['property', 'method', 'negate', 'increment'].includes(effectiveType) && !isInternal) {
+        if (['method'].includes(effectiveType) && !isInternal) {
             konfProps.push({
                 name: 'target', label: 'Ziel-Objekt', type: 'select',
                 source: 'objects', hint: 'Das Objekt, dessen Zustand geändert wird.'
@@ -618,7 +618,7 @@ export class FlowAction extends FlowElement {
                 label: 'Eigenschafts-Änderungen',
                 type: 'keyvalue',
                 value: changes,
-                hint: 'Eigenschaften des Ziel-Objekts die geändert werden'
+                hint: 'Wähle eine Datenquelle (links) und weise einen Wert (rechts) zu.'
             });
         } else if (effectiveType === 'negate') {
             const action = this.getActionDefinition();

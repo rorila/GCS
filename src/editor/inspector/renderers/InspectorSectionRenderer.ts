@@ -359,50 +359,7 @@ export class InspectorSectionRenderer {
             };
 
             let targetPropertyOptions: { name: string, label: string, type: string, options?: any[] }[] = [];
-            let targetObj: any = null;
-            if (obj.target && (obj as any).projectRef) {
-                const project = (obj as any).projectRef;
-
-                const flattenObjects = (arr: any[]): any[] => {
-                    let res: any[] = [];
-                    for (const o of arr) {
-                        res.push(o);
-                        if (o.children && Array.isArray(o.children)) res.push(...flattenObjects(o.children));
-                    }
-                    return res;
-                };
-
-                for (const stage of (project.stages || [])) {
-                    const allStageObjects = flattenObjects(stage.objects || []);
-                    const found = allStageObjects.find((o: any) => o.name === obj.target || o.id === obj.target);
-                    if (found) { targetObj = found; break; }
-                    const foundVar = (stage.variables || []).find((v: any) => v.name === obj.target || v.id === obj.target);
-                    if (foundVar) { targetObj = foundVar; break; }
-                }
-
-                if (!targetObj && obj.target === 'self') {
-                    targetObj = { name: 'self', className: 'TSprite' };
-                }
-
-                if (!targetObj) {
-                    const allGlobalObjects = flattenObjects(project.objects || []);
-                    targetObj = allGlobalObjects.find((o: any) => o.name === obj.target || o.id === obj.target);
-                }
-                if (!targetObj) {
-                    targetObj = (project.variables || []).find((v: any) => v.name === obj.target || v.id === obj.target);
-                }
-                if (targetObj?.className) {
-                    const props = componentRegistry.getInspectorProperties({ className: targetObj.className });
-                    targetPropertyOptions = props
-                        .filter((p: any) => p.name && p.name !== 'name' && p.name !== 'id')
-                        .map((p: any) => ({
-                            name: p.name,
-                            label: p.label || p.name,
-                            type: p.type || 'string',
-                            options: p.options
-                        }));
-                }
-            }
+            // targetObj logic removed for Universal Data Setter
 
             if (entries.length === 0) {
                 const emptyHint = document.createElement('div');
@@ -417,52 +374,44 @@ export class InspectorSectionRenderer {
                     const propInfo = targetPropertyOptions.find(p => p.name === key);
                     const propType = propDef.valueType || propInfo?.type || 'string';
 
-                    let keyElement: HTMLSelectElement | HTMLInputElement;
-                    if (targetPropertyOptions.length > 0) {
-                        const keySelect = document.createElement('select');
-                        keySelect.title = 'Eigenschafts-Name';
-                        keySelect.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;cursor:pointer;';
-                        for (const propOpt of targetPropertyOptions) {
-                            const opt = document.createElement('option');
-                            opt.value = propOpt.name;
-                            opt.textContent = `${propOpt.label} (${propOpt.name})`;
-                            if (propOpt.name === key) opt.selected = true;
-                            keySelect.appendChild(opt);
+                    let keyElement: HTMLElement;
+                    
+                    const keyInput = document.createElement('input');
+                    keyInput.type = 'text';
+                    keyInput.value = key;
+                    keyInput.title = 'Datenquelle / Eigenschaft (z.B. Player1.x)';
+                    keyInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
+                    keyInput.onchange = () => {
+                        const newKey = keyInput.value.trim();
+                        if (!newKey || newKey === key) return;
+                        const newChanges: Record<string, any> = {};
+                        for (const [k, v] of Object.entries(changes)) {
+                            newChanges[k === key ? newKey : k] = v;
                         }
-                        if (key && !targetPropertyOptions.find(p => p.name === key)) {
-                            const customOpt = document.createElement('option');
-                            customOpt.value = key;
-                            customOpt.textContent = `${key} (benutzerdefiniert)`;
-                            customOpt.selected = true;
-                            keySelect.insertBefore(customOpt, keySelect.firstChild);
-                        }
-                        keySelect.onchange = () => {
-                            const newKey = keySelect.value.trim();
-                            if (!newKey || newKey === key) return;
+                        applyChanges(newChanges);
+                    };
+                    
+                    const changeKeyBtn = document.createElement('button');
+                    changeKeyBtn.textContent = 'V';
+                    changeKeyBtn.title = 'Datenquelle wählen';
+                    changeKeyBtn.style.cssText = 'padding:2px 4px;background:#8e44ad;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;flex-shrink:0;margin-left:2px;';
+                    changeKeyBtn.onclick = async () => {
+                        const { VariablePickerDialog } = await import('../VariablePickerDialog');
+                        const chosen = await VariablePickerDialog.show();
+                        if (chosen) {
                             const newChanges: Record<string, any> = {};
                             for (const [k, v] of Object.entries(changes)) {
-                                newChanges[k === key ? newKey : k] = v;
+                                newChanges[k === key ? chosen : k] = v;
                             }
                             applyChanges(newChanges);
-                        };
-                        keyElement = keySelect;
-                    } else {
-                        const keyInput = document.createElement('input');
-                        keyInput.type = 'text';
-                        keyInput.value = key;
-                        keyInput.title = 'Eigenschafts-Name';
-                        keyInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
-                        keyInput.onchange = () => {
-                            const newKey = keyInput.value.trim();
-                            if (!newKey || newKey === key) return;
-                            const newChanges: Record<string, any> = {};
-                            for (const [k, v] of Object.entries(changes)) {
-                                newChanges[k === key ? newKey : k] = v;
-                            }
-                            applyChanges(newChanges);
-                        };
-                        keyElement = keyInput;
-                    }
+                        }
+                    };
+
+                    const keyWrapper = document.createElement('div');
+                    keyWrapper.style.cssText = 'display:flex; flex:1; gap:2px;';
+                    keyWrapper.appendChild(keyInput);
+                    keyWrapper.appendChild(changeKeyBtn);
+                    keyElement = keyWrapper;
 
                     const sep = document.createElement('span');
                     sep.textContent = ':';
@@ -656,21 +605,14 @@ export class InspectorSectionRenderer {
                         });
 
                         if (chosen) {
-                            console.log('[V-Button] Chosen variable:', chosen, 'key:', key);
                             const actualInput = valElement instanceof HTMLInputElement ? valElement : valElement.querySelector('input');
-                            console.log('[V-Button] actualInput found?', actualInput !== null, 'valElement:', valElement);
                             if (actualInput instanceof HTMLInputElement) {
-                                console.log('[V-Button] setting actualInput.value...');
                                 actualInput.type = 'text';
                                 actualInput.value = '${' + chosen + '}';
                                 if (typeof actualInput.onchange === 'function') {
-                                    console.log('[V-Button] triggering onchange');
                                     actualInput.onchange(new Event('change'));
-                                } else {
-                                    console.log('[V-Button] no onchange found on actualInput');
                                 }
                             } else {
-                                console.log('[V-Button] falling back to applyChanges');
                                 const newChanges = { ...changes };
                                 newChanges[key] = '${' + chosen + '}';
                                 applyChanges(newChanges);
@@ -693,17 +635,11 @@ export class InspectorSectionRenderer {
             addBtn.textContent = '+ Eigenschaft hinzufügen';
             addBtn.style.cssText = 'margin-top:6px;width:100%;padding:5px 10px;background:#2e7d32;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;';
             addBtn.onclick = async () => {
-                const usedKeys = Object.keys(changes);
-                if (!targetObj) {
-                    const freeOpt = targetPropertyOptions.find(p => !usedKeys.includes(p.name));
-                    const defaultKey = freeOpt ? freeOpt.name : '';
-                    const newChanges = { ...changes, [defaultKey]: '' };
-                    applyChanges(newChanges);
-                    return;
-                }
-                const selectedKey = await PropertyPickerDialog.show(targetObj, usedKeys);
+                const { VariablePickerDialog } = await import('../VariablePickerDialog');
+                const selectedKey = await VariablePickerDialog.show();
                 if (selectedKey) {
-                    const newChanges = { ...changes, [selectedKey]: '' };
+                    const defaultVal = propDef.valueType === 'boolean' ? true : '';
+                    const newChanges = { ...changes, [selectedKey]: defaultVal };
                     applyChanges(newChanges);
                 }
             };

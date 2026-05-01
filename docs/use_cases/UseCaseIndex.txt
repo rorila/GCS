@@ -1,3 +1,7 @@
+Task-Variable Pass-Through
+- src/editor/services/flow/FlowSequenceBuilder.ts: buildSequence() (Line 41)
+- src/runtime/TaskExecutor.ts: executeNode() (Line 486)
+- src/editor/services/flow/FlowSequenceBuilder.ts: generateFlowFromActionSequence() (Line 429)
 [UC-2026-04-28-DynamicThemeCascade]
 Dateien:
 - src/runtime/ThemeRegistry.ts (Neu)
@@ -1125,3 +1129,5 @@ Lines: 585
  U S E _ C A S E :   D a t e n q u e l l e n   ( V a r i a b l e n   &   K o m p o n e n t e n )   p e r   D i a l o g   a u s w a e h l e n   -   s r c / e d i t o r / i n s p e c t o r / V a r i a b l e P i c k e r D i a l o g . t s   ( r e n d e r L i s t ,   g e t S u b F i e l d s )  
  U S E _ C A S E :   ' s e l f '   K o m p o n e n t e   i m   D a t a P i c k e r   a u s w a e h l e n   -   s r c / e d i t o r / i n s p e c t o r / V a r i a b l e P i c k e r D i a l o g . t s   ( s t a g e C o m p s )  
  
+USE_CASE: Universal Data Setter (Pascal Export) - src/editor/PascalCodeGenerator.ts (getActionPascalCode), src/editor/PascalCodeParser.ts (parseSimpleStatement), src/editor/refactoring/ObjectRefactoringService.ts (renameObject)
+

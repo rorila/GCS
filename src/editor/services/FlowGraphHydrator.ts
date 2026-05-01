@@ -77,7 +77,11 @@ export class FlowGraphHydrator {
                 // Standalone-Nodes nachladen (nicht in actionSequence, z.B. unverbundene Actions)
                 if (task.standaloneNodes && task.standaloneNodes.length > 0) {
                     sourceData!.elements.push(...task.standaloneNodes);
-                    FlowGraphHydrator.logger.info(`${task.standaloneNodes.length} standalone Node(s) nachgeladen f\u00fcr "${task.name}"`);
+                    FlowGraphHydrator.logger.info(`${task.standaloneNodes.length} standalone Node(s) nachgeladen für "${task.name}"`);
+                }
+                if (task.standaloneConnections && task.standaloneConnections.length > 0) {
+                    sourceData!.connections.push(...task.standaloneConnections);
+                    FlowGraphHydrator.logger.info(`${task.standaloneConnections.length} standalone Connection(s) nachgeladen für "${task.name}"`);
                 }
                 FlowGraphHydrator.logger.info(`Flow dynamisch generiert f\u00fcr "${task.name}" (${sourceData!.elements.length} Nodes). Layout-Overrides: ${task.flowLayout ? Object.keys(task.flowLayout).length : 0}`);
             } else {
