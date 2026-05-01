@@ -380,6 +380,10 @@ export class InspectorSectionRenderer {
                     if (foundVar) { targetObj = foundVar; break; }
                 }
 
+                if (!targetObj && obj.target === 'self') {
+                    targetObj = { name: 'self', className: 'TSprite' };
+                }
+
                 if (!targetObj) {
                     const allGlobalObjects = flattenObjects(project.objects || []);
                     targetObj = allGlobalObjects.find((o: any) => o.name === obj.target || o.id === obj.target);
