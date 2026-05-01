@@ -44,8 +44,14 @@ export class FlowVariable extends FlowElement {
 
     /**
      * Resolve the actual variable definition from the project (SSoT).
+     * For scope='local': The FlowChart node IS the SSoT (not stage.variables).
      */
     protected getVariableDefinition(): any | null {
+        // Local-scoped variables live only in the FlowChart node
+        if (this.data.variable?.scope === 'local') {
+            return this.data.variable;
+        }
+
         if (!this.projectRef) return this.data.variable;
 
         const varName = this.data.variable?.name || this.Name;
@@ -104,6 +110,7 @@ export class FlowVariable extends FlowElement {
         if (v) v.scope = val;
         if (!this.data.variable) this.data.variable = {};
         this.data.variable.scope = val;
+        this.updateVisuals();
     }
 
     public get value(): any {
@@ -155,24 +162,51 @@ export class FlowVariable extends FlowElement {
     public updateVisuals() {
         const name = this.name;
         const type = this.type;
+        const currentScope = this.scope;
         const icon = this.getIcon();
-        this.setText(`${icon} ${name}: ${type}`, true);
+        const scopeLabel = currentScope === 'local' ? ' [lokal]' : '';
+        this.setText(`${icon} ${name}: ${type}${scopeLabel}`, true);
+
+        // Visual distinction for local variables
+        if (currentScope === 'local') {
+            this.content.style.color = '#66bb6a'; // Green for local
+            this.element.classList.add('flow-variable-local');
+        } else {
+            this.content.style.color = '#ffaa00'; // Default variable color
+            this.element.classList.remove('flow-variable-local');
+        }
     }
 
     protected getIcon(): string {
-        return '📦';
+        return this.scope === 'local' ? '🔒' : '📦';
     }
 
     public toJSON(): any {
         const json = super.toJSON();
-        // SSoT: We only save name and isVariable flag in the flow diagram's node data.
-        // All other data lives in project.variables.
-        json.data = {
-            variable: {
-                name: this.name,
-                isVariable: true
-            }
-        };
+        const currentScope = this.scope;
+
+        if (currentScope === 'local') {
+            // Local variables: The FlowChart node IS the SSoT.
+            // Save the complete definition because it won't exist in stage.variables.
+            json.data = {
+                variable: {
+                    name: this.name,
+                    type: this.type,
+                    scope: 'local',
+                    value: this.value,
+                    defaultValue: this.defaultValue,
+                    isVariable: true
+                }
+            };
+        } else {
+            // Global/Stage variables: Only save reference, data lives in project/stage.variables.
+            json.data = {
+                variable: {
+                    name: this.name,
+                    isVariable: true
+                }
+            };
+        }
         return json;
     }
 }

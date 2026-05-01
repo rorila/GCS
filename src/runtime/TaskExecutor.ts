@@ -267,6 +267,25 @@ export class TaskExecutor {
         logger.debug(`FlowChart Elements for "${taskName}":`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
         logger.debug(`FlowChart vars.eventData =`, vars.eventData, 'contextObj =', contextObj?.name || contextObj?.className);
 
+        // Initialize flow-local variables (scope='local') into the per-execution vars object.
+        // Each task invocation gets its own isolated copy – no shared state between sprites.
+        const localVarNodes = elements.filter((e: any) =>
+            e.type?.toLowerCase() === 'variabledecl' && e.data?.variable?.scope === 'local'
+        );
+        for (const varNode of localVarNodes) {
+            const v = varNode.data.variable;
+            if (v.name) {
+                // Create a TVariable-like object so ${varName.value} works
+                vars[v.name] = {
+                    name: v.name,
+                    type: v.type || 'string',
+                    value: v.defaultValue ?? v.value ?? '',
+                    className: 'TVariable'
+                };
+                logger.debug(`FlowChart: Initialized local variable "${v.name}" = ${JSON.stringify(vars[v.name].value)} (type: ${v.type})`);
+            }
+        }
+
         const executeNode = async (node: any): Promise<void> => {
             if (!node || visited.has(node.id)) return;
             visited.add(node.id);

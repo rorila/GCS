@@ -59,6 +59,10 @@
                         {
                             "value": "stage",
                             "label": "🎭 Stage (Lokal)"
+                        },
+                        {
+                            "value": "local",
+                            "label": "🔒 Task-Lokal (pro Ausführung)"
                         }
                     ],
                     "selectedValue": "${selectedObject.scope}"

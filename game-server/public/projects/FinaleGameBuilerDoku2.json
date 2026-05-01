@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "RolloRie",
     "description": "",
-    "_sourcePath": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/game-server/public/projects/FinaleGameBuilerDoku2.json"
+    "_sourcePath": "projects/FinaleGameBuilerDoku2.json"
   },
   "stage": {
     "grid": {
@@ -1208,7 +1208,7 @@
           },
           "visible": true,
           "x": 2.75,
-          "y": 4.75,
+          "y": 5,
           "width": 5,
           "height": 2,
           "zIndex": 0,
@@ -1455,6 +1455,135 @@
           "defaultValue": 2,
           "value": 2,
           "objectModel": ""
+        },
+        {
+          "className": "TSprite",
+          "id": "73ef4bac-9367-4e69-8fce-9035923d943b",
+          "name": "StageSprite_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": "CheckStageSpriteCollision"
+          },
+          "visible": true,
+          "x": 1.459375,
+          "y": 16.4,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.2,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "5b48a14a-315a-4666-8ad5-eb8f39b82a5c",
+          "name": "StageSprite_2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": "CheckStageSpriteCollision"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.2,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "d9ce54e9-deac-42ac-b5dd-4cf4cfe7eaa7",
+          "name": "StageSprite_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": "CheckStageSpriteCollision"
+          },
+          "visible": true,
+          "x": 52.769000000000005,
+          "y": 3,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.2,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
         }
       ],
       "actions": [
@@ -1499,7 +1628,7 @@
           "details": "",
           "name": "Act_ChangeStagePanelXDirection",
           "showDetails": false,
-          "target": "StageSprite",
+          "target": "self",
           "changes": {
             "velocityX": ""
           },
@@ -1512,7 +1641,7 @@
           "showDetails": false,
           "type": "variable",
           "variableName": "${CurrentYPositionStageSprite.value}",
-          "source": "StageSprite",
+          "source": "self",
           "sourceProperty": "y"
         },
         {
@@ -1532,7 +1661,7 @@
           "type": "variable",
           "target": "PanelSprite",
           "variableName": "${XPositionStageSprite.value}",
-          "source": "StageSprite",
+          "source": "self",
           "sourceProperty": "x"
         },
         {
@@ -1541,7 +1670,7 @@
           "name": "action",
           "showDetails": false,
           "type": "move_to",
-          "target": "StageSprite",
+          "target": "self",
           "x": "${XPositionStageSprite.value}",
           "y": "${NextYPositionStageSprite.value}"
         }
@@ -1654,19 +1783,19 @@
             },
             "Act_GetStageSpriteXPosition": {
               "x": 40,
-              "y": 260
+              "y": 240
             },
             "Act_GetStageSpriteYPosition": {
               "x": 40,
-              "y": 380
+              "y": 340
             },
             "Act_CalculateNewStageSpriteYPosition": {
               "x": 40,
-              "y": 500
+              "y": 440
             },
             "action": {
               "x": 40,
-              "y": 620
+              "y": 540
             }
           }
         },

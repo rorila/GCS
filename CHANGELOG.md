@@ -109,3 +109,13 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 - **Inspector x/y Shadowing (Root-Cause)**: FlowActions wie `move_to` zeigten im Inspector die Canvas-Koordinaten (z.B. 40, 120) statt der Action-Parameter (z.B. `$`{MyVar.value}`). Ursache: `InspectorSectionRenderer.renderProperty()` nutzte `PropertyHelper.getPropertyValue()`, welches `FlowElement.x` (Canvas-Position) statt den Action-Parameter las. Fix: `getActionDefinition()` wird jetzt als SSoT-Methode zum Lesen und Schreiben verwendet.
 - **getActionDefinition() public**: `FlowAction.getActionDefinition()` und `FlowDataAction.getActionDefinition()` von `protected` auf `public` geaendert, damit der InspectorSectionRenderer darauf zugreifen kann.
 - **FlowNodeHandler Schreib-Fix**: Action-Parameter werden jetzt via `getActionDefinition()` in die JSON-Definition geschrieben und zusaetzlich in `object.data` synchronisiert, statt `PropertyHelper.setPropertyValue(object, ...)` zu nutzen (was Canvas-Koordinaten ueberschrieb).
+
+## [Unreleased] - 2026-05-01
+
+### Added
+- **Flow-lokale Variablen**: Neuer Scope `'local'` fuer Variablen, die nur waehrend einer Task-Ausfuehrung existieren. Jeder Aufruf bekommt eine isolierte Kopie, so dass mehrere Sprites denselben Task ohne Shared-State-Konflikte nutzen koennen.
+  - Inspector: `inspector_variable.json` - Scope-Dropdown um `Task-Lokal` Option erweitert.
+  - FlowVariable: toJSON() speichert komplette Definition bei scope=local. Visuell: Schloss-Icon + gruene Farbe.
+  - FlowSyncManager: Lokale Variablen werden nicht in stage/project.variables synchronisiert.
+  - TaskExecutor: Lokale Variablen werden vor Execution in das pro-Aufruf-isolierte vars-Objekt injiziert.
+- **self als Ziel-Objekt**: Dropdown-Option `'self (Selbstreferenz)'` in allen Objekt-Selektoren.

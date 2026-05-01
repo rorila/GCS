@@ -484,3 +484,10 @@ pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verw
 - **DO**: Fuer FlowNodes mit `getActionDefinition()` immer die Action-Definition (SSoT) nutzen: `const actionDef = obj.getActionDefinition(); currentValue = actionDef[paramName]`. Dies ist die gleiche Methode, die alle FlowAction-Getter (`target`, `formula`, `value`, etc.) intern verwenden.
 - **ACHTUNG Rendering-Pfade**: FlowActions mit `getInspectorSections()` werden durch `InspectorSectionRenderer.renderProperty()` gerendert, NICHT durch `InspectorRenderer.renderActionParams()`. Fixes muessen in `InspectorSectionRenderer.ts` erfolgen.
 - **Schreiben**: `FlowNodeHandler.handlePropertyChange()` muss Action-Parameter via `getActionDefinition()` in die JSON-Definition schreiben UND in `object.data` synchronisieren. Niemals `PropertyHelper.setPropertyValue(flowNode, 'x', value)` - das ueberschreibt die Canvas-Position.
+
+### 21. Flow-lokale Variablen (scope='local')
+- **Konzept**: Variablen mit `scope='local'` existieren nur waehrend der Ausfuehrung eines Tasks. Jeder Task-Aufruf bekommt seine eigene Kopie – kein Shared-State zwischen mehreren Sprites.
+- **SSoT**: Lokale Variablen werden im FlowChart-Node gespeichert (toJSON speichert komplette Definition), NICHT in `stage.variables` oder `project.variables`.
+- **FlowSyncManager**: `syncVariablesFromFlow()` ueberspringt Variablen mit `scope='local'`.
+- **Runtime**: `TaskExecutor.executeFlowChart()` initialisiert lokale Variablen als TVariable-like Objekte in `vars`, bevor der Task-Graph abgelaufen wird.
+- **Visuell**: Lokale Variablen zeigen ein Schloss-Icon (statt Paket-Icon) und gruene Textfarbe im FlowDiagramm.

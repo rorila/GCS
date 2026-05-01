@@ -206,6 +206,13 @@ export class FlowSyncManager {
         this.host.nodes.forEach(node => {
             if (node.getType() === 'VariableDecl' && node.data?.variable) {
                 const varData = node.data.variable;
+
+                // Local-scoped variables live only in the FlowChart node – do NOT sync to stage/project
+                if (varData.scope === 'local') {
+                    FlowSyncManager.logger.debug(`[TRACE] syncVariablesFromFlow: SKIP local variable "${varData.name}" (lives in FlowChart node only).`);
+                    return;
+                }
+
                 const blueprint = this.getBlueprintStage();
                 const targetCollection = varData.scope === 'global' ?
                     (blueprint ? (blueprint.variables || (blueprint.variables = [])) : (this.host.getActiveStage()?.variables || [])) :
