@@ -1,6 +1,6 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 1.5.2026, 06:49:43
+**Generiert am**: 1.5.2026, 08:24:35
 **Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
@@ -156,7 +156,7 @@ pie title Test-Status (Gesamt: 195)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1777610896927_0l (erwartet: stage_import_1777610896927_0l), BackToLobby.stageId=stage_import_1777610896927_66 (erwartet: stage_import_1777610896927_66)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1777616591587_9z (erwartet: stage_import_1777616591587_9z), BackToLobby.stageId=stage_import_1777616591587_su (erwartet: stage_import_1777616591587_su)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |

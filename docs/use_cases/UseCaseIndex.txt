@@ -1121,4 +1121,6 @@ Lines: 585
  [ 2 0 2 6 - 0 4 - 2 9 ]   I n s p e c t o r :   S u p p o r t   V - B u t t o n   b i n d i n g   f o r   n u m e r i c   p r o p e r t i e s 
  -   s r c / e d i t o r / i n s p e c t o r / r e n d e r e r s / I n s p e c t o r S e c t i o n R e n d e r e r . t s   ( r e n d e r S e c t i o n s ,   l i n e   ~ 5 3 0 ) 
   
+ U S E _ C A S E :   L o k a l e   V a r i a b l e n   E i g e n s c h a f t e n   b e a r b e i t e n   -   s r c / e d i t o r / f l o w / F l o w V a r i a b l e . t s   ( g e t I n s p e c t o r S e c t i o n s )  
+ U S E _ C A S E :   D a t e n q u e l l e n   ( V a r i a b l e n   &   K o m p o n e n t e n )   p e r   D i a l o g   a u s w a e h l e n   -   s r c / e d i t o r / i n s p e c t o r / V a r i a b l e P i c k e r D i a l o g . t s   ( r e n d e r L i s t ,   g e t S u b F i e l d s )  
  
