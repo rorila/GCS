@@ -1,5 +1,6 @@
 import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
-
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
+import { componentRegistry } from '../../services/ComponentRegistry';
 import { dataService } from '../../services/DataService';
 
 /**
@@ -23,7 +24,7 @@ export class VariablePickerDialog {
             const header = document.createElement('div');
             header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #333; background:#1a1a2e;';
             const title = document.createElement('span');
-            title.innerText = '📋 Variable auswählen';
+            title.innerText = '📋 Datenquelle auswählen';
             title.style.cssText = 'font-weight:bold; font-size:14px; color:#fff;';
             header.appendChild(title);
 
@@ -39,7 +40,7 @@ export class VariablePickerDialog {
             searchRow.style.cssText = 'padding:8px 16px; border-bottom:1px solid #333;';
             const searchInput = document.createElement('input');
             searchInput.type = 'text';
-            searchInput.placeholder = '🔍 Variablen durchsuchen...';
+            searchInput.placeholder = '🔍 Datenquellen durchsuchen...';
             searchInput.style.cssText = 'width:100%; padding:8px 10px; background:#16162a; color:#fff; border:1px solid #333; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;';
             searchRow.appendChild(searchInput);
             dialog.appendChild(searchRow);
@@ -50,9 +51,14 @@ export class VariablePickerDialog {
             dialog.appendChild(content);
 
             // Variablen sammeln
-            const variables = projectVariableRegistry.getVariables();
+            const variables = projectVariableRegistry.getVariables().map(v => ({ ...v, _isVar: true }));
             const globalVars = variables.filter(v => (v as any).uiScope === 'global' || (v as any).scope === 'global');
             const stageVars = variables.filter(v => (v as any).uiScope !== 'global' && (v as any).scope !== 'global');
+
+            // Komponenten sammeln
+            const objects = projectObjectRegistry.getObjects().map(o => ({ ...o, _isComp: true }));
+            const globalComps = objects.filter(o => o.scope === 'global');
+            const stageComps = objects.filter(o => o.scope !== 'global');
 
             const selectVar = (varName: string) => {
                 overlay.remove();
@@ -80,6 +86,22 @@ export class VariablePickerDialog {
                     }
                 }
 
+                // Globale Komponenten
+                if (globalComps.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(globalComps, filterLower);
+                    if (filtered.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('🧩 Globale Komponenten', filtered, selectVar, filterLower));
+                    }
+                }
+
+                // Stage Komponenten
+                if (stageComps.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(stageComps, filterLower);
+                    if (filtered.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('📦 Stage-Komponenten', filtered, selectVar, filterLower));
+                    }
+                }
+
                 // Repeater-Daten
                 if (context?.repeaterFields && context.repeaterFields.length > 0) {
                     const repeaterItems = context.repeaterFields
@@ -93,7 +115,7 @@ export class VariablePickerDialog {
                 if (content.children.length === 0) {
                     const empty = document.createElement('div');
                     empty.style.cssText = 'padding:20px; text-align:center; color:#666; font-size:13px;';
-                    empty.innerText = filter ? 'Keine Variablen gefunden.' : 'Keine Variablen verfügbar.';
+                    empty.innerText = filter ? 'Keine Datenquellen gefunden.' : 'Keine Datenquellen verfügbar.';
                     content.appendChild(empty);
                 }
             };
@@ -133,6 +155,19 @@ export class VariablePickerDialog {
 
     private static getSubFields(v: any): string[] {
         let fields: string[] = [];
+
+        if (v._isComp) {
+            // Für Komponenten: Lade Inspektor-Properties
+            const props = componentRegistry.getInspectorProperties({ className: v.className });
+            if (props && props.length > 0) {
+                // Filtere ungeeignete Felder (z.B. id, name) optional aus
+                fields = props
+                    .filter(p => p.name && p.name !== 'id' && p.name !== 'name')
+                    .map(p => p.name);
+            }
+            return fields;
+        }
+
         const type = (v.type || '') as string;
         const className = (v.className || '') as string;
 
