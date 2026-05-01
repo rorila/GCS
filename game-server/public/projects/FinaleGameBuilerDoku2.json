@@ -1632,7 +1632,7 @@
           "changes": {
             "velocityX": ""
           },
-          "type": "negate"
+          "type": "action"
         },
         {
           "id": "node-1777473181114",
@@ -1803,28 +1803,33 @@
               "x": 40,
               "y": 540
             },
-            "Action1": {
-              "x": 400,
-              "y": 300
+            "🔒 📦 neueVariabel: integer: string [lokal]": {
+              "x": 500,
+              "y": 240
             }
           },
           "standaloneNodes": [
             {
-              "id": "node-1777613867542",
-              "type": "action",
-              "x": 400,
-              "y": 300,
-              "width": 140,
+              "id": "node-1777614261916",
+              "type": "VariableDecl",
+              "x": 500,
+              "y": 240,
+              "width": 320,
               "height": 60,
               "properties": {
-                "name": "Action1",
+                "name": "🔒 📦 neueVariabel: integer: string [lokal]",
                 "details": "",
-                "description": ""
+                "description": "",
+                "text": "🔒 📦 neueVariabel: integer: string [lokal]"
               },
               "data": {
-                "name": "Action1",
-                "showDetails": false,
-                "isLinked": true
+                "variable": {
+                  "name": "📦 neueVariabel: integer",
+                  "type": "string",
+                  "scope": "local",
+                  "defaultValue": "",
+                  "isVariable": true
+                }
               }
             }
           ]
