@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "RolloRie",
     "description": "",
-    "_sourcePath": "projects/FinaleGameBuilerDoku2.json"
+    "_sourcePath": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/game-server/public/projects/FinaleGameBuilerDoku2.json"
   },
   "stage": {
     "grid": {
@@ -1453,6 +1453,7 @@
           },
           "type": "integer",
           "defaultValue": 2,
+          "value": 2,
           "objectModel": ""
         }
       ],

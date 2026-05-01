@@ -1148,7 +1148,10 @@ export class InspectorRenderer {
             return projectVariableRegistry.getVariables().map(v => ({ value: v.name, label: v.name }));
         }
         if (prop.source === 'objects') {
-            return projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
+            return [
+                { value: 'self', label: 'self (Selbstreferenz)' },
+                ...projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }))
+            ];
         }
         if (prop.source === 'services') {
             return serviceRegistry.listServices().map(s => ({ value: s, label: s }));
@@ -1163,6 +1166,7 @@ export class InspectorRenderer {
                 } catch (_e) { return false; }
             });
             return [
+                { value: 'self', label: 'self (Selbstreferenz)' },
                 ...validObjects.map((o: any) => ({ value: o.name, label: o.name })),
                 ...serviceRegistry.listServices().map((s: string) => ({ value: s, label: s + ' (Service)' }))
             ];

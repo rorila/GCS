@@ -10,8 +10,10 @@ export function resolveTarget(targetName: string, objects: any[], vars: Record<s
     // Resolve 'self' and 'other' from event context (collision events provide {self, other, hitSide})
     if (normalized === 'self') {
         if (eventData?.self) return eventData.self;
-        // Fallback: eventData IS the context object itself
+        // Fallback: eventData IS the context object itself (e.g. onClick sender)
         if (eventData && eventData.name) return eventData;
+        // Fallback: 'self' was injected into vars by GameRuntime.handleEvent
+        if (vars.self) return vars.self;
         return null;
     }
     if (normalized === 'other') {
