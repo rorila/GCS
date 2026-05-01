@@ -458,6 +458,24 @@ export class FlowContextMenuProvider {
             {
                 label: '🗄️ Daten-Aktion hinzufügen',
                 action: () => this.host.createNode('DataAction', x, y)
+            },
+            {
+                label: '🔒 Lokale Variable hinzufügen',
+                action: async () => {
+                    const node = await this.host.createNode('VariableDecl', x, y);
+                    if (node) {
+                        // Pre-configure as local scope
+                        if (!node.data) node.data = {};
+                        if (!node.data.variable) node.data.variable = {};
+                        node.data.variable.scope = 'local';
+                        node.data.variable.type = 'string';
+                        node.data.variable.name = node.Name || 'LokalVar';
+                        node.data.variable.defaultValue = '';
+                        node.data.variable.isVariable = true;
+                        if ((node as any).updateVisuals) (node as any).updateVisuals();
+                        this.host.syncToProject();
+                    }
+                }
             }
         ];
 
@@ -496,6 +514,27 @@ export class FlowContextMenuProvider {
             items.push({
                 label: '🔗 Vorhandenen Task einfügen',
                 submenu: insertTaskItems
+            });
+        }
+
+        // Vorhandene Variablen einfügen (Referenz-Node)
+        const allVars = projectVariableRegistry.getVariables();
+        if (allVars.length > 0) {
+            const insertVarItems: ContextMenuItem[] = allVars.map(v => ({
+                label: `${v.name} (${(v as any).type || 'any'})`,
+                action: async () => {
+                    const node = await this.host.createNode('VariableDecl', x, y, v.name);
+                    if (node) {
+                        node.data = { variable: { ...v, isVariable: true } };
+                        if ((node as any).setProjectRef) (node as any).setProjectRef(this.host.project);
+                        if ((node as any).updateVisuals) (node as any).updateVisuals();
+                        this.host.syncToProject();
+                    }
+                }
+            }));
+            items.push({
+                label: '📦 Vorhandene Variable einfügen',
+                submenu: insertVarItems
             });
         }
 

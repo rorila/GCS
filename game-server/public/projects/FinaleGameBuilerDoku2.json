@@ -1673,6 +1673,12 @@
           "target": "self",
           "x": "${XPositionStageSprite.value}",
           "y": "${NextYPositionStageSprite.value}"
+        },
+        {
+          "id": "node-1777613867542",
+          "details": "",
+          "name": "Action1",
+          "showDetails": false
         }
       ],
       "tasks": [
@@ -1796,8 +1802,32 @@
             "action": {
               "x": 40,
               "y": 540
+            },
+            "Action1": {
+              "x": 400,
+              "y": 300
             }
-          }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1777613867542",
+              "type": "action",
+              "x": 400,
+              "y": 300,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "Action1",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Action1",
+                "showDetails": false,
+                "isLinked": true
+              }
+            }
+          ]
         },
         {
           "name": "CheckStageSpriteCollision",
