@@ -181,6 +181,60 @@ export class FlowVariable extends FlowElement {
         return this.scope === 'local' ? '🔒' : '📦';
     }
 
+    public getInspectorSections(): import('../inspector/types').InspectorSection[] {
+        return [
+            {
+                id: 'identitaet',
+                label: 'Identität',
+                icon: '👤',
+                properties: [
+                    { name: 'name', type: 'string', label: 'Name' },
+                    { 
+                        name: 'scope', 
+                        type: 'select', 
+                        label: 'Geltungsbereich',
+                        options: [
+                            { value: 'global', label: '🌎 Global (Projektweit)' },
+                            { value: 'stage', label: '🎭 Stage (Lokal)' },
+                            { value: 'local', label: '🔒 Task-Lokal (pro Ausführung)' }
+                        ]
+                    },
+                    { 
+                        name: 'type', 
+                        type: 'select', 
+                        label: 'Datentyp',
+                        options: [
+                            { value: 'integer', label: 'Integer' },
+                            { value: 'real', label: 'Real' },
+                            { value: 'string', label: 'String' },
+                            { value: 'boolean', label: 'Boolean' },
+                            { value: 'timer', label: 'Timer' },
+                            { value: 'object', label: 'Objekt' },
+                            { value: 'object_list', label: 'Objekt-Liste' },
+                            { value: 'any', label: 'Beliebig (Any)' }
+                        ]
+                    },
+                    {
+                        name: 'objectModel',
+                        type: 'select',
+                        label: 'Datenmodell',
+                        source: 'availableModels',
+                        visibleWhen: { field: 'type', values: ['object', 'object_list'] }
+                    }
+                ]
+            },
+            {
+                id: 'werte',
+                label: 'Wert & Limits',
+                icon: '🔢',
+                properties: [
+                    { name: 'defaultValue', type: 'string', label: 'Default-Wert' },
+                    { name: 'value', type: 'string', label: 'Aktueller Wert' }
+                ]
+            }
+        ];
+    }
+
     public toJSON(): any {
         const json = super.toJSON();
         const currentScope = this.scope;

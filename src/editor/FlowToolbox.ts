@@ -23,6 +23,7 @@ export class FlowToolbox {
             { label: 'Task', icon: '⚡', type: 'task' },
             { label: 'Action', icon: '🎬', type: 'action' },
             { label: 'If Condition', icon: '❓', type: 'condition' },
+            { label: 'Variable', icon: '📦', type: 'VariableDecl' },
             { label: 'Pfeil', icon: '🔗', type: 'Connection' },
             { label: 'Notiz', icon: '📝', type: 'comment' }
         ];
