@@ -283,9 +283,10 @@ export class ProjectStore {
     // ─────────────────────────────────────────────
 
     private reduceSetProperty(m: { target: any; path: string; value: any }): boolean {
-        ProjectStore.logger.debug(`[DND-FLOW 6] REDUCE SET_PROPERTY on ${m.target?.id}: ${m.path} = ${m.value}`);
+        console.log(`[ProjectStore] REDUCE SET_PROPERTY on ${m.target?.name || m.target?.id}: ${m.path} = ${m.value}`);
         if (!m.target) return false;
         PropertyHelper.setPropertyValue(m.target, m.path, m.value);
+        console.log(`[ProjectStore] After setPropertyValue, target[${m.path}] = ${m.target[m.path]}`);
         return true;
     }
 

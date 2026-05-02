@@ -208,7 +208,9 @@ export class StageRenderer {
         sortedObjects.forEach((rawObj) => {
             // --- INJECT THEME STYLES ---
             const mergedStyle = themeRegistry.getMergedStyle(rawObj.className || 'TObject', rawObj.style);
-            const obj = { ...rawObj, style: mergedStyle }; 
+            // Use Object.create to preserve getters/setters from the class prototype (like backgroundImage)
+            const obj = Object.create(rawObj);
+            obj.style = mergedStyle;
             // ---------------------------
             
             const objId = obj.id || obj.name;
@@ -793,7 +795,9 @@ export class StageRenderer {
         
         // --- INJECT THEME STYLES ---
         const mergedStyle = themeRegistry.getMergedStyle(obj.className || 'TObject', obj.style);
-        obj = { ...obj, style: mergedStyle }; 
+        const themedObj = Object.create(obj);
+        themedObj.style = mergedStyle;
+        obj = themedObj;
         // ---------------------------
         
         // SONDERFALL: Wenn das Objekt die Stage selbst ist (z.B. Hintergrund/Grid wird reaktiv geändert)

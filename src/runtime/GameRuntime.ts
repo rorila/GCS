@@ -709,8 +709,6 @@ export class GameRuntime implements IVariableHost {
         const obj = this.objects.find(o => o.id === objectId);
         if (!obj) return;
 
-
-
         const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
         
         let hasTaskMap: any = undefined;

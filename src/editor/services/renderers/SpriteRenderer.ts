@@ -9,6 +9,8 @@ export class SpriteRenderer {
         const hasImageList = !!obj.imageListId;
         const hasDirectImage = !!obj.backgroundImage;
         
+        
+        
         let imageListObj: any = null;
         if (hasImageList) {
             imageListObj = ctx.host.lastRenderedObjects.find(o => o.name === obj.imageListId || o.id === obj.imageListId);
@@ -21,6 +23,7 @@ export class SpriteRenderer {
         }
 
         const effectiveHasImage = hasDirectImage || (hasImageList && imageListObj && (imageListObj.backgroundImage || imageListObj.src));
+        
         
         el.style.backgroundColor = effectiveHasImage ? 'transparent' : (obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b');
         

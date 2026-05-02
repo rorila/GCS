@@ -38,6 +38,7 @@ export class InspectorEventHandler {
             if (propertyPath === 'none') {
                 return null; // Suppress property update for action-only controls
             }
+
             InspectorEventHandler.logger.debug(`Using explicit property path: ${propertyPath}`);
         } else {
             // LEGACY FALLBACK: Resolve from control name
@@ -73,6 +74,20 @@ export class InspectorEventHandler {
             // --- Specialized mappings ---
             if (propertyPath === 'ActionType') propertyPath = 'type';
             if (propertyPath === 'Aktions-Typ') propertyPath = 'type';
+        }
+
+        // CRITICAL FIX: Guard against event names that land as top-level properties
+        // instead of inside the events map. This happens when template expressions
+        // like "events.${value}" are not fully resolved, or when legacy controls
+        // use bare event names (e.g., "onTimer" instead of "events.onTimer").
+        // Without this guard, obj.onTimer = 'TaskName' is set instead of obj.events.onTimer.
+        if (propertyPath.startsWith('on') && !propertyPath.includes('.') && selectedObject.events !== undefined) {
+            // Check if this is actually a known event name for this object
+            const events = typeof selectedObject.getEvents === 'function' ? selectedObject.getEvents() : [];
+            if (events.includes(propertyPath) || (selectedObject._supportedEvents && selectedObject._supportedEvents.includes(propertyPath))) {
+                InspectorEventHandler.logger.debug(`Redirecting bare event property "${propertyPath}" → "events.${propertyPath}"`);
+                propertyPath = `events.${propertyPath}`;
+            }
         }
 
         // 2. Capture old value safely

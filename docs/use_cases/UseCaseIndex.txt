@@ -1131,3 +1131,5 @@ Lines: 585
  
 USE_CASE: Universal Data Setter (Pascal Export) - src/editor/PascalCodeGenerator.ts (getActionPascalCode), src/editor/PascalCodeParser.ts (parseSimpleStatement), src/editor/refactoring/ObjectRefactoringService.ts (renameObject)
 
+
+BUGFIX: Image Picker Inspector Data Binding. Beteiligte Dateien: src/editor/inspector/renderers/InspectorSectionRenderer.ts (Methode: renderProperty, Zeile 666)

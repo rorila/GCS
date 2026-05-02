@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "Spawning Shooter Demo",
+    "name": "Spawning Shooter Demo2mitSpriteTemplates",
     "version": "1.0",
     "author": "Antigravity",
     "description": "",
-    "_sourcePath": "projects/project_Spawning_Shooter_Demo.json"
+    "_sourcePath": "projects/Spawning_Shooter_Demo2mitSpriteTemplates.json"
   },
   "stages": [
     {
@@ -366,22 +366,25 @@
             "borderColor": "#2e7d32",
             "borderWidth": 2
           },
-          "interval": 1000,
+          "interval": 2000,
           "enabled": true,
-          "maxInterval": 0,
+          "maxInterval": 10,
           "currentInterval": 0
         },
         {
-          "className": "TGroupPanel",
-          "id": "obj_1777740760527_m6rp7zmqf",
-          "name": "GroupPanel_13",
+          "className": "TSpriteTemplate",
+          "id": "obj_1777740848332_3sp9swtk8",
+          "name": "UfoTemplate",
           "scope": "stage",
-          "isHiddenInRun": false,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onCollision": "Pruefe Rand"
+          },
           "visible": true,
-          "x": 10,
+          "x": 7,
           "y": 10,
           "width": 5,
           "height": 2,
@@ -389,11 +392,30 @@
           "rotation": 0,
           "align": "NONE",
           "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
           },
-          "caption": ""
+          "velocityX": -0.3,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "./images/Ufos/ufo_transparet.png",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0,
+          "poolSize": 10,
+          "autoRecycle": true,
+          "lifetime": 0
         }
       ],
       "actions": [
@@ -480,6 +502,21 @@
           "showDetails": false,
           "type": "play_audio",
           "target": "aud_schuss"
+        },
+        {
+          "id": "node-1777740914772",
+          "details": "",
+          "name": "SpawANewUfo",
+          "showDetails": false,
+          "type": "spawn_object",
+          "x": 60,
+          "y": 2
+        },
+        {
+          "id": "node-1777741488117",
+          "details": "",
+          "name": "action",
+          "showDetails": false
         }
       ],
       "tasks": [
@@ -702,6 +739,29 @@
               "y": 240
             }
           }
+        },
+        {
+          "name": "CreateANewUfo",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Play_Schuss",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CreateANewUfo": {
+              "x": 40,
+              "y": 40
+            },
+            "Play_Schuss": {
+              "x": 240,
+              "y": 40
+            }
+          }
         }
       ],
       "variables": [
@@ -787,7 +847,8 @@
         "onTouchStart",
         "onTouchMove",
         "onTouchEnd"
-      ]
+      ],
+      "startAnimation": "BottomMiddle"
     }
   ],
   "activeStageId": "stage-1",

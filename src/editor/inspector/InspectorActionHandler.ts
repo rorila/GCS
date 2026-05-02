@@ -1,5 +1,6 @@
 import { projectActionRegistry } from '../../services/registry/ActionRegistry';
 import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 import { ReactiveRuntime } from '../../runtime/ReactiveRuntime';
 import { GameProject } from '../../model/types';
 import { InspectorHost } from './InspectorHost';
@@ -170,47 +171,77 @@ export class InspectorActionHandler {
         InspectorActionHandler.logger.info('Generic delete finished for:', name);
     }
 
+    private resolveOriginalObject(obj: any): any {
+        let originalObj = obj.__rawSource;
+        if (!originalObj) {
+            const objectIdentifier = obj?.id || obj?.name;
+            originalObj = projectObjectRegistry.getObjects().find((o: any) => o.id === objectIdentifier || o.name === objectIdentifier);
+        }
+        return originalObj || obj;
+    }
+
     private async handleBrowseImage(buttonDef: any, obj: any): Promise<void> {
         const propName = buttonDef.property || buttonDef.actionData?.property;
-        InspectorActionHandler.logger.info('Opening image picker for:', propName);
+        
 
         const chosen = await MediaPickerDialog.show({
             mode: 'image',
             currentValue: obj[propName] || ''
         });
+        
+        
+        
         if (chosen !== null) {
-            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: chosen });
-            if (propName === 'src' && 'backgroundImage' in obj) {
-                projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'backgroundImage', value: chosen });
+            const targetObj = this.resolveOriginalObject(obj);
+            
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: targetObj, path: propName, value: chosen });
+            
+            if (propName === 'src' && 'backgroundImage' in targetObj) {
+                
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: targetObj, path: 'backgroundImage', value: chosen });
             }
+            
+            // Auch das selektierte UI-Objekt aktualisieren, damit Inspector sich sofort aktualisiert
+            if (targetObj !== obj) {
+                PropertyHelper.setPropertyValue(obj, propName, chosen);
+                if (propName === 'src' && 'backgroundImage' in obj) {
+                    PropertyHelper.setPropertyValue(obj, 'backgroundImage', chosen);
+                }
+            }
+            
+            
             this.host.update(obj);
         }
     }
 
     private async handleBrowseAudio(buttonDef: any, obj: any): Promise<void> {
         const propName = buttonDef.property || buttonDef.actionData?.property;
-        InspectorActionHandler.logger.info('Opening audio picker for:', propName);
-
         const chosen = await MediaPickerDialog.show({
             mode: 'audio',
             currentValue: obj[propName] || ''
         });
         if (chosen !== null) {
-            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: chosen });
+            const targetObj = this.resolveOriginalObject(obj);
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: targetObj, path: propName, value: chosen });
+            if (targetObj !== obj) {
+                PropertyHelper.setPropertyValue(obj, propName, chosen);
+            }
             this.host.update(obj);
         }
     }
 
     private async handleBrowseVideo(buttonDef: any, obj: any): Promise<void> {
         const propName = buttonDef.property || buttonDef.actionData?.property;
-        InspectorActionHandler.logger.info('Opening video picker for:', propName);
-
         const chosen = await MediaPickerDialog.show({
             mode: 'video',
             currentValue: obj[propName] || ''
         });
         if (chosen !== null) {
-            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: chosen });
+            const targetObj = this.resolveOriginalObject(obj);
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: targetObj, path: propName, value: chosen });
+            if (targetObj !== obj) {
+                PropertyHelper.setPropertyValue(obj, propName, chosen);
+            }
             this.host.update(obj);
         }
     }
@@ -372,10 +403,21 @@ export class InspectorActionHandler {
         const eventName = def.property ? def.property.replace('events.', '') : (def.name || '').substring(6).replace('Select', '').replace('Input', '');
         InspectorActionHandler.logger.info(`Mapping event ${eventName} to task: ${value}`);
 
-        const oldVal = obj.events ? obj.events[eventName] : undefined;
+        // CRITICAL FIX: Resolve to the ORIGINAL project object, not the Inspector preview clone.
+        // Preview objects are ephemeral and not persisted in project.stages[].objects[].
+        // Without this, event mappings (e.g. onTimer → CreateANewUfo) are lost when
+        // safeDeepCopy(project) is called at runtime start.
+        const targetObj = this.resolveOriginalObject(obj);
+
+        const oldVal = targetObj.events ? targetObj.events[eventName] : undefined;
 
         if (oldVal !== value) {
-            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: `events.${eventName}`, value });
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: targetObj, path: `events.${eventName}`, value });
+            // Also sync the preview object so the Inspector UI stays consistent
+            if (obj !== targetObj) {
+                if (!obj.events) obj.events = {};
+                obj.events[eventName] = value;
+            }
             this.host.update(obj);
         }
     }

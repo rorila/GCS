@@ -1,4 +1,4 @@
-﻿import { TPropertyDef, IRuntimeComponent } from './TComponent';
+import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
 import { Logger } from '../utils/Logger';
 
@@ -76,7 +76,6 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         if (this.name === 'SynchronTimer') {
             const mp = (window as any).multiplayerManager;
             if (!mp || !mp.isConnected) {
-                // logger.info(`[TTimer] SynchronTimer suppressed (Singleplayer mode)`);
                 return;
             }
         }
@@ -84,7 +83,6 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         if (this.enabled) {
             this.timerId = window.setInterval(() => {
                 this.currentInterval++;
-                // logger.info(`[TTimer] ${this.name}: Interval ${this.currentInterval}/${this.maxInterval || '∞'}`);
 
                 // Fire onTimer event via callback (legacy)
                 if (this.onTimerCallback) {

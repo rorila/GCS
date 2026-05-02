@@ -133,3 +133,7 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
  
 - **Refactoring:** PascalCodeGenerator und PascalCodeParser auf Universal Data Setter aktualisiert. RefactoringManager berücksichtigt Änderungen in der keyvalue-Struktur bei Objekt-Umbenennungen.
 
+
+## [Unreleased] - Image Picker Inspector Fix
+- Behoben: Die Eigenschaften von image_picker, audio_picker und video_picker wurden im Inspector unter dem falschen Feldnamen (mit Suffix 'Input') gespeichert, was dazu fuehrte, dass Sprites ihr Bild nicht speichern konnten.
+

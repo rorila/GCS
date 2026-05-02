@@ -8,8 +8,6 @@ import { NotificationToast } from '../../ui/NotificationToast';
 import { PropertyPickerDialog } from '../PropertyPickerDialog';
 import { MediaPickerDialog } from '../MediaPickerDialog';
 
-
-
 export class InspectorSectionRenderer {
     public static renderSections(obj: IInspectable, parent: HTMLElement, context: IInspectorContext): void {
         const groupColors = GROUP_COLORS;
@@ -663,7 +661,7 @@ export class InspectorSectionRenderer {
             input.onchange = () => {
                 if (context.eventHandler) {
                     const event = context.eventHandler.handleControlChange(
-                        input.name, input.value, obj,
+                        propDef.name, input.value, obj,
                         { ...propDef, property: propDef.name }
                     );
                     if (event) {

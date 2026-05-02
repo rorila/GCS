@@ -492,3 +492,5 @@ pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verw
 - **Runtime**: `TaskExecutor.executeFlowChart()` initialisiert lokale Variablen als TVariable-like Objekte in `vars`, bevor der Task-Graph abgelaufen wird.
 - **Visuell**: Lokale Variablen zeigen ein Schloss-Icon (statt Paket-Icon) und gruene Textfarbe im FlowDiagramm.
 
+
+- **DO NOT** use input.name in handleControlChange when the input's name has an 'Input' suffix appended (e.g. image_picker). Always use propDef.name to ensure the correct object property is targeted.
