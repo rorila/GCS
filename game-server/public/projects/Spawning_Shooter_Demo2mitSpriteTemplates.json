@@ -375,6 +375,32 @@
           "currentInterval": 0
         },
         {
+          "className": "TPanel",
+          "id": "obj_1777744304430_0qblfyq6m",
+          "name": "Panel_14",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 48,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
           "className": "TSpriteTemplate",
           "id": "obj_1777740848332_3sp9swtk8",
           "name": "UfoTemplate",
@@ -384,11 +410,12 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onCollision": "Pruefe Rand"
+            "onCollision": "Pruefe Rand",
+            "onBoundaryHit": "Pruefe Rand"
           },
           "visible": true,
-          "x": 7,
-          "y": 10,
+          "x": 52,
+          "y": 2,
           "width": 5,
           "height": 2,
           "zIndex": 0,
@@ -472,16 +499,16 @@
         },
         {
           "name": "Action_BounceL",
-          "type": "property",
+          "type": "negate",
           "changes": {
-            "Target.velocityX": -0.3
+            "self.velocityX": ""
           }
         },
         {
           "name": "Action_BounceR",
-          "type": "property",
+          "type": "negate",
           "changes": {
-            "Target.velocityX": 0.3
+            "self.velocityX": ""
           }
         },
         {
@@ -513,7 +540,11 @@
           "showDetails": false,
           "type": "spawn_object",
           "x": 60,
-          "y": 2
+          "y": 2,
+          "templateId": "UfoTemplate",
+          "referenceObject": "Panel_14",
+          "offsetX": 0,
+          "offsetY": 0
         },
         {
           "id": "node-1777741488117",
@@ -751,6 +782,11 @@
               "name": "Play_Schuss",
               "type": "action",
               "layout": "horizontal"
+            },
+            {
+              "name": "SpawANewUfo",
+              "type": "action",
+              "layout": "horizontal"
             }
           ],
           "triggerMode": "local-sync",
@@ -762,6 +798,10 @@
             },
             "Play_Schuss": {
               "x": 240,
+              "y": 40
+            },
+            "SpawANewUfo": {
+              "x": 460,
               "y": 40
             }
           }
