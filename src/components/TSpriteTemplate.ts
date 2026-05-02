@@ -53,9 +53,23 @@ export class TSpriteTemplate extends TSprite {
     }
 
     public getEvents(): string[] {
+        // OVERRIDE: TWindow.getEvents() gibt [] zurück wenn isHiddenInRun=true.
+        // Für TSpriteTemplate ist das falsch, da die Events für die gespawnten
+        // Pool-Instanzen (echte TSprites) konfiguriert werden, nicht für das Template.
+        // Deshalb hier die vollständige Event-Kette explizit zusammenbauen.
         return [
-            ...super.getEvents(),
-            'onPoolExhausted',   // Alle Instanzen belegt und autoRecycle=false
+            // TComponent-Events
+            'onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave',
+            'onDragStart', 'onDragEnd', 'onDrop',
+            'onTouchStart', 'onTouchMove', 'onTouchEnd',
+            // TWindow-Events
+            'onFocus', 'onBlur', 'onFlipMidpoint',
+            // TSprite-Events
+            'onCollision', 'onCollisionLeft', 'onCollisionRight',
+            'onCollisionTop', 'onCollisionBottom',
+            'onBoundaryHit', 'onStageExit',
+            // TSpriteTemplate-eigene Events
+            'onPoolExhausted',
         ];
     }
 }
