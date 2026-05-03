@@ -17,14 +17,6 @@
     }
   },
   "flow": {
-    "stage": {
-      "cols": 100,
-      "rows": 100,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#1e1e1e"
-    },
     "elements": [],
     "connections": []
   },
@@ -128,21 +120,113 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [],
-      "actions": [],
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_1777794779562_ix9boagcl",
+          "name": "Button_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_3",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777794779910_9dc896rdn",
+          "name": "Button_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_4",
+          "icon": ""
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1777794764696",
+          "details": "",
+          "name": "ShowTheHighscoreStage_Unique",
+          "showDetails": false,
+          "type": "navigate_stage"
+        },
+        {
+          "id": "node-1777794767678",
+          "details": "",
+          "name": "Action1",
+          "showDetails": false
+        }
+      ],
       "tasks": [
         {
           "name": "SwitchToTheHighscoreStage",
           "description": "",
-          "actionSequence": [],
+          "actionSequence": [
+            {
+              "name": "ShowTheHighscoreStage_Unique",
+              "type": "action"
+            }
+          ],
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
             "SwitchToTheHighscoreStage": {
-              "x": 400,
-              "y": 200
+              "x": 40,
+              "y": 40
+            },
+            "ShowTheHighscoreStage_Unique": {
+              "x": 300,
+              "y": 300
             }
-          }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1777794767678",
+              "type": "action",
+              "x": 300,
+              "y": 300,
+              "width": 300,
+              "height": 60,
+              "properties": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "type": "navigate_stage",
+                "isLinked": true
+              }
+            }
+          ]
         }
       ],
       "variables": [],
@@ -153,6 +237,24 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#16da36"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "stage-1777794772794",
+      "name": "Stage 1",
+      "type": "standard",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
       },
       "flowCharts": {}
     }
