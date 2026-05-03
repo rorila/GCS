@@ -26,6 +26,28 @@ export function registerObjectPoolActions() {
             if (refObj) {
                 const offsetX = action.offsetX !== undefined ? Number(action.offsetX) : 0;
                 const offsetY = action.offsetY !== undefined ? Number(action.offsetY) : 0;
+                
+                // MULTI-SPAWN LOGIC: Wenn das Bezugsobjekt ein Template ist und ein spezieller Modus gewählt wurde
+                if (refObj.className === 'TSpriteTemplate' && action.spawnMode && action.spawnMode !== 'normal') {
+                    const activeInstances = context.objects.filter(o => o.templateId === refObj.id && o.visible === true);
+                    
+                    if (activeInstances.length === 0) return null; // Keine Ufos da -> kein Schuss
+
+                    if (action.spawnMode === 'all_active') {
+                        // Alle aktiven Ufos schießen
+                        activeInstances.forEach(inst => {
+                            context.spawnObject(templateId, (inst.x || 0) + offsetX, (inst.y || 0) + offsetY);
+                        });
+                        return true; // Erfolgreich gespawnt
+                    } else if (action.spawnMode === 'random_active') {
+                        // Nur ein zufälliges aktives Ufo schießt
+                        const randomIndex = Math.floor(Math.random() * activeInstances.length);
+                        const inst = activeInstances[randomIndex];
+                        return context.spawnObject(templateId, (inst.x || 0) + offsetX, (inst.y || 0) + offsetY);
+                    }
+                }
+
+                // NORMAL LOGIC: Nur einmal am Bezugsobjekt spawnen
                 finalX = (refObj.x || 0) + offsetX;
                 finalY = (refObj.y || 0) + offsetY;
             }
@@ -42,6 +64,7 @@ export function registerObjectPoolActions() {
         parameters: [
             { name: 'templateId', label: 'Template', type: 'select', source: 'objects', hint: 'Das TSpriteTemplate' },
             { name: 'referenceObject', label: 'Spawnen bei Objekt', type: 'select', source: 'objects', hint: 'Optional: Koords von dieses Objekts übernehmen' },
+            { name: 'spawnMode', label: 'Template Spawn Modus', type: 'select', options: ['normal', 'all_active', 'random_active'], defaultValue: 'normal', hint: 'Gilt nur, wenn das Bezugsobjekt ein Template ist.' },
             { name: 'offsetX', label: 'Offset X', type: 'number', hint: 'Verschiebung auf X-Achse' },
             { name: 'offsetY', label: 'Offset Y', type: 'number', hint: 'Verschiebung auf Y-Achse' },
             { name: 'x', label: 'Absolute X-Position', type: 'number', hint: 'Nur wenn kein Bezugsobjekt gewählt ist' },
