@@ -5,7 +5,7 @@ import { GameExporter } from '../export/GameExporter';
 import { Logger } from '../utils/Logger';
 import { IStorageAdapter } from '../ports/IStorageAdapter';
 import { ServerStorageAdapter } from '../adapters/ServerStorageAdapter';
-import { LocalStorageAdapter } from '../adapters/LocalStorageAdapter';
+import { IndexedDBAdapter } from '../adapters/IndexedDBAdapter';
 import { NativeFileAdapter } from '../adapters/NativeFileAdapter';
 
 /**
@@ -22,7 +22,7 @@ export class ProjectPersistenceService {
     /** Registrierte Adapter in Prioritätsreihenfolge */
     private adapters: IStorageAdapter[] = [];
 
-    /** Autostart-Adapter (LocalStorage für schnelle Fallback-Saves) */
+    /** Autostart-Adapter (IndexedDB für Crash-Schutz, ersetzt LocalStorage wegen 5MB-Limit) */
     private autoSaveAdapter: IStorageAdapter | null = null;
 
     /** Server-Adapter (für Dev-Modus Persistenz auf Disk) */
@@ -41,7 +41,7 @@ export class ProjectPersistenceService {
     private initAdapters(): void {
         const native = new NativeFileAdapter();
         const server = new ServerStorageAdapter();
-        const local = new LocalStorageAdapter();
+        const idb = new IndexedDBAdapter();
 
         // Registriere verfügbare Adapter in Prioritätsreihenfolge
         if (native.isAvailable()) {
@@ -52,9 +52,9 @@ export class ProjectPersistenceService {
             this.adapters.push(server);
             this.serverAdapter = server;
         }
-        if (local.isAvailable()) {
-            this.adapters.push(local);
-            this.autoSaveAdapter = local;
+        if (idb.isAvailable()) {
+            this.adapters.push(idb);
+            this.autoSaveAdapter = idb;
         }
 
         ProjectPersistenceService.logger.info(
@@ -149,6 +149,9 @@ export class ProjectPersistenceService {
         setTimeout(() => document.body.removeChild(a), 2000);
     }
 
+    /** Flag: LocalStorage-Quota erschöpft → keine weiteren Versuche */
+    private localStorageQuotaExceeded: boolean = false;
+
     /**
      * Persists the project to browser's LocalStorage.
      * Delegiert an LocalStorageAdapter.
@@ -157,9 +160,20 @@ export class ProjectPersistenceService {
         const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
 
+        // Nach einem QuotaExceeded-Fehler keine weiteren Versuche starten
+        if (this.localStorageQuotaExceeded) return;
+
         if (this.autoSaveAdapter) {
             this.autoSaveAdapter.save(targetProject).catch(err => {
-                ProjectPersistenceService.logger.error('Auto-save failed:', err);
+                if (err?.name === 'QuotaExceededError' || (err?.message && err.message.includes('quota'))) {
+                    this.localStorageQuotaExceeded = true;
+                    ProjectPersistenceService.logger.warn(
+                        'LocalStorage-Quota erschöpft. Auto-Save in LocalStorage deaktiviert. ' +
+                        'Bitte speichern Sie das Projekt manuell auf Disk (Strg+S).'
+                    );
+                } else {
+                    ProjectPersistenceService.logger.error('Auto-save failed:', err);
+                }
             });
         }
     }

@@ -855,8 +855,10 @@ export class EditorDataManager {
             EditorDataManager.logger.info('Force Reload: Fetching project from server...');
             const projectData = await projectPersistenceService.fetchProjectFromServer();
 
-            // Overwrite LocalStorage
-            localStorage.setItem('gcs_last_project', JSON.stringify(projectData));
+            // In IndexedDB speichern (ersetzt LocalStorage seit v3.32.0)
+            const { IndexedDBAdapter } = await import('../../adapters/IndexedDBAdapter');
+            const idb = new IndexedDBAdapter();
+            await idb.save(projectData);
 
             EditorDataManager.logger.info('Force Reload successful. Reloading page...');
             window.location.reload();

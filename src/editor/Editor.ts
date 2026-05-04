@@ -256,7 +256,27 @@ export class Editor implements IViewHost {
             return;
         }
 
-        // 1. LocalStorage-Projekt lesen
+        // 1. IndexedDB-Projekt lesen (neuer primärer Speicherort seit v3.32.0)
+        try {
+            const { IndexedDBAdapter } = await import('../adapters/IndexedDBAdapter');
+            const idb = new IndexedDBAdapter();
+            if (idb.isAvailable()) {
+                const idbProject = await idb.load();
+                if (idbProject) {
+                    const name = (idbProject as any).meta?.name || 'Unbenannt';
+                    const sourcePath = (idbProject as any).meta?._sourcePath || `projects/${name.replace(/[^a-zA-Z0-9_\\-]/g, '_')}.json`;
+                    this.loadProject(idbProject, sourcePath);
+                    Editor.logger.info(`Projekt aus IndexedDB geladen: "${name}" (Pfad: ${sourcePath})`);
+                    // Alten LocalStorage-Eintrag aufräumen (Migration)
+                    localStorage.removeItem('gcs_last_project');
+                    return;
+                }
+            }
+        } catch (err) {
+            Editor.logger.warn('IndexedDB-Restore fehlgeschlagen, versuche LocalStorage-Fallback:', err);
+        }
+
+        // 2. Fallback: Altes LocalStorage-Projekt (Migration)
         const localJson = localStorage.getItem('gcs_last_project');
         let localProject: any = null;
         if (localJson) {
@@ -267,17 +287,18 @@ export class Editor implements IViewHost {
             }
         }
 
-        // 2. LocalStorage vorhanden → direkt laden (Priorität!)
         if (localProject) {
             const name = localProject.meta?.name || 'Unbenannt';
             const sourcePath = localProject.meta?._sourcePath || `projects/${(localProject.meta?.name || 'Unbenannt').replace(/[^a-zA-Z0-9_\\-]/g, '_')}.json`;
             this.loadProject(localProject, sourcePath);
-            Editor.logger.info(`Projekt aus LocalStorage geladen: "${name}" (Pfad: ${sourcePath})`);
+            Editor.logger.info(`Projekt aus LocalStorage migriert: "${name}" (Pfad: ${sourcePath})`);
+            // Nach erfolgreicher Migration: LocalStorage-Eintrag entfernen
+            localStorage.removeItem('gcs_last_project');
             return;
         }
 
-        // 3. Kein LocalStorage → leeres Projekt (User hat Cache gelöscht)
-        Editor.logger.info('Kein LocalStorage-Projekt gefunden → neues leeres Projekt');
+        // 3. Kein Projekt gefunden → neues leeres Projekt
+        Editor.logger.info('Kein gespeichertes Projekt gefunden → neues leeres Projekt');
         this.switchView('stage');
     }
 

@@ -1132,6 +1132,14 @@ export class StageRenderer {
                     el.style.opacity = String(obj.opacity);
                 }
 
+                // Größen-Sync (für grow/shrink Animationen)
+                if (obj.width !== undefined) {
+                    el.style.width = `${obj.width * cellSize}px`;
+                }
+                if (obj.height !== undefined) {
+                    el.style.height = `${obj.height * cellSize}px`;
+                }
+
             } else {
                 // Fallback Layout für Inspektion
                 if (obj.x !== undefined) el.style.left = `${transX}px`;
