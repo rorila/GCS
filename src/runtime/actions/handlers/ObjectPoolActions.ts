@@ -16,6 +16,8 @@ export function registerObjectPoolActions() {
         const templateObj = resolveTarget(templateId, context.objects, context.vars, context.eventData);
         if (templateObj) {
             templateId = templateObj.id || templateObj.name;
+        } else {
+            runtimeLogger.warn(`[spawn_object] Template "${action.templateId}" nicht gefunden!`);
         }
 
         let finalX = action.x;
@@ -31,18 +33,23 @@ export function registerObjectPoolActions() {
                 if (refObj.className === 'TSpriteTemplate' && action.spawnMode && action.spawnMode !== 'normal') {
                     const activeInstances = context.objects.filter(o => o.templateId === refObj.id && o.visible === true);
                     
-                    if (activeInstances.length === 0) return null; // Keine Ufos da -> kein Schuss
+                    if (activeInstances.length === 0) {
+                        runtimeLogger.debug(`[spawn_object] ${action.spawnMode}: Keine aktiven Instanzen für "${refObj.name}" – übersprungen`);
+                        return null;
+                    }
 
                     if (action.spawnMode === 'all_active') {
                         // Alle aktiven Ufos schießen
+                        runtimeLogger.info(`[spawn_object] all_active: ${activeInstances.length} Instanzen von "${refObj.name}" schießen`);
                         activeInstances.forEach(inst => {
                             context.spawnObject(templateId, (inst.x || 0) + offsetX, (inst.y || 0) + offsetY);
                         });
-                        return true; // Erfolgreich gespawnt
+                        return true;
                     } else if (action.spawnMode === 'random_active') {
                         // Nur ein zufälliges aktives Ufo schießt
                         const randomIndex = Math.floor(Math.random() * activeInstances.length);
                         const inst = activeInstances[randomIndex];
+                        runtimeLogger.info(`[spawn_object] random_active: ${inst.name} @ (${inst.x}, ${inst.y}) schießt`);
                         return context.spawnObject(templateId, (inst.x || 0) + offsetX, (inst.y || 0) + offsetY);
                     }
                 }
@@ -50,6 +57,8 @@ export function registerObjectPoolActions() {
                 // NORMAL LOGIC: Nur einmal am Bezugsobjekt spawnen
                 finalX = (refObj.x || 0) + offsetX;
                 finalY = (refObj.y || 0) + offsetY;
+            } else {
+                runtimeLogger.warn(`[spawn_object] Bezugsobjekt "${action.referenceObject}" nicht gefunden!`);
             }
         }
 

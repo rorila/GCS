@@ -210,7 +210,12 @@ export class StageRenderer {
             const mergedStyle = themeRegistry.getMergedStyle(rawObj.className || 'TObject', rawObj.style);
             // Use Object.create to preserve getters/setters from the class prototype (like backgroundImage)
             const obj = Object.create(rawObj);
-            obj.style = mergedStyle;
+            Object.defineProperty(obj, 'style', {
+                value: mergedStyle,
+                enumerable: true,
+                configurable: true,
+                writable: true
+            });
             // ---------------------------
             
             const objId = obj.id || obj.name;
@@ -741,7 +746,7 @@ export class StageRenderer {
             // im Run-Modus transparent.
             if (className === 'TGroupPanel' && !this.host.runMode) {
                 el.style.background = (bgColor && bgColor !== 'transparent') ? bgColor : 'rgba(255, 255, 255, 0.05)';
-                // �berschreibe explizit m�gliche '0px solid transparent' Borders vom Standard-Styling
+                // berschreibe explizit mgliche '0px solid transparent' Borders vom Standard-Styling
                 if (!obj.style?.borderWidth || obj.style.borderWidth === 0 || obj.style.borderWidth === '0') {
                     el.style.border = '2px dashed rgba(0, 255, 128, 0.6)';
                 }
@@ -796,7 +801,12 @@ export class StageRenderer {
         // --- INJECT THEME STYLES ---
         const mergedStyle = themeRegistry.getMergedStyle(obj.className || 'TObject', obj.style);
         const themedObj = Object.create(obj);
-        themedObj.style = mergedStyle;
+        Object.defineProperty(themedObj, 'style', {
+            value: mergedStyle,
+            enumerable: true,
+            configurable: true,
+            writable: true
+        });
         obj = themedObj;
         // ---------------------------
         

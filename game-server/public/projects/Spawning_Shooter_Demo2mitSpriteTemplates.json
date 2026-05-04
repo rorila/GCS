@@ -98,8 +98,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -138,8 +138,8 @@
             "onBoundaryHit": "DeleteBullet"
           },
           "visible": true,
-          "x": 29,
-          "y": 15,
+          "x": 30,
+          "y": 34,
           "width": 1,
           "height": 1,
           "zIndex": 0,
@@ -377,13 +377,13 @@
         {
           "className": "TPanel",
           "id": "obj_1777744304430_0qblfyq6m",
-          "name": "Panel_14",
+          "name": "UfoBasis",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 48,
+          "x": 59,
           "y": 2,
           "width": 5,
           "height": 2,
@@ -410,11 +410,11 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onCollision": "Pruefe Rand",
+            "onCollision": "",
             "onBoundaryHit": "Pruefe Rand"
           },
           "visible": true,
-          "x": 52,
+          "x": 53,
           "y": 2,
           "width": 5,
           "height": 2,
@@ -457,12 +457,12 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onCollision": "Kugel trifft Ziel",
-            "onBoundaryHit": "DeleteBullet"
+            "onCollision": "",
+            "onBoundaryHit": ""
           },
           "visible": true,
-          "x": 59,
-          "y": 2,
+          "x": 52,
+          "y": 4,
           "width": 1,
           "height": 1,
           "zIndex": 0,
@@ -521,7 +521,7 @@
             "borderColor": "#2e7d32",
             "borderWidth": 2
           },
-          "interval": 800,
+          "interval": 1000,
           "enabled": true,
           "maxInterval": 0,
           "currentInterval": 0
@@ -577,27 +577,6 @@
           "offsetY": -1
         },
         {
-          "name": "Action_BounceL",
-          "type": "negate",
-          "changes": {
-            "self.velocityX": ""
-          }
-        },
-        {
-          "name": "Action_BounceR",
-          "type": "negate",
-          "changes": {
-            "self.velocityX": ""
-          }
-        },
-        {
-          "name": "PlayTreffer",
-          "type": "play_audio",
-          "showDetails": false,
-          "details": "(spawn_object)",
-          "target": "aud_Treffer"
-        },
-        {
           "name": "Play_Treffer",
           "type": "play_audio",
           "showDetails": false,
@@ -628,15 +607,57 @@
         {
           "id": "node-1777741488117",
           "details": "",
-          "name": "action",
+          "name": "LetUfoExplore",
           "showDetails": false,
-          "type": "spawn_object",
+          "type": "animate",
           "templateId": "UfoBulletTemplate",
           "referenceObject": "UfoTemplate",
           "spawnMode": "random_active",
           "offsetY": 5,
           "x": 0,
-          "y": 0
+          "y": 0,
+          "effect": "explode"
+        },
+        {
+          "id": "auto_Cond_UfoTreffer_0_1777819219387",
+          "details": "(Cond_UfoTreffer)",
+          "condition": "Bedingung",
+          "type": "Cond_UfoTreffer",
+          "body": [],
+          "elseBody": [],
+          "name": "Cond_UfoTreffer",
+          "showDetails": true
+        },
+        {
+          "id": "node-1777819568846",
+          "details": "",
+          "name": "LetBulletExplore",
+          "showDetails": false,
+          "type": "animate"
+        },
+        {
+          "id": "node-1777823590208",
+          "details": "",
+          "name": "ChangeUfoXDirection",
+          "showDetails": false,
+          "type": "negate",
+          "changes": {
+            "self.velocityX": true
+          }
+        },
+        {
+          "id": "node-1777824498583",
+          "details": "",
+          "name": "UfosSchiessen",
+          "showDetails": false,
+          "type": "spawn_object",
+          "templateId": "UfoBulletTemplate",
+          "referenceObject": "UfoTemplate",
+          "offsetX": 0,
+          "x": 0,
+          "y": 0,
+          "offsetY": 0,
+          "spawnMode": "random_active"
         }
       ],
       "tasks": [
@@ -655,6 +676,10 @@
             {
               "name": "Action_ScoreUp",
               "type": "action"
+            },
+            {
+              "name": "LetUfoExplore",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -670,11 +695,15 @@
             },
             "Play_Treffer": {
               "x": 40,
-              "y": 240
+              "y": 260
             },
             "Action_ScoreUp": {
               "x": 40,
-              "y": 340
+              "y": 380
+            },
+            "LetUfoExplore": {
+              "x": 40,
+              "y": 500
             }
           }
         },
@@ -764,7 +793,7 @@
                 "operator": "==",
                 "value": "top"
               },
-              "type": "condition",
+              "type": "Cond_UfoTreffer",
               "body": [
                 {
                   "name": "Action_HideBullet",
@@ -804,35 +833,9 @@
           "description": "",
           "actionSequence": [
             {
-              "condition": {
-                "variable": "hitSide",
-                "operator": "==",
-                "value": "left"
-              },
-              "type": "condition",
-              "body": [
-                {
-                  "name": "Action_BounceR",
-                  "type": "action"
-                }
-              ],
-              "elseBody": [
-                {
-                  "condition": {
-                    "variable": "hitSide",
-                    "operator": "==",
-                    "value": "right"
-                  },
-                  "type": "condition",
-                  "body": [
-                    {
-                      "name": "Action_BounceL",
-                      "type": "action"
-                    }
-                  ],
-                  "elseBody": []
-                }
-              ]
+              "name": "ChangeUfoXDirection",
+              "type": "action",
+              "layout": "horizontal"
             }
           ],
           "triggerMode": "local-sync",
@@ -842,21 +845,9 @@
               "x": 40,
               "y": 40
             },
-            "hitSide == left": {
-              "x": 40,
-              "y": 140
-            },
-            "Action_BounceR": {
-              "x": 260,
-              "y": 140
-            },
-            "hitSide == right": {
-              "x": 40,
-              "y": 240
-            },
-            "Action_BounceL": {
-              "x": 260,
-              "y": 240
+            "ChangeUfoXDirection": {
+              "x": 220,
+              "y": 40
             }
           }
         },
@@ -897,7 +888,7 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "action",
+              "name": "UfosSchiessen",
               "type": "action",
               "layout": "horizontal"
             }
@@ -909,9 +900,59 @@
               "x": 40,
               "y": 40
             },
-            "action": {
-              "x": 300,
+            "UfosSchiessen": {
+              "x": 260,
               "y": 40
+            }
+          }
+        },
+        {
+          "name": "UfoTreffer",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftValue": "${otherSprite.templateName}",
+                "rightValue": "BulletTemplate",
+                "rightType": "literal"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "LetUfoExplore",
+                  "type": "action"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoTreffer": {
+              "x": 40,
+              "y": 40
+            },
+            "${otherSprite.templateName} == BulletTemplate": {
+              "x": 40,
+              "y": 140
+            },
+            "LetUfoExplore": {
+              "x": 420,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "ANewTask",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ANewTask": {
+              "x": 400,
+              "y": 200
             }
           }
         }
@@ -1001,6 +1042,234 @@
         "onTouchEnd"
       ],
       "startAnimation": "BottomMiddle"
+    },
+    {
+      "id": "stage-1777881916084",
+      "name": "Stage 2",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TSprite",
+          "id": "obj_1777881927301_0g5fffbrq",
+          "name": "UfoToExplore",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 11,
+          "y": 6,
+          "width": 13,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "./images/Ufos/ufo_transparet.png",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777881952035_gj1e61v2y",
+          "name": "Button_18",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "LetUfoExplore"
+          },
+          "visible": true,
+          "x": 14,
+          "y": 13,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_18",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777882528084_pa5any6pd",
+          "name": "Button_19",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "LetUfoShake"
+          },
+          "visible": true,
+          "x": 33,
+          "y": 13,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_19",
+          "icon": ""
+        },
+        {
+          "className": "TSprite",
+          "id": "ae89b07e-9017-4617-a518-811f9ce61eae",
+          "name": "UfoToShake",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 30,
+          "y": 6,
+          "width": 13,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "./images/Ufos/ufo_transparet.png",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1777881991776",
+          "details": "",
+          "name": "Act_ExploreBigUfo",
+          "showDetails": false,
+          "type": "animate",
+          "effect": "explode",
+          "target": "UfoToExplore"
+        },
+        {
+          "id": "node-1777882583948",
+          "details": "",
+          "name": "Act_ShakeTheUfo",
+          "showDetails": false,
+          "type": "animate",
+          "target": "UfoToShake"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "LetUfoExplore",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ExploreBigUfo",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LetUfoExplore": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ExploreBigUfo": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LetUfoShake",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShakeTheUfo",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LetUfoShake": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ShakeTheUfo": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
     }
   ],
   "activeStageId": "stage-1",
@@ -1011,5 +1280,17 @@
   "flow": {
     "elements": [],
     "connections": []
-  }
+  },
+  "_supportedEvents": [
+    "onClick",
+    "onDoubleClick",
+    "onMouseEnter",
+    "onMouseLeave",
+    "onDragStart",
+    "onDragEnd",
+    "onDrop",
+    "onTouchStart",
+    "onTouchMove",
+    "onTouchEnd"
+  ]
 }

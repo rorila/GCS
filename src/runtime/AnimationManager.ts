@@ -400,17 +400,40 @@ export class AnimationManager {
      * Unterstützt: Direktbilder, Sprite-Sheet-Frames und einfarbige Sprites.
      */
     public explode(target: any, fragments: number = 9, spread: number = 120, duration: number = 600): void {
-        if (!target) return;
+        if (!target) {
+            logger.warn(`[AnimationManager.explode] Ziel-Objekt ist undefined oder null.`);
+            return;
+        }
 
-        // DOM-Element des Sprites finden
-        const spriteEl = document.querySelector(`[data-object-id="${target.id}"]`) as HTMLElement;
+        logger.info(`[AnimationManager.explode] Starte Explode-Animation für Objekt: ${target.name} (ID: ${target.id})`);
+
+        // DOM-Element des Sprites finden. Da Objekte in mehreren Stages (z.B. Blueprint) 
+        // gerendert, aber versteckt sein können, müssen wir das SICHTBARE Element finden!
+        const elements = document.querySelectorAll(`[data-id="${target.id}"]`);
+        let spriteEl: HTMLElement | null = null;
+
+        for (let i = 0; i < elements.length; i++) {
+            const el = elements[i] as HTMLElement;
+            if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+                spriteEl = el;
+                break;
+            }
+        }
+
+        // Fallback, falls alle unsichtbar sind (z.B. wenn es vorher schon hidden war)
+        if (!spriteEl && elements.length > 0) {
+            spriteEl = elements[0] as HTMLElement;
+        }
+
         if (!spriteEl) {
-            logger.warn(`[AnimationManager.explode] DOM-Element für "${target.name}" nicht gefunden.`);
+            logger.warn(`[AnimationManager.explode] DOM-Element für "${target.name}" nicht gefunden. Gesuchter Selektor: [data-id="${target.id}"]`);
             target.visible = false;
             return;
         }
 
         const rect = spriteEl.getBoundingClientRect();
+        logger.info(`[AnimationManager.explode] BoundingClientRect: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
+        
         const gridSize = Math.max(2, Math.round(Math.sqrt(fragments)));
         const fragW = rect.width / gridSize;
         const fragH = rect.height / gridSize;
@@ -422,10 +445,13 @@ export class AnimationManager {
 
         if (imgLayer && imgLayer.tagName === 'DIV') {
             bgImage = imgLayer.style.backgroundImage;
+            logger.info(`[AnimationManager.explode] Bildquelle gefunden (DIV): ${bgImage}`);
         } else if (imgLayer && imgLayer.tagName === 'IMG') {
             bgImage = `url("${(imgLayer as HTMLImageElement).src}")`;
+            logger.info(`[AnimationManager.explode] Bildquelle gefunden (IMG): ${bgImage}`);
         } else {
             bgColor = target.spriteColor || target.style?.backgroundColor || '#ff6b6b';
+            logger.info(`[AnimationManager.explode] Keine Bildquelle gefunden, nutze Hintergrundfarbe: ${bgColor}`);
         }
 
         // Container: Stage-Ebene
@@ -445,11 +471,11 @@ export class AnimationManager {
                 frag.style.position = 'fixed';
                 frag.style.left = `${rect.left + col * fragW}px`;
                 frag.style.top = `${rect.top + row * fragH}px`;
-                frag.style.width = `${fragW}px`;
-                frag.style.height = `${fragH}px`;
+                frag.style.width = `${Math.max(1, fragW)}px`;
+                frag.style.height = `${Math.max(1, fragH)}px`;
                 frag.style.overflow = 'hidden';
                 frag.style.pointerEvents = 'none';
-                frag.style.zIndex = '10000';
+                frag.style.zIndex = '999999'; // Erhöht auf maximales Level
                 frag.style.transition = `transform ${duration}ms ease-out, opacity ${duration}ms ease-in`;
                 frag.style.willChange = 'transform, opacity';
 
@@ -468,21 +494,30 @@ export class AnimationManager {
 
                 document.body.appendChild(frag);
                 fragmentEls.push(frag);
+            }
+        }
 
-                // Animation starten (nach einem Frame für CSS Transition Trigger)
+        // Force Layout Reflow synchron, damit die CSS Transition garantiert auslöst
+        void document.body.offsetHeight;
+
+        // Animation starten: Ein kurzes Timeout stellt sicher, dass der Browser die 
+        // Elemente im DOM gerendert hat, BEVOR die Ziel-Eigenschaften gesetzt werden.
+        // Ohne Timeout gibt es keine Transition, da Start- und Endzustand im selben Frame verrechnet werden!
+        setTimeout(() => {
+            fragmentEls.forEach(frag => {
                 const angle = Math.random() * Math.PI * 2;
                 const dist = spread * (0.5 + Math.random() * 0.5);
                 const rotDeg = (Math.random() - 0.5) * 720;
-                requestAnimationFrame(() => {
-                    frag.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) rotate(${rotDeg}deg) scale(0.1)`;
-                    frag.style.opacity = '0';
-                });
-            }
-        }
+                
+                frag.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) rotate(${rotDeg}deg) scale(0.1)`;
+                frag.style.opacity = '0';
+            });
+        }, 30);
 
         // Aufräumen nach Ablauf
         setTimeout(() => {
             fragmentEls.forEach(f => f.remove());
+            logger.info(`[AnimationManager.explode] Animation für "${target.name}" abgeschlossen. DOM aufgeräumt.`);
         }, duration + 50);
     }
 

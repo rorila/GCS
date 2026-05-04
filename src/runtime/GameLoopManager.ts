@@ -259,7 +259,7 @@ export class GameLoopManager {
         if (deltaTime > 0.014 && deltaTime < 0.019) {
             deltaTime = 0.01666666; 
         } else if (deltaTime > 0.033) {
-            deltaTime = 0.033; // HARTES CLAMPING für Iframe-Lade-Lags (max 30fps step)
+            deltaTime = 0.033; // HARTES CLAMPING fï¿½r Iframe-Lade-Lags (max 30fps step)
         }
 
         // Update input controllers first
@@ -358,6 +358,19 @@ export class GameLoopManager {
                 const parentA = (spriteA as any).parentId || (spriteA.parent ? spriteA.parent.id : null);
                 const parentB = (spriteB as any).parentId || (spriteB.parent ? spriteB.parent.id : null);
                 if (parentA !== parentB) {
+                    continue;
+                }
+
+                // Skip collision if NEITHER sprite has any collision event handler defined.
+                // Without a handler, there is no reason for push-out or event-firing.
+                const eventsA = (spriteA as any).events || (spriteA as any).Tasks || {};
+                const eventsB = (spriteB as any).events || (spriteB as any).Tasks || {};
+                const hasCollisionHandler =
+                    eventsA.onCollision || eventsA.onCollisionTop || eventsA.onCollisionBottom ||
+                    eventsA.onCollisionLeft || eventsA.onCollisionRight ||
+                    eventsB.onCollision || eventsB.onCollisionTop || eventsB.onCollisionBottom ||
+                    eventsB.onCollisionLeft || eventsB.onCollisionRight;
+                if (!hasCollisionHandler) {
                     continue;
                 }
 

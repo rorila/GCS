@@ -17,7 +17,12 @@ export function resolveTarget(targetName: string, objects: any[], vars: Record<s
         return null;
     }
     if (normalized === 'other') {
-        if (eventData?.other) return eventData.other;
+        if (eventData?.otherSprite) return eventData.otherSprite;
+        if (eventData?.other) {
+            // Fallback falls otherSprite nicht mitgegeben wurde
+            const otherName = typeof eventData.other === 'string' ? eventData.other : eventData.other.name;
+            return objects.find(o => o.name === otherName || o.id === otherName) || null;
+        }
         return null;
     }
 

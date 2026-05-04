@@ -494,3 +494,16 @@ pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verw
 
 
 - **DO NOT** use input.name in handleControlChange when the input's name has an 'Input' suffix appended (e.g. image_picker). Always use propDef.name to ensure the correct object property is targeted.
+
+### 22. Collision-Event-Guard (GameLoopManager)
+- **Regel**: Collision-Events (onCollision, onCollisionTop/Bottom/Left/Right) und die physische Push-Out-Separation finden NUR statt, wenn mindestens eines der beiden kollidierenden Sprites ein entsprechendes Event in seinen `events` definiert hat.
+- **Hintergrund**: Ohne diesen Guard wurden Pool-Sprites (z.B. Ufos untereinander) physisch auseinandergeschoben, obwohl kein Collision-Handler definiert war. Das fuehrte zu ungewollten Y-Positions-Aenderungen.
+- **DO NOT**: Die Push-Out-Logik in `checkCollisions()` ohne Event-Pruefung ausfuehren. Sprites ohne Collision-Handler sollen frei durcheinander fliegen koennen.
+
+### DOM Queries & Blueprint-Stage Falle
+- **DO NOT** use a simple \document.querySelector('[data-id=...]')\ when resolving stage objects in the DOM, because objects that exist in both the Blueprint Stage and the Main Stage will have duplicate IDs in the DOM. The Blueprint element is usually \display: none\ (hidden), but \querySelector\ will still return it first, leading to a \ x0\ BoundingClientRect.
+- **DO** use \document.querySelectorAll\ and filter by \el.offsetWidth > 0 && el.offsetHeight > 0\ to guarantee you are targeting the actually *visible* element on the active stage.
+
+### CSS Transitions & Neu erstellte DOM-Elemente
+- **DO NOT** set target transition properties (e.g. \	ransform\, \opacity: 0\) on a newly created and appended DOM element synchronously or within a single \equestAnimationFrame\. The browser will merge the initial and target states in the same layout pass, completely skipping the CSS transition.
+- **DO** force a synchronous layout reflow (e.g. \oid document.body.offsetHeight;\) OR use a short \setTimeout(..., 30)\ before assigning the target properties to ensure the browser has painted the initial state first.

@@ -648,7 +648,17 @@ export class TaskExecutor {
             const varValue = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
             const compareValue = item.condition.rightValue || item.condition.value || '???';
             const operator = item.condition.operator || '==';
-            conditionExpr = `${varName} ${operator} "${compareValue}"`;
+            
+            // Format for logging: Show the variable name AND the actual evaluated value (if it differs)
+            let displayLeft = varName;
+            if (varName.includes('${') || varName.includes('self.') || varName === 'hitSide' || varName === 'other') {
+                const safeVal = varValue !== undefined ? String(varValue) : 'undefined';
+                displayLeft = `${varName} (ist: "${safeVal}")`;
+            } else if (varName !== String(varValue)) {
+                displayLeft = `${varName} ("${varValue}")`;
+            }
+            
+            conditionExpr = `${displayLeft} ${operator} "${compareValue}"`;
             logData = { variable: varName, value: varValue, expected: compareValue, result };
         }
 

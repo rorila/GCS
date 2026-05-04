@@ -1133,3 +1133,20 @@ USE_CASE: Universal Data Setter (Pascal Export) - src/editor/PascalCodeGenerator
 
 
 BUGFIX: Image Picker Inspector Data Binding. Beteiligte Dateien: src/editor/inspector/renderers/InspectorSectionRenderer.ts (Methode: renderProperty, Zeile 666)
+
+---
+UseCase: Collision-Event-Guard
+Beschreibung: Collision-Events und Push-Out nur bei definierten Event-Handlern ausfuehren
+Dateien:
+  - src/runtime/GameLoopManager.ts: checkCollisions() - Zeile ~363-375 - hasCollisionHandler Pruefung vor getCollisionOverlap
+  - src/runtime/actions/handlers/ObjectPoolActions.ts: spawn_object Handler - Zeile 37-64 - random_active/all_active Logging
+Methoden:
+  - GameLoopManager.checkCollisions(): Prueft events.onCollision/onCollisionTop/Bottom/Left/Right auf beiden Sprites
+
+---
+UseCase: AnimationManager Explode Fix
+Beschreibung: Behebung des Selektor-Bugs in AnimationManager.explode (data-id statt data-object-id) und Hinzufuegen detaillierter Logs.
+Dateien:
+  - src/runtime/AnimationManager.ts: explode() - Zeile ~400-500
+Methoden:
+  - AnimationManager.explode()

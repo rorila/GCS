@@ -92,6 +92,13 @@ export class InspectorContextBuilder {
                         }
                     });
                 }
+                
+                // Füge implizite Event-Variablen hinzu (z.B. für Kollisionen)
+                initialAcc.push({ text: '⚡ self (Event-Quelle)', value: '${self}' });
+                initialAcc.push({ text: '⚡ other (Kollisions-Partner ID)', value: '${other}' });
+                initialAcc.push({ text: '⚡ otherSprite.templateName', value: '${otherSprite.templateName}' });
+                initialAcc.push({ text: '⚡ hitSide (Kollisions-Seite)', value: '${hitSide}' });
+                
                 return initialAcc;
             })()),
 
