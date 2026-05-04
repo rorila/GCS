@@ -405,7 +405,7 @@ export class AnimationManager {
             return;
         }
 
-        logger.info(`[AnimationManager.explode] Starte Explode-Animation für Objekt: ${target.name} (ID: ${target.id})`);
+
 
         // DOM-Element des Sprites finden. Da Objekte in mehreren Stages (z.B. Blueprint) 
         // gerendert, aber versteckt sein können, müssen wir das SICHTBARE Element finden!
@@ -432,8 +432,6 @@ export class AnimationManager {
         }
 
         const rect = spriteEl.getBoundingClientRect();
-        logger.info(`[AnimationManager.explode] BoundingClientRect: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
-        
         const gridSize = Math.max(2, Math.round(Math.sqrt(fragments)));
         const fragW = rect.width / gridSize;
         const fragH = rect.height / gridSize;
@@ -445,13 +443,13 @@ export class AnimationManager {
 
         if (imgLayer && imgLayer.tagName === 'DIV') {
             bgImage = imgLayer.style.backgroundImage;
-            logger.info(`[AnimationManager.explode] Bildquelle gefunden (DIV): ${bgImage}`);
+
         } else if (imgLayer && imgLayer.tagName === 'IMG') {
             bgImage = `url("${(imgLayer as HTMLImageElement).src}")`;
-            logger.info(`[AnimationManager.explode] Bildquelle gefunden (IMG): ${bgImage}`);
+
         } else {
             bgColor = target.spriteColor || target.style?.backgroundColor || '#ff6b6b';
-            logger.info(`[AnimationManager.explode] Keine Bildquelle gefunden, nutze Hintergrundfarbe: ${bgColor}`);
+
         }
 
         // Container: Stage-Ebene

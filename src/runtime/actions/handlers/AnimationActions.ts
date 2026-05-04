@@ -12,14 +12,18 @@ export function registerAnimationActions() {
     // Für Abwärtskompatibilität implementieren wir nur die letzte Variante (Effekte), die tatsächlich von der UI genutzt wurde.
     actionRegistry.register('animate', (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const rawTargetStr = PropertyHelper.interpolate(String(action.target || ''), combinedContext, context.objects);
+        // Robuster Target-Lookup: 'target' ist der Standard. 'referenceObject' ist ein Fallback
+        // für Actions, die von einem anderen Typ (z.B. spawn_object) umkonfiguriert wurden
+        // und noch das alte Feld-Schema mitbringen.
+        const rawTarget = action.target || action.referenceObject || '';
+        const rawTargetStr = PropertyHelper.interpolate(String(rawTarget), combinedContext, context.objects);
         const effect = action.effect || 'shake';
         const duration = Number(action.duration) || 500;
         
         const targetNames = rawTargetStr.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
         
         if (targetNames.length === 0) {
-            runtimeLogger.warn('[Action: animate] Kein Ziel definiert.');
+            runtimeLogger.warn(`[Action: animate] Kein Ziel definiert. action.target="${action.target}", action.referenceObject="${action.referenceObject}"`);
             return false;
         }
 
@@ -83,7 +87,7 @@ export function registerAnimationActions() {
                         }
                     }
                 }
-                runtimeLogger.info(`[Action: animate] ${effect} auf ${targetName} angewendet.`);
+                runtimeLogger.info(`[Action: animate] ${effect} auf "${targetObj.name}" (${targetName}) erfolgreich aufgerufen.`);
             } catch (err) {
                  runtimeLogger.error(`[Action: animate] Fehler beim Ausführen von ${effect}:`, err);
             }

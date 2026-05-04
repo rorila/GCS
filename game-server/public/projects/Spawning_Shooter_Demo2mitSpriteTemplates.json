@@ -98,8 +98,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -411,7 +411,8 @@
           "dragMode": "move",
           "events": {
             "onCollision": "",
-            "onBoundaryHit": "Pruefe Rand"
+            "onBoundaryHit": "Pruefe Rand",
+            "onCollisionBottom": "UfoTreffer"
           },
           "visible": true,
           "x": 53,
@@ -616,7 +617,8 @@
           "offsetY": 5,
           "x": 0,
           "y": 0,
-          "effect": "explode"
+          "effect": "explode",
+          "target": "self"
         },
         {
           "id": "auto_Cond_UfoTreffer_0_1777819219387",
@@ -676,10 +678,6 @@
             {
               "name": "Action_ScoreUp",
               "type": "action"
-            },
-            {
-              "name": "LetUfoExplore",
-              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -700,10 +698,6 @@
             "Action_ScoreUp": {
               "x": 40,
               "y": 380
-            },
-            "LetUfoExplore": {
-              "x": 40,
-              "y": 500
             }
           }
         },
@@ -911,19 +905,8 @@
           "description": "",
           "actionSequence": [
             {
-              "condition": {
-                "leftValue": "${otherSprite.templateName}",
-                "rightValue": "BulletTemplate",
-                "rightType": "literal"
-              },
-              "type": "condition",
-              "body": [
-                {
-                  "name": "LetUfoExplore",
-                  "type": "action"
-                }
-              ],
-              "elseBody": []
+              "name": "LetUfoExplore",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -933,12 +916,8 @@
               "x": 40,
               "y": 40
             },
-            "${otherSprite.templateName} == BulletTemplate": {
-              "x": 40,
-              "y": 140
-            },
             "LetUfoExplore": {
-              "x": 420,
+              "x": 40,
               "y": 140
             }
           }
