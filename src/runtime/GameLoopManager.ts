@@ -361,6 +361,16 @@ export class GameLoopManager {
                     continue;
                 }
 
+                // CollisionGroup-Filter: Sprites mit gleicher, explizit gesetzter Gruppe
+                // kollidieren NICHT miteinander (z.B. Ufo-vs-Ufo wird übersprungen).
+                // Unterschiedliche Gruppen (z.B. "ufo" vs "bullet") kollidieren normal.
+                // 'default' wird als "keine Gruppe" behandelt – dort greift der Filter nicht.
+                const groupA = (spriteA as any).collisionGroup || 'default';
+                const groupB = (spriteB as any).collisionGroup || 'default';
+                if (groupA !== 'default' && groupA === groupB) {
+                    continue;
+                }
+
                 // Skip collision if NEITHER sprite has any collision event handler defined.
                 // Without a handler, there is no reason for push-out or event-firing.
                 const eventsA = (spriteA as any).events || (spriteA as any).Tasks || {};
@@ -388,18 +398,22 @@ export class GameLoopManager {
                     // Update cooldown
                     this.collisionCooldowns.set(pairKey, now);
 
-                    // Push out of collision
-                    if (overlap.side === 'left' || overlap.side === 'right') {
-                        if (Math.abs(spriteA.velocityX) >= Math.abs(spriteB.velocityX)) {
-                            spriteA.x -= (overlap.side === 'left' ? -1 : 1) * overlap.depth;
+                    // Push-Out NUR wenn explizit gewünscht (z.B. für Pong-artige Spiele).
+                    // Standard: false → Sprites fliegen durcheinander und lösen nur Events aus.
+                    const wantsPushOut = (spriteA as any).pushOutOnCollision || (spriteB as any).pushOutOnCollision;
+                    if (wantsPushOut) {
+                        if (overlap.side === 'left' || overlap.side === 'right') {
+                            if (Math.abs(spriteA.velocityX) >= Math.abs(spriteB.velocityX)) {
+                                spriteA.x -= (overlap.side === 'left' ? -1 : 1) * overlap.depth;
+                            } else {
+                                spriteB.x += (overlap.side === 'left' ? -1 : 1) * overlap.depth;
+                            }
                         } else {
-                            spriteB.x += (overlap.side === 'left' ? -1 : 1) * overlap.depth;
-                        }
-                    } else {
-                        if (Math.abs(spriteA.velocityY) >= Math.abs(spriteB.velocityY)) {
-                            spriteA.y -= (overlap.side === 'top' ? -1 : 1) * overlap.depth;
-                        } else {
-                            spriteB.y += (overlap.side === 'top' ? -1 : 1) * overlap.depth;
+                            if (Math.abs(spriteA.velocityY) >= Math.abs(spriteB.velocityY)) {
+                                spriteA.y -= (overlap.side === 'top' ? -1 : 1) * overlap.depth;
+                            } else {
+                                spriteB.y += (overlap.side === 'top' ? -1 : 1) * overlap.depth;
+                            }
                         }
                     }
 
@@ -424,9 +438,18 @@ export class GameLoopManager {
                             hitSide: oppositeSide
                         });
 
-                        // Trigger specific side events
-                        this.eventCallback(spriteA.id, `onCollision${this.capitalize(overlap.side)}`, { other: spriteB });
-                        this.eventCallback(spriteB.id, `onCollision${this.capitalize(oppositeSide)}`, { other: spriteA });
+                        // Trigger specific side events – mit vollständigen Daten,
+                        // damit Conditions auf otherSprite.templateName etc. zugreifen können.
+                        this.eventCallback(spriteA.id, `onCollision${this.capitalize(overlap.side)}`, {
+                            other: spriteB.name,
+                            otherSprite: spriteB,
+                            hitSide: overlap.side
+                        });
+                        this.eventCallback(spriteB.id, `onCollision${this.capitalize(oppositeSide)}`, {
+                            other: spriteA.name,
+                            otherSprite: spriteA,
+                            hitSide: oppositeSide
+                        });
 
                         // Track collision
                         this.collidedThisFrame.add(spriteA.id);

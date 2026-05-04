@@ -12,6 +12,7 @@ export class TSprite extends TWindow {
     // Collision properties
     public collisionEnabled: boolean = true;
     public collisionGroup: string = 'default';
+    public pushOutOnCollision: boolean = false;
 
     // Appearance
     public shape: SpriteShape = 'rect';
@@ -37,6 +38,11 @@ export class TSprite extends TWindow {
     public hitboxOffsetY: number = 0;
     public hitboxWidth: number = 0; // 0 bedeutet: nutzt this.width
     public hitboxHeight: number = 0; // 0 bedeutet: nutzt this.height
+
+    // Pool-Metadata (gesetzt durch SpritePool bei Pool-Instanzen)
+    public templateId: string = '';
+    public templateName: string = '';
+    public isPoolInstance: boolean = false;
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
@@ -77,6 +83,7 @@ export class TSprite extends TWindow {
             // Collision group
             { name: 'collisionEnabled', label: 'Collision', type: 'boolean', group: 'Collision' },
             { name: 'collisionGroup', label: 'Collision Group', type: 'string', group: 'Collision' },
+            { name: 'pushOutOnCollision', label: 'Push-Out', type: 'boolean', group: 'Collision' },
             // Appearance group
             { name: 'shape', label: 'Shape', type: 'select', group: 'Appearance', options: ['rect', 'circle'] },
             { name: 'spriteColor', label: 'Sprite Color', type: 'color', group: 'Appearance' },

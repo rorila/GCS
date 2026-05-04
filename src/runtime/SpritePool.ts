@@ -84,6 +84,11 @@ export class SpritePool {
             const hydrated = hydrateObjects([cloneData]);
             if (hydrated && hydrated.length > 0) {
                 const sprite = hydrated[0] as TSprite;
+                // Pool-Metadata NACH der Hydration nochmals explizit setzen,
+                // damit sie garantiert auf der Live-Instanz vorhanden sind.
+                (sprite as any).templateId = template.id;
+                (sprite as any).templateName = template.name;
+                (sprite as any).isPoolInstance = true;
                 entries.push({
                     sprite,
                     busy: false,
