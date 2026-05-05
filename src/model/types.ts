@@ -264,6 +264,8 @@ export interface GameTask {
     scope?: VariableScope;           // Visibility: global (Project) or local (Stage)
     flowChart?: FlowChart;           // Optional visual representation (used in library)
     flowLayout?: Record<string, { x: number, y: number }>;  // User-definierte Node-Positionen (dynamische Flow-Generierung)
+    standaloneNodes?: any[];         // Isolated data nodes (e.g. VariableDecl, Comment) directly within the task flow
+    standaloneConnections?: any[];   // Connections for isolated data nodes
 }
 
 // ─────────────────────────────────────────────

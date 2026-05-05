@@ -14,7 +14,7 @@ export interface ActionContext {
 export interface ActionParameter {
     name: string;
     label: string;
-    type: 'string' | 'number' | 'boolean' | 'variable' | 'object' | 'json' | 'stage' | 'select' | 'method';
+    type: 'string' | 'number' | 'boolean' | 'variable' | 'object' | 'json' | 'stage' | 'select' | 'method' | 'keyvalue';
     source?: string; // e.g. 'variables', 'objects', 'stages', 'services'
     options?: string[]; // Hardcoded options for select
     hint?: string;

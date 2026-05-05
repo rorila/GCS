@@ -163,8 +163,18 @@ export class ProjectPersistenceService {
         // Nach einem QuotaExceeded-Fehler keine weiteren Versuche starten
         if (this.localStorageQuotaExceeded) return;
 
+        // WICHTIG: Structured Clone Algorithm (IndexedDB) verwirft alle Getter!
+        // Wir müssen das Projekt vorher in ein reines DTO wandeln (JSON.stringify ruft automatisch toJSON() auf).
+        let cleanProject: GameProject;
+        try {
+            cleanProject = JSON.parse(JSON.stringify(targetProject));
+        } catch (e) {
+            ProjectPersistenceService.logger.error('Failed to stringify project for auto-save:', e);
+            return;
+        }
+
         if (this.autoSaveAdapter) {
-            this.autoSaveAdapter.save(targetProject).catch(err => {
+            this.autoSaveAdapter.save(cleanProject).catch(err => {
                 if (err?.name === 'QuotaExceededError' || (err?.message && err.message.includes('quota'))) {
                     this.localStorageQuotaExceeded = true;
                     ProjectPersistenceService.logger.warn(

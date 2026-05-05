@@ -1150,3 +1150,26 @@ Dateien:
   - src/runtime/AnimationManager.ts: explode() - Zeile ~400-500
 Methoden:
   - AnimationManager.explode()
+
+[UC-2026-05-05-StageAwareRefactoring]
+Stage-bewusstes Refactoring
+- src/editor/refactoring/RefactoringUtils.ts: getStagesToProcess() (Line 114)
+- src/editor/refactoring/ObjectRefactoringService.ts: renameObject() (Line 9) - activeStageId Parameter
+- src/editor/refactoring/ActionRefactoringService.ts: renameAction() (Line 11) - activeStageId Parameter
+- src/editor/refactoring/TaskRefactoringService.ts: renameTask() (Line 11) - activeStageId Parameter
+- src/editor/refactoring/VariableRefactoringService.ts: renameVariable() (Line 8) - activeStageId Parameter
+- src/editor/RefactoringManager.ts: rename*() (Line 18-42) - Facade durchreicht activeStageId
+- src/editor/services/EditorCommandManager.ts: renameObject() (Line 315) - uebergibt project.activeStageId
+
+[UC-2026-05-05-CollisionEnabled]
+Globale Kollisions-Steuerung & Panel Push-Out Fix
+- src/components/TWindow.ts: collisionEnabled Property hinzugefügt, in Inspektor (PHYSIK) aufgenommen
+- src/components/TSprite.ts: collisionEnabled entfernt (geerbt), Gruppen auf PHYSIK umbenannt
+- src/runtime/GameLoopManager.ts: 
+  - collisionEnabled für Sprites, Panels und Boundaries ausgewertet
+  - Push-Out bei Panel-vs-Sprite auf wantsPushOut umgestellt (analog Sprite-vs-Sprite)
+
+## UseCase: Image Persistence Fix
+- Dateien: src/editor/services/EditorCommandManager.ts, src/editor/services/EditorInteractionManager.ts
+- Methoden: addObject, onObjectCopy, onPasteCallback
+- Beschreibung: Stellt sicher, dass bei Drag&Drop, Copy und Paste immer saubere JSON-DTOs anstelle von hydrierten Klassen-Instanzen in das Array gepusht werden. Verhindert, dass Getter wie backgroundImage durch JSON.stringify beim Autosave entfernt werden, was zum Verlust von Sprite-Bildern beim F5-Reload fuehrte.

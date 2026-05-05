@@ -1,4 +1,10 @@
-ï»¿### 2026-05-03
+### 2026-05-05
+- **IndexedDB Persistence Fix**: Die Ursache fÃ¼r verschwindende Sprite-Images nach F5 (Reload) wurde behoben. EditorCommandManager (addObject) und EditorInteractionManager (onObjectCopy, onPasteCallback) pushen jetzt korrekt das bereinigte JSON DTO in das Stage-Array anstelle der hydrierten Klassen-Instanz. Dies verhindert, dass JSON.stringify() wÃ¤hrend des Auto-Saves Getter wie 'backgroundImage' Ã¼bersieht und zerstÃ¶rt.
+- **Stage-bewusstes Refactoring**: Alle vier Refactoring-Services (Object, Action, Task, Variable) arbeiten jetzt stage-bewusst. Umbenennung eines stage-lokalen Elements wirkt nur auf die aktive Stage + Blueprint. Blueprint-Elemente werden weiterhin projektweit refactored. Betrifft: `ObjectRefactoringService.ts`, `ActionRefactoringService.ts`, `TaskRefactoringService.ts`, `VariableRefactoringService.ts`, `RefactoringManager.ts`, `EditorCommandManager.ts`.
+- **Neue Utility**: `RefactoringUtils.getStagesToProcess()` bestimmt zentral, welche Stages beim Refactoring durchsucht werden.
+- **Daten-Fix**: Falsche `referenceObject`-Referenzen ("Player" statt "Kanone", "Panel_14" statt "UfoBasis") in der Stage "UfosSchiessenZurueck" des Demo-Projekts korrigiert.
+- **Komma-Dezimal-Fix**: `ObjectPoolActions.ts` konvertiert jetzt Komma-Dezimalzahlen (z.B. "1,5") korrekt in Punkt-Notation fÃ¼r Offset-Berechnungen.
+### 2026-05-03
 - **Physics Fix**: Collision-Event-Guard in GameLoopManager.checkCollisions() eingefuegt. Push-Out und Collision-Events werden nur noch ausgeloest, wenn mindestens eines der kollidierenden Sprites ein onCollision-Event (oder Seiten-Event) definiert hat. Verhindert ungewollte Y-Positions-Aenderungen bei Pool-Sprites ohne Collision-Handler.
 - **Logging**: Sauberes Logging in ObjectPoolActions.ts fuer spawn_object mit andom_active/ll_active Modus (Template-Aufloesung, Instanz-Auswahl, Spawn-Ergebnis).
 ### 2026-05-01
@@ -110,14 +116,22 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 - **Inspector**: Added 'V' (Variable Picker) button to property value inputs in the 'Change Property' action editor, allowing users to easily bind variables to dynamically changed properties.
 
 
-## [Unreleased] - 2026-04-30
+## [Unreleased]
+
+- **FIX: IndexedDB Getter Loss Prevention**:
+  - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
+  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter über die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - 2026-04-30
 
 ### Fixed
 - **Inspector x/y Shadowing (Root-Cause)**: FlowActions wie `move_to` zeigten im Inspector die Canvas-Koordinaten (z.B. 40, 120) statt der Action-Parameter (z.B. `$`{MyVar.value}`). Ursache: `InspectorSectionRenderer.renderProperty()` nutzte `PropertyHelper.getPropertyValue()`, welches `FlowElement.x` (Canvas-Position) statt den Action-Parameter las. Fix: `getActionDefinition()` wird jetzt als SSoT-Methode zum Lesen und Schreiben verwendet.
 - **getActionDefinition() public**: `FlowAction.getActionDefinition()` und `FlowDataAction.getActionDefinition()` von `protected` auf `public` geaendert, damit der InspectorSectionRenderer darauf zugreifen kann.
 - **FlowNodeHandler Schreib-Fix**: Action-Parameter werden jetzt via `getActionDefinition()` in die JSON-Definition geschrieben und zusaetzlich in `object.data` synchronisiert, statt `PropertyHelper.setPropertyValue(object, ...)` zu nutzen (was Canvas-Koordinaten ueberschrieb).
 
-## [Unreleased] - 2026-05-01
+## [Unreleased]
+
+- **FIX: IndexedDB Getter Loss Prevention**:
+  - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
+  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter über die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - 2026-05-01
 
 ### Added
 - **Flow-lokale Variablen**: Neuer Scope `'local'` fuer Variablen, die nur waehrend einer Task-Ausfuehrung existieren. Jeder Aufruf bekommt eine isolierte Kopie, so dass mehrere Sprites denselben Task ohne Shared-State-Konflikte nutzen koennen.
@@ -137,7 +151,11 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 - **Refactoring:** PascalCodeGenerator und PascalCodeParser auf Universal Data Setter aktualisiert. RefactoringManager berï¿½cksichtigt ï¿½nderungen in der keyvalue-Struktur bei Objekt-Umbenennungen.
 
 
-## [Unreleased] - Image Picker Inspector Fix
+## [Unreleased]
+
+- **FIX: IndexedDB Getter Loss Prevention**:
+  - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
+  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter über die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - Image Picker Inspector Fix
 - Behoben: Die Eigenschaften von image_picker, audio_picker und video_picker wurden im Inspector unter dem falschen Feldnamen (mit Suffix 'Input') gespeichert, was dazu fuehrte, dass Sprites ihr Bild nicht speichern konnten.
 
 ### 2026-05-03

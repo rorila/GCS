@@ -3,9 +3,7 @@ import { IInspectorContext } from './IInspectorContext';
 import { GROUP_COLORS } from '../../../components/TComponent';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { mediatorService } from '../../../services/MediatorService';
-import { componentRegistry } from '../../../services/ComponentRegistry';
 import { NotificationToast } from '../../ui/NotificationToast';
-import { PropertyPickerDialog } from '../PropertyPickerDialog';
 import { MediaPickerDialog } from '../MediaPickerDialog';
 
 export class InspectorSectionRenderer {
