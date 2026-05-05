@@ -125,6 +125,7 @@ export class Editor implements IViewHost {
 
         // 4. UI Setup
         this.debugLog = new TDebugLog();
+        this.debugLog.setProject(this.project);
         this.initInspector();
         this.initJSONToolbox();
         this.initComponentPalette();
@@ -488,6 +489,7 @@ export class Editor implements IViewHost {
         this.dialogManager.setProject(project);
         if (this.inspector) this.inspector.setProject(project);
         if (this.flowEditor) this.flowEditor.setProject(project);
+        if (this.debugLog) this.debugLog.setProject(project);
         // dataManager, runManager etc. typically use this.host.project or ProjectRegistry
 
         // 3. UI State Reset

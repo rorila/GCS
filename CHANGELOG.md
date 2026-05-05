@@ -1,3 +1,7 @@
+ï»¿### 2026-05-05
+- **Debug-Log-Viewer Erweiterung**: 4 kaskadierende Filter-Dropdowns (Komponenten, Events, Tasks, Actions). Objekte werden rekursiv aus allen Stages inkl. Container-Kindern gesammelt. Events werden aus obj.events und direkten on*-Properties erkannt.
+- **Pause/Weiter-Button**: Start-Button wird nach Spielstart zum Pause/Weiter-Toggle. Pausiert GameLoop und Timer gleichzeitig.
+- **Bugfix**: Debug-Log-Viewer Dropdowns waren leer (obj.Tasks statt obj.events, fehlende Container-Rekursion).
 ### 2026-05-05
 - **IndexedDB Persistence Fix**: Die Ursache fÃ¼r verschwindende Sprite-Images nach F5 (Reload) wurde behoben. EditorCommandManager (addObject) und EditorInteractionManager (onObjectCopy, onPasteCallback) pushen jetzt korrekt das bereinigte JSON DTO in das Stage-Array anstelle der hydrierten Klassen-Instanz. Dies verhindert, dass JSON.stringify() wÃ¤hrend des Auto-Saves Getter wie 'backgroundImage' Ã¼bersieht und zerstÃ¶rt.
 - **Stage-bewusstes Refactoring**: Alle vier Refactoring-Services (Object, Action, Task, Variable) arbeiten jetzt stage-bewusst. Umbenennung eines stage-lokalen Elements wirkt nur auf die aktive Stage + Blueprint. Blueprint-Elemente werden weiterhin projektweit refactored. Betrifft: `ObjectRefactoringService.ts`, `ActionRefactoringService.ts`, `TaskRefactoringService.ts`, `VariableRefactoringService.ts`, `RefactoringManager.ts`, `EditorCommandManager.ts`.
@@ -119,14 +123,14 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 ## [Unreleased]
 
 - **UI: Inspector Consolidation**:
-  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewählt wird, da diese dort keinen logischen Sinn ergeben.
+  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewï¿½hlt wird, da diese dort keinen logischen Sinn ergeben.
 
 - **FEATURE: Flow Editor Task Sorting**:
-  - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.
+  - Tasknamen in den Dropdown-Menï¿½s des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die ï¿½bersichtlichkeit zu verbessern.
 
 - **FIX: IndexedDB Getter Loss Prevention**:
-  - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
-  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter über die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - 2026-04-30
+  - Verhindert das stille Lï¿½schen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
+  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter ï¿½ber die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - 2026-04-30
 
 ### Fixed
 - **Inspector x/y Shadowing (Root-Cause)**: FlowActions wie `move_to` zeigten im Inspector die Canvas-Koordinaten (z.B. 40, 120) statt der Action-Parameter (z.B. `$`{MyVar.value}`). Ursache: `InspectorSectionRenderer.renderProperty()` nutzte `PropertyHelper.getPropertyValue()`, welches `FlowElement.x` (Canvas-Position) statt den Action-Parameter las. Fix: `getActionDefinition()` wird jetzt als SSoT-Methode zum Lesen und Schreiben verwendet.
@@ -136,14 +140,14 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 ## [Unreleased]
 
 - **UI: Inspector Consolidation**:
-  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewählt wird, da diese dort keinen logischen Sinn ergeben.
+  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewï¿½hlt wird, da diese dort keinen logischen Sinn ergeben.
 
 - **FEATURE: Flow Editor Task Sorting**:
-  - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.
+  - Tasknamen in den Dropdown-Menï¿½s des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die ï¿½bersichtlichkeit zu verbessern.
 
 - **FIX: IndexedDB Getter Loss Prevention**:
-  - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
-  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter über die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - 2026-05-01
+  - Verhindert das stille Lï¿½schen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
+  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter ï¿½ber die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - 2026-05-01
 
 ### Added
 - **Flow-lokale Variablen**: Neuer Scope `'local'` fuer Variablen, die nur waehrend einer Task-Ausfuehrung existieren. Jeder Aufruf bekommt eine isolierte Kopie, so dass mehrere Sprites denselben Task ohne Shared-State-Konflikte nutzen koennen.
@@ -166,14 +170,14 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 ## [Unreleased]
 
 - **UI: Inspector Consolidation**:
-  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewählt wird, da diese dort keinen logischen Sinn ergeben.
+  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewï¿½hlt wird, da diese dort keinen logischen Sinn ergeben.
 
 - **FEATURE: Flow Editor Task Sorting**:
-  - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.
+  - Tasknamen in den Dropdown-Menï¿½s des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die ï¿½bersichtlichkeit zu verbessern.
 
 - **FIX: IndexedDB Getter Loss Prevention**:
-  - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
-  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter über die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - Image Picker Inspector Fix
+  - Verhindert das stille Lï¿½schen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
+  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter ï¿½ber die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - Image Picker Inspector Fix
 - Behoben: Die Eigenschaften von image_picker, audio_picker und video_picker wurden im Inspector unter dem falschen Feldnamen (mit Suffix 'Input') gespeichert, was dazu fuehrte, dass Sprites ihr Bild nicht speichern konnten.
 
 ### 2026-05-03
@@ -189,3 +193,8 @@ U p d a t e :   T a s k E x e c u t o r . t s  
 - **Animation Fix 2**: \AnimationManager.explode\ repariert. CSS Transitions fÃ¼r neu erstellte DOM-Elemente wurden nicht getriggert, da das initiale Setup (anhÃ¤ngen an DOM) und der Zielzustand (transform, opacity) im selben Frame durch \equestAnimationFrame\ ausgefÃ¼hrt wurden. Die Zuweisung des Zielzustands erfolgt nun sicher asynchron Ã¼ber ein kurzes 30ms \setTimeout\, sodass der Browser die Elemente und deren initiale Werte erst rendert, bevor die Transition beginnt.
 
 - **Animation Fix 3**: \AnimationManager.explode\ repariert. Wenn globale/Blueprint-Objekte im DOM versteckt existieren, fand \querySelector\ bisher fÃ¤lschlicherweise das unsichtbare Dummy-Element (BoundingClientRect 0x0). Der Manager durchsucht nun alle Elemente mit der ID und wÃ¤hlt gezielt dasjenige aus, das auch wirklich eine sichtbare Ausdehnung (\offsetWidth > 0\) hat.
+
+### 2026-05-05
+- **Feature**: GameLoop startet im Run-Tab nicht mehr automatisch. Ein '? START GAME' Button wurde im Footer hinzugefï¿½gt, um Zeit fï¿½r die Debug-Log-Konfiguration zu geben.
+- **Bugfix**: Timer und GameServer laufen nicht mehr beim Tab-Wechsel in Run-Mode sofort los, sondern warten ebenfalls auf den Start-Button.
+- **Bugfix**: Debug-Log-Viewer Dropdowns sind nicht mehr leer vor dem Start. TDebugLog scannt nun alle Stages nach Objekten und Tasks.

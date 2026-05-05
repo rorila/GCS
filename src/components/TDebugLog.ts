@@ -11,6 +11,8 @@ export class TDebugLog {
     private showDetails: boolean = true;
     private objectFilter: string = '';
     private eventFilter: string = '';
+    private taskFilter: string = '';
+    private actionFilter: string = '';
     private isPaused: boolean = false;
     private unsubscribe: (() => void) | null = null;
     private project: any | null = null;
@@ -210,11 +212,19 @@ export class TDebugLog {
                 <label style="color: #888; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked id="show-details-cb"> Details</label>
             </div>
             <div style="display: flex; gap: 6px;">
-                <select id="obj-filter" style="flex: 1; background: #333; color: #eee; border: 1px solid #444; padding: 4px; border-radius: 3px; font-size: 11px;">
+                <select id="obj-filter" title="Komponenten-Filter" style="flex: 1; background: #333; color: #eee; border: 1px solid #444; padding: 4px; border-radius: 3px; font-size: 11px;">
                     <option value="">All Objects</option>
                 </select>
-                <select id="evt-filter" style="flex: 1; background: #333; color: #eee; border: 1px solid #444; padding: 4px; border-radius: 3px; font-size: 11px;">
+                <select id="evt-filter" title="Event-Filter" style="flex: 1; background: #333; color: #eee; border: 1px solid #444; padding: 4px; border-radius: 3px; font-size: 11px;">
                     <option value="">All Events</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 6px;">
+                <select id="task-filter" title="Task-Filter" style="flex: 1; background: #333; color: #eee; border: 1px solid #444; padding: 4px; border-radius: 3px; font-size: 11px;">
+                    <option value="">All Tasks</option>
+                </select>
+                <select id="action-filter" title="Action-Filter" style="flex: 1; background: #333; color: #eee; border: 1px solid #444; padding: 4px; border-radius: 3px; font-size: 11px;">
+                    <option value="">All Actions</option>
                 </select>
             </div>
             <div style="display: flex; gap: 6px;">
@@ -250,11 +260,19 @@ export class TDebugLog {
 
         const objSelect = this.element.querySelector('#obj-filter') as HTMLSelectElement;
         const evtSelect = this.element.querySelector('#evt-filter') as HTMLSelectElement;
+        const taskSelect = this.element.querySelector('#task-filter') as HTMLSelectElement;
+        const actionSelect = this.element.querySelector('#action-filter') as HTMLSelectElement;
 
         if (objSelect) {
             objSelect.addEventListener('change', () => {
                 this.objectFilter = objSelect.value;
+                // Kaskade: Object-Wechsel resettet nachgelagerte Filter
+                this.eventFilter = '';
+                this.taskFilter = '';
+                this.actionFilter = '';
                 this.updateEventDropdown();
+                this.updateTaskDropdown();
+                this.updateActionDropdown();
                 this.saveFilters();
                 this.renderLogs(this.service.getLogs());
             });
@@ -263,6 +281,30 @@ export class TDebugLog {
         if (evtSelect) {
             evtSelect.addEventListener('change', () => {
                 this.eventFilter = evtSelect.value;
+                // Kaskade: Event-Wechsel resettet Task/Action
+                this.taskFilter = '';
+                this.actionFilter = '';
+                this.updateTaskDropdown();
+                this.updateActionDropdown();
+                this.saveFilters();
+                this.renderLogs(this.service.getLogs());
+            });
+        }
+
+        if (taskSelect) {
+            taskSelect.addEventListener('change', () => {
+                this.taskFilter = taskSelect.value;
+                // Kaskade: Task-Wechsel resettet Action
+                this.actionFilter = '';
+                this.updateActionDropdown();
+                this.saveFilters();
+                this.renderLogs(this.service.getLogs());
+            });
+        }
+
+        if (actionSelect) {
+            actionSelect.addEventListener('change', () => {
+                this.actionFilter = actionSelect.value;
                 this.saveFilters();
                 this.renderLogs(this.service.getLogs());
             });
@@ -316,7 +358,9 @@ export class TDebugLog {
             types: Array.from(this.typeFilters),
             showDetails: this.showDetails,
             object: this.objectFilter,
-            event: this.eventFilter
+            event: this.eventFilter,
+            task: this.taskFilter,
+            action: this.actionFilter
         };
         localStorage.setItem('gcs_debug_log_filters', JSON.stringify(filters));
     }
@@ -327,6 +371,8 @@ export class TDebugLog {
     public setFilters(objectName: string, eventName: string) {
         this.objectFilter = objectName;
         this.eventFilter = eventName;
+        this.taskFilter = '';
+        this.actionFilter = '';
 
         // Alle Typen aktivieren für den Fokus
         this.typeFilters = new Set(['Event', 'Task', 'Action', 'Variable', 'Condition', 'System']);
@@ -338,6 +384,8 @@ export class TDebugLog {
 
         this.updateObjectDropdown();
         this.updateEventDropdown();
+        this.updateTaskDropdown();
+        this.updateActionDropdown();
         this.saveFilters();
 
         // Aufnahme sicherstellen
@@ -363,6 +411,8 @@ export class TDebugLog {
                 if (filters.showDetails !== undefined) this.showDetails = filters.showDetails;
                 if (filters.object !== undefined) this.objectFilter = filters.object;
                 if (filters.event !== undefined) this.eventFilter = filters.event;
+                if (filters.task !== undefined) this.taskFilter = filters.task;
+                if (filters.action !== undefined) this.actionFilter = filters.action;
 
                 // Sync UI Checkboxes
                 this.filterContainer.querySelectorAll('input[type="checkbox"][data-type]').forEach((cb: any) => {
@@ -375,6 +425,8 @@ export class TDebugLog {
 
                 this.updateObjectDropdown();
                 this.updateEventDropdown();
+                this.updateTaskDropdown();
+                this.updateActionDropdown();
             } catch (e) {
                 console.warn('[TDebugLog] Failed to load filters:', e);
             }
@@ -386,16 +438,147 @@ export class TDebugLog {
         this.updateObjectDropdown();
     }
 
+    /**
+     * Sammelt alle Objekte und Variablen aus allen Stages rekursiv (inkl. Container-Kinder).
+     * Beachtet die Guideline: "Bei jeglicher Iteration über stage.objects MUSS rekursiv iteriert werden."
+     */
+    private getAllProjectObjects(): any[] {
+        if (!this.project) return [];
+        const result: any[] = [];
+
+        const flatten = (arr: any[]) => {
+            for (const o of arr) {
+                result.push(o);
+                if (o.children && Array.isArray(o.children)) flatten(o.children);
+            }
+        };
+
+        // Legacy root objects
+        if (this.project.objects) flatten(this.project.objects);
+        if (this.project.variables) result.push(...this.project.variables);
+
+        // All stages
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.objects) flatten(stage.objects);
+                if (stage.variables) result.push(...stage.variables);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Sammelt alle Tasks aus allen Stages (inkl. Blueprint).
+     */
+    private getAllProjectTasks(): any[] {
+        if (!this.project) return [];
+        const tasks: any[] = [];
+        if (this.project.tasks) tasks.push(...this.project.tasks);
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.tasks) tasks.push(...stage.tasks);
+            }
+        }
+        return tasks;
+    }
+
+    /**
+     * Sammelt alle Actions aus allen Stages (inkl. Blueprint).
+     */
+    private getAllProjectActions(): any[] {
+        if (!this.project) return [];
+        const actions: any[] = [];
+        if (this.project.actions) actions.push(...this.project.actions);
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.actions) actions.push(...stage.actions);
+            }
+        }
+        return actions;
+    }
+
+    private getAssignedEventsForObject(obj: any): string[] {
+        if (!obj) return [];
+        const events: string[] = [];
+
+        if (obj.events && typeof obj.events === 'object') {
+            Object.keys(obj.events).forEach(evt => {
+                const taskName = obj.events[evt];
+                if (taskName && String(taskName).trim() !== '') {
+                    events.push(evt);
+                }
+            });
+        }
+
+        Object.keys(obj).forEach(key => {
+            if (key.startsWith('on') && typeof obj[key] === 'string' && obj[key].trim() !== '') {
+                if (!events.includes(key)) {
+                    events.push(key);
+                }
+            }
+        });
+
+        return events;
+    }
+
+    /**
+     * Gibt die Task-Namen zurück, die einem Objekt über seine Events zugeordnet sind.
+     */
+    private getTaskNamesForObject(obj: any): string[] {
+        if (!obj) return [];
+        const taskNames: string[] = [];
+
+        if (obj.events && typeof obj.events === 'object') {
+            Object.values(obj.events).forEach((taskName: any) => {
+                if (taskName && String(taskName).trim() !== '' && !taskNames.includes(String(taskName))) {
+                    taskNames.push(String(taskName));
+                }
+            });
+        }
+
+        Object.keys(obj).forEach(key => {
+            if (key.startsWith('on') && typeof obj[key] === 'string' && obj[key].trim() !== '') {
+                const tn = obj[key];
+                if (!taskNames.includes(tn)) {
+                    taskNames.push(tn);
+                }
+            }
+        });
+
+        return taskNames;
+    }
+
+    /**
+     * Gibt die Action-Namen aus der actionSequence eines Tasks zurück.
+     */
+    private getActionNamesForTask(taskName: string): string[] {
+        const allTasks = this.getAllProjectTasks();
+        const task = allTasks.find((t: any) => t.name === taskName);
+        if (!task || !task.actionSequence) return [];
+        const actionNames: string[] = [];
+        const collectActions = (seq: any[]) => {
+            for (const item of seq) {
+                if (item.type === 'action' && item.name && !actionNames.includes(item.name)) {
+                    actionNames.push(item.name);
+                }
+                if (item.then) collectActions(item.then);
+                if (item.else) collectActions(item.else);
+                if (item.body) collectActions(item.body);
+            }
+        };
+        collectActions(task.actionSequence);
+        return actionNames;
+    }
+
     private updateObjectDropdown() {
         const objSelect = this.element.querySelector('#obj-filter') as HTMLSelectElement;
         if (!objSelect) return;
 
         const logObjects = this.service.getUniqueObjects();
-        const projectObjects = (this.project?.objects || [])
-            .filter((o: any) => {
-                // Nur Objekte mit Task-Zuweisungen
-                return o.Tasks && Object.values(o.Tasks).some(taskName => taskName && String(taskName).trim() !== '');
-            })
+        const allProjectObjects = this.getAllProjectObjects();
+
+        const projectObjects = allProjectObjects
+            .filter((o: any) => this.getAssignedEventsForObject(o).length > 0)
             .map((o: any) => o.name);
 
         // Merge and deduplicate
@@ -410,34 +593,79 @@ export class TDebugLog {
         const evtSelect = this.element.querySelector('#evt-filter') as HTMLSelectElement;
         if (!evtSelect) return;
 
-        if (!this.objectFilter) {
-            evtSelect.innerHTML = '<option value="">All Events</option>';
-            evtSelect.disabled = true;
-            return;
-        }
         evtSelect.disabled = false;
+        const allProjectObjects = this.getAllProjectObjects();
 
-        const logEvents = this.service.getUniqueEventsForObject(this.objectFilter);
-
-        // Get only assigned events from project object
         let projectEvents: string[] = [];
-        if (this.project) {
-            const obj = this.project.objects.find((o: any) => o.name === this.objectFilter);
-            if (obj && obj.Tasks) {
-                // Nur Events anzeigen, denen ein Task zugeordnet ist
-                projectEvents = Object.keys(obj.Tasks).filter(evt => {
-                    const taskName = obj.Tasks[evt];
-                    return taskName && String(taskName).trim() !== '';
-                });
+        if (this.objectFilter) {
+            const obj = allProjectObjects.find((o: any) => o.name === this.objectFilter);
+            if (obj) {
+                projectEvents = this.getAssignedEventsForObject(obj);
             }
+        } else {
+            allProjectObjects.forEach((obj: any) => {
+                projectEvents.push(...this.getAssignedEventsForObject(obj));
+            });
         }
 
-        // Merge and deduplicate
-        const allEvents = Array.from(new Set([...logEvents, ...projectEvents])).sort();
-
+        const allEvents = Array.from(new Set(projectEvents)).sort();
         const current = this.eventFilter;
         evtSelect.innerHTML = '<option value="">All Events</option>' +
             allEvents.map(evt => `<option value="${evt}" ${evt === current ? 'selected' : ''}>${evt}</option>`).join('');
+    }
+
+    private updateTaskDropdown() {
+        const taskSelect = this.element.querySelector('#task-filter') as HTMLSelectElement;
+        if (!taskSelect) return;
+
+        taskSelect.disabled = false;
+        const allProjectObjects = this.getAllProjectObjects();
+        let relevantTaskNames: string[] = [];
+
+        if (this.objectFilter) {
+            // Nur Tasks dieses Objekts
+            const obj = allProjectObjects.find((o: any) => o.name === this.objectFilter);
+            if (obj) {
+                relevantTaskNames = this.getTaskNamesForObject(obj);
+                // Falls Event-Filter aktiv: nur den Task dieses Events
+                if (this.eventFilter && obj.events && obj.events[this.eventFilter]) {
+                    relevantTaskNames = [obj.events[this.eventFilter]];
+                } else if (this.eventFilter && typeof obj[this.eventFilter] === 'string') {
+                    relevantTaskNames = [obj[this.eventFilter]];
+                }
+            }
+        } else {
+            // Alle Tasks aus allen Stages
+            const allTasks = this.getAllProjectTasks();
+            relevantTaskNames = allTasks.map((t: any) => t.name);
+        }
+
+        const uniqueTasks = Array.from(new Set(relevantTaskNames.filter(n => n && n.trim() !== ''))).sort();
+        const current = this.taskFilter;
+        taskSelect.innerHTML = '<option value="">All Tasks</option>' +
+            uniqueTasks.map(t => `<option value="${t}" ${t === current ? 'selected' : ''}>${t}</option>`).join('');
+    }
+
+    private updateActionDropdown() {
+        const actionSelect = this.element.querySelector('#action-filter') as HTMLSelectElement;
+        if (!actionSelect) return;
+
+        actionSelect.disabled = false;
+        let relevantActionNames: string[] = [];
+
+        if (this.taskFilter) {
+            // Nur Actions dieses Tasks
+            relevantActionNames = this.getActionNamesForTask(this.taskFilter);
+        } else {
+            // Alle Actions aus allen Stages
+            const allActions = this.getAllProjectActions();
+            relevantActionNames = allActions.map((a: any) => a.name);
+        }
+
+        const uniqueActions = Array.from(new Set(relevantActionNames.filter(n => n && n.trim() !== ''))).sort();
+        const current = this.actionFilter;
+        actionSelect.innerHTML = '<option value="">All Actions</option>' +
+            uniqueActions.map(a => `<option value="${a}" ${a === current ? 'selected' : ''}>${a}</option>`).join('');
     }
 
     private renderLogs(logs: LogEntry[]) {
@@ -445,6 +673,8 @@ export class TDebugLog {
 
         this.updateObjectDropdown();
         this.updateEventDropdown();
+        this.updateTaskDropdown();
+        this.updateActionDropdown();
         this.logList.innerHTML = '';
 
         if (logs.length === 0) {

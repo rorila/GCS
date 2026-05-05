@@ -7,6 +7,7 @@ import { TGameLoop } from '../../components/TGameLoop';
 import { TInputController } from '../../components/TInputController';
 import { TTimer } from '../../components/TTimer';
 import { TGameServer } from '../../components/TGameServer';
+import { GameLoopManager } from '../../runtime/GameLoopManager';
 import { TWindow } from '../../components/TWindow';
 import { mediatorService } from '../../services/MediatorService';
 import { DebugLogService } from '../../services/DebugLogService';
@@ -25,6 +26,8 @@ export class EditorRunManager {
     public activeGameServers: TGameServer[] = [];
     private animationTickerId: number | null = null;
     public runStage: any | null = null;
+    public isGameStarted: boolean = false;
+    public isGamePaused: boolean = false;
 
 
     constructor(private editor: Editor) {
@@ -170,16 +173,12 @@ export class EditorRunManager {
             this.stopAnimationTicker();
             this.initRuntimeComponents();
 
-            if (this.runtime) {
-                try {
-                    this.runtime.start();
-                } catch(e) {
-                    logger.error(`[RUN-FATAL] Crash during runtime start:`, e);
-                    NotificationToast.show("Fatal error during Run-Mode start! Check Console for details.");
-                }
-            }
+            this.isGameStarted = false;
+            this.createOrShowStartButton();
+            
             this.editor.render();
         } else {
+            this.removeStartButton();
             this.stopRuntime();
             if (this.runStage) {
                 this.runStage.element.remove();
@@ -223,9 +222,6 @@ export class EditorRunManager {
                     this.handleRuntimeEvent(timer.id, eventName);
                 };
             }
-            if (timer && typeof timer.start === 'function') {
-                timer.start(() => this.handleRuntimeEvent(timer.id, 'onTimer'));
-            }
         });
 
         // NumberLabels
@@ -238,14 +234,6 @@ export class EditorRunManager {
 
         // GameServers
         this.activeGameServers = this.runtimeObjects.filter(obj => (obj as any).className === 'TGameServer') as any[];
-        this.activeGameServers.forEach(server => {
-            if (server && typeof server.start === 'function') {
-                server.start((eventName: string, data: any) => {
-                    if (this.runtime) this.runtime.handleEvent(server.id, eventName, data);
-                    this.editor.render();
-                });
-            }
-        });
 
         // InputControllers
         this.activeInputControllers = this.runtimeObjects.filter(obj => (obj as any).className === 'TInputController') as any[];
@@ -333,5 +321,123 @@ export class EditorRunManager {
             cancelAnimationFrame(this.animationTickerId);
             this.animationTickerId = null;
         }
+    }
+
+    private createOrShowStartButton() {
+        const footer = document.getElementById('toolbox-footer');
+        if (!footer) return;
+
+        let btn = document.getElementById('run-start-game-btn');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'run-start-game-btn';
+            btn.style.cssText = `
+                display: block;
+                width: calc(100% - 24px);
+                margin: 12px;
+                background: #4caf50;
+                color: #fff;
+                border: none;
+                padding: 12px;
+                cursor: pointer;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                transition: all 0.2s;
+                text-align: center;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            `;
+            
+            btn.onmouseover = () => { if (!this.isGameStarted) btn!.style.transform = 'translateY(-2px)'; };
+            btn.onmouseout = () => { if (!this.isGameStarted) btn!.style.transform = 'translateY(0)'; };
+
+            btn.onclick = () => {
+                if (!this.isGameStarted) {
+                    // Erster Klick: Spiel starten
+                    this.isGameStarted = true;
+                    this.isGamePaused = false;
+                    btn!.innerHTML = '⏸ PAUSE';
+                    btn!.style.background = '#ff9800';
+                    btn!.style.cursor = 'pointer';
+
+                    if (this.runtime) {
+                        try {
+                            this.startRuntimeComponents();
+                            this.runtime.start();
+                        } catch(e) {
+                            logger.error(`[RUN-FATAL] Crash during runtime start:`, e);
+                            NotificationToast.show("Fatal error during Run-Mode start! Check Console for details.");
+                        }
+                    }
+                } else if (!this.isGamePaused) {
+                    // Spiel läuft → Pause
+                    this.isGamePaused = true;
+                    btn!.innerHTML = '▶ WEITER';
+                    btn!.style.background = '#2196f3';
+
+                    // GameLoop pausieren
+                    GameLoopManager.getInstance().pause();
+
+                    // Timer pausieren
+                    this.activeTimers.forEach(timer => {
+                        if (timer && typeof timer.stop === 'function') timer.stop();
+                    });
+                } else {
+                    // Spiel pausiert → Fortsetzen
+                    this.isGamePaused = false;
+                    btn!.innerHTML = '⏸ PAUSE';
+                    btn!.style.background = '#ff9800';
+
+                    // GameLoop fortsetzen
+                    GameLoopManager.getInstance().resume();
+
+                    // Timer fortsetzen
+                    this.activeTimers.forEach(timer => {
+                        if (timer && typeof timer.start === 'function') {
+                            timer.start(() => this.handleRuntimeEvent(timer.id, 'onTimer'));
+                        }
+                    });
+                }
+            };
+            
+            // Insert before Debug Log button if it exists, otherwise append
+            footer.insertBefore(btn, footer.firstChild);
+        } else {
+            btn.style.display = 'block';
+        }
+        
+        // Reset state
+        this.isGamePaused = false;
+        btn.innerHTML = '▶ START GAME';
+        btn.style.background = '#4caf50';
+        btn.style.cursor = 'pointer';
+        btn.style.opacity = '1';
+    }
+
+    private removeStartButton() {
+        const btn = document.getElementById('run-start-game-btn');
+        if (btn) {
+            btn.style.display = 'none';
+        }
+    }
+
+    private startRuntimeComponents() {
+        this.activeTimers.forEach(timer => {
+            if (timer && typeof timer.start === 'function') {
+                timer.start(() => this.handleRuntimeEvent(timer.id, 'onTimer'));
+            }
+        });
+        
+        this.activeGameServers.forEach(server => {
+            if (server && typeof server.start === 'function') {
+                server.start((eventName: string, data: any) => {
+                    if (this.runtime) this.runtime.handleEvent(server.id, eventName, data);
+                    this.editor.render();
+                });
+            }
+        });
     }
 }

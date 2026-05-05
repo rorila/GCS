@@ -1173,3 +1173,8 @@ Globale Kollisions-Steuerung & Panel Push-Out Fix
 - Dateien: src/editor/services/EditorCommandManager.ts, src/editor/services/EditorInteractionManager.ts
 - Methoden: addObject, onObjectCopy, onPasteCallback
 - Beschreibung: Stellt sicher, dass bei Drag&Drop, Copy und Paste immer saubere JSON-DTOs anstelle von hydrierten Klassen-Instanzen in das Array gepusht werden. Verhindert, dass Getter wie backgroundImage durch JSON.stringify beim Autosave entfernt werden, was zum Verlust von Sprite-Bildern beim F5-Reload fuehrte.
+
+## UseCase: Explicit GameLoop Start im Run-Tab
+- Dateien: src/editor/services/EditorRunManager.ts
+- Methoden: setRunMode, createOrShowStartButton
+- Beschreibung: Das Spiel startet nicht mehr sofort beim Wechsel in den Run-Tab. Stattdessen wird ein Button eingeblendet, um den Start manuell auszulösen. Dies gibt Zeit, den Debug-Log-Viewer in Ruhe zu konfigurieren.
