@@ -146,34 +146,32 @@ export class FlowToolbarManager {
             const stageGroup = document.createElement('optgroup');
             stageGroup.label = `Stage: ${activeStage.name}`;
 
-            const stageTasksFound = new Set<string>();
+            const stageTaskNames = new Set<string>();
 
             if (activeStage.flowCharts) {
                 const definedTaskNames = new Set(activeStage.tasks?.map(t => t.name) || []);
                 Object.keys(activeStage.flowCharts).forEach(key => {
                     if (key !== 'global' && definedTaskNames.has(key)) {
-                        const opt = document.createElement('option');
-                        opt.value = key;
-                        opt.text = `Task: ${key}`;
-                        opt.selected = currentFlowContext === key;
-                        stageGroup.appendChild(opt);
-                        stageTasksFound.add(key);
+                        stageTaskNames.add(key);
                     }
                 });
             }
 
             if (activeStage.tasks) {
                 activeStage.tasks.forEach(task => {
-                    if (!stageTasksFound.has(task.name)) {
-                        const opt = document.createElement('option');
-                        opt.value = task.name;
-                        opt.text = `Task: ${task.name}`;
-                        opt.selected = currentFlowContext === task.name;
-                        stageGroup.appendChild(opt);
-                        stageTasksFound.add(task.name);
-                    }
+                    stageTaskNames.add(task.name);
                 });
             }
+
+            const sortedStageTasks = Array.from(stageTaskNames).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            sortedStageTasks.forEach(taskName => {
+                const opt = document.createElement('option');
+                opt.value = taskName;
+                opt.text = `Task: ${taskName}`;
+                opt.selected = currentFlowContext === taskName;
+                stageGroup.appendChild(opt);
+            });
 
             this.flowSelect.appendChild(stageGroup);
         }
@@ -192,47 +190,38 @@ export class FlowToolbarManager {
                 globalGroup.appendChild(bpGlobalOpt);
             }
 
-            const globalTasksFound = new Set<string>();
+            const globalTaskNames = new Set<string>();
 
             if (blueprintStage?.flowCharts) {
                 const definedGlobalTaskNames = new Set(blueprintStage.tasks?.map(t => t.name) || []);
                 Object.keys(blueprintStage.flowCharts).forEach(key => {
                     if (key !== 'global' && definedGlobalTaskNames.has(key)) {
-                        const opt = document.createElement('option');
-                        opt.value = key;
-                        opt.text = `Task: ${key}`;
-                        opt.selected = currentFlowContext === key;
-                        globalGroup.appendChild(opt);
-                        globalTasksFound.add(key);
+                        globalTaskNames.add(key);
                     }
                 });
             }
 
             if (blueprintStage?.tasks) {
                 blueprintStage.tasks.forEach(task => {
-                    if (!globalTasksFound.has(task.name)) {
-                        const opt = document.createElement('option');
-                        opt.value = task.name;
-                        opt.text = `Task: ${task.name}`;
-                        opt.selected = currentFlowContext === task.name;
-                        globalGroup.appendChild(opt);
-                        globalTasksFound.add(task.name);
-                    }
+                    globalTaskNames.add(task.name);
                 });
             }
 
             if (this.host.project.tasks) {
                 this.host.project.tasks.forEach(task => {
-                    if (!globalTasksFound.has(task.name)) {
-                        const opt = document.createElement('option');
-                        opt.value = task.name;
-                        opt.text = `Task: ${task.name}`;
-                        opt.selected = currentFlowContext === task.name;
-                        globalGroup.appendChild(opt);
-                        globalTasksFound.add(task.name);
-                    }
+                    globalTaskNames.add(task.name);
                 });
             }
+
+            const sortedGlobalTasks = Array.from(globalTaskNames).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            sortedGlobalTasks.forEach(taskName => {
+                const opt = document.createElement('option');
+                opt.value = taskName;
+                opt.text = `Task: ${taskName}`;
+                opt.selected = currentFlowContext === taskName;
+                globalGroup.appendChild(opt);
+            });
 
             if (globalGroup.children.length > 0) {
                 this.flowSelect.appendChild(globalGroup);

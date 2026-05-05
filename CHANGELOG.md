@@ -118,6 +118,9 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 
 ## [Unreleased]
 
+- **FEATURE: Flow Editor Task Sorting**:
+  - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.
+
 - **FIX: IndexedDB Getter Loss Prevention**:
   - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
   - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter über die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - 2026-04-30
@@ -128,6 +131,9 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 - **FlowNodeHandler Schreib-Fix**: Action-Parameter werden jetzt via `getActionDefinition()` in die JSON-Definition geschrieben und zusaetzlich in `object.data` synchronisiert, statt `PropertyHelper.setPropertyValue(object, ...)` zu nutzen (was Canvas-Koordinaten ueberschrieb).
 
 ## [Unreleased]
+
+- **FEATURE: Flow Editor Task Sorting**:
+  - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.
 
 - **FIX: IndexedDB Getter Loss Prevention**:
   - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
@@ -152,6 +158,9 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 
 
 ## [Unreleased]
+
+- **FEATURE: Flow Editor Task Sorting**:
+  - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.
 
 - **FIX: IndexedDB Getter Loss Prevention**:
   - Verhindert das stille Löschen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
