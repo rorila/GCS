@@ -135,8 +135,26 @@ export class InspectorHost implements IInspectorContext {
     private isFlowElement(obj: any): boolean {
         if (!obj) return false;
         
-        if (obj.isVariable) return true;
+        // Check for variables
+        if (obj.isVariable === true || obj.className?.includes('Variable') || obj.constructor?.name?.includes('Variable')) return true;
+        
+        // Check Flow Node markers
+        if (obj.isFlowNode === true) return true;
+        
+        // Check constructor names
+        const cname = obj.constructor?.name;
+        if (cname === 'FlowTask' || cname === 'FlowAction' || cname === 'FlowDataAction' || cname === 'FlowCondition' || cname === 'FlowComment') return true;
+        
+        // Check getType() function
+        if (typeof obj.getType === 'function') {
+            const type = obj.getType();
+            if (['task', 'action', 'data_action', 'condition', 'comment', 'flowchart'].includes(type)) return true;
+        }
+
+        // Check raw 'type' property
         if (obj.type && ['action', 'task', 'condition', 'comment', 'flowchart'].includes(obj.type)) return true;
+        
+        // Check specific class names
         if (obj.className && ['TAction', 'TTask', 'TCondition'].includes(obj.className)) return true;
         
         return false;
