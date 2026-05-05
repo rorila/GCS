@@ -69,11 +69,11 @@ export class TWindow extends TComponent {
     }
 
     private _winVisible: boolean = true;
-    
+
     get visible(): boolean {
         return this._winVisible;
     }
-    
+
     set visible(v: boolean) {
         if (this._winVisible !== v) {
             this._winVisible = v;
@@ -83,7 +83,7 @@ export class TWindow extends TComponent {
             this.onVisibilityChanged(v);
         }
     }
-    
+
     /**
      * Hook that subclasses can override to react to visibility changes
      */
@@ -99,6 +99,8 @@ export class TWindow extends TComponent {
     // Animation flag - wenn true, wird Physik pausiert
     public isAnimating: boolean = false;
 
+    // Collision flag for ALL components (Sprite vs Panel, Panel vs Sprite, etc)
+    public collisionEnabled: boolean = true;
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name);
@@ -247,6 +249,7 @@ export class TWindow extends TComponent {
             { name: 'zIndex', label: 'Z-Index', type: 'number', group: 'GEOMETRIE', min: 0, max: 9999, step: 1, inline: true },
             { name: 'rotation', label: 'Rotation', type: 'number', group: 'GEOMETRIE', min: 0, max: 360, step: 90, hint: 'Winkel in Grad' },
             { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'], inline: true },
+            { name: 'collisionEnabled', label: 'Kollision aktiv', type: 'boolean', group: 'PHYSIK' },
             { name: 'style.color', label: 'Textfarbe', type: 'color', group: 'TYPOGRAFIE' },
             { name: 'style.fontSize', label: 'Schriftgröße', type: 'number', group: 'TYPOGRAFIE', min: 6, max: 120, step: 1, inline: true },
             { name: 'style.fontFamily', label: 'Schriftart', type: 'select', group: 'TYPOGRAFIE', options: ['Arial', 'Segoe UI, Arial, sans-serif', 'Verdana', 'Times New Roman', 'Courier New', 'Georgia', 'Tahoma', 'Trebuchet MS'] },

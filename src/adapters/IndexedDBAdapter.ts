@@ -102,6 +102,20 @@ export class IndexedDBAdapter implements IStorageAdapter {
                         IndexedDBAdapter.logger.info(
                             `Projekt aus IndexedDB geladen (gespeichert: ${new Date(record.savedAt).toLocaleTimeString()})`
                         );
+                        
+                        // DEEP DIAGNOSTICS: Check if base64 images exist in the JSON payload!
+                        try {
+                            const objects = record.project?.stages?.[0]?.objects || [];
+                            const ufo = objects.find((o:any) => o.name === 'UfoTemplate');
+                            if (ufo) {
+                                const bgLength = ufo.backgroundImage ? ufo.backgroundImage.length : 0;
+                                IndexedDBAdapter.logger.info(`[INDEXEDDB-LOAD] UfoTemplate backgroundImage length: ${bgLength}`);
+                                if (bgLength > 100) {
+                                    IndexedDBAdapter.logger.info(`[INDEXEDDB-LOAD] UfoTemplate has BASE64 image! Prefix: ${ufo.backgroundImage.substring(0, 50)}`);
+                                }
+                            }
+                        } catch(e) {}
+                        
                         resolve(record.project);
                     } else {
                         resolve(null);

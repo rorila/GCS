@@ -354,6 +354,10 @@ export class GameLoopManager {
                     continue;
                 }
 
+                if ((spriteA as any).collisionEnabled === false || (spriteB as any).collisionEnabled === false) {
+                    continue;
+                }
+
                 // Coordinate space isolation: Only collide sprites in the same container
                 const parentA = (spriteA as any).parentId || (spriteA.parent ? spriteA.parent.id : null);
                 const parentB = (spriteB as any).parentId || (spriteB.parent ? spriteB.parent.id : null);
@@ -482,6 +486,10 @@ export class GameLoopManager {
                     continue;
                 }
 
+                if ((sprite as any).collisionEnabled === false || (panel as any).collisionEnabled === false) {
+                    continue;
+                }
+
                 // Panels are always rects. We construct a dummy hitbox for the panel
                 const panelHitbox = {
                     x: panel.x,
@@ -569,11 +577,11 @@ export class GameLoopManager {
                         this.collidedThisFrame.add(sprite.id);
                     }
 
-                    // Push out of collision ONLY IF the event is mapped!
-                    // This creates the "solid wall" effect
-                    const hasCollisionEvent = sprite.events?.onCollision || sprite.events?.[`onCollision${this.capitalize(hitSide)}`];
+                    // Push out of collision ONLY IF explicitly desired via pushOutOnCollision
+                    // (z.B. für Jump & Run Plattformen oder Wände)
+                    const wantsPushOut = (sprite as any).pushOutOnCollision || (panel as any).pushOutOnCollision;
                     
-                    if (hasCollisionEvent) {
+                    if (wantsPushOut) {
                         if (hitSide === 'left' || hitSide === 'right') {
                             sprite.x -= (hitSide === 'left' ? -1 : 1) * depth;
                             // Optionally stop velocity like bouncing
@@ -598,8 +606,8 @@ export class GameLoopManager {
      */
     private checkBoundaries(): void {
         this.sprites.forEach(sprite => {
-            // Skip invisible pool instances
             if (!sprite.visible) return;
+            if ((sprite as any).collisionEnabled === false) return;
 
             // Skip sprites that are currently animating
             if (sprite.isAnimating) return;
@@ -713,6 +721,7 @@ export class GameLoopManager {
         // if they don't have onBoundaryHit mapped!
         this.sprites.forEach(sprite => {
             if (sprite.isAnimating) return;
+            if ((sprite as any).collisionEnabled === false) return;
 
             const spriteKey = sprite.id || sprite.name;
             if (this.exitedSprites.has(spriteKey)) return; // Schon gefeuert

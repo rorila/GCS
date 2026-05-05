@@ -3,34 +3,33 @@ import { RefactoringUtils } from './RefactoringUtils';
 
 export class VariableRefactoringService {
     /**
-     * Renames a variable project-wide
+     * Renames a variable – stage-bewusst.
+     * Wenn activeStageId gesetzt ist, werden nur die aktive Stage + Blueprint durchsucht.
      */
-    public static renameVariable(project: GameProject, oldName: string, newName: string): void {
+    public static renameVariable(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
         if (!oldName || !newName || oldName === newName) return;
+
+        const stagesToProcess = RefactoringUtils.getStagesToProcess(project, activeStageId);
 
         // 1. Update project variables list
         project.variables.forEach(v => {
             if (v.name === oldName) v.name = newName;
         });
 
-        // 1b. Update stage-local variables list
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.variables) {
-                    stage.variables.forEach(v => {
-                        if (v.name === oldName) v.name = newName;
-                    });
-                }
-            });
-        }
+        // 1b. Update stage-local variables list – nur in den relevanten Stages
+        stagesToProcess.forEach(stage => {
+            if (stage.variables) {
+                stage.variables.forEach(v => {
+                    if (v.name === oldName) v.name = newName;
+                });
+            }
+        });
 
-        // 2. Update actions (Global + all Stages)
+        // 2. Update actions – nur in den relevanten Stages
         const allActions = [...project.actions];
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.actions) allActions.push(...s.actions);
-            });
-        }
+        stagesToProcess.forEach(s => {
+            if (s.actions) allActions.push(...s.actions);
+        });
 
         allActions.forEach(action => {
             const anyAction = action as any;
@@ -98,31 +97,29 @@ export class VariableRefactoringService {
             RefactoringUtils.replaceInObjectRecursive(project.objects, oldName, newName, undefined, false);
         }
 
-        // 6. Update all stages
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                // Update stage objects recursively (including nested TLabels in TGroupPanels)
-                if (stage.objects) {
-                    RefactoringUtils.replaceInObjectRecursive(stage.objects, oldName, newName, undefined, false);
-                }
+        // 6. Update all relevant stages
+        stagesToProcess.forEach(stage => {
+            // Update stage objects recursively (including nested TLabels in TGroupPanels)
+            if (stage.objects) {
+                RefactoringUtils.replaceInObjectRecursive(stage.objects, oldName, newName, undefined, false);
+            }
 
-                // Update stage flow charts
-                if (stage.flowCharts) {
-                    Object.keys(stage.flowCharts).forEach(key => {
-                        const flowChart = stage.flowCharts![key];
-                        if (flowChart?.elements) {
-                            flowChart.elements.forEach((el: any) => {
-                                if (el.type === 'condition' && el.data?.condition) {
-                                    if (el.data.condition.variable === oldName) {
-                                        el.data.condition.variable = newName;
-                                    }
+            // Update stage flow charts
+            if (stage.flowCharts) {
+                Object.keys(stage.flowCharts).forEach(key => {
+                    const flowChart = stage.flowCharts![key];
+                    if (flowChart?.elements) {
+                        flowChart.elements.forEach((el: any) => {
+                            if (el.type === 'condition' && el.data?.condition) {
+                                if (el.data.condition.variable === oldName) {
+                                    el.data.condition.variable = newName;
                                 }
-                            });
-                        }
-                    });
-                }
-            });
-        }
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     /**

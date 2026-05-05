@@ -15,30 +15,30 @@ export class RefactoringManager {
     /**
      * Renames a variable project-wide
      */
-    public static renameVariable(project: GameProject, oldName: string, newName: string): void {
-        VariableRefactoringService.renameVariable(project, oldName, newName);
+    public static renameVariable(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
+        VariableRefactoringService.renameVariable(project, oldName, newName, activeStageId);
     }
 
     /**
      * Renames a task project-wide
      */
-    public static renameTask(project: GameProject, oldName: string, newName: string): void {
-        TaskRefactoringService.renameTask(project, oldName, newName);
+    public static renameTask(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
+        TaskRefactoringService.renameTask(project, oldName, newName, activeStageId);
         mediatorService.notify(MediatorEvents.TASK_RENAMED, { oldName, newName });
     }
 
     /**
      * Renames an object project-wide
      */
-    public static renameObject(project: GameProject, oldName: string, newName: string): void {
-        ObjectRefactoringService.renameObject(project, oldName, newName);
+    public static renameObject(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
+        ObjectRefactoringService.renameObject(project, oldName, newName, activeStageId);
     }
 
     /**
      * Renames an action project-wide
      */
-    public static renameAction(project: GameProject, oldName: string, newName: string): void {
-        ActionRefactoringService.renameAction(project, oldName, newName);
+    public static renameAction(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
+        ActionRefactoringService.renameAction(project, oldName, newName, activeStageId);
         // Wir könnten hier auch ACTION_RENAMED hinzufügen, falls nötig. 
         // Für den FlowEditor ist TASK_RENAMED am wichtigsten.
     }

@@ -10,7 +10,6 @@ export class TSprite extends TWindow {
     public velocityY: number = 0;
 
     // Collision properties
-    public collisionEnabled: boolean = true;
     public collisionGroup: string = 'default';
     public pushOutOnCollision: boolean = false;
 
@@ -81,9 +80,8 @@ export class TSprite extends TWindow {
             // Interpolation group
             { name: 'lerpSpeed', label: 'Lerp Speed', type: 'number', group: 'Interpolation' },
             // Collision group
-            { name: 'collisionEnabled', label: 'Collision', type: 'boolean', group: 'Collision' },
-            { name: 'collisionGroup', label: 'Collision Group', type: 'string', group: 'Collision' },
-            { name: 'pushOutOnCollision', label: 'Push-Out', type: 'boolean', group: 'Collision' },
+            { name: 'collisionGroup', label: 'Collision Group', type: 'string', group: 'PHYSIK' },
+            { name: 'pushOutOnCollision', label: 'Push-Out (Bounce)', type: 'boolean', group: 'PHYSIK' },
             // Appearance group
             { name: 'shape', label: 'Shape', type: 'select', group: 'Appearance', options: ['rect', 'circle'] },
             { name: 'spriteColor', label: 'Sprite Color', type: 'color', group: 'Appearance' },

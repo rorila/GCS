@@ -59,6 +59,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#9c27b0",
@@ -94,6 +95,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -123,7 +125,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1777914993744_spckcmye4",
+          "id": "obj_1777982231630_56se22p82",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -137,6 +139,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
@@ -147,7 +150,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777914994091_k9d05lf2a",
+          "id": "obj_1777982231979_afi6yx63e",
           "name": "Button_4",
           "scope": "stage",
           "draggable": false,
@@ -161,6 +164,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
@@ -172,14 +176,14 @@
       ],
       "actions": [
         {
-          "id": "node-1777914979010",
+          "id": "node-1777982216847",
           "details": "",
           "name": "ShowTheHighscoreStage_Unique",
           "showDetails": false,
           "type": "navigate_stage"
         },
         {
-          "id": "node-1777914982009",
+          "id": "node-1777982219830",
           "details": "",
           "name": "Action1",
           "showDetails": false
@@ -209,7 +213,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1777914982009",
+              "id": "node-1777982219830",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -242,7 +246,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1777914987060",
+      "id": "stage-1777982224929",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

@@ -1,4 +1,4 @@
-import { SequenceItem } from '../../model/types';
+import { SequenceItem, GameProject, StageDefinition } from '../../model/types';
 
 export class RefactoringUtils {
     /**
@@ -103,5 +103,32 @@ export class RefactoringUtils {
             }
         }
         return changed;
+    }
+
+    /**
+     * Bestimmt welche Stages beim Refactoring durchsucht werden sollen.
+     * 
+     * Regeln:
+     * - Kein activeStageId → alle Stages (Rückwärtskompatibilität)
+     * - aktive Stage ist Blueprint → alle Stages (globales Element)
+     * - aktive Stage ist Standard → nur aktive Stage + Blueprint
+     */
+    public static getStagesToProcess(project: GameProject, activeStageId?: string): StageDefinition[] {
+        if (!project.stages) return [];
+        if (!activeStageId) return project.stages; // Kein Scope → alle (Rückwärtskompatibilität)
+
+        const activeStage = project.stages.find(s => s.id === activeStageId);
+        const blueprint = project.stages.find(s =>
+            s.type === 'blueprint' || s.id === 'blueprint' || s.id === 'stage_blueprint'
+        );
+
+        // Wenn aktive Stage = Blueprint → globales Element → alle Stages
+        if (activeStage?.type === 'blueprint') return project.stages;
+
+        // Sonst: nur aktive Stage + Blueprint
+        const result: StageDefinition[] = [];
+        if (activeStage) result.push(activeStage);
+        if (blueprint && blueprint.id !== activeStageId) result.push(blueprint);
+        return result;
     }
 }

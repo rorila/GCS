@@ -2,14 +2,18 @@ import { GameProject, SequenceItem, UsageReport } from '../../model/types';
 import { Logger } from '../../utils/Logger';
 import { RefactoringUtils } from './RefactoringUtils';
 
+
 export class ActionRefactoringService {
     private static logger = Logger.get('ActionRefactoring', 'Action_Management');
     private static lifecycleLogger = Logger.get('ActionRefactoring', 'Action_Lifecycle');
     /**
-     * Renames an action project-wide
+     * Renames an action – stage-bewusst.
+     * Wenn activeStageId gesetzt ist, werden nur die aktive Stage + Blueprint durchsucht.
      */
-    public static renameAction(project: GameProject, oldName: string, newName: string): void {
+    public static renameAction(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
         if (!oldName || !newName || oldName === newName) return;
+
+        const stagesToProcess = RefactoringUtils.getStagesToProcess(project, activeStageId);
 
         ActionRefactoringService.lifecycleLogger.info(`Action "${oldName}" wird in "${newName}" umbenannt.`);
 
@@ -18,19 +22,22 @@ export class ActionRefactoringService {
             if (action.name === oldName) action.name = newName;
         });
 
-        // 2. Update stage-specific actions
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.actions) {
-                    stage.actions.forEach(action => {
-                        if (action.name === oldName) action.name = newName;
-                    });
-                }
-            });
-        }
+        // 2. Update stage-specific actions – nur in den relevanten Stages
+        stagesToProcess.forEach(stage => {
+            if (stage.actions) {
+                stage.actions.forEach(action => {
+                    if (action.name === oldName) action.name = newName;
+                });
+            }
+        });
 
-        // 3. Update task sequences (Global + all Stages)
-        project.tasks.forEach(task => {
+        // 3. Update task sequences – nur in den relevanten Stages
+        const allTasks = [...project.tasks];
+        stagesToProcess.forEach(s => {
+            if (s.tasks) allTasks.push(...s.tasks);
+        });
+
+        allTasks.forEach(task => {
             RefactoringUtils.processSequenceItems(task.actionSequence, (item) => {
                 const anyItem = item as any;
                 if ((anyItem.type === 'action' || anyItem.type === 'data_action') && anyItem.name === oldName) {
@@ -39,30 +46,13 @@ export class ActionRefactoringService {
             });
         });
 
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.tasks) {
-                    stage.tasks.forEach(task => {
-                        RefactoringUtils.processSequenceItems(task.actionSequence, (item) => {
-                            const anyItem = item as any;
-                            if ((anyItem.type === 'action' || anyItem.type === 'data_action') && anyItem.name === oldName) {
-                                anyItem.name = newName;
-                            }
-                        });
-                    });
-                }
-            });
-        }
-
         // 4. Update flow chart elements
         const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.flowCharts) {
-                    Object.assign(charts, stage.flowCharts);
-                }
-            });
-        }
+        stagesToProcess.forEach(stage => {
+            if (stage.flowCharts) {
+                Object.assign(charts, stage.flowCharts);
+            }
+        });
 
         Object.keys(charts).forEach(key => {
             const chart = charts[key];

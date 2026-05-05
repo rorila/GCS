@@ -4,12 +4,16 @@ import { ActionRefactoringService } from './ActionRefactoringService';
 
 export class ObjectRefactoringService {
     /**
-     * Renames an object project-wide
+     * Renames an object – stage-bewusst.
+     * Wenn activeStageId gesetzt ist, werden nur die aktive Stage + Blueprint durchsucht.
+     * Bei Blueprint-Stage oder ohne activeStageId: projektweit (Rückwärtskompatibilität).
      */
-    public static renameObject(project: GameProject, oldName: string, newName: string): void {
+    public static renameObject(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
         if (!oldName || !newName || oldName === newName) return;
 
-        // 1. Rename the object itself
+        const stagesToProcess = RefactoringUtils.getStagesToProcess(project, activeStageId);
+
+        // 1. Rename the object itself – nur in den relevanten Stages
         const renameInArray = (objects: any[]) => {
             if (!objects) return;
             const obj = objects.find(o => o.name === oldName);
@@ -19,23 +23,19 @@ export class ObjectRefactoringService {
             });
         };
         renameInArray(project.objects);
-        if (project.stages) {
-            project.stages.forEach(stage => renameInArray(stage.objects));
-        }
+        stagesToProcess.forEach(stage => renameInArray(stage.objects));
 
-        // 2. Update related actions and their targets
+        // 2. Update related actions and their targets – nur in den relevanten Stages
         const allActions = [...project.actions];
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.actions) allActions.push(...s.actions);
-            });
-        }
+        stagesToProcess.forEach(s => {
+            if (s.actions) allActions.push(...s.actions);
+        });
 
         allActions.forEach(action => {
             // Auto-rename actions that belong to this object
             if (action.name.startsWith(oldName + '.') || action.name.startsWith(oldName + '_')) {
                 const newActionName = action.name.replace(oldName, newName);
-                ActionRefactoringService.renameAction(project, action.name, newActionName);
+                ActionRefactoringService.renameAction(project, action.name, newActionName, activeStageId);
                 action.name = newActionName;
             }
 
@@ -79,13 +79,11 @@ export class ObjectRefactoringService {
             }
         });
 
-        // 3. Update task sequences
+        // 3. Update task sequences – nur in den relevanten Stages
         const allTasks = [...project.tasks];
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.tasks) allTasks.push(...s.tasks);
-            });
-        }
+        stagesToProcess.forEach(s => {
+            if (s.tasks) allTasks.push(...s.tasks);
+        });
 
         allTasks.forEach(task => {
             RefactoringUtils.processSequenceItems(task.actionSequence, (item) => {
@@ -96,19 +94,17 @@ export class ObjectRefactoringService {
             });
         });
 
-        // 4. Update input targets
+        // 4. Update input targets (Projekt-Level – immer global)
         if (project.input) {
             if (project.input.player1Target === oldName) project.input.player1Target = newName;
             if (project.input.player2Target === oldName) project.input.player2Target = newName;
         }
 
-        // 5. Update Flow Charts
+        // 5. Update Flow Charts – nur in den relevanten Stages
         const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.flowCharts) Object.assign(charts, stage.flowCharts);
-            });
-        }
+        stagesToProcess.forEach(stage => {
+            if (stage.flowCharts) Object.assign(charts, stage.flowCharts);
+        });
 
         Object.keys(charts).forEach(key => {
             const chart = charts[key];
@@ -124,13 +120,11 @@ export class ObjectRefactoringService {
             }
         });
 
-        // 6. Update object properties
+        // 6. Update object properties – nur in den relevanten Stages
         const allObjectsToScan = [...project.objects];
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.objects) allObjectsToScan.push(...s.objects);
-            });
-        }
+        stagesToProcess.forEach(s => {
+            if (s.objects) allObjectsToScan.push(...s.objects);
+        });
         allObjectsToScan.forEach(obj => {
             RefactoringUtils.replaceInObjectRecursive(obj, oldName, newName, undefined, true, ['name', 'id', 'className', 'type']);
         });

@@ -112,6 +112,15 @@ export class TaskConditionEvaluator {
             val = PropertyHelper.getPropertyValue(globalVars, lookup);
         }
 
+        if (val === undefined && lookup.includes('templateName')) {
+            TaskConditionEvaluator.logger.warn(`[DEBUG] lookup "${lookup}" ist undefined! Root-Keys: ${Object.keys(root).join(', ')}`);
+            if (root.otherSprite) {
+                 TaskConditionEvaluator.logger.warn(`[DEBUG] otherSprite existiert: ID=${root.otherSprite.id}, Name=${root.otherSprite.name}, Class=${root.otherSprite.className}, templateName=${(root.otherSprite as any).templateName}`);
+            } else if (root.eventData && root.eventData.otherSprite) {
+                 TaskConditionEvaluator.logger.warn(`[DEBUG] eventData.otherSprite existiert: ID=${root.eventData.otherSprite.id}, Name=${root.eventData.otherSprite.name}, Class=${root.eventData.otherSprite.className}, templateName=${(root.eventData.otherSprite as any).templateName}`);
+            }
+        }
+
         return val;
     }
 }

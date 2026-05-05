@@ -1,4 +1,4 @@
-# Developer Guidelines
+﻿# Developer Guidelines
 
 > [!CAUTION]
 > **PFLICHT-REGEL FÜR KI-AGENTEN**: Jede Code-Änderung MUSS mit `npm run test` (oder `run_tests.bat`) validiert werden. Der `docs/QA_Report.md` ist Teil der „Definition of Done". Tests VOR der Nutzer-Benachrichtigung ausführen.
@@ -136,6 +136,8 @@
 - **Broad-Field Matching**: Suche robust über `data.actionName`, `data.name`, `properties.name`, `properties.text`.
 - **Case-Insensitivity**: Namen immer Case-Insensitive vergleichen, `.trim()` verwenden.
 - **Bereinigung**: `SanitizationService` entfernt automatisch verwaiste Action-Referenzen aus Sequenzen.
+- **Stage-bewusstes Refactoring (v2026-05-05)**: Alle `rename*`-Methoden in den Refactoring-Services akzeptieren einen optionalen `activeStageId`-Parameter. Regel: Stage-lokale Elemente werden nur in der aktiven Stage + Blueprint refactored. Blueprint-Elemente werden projektweit refactored. Zentrale Logik: `RefactoringUtils.getStagesToProcess()`. Der `EditorCommandManager` uebergibt automatisch `project.activeStageId`.
+- **DO NOT**: Refactoring-Services NIEMALS ohne `activeStageId` aufrufen, wenn der Kontext eine bestimmte Stage betrifft. Sonst werden identisch benannte Elemente in anderen Stages unbeabsichtigt mitgeaendert.
 
 ## 9. Best Practices
 
@@ -459,9 +461,9 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) m�ssen zwin
 
 
 
-### 17. Single Source of Truth f�r den Komponenten-Baum
-- **DO NOT** ersetze das gesamte ctiveStage.objects-Array durch eine abgeflachte Liste aus der Registry (projectObjectRegistry.getObjects()). Das Zerst�ren der Baumstruktur (mit children-Arrays) f�hrt dazu, dass Container-Kinder ihre parentId-Bindungen doppelt generieren oder verlieren, was zu unvorhersehbarem Zappeln im Run-Mode (Konflikt global vs. relativ) und kaputtem Drag & Drop f�hrt.
-- **DO** operiere stets direkt auf dem referenzierten Baum (ctiveStage.objects.push() oder splice() �ber rekursive Finder wie 
+### 17. Single Source of Truth f�r den Komponenten-Baum
+- **DO NOT** ersetze das gesamte ctiveStage.objects-Array durch eine abgeflachte Liste aus der Registry (projectObjectRegistry.getObjects()). Das Zerst�ren der Baumstruktur (mit children-Arrays) f�hrt dazu, dass Container-Kinder ihre parentId-Bindungen doppelt generieren oder verlieren, was zu unvorhersehbarem Zappeln im Run-Mode (Konflikt global vs. relativ) und kaputtem Drag & Drop f�hrt.
+- **DO** operiere stets direkt auf dem referenzierten Baum (ctiveStage.objects.push() oder splice() �ber rekursive Finder wie 
 emoveObjectSilent) und belasse die Array-Referenz unangetastet.
 - NIEMALS Core-Runtime-Änderungen (AnimationManager, GameRuntime etc.) durchführen, ohne anschließend 
 pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verwendet das vorkompilierte Bundle public/runtime-standalone.js. Ohne Neubau werden im Editor funktionierende Änderungen im IFrame schlichtweg ignoriert.
@@ -476,7 +478,7 @@ pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verw
 - **DO NOT**: V-Button (`pickVariable`) bei `param.type === 'number'` blockieren. Numerische Felder muessen auch Variable-Bindings akzeptieren koennen.
 - **DO NOT**: In `onchange`-Handlern Binding-Strings durch `Number()` oder `autoConvert()` verarbeiten. Pruefen ob `raw.includes('${')` und den Wert als String belassen.
 - **ExpressionParser BUG (behoben)**: Im `MemberExpression`-Case darf das Identifier-Objekt NICHT via `resolveValue` aufgeloest werden, weil sonst TVariable-Objekte vorzeitig zu Primitiven werden und `.value`-Zugriff `undefined` ergibt.
-- **VariableActions/CalculateActions**: Wenn `variableName` oder `resultVariable` einen Punkt enth�lt (z.B. `MyVar.value`), muss der Wert sowohl als flacher Key in `context.vars` als auch via `setPropertyValue` auf dem TVariable-Objekt geschrieben werden.
+- **VariableActions/CalculateActions**: Wenn `variableName` oder `resultVariable` einen Punkt enth�lt (z.B. `MyVar.value`), muss der Wert sowohl als flacher Key in `context.vars` als auch via `setPropertyValue` auf dem TVariable-Objekt geschrieben werden.
 
 
 ### 20. FlowNode Property-Shadowing (x/y Namenskonflikt)

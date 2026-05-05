@@ -26,8 +26,10 @@ export function registerObjectPoolActions() {
         if (action.referenceObject) {
             const refObj = resolveTarget(action.referenceObject, context.objects, context.vars, context.eventData);
             if (refObj) {
-                const offsetX = action.offsetX !== undefined ? Number(action.offsetX) : 0;
-                const offsetY = action.offsetY !== undefined ? Number(action.offsetY) : 0;
+                const offsetXStr = String(action.offsetX || '0').replace(',', '.');
+                const offsetYStr = String(action.offsetY || '0').replace(',', '.');
+                const offsetX = !isNaN(Number(offsetXStr)) ? Number(offsetXStr) : 0;
+                const offsetY = !isNaN(Number(offsetYStr)) ? Number(offsetYStr) : 0;
                 
                 // MULTI-SPAWN LOGIC: Wenn das Bezugsobjekt ein Template ist und ein spezieller Modus gewählt wurde
                 if (refObj.className === 'TSpriteTemplate' && action.spawnMode && action.spawnMode !== 'normal') {
@@ -42,7 +44,7 @@ export function registerObjectPoolActions() {
                         // Alle aktiven Ufos schießen
                         runtimeLogger.info(`[spawn_object] all_active: ${activeInstances.length} Instanzen von "${refObj.name}" schießen`);
                         activeInstances.forEach(inst => {
-                            context.spawnObject(templateId, (inst.x || 0) + offsetX, (inst.y || 0) + offsetY);
+                            context.spawnObject!(templateId, (inst.x || 0) + offsetX, (inst.y || 0) + offsetY);
                         });
                         return true;
                     } else if (action.spawnMode === 'random_active') {
@@ -50,7 +52,7 @@ export function registerObjectPoolActions() {
                         const randomIndex = Math.floor(Math.random() * activeInstances.length);
                         const inst = activeInstances[randomIndex];
                         runtimeLogger.info(`[spawn_object] random_active: ${inst.name} @ (${inst.x}, ${inst.y}) schießt`);
-                        return context.spawnObject(templateId, (inst.x || 0) + offsetX, (inst.y || 0) + offsetY);
+                        return context.spawnObject!(templateId, (inst.x || 0) + offsetX, (inst.y || 0) + offsetY);
                     }
                 }
 
@@ -62,10 +64,12 @@ export function registerObjectPoolActions() {
             }
         }
 
-        const x = finalX !== undefined && finalX !== '' && !isNaN(Number(finalX)) ? Number(finalX) : undefined;
-        const y = finalY !== undefined && finalY !== '' && !isNaN(Number(finalY)) ? Number(finalY) : undefined;
+        const xStr = finalX !== undefined && finalX !== null && finalX !== '' ? String(finalX).replace(',', '.') : '';
+        const yStr = finalY !== undefined && finalY !== null && finalY !== '' ? String(finalY).replace(',', '.') : '';
+        const x = xStr !== '' && !isNaN(Number(xStr)) ? Number(xStr) : undefined;
+        const y = yStr !== '' && !isNaN(Number(yStr)) ? Number(yStr) : undefined;
         
-        return context.spawnObject(templateId, x, y);
+        return context.spawnObject!(templateId, x, y);
     }, {
         type: 'spawn_object',
         label: 'Objekt spawnen',

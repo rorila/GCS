@@ -6,34 +6,33 @@ import { Logger } from '../../utils/Logger';
 export class TaskRefactoringService {
     private static logger = Logger.get('Refactoring', 'Task_Management');
     /**
-     * Renames a task project-wide
+     * Renames a task – stage-bewusst.
+     * Wenn activeStageId gesetzt ist, werden nur die aktive Stage + Blueprint durchsucht.
      */
-    public static renameTask(project: GameProject, oldName: string, newName: string): void {
+    public static renameTask(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
         if (!oldName || !newName || oldName === newName) return;
+
+        const stagesToProcess = RefactoringUtils.getStagesToProcess(project, activeStageId);
 
         // 1. Update project tasks list (Global)
         project.tasks.forEach(task => {
             if (task.name === oldName) task.name = newName;
         });
 
-        // 1b. Update stage-specific tasks
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.tasks) {
-                    stage.tasks.forEach(task => {
-                        if (task.name === oldName) task.name = newName;
-                    });
-                }
-            });
-        }
+        // 1b. Update stage-specific tasks – nur in den relevanten Stages
+        stagesToProcess.forEach(stage => {
+            if (stage.tasks) {
+                stage.tasks.forEach(task => {
+                    if (task.name === oldName) task.name = newName;
+                });
+            }
+        });
 
-        // 2. Update task calls in sequences (Global + all Stages)
+        // 2. Update task calls in sequences – nur in den relevanten Stages
         const allTasks = [...project.tasks];
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.tasks) allTasks.push(...s.tasks);
-            });
-        }
+        stagesToProcess.forEach(s => {
+            if (s.tasks) allTasks.push(...s.tasks);
+        });
 
         allTasks.forEach(task => {
             RefactoringUtils.processSequenceItems(task.actionSequence, (item) => {
@@ -66,27 +65,23 @@ export class TaskRefactoringService {
         updateEventsRecursively(project.objects);
         updateEventsRecursively(project.variables);
 
-        // 5. Update flowChart key if task was renamed
+        // 5. Update flowChart key if task was renamed – nur in relevanten Stages
         if (project.flowCharts && project.flowCharts[oldName]) {
             project.flowCharts[newName] = project.flowCharts[oldName];
             delete project.flowCharts[oldName];
         }
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.flowCharts && s.flowCharts[oldName]) {
-                    s.flowCharts[newName] = s.flowCharts[oldName];
-                    delete s.flowCharts[oldName];
-                }
-            });
-        }
+        stagesToProcess.forEach(s => {
+            if (s.flowCharts && s.flowCharts[oldName]) {
+                s.flowCharts[newName] = s.flowCharts[oldName];
+                delete s.flowCharts[oldName];
+            }
+        });
 
-        // 6. Update Task nodes within all flowCharts
+        // 6. Update Task nodes within flowCharts – nur in relevanten Stages
         const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.flowCharts) Object.assign(charts, stage.flowCharts);
-            });
-        }
+        stagesToProcess.forEach(stage => {
+            if (stage.flowCharts) Object.assign(charts, stage.flowCharts);
+        });
 
         Object.keys(charts).forEach(key => {
             const flowChart = charts[key];
@@ -124,23 +119,21 @@ export class TaskRefactoringService {
             }
         });
 
-        // 7. Update bindings in all stages
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                updateEventsRecursively(stage.objects || []);
-                updateEventsRecursively(stage.variables || []);
+        // 7. Update bindings – nur in den relevanten Stages
+        stagesToProcess.forEach(stage => {
+            updateEventsRecursively(stage.objects || []);
+            updateEventsRecursively(stage.variables || []);
 
-                // Stage events
-                if ((stage as any).events) {
-                    const stageEvents = (stage as any).events;
-                    for (const eventKey in stageEvents) {
-                        if (stageEvents[eventKey] === oldName) {
-                            stageEvents[eventKey] = newName;
-                        }
+            // Stage events
+            if ((stage as any).events) {
+                const stageEvents = (stage as any).events;
+                for (const eventKey in stageEvents) {
+                    if (stageEvents[eventKey] === oldName) {
+                        stageEvents[eventKey] = newName;
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     /**
