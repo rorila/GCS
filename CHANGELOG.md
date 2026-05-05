@@ -118,6 +118,9 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 
 ## [Unreleased]
 
+- **UI: Inspector Consolidation**:
+  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewählt wird, da diese dort keinen logischen Sinn ergeben.
+
 - **FEATURE: Flow Editor Task Sorting**:
   - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.
 
@@ -131,6 +134,9 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 - **FlowNodeHandler Schreib-Fix**: Action-Parameter werden jetzt via `getActionDefinition()` in die JSON-Definition geschrieben und zusaetzlich in `object.data` synchronisiert, statt `PropertyHelper.setPropertyValue(object, ...)` zu nutzen (was Canvas-Koordinaten ueberschrieb).
 
 ## [Unreleased]
+
+- **UI: Inspector Consolidation**:
+  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewählt wird, da diese dort keinen logischen Sinn ergeben.
 
 - **FEATURE: Flow Editor Task Sorting**:
   - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.
@@ -158,6 +164,9 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 
 
 ## [Unreleased]
+
+- **UI: Inspector Consolidation**:
+  - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgewählt wird, da diese dort keinen logischen Sinn ergeben.
 
 - **FEATURE: Flow Editor Task Sorting**:
   - Tasknamen in den Dropdown-Menüs des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die Übersichtlichkeit zu verbessern.

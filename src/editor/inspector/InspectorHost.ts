@@ -73,6 +73,11 @@ export class InspectorHost implements IInspectorContext {
         } else if (obj) {
             if (this.selectedObject !== obj) {
                 this.savedScrollTop = 0;
+                
+                // Switch back to properties tab if selecting a flow element while on events/logs
+                if (this.isFlowElement(obj) && (this.activeTab === 'events' || this.activeTab === 'logs')) {
+                    this.activeTab = 'properties';
+                }
             }
             this.selectedObject = obj;
         }
@@ -127,6 +132,16 @@ export class InspectorHost implements IInspectorContext {
         });
     }
 
+    private isFlowElement(obj: any): boolean {
+        if (!obj) return false;
+        
+        if (obj.isVariable) return true;
+        if (obj.type && ['action', 'task', 'condition', 'comment', 'flowchart'].includes(obj.type)) return true;
+        if (obj.className && ['TAction', 'TTask', 'TCondition'].includes(obj.className)) return true;
+        
+        return false;
+    }
+
     private renderTabs(): HTMLElement {
         const tabs = document.createElement('div');
         tabs.style.display = 'flex';
@@ -150,8 +165,12 @@ export class InspectorHost implements IInspectorContext {
         };
 
         tabs.appendChild(createTab('properties', 'Eigenschaften'));
-        tabs.appendChild(createTab('events', 'Events'));
-        tabs.appendChild(createTab('logs', 'Logs'));
+        
+        // Only show Events and Logs tabs if the selected object is NOT a flow element
+        if (!this.isFlowElement(this.selectedObject)) {
+            tabs.appendChild(createTab('events', 'Events'));
+            tabs.appendChild(createTab('logs', 'Logs'));
+        }
 
         return tabs;
     }
