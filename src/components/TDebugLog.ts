@@ -439,9 +439,17 @@ export class TDebugLog {
     }
 
     /**
-     * Sammelt alle Objekte und Variablen aus allen Stages rekursiv (inkl. Container-Kinder).
-     * Beachtet die Guideline: "Bei jeglicher Iteration über stage.objects MUSS rekursiv iteriert werden."
+     * Gibt die Stages zurück, die für die Debug-Filter relevant sind:
+     * nur die aktive Stage + Blueprint (globale Elemente).
      */
+    private getRelevantStages(): any[] {
+        if (!this.project || !this.project.stages) return [];
+        const activeId = this.project.activeStageId;
+        return this.project.stages.filter((s: any) =>
+            s.type === 'blueprint' || s.id === activeId
+        );
+    }
+
     private getAllProjectObjects(): any[] {
         if (!this.project) return [];
         const result: any[] = [];
@@ -457,42 +465,36 @@ export class TDebugLog {
         if (this.project.objects) flatten(this.project.objects);
         if (this.project.variables) result.push(...this.project.variables);
 
-        // All stages
-        if (this.project.stages) {
-            for (const stage of this.project.stages) {
-                if (stage.objects) flatten(stage.objects);
-                if (stage.variables) result.push(...stage.variables);
-            }
+        // Nur aktive Stage + Blueprint
+        for (const stage of this.getRelevantStages()) {
+            if (stage.objects) flatten(stage.objects);
+            if (stage.variables) result.push(...stage.variables);
         }
         return result;
     }
 
     /**
-     * Sammelt alle Tasks aus allen Stages (inkl. Blueprint).
+     * Sammelt Tasks aus aktiver Stage + Blueprint.
      */
     private getAllProjectTasks(): any[] {
         if (!this.project) return [];
         const tasks: any[] = [];
         if (this.project.tasks) tasks.push(...this.project.tasks);
-        if (this.project.stages) {
-            for (const stage of this.project.stages) {
-                if (stage.tasks) tasks.push(...stage.tasks);
-            }
+        for (const stage of this.getRelevantStages()) {
+            if (stage.tasks) tasks.push(...stage.tasks);
         }
         return tasks;
     }
 
     /**
-     * Sammelt alle Actions aus allen Stages (inkl. Blueprint).
+     * Sammelt Actions aus aktiver Stage + Blueprint.
      */
     private getAllProjectActions(): any[] {
         if (!this.project) return [];
         const actions: any[] = [];
         if (this.project.actions) actions.push(...this.project.actions);
-        if (this.project.stages) {
-            for (const stage of this.project.stages) {
-                if (stage.actions) actions.push(...stage.actions);
-            }
+        for (const stage of this.getRelevantStages()) {
+            if (stage.actions) actions.push(...stage.actions);
         }
         return actions;
     }
