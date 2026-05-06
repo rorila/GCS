@@ -222,9 +222,12 @@ export class PropertyHelper {
             }
         }
 
-        // Try number
-        const num = Number(value);
-        if (!isNaN(num) && value.trim() !== '') {
+        // Try number (support both . and , as decimal separator)
+        const normalizedForNumber = value.includes(',') && !value.includes('.')
+            ? value.replace(',', '.')
+            : value;
+        const num = Number(normalizedForNumber);
+        if (!isNaN(num) && normalizedForNumber.trim() !== '') {
             return num;
         }
 
