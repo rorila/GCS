@@ -1,3 +1,10 @@
+[UC-2026-05-06-ActionChainFix]
+Dateien:
+- src/editor/services/flow/FlowSequenceBuilder.ts: buildSequence() (Line 87)
+- src/runtime/PropertyHelper.ts: autoConvert() (Line 226)
+- src/runtime/TaskExecutor.ts: execute() (Line 36)
+- src/editor/flow/FlowAction.ts: type() (Line 224)
+Beschreibung: Behebung mehrerer Fehler in der Ausfuehrung von Action-Ketten zur Laufzeit. 1) FlowSequenceBuilder beruecksichtigt nun implizite Verbindungen ohne expliziten Anchor-Typ. 2) PropertyHelper konvertiert deutsche Komma-Dezimalzahlen korrekt zu Punkten. 3) ActionExecutor leitet den 'property' Typ korrekt aus impliziten Property-Pfaden ab. 4) FlowAction persistiert den Default-Action-Typ sofort in den zugrunde liegenden Daten.
 Task-Variable Pass-Through
 - src/editor/services/flow/FlowSequenceBuilder.ts: buildSequence() (Line 41)
 - src/runtime/TaskExecutor.ts: executeNode() (Line 486)
@@ -1178,3 +1185,4 @@ Globale Kollisions-Steuerung & Panel Push-Out Fix
 - Dateien: src/editor/services/EditorRunManager.ts
 - Methoden: setRunMode, createOrShowStartButton
 - Beschreibung: Das Spiel startet nicht mehr sofort beim Wechsel in den Run-Tab. Stattdessen wird ein Button eingeblendet, um den Start manuell auszulösen. Dies gibt Zeit, den Debug-Log-Viewer in Ruhe zu konfigurieren.
+
