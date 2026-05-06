@@ -329,13 +329,15 @@ export class EditorRunManager {
         if (!footer) return;
 
         let btn = document.getElementById('run-start-game-btn');
+        let restartBtn = document.getElementById('run-restart-game-btn');
+
         if (!btn) {
             btn = document.createElement('button');
             btn.id = 'run-start-game-btn';
             btn.style.cssText = `
                 display: block;
                 width: calc(100% - 24px);
-                margin: 12px;
+                margin: 12px 12px 6px 12px;
                 background: #4caf50;
                 color: #fff;
                 border: none;
@@ -363,6 +365,10 @@ export class EditorRunManager {
                     btn!.innerHTML = '⏸ PAUSE';
                     btn!.style.background = '#ff9800';
                     btn!.style.cursor = 'pointer';
+
+                    // Restart-Button einblenden
+                    const rb = document.getElementById('run-restart-game-btn');
+                    if (rb) rb.style.display = 'block';
 
                     if (this.runtime) {
                         try {
@@ -409,9 +415,51 @@ export class EditorRunManager {
         } else {
             btn.style.display = 'block';
         }
+
+        // Restart-Button
+        if (!restartBtn) {
+            restartBtn = document.createElement('button');
+            restartBtn.id = 'run-restart-game-btn';
+            restartBtn.style.cssText = `
+                display: none;
+                width: calc(100% - 24px);
+                margin: 0 12px 12px 12px;
+                background: #e91e63;
+                color: #fff;
+                border: none;
+                padding: 8px;
+                cursor: pointer;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                border-radius: 6px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                transition: all 0.2s;
+                text-align: center;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            `;
+            restartBtn.innerHTML = '🔄 NEU STARTEN';
+            restartBtn.onmouseover = () => { restartBtn!.style.transform = 'translateY(-1px)'; };
+            restartBtn.onmouseout = () => { restartBtn!.style.transform = 'translateY(0)'; };
+
+            restartBtn.onclick = () => {
+                // Run-Mode komplett neu starten
+                this.setRunMode(false);
+                setTimeout(() => this.setRunMode(true), 50);
+            };
+
+            // Direkt nach dem Start-Button einfügen
+            if (btn.nextSibling) {
+                footer.insertBefore(restartBtn, btn.nextSibling);
+            } else {
+                footer.appendChild(restartBtn);
+            }
+        }
         
         // Reset state
         this.isGamePaused = false;
+        restartBtn.style.display = 'none';
         btn.innerHTML = '▶ START GAME';
         btn.style.background = '#4caf50';
         btn.style.cursor = 'pointer';
@@ -420,9 +468,9 @@ export class EditorRunManager {
 
     private removeStartButton() {
         const btn = document.getElementById('run-start-game-btn');
-        if (btn) {
-            btn.style.display = 'none';
-        }
+        if (btn) btn.style.display = 'none';
+        const restartBtn = document.getElementById('run-restart-game-btn');
+        if (restartBtn) restartBtn.style.display = 'none';
     }
 
     private startRuntimeComponents() {
