@@ -211,10 +211,7 @@ export class TaskExecutor {
             const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
             const actionSequence = task?.actionSequence || [];
 
-            // logger.info(`[DIAGNOSTIC-TASK] "${taskName}": hasFlowChart=${hasFlowChart}, actionSequenceLen=${actionSequence.length}`);
-            // if (actionSequence.length > 0) {
-            //     logger.info(`[DIAGNOSTIC-TASK] ActionSequence:`, JSON.stringify(actionSequence));
-            // }
+
 
             if (hasFlowChart) {
                 logger.info(`Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart!.elements.length})`);

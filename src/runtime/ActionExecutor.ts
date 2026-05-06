@@ -33,7 +33,9 @@ export class ActionExecutor {
         // Typ-Inferenz: Actions aus dem Flow-Editor haben oft keinen expliziten type.
         // Erkennung anhand vorhandener Felder:
         if (!action.type) {
-            if (action.target && action.changes) {
+            if (action.changes && typeof action.changes === 'object' && Object.keys(action.changes).length > 0) {
+                action.type = 'property';
+            } else if (action.target && action.changes) {
                 action.type = 'property';
             } else if (action.variableName) {
                 action.type = 'variable';

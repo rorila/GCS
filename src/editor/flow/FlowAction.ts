@@ -224,6 +224,11 @@ export class FlowAction extends FlowElement {
 
     public get type(): string {
         const action = this.getActionDefinition();
+        if (action && !action.type) {
+            // Fehlenden Default-Typ sofort persistieren, damit Runtime ihn findet
+            action.type = 'property';
+            if (this.data && !this.data.type) this.data.type = 'property';
+        }
         return action?.type || 'property';
     }
     public set type(v: string) {

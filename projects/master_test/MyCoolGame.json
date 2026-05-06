@@ -132,7 +132,21 @@
       "type": "main",
       "objects": [],
       "actions": [],
-      "tasks": [],
+      "tasks": [
+        {
+          "name": "SwitchToTheHighscoreStage",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SwitchToTheHighscoreStage": {
+              "x": 400,
+              "y": 200
+            }
+          }
+        }
+      ],
       "variables": [],
       "grid": {
         "cols": 60,
@@ -141,7 +155,8 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#16da36"
-      }
+      },
+      "flowCharts": {}
     }
   ],
   "activeStageId": "main"
