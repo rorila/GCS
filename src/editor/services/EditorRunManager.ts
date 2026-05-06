@@ -268,6 +268,7 @@ export class EditorRunManager {
     }
 
     private handleRuntimeEvent(id: string, eventName: string, data?: any) {
+        if (!this.isGameStarted) return; // Events erst nach START GAME verarbeiten
         logger.info(`[RunManager] handleRuntimeEvent: id=${id}, event=${eventName}, hasRuntime=${!!this.runtime}`);
         if (this.runtime) {
             this.runtime.handleEvent(id, eventName, data);

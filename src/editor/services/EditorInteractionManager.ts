@@ -301,7 +301,7 @@ export class EditorInteractionManager {
 
         stage.onEvent = (id: string, eventName: string, data?: any) => {
             if (stage.runMode) {
-                if (this.host.runManager.runtime) {
+                if (this.host.runManager.runtime && this.host.runManager.isGameStarted) {
                     this.host.runManager.runtime.handleEvent(id, eventName, data);
                 }
             } else {
