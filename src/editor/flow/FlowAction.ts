@@ -887,7 +887,7 @@ export class FlowAction extends FlowElement {
             if (entries.length === 0) {
                 return displayAction.target ? `${displayAction.target} (keine Änderungen)` : '(property)';
             }
-            return entries.map(([prop, value]) => `${displayAction.target}.${prop} := ${value}`).join('; ');
+            return entries.map(([prop, value]) => { const prefix = displayAction.target ? `${displayAction.target}.` : ''; return `${prefix}${prop} := ${value}`; }).join('; ');
         }
 
         if (displayAction.type === 'variable' || displayAction.type === 'set_variable') {
@@ -1023,3 +1023,5 @@ export class FlowAction extends FlowElement {
         this.setShowDetails(this.showDetails, this.projectRef);
     }
 }
+
+

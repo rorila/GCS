@@ -10,6 +10,7 @@ export class FlowConnection {
     private startHandle: HTMLElement;
     private endHandle: HTMLElement;
     private labelElement: HTMLElement;
+    private arrowElement: HTMLElement;
 
     // Attachments
     public startTarget: FlowElement | null = null;
@@ -43,6 +44,10 @@ export class FlowConnection {
         this.element.style.height = '2px';
         this.element.style.cursor = 'pointer';
         container.appendChild(this.element);
+
+        this.arrowElement = document.createElement('div');
+        this.arrowElement.style.cssText = 'position:absolute; right:-1px; top:50%; transform:translate(0,-50%); width:0; height:0; border-top:4px solid transparent; border-bottom:4px solid transparent; border-left:8px solid white;';
+        this.element.appendChild(this.arrowElement);
 
         // Handles
         this.startHandle = this.createHandle();
@@ -136,12 +141,14 @@ export class FlowConnection {
     public select() {
         this.isSelected = true;
         this.element.style.backgroundColor = '#00ffff'; // Cyan highlight
+        this.arrowElement.style.borderLeftColor = '#00ffff';
         this.updatePosition();
     }
 
     public deselect() {
         this.isSelected = false;
         this.element.style.backgroundColor = 'white';
+        this.arrowElement.style.borderLeftColor = 'white';
         this.updatePosition();
     }
 
@@ -216,6 +223,7 @@ export class FlowConnection {
         if (this.startHandle.parentNode) this.startHandle.parentNode.removeChild(this.startHandle);
         if (this.endHandle.parentNode) this.endHandle.parentNode.removeChild(this.endHandle);
         if (this.labelElement.parentNode) this.labelElement.parentNode.removeChild(this.labelElement);
+        if (this.arrowElement.parentNode) this.arrowElement.parentNode.removeChild(this.arrowElement);
     }
 
     public get Text(): string { return this.labelElement.innerText; }
@@ -266,3 +274,5 @@ export class FlowConnection {
         };
     }
 }
+
+

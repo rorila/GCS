@@ -1,5 +1,10 @@
-﻿### 2026-05-05
-- **Debug-Log-Viewer Erweiterung**: 4 kaskadierende Filter-Dropdowns (Komponenten, Events, Tasks, Actions). Objekte werden rekursiv aus allen Stages inkl. Container-Kindern gesammelt. Events werden aus obj.events und direkten on*-Properties erkannt.
+### 2026-05-06
+- **FlowSequenceBuilder Fix**: Die Action-Sequenz wird jetzt nicht mehr abgebrochen, wenn manuell gezogene Verbindungen zwischen Action-Nodes keinen expliziten Anchor-Typ (wie 'output', 'bottom') haben. Dies behebt Probleme, bei denen Action-Ketten nach der ersten Aktion stillstanden.
+- **Komma in autoConvert**: Die Runtime konvertiert jetzt deutsche Komma-Dezimalzahlen (z.B. '-0,4') korrekt zu Punkt-Zahlen ('-0.4'), um 'NaN'-Berechnungsfehler im PropertyHelper zu vermeiden.
+- **ActionExecutor Typ-Inferenz**: Actions mit Format `"Object.Eigenschaft": "Wert"`, die weder 'target' noch 'type' im JSON gesetzt haben, werden jetzt korrekt als 'property' Typ aufgelöst und ausgeführt.
+- **FlowAction Typ-Persistenz**: Der Getter FlowAction.type speichert den Default-Fallback ('property') jetzt sofort im Action-Definitionsobjekt, damit er zur Laufzeit vorhanden ist.
+
+### 2026-05-05
 - **Pause/Weiter-Button**: Start-Button wird nach Spielstart zum Pause/Weiter-Toggle. Pausiert GameLoop und Timer gleichzeitig.
 - **Bugfix**: Debug-Log-Viewer Dropdowns waren leer (obj.Tasks statt obj.events, fehlende Container-Rekursion).
 ### 2026-05-05
@@ -198,3 +203,4 @@ U p d a t e :   T a s k E x e c u t o r . t s  
 - **Feature**: GameLoop startet im Run-Tab nicht mehr automatisch. Ein '? START GAME' Button wurde im Footer hinzugef�gt, um Zeit f�r die Debug-Log-Konfiguration zu geben.
 - **Bugfix**: Timer und GameServer laufen nicht mehr beim Tab-Wechsel in Run-Mode sofort los, sondern warten ebenfalls auf den Start-Button.
 - **Bugfix**: Debug-Log-Viewer Dropdowns sind nicht mehr leer vor dem Start. TDebugLog scannt nun alle Stages nach Objekten und Tasks.
+
