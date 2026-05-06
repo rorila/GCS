@@ -84,7 +84,9 @@ export class FlowSequenceBuilder {
                     delete (actionItem as any).originalId;
                     targetSeq.push(actionItem);
                 }
-                const nextConns = connections.filter(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom' || c.data?.startAnchorType === 'right'));
+                // Finde nachfolgende Verbindungen: explizite Sequenz-Anchors ODER fehlende Angabe (= Standard-Verbindung)
+                const branchTypes = new Set(['true', 'false', 'success', 'error']);
+                const nextConns = connections.filter(c => c.startTargetId === nodeId && !branchTypes.has(c.data?.startAnchorType || ''));
                 if (nextConns.length > 0) {
                     nextConns.forEach(nc => buildSequence(nc.endTargetId, targetSeq, stopSet, nc.data?.startAnchorType));
                 }

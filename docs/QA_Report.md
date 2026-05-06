@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 5.5.2026, 17:45:31
+**Generiert am**: 6.5.2026, 19:15:01
 **Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 200)
-    "Bestanden ✅" : 167
-    "Fehlgeschlagen ❌" : 33
+pie title Test-Status (Gesamt: 195)
+    "Bestanden ✅" : 193
+    "Fehlgeschlagen ❌" : 2
 ```
 
 ## 🧪 Test-Details
@@ -87,9 +87,9 @@ pie title Test-Status (Gesamt: 200)
 | Hydrate: Prototype Pollution Regression<br><small>Object.prototype blieb unveraendert</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 70 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 31</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1164), src/editor/flow/FlowAction.ts (1021), src/editor/inspector/InspectorRenderer.ts (1239), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1106), src/services/AgentController.ts (1302)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 32</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1164), src/editor/flow/FlowAction.ts (1026), src/editor/inspector/InspectorRenderer.ts (1239), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1106), src/services/AgentController.ts (1302)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: bundle:runtime Freshness<br><small>Bundle 3220s veraltet (juengste Quelle: src/runtime/TaskExecutor.ts). Bitte "npm run bundle:runtime" ausfuehren!</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Action: ValidatePin → CheckPinCode<br><small>Action=true, Sequence=true, Flow=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -156,7 +156,7 @@ pie title Test-Status (Gesamt: 200)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1777995222600_ef (erwartet: stage_import_1777995222600_ef), BackToLobby.stageId=stage_import_1777995222600_ob (erwartet: stage_import_1777995222600_ob)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778087615687_us (erwartet: stage_import_1778087615687_us), BackToLobby.stageId=stage_import_1778087615687_jt (erwartet: stage_import_1778087615687_jt)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
@@ -180,152 +180,34 @@ pie title Test-Status (Gesamt: 200)
 | DOM Runtime Element<br><small>Methodengarantie: createRuntimeElement ist überladen.</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | TComponent.getEvents includes Hover Events<br><small>Found: onClick, onDoubleClick, onMouseEnter, onMouseLeave, onDragStart, onDragEnd, onDrop, onTouchStart, onTouchMove, onTouchEnd, onFlipMidpoint, onFocus, onBlur</small> | Component Events | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | ComponentRegistry Fallback includes Hover Events<br><small>Found: onClick, onDoubleClick, onMouseEnter, onMouseLeave, onDragStart, onDragEnd, onDrop, onTouchStart, onTouchMove, onTouchEnd</small> | Component Events | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Neue Stage über Menü erzeugen<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Action-Typ auf navigate_stage ändern<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: MyCoolGame.json auf Disk vollständig validieren<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-
-Expected: [32mtrue[39m
-Received: [31mfalse[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Roundtrip: Werte bleiben nach Speichern und Laden konsistent<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte den Run-Modus starten und stoppen können<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte den Run-Modus erneut starten können (Restart)<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte das Stages-Menü anzeigen<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte zur Blueprint-Stage wechseln können<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte nach Stage-Wechsel zurückkehren können<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Szenario 1: JSON Import Injection wird vom StageRenderer blockiert<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Szenario 2: Inspector UI (Rich-Text Dialog) Injection wird gefiltert<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Szenario 3: Laden einer manipulierten externen JSON-Datei (Drag Drop Simulation)<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kein Overlay-Leak nach Dialog-Schließen<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Fokus-Restore: Input bleibt editierbar nach Dialog<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Delete-Taste in Input löscht keine Stage-Objekte<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: 3x Dialog-Zyklus: Fokus bleibt stabil<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: E1: Run-Modus zeigt Objekte innerhalb der Bühne<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: E2: Objekt-Positionen korrekt nach Animations-Ende<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: E3: Stage-Wechsel im Run-Modus friert nicht ein<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: E4: Objekte nicht außerhalb der Bühne nach Stage-Wechsel<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: D1: Dialog per toggle_dialog einblendbar<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: D2: Modal: Hintergrund-Overlay wird angezeigt<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: D3: Closable: Dialog kann geschlossen werden<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: D4: Dialog bleibt nach mehrfachem Toggle stabil<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded while running "beforeEach" hook.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte den Editor korrekt laden<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-
-Locator: locator('#app-layout')
-Expected: visible
-Timeout: 5000ms
-Error: element(s) not found
-
-Call log:
-[2m  - Expect "toBeVisible" with timeout 5000ms[22m
-[2m  - waiting for locator('#app-layout')[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Memory Game Cards Visible<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Neue Stage über Menü erzeugen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Action-Typ auf navigate_stage ändern<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: MyCoolGame.json auf Disk vollständig validieren<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Roundtrip: Werte bleiben nach Speichern und Laden konsistent<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Run-Modus starten und stoppen können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Run-Modus erneut starten können (Restart)<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte das Stages-Menü anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte zur Blueprint-Stage wechseln können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte nach Stage-Wechsel zurückkehren können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 1: JSON Import Injection wird vom StageRenderer blockiert<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 2: Inspector UI (Rich-Text Dialog) Injection wird gefiltert<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 3: Laden einer manipulierten externen JSON-Datei (Drag Drop Simulation)<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kein Overlay-Leak nach Dialog-Schließen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Fokus-Restore: Input bleibt editierbar nach Dialog<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Delete-Taste in Input löscht keine Stage-Objekte<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: 3x Dialog-Zyklus: Fokus bleibt stabil<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E1: Run-Modus zeigt Objekte innerhalb der Bühne<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E2: Objekt-Positionen korrekt nach Animations-Ende<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E3: Stage-Wechsel im Run-Modus friert nicht ein<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Editor korrekt laden<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Memory Game Cards Visible<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 
 ---
 *Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*

@@ -125,7 +125,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1777997863443_rfukn7e5l",
+          "id": "obj_1778087644047_hb9jmiojj",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -150,7 +150,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1777997863789_a3cyb9moy",
+          "id": "obj_1778087644397_dy71ktcvb",
           "name": "Button_4",
           "scope": "stage",
           "draggable": false,
@@ -176,17 +176,22 @@
       ],
       "actions": [
         {
-          "id": "node-1777997848608",
+          "id": "node-1778087628999",
           "details": "",
+          "type": "navigate_stage",
           "name": "ShowTheHighscoreStage_Unique",
           "showDetails": false,
-          "type": "navigate_stage"
+          "target": "",
+          "changes": {}
         },
         {
-          "id": "node-1777997851590",
+          "id": "node-1778087632031",
           "details": "",
+          "type": "property",
           "name": "Action1",
-          "showDetails": false
+          "showDetails": false,
+          "target": "",
+          "changes": {}
         }
       ],
       "tasks": [
@@ -213,7 +218,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1777997851590",
+              "id": "node-1778087632031",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -246,7 +251,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1777997856724",
+      "id": "stage-1778087637214",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],
