@@ -44,8 +44,7 @@ export function registerPropertyActions() {
                     }
 
                     DebugLogService.getInstance().log('Variable', `${key} = ${finalValue}`, {
-                        objectName: rootName,
-                        flatten: true
+                        objectName: rootName
                     });
                 } else {
                     // Fallback if not found in objects/vars (e.g. creating a new local var)
@@ -108,8 +107,7 @@ export function registerPropertyActions() {
                 PropertyHelper.setPropertyValue(child, prop, finalValue);
 
                 DebugLogService.getInstance().log('Variable', `${child.name || child.id}.${prop} = ${finalValue}`, {
-                    objectName: child.name || child.id,
-                    flatten: true
+                    objectName: child.name || child.id
                 });
             });
         }

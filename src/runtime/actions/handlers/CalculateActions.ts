@@ -142,8 +142,7 @@ export function registerCalculateActions() {
                             varObj.value = result;
                             DebugLogService.getInstance().log('Variable',
                                 `${action.resultVariable}.value changed: ${result}`, {
-                                objectName: action.resultVariable,
-                                flatten: true
+                                objectName: action.resultVariable
                             });
                         }
                     }
@@ -189,8 +188,7 @@ export function registerCalculateActions() {
                             varObj.value = result;
                             DebugLogService.getInstance().log('Variable',
                                 `${action.resultVariable}.value changed: ${result}`, {
-                                objectName: action.resultVariable,
-                                flatten: true
+                                objectName: action.resultVariable
                             });
                         }
                     }
