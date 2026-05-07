@@ -99,5 +99,51 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Global Scope Handling', false, `Exception: ${e.message}`);
     }
 
+    // --- Test 3: Stage-Scope Fix — Action wird in Task-Stage registriert, nicht in UI-aktive Stage ---
+    try {
+        const multiStageProject: GameProject = {
+            meta: { name: 'Multi-Stage Test', author: '', version: '1.0.0' },
+            stage: { grid: { cols: 10, rows: 10, cellSize: 20, visible: true, snapToGrid: true, backgroundColor: '#ffffff' } },
+            objects: [], actions: [], tasks: [], variables: [],
+            stages: [
+                { id: 'blueprint', name: 'Blueprint', type: 'blueprint', objects: [], actions: [], tasks: [], variables: [] },
+                { id: 'stage-A', name: 'Stage A', type: 'standard', objects: [], actions: [], tasks: [{ name: 'TaskInA', actionSequence: [] }], variables: [] },
+                { id: 'stage-B', name: 'Stage B', type: 'standard', objects: [], actions: [], tasks: [], variables: [] },
+            ],
+            activeStageId: 'stage-B'  // UI zeigt Stage B, aber der Task ist in Stage A!
+        } as any;
+
+        const multiStageMockHost = {
+            project: multiStageProject,
+            editor: {
+                getTargetActionCollection: (name?: string) => {
+                    // Simuliert den alten Fallback auf UI-aktive Stage
+                    const active = multiStageProject.stages!.find(s => s.id === multiStageProject.activeStageId);
+                    return active?.actions || multiStageProject.actions;
+                }
+            }
+        };
+
+        const multiStageManager = new FlowSyncManager(multiStageMockHost as any);
+
+        // Registriere Action mit explizitem targetStageId = 'stage-A' (Stage des Tasks)
+        multiStageManager.updateGlobalActionDefinition(
+            { name: 'StageFixAction', type: 'variable', variableName: '${Score}' },
+            'stage-A'
+        );
+
+        const stageA = multiStageProject.stages![1];
+        const stageB = multiStageProject.stages![2];
+        const inStageA = stageA.actions?.some((a: any) => a.name === 'StageFixAction');
+        const inStageB = stageB.actions?.some((a: any) => a.name === 'StageFixAction');
+
+        const ok = !!inStageA && !inStageB;
+        addResult('Stage-Scope Fix: Action in Task-Stage registriert', ok,
+            ok ? `Action in Stage A gefunden (nicht in Stage B)` :
+            `Stage A: ${inStageA}, Stage B: ${inStageB} — erwartet: A=true, B=false`);
+    } catch (e: any) {
+        addResult('Stage-Scope Fix: Action in Task-Stage registriert', false, `Exception: ${e.message}`);
+    }
+
     return results;
 }

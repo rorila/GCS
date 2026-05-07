@@ -1,6 +1,8 @@
 import { actionRegistry } from '../../ActionRegistry';
 import { resolveTarget } from '../ActionHelper';
 import { Logger } from '../../../utils/Logger';
+import { ExpressionParser } from '../../../runtime/ExpressionParser';
+import { DebugLogService } from '../../../services/DebugLogService';
 
 const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 
@@ -20,16 +22,38 @@ export function registerObjectPoolActions() {
             runtimeLogger.warn(`[spawn_object] Template "${action.templateId}" nicht gefunden!`);
         }
 
-        let finalX = action.x;
-        let finalY = action.y;
+        // --- Variablen-Auflösung via ExpressionParser ---
+        const exprContext = { ...context.vars, ...context.objects };
+        if (context.eventData) {
+            exprContext.$event = context.eventData;
+            exprContext.self = context.eventData.self || context.vars?.self;
+        } else if (context.vars && context.vars.self) {
+            exprContext.self = context.vars.self;
+        }
+
+        let rawX = action.x;
+        let rawY = action.y;
+        if (typeof rawX === 'string' && rawX.includes('${')) rawX = ExpressionParser.interpolate(rawX, exprContext);
+        if (typeof rawY === 'string' && rawY.includes('${')) rawY = ExpressionParser.interpolate(rawY, exprContext);
+
+        let finalX = rawX;
+        let finalY = rawY;
+        let offsetX = 0;
+        let offsetY = 0;
 
         if (action.referenceObject) {
             const refObj = resolveTarget(action.referenceObject, context.objects, context.vars, context.eventData);
             if (refObj) {
-                const offsetXStr = String(action.offsetX || '0').replace(',', '.');
-                const offsetYStr = String(action.offsetY || '0').replace(',', '.');
-                const offsetX = !isNaN(Number(offsetXStr)) ? Number(offsetXStr) : 0;
-                const offsetY = !isNaN(Number(offsetYStr)) ? Number(offsetYStr) : 0;
+                let rawOffsetX = action.offsetX;
+                let rawOffsetY = action.offsetY;
+                
+                if (typeof rawOffsetX === 'string' && rawOffsetX.includes('${')) rawOffsetX = ExpressionParser.interpolate(rawOffsetX, exprContext);
+                if (typeof rawOffsetY === 'string' && rawOffsetY.includes('${')) rawOffsetY = ExpressionParser.interpolate(rawOffsetY, exprContext);
+
+                const offsetXStr = String(rawOffsetX || '0').replace(',', '.');
+                const offsetYStr = String(rawOffsetY || '0').replace(',', '.');
+                offsetX = !isNaN(Number(offsetXStr)) ? Number(offsetXStr) : 0;
+                offsetY = !isNaN(Number(offsetYStr)) ? Number(offsetYStr) : 0;
                 
                 // MULTI-SPAWN LOGIC: Wenn das Bezugsobjekt ein Template ist und ein spezieller Modus gewählt wurde
                 if (refObj.className === 'TSpriteTemplate' && action.spawnMode && action.spawnMode !== 'normal') {
@@ -68,6 +92,28 @@ export function registerObjectPoolActions() {
         const yStr = finalY !== undefined && finalY !== null && finalY !== '' ? String(finalY).replace(',', '.') : '';
         const x = xStr !== '' && !isNaN(Number(xStr)) ? Number(xStr) : undefined;
         const y = yStr !== '' && !isNaN(Number(yStr)) ? Number(yStr) : undefined;
+        
+        runtimeLogger.info(`[spawn_object] Details -> Template: ${templateId}, RefObj: ${action.referenceObject || 'none'}, Offset: (${offsetX}, ${offsetY}), Final: (${x}, ${y})`, {
+            actionConfig: { 
+                rawOffsetX: action.offsetX, 
+                rawOffsetY: action.offsetY, 
+                rawX: action.x, 
+                rawY: action.y 
+            },
+            resolved: { offsetX, offsetY, x, y }
+        });
+        
+        DebugLogService.getInstance().log('Action', `Spawned: ${templateId} an Position (${x || 0}, ${y || 0}) (Basis: ${action.referenceObject || 'N/A'}, Offset: ${offsetX || 0}, ${offsetY || 0})`, {
+            data: {
+                type: 'spawn_object_details',
+                templateId,
+                referenceObject: action.referenceObject,
+                offsetX,
+                offsetY,
+                finalX: x,
+                finalY: y
+            }
+        });
         
         return context.spawnObject!(templateId, x, y);
     }, {

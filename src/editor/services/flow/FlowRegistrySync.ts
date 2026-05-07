@@ -14,10 +14,10 @@ export class FlowRegistrySync {
         ) || null;
     }
 
-    public updateGlobalActionDefinition(actionData: any) {
+    public updateGlobalActionDefinition(actionData: any, targetStageId?: string) {
         if (!this.host.project) return;
         const name = actionData.name || actionData.actionName;
-        FlowRegistrySync.logger.debug(`updateGlobalActionDefinition: name=${name}, type=${actionData.type}`);
+        FlowRegistrySync.logger.debug(`updateGlobalActionDefinition: name=${name}, type=${actionData.type}, targetStageId=${targetStageId}`);
         if (!name) return;
 
         const isMinimalLink = actionData.isLinked && !actionData.type && !actionData.target && !actionData.service;
@@ -56,7 +56,22 @@ export class FlowRegistrySync {
         if (newAction.actionName) delete newAction.actionName;
         const blueprintStageForAction = this.getBlueprintStage();
         const fallbackCollection = blueprintStageForAction ? (blueprintStageForAction.actions || (blueprintStageForAction.actions = [])) : [];
-        const targetCollection = this.host.editor ? this.host.editor.getTargetActionCollection(name) : fallbackCollection;
+
+        // Stage-Scope-Fix: Wenn ein targetStageId übergeben wird, direkt in diese Stage schreiben.
+        // Das verhindert, dass Actions fälschlicherweise in der UI-aktiven Stage landen statt in der Stage des Tasks.
+        let targetCollection: any[];
+        if (targetStageId) {
+            const targetStage = this.host.project.stages?.find((s: any) => s.id === targetStageId);
+            if (targetStage) {
+                if (!targetStage.actions) targetStage.actions = [];
+                targetCollection = targetStage.actions;
+                FlowRegistrySync.logger.debug(`Stage-Scope: Ziel-Collection ist Stage "${targetStage.name}" (${targetStageId})`);
+            } else {
+                targetCollection = this.host.editor ? this.host.editor.getTargetActionCollection(name) : fallbackCollection;
+            }
+        } else {
+            targetCollection = this.host.editor ? this.host.editor.getTargetActionCollection(name) : fallbackCollection;
+        }
         const idx = targetCollection.findIndex((a: any) => a.name === name);
 
         if (idx !== -1) {

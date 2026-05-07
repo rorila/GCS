@@ -140,12 +140,11 @@ export function registerCalculateActions() {
                         );
                         if (varObj) {
                             varObj.value = result;
-                            DebugLogService.getInstance().log('Variable',
-                                `${action.resultVariable}.value changed: ${result}`, {
-                                objectName: action.resultVariable
-                            });
                         }
                     }
+                    DebugLogService.getInstance().log('Action', `Evaluated: (${action.resultVariable} = ${result})`, {
+                        data: { type: 'calculate_result', resultVariable: action.resultVariable, result }
+                    });
                 }
             } catch (err) {
                 runtimeLogger.error(`Error evaluating calcSteps for "${action.name}":`, err);
@@ -186,12 +185,11 @@ export function registerCalculateActions() {
                         );
                         if (varObj) {
                             varObj.value = result;
-                            DebugLogService.getInstance().log('Variable',
-                                `${action.resultVariable}.value changed: ${result}`, {
-                                objectName: action.resultVariable
-                            });
                         }
                     }
+                    DebugLogService.getInstance().log('Action', `Evaluated: (${action.resultVariable} = ${result})`, {
+                        data: { type: 'calculate_result', resultVariable: action.resultVariable, result }
+                    });
                 }
             } catch (err) {
                 runtimeLogger.error(`Error evaluating "${formula}":`, err);

@@ -20,6 +20,8 @@
 - **Synchronität**: Änderungen in Inspector/Flow-Editor müssen konsistent in JSON und Pascal reflektiert werden.
 - **ComponentSchema (Agent-Wissensbasis)**: Neue Komponenten MÜSSEN im passenden Schema-Modul unter `docs/schemas/` dokumentiert werden (Properties, Methods, Events, Beispiel). Der `SchemaLoader` (`src/services/SchemaLoader.ts`) merged alle Module beim Start und übergibt sie an `AgentController.setComponentSchema()`. NICHT das monolithische `docs/ComponentSchema.json` direkt editieren — es enthält nur die Basis-Definitionen.
 
+- **Auswirkungsanalyse (Impact Analysis)**: Bevor an zentralen Systemen (z. B. Inspector, Projekt-Speicherung, UI-Typisierung) Änderungen vorgenommen werden, MUSS eine systemweite Suchabfrage (grep_search) durchgeführt werden, um Seiteneffekte auszuschließen. "Blindes" Ändern von Laufzeit-Abfragen oder Magic-Strings ohne Prüfung der Querverweise ist strikt untersagt.
+
 ## 2. Tooling
 
 | Befehl | Zweck |
@@ -509,3 +511,4 @@ pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verw
 ### CSS Transitions & Neu erstellte DOM-Elemente
 - **DO NOT** set target transition properties (e.g. \	ransform\, \opacity: 0\) on a newly created and appended DOM element synchronously or within a single \equestAnimationFrame\. The browser will merge the initial and target states in the same layout pass, completely skipping the CSS transition.
 - **DO** force a synchronous layout reflow (e.g. \oid document.body.offsetHeight;\) OR use a short \setTimeout(..., 30)\ before assigning the target properties to ensure the browser has painted the initial state first.
+

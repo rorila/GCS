@@ -371,6 +371,9 @@ export class GameRuntime implements IVariableHost {
             }, splash.duration || 3000);
         });
 
+        // Trigger onEnter and onRuntimeStart for the initially loaded stage
+        this.triggerStageStartEvents();
+
         this.options.onRender?.();
     }
 
@@ -507,33 +510,48 @@ export class GameRuntime implements IVariableHost {
         this.start();
 
         // 2. AFTER Stage Change: Trigger onEnter and onRuntimeStart on the NEW stage
-        if (this.stage && this.taskExecutor) {
-            const onEnterTask = (this.stage.events || this.stage.Tasks)?.onEnter;
-            if (onEnterTask) {
-                logger.debug(`Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
-                const enterLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onEnter`, {
-                    objectName: this.stage.name || this.stage.id,
-                    eventName: 'onEnter'
-                });
-                try {
-                    this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
-                } catch (e) {
-                    logger.error(`Error executing onEnter for stage ${this.stage.id}:`, e);
-                }
-            }
+        this.triggerStageStartEvents();
 
-            const onRuntimeStartTask = (this.stage.events || this.stage.Tasks)?.onRuntimeStart;
-            if (onRuntimeStartTask) {
-                logger.debug(`Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
-                const startLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onRuntimeStart`, {
-                    objectName: this.stage.name || this.stage.id,
-                    eventName: 'onRuntimeStart'
-                });
-                try {
-                    this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage, 0, startLogId);
-                } catch (e) {
-                    logger.error(`Error executing onRuntimeStart for stage ${this.stage.id}:`, e);
-                }
+        if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
+    }
+
+    private triggerStageStartEvents() {
+        if (!this.stage || !this.taskExecutor) return;
+
+        // Blueprint Events als globalen Fallback holen
+        const blueprintStage = this.project?.stages?.find((s: any) => s.type === 'blueprint');
+        const globalEvents = blueprintStage ? (blueprintStage.events || blueprintStage.Tasks) : null;
+        const localEvents = this.stage.events || this.stage.Tasks;
+
+        const onEnterTask = localEvents?.onEnter || globalEvents?.onEnter;
+        if (onEnterTask) {
+            console.warn(`🚀🚀🚀 ON_ENTER WIRD AUSGEFÜHRT! Stage: ${this.stage.name || this.stage.id}, Task: ${onEnterTask}`);
+            logger.warn(`🚀🚀🚀 Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
+            const enterLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onEnter`, {
+                objectName: this.stage.name || this.stage.id,
+                eventName: 'onEnter'
+            });
+            DebugLogService.getInstance().log('System', `🚀 EXECUTING onEnter TASK: ${onEnterTask}`, { objectName: this.stage.name || this.stage.id });
+            
+            try {
+                this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
+            } catch (e) {
+                console.error('Error executing onEnter:', e);
+                logger.error(`Error executing onEnter for stage ${this.stage.id}:`, e);
+            }
+        }
+
+        const onRuntimeStartTask = localEvents?.onRuntimeStart || globalEvents?.onRuntimeStart;
+        if (onRuntimeStartTask) {
+            logger.debug(`Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
+            const startLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onRuntimeStart`, {
+                objectName: this.stage.name || this.stage.id,
+                eventName: 'onRuntimeStart'
+            });
+            try {
+                this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage, 0, startLogId);
+            } catch (e) {
+                logger.error(`Error executing onRuntimeStart for stage ${this.stage.id}:`, e);
             }
         }
         // KEIN weiterer triggerStartAnimation()-Aufruf hier!
@@ -541,8 +559,6 @@ export class GameRuntime implements IVariableHost {
         // Ein doppelter Aufruf verdoppelt den Off-Screen-Offset und
         // die Objekte landen weit außerhalb der Bühne (siehe DEVELOPER_GUIDELINES:
         // "DO NOT duplicate animation triggers in initialization routines").
-
-        if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }
 
     private legacyStageSwitch(): void {
@@ -712,10 +728,13 @@ export class GameRuntime implements IVariableHost {
         const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
         
         let hasTaskMap: any = undefined;
-        if (obj.events && eventName in obj.events) {
-            hasTaskMap = obj.events[eventName];
-        } else if ((obj as any).Tasks && eventName in (obj as any).Tasks) {
-            hasTaskMap = (obj as any).Tasks[eventName];
+        // CRITICAL FIX: Unwrap proxy to ensure we bypass any Proxy limitations
+        const rawObj = (obj as any).__isProxy__ ? (obj as any).__target__ : obj;
+        
+        if (rawObj.events && eventName in rawObj.events) {
+            hasTaskMap = rawObj.events[eventName];
+        } else if ((rawObj as any).Tasks && eventName in (rawObj as any).Tasks) {
+            hasTaskMap = (rawObj as any).Tasks[eventName];
         }
         let eventLogId: string | undefined = undefined;
 

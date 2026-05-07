@@ -34,6 +34,13 @@ export class PropertyHelper {
                 target = target[0];
             }
 
+            // SMART-ACCESS: If the property requested is "value" and this is a variable, 
+            // the target already contains the resolved value (including defaultValue fallback).
+            if (isVarLike && part === 'value') {
+                current = target;
+                continue;
+            }
+
             // Access property (Priority 1: Content / Priority 2: Component / Priority 3: FlowNode Data)
             const hasInContent = (target !== null && typeof target === 'object' && (part in target)) ||
                 (target !== undefined && target !== null && (target as any)[part] !== undefined);

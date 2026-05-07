@@ -23,8 +23,9 @@ export class DebugLogService {
     private logs: LogEntry[] = [];
     private entryMap: Map<string, LogEntry> = new Map(); // O(1) Lookup statt rekursiver Baumsuche
     private listeners: LogListener[] = [];
-    private maxLogs = 500; // Radikal reduziert für Performance (ursprünglich 1000)
-    private maxChildren = 30; // Reduziert (ursprünglich 50)
+    private filterPredicate?: (type: LogType, objectName?: string, eventName?: string) => boolean;
+    private maxLogs = 2000; // Erhöht auf 2000, da Start-Events sonst bei Timer-Spam nach 10s verschwinden
+    private maxChildren = 50; // Reduziert (ursprünglich 50)
     private counter = 0;
     private contextStack: string[] = [];
     private enabled = false;
@@ -78,6 +79,11 @@ export class DebugLogService {
         category?: any
     } = {}): string {
         if (!this.enabled || this.isNotifying) return '';
+
+        // Recording-Filter: Verwerfe Logs, die nicht dem UI-Filter entsprechen
+        if (this.filterPredicate && !this.filterPredicate(type, options.objectName, options.eventName)) {
+            return '';
+        }
 
         // Filter by level: only show INFO or higher in the UI to avoid clutter
         if (options.level) {
@@ -142,6 +148,10 @@ export class DebugLogService {
 
     public getLogs(): LogEntry[] {
         return [...this.logs];
+    }
+
+    public setFilterPredicate(predicate: (type: LogType, objectName?: string, eventName?: string) => boolean) {
+        this.filterPredicate = predicate;
     }
 
     public clear(): void {

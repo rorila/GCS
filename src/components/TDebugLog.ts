@@ -102,7 +102,7 @@ export class TDebugLog {
             `;
             footer.appendChild(btn);
         } else {
-            console.log('[TDebugLog] Standalone/Fallback detected, placing fixed button');
+            TDebugLog.logger.info('[TDebugLog] Standalone/Fallback detected, placing fixed button');
             btn.style.cssText = `
                 position: fixed;
                 right: 20px;
@@ -124,7 +124,7 @@ export class TDebugLog {
         }
 
         btn.onclick = () => {
-            console.log(`[TDebugLog] Toggle clicked.`);
+            TDebugLog.logger.debug(`[TDebugLog] Toggle clicked.`);
             const newState = !this.service.isEnabled();
             this.setRecordingActive(newState);
             this.setPanelVisible(newState);
@@ -161,6 +161,10 @@ export class TDebugLog {
         this.element.style.transform = visible ? 'translateX(0)' : 'translateX(100%)';
         this.element.style.opacity = visible ? '1' : '0';
         this.element.style.pointerEvents = visible ? 'all' : 'none';
+
+        if (visible) {
+            this.updateFilterDropdowns(); // <-- Immer frische Daten holen, wenn das Panel geöffnet wird
+        }
 
         // Ensure the element is actually in document.body
         if (!this.element.parentElement) {
@@ -329,7 +333,7 @@ export class TDebugLog {
                         copyBtn.style.color = '#ddd';
                     }, 1500);
                 }).catch(err => {
-                    console.error('[TDebugLog] Failed to copy logs:', err);
+                    TDebugLog.logger.error('[TDebugLog] Failed to copy logs:', err);
                 });
             });
         }
@@ -367,6 +371,19 @@ export class TDebugLog {
             action: this.actionFilter
         };
         localStorage.setItem('gcs_debug_log_filters', JSON.stringify(filters));
+        
+        this.updateServiceRecordingFilter();
+    }
+
+    private updateServiceRecordingFilter() {
+        this.service.setFilterPredicate((type: string, _objectName?: string, _eventName?: string) => {
+            // Recording Filter wendet NUR die Type-Filter an, damit
+            // spammy Events (wie System, Variable) früh verworfen werden.
+            // Die Dropdown-Filter (Object, Event) bleiben Display-Filter,
+            // um ein nachträgliches Einblenden anderer Objekte zu ermöglichen!
+            if (!this.typeFilters.has(type as LogType)) return false;
+            return true;
+        });
     }
 
     /**
@@ -432,27 +449,28 @@ export class TDebugLog {
                 this.updateTaskDropdown();
                 this.updateActionDropdown();
             } catch (e) {
-                console.warn('[TDebugLog] Failed to load filters:', e);
+                TDebugLog.logger.warn('[TDebugLog] Failed to load filters:', e);
             }
         }
+        
+        // Initial den Recording-Filter anwenden, damit sofort
+        // RAM gespart wird, wenn Filter deaktiviert sind.
+        this.updateServiceRecordingFilter();
     }
 
     public setProject(project: any) {
         this.project = project;
-        this.updateObjectDropdown();
+        this.updateFilterDropdowns();
     }
 
-    /**
-     * Gibt die Stages zurück, die für die Debug-Filter relevant sind:
-     * nur die aktive Stage + Blueprint (globale Elemente).
-     */
-    private getRelevantStages(): any[] {
-        if (!this.project || !this.project.stages) return [];
-        const activeId = this.project.activeStageId;
-        return this.project.stages.filter((s: any) =>
-            s.type === 'blueprint' || s.id === activeId
-        );
+    public updateFilterDropdowns() {
+        this.updateObjectDropdown();
+        this.updateEventDropdown();
+        this.updateTaskDropdown();
+        this.updateActionDropdown();
     }
+
+    // private getRelevantStages(): any[] - Entfernt, da wir für Filter ALLE Stages durchsuchen wollen.
 
     private getAllProjectObjects(): any[] {
         if (!this.project) return [];
@@ -469,36 +487,51 @@ export class TDebugLog {
         if (this.project.objects) flatten(this.project.objects);
         if (this.project.variables) result.push(...this.project.variables);
 
-        // Nur aktive Stage + Blueprint
-        for (const stage of this.getRelevantStages()) {
-            if (stage.objects) flatten(stage.objects);
-            if (stage.variables) result.push(...stage.variables);
+        // Alle Stages für die Filter verwenden (auch inaktive), damit alte Logs filterbar bleiben
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                result.push(stage);
+                if (stage.objects) flatten(stage.objects);
+                if (stage.variables) result.push(...stage.variables);
+            }
         }
         return result;
     }
 
     /**
-     * Sammelt Tasks aus aktiver Stage + Blueprint.
+     * Sammelt Tasks aus ALLEN Stages, da Logs auch Tasks aus vorherigen Stages enthalten können.
      */
     private getAllProjectTasks(): any[] {
         if (!this.project) return [];
         const tasks: any[] = [];
         if (this.project.tasks) tasks.push(...this.project.tasks);
-        for (const stage of this.getRelevantStages()) {
-            if (stage.tasks) tasks.push(...stage.tasks);
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.tasks) tasks.push(...stage.tasks);
+                // Tasks können auch nur im FlowChart existieren (ohne ActionSequence)
+                if (stage.flowCharts) {
+                    Object.keys(stage.flowCharts).forEach(key => {
+                        if (key !== 'global' && !tasks.find(t => t.name === key)) {
+                            tasks.push({ name: key });
+                        }
+                    });
+                }
+            }
         }
         return tasks;
     }
 
     /**
-     * Sammelt Actions aus aktiver Stage + Blueprint.
+     * Sammelt Actions aus ALLEN Stages.
      */
     private getAllProjectActions(): any[] {
         if (!this.project) return [];
         const actions: any[] = [];
         if (this.project.actions) actions.push(...this.project.actions);
-        for (const stage of this.getRelevantStages()) {
-            if (stage.actions) actions.push(...stage.actions);
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.actions) actions.push(...stage.actions);
+            }
         }
         return actions;
     }
@@ -509,15 +542,19 @@ export class TDebugLog {
 
         if (obj.events && typeof obj.events === 'object') {
             Object.keys(obj.events).forEach(evt => {
-                const taskName = obj.events[evt];
-                if (taskName && String(taskName).trim() !== '') {
-                    events.push(evt);
-                }
+                // Auch leere Events anzeigen, da der Nutzer wissen will, welche Events am Objekt existieren
+                events.push(evt);
+            });
+        }
+
+        if (obj.Tasks && typeof obj.Tasks === 'object') {
+            Object.keys(obj.Tasks).forEach(evt => {
+                if (!events.includes(evt)) events.push(evt);
             });
         }
 
         Object.keys(obj).forEach(key => {
-            if (key.startsWith('on') && typeof obj[key] === 'string' && obj[key].trim() !== '') {
+            if (key.startsWith('on') && typeof obj[key] === 'string') {
                 if (!events.includes(key)) {
                     events.push(key);
                 }
@@ -536,6 +573,14 @@ export class TDebugLog {
 
         if (obj.events && typeof obj.events === 'object') {
             Object.values(obj.events).forEach((taskName: any) => {
+                if (taskName && String(taskName).trim() !== '' && !taskNames.includes(String(taskName))) {
+                    taskNames.push(String(taskName));
+                }
+            });
+        }
+
+        if (obj.Tasks && typeof obj.Tasks === 'object') {
+            Object.values(obj.Tasks).forEach((taskName: any) => {
                 if (taskName && String(taskName).trim() !== '' && !taskNames.includes(String(taskName))) {
                     taskNames.push(String(taskName));
                 }
@@ -583,12 +628,19 @@ export class TDebugLog {
         const logObjects = this.service.getUniqueObjects();
         const allProjectObjects = this.getAllProjectObjects();
 
+        const idToNameMap = new Map<string, string>();
+        allProjectObjects.forEach((o: any) => {
+            if (o.id && o.name) idToNameMap.set(o.id, o.name);
+        });
+
         const projectObjects = allProjectObjects
-            .filter((o: any) => this.getAssignedEventsForObject(o).length > 0)
-            .map((o: any) => o.name);
+            .map((o: any) => o.name || o.id)
+            .filter(Boolean);
+
+        const mappedLogObjects = logObjects.map(obj => idToNameMap.get(obj) || obj);
 
         // Merge and deduplicate
-        const allObjects = Array.from(new Set([...logObjects, ...projectObjects])).sort();
+        const allObjects = Array.from(new Set([...mappedLogObjects, ...projectObjects])).sort();
 
         const current = this.objectFilter;
         objSelect.innerHTML = '<option value="">All Objects</option>' +
@@ -604,7 +656,7 @@ export class TDebugLog {
 
         let projectEvents: string[] = [];
         if (this.objectFilter) {
-            const obj = allProjectObjects.find((o: any) => o.name === this.objectFilter);
+            const obj = allProjectObjects.find((o: any) => (o.name || o.id) === this.objectFilter);
             if (obj) {
                 projectEvents = this.getAssignedEventsForObject(obj);
             }
@@ -630,12 +682,14 @@ export class TDebugLog {
 
         if (this.objectFilter) {
             // Nur Tasks dieses Objekts
-            const obj = allProjectObjects.find((o: any) => o.name === this.objectFilter);
+            const obj = allProjectObjects.find((o: any) => (o.name || o.id) === this.objectFilter);
             if (obj) {
                 relevantTaskNames = this.getTaskNamesForObject(obj);
                 // Falls Event-Filter aktiv: nur den Task dieses Events
                 if (this.eventFilter && obj.events && obj.events[this.eventFilter]) {
                     relevantTaskNames = [obj.events[this.eventFilter]];
+                } else if (this.eventFilter && obj.Tasks && obj.Tasks[this.eventFilter]) {
+                    relevantTaskNames = [obj.Tasks[this.eventFilter]];
                 } else if (this.eventFilter && typeof obj[this.eventFilter] === 'string') {
                     relevantTaskNames = [obj[this.eventFilter]];
                 }
@@ -700,23 +754,39 @@ export class TDebugLog {
     }
 
     private shouldShowRecursive(e: LogEntry, parentMatched: boolean): boolean {
-        // 1. Determine if this node matches the Content Filter (Object/Event)
-        const localMatch = this.isContextMatch(e);
+        // 1. HARD PRUNE for strict node-level filters
+        if (this.taskFilter && e.type === 'Task' && !e.message.includes(this.taskFilter)) return false;
+        
+        if (this.actionFilter && e.type === 'Action') {
+            const isMatch = e.message.includes(this.actionFilter);
+            const isChildLog = e.message.startsWith('Evaluated:') || e.message.startsWith('Spawned:');
+            // Allow child logs only if their parent matched
+            if (!isMatch && !(isChildLog && parentMatched)) {
+                return false;
+            }
+        }
+
+        // 2. Determine Context Match
+        const localMatch = this.isContextMatch(e) || 
+                           (e.type === 'Task' && this.taskFilter && e.message.includes(this.taskFilter)) || 
+                           (e.type === 'Action' && !!this.actionFilter && e.message.includes(this.actionFilter));
         const deepMatch = this.isDeepMatch(e);
         const effectiveMatched = parentMatched || localMatch || deepMatch;
 
-        // 2. Check Type Visibility
-        const typeOK = this.matchesTypeHierarchy(e);
-
-        // 3. Should self be visible?
-        const showSelf = effectiveMatched && typeOK;
-
-        // 4. Check children
+        // 3. Evaluate Children
         const childMatch = e.children.some(child => this.shouldShowRecursive(child, effectiveMatched));
 
-        // console.log hier entfernt — war Performance-Killer!
-        // shouldShowRecursive wird rekursiv für ALLE Log-Einträge aufgerufen,
-        // bei jedem renderLogs() → exponentielles Wachstum des Console-Output.
+        // 4. Determine Self Visibility
+        const typeOK = this.matchesTypeHierarchy(e);
+        let showSelf = effectiveMatched && typeOK;
+
+        // 5. Hide empty parents if a stricter lower-level filter is active
+        if (e.type === 'Event' && (this.taskFilter || this.actionFilter) && !childMatch) {
+            showSelf = false;
+        }
+        if (e.type === 'Task' && this.actionFilter && !childMatch) {
+            showSelf = false;
+        }
 
         return showSelf || childMatch;
     }
@@ -799,6 +869,8 @@ export class TDebugLog {
             } else if (data.type === 'call_method') {
                 const params = data.params ? (Array.isArray(data.params) ? data.params.join(', ') : data.params) : '';
                 detailText = `(${data.target || '?'}.${data.method || '?'}(${params}))`;
+            } else if (data.type === 'spawn_object') {
+                detailText = `(spawn '${data.templateId || '?'}' offset=(${data.offsetX || 0}, ${data.offsetY || 0}) target=${data.referenceObject || '?'})`;
             } else if (data.type === 'http') {
                 const bodyStr = data.body ? (typeof data.body === 'object' ? JSON.stringify(data.body, null, 2) : String(data.body)) : '';
                 detailText = `${data.method || 'GET'} ${data.url || '?'}${bodyStr ? ' - Body: ' + bodyStr : ''}`;

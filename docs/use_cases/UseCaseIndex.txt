@@ -1,4 +1,29 @@
-[UC-2026-05-06-ActionChainFix]
+﻿[UC-2026-05-07-SpawnObjectExpressionFix]
+Dateien:
+- src/runtime/actions/handlers/ObjectPoolActions.ts
+Beschreibung: Erweiterung der 'Objekt spawnen' (spawn_object) Action, um Variablen und Formeln per ExpressionParser aufzulösen. Felder wie OffsetX, OffsetY, X und Y werten nun dynamische Ausdrücke wie \ korrekt über den Laufzeit-Kontext aus. Zusätzlich wurde ein detailliertes Logging (runtimeLogger.info) eingebaut, das im Debug-Log-Viewer anzeigt, welche Rohwerte konfiguriert waren und zu welchen finalen Koordinaten sie ausgewertet wurden, was die Fehlersuche bei fehlerhaften Koordinaten erheblich erleichtert.
+[UC-2026-05-07-DebugLogViewerDeepScanFix]
+Dateien:
+- src/components/TDebugLog.ts
+Beschreibung: Erweiterung der Suchfunktion für Filter-Dropdowns (Events, Tasks, Actions) im Debug-Log-Viewer. Vorher wurden nur Elemente der aktuell aktiven Stage und der Blueprint-Stage gesammelt. Da Logs aber auch von älteren Stages stammen können, blieben die Dropdowns bei Stage-Wechseln für diese alten Logs leer. Nun durchsuchen getAllProjectTasks(), getAllProjectActions() und getAllProjectObjects() ALLE Stages des Projekts. Zusätzlich wurde getAssignedEventsForObject() so erweitert, dass es alle bekannten Events eines Objekts auflistet, unabhängig davon, ob dem Event bereits ein Task zugewiesen wurde.
+[UC-2026-05-07-DebugLogViewerDropdownFix]
+Dateien:
+- src/components/TDebugLog.ts
+Beschreibung: Die Filter-Dropdowns (Objects, Events, Tasks, Actions) im Debug-Log-Viewer waren oft leer, wenn man zur Laufzeit Elemente hinzufügte. Die Initialisierung fand nur beim Editor-Start statt. Nun wird this.updateFilterDropdowns() jedes Mal aufgerufen, wenn der Viewer über setPanelVisible() eingeblendet wird. Zusätzlich wurde das Objekt-Dropdown vereinfacht, sodass es jetzt alle Objekte anzeigt und nicht mehr nur solche, die bereits zugewiesene Events haben.
+[UC-2026-05-07-VariableEventsTemplateFix]
+Dateien:
+- public/inspector_variable_events.json
+Beschreibung: Dropdowns für Variable/Timer-Events speicherten den gewählten Task korrekt in 'obj.events.EventName', die UI versuchte jedoch den Wert aus dem Top-Level ('obj.EventName') zu lesen, weshalb die Auswahl nach dem Klick sofort wieder unsichtbar wurde. Dies wurde im JSON-Template durch korrekte "property" und Fallback-Ausdrücke in "selectedValue" korrigiert. Zudem wurde das 'onFinished' Event des Timers in 'onMaxIntervalReached' umbenannt.
+[UC-2026-05-07-InspectorTabsFix]
+Dateien:
+- src/editor/inspector/InspectorHost.ts: isFlowElement() (Line 138)
+Beschreibung: Variablen und Timer (Komponenten mit isVariable = true) zeigen jetzt im Inspector wieder die Tabs "Events" und "Logs" an. Die Methode isFlowElement() hatte diese fälschlicherweise als reine Flow-Elemente eingestuft und die UI-Tabs blockiert.
+[UC-2026-05-07-StageScopeFix]
+Dateien:
+- src/editor/services/FlowSyncManager.ts: syncToProject() (Line 102), getStageForContext() (Line 300)
+- src/editor/services/flow/FlowRegistrySync.ts: updateGlobalActionDefinition() (Line 17)
+- tests/action_registration.test.ts: Test 3 - Stage-Scope Fix
+Beschreibung: Actions werden jetzt in der Stage ihres Tasks registriert statt in der UI-aktiven Stage. FlowSyncManager ermittelt per getStageForContext() die Stage des aktuellen Tasks und uebergibt die StageId an FlowRegistrySync. Self-Healing fuer isLinked-Actions die in einer fremden Stage registriert sind.[UC-2026-05-06-ActionChainFix]
 Dateien:
 - src/editor/services/flow/FlowSequenceBuilder.ts: buildSequence() (Line 87)
 - src/runtime/PropertyHelper.ts: autoConvert() (Line 226)
@@ -16,14 +41,14 @@ Dateien:
 - src/editor/services/StageRenderer.ts (Methode: updateSingleObject, renderObjects)
 - src/editor/services/EditorDataManager.ts (Methode: exportTheme)
 - src/editor/inspector/renderers/InspectorSectionRenderer.ts
-Beschreibung: Einbindung eines dynamischen und kaskadierenden Theme-Systems in den Game-Builder. Die festkodierten Styles der UI-Komponenten (TButton, TPanel, TCard, etc.) wurden entfernt. Eine ThemeRegistry Singleton-Instanz verwaltet die Basisfarben und Fonts und liefert ein Default Modern-Glass Theme. Der StageRenderer mergt die Theme-Styles zur Laufzeit in die Objekte via shallow-copy. Zus�tzlich gibt es im Inspector einen 'Auf Theme zur�cksetzen' Button und im Menu einen 'Theme exportieren' Button.
+Beschreibung: Einbindung eines dynamischen und kaskadierenden Theme-Systems in den Game-Builder. Die festkodierten Styles der UI-Komponenten (TButton, TPanel, TCard, etc.) wurden entfernt. Eine ThemeRegistry Singleton-Instanz verwaltet die Basisfarben und Fonts und liefert ein Default Modern-Glass Theme. Der StageRenderer mergt die Theme-Styles zur Laufzeit in die Objekte via shallow-copy. Zusätzlich gibt es im Inspector einen 'Auf Theme zurücksetzen' Button und im Menu einen 'Theme exportieren' Button.
 
 [UC-2026-04-27-ObjectRegistryDeduplication]
 Beschreibung: Deduplizierung von Objekten im Inspector/Action Editor, um identische Namen durch kopierte Blueprint-Stages auszufiltern.
 Dateien: src/services/registry/ObjectRegistry.ts (Methode: getObjects, Zeilen ~78-110)
 ---
 [UC-2026-04-27-IFrameBundleFix]
-Beschreibung: Synchronisierung des Standalone-Players für IFrame Run-Mode nach Core-Runtime-Änderungen.
+Beschreibung: Synchronisierung des Standalone-Players fÃ¼r IFrame Run-Mode nach Core-Runtime-Ã„nderungen.
 Dateien: public/runtime-standalone.js (durch `npm run bundle:runtime`)
 Methoden/Zeilen: n/a
 ---
@@ -32,30 +57,30 @@ Dateien:
 - src/editor/inspector/InspectorContextBuilder.ts (Methode: build, availableTasks Zeilen ~220)
 - src/editor/inspector/renderers/InspectorEventsRenderer.ts (Methode: renderEventsContent, Zeilen ~56)
 - src/runtime/GameRuntime.ts (Methode: handleEvent, Zeilen ~714)
-Beschreibung: Feature-Erweiterung für die Inspector-UI. Wenn eine Komponente mit einem Task verknüpft wurde, ließ sich diese Verknüpfung nicht mehr über das Dropdown-Menü aufheben. Es wurde die leere Auswahloption `- Task auswählen... -` mit dem Value `""` prepended (`unshift`). Zudem wurde ein Fehler in `GameRuntime.ts` behoben: Da `""` (Leerstring) in JavaScript falsy ist, griff die alte ODER-Fallback-Logik auf das veraltete `obj.Tasks`-Mapping zurück und führte das alte Event dennoch aus. Dies wurde korrigiert.
+Beschreibung: Feature-Erweiterung fÃ¼r die Inspector-UI. Wenn eine Komponente mit einem Task verknÃ¼pft wurde, lieÃŸ sich diese VerknÃ¼pfung nicht mehr Ã¼ber das Dropdown-MenÃ¼ aufheben. Es wurde die leere Auswahloption `- Task auswÃ¤hlen... -` mit dem Value `""` prepended (`unshift`). Zudem wurde ein Fehler in `GameRuntime.ts` behoben: Da `""` (Leerstring) in JavaScript falsy ist, griff die alte ODER-Fallback-Logik auf das veraltete `obj.Tasks`-Mapping zurÃ¼ck und fÃ¼hrte das alte Event dennoch aus. Dies wurde korrigiert.
 
 [UC-2026-04-27-FlipMidpointFix]
 Dateien:
 - src/runtime/AnimationManager.ts (Methode: flip, Zeilen ~587, ~597)
 - src/components/TCard.ts (Methode: getEvents)
-Beschreibung: Bugfix für die Flip-Animation. Das Event `onFlipMidpoint` wurde von `AnimationManager` über ein falsches Event-Token (`componentEvent`) dispatched und deshalb von der Runtime ignoriert. Es wird nun korrekt über `GameRuntime_Event` gefeuert. Zudem wurde `onFlipMidpoint` zur ComponentRegistry (`TCard.ts -> getEvents()`) hinzugefügt, damit es regulär im Editor auswählbar ist.
+Beschreibung: Bugfix fÃ¼r die Flip-Animation. Das Event `onFlipMidpoint` wurde von `AnimationManager` Ã¼ber ein falsches Event-Token (`componentEvent`) dispatched und deshalb von der Runtime ignoriert. Es wird nun korrekt Ã¼ber `GameRuntime_Event` gefeuert. Zudem wurde `onFlipMidpoint` zur ComponentRegistry (`TCard.ts -> getEvents()`) hinzugefÃ¼gt, damit es regulÃ¤r im Editor auswÃ¤hlbar ist.
 
 [UC-2026-04-27-FlipMidpointFix]
 Dateien:
 - src/runtime/AnimationManager.ts (Methode: flip, Zeilen ~587, ~597)
 - src/components/TWindow.ts (Methode: getEvents, Zeile ~200)
-Beschreibung: Bugfix für die Flip-Animation. Das Event `onFlipMidpoint` wurde von `AnimationManager` über ein falsches Event-Token (`componentEvent`) dispatched und deshalb von der Runtime ignoriert. Es wird nun korrekt über `GameRuntime_Event` gefeuert. Zudem wurde `onFlipMidpoint` zur ComponentRegistry (`TWindow.ts -> getEvents()`) hinzugefügt, damit es für ALLE visuellen Komponenten (inkl. TCard und Bilder) im Editor auswählbar ist.
+Beschreibung: Bugfix fÃ¼r die Flip-Animation. Das Event `onFlipMidpoint` wurde von `AnimationManager` Ã¼ber ein falsches Event-Token (`componentEvent`) dispatched und deshalb von der Runtime ignoriert. Es wird nun korrekt Ã¼ber `GameRuntime_Event` gefeuert. Zudem wurde `onFlipMidpoint` zur ComponentRegistry (`TWindow.ts -> getEvents()`) hinzugefÃ¼gt, damit es fÃ¼r ALLE visuellen Komponenten (inkl. TCard und Bilder) im Editor auswÃ¤hlbar ist.
 
 [UC-2026-04-27-FlipMidpointFix]
 Dateien:
 - src/runtime/AnimationManager.ts (Methode: flip, Zeilen ~587, ~597)
 - src/components/TWindow.ts (Methode: getEvents, Zeile ~200)
-Beschreibung: Bugfix für die Flip-Animation. Das Event `onFlipMidpoint` wurde von `AnimationManager` über ein falsches Event-Token (`componentEvent`) dispatched und deshalb von der Runtime ignoriert. Es wird nun korrekt über `GameRuntime_Event` gefeuert. Zudem wurde `onFlipMidpoint` zur ComponentRegistry (`TWindow.ts -> getEvents()`) hinzugefügt, damit es für ALLE visuellen Komponenten (inkl. TCard und Bilder) im Editor auswählbar ist.
+Beschreibung: Bugfix fÃ¼r die Flip-Animation. Das Event `onFlipMidpoint` wurde von `AnimationManager` Ã¼ber ein falsches Event-Token (`componentEvent`) dispatched und deshalb von der Runtime ignoriert. Es wird nun korrekt Ã¼ber `GameRuntime_Event` gefeuert. Zudem wurde `onFlipMidpoint` zur ComponentRegistry (`TWindow.ts -> getEvents()`) hinzugefÃ¼gt, damit es fÃ¼r ALLE visuellen Komponenten (inkl. TCard und Bilder) im Editor auswÃ¤hlbar ist.
 
 [UC-2026-04-27-ActionTargetSorting]
 Dateien:
-- src/services/registry/ObjectRegistry.ts (Methode: getObjects, Zeilen ~83, 106, 109 - Hinzufügen von alphabetischer Sortierung)
-Beschreibung: Alphabetische Sortierung für die Objektauswahl (Target Objects) in Actions und Flow-Bedingungen hinzugefügt. Das verhindert chaotische Listen und macht verschachtelte Objekte (z.B. TCard in TGroupPanel) leichter auffindbar.
+- src/services/registry/ObjectRegistry.ts (Methode: getObjects, Zeilen ~83, 106, 109 - HinzufÃ¼gen von alphabetischer Sortierung)
+Beschreibung: Alphabetische Sortierung fÃ¼r die Objektauswahl (Target Objects) in Actions und Flow-Bedingungen hinzugefÃ¼gt. Das verhindert chaotische Listen und macht verschachtelte Objekte (z.B. TCard in TGroupPanel) leichter auffindbar.
 
 [UC-2026-04-27-TS6133UnusedImport]
 Dateien:
@@ -65,53 +90,53 @@ Beschreibung: Behebung eines TypeScript-Compiler-Fehlers (TS6133) durch Entferne
 [UC-2026-04-26-ObjectReparentingFlatStructure]
 Dateien:
 - src/services/ProjectStore.ts (Methode: reduceReparentObject, Zeilen ~459-467)
-Beschreibung: Behebung eines Fehlers beim Herausziehen von Sprites aus einem Panel. Da das Datenmodell zur Laufzeit flach strukturiert ist, landete das Objekt beim Drag-and-Drop auf der Stage im gleichen Ziel-Array (`stage.objects`). Die Funktion `reduceReparentObject` brach daraufhin vorzeitig ab, ohne die Eigenschaft `parentId` des Sprites zu löschen. Durch die Behebung wird die `parentId` nun bei Reparenting-Vorgängen innerhalb desselben Flat-Arrays zwingend gelöscht oder aktualisiert, was das "Hängenbleiben" im Parent-Container beseitigt.
+Beschreibung: Behebung eines Fehlers beim Herausziehen von Sprites aus einem Panel. Da das Datenmodell zur Laufzeit flach strukturiert ist, landete das Objekt beim Drag-and-Drop auf der Stage im gleichen Ziel-Array (`stage.objects`). Die Funktion `reduceReparentObject` brach daraufhin vorzeitig ab, ohne die Eigenschaft `parentId` des Sprites zu lÃ¶schen. Durch die Behebung wird die `parentId` nun bei Reparenting-VorgÃ¤ngen innerhalb desselben Flat-Arrays zwingend gelÃ¶scht oder aktualisiert, was das "HÃ¤ngenbleiben" im Parent-Container beseitigt.
 
 [UC-2026-04-25-PanelBoundaryBounceFix]
 Dateien:
 - src/runtime/GameLoopManager.ts (Methode: checkBoundaries / checkStageExits, Zeilen ~541, 647)
-Beschreibung: Behebung eines Fehlers in der Boundary-Collision. Wenn ein Sprite als Kind eines Panels definiert war, sollte es am Rand des Panels abprallen. Da die GameRuntime für das Rendering alle Stage-Objekte in eine flache Liste (`parentId` statt echter `children`-Referenz) konvertiert, lief die Prüfung auf `sprite.parent` ins Leere. Das Sprite verhielt sich so, als wäre es direkt auf der Stage. Durch den Fix sucht der GameLoopManager nun das Panel via `sprite.parentId` im `this.panels` Array, woraufhin die Panel-Kanten korrekt als Kollisionsgrenzen genutzt werden.
+Beschreibung: Behebung eines Fehlers in der Boundary-Collision. Wenn ein Sprite als Kind eines Panels definiert war, sollte es am Rand des Panels abprallen. Da die GameRuntime fÃ¼r das Rendering alle Stage-Objekte in eine flache Liste (`parentId` statt echter `children`-Referenz) konvertiert, lief die PrÃ¼fung auf `sprite.parent` ins Leere. Das Sprite verhielt sich so, als wÃ¤re es direkt auf der Stage. Durch den Fix sucht der GameLoopManager nun das Panel via `sprite.parentId` im `this.panels` Array, woraufhin die Panel-Kanten korrekt als Kollisionsgrenzen genutzt werden.
 
 [UC-2026-04-25-SystemVariableHitSideFix]
 Dateien:
 - src/editor/flow/FlowCondition.ts (Methode: getInspectorProperties, Zeilen ~121, 154)
-Beschreibung: Behebung eines Case-Sensitivity Tippfehlers bei den von der Engine an Flow-Conditions übergebenen System-Variablen. Das Event `onBoundaryHit` wirft die Variable `hitSide` (Kamelhöcker). Im Dropdown des Editors war stattdessen fälschlicherweise `hitside` (alles klein) hinterlegt, wodurch Skripte fehlgeschlagen sind. Dies wurde auf `hitSide` korrigiert.
+Beschreibung: Behebung eines Case-Sensitivity Tippfehlers bei den von der Engine an Flow-Conditions Ã¼bergebenen System-Variablen. Das Event `onBoundaryHit` wirft die Variable `hitSide` (KamelhÃ¶cker). Im Dropdown des Editors war stattdessen fÃ¤lschlicherweise `hitside` (alles klein) hinterlegt, wodurch Skripte fehlgeschlagen sind. Dies wurde auf `hitSide` korrigiert.
 
 [UC-2026-04-25-TauriDialogZIndexFix]
 Dateien:
 - src/editor/inspector/PropertyPickerDialog.ts (Methode: createOverlay, Zeile ~135)
 - src/editor/inspector/VariablePickerDialog.ts (Methode: createOverlay, Zeile ~167)
 - src/editor/inspector/RichTextEditorDialog.ts (Methode: show, Zeile ~12; showLinkDialog, Zeile ~177)
-Beschreibung: Behebung eines UI-Bugs in der Tauri-Version, bei dem modale Dialoge (Eigenschaften-Auswahl, Variablen-Auswahl, RichText-Editor) nicht angezeigt wurden, weil sie von UI-Elementen mit höherem Z-Index verdeckt wurden. Der Z-Index der Overlays wurde von 10000 auf 99999 (bzw. 100000 für geschachtelte Dialoge) erhöht, analog zum ConfirmDialog.
+Beschreibung: Behebung eines UI-Bugs in der Tauri-Version, bei dem modale Dialoge (Eigenschaften-Auswahl, Variablen-Auswahl, RichText-Editor) nicht angezeigt wurden, weil sie von UI-Elementen mit hÃ¶herem Z-Index verdeckt wurden. Der Z-Index der Overlays wurde von 10000 auf 99999 (bzw. 100000 fÃ¼r geschachtelte Dialoge) erhÃ¶ht, analog zum ConfirmDialog.
 
 [UC-2026-04-25-PropertyPickerContainerFix]
 Dateien:
 - src/editor/inspector/renderers/InspectorSectionRenderer.ts (Methode: renderProperty, Zeile ~330)
-Beschreibung: Behebung eines UI-Bugs, bei dem der modale Eigenschafts-Auswahldialog ("Eigenschaft hinzufügen" Button) in Flow-Actions nicht geöffnet wurde, wenn das Ziel-Objekt innerhalb eines Containers (TGroupPanel, TCard) verschachtelt war. Der Inspector durchsucht `stage.objects` und globale Objekte nun rekursiv via `flattenObjects()`, um die Typ-Eigenschaften tief verschachtelter Ziel-Objekte aufzulösen.
+Beschreibung: Behebung eines UI-Bugs, bei dem der modale Eigenschafts-Auswahldialog ("Eigenschaft hinzufÃ¼gen" Button) in Flow-Actions nicht geÃ¶ffnet wurde, wenn das Ziel-Objekt innerhalb eines Containers (TGroupPanel, TCard) verschachtelt war. Der Inspector durchsucht `stage.objects` und globale Objekte nun rekursiv via `flattenObjects()`, um die Typ-Eigenschaften tief verschachtelter Ziel-Objekte aufzulÃ¶sen.
 
 [UC-2026-04-25-UIFixes]
 Dateien:
-- src/editor/flow/FlowCondition.ts (Methode: getInspectorProperties, Zeilen ~118-123, 150-155 - Systemvariablen wie hitside hinzugefügt)
-- src/editor/services/EditorCommandManager.ts (Methode: removeObjectSilent, Zeilen ~179-186 - Rekursives Löschen von Kind-Elementen in Stage-Objekten)
-- src/services/registry/ObjectRegistry.ts (Methode: getObjects, Zeilen ~26-60, 81-98 - flattenObjects Helfer implementiert für rekursive Objekt-Auflistung)
-Beschreibung: Behebung von 3 UI-Bugs: Systemvariablen waren nicht konfigurierbar in FlowConditions. Kind-Elemente von TGroupPanel / Containern ließen sich nicht löschen. Verschachtelte Objekte tauchten in Action-Dropdowns nicht mehr auf.
+- src/editor/flow/FlowCondition.ts (Methode: getInspectorProperties, Zeilen ~118-123, 150-155 - Systemvariablen wie hitside hinzugefÃ¼gt)
+- src/editor/services/EditorCommandManager.ts (Methode: removeObjectSilent, Zeilen ~179-186 - Rekursives LÃ¶schen von Kind-Elementen in Stage-Objekten)
+- src/services/registry/ObjectRegistry.ts (Methode: getObjects, Zeilen ~26-60, 81-98 - flattenObjects Helfer implementiert fÃ¼r rekursive Objekt-Auflistung)
+Beschreibung: Behebung von 3 UI-Bugs: Systemvariablen waren nicht konfigurierbar in FlowConditions. Kind-Elemente von TGroupPanel / Containern lieÃŸen sich nicht lÃ¶schen. Verschachtelte Objekte tauchten in Action-Dropdowns nicht mehr auf.
 
 [UC-2026-04-25-PuzzleFeatures]
 Dateien:
-- src/components/TWindow.ts (Methode: Konstruktor, Zeilen ~94-96, 239 - Eigenschaft rotation hinzugefügt)
-- src/components/TCard.ts (Zeile ~15 - isContainer = true hinzugefügt)
-- src/editor/services/StageRenderer.ts (Zeilen ~321, 451, 830, 1095, 1113 - CSS transform rotate() Logik integriert und TCard Rendering Fallback hinzugefügt)
-- src/editor/services/renderers/TextObjectRenderer.ts (Methode: renderCard, Zeilen ~50-70 - Renderer für Karten-Inhalte)
-Beschreibung: Hinzufügen der Eigenschaft rotation für alle UI-Komponenten (besonders für Puzzle-Spiele, Rasterung in 90-Grad-Schritten im Inspector). Aufwertung von TCard zu einem Container-Element für verschachtelte UI-Layouts und Implementierung eines visuellen Text-Renderers für Kartentitel.
+- src/components/TWindow.ts (Methode: Konstruktor, Zeilen ~94-96, 239 - Eigenschaft rotation hinzugefÃ¼gt)
+- src/components/TCard.ts (Zeile ~15 - isContainer = true hinzugefÃ¼gt)
+- src/editor/services/StageRenderer.ts (Zeilen ~321, 451, 830, 1095, 1113 - CSS transform rotate() Logik integriert und TCard Rendering Fallback hinzugefÃ¼gt)
+- src/editor/services/renderers/TextObjectRenderer.ts (Methode: renderCard, Zeilen ~50-70 - Renderer fÃ¼r Karten-Inhalte)
+Beschreibung: HinzufÃ¼gen der Eigenschaft rotation fÃ¼r alle UI-Komponenten (besonders fÃ¼r Puzzle-Spiele, Rasterung in 90-Grad-Schritten im Inspector). Aufwertung von TCard zu einem Container-Element fÃ¼r verschachtelte UI-Layouts und Implementierung eines visuellen Text-Renderers fÃ¼r Kartentitel.
 
 [UC-2026-04-25-FlipAnimation]
 Dateien:
 - src/runtime/AnimationManager.ts (Methode: flip, Zeilen ~571-608)
-- src/components/TComponent.ts (Methode: getEvents, Zeile ~191 - Hinzufügen von onFlipMidpoint)
-- src/runtime/actions/handlers/AnimationActions.ts (Zeile ~61-63, 94-97 - Hinzufügen des flip Effekts)
+- src/components/TComponent.ts (Methode: getEvents, Zeile ~191 - HinzufÃ¼gen von onFlipMidpoint)
+- src/runtime/actions/handlers/AnimationActions.ts (Zeile ~61-63, 94-97 - HinzufÃ¼gen des flip Effekts)
 - src/components/TWindow.ts (Methode: flip, Zeile ~178-184)
-- src/editor/dialogs/utils/DialogDomainHelper.ts (Zeile ~129-136 - Hinzufügen zu methodMap)
-Beschreibung: Implementierung einer generischen Flip-Animation mit einem onFlipMidpoint Event bei 50% der Ausführungszeit. Ermöglicht nahtlose Vorder-/Rückseiten-Wechsel für UI Komponenten wie TButton, TImage, TPanel, TCard.
+- src/editor/dialogs/utils/DialogDomainHelper.ts (Zeile ~129-136 - HinzufÃ¼gen zu methodMap)
+Beschreibung: Implementierung einer generischen Flip-Animation mit einem onFlipMidpoint Event bei 50% der AusfÃ¼hrungszeit. ErmÃ¶glicht nahtlose Vorder-/RÃ¼ckseiten-Wechsel fÃ¼r UI Komponenten wie TButton, TImage, TPanel, TCard.
 
 [UC-2026-04-25-EventContext]
 Dateien:
@@ -123,19 +148,19 @@ Dateien:
 - src/runtime/GameRuntime.ts (Methode: handleEvent, Zeilen ~730-745 - Injection von $event + self in eventVars)
 - src/services/AgentController.ts (Methode: addVariable, Zeilen ~106-114 - Reserved-Names-Check)
 - tests/event_context.test.ts (NEU, 21 Tests)
-Beschreibung: Feature A: Automatische Injektion von $event (EventContext) und self (Live-Objekt-Referenz) bei jedem Event-Trigger. Ermöglicht KI-Skripten den Zugriff auf das auslösende Objekt via ${$event.source.name} und ${self.x}.
+Beschreibung: Feature A: Automatische Injektion von $event (EventContext) und self (Live-Objekt-Referenz) bei jedem Event-Trigger. ErmÃ¶glicht KI-Skripten den Zugriff auf das auslÃ¶sende Objekt via ${$event.source.name} und ${self.x}.
 
 [UC-2026-04-25-CollectionActions]
 Dateien:
 - src/runtime/actions/handlers/CollectionActions.ts (NEU, ~380 Zeilen)
-  - Funktion: registerCollectionActions() — registriert 14 ActionTypes
+  - Funktion: registerCollectionActions() â€” registriert 14 ActionTypes
   - Listen: list_push, list_pop, list_get, list_set, list_remove, list_clear, list_shuffle, list_contains, list_length
   - Maps: map_get, map_set, map_delete, map_has, map_keys
   - Hilfsoperationen: mulberry32() PRNG, shuffleArray() Fisher-Yates, resolveCollection(), writeVariable()
-- src/runtime/actions/StandardActions.ts (Zeilen ~26-27 — Import + Aufruf von registerCollectionActions)
-- src/model/types.ts (Zeilen ~88-94 — ActionType-Union um 14 Collection-Types erweitert)
+- src/runtime/actions/StandardActions.ts (Zeilen ~26-27 â€” Import + Aufruf von registerCollectionActions)
+- src/model/types.ts (Zeilen ~88-94 â€” ActionType-Union um 14 Collection-Types erweitert)
 - tests/collection_actions.test.ts (NEU, 28 Tests)
-Beschreibung: Feature B: 14 Collection-Actions für Listen- und Map-Operationen. Alle mit Inspector-Metadata, Fehlerbehandlung und DebugLog-Integration. Fisher-Yates-Shuffle mit optionalem deterministischem Seed.
+Beschreibung: Feature B: 14 Collection-Actions fÃ¼r Listen- und Map-Operationen. Alle mit Inspector-Metadata, Fehlerbehandlung und DebugLog-Integration. Fisher-Yates-Shuffle mit optionalem deterministischem Seed.
 
 [UC-2026-04-25-TForEach]
 Dateien:
@@ -144,45 +169,45 @@ Dateien:
   - Properties: source, template, layout, cols, gap, itemWidth, itemHeight, namePattern
   - Methoden: initRuntime(), onRuntimeStart(), onRuntimeUpdate(), onRuntimeStop(), reconcile(), spawnClone(), destroyAllClones(), resolveSourceData(), extractItems(), resolveBindings(), calculatePosition(), computeHash()
   - Auto-Registration via ComponentRegistry
-- src/components/index.ts (Zeile 24 — Export von TForEach)
-- src/runtime/GameRuntime.ts (Methode: initMainGame, Zeilen ~317-335 — addObject/removeObject Callbacks)
-- src/services/AgentController.ts (Methode: addObject, Zeilen ~114-122 — TForEach-Validierung für source+template)
+- src/components/index.ts (Zeile 24 â€” Export von TForEach)
+- src/runtime/GameRuntime.ts (Methode: initMainGame, Zeilen ~317-335 â€” addObject/removeObject Callbacks)
+- src/services/AgentController.ts (Methode: addObject, Zeilen ~114-122 â€” TForEach-Validierung fÃ¼r source+template)
 - tests/foreach_repeater.test.ts (NEU, 28 Tests)
-Beschreibung: Feature C: TForEach ist ein deklarativer Repeater-Container, der zur Laufzeit für jedes Element einer Listen-/Map-Variable dynamisch Kinder-Komponenten erzeugt. V1-Strategie: Sofortige Binding-Auflösung ({item}, {index}, {key}) beim Spawn, Destroy-and-Recreate bei Datenänderung.
+Beschreibung: Feature C: TForEach ist ein deklarativer Repeater-Container, der zur Laufzeit fÃ¼r jedes Element einer Listen-/Map-Variable dynamisch Kinder-Komponenten erzeugt. V1-Strategie: Sofortige Binding-AuflÃ¶sung ({item}, {index}, {key}) beim Spawn, Destroy-and-Recreate bei DatenÃ¤nderung.
 
 [UC-2026-04-24-Memory-Game-Builder]
 Dateien:
 - scripts/MemoryGameBuilder.ts
-Beschreibung: Erstellung eines vollständig per Code generierten 4x4 Memory-Spiels.
+Beschreibung: Erstellung eines vollstÃ¤ndig per Code generierten 4x4 Memory-Spiels.
   - Das Skript nutzt den `ProjectBuilder` (AgentController) zur Definition der Spiellogik.
-  - Ein Fisher-Yates-Shuffle in TypeScript sorgt bei jeder Ausführung für ein zufälliges Karten-Layout.
-  - Formel-basierte Logik (Ternäre Operatoren im `ExpressionParser`) wurde genutzt, um Action-Verschachtelungen (`addBranch`) zu umgehen.
+  - Ein Fisher-Yates-Shuffle in TypeScript sorgt bei jeder AusfÃ¼hrung fÃ¼r ein zufÃ¤lliges Karten-Layout.
+  - Formel-basierte Logik (TernÃ¤re Operatoren im `ExpressionParser`) wurde genutzt, um Action-Verschachtelungen (`addBranch`) zu umgehen.
 
 [UC-2026-04-24-Agent-API-Reference-Update]
 Dateien:
 - docs/AGENT_API_REFERENCE.md
-Beschreibung: Umfassendes Audit und Refactoring der Agent API Referenz, um Kompatibilität mit dem aktuellen Projekt-Status und dem `AgentController` zu gewährleisten. 
-  - `addBranch` Syntax auf Callback-Builder umgestellt, um veraltete Objekt-Signaturen in den Rezepten (Pong-Ball, Theme-Switcher) und Anti-Patterns (§7.13) zu bereinigen.
-  - Pong-Ball Rezept für Panel-Ränder auf `onBoundaryHit` angepasst.
+Beschreibung: Umfassendes Audit und Refactoring der Agent API Referenz, um KompatibilitÃ¤t mit dem aktuellen Projekt-Status und dem `AgentController` zu gewÃ¤hrleisten. 
+  - `addBranch` Syntax auf Callback-Builder umgestellt, um veraltete Objekt-Signaturen in den Rezepten (Pong-Ball, Theme-Switcher) und Anti-Patterns (Â§7.13) zu bereinigen.
+  - Pong-Ball Rezept fÃ¼r Panel-RÃ¤nder auf `onBoundaryHit` angepasst.
   - Tabellen und Action-Typen (`variable` statt `set_variable`) konsolidiert, um LLMs korrekte Vorlagen zu liefern.
 
 [UC-2026-04-24-UI-Component-Hover-Events]
 Dateien:
 - src/components/TComponent.ts
-  - `getEvents()`-Methode in Basisklasse integriert, die standardmäßig `onMouseEnter`, `onMouseLeave` und `onDoubleClick` bereitstellt.
+  - `getEvents()`-Methode in Basisklasse integriert, die standardmÃ¤ÃŸig `onMouseEnter`, `onMouseLeave` und `onDoubleClick` bereitstellt.
   - `getInspectorEvents()` nutzt nun `this.getEvents()`.
 - src/services/ComponentRegistry.ts
   - Fallback-Events in `getEvents()` um `onMouseEnter`, `onMouseLeave` und `onDoubleClick` erweitert.
 - src/editor/services/StageRenderer.ts
   - Die Events `onMouseEnter`, `onMouseLeave` und `onDoubleClick` werden nun via `el.onmouseenter` etc. dynamisch an alle gerenderten DOM-Elemente gebunden, sofern diese im Task/Event-Objekt hinterlegt sind.
 - src/editor/services/renderers/TextObjectRenderer.ts
-  - `renderButton()` ergänzt um `onMouseEnter`, `onMouseLeave` und `onDoubleClick` Dispatching, da die Button-Komponente die Event-Listener für visuelle Effekte (Filter) überschreibt.
-Beschreibung: Behebt das Problem, dass UI-Komponenten (wie TButton) keine passenden Hover-Events im Inspector und Flow-Editor zur Verfügung stellten und diese von der Runtime Engine nicht verarbeitet wurden. Zuvor versuchte man fälschlicherweise, Tastatur-Events (onFocus/onBlur) für Mauseingaben zu missbrauchen. Alle Interaktionen werden nun korrekt über die einheitliche `onEvent` Schnittstelle an die UniversalPlayer-Runtime weitergeleitet.
+  - `renderButton()` ergÃ¤nzt um `onMouseEnter`, `onMouseLeave` und `onDoubleClick` Dispatching, da die Button-Komponente die Event-Listener fÃ¼r visuelle Effekte (Filter) Ã¼berschreibt.
+Beschreibung: Behebt das Problem, dass UI-Komponenten (wie TButton) keine passenden Hover-Events im Inspector und Flow-Editor zur VerfÃ¼gung stellten und diese von der Runtime Engine nicht verarbeitet wurden. Zuvor versuchte man fÃ¤lschlicherweise, Tastatur-Events (onFocus/onBlur) fÃ¼r Mauseingaben zu missbrauchen. Alle Interaktionen werden nun korrekt Ã¼ber die einheitliche `onEvent` Schnittstelle an die UniversalPlayer-Runtime weitergeleitet.
 
 [UC-2026-04-23-Variable-Rename-Nested-Bindings]
 Dateien:
 - src/editor/refactoring/VariableRefactoringService.ts
-  - `renameVariable` nutzt nun `replaceInObjectRecursive` für Global- und Stage-Objekte.
+  - `renameVariable` nutzt nun `replaceInObjectRecursive` fÃ¼r Global- und Stage-Objekte.
 - src/editor/refactoring/RefactoringUtils.ts
   - `replaceInObjectRecursive` um `exactMatch`-Parameter erweitert.
 Beschreibung: Behebt das Problem, dass bei der Variablen-Umbenennung die Interpolations-Bindings (z.B. `${score}`) in Eigenschaften von tief verschachtelten Objekten (z.B. TLabel innerhalb TGroupPanel) oder globalen Objekten nicht mit aktualisiert wurden.
@@ -190,28 +215,28 @@ Beschreibung: Behebt das Problem, dass bei der Variablen-Umbenennung die Interpo
 [UC-2026-04-23-Hover-Cursor-Fix]
 Dateien:
 - src/editor/services/renderers/TextObjectRenderer.ts
-  - Methode `renderLabel` (Zeile ~24-25): `cursor: text` auf `cursor: inherit` und `userSelect: text` auf `none` geändert.
-Beschreibung: Beim Hovern über klickbare Container (TGroupPanel) im Run-Modus erschien bisher ein Text-Cursor, da die darin liegenden Labels diesen standardmäßig forcierten. Durch die Umstellung auf `inherit` vererbt der Container nun korrekt seinen Pointer-Cursor an die Kind-Elemente.
+  - Methode `renderLabel` (Zeile ~24-25): `cursor: text` auf `cursor: inherit` und `userSelect: text` auf `none` geÃ¤ndert.
+Beschreibung: Beim Hovern Ã¼ber klickbare Container (TGroupPanel) im Run-Modus erschien bisher ein Text-Cursor, da die darin liegenden Labels diesen standardmÃ¤ÃŸig forcierten. Durch die Umstellung auf `inherit` vererbt der Container nun korrekt seinen Pointer-Cursor an die Kind-Elemente.
 
 [UC-2026-04-23-Font-Scaling-Standalone-Player]
 Dateien:
 - src/editor/services/renderers/TextObjectRenderer.ts
-  - Methode `renderLabel` (Zeile ~10): Fallback für fehlende `fontSize` auf `14` hinzugefügt, sodass `scaleFontSize` aktiv greift.
+  - Methode `renderLabel` (Zeile ~10): Fallback fÃ¼r fehlende `fontSize` auf `14` hinzugefÃ¼gt, sodass `scaleFontSize` aktiv greift.
   - Methode `renderPanel` (Zeile ~38): Fallback auf `14` statt leerem String (`inherit`) im Run-Modus.
-  - Methode `renderButton` (Zeile ~210): Fallback auf `14` hinzugefügt.
+  - Methode `renderButton` (Zeile ~210): Fallback auf `14` hinzugefÃ¼gt.
 - src/editor/services/renderers/InputRenderer.ts
-  - Methode `renderTextInput` (Zeile ~124): Fallback für fehlende `fontSize` auf `14` (skaliert) statt `inherit`.
-  - Methode `renderDropdown` (Zeile ~248): Fallback für fehlende `fontSize` auf `14` (skaliert) statt `inherit`.
-Beschreibung: Text in Komponenten (TLabel, TPanel, TButton, Inputs), die keine explizite Schriftgröße im JSON hinterlegt haben, nutzten den nativen Browser-Fallback (im Editor/CSS 14px, im IFrame-Runner 16px). Nach der CSS-Skalierung (transform) durch den Renderer führte dies im IFrame zu abweichenden Zeilenumbrüchen oder abgeschnittenen Texten (da 16px nach 2x Skalierung zu groß war). Die Renderer forcieren nun strikt einen Default-Wert von `14`, bevor sie die Skalierung anwenden.
+  - Methode `renderTextInput` (Zeile ~124): Fallback fÃ¼r fehlende `fontSize` auf `14` (skaliert) statt `inherit`.
+  - Methode `renderDropdown` (Zeile ~248): Fallback fÃ¼r fehlende `fontSize` auf `14` (skaliert) statt `inherit`.
+Beschreibung: Text in Komponenten (TLabel, TPanel, TButton, Inputs), die keine explizite SchriftgrÃ¶ÃŸe im JSON hinterlegt haben, nutzten den nativen Browser-Fallback (im Editor/CSS 14px, im IFrame-Runner 16px). Nach der CSS-Skalierung (transform) durch den Renderer fÃ¼hrte dies im IFrame zu abweichenden ZeilenumbrÃ¼chen oder abgeschnittenen Texten (da 16px nach 2x Skalierung zu groÃŸ war). Die Renderer forcieren nun strikt einen Default-Wert von `14`, bevor sie die Skalierung anwenden.
 
 [UC-2026-04-24-Sprite-Panel-Physics]
 Dateien:
 - src/runtime/GameLoopManager.ts
   - Methode `init` (Zeile ~100): Panels (`TPanel`, `TGroupPanel`) werden nun gesammelt und in `this.panels` abgelegt, und `this.allObjects` wird zwischengespeichert.
-  - Methode `checkCollisions` (Zeile ~420): Neue Physik-Kollisionslogik (`Sprite` vs `Panel`) implementiert, die auch `onCollision` zündet und optional abprallt (nur wenn Event belegt ist).
+  - Methode `checkCollisions` (Zeile ~420): Neue Physik-Kollisionslogik (`Sprite` vs `Panel`) implementiert, die auch `onCollision` zÃ¼ndet und optional abprallt (nur wenn Event belegt ist).
   - Methode `checkBoundaries` (Zeile ~530): Sprite-Position wird bei parentId nun lokal gegen die Panel-Grenzen validiert.
-  - Methode `triggerBoundaryEvent` (Zeile ~580): Clamp/Bounce wird nur noch durchgeführt, wenn das Event `onBoundaryHit` existiert, ansonsten "Geister"-Verhalten.
-  - Methode `checkStageExits` (Zeile ~630): Aus Stage-/Panel-Austritt prüfen, um Flucht aus dem Screen zu detektieren, da nicht mehr zwingend gecleamt wird.
+  - Methode `triggerBoundaryEvent` (Zeile ~580): Clamp/Bounce wird nur noch durchgefÃ¼hrt, wenn das Event `onBoundaryHit` existiert, ansonsten "Geister"-Verhalten.
+  - Methode `checkStageExits` (Zeile ~630): Aus Stage-/Panel-Austritt prÃ¼fen, um Flucht aus dem Screen zu detektieren, da nicht mehr zwingend gecleamt wird.
 - src/components/TSprite.ts
   - Methode `isWithinBounds` (Zeile ~240): Signatur um `minX` und `minY` erweitert, um nicht mehr hardcodiert von `0,0` (Stage-Origin) auszugehen.
 
@@ -219,11 +244,11 @@ Dateien:
 Dateien:
 - src/editor/services/renderers/ComplexComponentRenderer.ts
   - Methode `renderInfoWindow` (Zeile ~110): Liest nun style.borderRadius, style.color, style.fontSize, style.fontWeight, style.fontFamily, style.fontStyle, style.textAlign aus dem Objekt statt hardcoded Werte. boxShadow wird nur als Default gesetzt wenn kein style.boxShadow/glowColor vorhanden.
-  - Methode `renderDialogRoot` (Zeile ~233): Liest borderRadius, Titelfarbe, Schriftgröße, Schriftgewicht, Schriftart aus style.*.
+  - Methode `renderDialogRoot` (Zeile ~233): Liest borderRadius, Titelfarbe, SchriftgrÃ¶ÃŸe, Schriftgewicht, Schriftart aus style.*.
   - Methode `renderSidePanel` (Zeile ~71): Titelleiste liest color, fontSize, fontWeight, fontFamily aus style.*.
 - src/components/TInfoWindow.ts
   - Methode `createRuntimeElement` (Zeile ~304): Liest borderRadius, textColor, fontSize, fontWeight, fontFamily, fontStyle, boxShadow aus this.style.*.
-  - Methode `getInspectorProperties` (Zeile ~207): Duplikat-Property `borderRadius` entfernt (wird über style.borderRadius von TWindow bereitgestellt).
+  - Methode `getInspectorProperties` (Zeile ~207): Duplikat-Property `borderRadius` entfernt (wird Ã¼ber style.borderRadius von TWindow bereitgestellt).
 - src/components/TDialogRoot.ts
   - Methode `createRuntimeElement` (Zeile ~253): Liest borderRadius, titleColor, titleFontSize, titleFontWeight, titleFontFamily, boxShadow aus this.style.*.
 - src/components/TSidePanel.ts
@@ -236,41 +261,41 @@ Dateien:
 [UC-2026-04-22-TInfoWindow-Visibility-Fix]
 Dateien:
 - src/components/TInfoWindow.ts
-  - Methode `onVisibilityChanged` hinzugefügt, sodass das TInfoWindow nun korrekt auf reaktive Änderungen der `visible`-Eigenschaft reagiert und sich im DOM ein- oder ausblendet, wenn es z.B. über eine Action getriggert wird.
+  - Methode `onVisibilityChanged` hinzugefÃ¼gt, sodass das TInfoWindow nun korrekt auf reaktive Ã„nderungen der `visible`-Eigenschaft reagiert und sich im DOM ein- oder ausblendet, wenn es z.B. Ã¼ber eine Action getriggert wird.
 
 [UC-2026-04-22-Property-Picker-Dialog]
 Dateien:
 - src/editor/inspector/PropertyPickerDialog.ts (NEU)
-  - Modaler Dialog eingeführt, um alle konfigurierbaren Eigenschaften (gestaffelt nach Sektionen) zur Auswahl anzuzeigen. Ähnlich dem VariablePickerDialog.
+  - Modaler Dialog eingefÃ¼hrt, um alle konfigurierbaren Eigenschaften (gestaffelt nach Sektionen) zur Auswahl anzuzeigen. Ã„hnlich dem VariablePickerDialog.
 - src/editor/inspector/renderers/InspectorSectionRenderer.ts
-  - Methode `renderProperty` in der Key-Value Darstellung: den "+ Eigenschaft hinzufügen"-Button auf den asynchronen `PropertyPickerDialog.show()` umgeleitet, um die Eigenschaften gruppiert auszuwählen.
+  - Methode `renderProperty` in der Key-Value Darstellung: den "+ Eigenschaft hinzufÃ¼gen"-Button auf den asynchronen `PropertyPickerDialog.show()` umgeleitet, um die Eigenschaften gruppiert auszuwÃ¤hlen.
 
 [UC-2026-04-22-Type-Coercion-Bindings]
 - src/runtime/ReactiveRuntime.ts
-  - Methode `update()` in `ReactiveBinding`: Automatische Typ-Konvertierung (String -> Number) hinzugefügt. Konvertiert Werte aus StringMaps, wenn die Ziel-Eigenschaft eine Zahl erwartet (z.B. x, y, width, alpha, Rahmenbreite, Abrundung).
+  - Methode `update()` in `ReactiveBinding`: Automatische Typ-Konvertierung (String -> Number) hinzugefÃ¼gt. Konvertiert Werte aus StringMaps, wenn die Ziel-Eigenschaft eine Zahl erwartet (z.B. x, y, width, alpha, Rahmenbreite, Abrundung).
 - src/runtime/ReactiveRuntime.test.ts
-  - Neue Testsuite `type coercion (String -> Number)` hinzugefügt.
+  - Neue Testsuite `type coercion (String -> Number)` hinzugefÃ¼gt.
 
 [UC-2026-04-21-Manager-Tab-Scope-Umschalter]
 Dateien:
 - src/editor/EditorViewManager.ts
   - Methode `renderManagementView`: Einbau eines Dropdown-Umschalters (Aktuelle Stage / Gesamtes Projekt), Zustand `useStageIsolatedView` an `getManagersForStage` weitergereicht.
 - src/services/MediatorService.ts
-  - Methode `getManagersForStage` und `refreshManagerData`: Parameter `isIsolated` hinzugefügt und an die Registries weitergeleitet.
+  - Methode `getManagersForStage` und `refreshManagerData`: Parameter `isIsolated` hinzugefÃ¼gt und an die Registries weitergeleitet.
   - Methode `getFlowCharts`: Rekursions-Logik angepasst, um alle Stages im Projekt zu scannen, wenn isIsolated=false.
 - src/services/registry/ObjectRegistry.ts
   - Methode `getObjects`: Sammelt Objekte aller Stages inkl. `uiScope = stage: {name}`, wenn filter = 'all'.
 - src/services/registry/VariableRegistry.ts
   - Methode `getVariables`: Durchsucht alle Stages, kombiniert Variablen-Iteratoren und markiert Herkunft.
 - src/services/registry/RegistryTypes.ts
-  - Type `ScopedVariable`, `ScopedObject`, `ScopedTask`, `ScopedAction`: `uiScope` um `(string & {})` für dynamische Stage-Labels ergänzt.
+  - Type `ScopedVariable`, `ScopedObject`, `ScopedTask`, `ScopedAction`: `uiScope` um `(string & {})` fÃ¼r dynamische Stage-Labels ergÃ¤nzt.
 
 [UC-2026-04-19-Security-Hardening-P4]
 Dateien:
 - src/editor/dialogs/utils/DialogExpressionEvaluator.ts
-  - Methoden `evaluateExpression` & `replaceTemplateVars`: S-02 (RCE Risiko) behoben durch Ersatz von `new Function()` mit AST-basierter Evaluation über `ExpressionParser.interpolate`.
+  - Methoden `evaluateExpression` & `replaceTemplateVars`: S-02 (RCE Risiko) behoben durch Ersatz von `new Function()` mit AST-basierter Evaluation Ã¼ber `ExpressionParser.interpolate`.
 - src/runtime/ExpressionParser.ts
-  - Methode `evaluateAST` und `interpolate` mit optionalem `allowedCalls` Parameter versehen, um Editoren sicher konfigurierbare Whitelists (für ServiceRegistry) zu erlauben, ohne den globalen AST-Schutz zu kompromittieren.
+  - Methode `evaluateAST` und `interpolate` mit optionalem `allowedCalls` Parameter versehen, um Editoren sicher konfigurierbare Whitelists (fÃ¼r ServiceRegistry) zu erlauben, ohne den globalen AST-Schutz zu kompromittieren.
 
 [UC-2026-04-19-Security-Hardening-P1-P2]
 Dateien:
@@ -280,7 +305,7 @@ Dateien:
 - src/editor/PascalHighlighter.ts
   - Methode: escape() (Z. 77-79) -> Q-04 Konsistent SecurityUtils.escapeHtml() eingebunden
 - electron/main.cjs
-  - scope: createWindow() (Z. 8-45) -> E-02 Sandbox explizit deaktiviert aber Window-/Navigation-Guard (will-navigate) eingeführt, CSP Header via session.defaultSession.
+  - scope: createWindow() (Z. 8-45) -> E-02 Sandbox explizit deaktiviert aber Window-/Navigation-Guard (will-navigate) eingefÃ¼hrt, CSP Header via session.defaultSession.
   - scope: ipcMain.handle('fs:allowPath') (Z. 147-154) -> E-01 Whitelist-Bypass mit safeBaseDirs (appPath, userData, cwd) Guard verhindert.
 - src/components/TSidePanel.ts
   - Methode: updateRuntimeVisibility() (Z. 314-319) -> Document Check eingebaut zur Test-Fixierung
@@ -289,106 +314,106 @@ Dateien:
 [UC-2026-04-19-DialogClose-RuntimeReferenzFix]
 Dateien:
 - src/editor/services/EditorRunManager.ts
-  - Methode: setRunMode() — runStage.runtime Zuweisung von Zeile 92 nach Zeile ~163 verschoben (nach new GameRuntime())
-  - Früher: this.runtime war noch null beim Setzen → ctx.host.runtime immer undefined in Renderern
+  - Methode: setRunMode() â€” runStage.runtime Zuweisung von Zeile 92 nach Zeile ~163 verschoben (nach new GameRuntime())
+  - FrÃ¼her: this.runtime war noch null beim Setzen â†’ ctx.host.runtime immer undefined in Renderern
 - src/editor/services/StageRenderer.ts
-  - Interface StageHost: runtime?: {...} optional hinzugefügt (Zeile ~28)
+  - Interface StageHost: runtime?: {...} optional hinzugefÃ¼gt (Zeile ~28)
 - src/editor/services/renderers/ComplexComponentRenderer.ts
-  - Close-Button Handler: getRawObject() wird über ctx.host.runtime aufgerufen (Zeile ~169-195)
+  - Close-Button Handler: getRawObject() wird Ã¼ber ctx.host.runtime aufgerufen (Zeile ~169-195)
   - Fallback Pfade 2+3 via (ctx.host as any) typsicher gemacht
 - src/player-standalone.ts
-  - UniversalPlayer.runtime: private → public (Zeile 52, für StageHost Interface Kompatibilität)
+  - UniversalPlayer.runtime: private â†’ public (Zeile 52, fÃ¼r StageHost Interface KompatibilitÃ¤t)
 - src/editor/services/StageInteractionManager.ts
-  - handleMouseDown: dialog-close-btn Erkennung + frühzeitiges return (Zeile ~245-252)
+  - handleMouseDown: dialog-close-btn Erkennung + frÃ¼hzeitiges return (Zeile ~245-252)
 - tests/export_checksums.json (player-standalone.ts Checksumme aktualisiert)
-Symptom: Dialog-X-Button setzte visible=false auf Spread-Kopie (getRawObject gefunden: false, runtime vorhanden: false). Master blieb visible=true. Nächster Toggle-Klick öffnete den Dialog nicht (toggle von true→false statt false→true).
+Symptom: Dialog-X-Button setzte visible=false auf Spread-Kopie (getRawObject gefunden: false, runtime vorhanden: false). Master blieb visible=true. NÃ¤chster Toggle-Klick Ã¶ffnete den Dialog nicht (toggle von trueâ†’false statt falseâ†’true).
 Root-Cause: EditorRunManager Zeile 92 wies this.runtime zu, das zu diesem Zeitpunkt noch null war (GameRuntime wird erst auf Zeile 108 instanziiert).
-Lösung: Zuweisung runStage.runtime = this.runtime auf nach der GameRuntime-Erstellung verlegt.
+LÃ¶sung: Zuweisung runStage.runtime = this.runtime auf nach der GameRuntime-Erstellung verlegt.
 
 [UC-2026-04-18-TutorProjectViaAgentController]
 Dateien:
-- demos/builders/tutor-project.builder.ts (NEU) — Builder-Datei für Tutor-Projekt, nutzt ausschließlich ProjectBuilder-API
-  - Methode: build(agent: ProjectBuilder) — Erzeugt Blueprint-Stage (8 Variablen) + Lesson_Raster (TGroupPanel mit 31 Kindern, PreviewStage mit Bindings)
-- projects/Tutor_Project.json (MOD) — Nun per Builder generiert, nicht mehr manuell erstellt
-- scratch/generate_tutor.cjs (OBSOLET) — Durch Builder ersetzt
-Beschreibung: Das Tutor-Projekt wird nun vollständig über die AgentController/ProjectBuilder-API erzeugt. Validiert gegen das Original: 8 Variablen, 3 Objekte, 31 Kinder im InspectorContainer, Bindings auf PreviewStage — alles 100% übereinstimmend.
+- demos/builders/tutor-project.builder.ts (NEU) â€” Builder-Datei fÃ¼r Tutor-Projekt, nutzt ausschlieÃŸlich ProjectBuilder-API
+  - Methode: build(agent: ProjectBuilder) â€” Erzeugt Blueprint-Stage (8 Variablen) + Lesson_Raster (TGroupPanel mit 31 Kindern, PreviewStage mit Bindings)
+- projects/Tutor_Project.json (MOD) â€” Nun per Builder generiert, nicht mehr manuell erstellt
+- scratch/generate_tutor.cjs (OBSOLET) â€” Durch Builder ersetzt
+Beschreibung: Das Tutor-Projekt wird nun vollstÃ¤ndig Ã¼ber die AgentController/ProjectBuilder-API erzeugt. Validiert gegen das Original: 8 Variablen, 3 Objekte, 31 Kinder im InspectorContainer, Bindings auf PreviewStage â€” alles 100% Ã¼bereinstimmend.
 
 [UC-2026-04-18-ModularComponentSchema]
 Dateien:
-- docs/schemas/schema_containers.json (NEU) — TPanel, TGroupPanel
-- docs/schemas/schema_dialogs.json (NEU) — TDialogRoot, TSidePanel
-- docs/schemas/schema_inputs.json (NEU) — TNumberInput, TCheckbox, TDropdown, TColorPicker, TMemo
-- docs/schemas/schema_display.json (NEU) — TShape, TProgressBar, TRichText, TImage, TNumberLabel
-- docs/schemas/schema_timers.json (NEU) — TIntervalTimer
-- docs/schemas/schema_media.json (NEU) — TAudio, TVideo, TImageList
-- docs/schemas/schema_variables.json (NEU) — TRealVariable, TObjectVariable, TListVariable, TTriggerVariable, TThresholdVariable, TRangeVariable, TStringMap
-- src/services/SchemaLoader.ts (NEU) — Merge-Logik: lädt Basis-Schema + alle Module per fetch (Browser) oder fs (Node.js Tests)
-- src/editor/Editor.ts (MOD, Zeile ~235) — loadComponentSchemas('./docs/') beim Start
-Beschreibung: Modulare Aufteilung des ComponentSchema.json in 7 Modul-Dateien statt einer God-Datei. SchemaLoader merged alle Module zur Laufzeit in ein einheitliches Schema-Objekt für den AgentController.
+- docs/schemas/schema_containers.json (NEU) â€” TPanel, TGroupPanel
+- docs/schemas/schema_dialogs.json (NEU) â€” TDialogRoot, TSidePanel
+- docs/schemas/schema_inputs.json (NEU) â€” TNumberInput, TCheckbox, TDropdown, TColorPicker, TMemo
+- docs/schemas/schema_display.json (NEU) â€” TShape, TProgressBar, TRichText, TImage, TNumberLabel
+- docs/schemas/schema_timers.json (NEU) â€” TIntervalTimer
+- docs/schemas/schema_media.json (NEU) â€” TAudio, TVideo, TImageList
+- docs/schemas/schema_variables.json (NEU) â€” TRealVariable, TObjectVariable, TListVariable, TTriggerVariable, TThresholdVariable, TRangeVariable, TStringMap
+- src/services/SchemaLoader.ts (NEU) â€” Merge-Logik: lÃ¤dt Basis-Schema + alle Module per fetch (Browser) oder fs (Node.js Tests)
+- src/editor/Editor.ts (MOD, Zeile ~235) â€” loadComponentSchemas('./docs/') beim Start
+Beschreibung: Modulare Aufteilung des ComponentSchema.json in 7 Modul-Dateien statt einer God-Datei. SchemaLoader merged alle Module zur Laufzeit in ein einheitliches Schema-Objekt fÃ¼r den AgentController.
 
 [UC-2026-04-18-FlatParentIdChildrenFix]
 
 Dateien:
 - src/runtime/GameRuntime.ts
   - Methode: getObjects() (Zeilen ~877-932)
-  - Fix: Nach der children-Rekursion werden "verwaiste" Objekte (mit parentId, aber nicht über children erreicht) nachträglich gesammelt und mit korrekter Getter-Kopie und zIndex-Berechnung in die Ergebnisliste aufgenommen. Betrifft alle flachen JSON-Definitionen (z.B. Tutor_Project.json) wo Kinder als eigenständige Objekte mit parentId statt als verschachteltes children-Array gespeichert sind.
-- tests/export_checksums.json (Checksumme für GameRuntime.ts aktualisiert)
+  - Fix: Nach der children-Rekursion werden "verwaiste" Objekte (mit parentId, aber nicht Ã¼ber children erreicht) nachtrÃ¤glich gesammelt und mit korrekter Getter-Kopie und zIndex-Berechnung in die Ergebnisliste aufgenommen. Betrifft alle flachen JSON-Definitionen (z.B. Tutor_Project.json) wo Kinder als eigenstÃ¤ndige Objekte mit parentId statt als verschachteltes children-Array gespeichert sind.
+- tests/export_checksums.json (Checksumme fÃ¼r GameRuntime.ts aktualisiert)
 
 [UC-2026-04-18-SidePanel-Runtime-Visibility-ComponentRegistry-Error]
 Dateien:
 - src/components/TDialogRoot.ts
-  - Methode: onVisibilityChanged(v) - Löst updateRuntimeVisibility() aus (Zeile 55)
-  - Getter/Setter für visible entfernt, da sie den Typescript Class-Field Default überschreiben
+  - Methode: onVisibilityChanged(v) - LÃ¶st updateRuntimeVisibility() aus (Zeile 55)
+  - Getter/Setter fÃ¼r visible entfernt, da sie den Typescript Class-Field Default Ã¼berschreiben
 - src/components/TWindow.ts
-  - Getter/Setter für visible in private _winVisible umgewandelt (Zeile 71-87)
-  - Methode: onVisibilityChanged(v) als Hook eingeführt
+  - Getter/Setter fÃ¼r visible in private _winVisible umgewandelt (Zeile 71-87)
+  - Methode: onVisibilityChanged(v) als Hook eingefÃ¼hrt
 - src/services/ComponentRegistry.ts
-  - Methode: createInstance() - Unterdrückt Log-Errors für registrierte Flow Actions (`toggle_dialog`) und Identifier mit '_' (Zeile 279-282)
+  - Methode: createInstance() - UnterdrÃ¼ckt Log-Errors fÃ¼r registrierte Flow Actions (`toggle_dialog`) und Identifier mit '_' (Zeile 279-282)
 
 [UC-2026-04-18-StageTransition-Dialog-RegressionTests]
 Dateien:
 - tests/stage_transition_regression.test.ts (NEU, ~400 Zeilen)
   - Methode: runStageTransitionRegressionTests() - 12 Unit-Tests
-  - extractMethodBody() - Quellcode-Parser für Methoden-Deklarationen (Zeile 44-72)
+  - extractMethodBody() - Quellcode-Parser fÃ¼r Methoden-Deklarationen (Zeile 44-72)
   - Gruppe A (A1-A6): Quellcode-Analyse GameRuntime.ts / StageRenderer.ts
   - Gruppe B (B1-B6): TDialogRoot Instanz-Tests (Defaults, show/hide/close/cancel/toggle, toDTO)
 - tests/e2e/14_StageRuntimeAnimation.spec.ts (NEU) - 4 Playwright E2E-Tests
-  - E1: Objekte innerhalb der Bühne nach Run-Start
+  - E1: Objekte innerhalb der BÃ¼hne nach Run-Start
   - E2: Stabile Positionen nach Animations-Ende
   - E3: Stage-Wechsel friert nicht ein
-  - E4: Keine Objekte außerhalb nach Stage-Wechsel
+  - E4: Keine Objekte auÃŸerhalb nach Stage-Wechsel
 - tests/e2e/15_DialogRuntime.spec.ts (NEU) - 4 Playwright E2E-Tests
-  - D1: Dialog einblendbar, D2: Modal-Overlay, D3: Closable, D4: Toggle-Stabilität
+  - D1: Dialog einblendbar, D2: Modal-Overlay, D3: Closable, D4: Toggle-StabilitÃ¤t
 - scripts/test_runner.ts (Zeile 32, 208-210) - Import + Integration
 - projects/master_test/MyCoolGame.json - TDialogRoot + Stage 1 Objekte + Animationen
 
 ## Stage Transition Animations
 **Dateien:** src/runtime/GameRuntime.ts
 **Methoden:** 	riggerStartAnimation, handleStageChange
-**Beschreibung:** Behebung des Bugs, bei dem Stage-Animation (z.B. fade-in, Left) vom Editor zum Run-Mode nicht abgespielt oder off-screen gerendert wurden. Der Bug entstand durch redundanten Aufruf in initMainGame und Fallback-Priorisierung in StageRenderer bezüglich obj.opacity.
+**Beschreibung:** Behebung des Bugs, bei dem Stage-Animation (z.B. fade-in, Left) vom Editor zum Run-Mode nicht abgespielt oder off-screen gerendert wurden. Der Bug entstand durch redundanten Aufruf in initMainGame und Fallback-Priorisierung in StageRenderer bezÃ¼glich obj.opacity.
 
 [UC-2026-04-18-Nested-Container-Animation-Performance-Fix]
 Dateien:
 - src/runtime/GameRuntime.ts
 - src/runtime/GameLoopManager.ts
 - src/editor/services/StageRenderer.ts
-Änderungen:
+Ã„nderungen:
 - Entfernung der aggressiven "Full-Render" Fallbacks (`needsFullRender` bei `hasChildren` und asynchroner Bypass in `GameLoopManager`).
-- Rekursive absolute Positionsberechnung im `StageRenderer` (`updateSpritePositions`) via `parentId`-Traversal implementiert, was den extrem performanten Fast-Path für alle DOM-Animationen (z. B. "slide-up") auch für komplexe, tief verschachtelte Container (`TPanel`, `TGroupPanel`) nutzbar macht und Browser-Freezes durch Layout-Thrashing dauerhaft eliminiert.
+- Rekursive absolute Positionsberechnung im `StageRenderer` (`updateSpritePositions`) via `parentId`-Traversal implementiert, was den extrem performanten Fast-Path fÃ¼r alle DOM-Animationen (z. B. "slide-up") auch fÃ¼r komplexe, tief verschachtelte Container (`TPanel`, `TGroupPanel`) nutzbar macht und Browser-Freezes durch Layout-Thrashing dauerhaft eliminiert.
 - Korrektur von Rubber-Banding und Koordinaten-Drift in Multi-Nested Setups: Der `StageRenderer` dedupliziert nun effektiv zu rendernde Animationsframes (`objectsToUpdate`) in einer priorisierten Property-Map, bei welcher aktiv tweenende Original-Instanzen stets Vorrang vor veralteten Flat-Hierarchy-Kopien (z.B. Child Nodes) haben.
-- **GameLoopManager Init-Bug behoben**: Ein kritischer Fehler wurde gepatcht, bei dem der `GameLoopManager` nach einem In-Game Stage-Wechsel (`navigate_stage`) nie mit den neuen Bühnen-Objekten initialisiert wurde (`glm.init()` in `handleStageChange`). Dadurch verblieben Sprites, Kollisionsabfragen und Input-Controller in der verwaisten Instanz der Vorgänger-Stage hängen, was sämtliche Animationen, Tweens (wie das Stage Fade-in) und physikalischen Berechnungen auf der Zielbühne vollständig einfror.
-- **slide-up Pixel-statt-Zellen-Bug behoben**: Der y-Offset für `slide-up` wurde hartcodiert um `100` (Pixel-Annahme) verschoben, was aber `100 Grid-Zellen` (2000px) bedeutete. Fix: `100 / cellSize` konvertiert korrekt in Zellen. (Methode: `triggerStartAnimation`, Zeile ~607-618)
-- **Doppelter triggerStartAnimation-Aufruf bei Stage-Wechsel behoben**: `handleStageChange()` rief `this.start()` → `initMainGame()` → `triggerStartAnimation()` auf, und danach **nochmals** direkt `triggerStartAnimation()`. Der doppelte Off-Screen-Offset schoss Objekte weit über die Bühnengrenzen hinaus. Fix: Redundanter Aufruf aus `handleStageChange()` entfernt. (Methode: `handleStageChange`, Zeile ~533)
+- **GameLoopManager Init-Bug behoben**: Ein kritischer Fehler wurde gepatcht, bei dem der `GameLoopManager` nach einem In-Game Stage-Wechsel (`navigate_stage`) nie mit den neuen BÃ¼hnen-Objekten initialisiert wurde (`glm.init()` in `handleStageChange`). Dadurch verblieben Sprites, Kollisionsabfragen und Input-Controller in der verwaisten Instanz der VorgÃ¤nger-Stage hÃ¤ngen, was sÃ¤mtliche Animationen, Tweens (wie das Stage Fade-in) und physikalischen Berechnungen auf der ZielbÃ¼hne vollstÃ¤ndig einfror.
+- **slide-up Pixel-statt-Zellen-Bug behoben**: Der y-Offset fÃ¼r `slide-up` wurde hartcodiert um `100` (Pixel-Annahme) verschoben, was aber `100 Grid-Zellen` (2000px) bedeutete. Fix: `100 / cellSize` konvertiert korrekt in Zellen. (Methode: `triggerStartAnimation`, Zeile ~607-618)
+- **Doppelter triggerStartAnimation-Aufruf bei Stage-Wechsel behoben**: `handleStageChange()` rief `this.start()` â†’ `initMainGame()` â†’ `triggerStartAnimation()` auf, und danach **nochmals** direkt `triggerStartAnimation()`. Der doppelte Off-Screen-Offset schoss Objekte weit Ã¼ber die BÃ¼hnengrenzen hinaus. Fix: Redundanter Aufruf aus `handleStageChange()` entfernt. (Methode: `handleStageChange`, Zeile ~533)
 
 
 
 [UC-2026-04-18-Nested-Event-Rename]
 Dateien:
 - src/editor/refactoring/TaskRefactoringService.ts (renameTask: 47-64, 122-136, scanObjects/updateEventsRecursively)
-Änderungen:
-- Vollständige rekursive Unterstützung für das Umbenennen von Event-Bindings. 
-- Zuvor wurden Arrays von Child-Komponenten (bspw. Buttons in einem Panel) sowie die Liste der Variablen (stage.variables) vom Scanner ignoriert, was zu abgerissenen Event-Verbindungen beim Umbenennen von Flow-Tasks führte.
-- Die Methode updateEventsRecursively durchdringt nun alle Ebenen und sichert die JSON-Integrität.
+Ã„nderungen:
+- VollstÃ¤ndige rekursive UnterstÃ¼tzung fÃ¼r das Umbenennen von Event-Bindings. 
+- Zuvor wurden Arrays von Child-Komponenten (bspw. Buttons in einem Panel) sowie die Liste der Variablen (stage.variables) vom Scanner ignoriert, was zu abgerissenen Event-Verbindungen beim Umbenennen von Flow-Tasks fÃ¼hrte.
+- Die Methode updateEventsRecursively durchdringt nun alle Ebenen und sichert die JSON-IntegritÃ¤t.
 
 [UC-2026-04-14-Dialog-Refactor]
 Dateien:
@@ -398,60 +423,60 @@ Dateien:
 - src/editor/dialogs/handlers/DialogActionHandler.ts (alle Prompt/Confirm-Wechsel)
 - src/editor/SaveAsDialog.ts (show:79)
 - src/export/GameExporter.ts (showExportInfo)
-Änderungen:
+Ã„nderungen:
 Alle Vorkommen von synchronen window.alert(), window.confirm() und window.prompt() wurden systematisch durch asynchrone Promise-basierte HTML-Pendants (NotificationToast, ConfirmDialog, PromptDialog) ersetzt. Entsprechende Handler-Aufrufe wie handleAction, handleDelete, createNode wurden von synchron auf asynchron umgebaut, um Renderer-Blockaden in Electron zu verhindern.
 
 [2026-04-14] Bugfix: Editor Autosave Post-Load Event Suppression
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts
 - Ablauf:
   - Bei Neu-Laden eines Projekts feuern die Komponenten innerhalb der ersten 2 Sekunden initiale DOM-Rendering-PropertyChanges.
-  - Das veranlasste updateProjectJSON(), sofort einen performDiskSave() auszuf�hren (wodurch der Counter auf 1 sprang und eine leere Speicheroperation angesto�en wurde).
-  - Ein 2s Zeitfenster-Check (	imeSinceLoad < 2000) wurde hinzugef�gt, sodass der Debouncer erst nach Abschluss der Lade-Phase Events akzeptiert.
+  - Das veranlasste updateProjectJSON(), sofort einen performDiskSave() auszufï¿½hren (wodurch der Counter auf 1 sprang und eine leere Speicheroperation angestoï¿½en wurde).
+  - Ein 2s Zeitfenster-Check (	imeSinceLoad < 2000) wurde hinzugefï¿½gt, sodass der Debouncer erst nach Abschluss der Lade-Phase Events akzeptiert.
 
 [2026-04-14] Bugfix: Editor Autosave Counter Reset on Project Load
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/editor/MenuBar.ts
 - Ablauf:
   - Beim Neu-Laden eines Projekts via loadProject() wurde verpasst, den internen Autosave-Counter _autoSaveCount wieder auf 0 zu setzen.
-  - Das wurde erg�nzt. Die MenuBar aktualisiert sich nun lautlos (ohne Flash-Blinken), wenn der Wert identisch auf 0 gesetzt wird.
+  - Das wurde ergï¿½nzt. Die MenuBar aktualisiert sich nun lautlos (ohne Flash-Blinken), wenn der Wert identisch auf 0 gesetzt wird.
 
 [2026-04-14] Bugfix: Editor Autosave Concurrency Debounce Fix
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts
 - Ablauf:
-  - Bei einer Komponenten�nderung (z.B. Setzen in den Editor �ber DND) wurden teils 4 DOM-Events parallel ausgel�st.
+  - Bei einer Komponentenï¿½nderung (z.B. Setzen in den Editor ï¿½ber DND) wurden teils 4 DOM-Events parallel ausgelï¿½st.
   - Das resultierte in 4 parallelen \
 ativeAdapter.autoSave()\ Promisen, was beim Chrome FileSystem Access API den Fehler "The associated file is already being written" provozierte.
-  - Dadurch brach das Speichern auf Disk komplett ab und verfiel fehlerweise und geh�uft auf den Fallback (und der Z�hler stieg um 4 Punkte an).
+  - Dadurch brach das Speichern auf Disk komplett ab und verfiel fehlerweise und gehï¿½uft auf den Fallback (und der Zï¿½hler stieg um 4 Punkte an).
   - Um dies zu reparieren, wurde die Methode \performDiskSave()\ separiert und im \updateProjectJSON()\ Aufruf mit einem 1000ms \setTimeout\ (Debounce) gekapselt.
 
 [2026-04-14] Bugfix: Editor MenuBar Autosave UI Rendering Fix
 - Betroffene Dateien: src/editor/MenuBar.ts
 - Ablauf:
-  - Autosave UI Z�hler Wrapper verschwand nach dem Rendern.
-  - Die Ursache lag in MenuBar.render(), die das container.innerHTML = '' ausf�hrte.
-  - Der Wrapper wurde beim Neuaufbauen der StageLabels wieder an den Parent-Tree geh�ngt.
+  - Autosave UI Zï¿½hler Wrapper verschwand nach dem Rendern.
+  - Die Ursache lag in MenuBar.render(), die das container.innerHTML = '' ausfï¿½hrte.
+  - Der Wrapper wurde beim Neuaufbauen der StageLabels wieder an den Parent-Tree gehï¿½ngt.
 
 [2026-04-14] Bugfix: Editor MenuBar "loaded_project.json" Display Bug
 - Betroffene Dateien: src/services/ProjectPersistenceService.ts, tests/export_checksums.json
 - Ablauf:
-  - Projekt Persistence gab stumpf { data: project, filename: "loaded_project.json" } zur�ck
-  - Der String wurde vom EditorDataManager �bernommen und im MenuBar als Aktueller Projektpfad: gerendert.
+  - Projekt Persistence gab stumpf { data: project, filename: "loaded_project.json" } zurï¿½ck
+  - Der String wurde vom EditorDataManager ï¿½bernommen und im MenuBar als Aktueller Projektpfad: gerendert.
   - Das Modul liest nun im Browser Handle.name und in Electron den kompletten Verzeichnispfad aus.
-  - Nach der �nderung der Datei in Phase 2 wurde Export-Test (Export-Integrit�t) automatisch ausgel�st und schlug an; wurde per --update validiert.
+  - Nach der ï¿½nderung der Datei in Phase 2 wurde Export-Test (Export-Integritï¿½t) automatisch ausgelï¿½st und schlug an; wurde per --update validiert.
 
 [2026-04-14] Bugfix: Editor Autosave Visual Indicator & Fallback Fix
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/editor/MenuBar.ts
 - Ablauf:
   - Es wurde bemerkt, dass im "Browser"-Modus das Speichern scheiterte, wenn keine FileSystem-Permissions auf der Desktop-Ebene vorlagen, weil der Dev-Server Fallback im IF-Chain geschluckt wurde.
   - EditorDataManager.ts wurde komplett restrukturiert (	ryFetchFallback), sodass der Dev-Server bei Fehlschlagen des nativen "Silent-Autosave" immer als Rettungsnetz einspringt.
-  - Die MenuBar.ts wurde um einen Z�hler setAutosaveCount() und einen "aufleuchtenden" gr�nen Text ?? Autosave: 0 erweitert, um visuelles Feedback �ber den Hintergrund-Trigger aus dem Event-System zu geben.
+  - Die MenuBar.ts wurde um einen Zï¿½hler setAutosaveCount() und einen "aufleuchtenden" grï¿½nen Text ?? Autosave: 0 erweitert, um visuelles Feedback ï¿½ber den Hintergrund-Trigger aus dem Event-System zu geben.
 
 [2026-04-13] Bugfix: Editor Autosave Native Adapter Fix
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/adapters/NativeFileAdapter.ts
 - Ablauf:
   - Wenn der User ein lokales Projekt aus dem Browser via FileSystem Access API offnet (ohne ElectronFS), erzeugt der Browser ein FileSystemFileHandle.
-  - Das automatische "autoSaveToLocalStorage" via "updateProjectJSON" fiel f�lschlicherweise auf den Dev-Server zur�ck, anstatt das Handle zu verwenden.
+  - Das automatische "autoSaveToLocalStorage" via "updateProjectJSON" fiel fï¿½lschlicherweise auf den Dev-Server zurï¿½ck, anstatt das Handle zu verwenden.
   - Dadurch speicherte er Kopien in "public/projects/" ab, die echte Datei auf dem Desktop wurde nicht mehr aktualisiert.
-  - Es wurde die Methode "autoSave()" in NativeFileAdapter implementiert, um im Hintergrund ger�uschlos auf Handles zugreifen zu k�nnen, ohne Dialoge zu forcieren.
+  - Es wurde die Methode "autoSave()" in NativeFileAdapter implementiert, um im Hintergrund gerï¿½uschlos auf Handles zugreifen zu kï¿½nnen, ohne Dialoge zu forcieren.
 
 [2026-04-13] Bugfix: ReactiveRuntime Maximum Call Stack (Proxy-Loop) Behebung
 - Betroffene Dateien: src/runtime/ReactiveProperty.ts
@@ -470,24 +495,24 @@ ativeAdapter.autoSave()\ Promisen, was beim Chrome FileSystem Access API den Feh
 - src\style.css -> L692-L699: Schriftgrosse auf 9px verkleinert und Farbe (.inspector-hint) auf #ffa726 (moderneres Orange) angepasst.
 
 [2026-04-09] Refactoring: Entfernen der doppelten Speicherlogik
-- src/editor/services/EditorDataManager.ts -> Entfernung der Bypass-Logik fÃ¼r Electron und Native File System Access in `saveProjectToFile` und `saveProjectAs`. Diese greifen jetzt konsistent auf `projectPersistenceService.getNativeAdapter()` zu.
-- src/services/ProjectPersistenceService.ts -> EinfÃ¼hrung des Methoden-Getters `getNativeAdapter()`.
-- src/adapters/NativeFileAdapter.ts -> EinfÃ¼hrung von Gettern `getPath()` und `getHandle()` sowie Erweiterung der Setters (`setPath`, `setHandle`) auf nullable (`| null`), um einen nativen "Save As..."-Dialog durch das ZurÃ¼cksetzen des aktuellen Pfades zu forcieren.
+- src/editor/services/EditorDataManager.ts -> Entfernung der Bypass-Logik fÃƒÂ¼r Electron und Native File System Access in `saveProjectToFile` und `saveProjectAs`. Diese greifen jetzt konsistent auf `projectPersistenceService.getNativeAdapter()` zu.
+- src/services/ProjectPersistenceService.ts -> EinfÃƒÂ¼hrung des Methoden-Getters `getNativeAdapter()`.
+- src/adapters/NativeFileAdapter.ts -> EinfÃƒÂ¼hrung von Gettern `getPath()` und `getHandle()` sowie Erweiterung der Setters (`setPath`, `setHandle`) auf nullable (`| null`), um einen nativen "Save As..."-Dialog durch das ZurÃƒÂ¼cksetzen des aktuellen Pfades zu forcieren.
 
 [2026-04-09] Security Bugfix: Path Traversal in IPC Handler
-- electron/main.cjs -> Ein Sandboxing-Filter (`isPathAllowed`) wurde fÃ¼r `fs:readFile` und `fs:writeFile` implementiert. Der Renderer-Prozess (und damit potenzielle XSS/bÃ¶swillige Projekt-Skripte) kann nicht mehr auf beliebige Pfade im lokalen Dateisystem zugreifen. Der Lese/Schreibzugriff ist nun auf applikationsspezifische Pfade (`getAppPath`, `userData`, CWD) und explizit vom Nutzer durch die nativen Dialoge (OpenFilePicker/SaveFilePicker) erlaubte Whitelist-Pfade beschrÃ¤nkt.
+- electron/main.cjs -> Ein Sandboxing-Filter (`isPathAllowed`) wurde fÃƒÂ¼r `fs:readFile` und `fs:writeFile` implementiert. Der Renderer-Prozess (und damit potenzielle XSS/bÃƒÂ¶swillige Projekt-Skripte) kann nicht mehr auf beliebige Pfade im lokalen Dateisystem zugreifen. Der Lese/Schreibzugriff ist nun auf applikationsspezifische Pfade (`getAppPath`, `userData`, CWD) und explizit vom Nutzer durch die nativen Dialoge (OpenFilePicker/SaveFilePicker) erlaubte Whitelist-Pfade beschrÃƒÂ¤nkt.
 
-[2026-04-09] Bugfix: Electron App schlieÃŸt sich nicht bei ungespeicherten Ã„nderungen
-- electron/main.cjs -> Event-Listener fÃ¼r `will-prevent-unload` im `webContents` hinzugefÃ¼gt und einen synchronen Native-Dialog (`dialog.showMessageBoxSync`) implementiert. Wenn der Benutzer bestÃ¤tigt, wird das Verlassen via `event.preventDefault()` erzwungen. Verhindert, dass das durch `window.onbeforeunload` abgefangene SchlieÃŸen in Electron ins Leere lÃ¤uft und die App unbenutzbar wird.
+[2026-04-09] Bugfix: Electron App schlieÃƒÅ¸t sich nicht bei ungespeicherten Ãƒâ€žnderungen
+- electron/main.cjs -> Event-Listener fÃƒÂ¼r `will-prevent-unload` im `webContents` hinzugefÃƒÂ¼gt und einen synchronen Native-Dialog (`dialog.showMessageBoxSync`) implementiert. Wenn der Benutzer bestÃƒÂ¤tigt, wird das Verlassen via `event.preventDefault()` erzwungen. Verhindert, dass das durch `window.onbeforeunload` abgefangene SchlieÃƒÅ¸en in Electron ins Leere lÃƒÂ¤uft und die App unbenutzbar wird.
 
 [2026-04-09] Bugfix: MediaPickerDialog leere Ordner im Packaged-Electron
-- src/editor/inspector/MediaPickerDialog.ts -> Absolute Pfadangaben `/media-manifest.json`, `/images` und `/audio` durch relative Pfade `./` ersetzt. Dadurch greift der `fetch()` HTTP-Call beim Start im `file://` Kontext von Electron auf den korrekten relativen Verzeichnispfad (`dist/media-manifest.json`) zurÃ¼ck, anstatt ins Systemroot (z.B. `C:\media-manifest.json`) umgeleitet zu werden. Beide Listen fÃ¼llen sich jetzt korrekt.
+- src/editor/inspector/MediaPickerDialog.ts -> Absolute Pfadangaben `/media-manifest.json`, `/images` und `/audio` durch relative Pfade `./` ersetzt. Dadurch greift der `fetch()` HTTP-Call beim Start im `file://` Kontext von Electron auf den korrekten relativen Verzeichnispfad (`dist/media-manifest.json`) zurÃƒÂ¼ck, anstatt ins Systemroot (z.B. `C:\media-manifest.json`) umgeleitet zu werden. Beide Listen fÃƒÂ¼llen sich jetzt korrekt.
 
 [2026-04-09] Build: Standalone Runtime Loading Fix
-- vite.config.ts -> rollupOptions.input fÃ¼r 'runtime' entfernt. Verhindert, dass das funktionierende IIFE-bundle durch ein in Electron (file://) blockiertes ES-Modul Ã¼berschrieben wird.
+- vite.config.ts -> rollupOptions.input fÃƒÂ¼r 'runtime' entfernt. Verhindert, dass das funktionierende IIFE-bundle durch ein in Electron (file://) blockiertes ES-Modul ÃƒÂ¼berschrieben wird.
 
 [2026-04-09] Build: Smart App Control Electron Fix
-- package.json -> target geÃ¤ndert von portable zu dir. Verhindert Smart App Control Isolation.
+- package.json -> target geÃƒÂ¤ndert von portable zu dir. Verhindert Smart App Control Isolation.
 
 Electron JSON Asset Pfad Fix:
 - src/runtime/AudioManager.ts, src/editor/services/renderers/SpriteRenderer.ts, etc. : Absolute asset paths via JSON payloads /images/ and /audio/ correctly normalized to relative paths for Electron build stability.
@@ -499,12 +524,12 @@ Electron Pfad Fix (IFrame):
 
 FlowEditor Task-ContextMenu Update:
 - src/editor/services/FlowContextMenuProvider.ts : Line 479 - Filter for global tasks removed, label changed to Vorhandenen Task einfuegen um alle Tasks anzubieten.
-- [2026-04-08] Typisierungs-HÃ¤rtung (Mediator & StageManager)
+- [2026-04-08] Typisierungs-HÃƒÂ¤rtung (Mediator & StageManager)
   - Datei: src/editor/services/flow/FlowSequenceBuilder.ts [MOD] (Einbau horizontales Layout Feature, Zeile 28-380)
 
-- [2026-04-08] Typisierungs-HÃ¤rtung (Mediator & StageManager)
+- [2026-04-08] Typisierungs-HÃƒÂ¤rtung (Mediator & StageManager)
   - Datei: src/runtime/RuntimeStageManager.ts [MOD] (any durch Project/Stage/Action-Interfaces ersetzt)
-  - Datei: src/services/MediatorService.ts [MOD] (Methodensignaturen gestÃ¤rkt)
+  - Datei: src/services/MediatorService.ts [MOD] (Methodensignaturen gestÃƒÂ¤rkt)
 
 - [2026-04-08] Refactoring God Objects
   - Datei: src/runtime/GameRuntime.ts [MOD] (Extrahiert Input & Multiplayer Logik)
@@ -516,114 +541,114 @@ FlowEditor Task-ContextMenu Update:
   - Datei: src/editor/services/flow/FlowRegistrySync.ts [NEW]
   - Datei: src/editor/services/flow/FlowSyncTypes.ts [NEW]
 
-- [2026-04-07] Electron Desktop App Infrastruktur (Offline fÃ¤higer Editor)
-  - Datei: electron/main.cjs [MOD] (Native system dialogs `showOpenDialog`, `showSaveDialog` hinzugefÃ¼gt und absolute Pfade eingebaut)
+- [2026-04-07] Electron Desktop App Infrastruktur (Offline fÃƒÂ¤higer Editor)
+  - Datei: electron/main.cjs [MOD] (Native system dialogs `showOpenDialog`, `showSaveDialog` hinzugefÃƒÂ¼gt und absolute Pfade eingebaut)
   - Datei: electron/preload.cjs [MOD] (Bridge erweitert um system native OS dialogs)
   - Datei: src/adapters/NativeFileAdapter.ts [MOD] (Integration der IPC calls via window.electronFS.showOpenDialog)
-  - Datei: src/editor/services/EditorDataManager.ts [MOD] (Dual-Mode: Native File System Access API fÃ¼r window.electronFS neben Standard-Fetch Fallback)
+  - Datei: src/editor/services/EditorDataManager.ts [MOD] (Dual-Mode: Native File System Access API fÃƒÂ¼r window.electronFS neben Standard-Fetch Fallback)
   - Datei: src/export/GameExporter.ts [MOD] (Dual-Mode: Laden lokaler Runtime-Skripte und Speichern via showSaveDialog)
   - Datei: src/services/LibraryService.ts [MOD] (Dual-Mode: Offline-Erkennung beim Template-Cache)
-  - Datei: package.json (HinzufÃ¼gen von dev:electron/build:electron Skripten, devDependencies)
+  - Datei: package.json (HinzufÃƒÂ¼gen von dev:electron/build:electron Skripten, devDependencies)
   - Datei: vite.config.ts (Entfernen von Proxy Settings)
-  - Details: Setup fÃ¼r die Umwandlung der webbasierten Applikation in eine reine, netzwerkunabhÃ¤ngige Electron-Desktop-Anwendung. Der Game-Server (Backend) fÃ¤llt fÃ¼r den Editor weg; stattdessen greift der Client direkt auf das FileSystem (`fs/promises`) zu, gebÃ¼ndelt Ã¼ber eine extrem sichere `contextBridge`.
-- [2026-04-07] Fixes fÃ¼r Electron Rendering (Absolute Pfade und iframe)
-  - Datei: projects/Spawning_Shooter_Demo.json [MOD] (Absolute URL `/images/...` auf relative URL `./images/...` geÃ¤ndert)
-  - Datei: src/editor/EditorViewManager.ts [MOD] (Iframe src pfad relativiert fÃ¼r lokales filesystem)
-  - Details: Wenn Web-Applikationen Ã¼ber Electron geladen werden (`file://`), lÃ¶sen absolute Pfade, die mit einem fÃ¼hrenden Slash `/` beginnen (`/images/Ufos/...` und `/iframe-runner.html`), auf das Root-Verzeichnis des Rechners auf (z. B. `C:\images\Ufos\...`) und nicht relativ zum Web-Root. Um eine Dual-Mode KompatibilitÃ¤t fÃ¼r Web und Electron bereitzustellen, mÃ¼ssen immer explizit relative Ressourcen-Pfade genutzt werden.
+  - Details: Setup fÃƒÂ¼r die Umwandlung der webbasierten Applikation in eine reine, netzwerkunabhÃƒÂ¤ngige Electron-Desktop-Anwendung. Der Game-Server (Backend) fÃƒÂ¤llt fÃƒÂ¼r den Editor weg; stattdessen greift der Client direkt auf das FileSystem (`fs/promises`) zu, gebÃƒÂ¼ndelt ÃƒÂ¼ber eine extrem sichere `contextBridge`.
+- [2026-04-07] Fixes fÃƒÂ¼r Electron Rendering (Absolute Pfade und iframe)
+  - Datei: projects/Spawning_Shooter_Demo.json [MOD] (Absolute URL `/images/...` auf relative URL `./images/...` geÃƒÂ¤ndert)
+  - Datei: src/editor/EditorViewManager.ts [MOD] (Iframe src pfad relativiert fÃƒÂ¼r lokales filesystem)
+  - Details: Wenn Web-Applikationen ÃƒÂ¼ber Electron geladen werden (`file://`), lÃƒÂ¶sen absolute Pfade, die mit einem fÃƒÂ¼hrenden Slash `/` beginnen (`/images/Ufos/...` und `/iframe-runner.html`), auf das Root-Verzeichnis des Rechners auf (z. B. `C:\images\Ufos\...`) und nicht relativ zum Web-Root. Um eine Dual-Mode KompatibilitÃƒÂ¤t fÃƒÂ¼r Web und Electron bereitzustellen, mÃƒÂ¼ssen immer explizit relative Ressourcen-Pfade genutzt werden.
 - [2026-04-02] Sprite-Animations-Effekte (v3.31.0)
   - Datei: src/runtime/AnimationManager.ts (L364-505, grow/shrink/explode/pop/fadeIn/fadeOut/spin/wobble/spriteAnimate)
   - Datei: src/runtime/actions/handlers/AnimationActions.ts (L1-152, animate + sprite_animate Actions)
-  - Details: 9 neue Effekt-Makros im AnimationManager fÃ¼r Sprite-Animationen. Highlight: `explode`-Effekt zerlegt Sprites in N konfigurierbare Fragmente (temporÃ¤re DOM-Divs mit CSS-Transition), die in zufÃ¤llige Richtungen fliegen. `pop` = grow 1.3x â†’ explode. `spriteAnimate` durchlÃ¤uft imageIndex von Frame Aâ†’B. Alle Parameter (fragments, spread, targetScale, degrees, intensity) im Inspector konfigurierbar via ActionParams.
+  - Details: 9 neue Effekt-Makros im AnimationManager fÃƒÂ¼r Sprite-Animationen. Highlight: `explode`-Effekt zerlegt Sprites in N konfigurierbare Fragmente (temporÃƒÂ¤re DOM-Divs mit CSS-Transition), die in zufÃƒÂ¤llige Richtungen fliegen. `pop` = grow 1.3x Ã¢â€ â€™ explode. `spriteAnimate` durchlÃƒÂ¤uft imageIndex von Frame AÃ¢â€ â€™B. Alle Parameter (fragments, spread, targetScale, degrees, intensity) im Inspector konfigurierbar via ActionParams.
 - [2026-04-02] Rendering-Fixes & Export-Analyse (Transparenz, Glow/Shadow, Export)
   - Datei: src/components/TImage.ts (L29-30, backgroundColor='transparent') 
   - Datei: src/components/TImageList.ts (L37-40, backgroundColor='transparent')
   - Datei: src/style.css (L363, global .game-object box-shadow entfernt)
   - Datei: src/export/GameExporter.ts (L339-343, deepClean ignoriert interne Eigenschaften)
   - Datei: src/editor/services/renderers/TextObjectRenderer.ts (L95-103, el.style.transform += ' scale(0.98)')
-  - Details: 1. Transparente Bilder zeigten schwarzen Hintergrund wegen fest kodiertem Hintergrund -> auf 'transparent' umgestellt. 2. UnerwÃ¼nschter Schatteneffekt bei Images behoben (globaler style entfernt). 3. Standalone-Export gerendert nicht (Komponenten unsichtbar): `deepClean` im Exporter hat irrtÃ¼mlich alle '_' PrÃ¤fix-Eigenschaften entfernt, einschlieÃŸlich essentieller Vue-Reactivity Flags (`__v_isRef`) und internem State. 4. Button-Click-Animation zerstÃ¶rte die globale Komponentenkoordinate (HW-Acceleration), da `scale` vor `translate3d` evaluierte -> Fix: Scale-Wert direkt an die bestehende Translation anhÃ¤ngen statt auf Root-Ebene zu definieren.
+  - Details: 1. Transparente Bilder zeigten schwarzen Hintergrund wegen fest kodiertem Hintergrund -> auf 'transparent' umgestellt. 2. UnerwÃƒÂ¼nschter Schatteneffekt bei Images behoben (globaler style entfernt). 3. Standalone-Export gerendert nicht (Komponenten unsichtbar): `deepClean` im Exporter hat irrtÃƒÂ¼mlich alle '_' PrÃƒÂ¤fix-Eigenschaften entfernt, einschlieÃƒÅ¸lich essentieller Vue-Reactivity Flags (`__v_isRef`) und internem State. 4. Button-Click-Animation zerstÃƒÂ¶rte die globale Komponentenkoordinate (HW-Acceleration), da `scale` vor `translate3d` evaluierte -> Fix: Scale-Wert direkt an die bestehende Translation anhÃƒÂ¤ngen statt auf Root-Ebene zu definieren.
 - [2026-04-02] TImageList + TSprite Integration (Sprite-Sheet Support)
   - Datei: src/components/TSprite.ts (Properties: imageListId, imageIndex, Getter: toJSON L261)
-  - Datei: src/editor/services/renderers/SpriteRenderer.ts (render: UnterstÃ¼tzung fÃ¼r TImageList Obj, DIV Switch, ProjectRegistry Fallback)
+  - Datei: src/editor/services/renderers/SpriteRenderer.ts (render: UnterstÃƒÂ¼tzung fÃƒÂ¼r TImageList Obj, DIV Switch, ProjectRegistry Fallback)
   - Datei: src/components/TImageList.ts [NEU] (Klasse TImageList, Bildraster-Optionen)
   - Datei: src/editor/inspector/ImageListEditorDialog.ts [NEU] (Canvas UI)
-  - Datei: src/utils/Serialization.ts (hydrateObjects case 'TImageList', TSprite test ergÃ¤nzt)
+  - Datei: src/utils/Serialization.ts (hydrateObjects case 'TImageList', TSprite test ergÃƒÂ¤nzt)
   - Datei: src/services/ComponentRegistry.ts (register, typeMapping)
   - Datei: public/editor/toolbox.json (Media-Kategorie Image List)
   - Datei: src/editor/services/StageRenderer.ts (renderComponentContent case TImageList)
   - Datei: src/editor/inspector/InspectorActionHandler.ts (handleOpenImageListEditor)
   - Datei: src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource source 'imageLists')
-  - Details: Sprite-Sheet FunktionalitÃ¤t. TSprite wurde erweitert, um optional eine `imageListId` und `imageIndex` zu referenzieren, womit Sprites spezifische Frames einer TImageList als Rendering-Quelle nutzen kÃ¶nnen. Der SpriteRenderer wendet CSS Hintergrund-Positionierung auf ein umschlieÃŸendes DIV-Tag an, falls eine Liste vorliegt, oder fÃ¤llt auf das performante IMG-Tag fÃ¼r direkte Bilder zurÃ¼ck. Serialization und automatische UI-Tests (`npm run test`) implementiert.
-  - **Fix [17:43]:** Sprite-Sheet-Rendering im Editor schlug fehl, weil das `imageLists`-Dropdown keine Leer-Option â€žâ€” Keine â€”" hatte. Dadurch konnte der Inspector-Wert nicht inicial gewechselt werden. Fix: Leer-Option in `getOptionsFromSource('imageLists')` hinzugefÃ¼gt (InspectorRenderer.ts L1089-1094). Debug-Logs aus SpriteRenderer.ts und Editor.ts entfernt.
-- [2026-03-31] FlowEditor God-Class AuflÃ¶sung
+  - Details: Sprite-Sheet FunktionalitÃƒÂ¤t. TSprite wurde erweitert, um optional eine `imageListId` und `imageIndex` zu referenzieren, womit Sprites spezifische Frames einer TImageList als Rendering-Quelle nutzen kÃƒÂ¶nnen. Der SpriteRenderer wendet CSS Hintergrund-Positionierung auf ein umschlieÃƒÅ¸endes DIV-Tag an, falls eine Liste vorliegt, oder fÃƒÂ¤llt auf das performante IMG-Tag fÃƒÂ¼r direkte Bilder zurÃƒÂ¼ck. Serialization und automatische UI-Tests (`npm run test`) implementiert.
+  - **Fix [17:43]:** Sprite-Sheet-Rendering im Editor schlug fehl, weil das `imageLists`-Dropdown keine Leer-Option Ã¢â‚¬Å¾Ã¢â‚¬â€ Keine Ã¢â‚¬â€" hatte. Dadurch konnte der Inspector-Wert nicht inicial gewechselt werden. Fix: Leer-Option in `getOptionsFromSource('imageLists')` hinzugefÃƒÂ¼gt (InspectorRenderer.ts L1089-1094). Debug-Logs aus SpriteRenderer.ts und Editor.ts entfernt.
+- [2026-03-31] FlowEditor God-Class AuflÃƒÂ¶sung
   - Datei: src/editor/FlowEditor.ts (Facade + Delegation)
   - Dateien: src/editor/services/FlowToolbarManager.ts, src/editor/services/FlowPascalManager.ts
-  - Details: Die gigantische `FlowEditor.ts` (1273 Zeilen) wurde modularisiert und hÃ¤lt nun das <1000 Zeilen Limit streng ein. Die DOM-Generierung der Toolbar sowie die sehr lange Dropdown-Select Logik (`updateFlowSelector`) wurden in den `FlowToolbarManager` verschoben. Das Live-Code Panel (Pascal-Code Anzeige) wird Ã¼ber den separaten `FlowPascalManager` konfiguriert und gerendert.
-- [2026-03-31] JSONDialogRenderer God-Class AuflÃ¶sung
+  - Details: Die gigantische `FlowEditor.ts` (1273 Zeilen) wurde modularisiert und hÃƒÂ¤lt nun das <1000 Zeilen Limit streng ein. Die DOM-Generierung der Toolbar sowie die sehr lange Dropdown-Select Logik (`updateFlowSelector`) wurden in den `FlowToolbarManager` verschoben. Das Live-Code Panel (Pascal-Code Anzeige) wird ÃƒÂ¼ber den separaten `FlowPascalManager` konfiguriert und gerendert.
+- [2026-03-31] JSONDialogRenderer God-Class AuflÃƒÂ¶sung
   - Datei: src/editor/JSONDialogRenderer.ts (Facade)
   - Dateien: src/editor/dialogs/IDialogContext.ts, renderers/DialogDOMBuilder.ts, handlers/DialogActionHandler.ts, handlers/DialogStateManager.ts, utils/DialogExpressionEvaluator.ts, utils/DialogDomainHelper.ts
-  - Details: Die gigantische `JSONDialogRenderer.ts` (1302 Zeilen) wurde vollstÃ¤ndig modularisiert. DOM-Generierung, Event-Handling (Action-Switch-Case), Template-Parsing und DomÃ¤nenwissen (Properties/Methoden) wurden in die neuen Service-Dateien abstrahiert, die Ã¼ber den `IDialogContext` interagieren. Letzte GUI-Hotspot aufgelÃ¶st. E2E Tests weiterhin grÃ¼n.
-- [2026-03-30] Action Umbenennen E2E Fix & Two-Way-Binding KollisionsprÃ¼fung
+  - Details: Die gigantische `JSONDialogRenderer.ts` (1302 Zeilen) wurde vollstÃƒÂ¤ndig modularisiert. DOM-Generierung, Event-Handling (Action-Switch-Case), Template-Parsing und DomÃƒÂ¤nenwissen (Properties/Methoden) wurden in die neuen Service-Dateien abstrahiert, die ÃƒÂ¼ber den `IDialogContext` interagieren. Letzte GUI-Hotspot aufgelÃƒÂ¶st. E2E Tests weiterhin grÃƒÂ¼n.
+- [2026-03-30] Action Umbenennen E2E Fix & Two-Way-Binding KollisionsprÃƒÂ¼fung
   - Datei: src/editor/inspector/handlers/FlowNodeHandler.ts (handlePropertyChange)
   - Datei: src/editor/services/EditorCommandManager.ts (renameObject)
   - Datei: tests/e2e/03_ActionRenaming.spec.ts (Timeout Locator Fixes)
-  - Details: Das "Action Name existiert bereits"-Alert erschien fÃ¤lschlicherweise bei der Eingabe im Inspector. Ursache: `FlowNodeHandler` manipulierte den Namen der Action direkt in `project.actions` (Two-Way-Binding), bevor `EditorCommandManager.renameObject` die globale Validierung (`projectRegistry.getActions()`) ausfÃ¼hrte. Die Validierung fand dadurch die grade eben umbenannte "eigene" Action und blockierte. Fix: Vorzeitiges Ãœberschreiben in `FlowNodeHandler` entfernt. Atomares Refactoring durch EditorCommandManager. E2E Test Locator `.context-menu-item` an aktuelle DOM-Struktur (`.context-menu div`) angepasst.
+  - Details: Das "Action Name existiert bereits"-Alert erschien fÃƒÂ¤lschlicherweise bei der Eingabe im Inspector. Ursache: `FlowNodeHandler` manipulierte den Namen der Action direkt in `project.actions` (Two-Way-Binding), bevor `EditorCommandManager.renameObject` die globale Validierung (`projectRegistry.getActions()`) ausfÃƒÂ¼hrte. Die Validierung fand dadurch die grade eben umbenannte "eigene" Action und blockierte. Fix: Vorzeitiges ÃƒÅ“berschreiben in `FlowNodeHandler` entfernt. Atomares Refactoring durch EditorCommandManager. E2E Test Locator `.context-menu-item` an aktuelle DOM-Struktur (`.context-menu div`) angepasst.
 - [2026-03-30] Flow-Condition Persistenz & Action-Typ-Inferenz:
   - Datei: src/editor/flow/FlowCondition.ts (applyChange: Direkte Setter)
-  - Datei: src/editor/inspector/handlers/FlowNodeHandler.ts (handlePropertyChange: object.applyChange fÃ¼r IInspectable)
+  - Datei: src/editor/inspector/handlers/FlowNodeHandler.ts (handlePropertyChange: object.applyChange fÃƒÂ¼r IInspectable)
   - Datei: src/runtime/executor/TaskConditionEvaluator.ts (resolveVarPath: Fallback auf globalVars)
   - Datei: src/runtime/GameRuntime.ts (handleEvent: Injektion von Komponenten in eventVars)
-  - Datei: src/runtime/ActionExecutor.ts (execute: Typ-Inferenz fÃ¼r Actions ohne type)
-  - Details: If-Bedingungen auf Komponenten-Eigenschaften (z.B. visible) funktionierten im FlowChart, aber nachfolgende Actions wurden nicht referenziert/gefunden. Ursache: 1) PropertyHelper umging applyChange() Setter; 2) Komponenten waren im Runtime-Context nicht direkt Ã¼ber ihren Pfad auflÃ¶sbar; 3) Benutzerdefinierte Flow-Actions ohne expliziten "type" wurden vom ActionExecutor stumm ignoriert. Typ-Inferenz (target+changes => property) und verbesserte Kontext-Injektion beheben diese Fehler.
-- [2026-03-30] ElementÃ¼bersicht: LÃ¶sch-Funktion fÃ¼r unbenutzte Actions/Tasks/Variablen & UX Visualisierung
+  - Datei: src/runtime/ActionExecutor.ts (execute: Typ-Inferenz fÃƒÂ¼r Actions ohne type)
+  - Details: If-Bedingungen auf Komponenten-Eigenschaften (z.B. visible) funktionierten im FlowChart, aber nachfolgende Actions wurden nicht referenziert/gefunden. Ursache: 1) PropertyHelper umging applyChange() Setter; 2) Komponenten waren im Runtime-Context nicht direkt ÃƒÂ¼ber ihren Pfad auflÃƒÂ¶sbar; 3) Benutzerdefinierte Flow-Actions ohne expliziten "type" wurden vom ActionExecutor stumm ignoriert. Typ-Inferenz (target+changes => property) und verbesserte Kontext-Injektion beheben diese Fehler.
+- [2026-03-30] ElementÃƒÂ¼bersicht: LÃƒÂ¶sch-Funktion fÃƒÂ¼r unbenutzte Actions/Tasks/Variablen & UX Visualisierung
   - Datei: src/editor/services/FlowContextMenuProvider.ts (Methode: showOverviewContextMenu, L342-430; handleNodeContextMenu isOverviewLink-Guard: L155-162)
   - DateI: src/editor/flow/FlowElement.ts (setUnused, setUsageInfo); src/editor/inspector/InspectorHost.ts (renderHeader, L208-218); src/editor/services/EditorCommandManager.ts (selectObject, L332-337)
-  - Details: Neues dediziertes KontextmenÃ¼ fÃ¼r Nodes in der ElementÃ¼bersicht. Unbenutzte Elemente (canDelete: true) kÃ¶nnen direkt aus dem Projekt-JSON gelÃ¶scht werden. Fix: isOverviewLink-Check vor isLinked-Check. UI-Reload Fix (`currentFlowContext = ''`). FlowNodes erhielten einen dynamischen Badge ("âš ï¸ UNBENUTZT") und einen nativen Custom-HTML Tooltip mit den exakten `findReferences`-Werten, der bei Hover (`mouseenter`) sofort (!) die Referenzen (z.B. Caller-Tasks) anzeigt, statt auf das trÃ¤ge Browser-Tooltip zu warten. Tooltip wird durch Z-Index Toggle nicht verdeckt. Bugfix Inspector: Im Element-Overview lÃ¤dt Deselect-Fallback nicht mehr irrtÃ¼mlich die Stage-Properties in den Inspector. Der Objekt-Wechsel Dropdown wird fÃ¼r FlowNodes und System-Szenen (Stage) ausgeblendet.
-- [2026-03-29] Event-AufrÃ¤umung: UI-Events bei nicht-sichtbaren Komponenten ausblenden
+  - Details: Neues dediziertes KontextmenÃƒÂ¼ fÃƒÂ¼r Nodes in der ElementÃƒÂ¼bersicht. Unbenutzte Elemente (canDelete: true) kÃƒÂ¶nnen direkt aus dem Projekt-JSON gelÃƒÂ¶scht werden. Fix: isOverviewLink-Check vor isLinked-Check. UI-Reload Fix (`currentFlowContext = ''`). FlowNodes erhielten einen dynamischen Badge ("Ã¢Å¡Â Ã¯Â¸Â UNBENUTZT") und einen nativen Custom-HTML Tooltip mit den exakten `findReferences`-Werten, der bei Hover (`mouseenter`) sofort (!) die Referenzen (z.B. Caller-Tasks) anzeigt, statt auf das trÃƒÂ¤ge Browser-Tooltip zu warten. Tooltip wird durch Z-Index Toggle nicht verdeckt. Bugfix Inspector: Im Element-Overview lÃƒÂ¤dt Deselect-Fallback nicht mehr irrtÃƒÂ¼mlich die Stage-Properties in den Inspector. Der Objekt-Wechsel Dropdown wird fÃƒÂ¼r FlowNodes und System-Szenen (Stage) ausgeblendet.
+- [2026-03-29] Event-AufrÃƒÂ¤umung: UI-Events bei nicht-sichtbaren Komponenten ausblenden
   - Datei: src/components/TWindow.ts (Methode: getEvents, L155-162)
-  - Details: isHiddenInRun-Guard eingefÃ¼gt. ~18 Unterklassen zeigen keine unnÃ¶tigen onClick/onFocus/onBlur/onDragStart/onDragEnd/onDrop mehr an.
-- [2026-03-29] TRepeater â†’ TIntervalTimer Migration
+  - Details: isHiddenInRun-Guard eingefÃƒÂ¼gt. ~18 Unterklassen zeigen keine unnÃƒÂ¶tigen onClick/onFocus/onBlur/onDragStart/onDragEnd/onDrop mehr an.
+- [2026-03-29] TRepeater Ã¢â€ â€™ TIntervalTimer Migration
   - Datei: src/components/TIntervalTimer.ts [NEU] (Methoden: start, stop, reset, getEvents, getInspectorProperties, initRuntime, onRuntimeStart, onRuntimeStop)
-  - Datei: src/components/TRepeater.ts [GELÃ–SCHT]
-  - Datei: src/utils/Serialization.ts (Methode: hydrateObjects, L131-134 â€“ Legacy-Case fÃ¼r TRepeater auf TIntervalTimer)
+  - Datei: src/components/TRepeater.ts [GELÃƒâ€“SCHT]
+  - Datei: src/utils/Serialization.ts (Methode: hydrateObjects, L131-134 Ã¢â‚¬â€œ Legacy-Case fÃƒÂ¼r TRepeater auf TIntervalTimer)
   - Datei: src/services/ComponentRegistry.ts (Methode: registerDefaultComponents L110, setupTypeMappings L189-191)
   - Datei: src/editor/services/StageRenderer.ts (Methode: getServiceColor L952)
   - Datei: src/editor/JSONDialogRenderer.ts (Methode: getMethodsForObject L1279)
   - Datei: public/editor/toolbox_horizontal.json (L182-186)
-  - Details: Neue Komponente mit Events onIntervall, onTimeout. Eigenschaften: duration, count, enabled. AbwÃ¤rtskompatibilitÃ¤t fÃ¼r className TRepeater.
-- [2026-03-29] TGameServer: getEvents() ergÃ¤nzt (8 Events)
+  - Details: Neue Komponente mit Events onIntervall, onTimeout. Eigenschaften: duration, count, enabled. AbwÃƒÂ¤rtskompatibilitÃƒÂ¤t fÃƒÂ¼r className TRepeater.
+- [2026-03-29] TGameServer: getEvents() ergÃƒÂ¤nzt (8 Events)
   - Datei: src/components/TGameServer.ts (Methode: getEvents, L53-65)
   - Details: onConnected, onDisconnected, onRoomCreated, onRoomJoined, onPlayerJoined, onPlayerLeft, onGameStart, onError
-- [2026-03-29] TGameState: getEvents() ergÃ¤nzt (4 Events)
+- [2026-03-29] TGameState: getEvents() ergÃƒÂ¤nzt (4 Events)
   - Datei: src/components/TGameState.ts (Methode: getEvents, L42-49)
   - Details: onStateChanged, onGameOver, onLifeLost, onScoreChanged
-- [2026-03-28] UI Cleanup: UnnÃ¶tige/Verwirrende Flow-Elemente aus Toolbox entfernt
+- [2026-03-28] UI Cleanup: UnnÃƒÂ¶tige/Verwirrende Flow-Elemente aus Toolbox entfernt
   - Datei: src/editor/FlowToolbox.ts (Methode: render, Array: items)
-  - Details: Entfernt wurden `Variable`, `Store Token`, `Variable Set`, `For Loop`, `While Loop` und `Repeat Until`. Variablen-Sachen werden stattdessen Ã¼ber Actions + Properties gemacht. Loops Ã¼ber Tasks mit Condition-Weiterleitung.
-  - Details: Dynamischer Filter implementiert. Die Actions `HTTP Request` und `Data Action` sind nun kontextbezogen und tauchen im Side-Panel nur noch auf, wenn es ein global aggregiertes `TGameServer`-Objekt im `ProjectStore` gibt. `EditorViewManager` re-rendert die Box beim Tab-Switch. Ebenso wurde das Dropdown-MenÃ¼ fÃ¼r "Aktions-Typ" im Inspector bereinigt: Die Anzeige wird Ã¼ber `ActionRegistry.getVisibleActionTypes()` gefiltert. Server/DB-Aktionen wie `HTTP Antwort senden` tauchen nur bei Server-Existenz auf, Multiplayer-Aktionen nur bei `TRemoteGameManager`. Redundanzen wie `Spiel wechseln` oder `Token speichern` aus dem MenÃ¼ ausgeblendet.
+  - Details: Entfernt wurden `Variable`, `Store Token`, `Variable Set`, `For Loop`, `While Loop` und `Repeat Until`. Variablen-Sachen werden stattdessen ÃƒÂ¼ber Actions + Properties gemacht. Loops ÃƒÂ¼ber Tasks mit Condition-Weiterleitung.
+  - Details: Dynamischer Filter implementiert. Die Actions `HTTP Request` und `Data Action` sind nun kontextbezogen und tauchen im Side-Panel nur noch auf, wenn es ein global aggregiertes `TGameServer`-Objekt im `ProjectStore` gibt. `EditorViewManager` re-rendert die Box beim Tab-Switch. Ebenso wurde das Dropdown-MenÃƒÂ¼ fÃƒÂ¼r "Aktions-Typ" im Inspector bereinigt: Die Anzeige wird ÃƒÂ¼ber `ActionRegistry.getVisibleActionTypes()` gefiltert. Server/DB-Aktionen wie `HTTP Antwort senden` tauchen nur bei Server-Existenz auf, Multiplayer-Aktionen nur bei `TRemoteGameManager`. Redundanzen wie `Spiel wechseln` oder `Token speichern` aus dem MenÃƒÂ¼ ausgeblendet.
 - [2026-03-28] Performance & Bugfix: Standalone Export (Runtime-Bundle) Rendering-Optimierungen & TSpriteTemplate Bug
   - Datei: src/player-standalone.ts (Methode: renderSpritesOnly, L466-473), public/runtime-standalone.js (Bundle aus StageRenderer), src/editor/services/StageRenderer.ts (Methode: updateSpritePositions)
-  - Details: Der Standalone UniversalPlayer umging im 60Hz-Render-Loop (Fast-Path) versehentlich den StageRenderer und manipulierte das DOM direkt Ã¼ber `style.left/top`. Dadurch brach die GPU-Compositing Hardware-Beschleunigung und TSprite-Elemente mit `backgroundImage` wiesen im Spiel plÃ¶tzlich wieder ihre Default-Eigenschaft `backgroundColor: 'red'` auf, weil die Image-Layer-Erzeugung des StageRenderers umgangen wurde. Behoben durch explizite Delegierung der Callbacks an `this.renderer.updateSpritePositions(sprites)`. 
-  - Details 2: `updateSpritePositions` ignorierte das Flag `isHiddenInRun`. Daduch wurden `TSpriteTemplate`-Objekte wÃ¤hrend des Runtimes ungewollt sichtbar, weil das 60fps-Update die Element-Anzeige Ã¼berschrieb. Der Logikfehler wurde behoben und `npm run bundle:runtime` als Update ausgelÃ¶st. Nach dem Fix wurde via `npm run bundle:runtime` das neue Standalone-Bundle inklusive Ghosting-Fixes bereitgestellt.
-- [2026-03-28] Feature: Konfigurierbare Hitboxen fÃ¼r Sprites (Rect & Circle)
+  - Details: Der Standalone UniversalPlayer umging im 60Hz-Render-Loop (Fast-Path) versehentlich den StageRenderer und manipulierte das DOM direkt ÃƒÂ¼ber `style.left/top`. Dadurch brach die GPU-Compositing Hardware-Beschleunigung und TSprite-Elemente mit `backgroundImage` wiesen im Spiel plÃƒÂ¶tzlich wieder ihre Default-Eigenschaft `backgroundColor: 'red'` auf, weil die Image-Layer-Erzeugung des StageRenderers umgangen wurde. Behoben durch explizite Delegierung der Callbacks an `this.renderer.updateSpritePositions(sprites)`. 
+  - Details 2: `updateSpritePositions` ignorierte das Flag `isHiddenInRun`. Daduch wurden `TSpriteTemplate`-Objekte wÃƒÂ¤hrend des Runtimes ungewollt sichtbar, weil das 60fps-Update die Element-Anzeige ÃƒÂ¼berschrieb. Der Logikfehler wurde behoben und `npm run bundle:runtime` als Update ausgelÃƒÂ¶st. Nach dem Fix wurde via `npm run bundle:runtime` das neue Standalone-Bundle inklusive Ghosting-Fixes bereitgestellt.
+- [2026-03-28] Feature: Konfigurierbare Hitboxen fÃƒÂ¼r Sprites (Rect & Circle)
   - Datei: src/components/TSprite.ts (Methode: getHitbox, checkCollision, getCollisionOverlap), src/editor/services/StageRenderer.ts (Methode: renderSprite)
-  - Details: TSprite verfÃ¼gt nun im Inspector Ã¼ber eine neue `Hitbox`-Gruppe, die standardmÃ¤ÃŸig deaktiviert ist. Wenn freigeschaltet, kÃ¶nnen Offsets, Breite, HÃ¶he und die Form (`rect`, `circle`) der physischen Kollisionsbox entkoppelt vom grafischen Asset definiert werden. UnterstÃ¼tzt Misch-Kollisionen (Rechteck auf Kreis). Der `StageRenderer` visualisiert vom Default abweichende Hitboxen im Editor per rot-gesticheltem Rand. `npm run bundle:runtime` wurde danach ausgefÃ¼hrt.
+  - Details: TSprite verfÃƒÂ¼gt nun im Inspector ÃƒÂ¼ber eine neue `Hitbox`-Gruppe, die standardmÃƒÂ¤ÃƒÅ¸ig deaktiviert ist. Wenn freigeschaltet, kÃƒÂ¶nnen Offsets, Breite, HÃƒÂ¶he und die Form (`rect`, `circle`) der physischen Kollisionsbox entkoppelt vom grafischen Asset definiert werden. UnterstÃƒÂ¼tzt Misch-Kollisionen (Rechteck auf Kreis). Der `StageRenderer` visualisiert vom Default abweichende Hitboxen im Editor per rot-gesticheltem Rand. `npm run bundle:runtime` wurde danach ausgefÃƒÂ¼hrt.
 - [2026-03-28] Architektur & Feature: Globales Undo/Redo-System an Editor gekoppelt
   - Datei: public/editor/menu_bar.json, src/editor/services/EditorMenuManager.ts, src/editor/Editor.ts, src/editor/services/EditorDataManager.ts
-  - Details: Der fragmentierte Zustand zwischen altem `EditorUndoManager`/`ChangeRecorder` und dem neuen `SnapshotManager` wurde aufgelÃ¶st. Das `MenuBar` verfÃ¼gt nun Ã¼ber ein neues "Bearbeiten"-Popup (RÃ¼ckgÃ¤ngig & Wiederholen). Die Hotkeys in `EditorKeyboardManager` schleusen nun an `SnapshotManager.undo/redo` durch, woraufhin via Callback `Editor.loadProject()` abgefeuert wird. Damit wird bei jeglichem Undo eine garantiert exakte Replik des Projekt-JSONs (SSoT) der vorherigen Stufe gerendert.
+  - Details: Der fragmentierte Zustand zwischen altem `EditorUndoManager`/`ChangeRecorder` und dem neuen `SnapshotManager` wurde aufgelÃƒÂ¶st. Das `MenuBar` verfÃƒÂ¼gt nun ÃƒÂ¼ber ein neues "Bearbeiten"-Popup (RÃƒÂ¼ckgÃƒÂ¤ngig & Wiederholen). Die Hotkeys in `EditorKeyboardManager` schleusen nun an `SnapshotManager.undo/redo` durch, woraufhin via Callback `Editor.loadProject()` abgefeuert wird. Damit wird bei jeglichem Undo eine garantiert exakte Replik des Projekt-JSONs (SSoT) der vorherigen Stufe gerendert.
 - [2026-03-28] Bugfix: Top-Left (0,0) Ghost-Blink bei JEDEM Full Render behoben
   - Datei: src/editor/services/StageRenderer.ts (Methode: renderObjects, L240-245, L340)
-  - Details: Der `FULL RENDER` Ã¼berschrieb in `renderObjects` fÃ¤lschlicherweise das hardwarebeschleunigte `translate3d(x,y,0)` mit einem leeren String (LÃ¶schung des Transforms), falls das Objekt keine benutzerdefinierte CSS-Transform besaÃŸ. Dadurch fielen alle Objekte (Player, Target, Bullets) bei jedem Render-Zyklus (z.B. Score-Update) ausnahmslos auf die logische Position (0,0) zurÃ¼ck, bevor der 60Hz Fast-Path sie einen Frame spÃ¤ter wieder korrigierte. Wurde behoben, indem `obj.style.transform` direkt an das zuvor validierte `translate3d` angehÃ¤ngt wird und der zerstÃ¶rerische Else-Block entfernt wurde.
+  - Details: Der `FULL RENDER` ÃƒÂ¼berschrieb in `renderObjects` fÃƒÂ¤lschlicherweise das hardwarebeschleunigte `translate3d(x,y,0)` mit einem leeren String (LÃƒÂ¶schung des Transforms), falls das Objekt keine benutzerdefinierte CSS-Transform besaÃƒÅ¸. Dadurch fielen alle Objekte (Player, Target, Bullets) bei jedem Render-Zyklus (z.B. Score-Update) ausnahmslos auf die logische Position (0,0) zurÃƒÂ¼ck, bevor der 60Hz Fast-Path sie einen Frame spÃƒÂ¤ter wieder korrigierte. Wurde behoben, indem `obj.style.transform` direkt an das zuvor validierte `translate3d` angehÃƒÂ¤ngt wird und der zerstÃƒÂ¶rerische Else-Block entfernt wurde.
 Use Case 92: Audio (Zero-Latency)
 - Dateien: src/runtime/AudioManager.ts, src/components/TAudio.ts, src/runtime/actions/StandardActions.ts
-- Feature: Native Web Audio API Implementierung Ã¼ber AudioContext. LÃ¤dt Dateien (auch Base64 encoded) direkt in den RAM fÃ¼r verzÃ¶gerungsfreie Wiedergabe. Eingebunden via play_audio und stop_audio Actions und TAudio-Komponente.
+- Feature: Native Web Audio API Implementierung ÃƒÂ¼ber AudioContext. LÃƒÂ¤dt Dateien (auch Base64 encoded) direkt in den RAM fÃƒÂ¼r verzÃƒÂ¶gerungsfreie Wiedergabe. Eingebunden via play_audio und stop_audio Actions und TAudio-Komponente.
 - [2026-03-26] UX: Intuitive Formel-Syntax in Action-Berechnungen:
   - Datei: src/runtime/ExpressionParser.ts (evaluate)
-  - Details: Formeln in Actions (z.B. Calculate) akzeptieren nun direkt die Template-Syntax `${var} + 1` und evaluieren diese intern nahtlos als `var + 1`, wodurch User eine einheitliche, string-basierte Binding-Syntax nutzen kÃ¶nnen, ohne auf JS-Konzepte wie `Number(var)` zurÃ¼ckgreifen zu mÃ¼ssen.
-- [2026-03-19] Fix: Inspector UI fÃƒÂ¼r Negate Actions ('Wert negieren'):   - Datei: src/editor/flow/FlowAction.ts (Inspector-Sektion)   - Detail: Die FlowAction generierte fÃƒÂ¼r 'negate' Actions fÃƒÂ¤lschlicherweise ein einfaches String-Eingabefeld ('Eigenschaft'), wÃƒÂ¤hrend das zugrundeliegende JSON Format der Engine (StandardActions/GameLoopManager) zwingend ein Key-Value-Dictionary 'changes' (z.B. { velocityX: true }) forderte. Dadurch war das Feld in der UI leer. Fix: Umstellung auf den nativen 'keyvalue'-Editor Typ in FlowAction.ts, synonym zu Property/Increment. - **Bugfix**: Speichern schlÃ¤gt fehl mit "Daten haben sich nicht geÃ¤ndert"   - **GeÃ¤nderte Dateien**: `src/editor/EditorViewManager.ts`   - **Methode**: `set isProjectDirty(v: boolean)`   - **Beschreibung**: Die Variable `isProjectChangeAvailable` fehlte in einigen JSONs. Dadurch fiel der Setter gerÃ¤uschlos aus. Der Setter wurde um eine dynamische Erzeugung erweitert.  - [2026-03-18] Fix: Retro Tennis Physics & Engine Logs (RetroTennis.json):   - Dateien:     - demos/RetroTennis.json (Ball, Paddles `collisionEnabled` -> `true`, string-conditions `${hitSide} == 'top'`)     - src/runtime/PropertyWatcher.ts (Exclusion von `_` Variablen wie `_prevVelocityX` im Debugger)     - src/runtime/executor/TaskConditionEvaluator.ts (String vs Literal Evaluierung)   - Details: Fehlkonfigurationen im JSON fÃƒÂ¼hrten dazu, dass Sprites von der Engine wie Geister behandelt wurden. Der GameLoopManager hat korrekt Objekte randgestoppt, aber eine falsch strukturierte Objekt-Condition fÃƒÂ¼hrte zu Evaluierungsfehlern (Literal-Quotes wurden nicht entfernt: `"top" === "'top'"` -> FALSE).   - LÃƒÂ¶sungsansatz: Einsatz von nativen String-Conditions und expliziter Aktivierung von `collisionEnabled: true`.  - [2026-03-17] UX: Blueprint-Tasks in Nicht-Blueprint-Stages ausblenden & Dropdown Fixes:     - src/editor/FlowEditor.ts (updateFlowSelector: L630-745)     - src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource: L954)   - Details: Das "showGlobalAnyway"-Flag im Flow-Editor Dropdown wurde entfernt. Blueprint-Tasks      werden jetzt nur noch zur Auswahl angeboten, wenn die aktuell bearbeitete Stage die Blueprint-Stage ist.     Die "isBlueprint"-Erkennung wurde um einen Fallback auf die ID "blueprint" erweitert und fÃƒÂ¼r alte Legacy-Root-Tasks     ein Fallback-Rendering innerhalb der Blueprint-Stage wiederhergestellt. Der hartcodierte "Main Flow (Stage)"     Eintrag wurde fÃƒÂ¼r regulÃƒÂ¤re Stages entfernt. In den Inspector-Eigenschaften-Dropdowns kÃƒÂ¶nnen nun alle globalen     Tasks via `projectRegistry.getTasks('all')` korrekt ausgewÃƒÂ¤hlt werden, auch wenn man sich in der Blueprint-Stage befindet.  - [2026-03-17] UX: Aktuelle Stage in MenÃƒÂ¼zeile anzeigen:   - Dateien:     - src/editor/MenuBar.ts (stageLabel: L42-57, setStageLabel: L292-298)     - src/editor/Editor.ts (updateStageLabel: L415-421, switchStage: L410, setProject: L453)   - Methoden:     - MenuBar.setStageLabel(stageName): Setzt Text im stageLabel-Element     - Editor.updateStageLabel(): Liest aktive Stage und ruft MenuBar.setStageLabel auf   - Details: Prominentes Label mittig in der MenÃƒÂ¼leiste zeigt die aktuelle Stage an.     Aktualisierung bei switchStage(), setProject() und loadProject().  - [2026-03-17] Architecture: Root-Level Collections eliminieren:   - Dateien:     - src/editor/FlowEditor.ts (setProject: L472-520, migrateRootToBlueprint: L530-570, updateFlowSelector: L738-740)     - src/editor/services/FlowSyncManager.ts (ensureTaskExists: L1170-1190, updateGlobalActionDefinition: L960-970, syncVariablesFromFlow: L268-280, getBlueprintStage: L1192-1197)     - src/editor/EditorStageManager.ts (getTargetActionCollection: L79-109, getTargetTaskCollection: L111-142)     - src/editor/services/FlowTaskManager.ts (ensureTaskExists: L154-192)     - tests/action_crud.test.ts (Blueprint-Stage-Setup: L35-44, Mock: L56-66, Assertions: L89, L98, L113, L125, L129)   - Methoden:     - FlowEditor.migrateRootToBlueprint(): Migriert project.tasks/actions/variables/flowCharts in Blueprint-Stage     - FlowSyncManager.getBlueprintStage(): Helper-Methode findet Blueprint via type/id     - EditorStageManager.getTargetActionCollection(): Fallback Blueprint statt Root     - EditorStageManager.getTargetTaskCollection(): Fallback Blueprint statt Root   - Details: VollstÃƒÂ¤ndige Eliminierung der Root-Level Collections (project.tasks, project.actions, project.variables).     Phase 1: Migration beim Laden. Phase 2: 6 Fallback-Stellen bereinigt. Phase 3: Flow-Dropdown Legacy-Block entfernt.     Alle 118 Tests grÃƒÂ¼n. ActionCRUD-Test auf Blueprint-Stage angepasst.  - [2026-03-14] Inspector-Layout & Stage-Rasterfarbe:   - Dateien:     - src/editor/inspector/InspectorHost.ts (renderInspectableProperty: L344-385, renderInspectableSections inline-Gruppierung: L308-336, Boolean fontWeight/fontStyle Konvertierung: L421-458)     - src/components/TWindow.ts (getInspectorProperties: L148-171, Fett/Kursiv aus TWindow entfernt)     - src/components/TTextControl.ts (fontWeight/fontStyle deklariert: L31-35)     - src/editor/Stage.ts (updategrid gridColor: L163-169, runMode-Guard: L163)     - public/inspector_stage.json (Rasterfarbe TColorInput: L295-310)   - Methoden:     - InspectorHost.renderInspectableProperty(): Horizontales Flex-Layout (Label links, Input rechts), inline-responsive Labels     - InspectorHost.renderInspectableSections(): Konsekutive inline:true Properties werden paarweise in Flex-Zeilen gruppiert (max 2 pro Zeile)     - Stage.updategrid(): Liest gridConfig.gridColor (Fallback #dddddd), Raster nur im Editor-Modus   - Fixes:     - Inspector-Labels: Von vertikal (ÃƒÂ¼ber Input) auf horizontal (neben Input) umgestellt     - Fett/Kursiv Duplikat: Properties nur in TTextControl, nicht in TWindow     - fontWeight/fontStyle Checkbox: CSS-Wert-Konvertierung (bold/normal, italic/normal)     - Stage-Raster: Hardcoded #ddd durch konfigurierbare Rasterfarbe ersetzt     - Run-Mode: Raster wird ausgeblendet  - [2026-03-14] Inspector-Farben & Flow-Sync Fix:   - Dateien:     - src/editor/inspector/InspectorHost.ts (Import GROUP_COLORS: L11, renderInspectableSections: L261)     - src/editor/services/FlowSyncManager.ts (buildSequence nodeType-Upgrade: L280-296, output-Anker: L364)     - src/editor/flow/FlowDataAction.ts (actionRegistry Import: L1-5)   - Methoden:     - InspectorHost.renderInspectableSections(): Statischer Import GROUP_COLORS statt require()     - FlowSyncManager.buildSequence(): nodeType upgrade actionÃ¢â€ â€™data_action + output-Anker als success-Branch   - Fixes:     - Inspector-Farben nicht sichtbar wegen require() in ESM Ã¢â€ â€™ statischer Import     - DataActionÃ¢â€ â€™Action Kette: output-Anker wurde nicht als success-Branch erkannt     - Verlinkte Actions: data.type PrÃƒÂ¼fung fÃƒÂ¼r korrekte Branching-Behandlung  - [2026-03-14] DataAction Inspector SQL-Gruppen & Expert-Wizard & LLM-Training:   - Dateien:     - src/editor/flow/FlowDataAction.ts (getInspectorProperties: L337-420)     - src/components/TComponent.ts (GROUP_COLORS: L73-80, GROUP_ICONS: L63-69)     - src/editor/inspector/InspectorHost.ts (renderInspectableSections: L260-306)     - src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource: L971-1004)     - src/editor/config/rules/data_action_rules.json (kompletter Flow)     - src/editor/services/FlowContextMenuProvider.ts (initializeResolvers: L113-147)     - src/components/ExpertDialog.ts (renderNode Hybrid-Feld: L224-281, handleNext: L310-314)     - docs/AgentAPI.md (data_action Sektion: L519-533)     - src/tools/TrainingDataExporter.ts [NEU]     - src/tools/agent-api-schema.json [NEU]     - src/tools/prompt-templates/login.jsonl [NEU]     - src/tools/prompt-templates/crud_list.jsonl [NEU]     - tests/flow_data_action.test.ts [NEU] (8 Tests)     - scripts/test_runner.ts (Import + Aufruf: L24, L165-167)   - Methoden:     - FlowDataAction.getInspectorProperties(): SQL-Gruppen FROMÃ¢â€ â€™SELECTÃ¢â€ â€™INTOÃ¢â€ â€™WHEREÃ¢â€ â€™HTTP     - InspectorHost.renderInspectableSections(): Farbige BordÃƒÂ¼ren via GROUP_COLORS     - InspectorRenderer.getOptionsFromSource(): Sources 'dataStores', 'dataStoreFields'     - ExpertDialog.renderNode(): Hybrid-Button 'V' fÃƒÂ¼r Variablen-Picker     - TrainingDataExporter.exportFromProject(): project.json Ã¢â€ â€™ JSONL-Paare  - [2026-03-12] UseCase: Ball-Reset bei Spielfeld-Aus (PingPong.json):   - Komplexe Task-Flows mit if/else Bedingungen (`hitSide == 'left'` / `hitSide == 'right'`)   - Dateien:     - demos/PingPong.json (Global Action: ResetBall; MainStage Task: HandleBallBoundary)     - src/runtime/executor/TaskConditionEvaluator.ts (wird intern von TaskExecutor verwendet)     - src/runtime/TaskExecutor.ts (lÃƒÂ¤dt hitSide aus dem Boundary-Event durch GameLoopManager)     - src/editor/PascalCodeGenerator.ts (rendert conditions als Pascal `IF x = y THEN`) - [2026-03-12] UseCase: Ball-Paddle Kollision (PingPong.json) & Collision Event Handling:   - Dateien:     - demos/PingPong.json (Action NegateBallX, Task HandlePaddleCollision, BallSprite Event onCollision)     - src/runtime/actions/StandardActions.ts (negate Action)     - src/runtime/GameLoopManager.ts (checkCollisions: L283-356)   - Methoden:     - GameLoopManager.checkCollisions(): PrÃƒÂ¼ft `getCollisionOverlap()`, drÃƒÂ¼ckt Sprites physisch auseinander (Ã‚Â± overlap.depth) und feuert dann `onCollision` mit `hitSide` und `other`.   - Details: Da der GameLoopManager die Sprites bereits physisch bei Kollision trennt, reicht es fÃƒÂ¼r den Pong-Abprall aus, beim `onCollision` Event einfach die X-Geschwindigkeit (`velocityX`) via `negate`-Action umzukehren.  - [2026-03-12] UseCase: Ball-Abprall (PingPong.json) & Boundary Hit Handling:   - Dateien:     - demos/PingPong.json (Actions, Tasks: L?, BallSprite Events: L?)     - src/runtime/actions/StandardActions.ts (negate Action: L315-345)     - src/runtime/GameLoopManager.ts (triggerBoundaryEvent: L415-432)   - Methoden:     - actionRegistry.register('negate'): Negiert numerische Properties. Spezialfall: Wenn `value === 0`, wird auf `_prev{Prop}` zurÃƒÂ¼ckgegriffen, falls vorhanden.     - GameLoopManager.triggerBoundaryEvent(): Setzt bei 'top'/'bottom' Hit die `velocityY` auf 0, speichert den alten Wert in `_prevVelocityY` und feuert `onBoundaryHit`.   - Details: Da der GameLoopManager die Geschwindigkeit beim Rand-Treffer auf 0 setzt (um das Rausfliegen zu verhindern), greift die Negate-Action fÃƒÂ¼r den Abprall (`NegateBallY`) auf den intern gespeicherten vorherigen Wert `_prevVelocityY` zu und kehrt diesen um.      - src/editor/services/EditorRunManager.ts (setupKeyboardListeners: L302-351, removeKeyboardListeners: L356-367, _keydownHandler/_keyupHandler: L28-30)     - src/runtime/GameRuntime.ts (initInputControllers: L222-237, start: L204 Aufruf)     - src/editor/inspector/InspectorContextBuilder.ts (availableTasks: L162 getTasks('all'))     - src/components/TInputController.ts (Self-Healing onKeyDown: L105-111, initRuntime global: L56-58)   - Methoden:     - EditorRunManager.setupKeyboardListeners(): Registriert window.keydown/keyup, leitet Game-Keys an handleRuntimeEvent     - EditorRunManager.removeKeyboardListeners(): Entfernt Listener bei stopRuntime()     - GameRuntime.initInputControllers(): Initialisiert IC vor Splash-Check     - InspectorContextBuilder.build(): availableTasks mit getTasks('all') statt getTasks('active')   - Details: IC's start()/stop() ist im Editor unzuverlÃƒÂ¤ssig (HMR, Splash blockiert initMainGame). Fix: Direkte     Keyboard-Verwaltung im EditorRunManager. Events-Dropdown nutzt getTasks('all') fÃƒÂ¼r Cross-Stage-Sichtbarkeit.  - [2026-03-11] Performance: Editor-Rendering-Optimierung (60fps Sprite-Bewegung):   - Dateien:     - src/runtime/GameLoopManager.ts (spriteRenderCallback: L43, init: L80-88, loop: L247-258, stop: L161-163)     - src/editor/services/StageRenderer.ts (updateSpritePositions: L1043-1057, CSS-Transition entfernt: L188-189)     - src/runtime/GameRuntime.ts (RuntimeOptions.onSpriteRender: L20, glm.init: L227-234)     - src/editor/services/EditorRunManager.ts (renderSpritesOnly: L260-268, handleRuntimeEvent: L243-251, onSpriteRender: L116)     - src/editor/Stage.ts (renderer public: L11)   - Methoden:     - StageRenderer.updateSpritePositions(sprites): Direkte style.left/top Aktualisierung ohne volles Render     - EditorRunManager.renderSpritesOnly(): Filtert TSprite-Objekte und ruft Fast-Path auf     - GameLoopManager.loop(): Nutzt spriteRenderCallback statt renderCallback im Fast-Path   - Details: Separater Rendering-Pfad fÃƒÂ¼r Sprite-Positionen eliminiert 2-3 volle DOM-Render-Zyklen pro Frame.     CSS-Transition entfernt (kollidierte mit requestAnimationFrame). handleRuntimeEvent() kein doppeltes render().     QA-Report: 81/82 Tests Pass (1 vorexistierender Fehler: Inline-Actions in stage_main).  - [2026-03-10] Feature: Speichern unter Dialog:   - Dateien:     - src/editor/SaveAsDialog.ts (L1-210) [NEU]     - src/editor/services/EditorDataManager.ts (saveProjectAs: L222-250, currentSavePath: L46)     - game-server/src/server.ts (GET /api/dev/list-projects: L788-813)   - Methoden:     - SaveAsDialog.show(currentName): Modaler Dialog fÃƒÂ¼r Ordner/Datei-Auswahl     - EditorDataManager.saveProjectAs(): prompt() Ã¢â€ â€™ SaveAsDialog     - EditorDataManager.saveProjectToFile(): Dynamischer Pfad via currentSavePath   - Details: "Speichern unter" zeigt modalen Dialog mit Ordnerauswahl, Dateiliste und Dateiname-Eingabe. Server-Endpoint listet vorhandene Projektordner.  - [2026-03-10] Feature: VariablePickerDialog (Inspector V-Button):   - Dateien:     - src/editor/inspector/VariablePickerDialog.ts (L1-247) [NEU]     - src/editor/inspector/InspectorActionHandler.ts (handlePickVariable: L174-251)     - src/editor/inspector/InspectorHost.ts (resolveValue: L488-530)   - Methoden:     - VariablePickerDialog.show(context): Modaler Auswahl-Dialog fÃƒÂ¼r Variablen mit Baumstruktur     - InspectorActionHandler.handlePickVariable(): prompt() Ã¢â€ â€™ VariablePickerDialog     - InspectorHost.resolveValue(): Binding-Werte als Rohtext bewahren   - Details: V-Button im Inspector ÃƒÂ¶ffnet modalen Dialog statt prompt(). Variablen mit Subeigenschaften, Suchfeld, Scope-Gruppierung. Bugfix: Doppelte Template-AuflÃƒÂ¶sung in resolveValue() verhindert.  - [2026-03-10] UseCase: RunButton erzeugen (E2E-Test):   - Dateien: tests/e2e/07_RunButtonCreation.spec.ts (L1-133)   - Methoden: Toolbox-Click Ã¢â€ â€™ selectObject Ã¢â€ â€™ Inspector caption/text   - Details: Button aus Toolbox auf MainStage platzieren, per Inspector auf 'run'### Rename Refactoring Bugfix (27.04.2026)
+  - Details: Formeln in Actions (z.B. Calculate) akzeptieren nun direkt die Template-Syntax `${var} + 1` und evaluieren diese intern nahtlos als `var + 1`, wodurch User eine einheitliche, string-basierte Binding-Syntax nutzen kÃƒÂ¶nnen, ohne auf JS-Konzepte wie `Number(var)` zurÃƒÂ¼ckgreifen zu mÃƒÂ¼ssen.
+- [2026-03-19] Fix: Inspector UI fÃƒÆ’Ã‚Â¼r Negate Actions ('Wert negieren'):   - Datei: src/editor/flow/FlowAction.ts (Inspector-Sektion)   - Detail: Die FlowAction generierte fÃƒÆ’Ã‚Â¼r 'negate' Actions fÃƒÆ’Ã‚Â¤lschlicherweise ein einfaches String-Eingabefeld ('Eigenschaft'), wÃƒÆ’Ã‚Â¤hrend das zugrundeliegende JSON Format der Engine (StandardActions/GameLoopManager) zwingend ein Key-Value-Dictionary 'changes' (z.B. { velocityX: true }) forderte. Dadurch war das Feld in der UI leer. Fix: Umstellung auf den nativen 'keyvalue'-Editor Typ in FlowAction.ts, synonym zu Property/Increment. - **Bugfix**: Speichern schlÃƒÂ¤gt fehl mit "Daten haben sich nicht geÃƒÂ¤ndert"   - **GeÃƒÂ¤nderte Dateien**: `src/editor/EditorViewManager.ts`   - **Methode**: `set isProjectDirty(v: boolean)`   - **Beschreibung**: Die Variable `isProjectChangeAvailable` fehlte in einigen JSONs. Dadurch fiel der Setter gerÃƒÂ¤uschlos aus. Der Setter wurde um eine dynamische Erzeugung erweitert.  - [2026-03-18] Fix: Retro Tennis Physics & Engine Logs (RetroTennis.json):   - Dateien:     - demos/RetroTennis.json (Ball, Paddles `collisionEnabled` -> `true`, string-conditions `${hitSide} == 'top'`)     - src/runtime/PropertyWatcher.ts (Exclusion von `_` Variablen wie `_prevVelocityX` im Debugger)     - src/runtime/executor/TaskConditionEvaluator.ts (String vs Literal Evaluierung)   - Details: Fehlkonfigurationen im JSON fÃƒÆ’Ã‚Â¼hrten dazu, dass Sprites von der Engine wie Geister behandelt wurden. Der GameLoopManager hat korrekt Objekte randgestoppt, aber eine falsch strukturierte Objekt-Condition fÃƒÆ’Ã‚Â¼hrte zu Evaluierungsfehlern (Literal-Quotes wurden nicht entfernt: `"top" === "'top'"` -> FALSE).   - LÃƒÆ’Ã‚Â¶sungsansatz: Einsatz von nativen String-Conditions und expliziter Aktivierung von `collisionEnabled: true`.  - [2026-03-17] UX: Blueprint-Tasks in Nicht-Blueprint-Stages ausblenden & Dropdown Fixes:     - src/editor/FlowEditor.ts (updateFlowSelector: L630-745)     - src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource: L954)   - Details: Das "showGlobalAnyway"-Flag im Flow-Editor Dropdown wurde entfernt. Blueprint-Tasks      werden jetzt nur noch zur Auswahl angeboten, wenn die aktuell bearbeitete Stage die Blueprint-Stage ist.     Die "isBlueprint"-Erkennung wurde um einen Fallback auf die ID "blueprint" erweitert und fÃƒÆ’Ã‚Â¼r alte Legacy-Root-Tasks     ein Fallback-Rendering innerhalb der Blueprint-Stage wiederhergestellt. Der hartcodierte "Main Flow (Stage)"     Eintrag wurde fÃƒÆ’Ã‚Â¼r regulÃƒÆ’Ã‚Â¤re Stages entfernt. In den Inspector-Eigenschaften-Dropdowns kÃƒÆ’Ã‚Â¶nnen nun alle globalen     Tasks via `projectRegistry.getTasks('all')` korrekt ausgewÃƒÆ’Ã‚Â¤hlt werden, auch wenn man sich in der Blueprint-Stage befindet.  - [2026-03-17] UX: Aktuelle Stage in MenÃƒÆ’Ã‚Â¼zeile anzeigen:   - Dateien:     - src/editor/MenuBar.ts (stageLabel: L42-57, setStageLabel: L292-298)     - src/editor/Editor.ts (updateStageLabel: L415-421, switchStage: L410, setProject: L453)   - Methoden:     - MenuBar.setStageLabel(stageName): Setzt Text im stageLabel-Element     - Editor.updateStageLabel(): Liest aktive Stage und ruft MenuBar.setStageLabel auf   - Details: Prominentes Label mittig in der MenÃƒÆ’Ã‚Â¼leiste zeigt die aktuelle Stage an.     Aktualisierung bei switchStage(), setProject() und loadProject().  - [2026-03-17] Architecture: Root-Level Collections eliminieren:   - Dateien:     - src/editor/FlowEditor.ts (setProject: L472-520, migrateRootToBlueprint: L530-570, updateFlowSelector: L738-740)     - src/editor/services/FlowSyncManager.ts (ensureTaskExists: L1170-1190, updateGlobalActionDefinition: L960-970, syncVariablesFromFlow: L268-280, getBlueprintStage: L1192-1197)     - src/editor/EditorStageManager.ts (getTargetActionCollection: L79-109, getTargetTaskCollection: L111-142)     - src/editor/services/FlowTaskManager.ts (ensureTaskExists: L154-192)     - tests/action_crud.test.ts (Blueprint-Stage-Setup: L35-44, Mock: L56-66, Assertions: L89, L98, L113, L125, L129)   - Methoden:     - FlowEditor.migrateRootToBlueprint(): Migriert project.tasks/actions/variables/flowCharts in Blueprint-Stage     - FlowSyncManager.getBlueprintStage(): Helper-Methode findet Blueprint via type/id     - EditorStageManager.getTargetActionCollection(): Fallback Blueprint statt Root     - EditorStageManager.getTargetTaskCollection(): Fallback Blueprint statt Root   - Details: VollstÃƒÆ’Ã‚Â¤ndige Eliminierung der Root-Level Collections (project.tasks, project.actions, project.variables).     Phase 1: Migration beim Laden. Phase 2: 6 Fallback-Stellen bereinigt. Phase 3: Flow-Dropdown Legacy-Block entfernt.     Alle 118 Tests grÃƒÆ’Ã‚Â¼n. ActionCRUD-Test auf Blueprint-Stage angepasst.  - [2026-03-14] Inspector-Layout & Stage-Rasterfarbe:   - Dateien:     - src/editor/inspector/InspectorHost.ts (renderInspectableProperty: L344-385, renderInspectableSections inline-Gruppierung: L308-336, Boolean fontWeight/fontStyle Konvertierung: L421-458)     - src/components/TWindow.ts (getInspectorProperties: L148-171, Fett/Kursiv aus TWindow entfernt)     - src/components/TTextControl.ts (fontWeight/fontStyle deklariert: L31-35)     - src/editor/Stage.ts (updategrid gridColor: L163-169, runMode-Guard: L163)     - public/inspector_stage.json (Rasterfarbe TColorInput: L295-310)   - Methoden:     - InspectorHost.renderInspectableProperty(): Horizontales Flex-Layout (Label links, Input rechts), inline-responsive Labels     - InspectorHost.renderInspectableSections(): Konsekutive inline:true Properties werden paarweise in Flex-Zeilen gruppiert (max 2 pro Zeile)     - Stage.updategrid(): Liest gridConfig.gridColor (Fallback #dddddd), Raster nur im Editor-Modus   - Fixes:     - Inspector-Labels: Von vertikal (ÃƒÆ’Ã‚Â¼ber Input) auf horizontal (neben Input) umgestellt     - Fett/Kursiv Duplikat: Properties nur in TTextControl, nicht in TWindow     - fontWeight/fontStyle Checkbox: CSS-Wert-Konvertierung (bold/normal, italic/normal)     - Stage-Raster: Hardcoded #ddd durch konfigurierbare Rasterfarbe ersetzt     - Run-Mode: Raster wird ausgeblendet  - [2026-03-14] Inspector-Farben & Flow-Sync Fix:   - Dateien:     - src/editor/inspector/InspectorHost.ts (Import GROUP_COLORS: L11, renderInspectableSections: L261)     - src/editor/services/FlowSyncManager.ts (buildSequence nodeType-Upgrade: L280-296, output-Anker: L364)     - src/editor/flow/FlowDataAction.ts (actionRegistry Import: L1-5)   - Methoden:     - InspectorHost.renderInspectableSections(): Statischer Import GROUP_COLORS statt require()     - FlowSyncManager.buildSequence(): nodeType upgrade actionÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢data_action + output-Anker als success-Branch   - Fixes:     - Inspector-Farben nicht sichtbar wegen require() in ESM ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ statischer Import     - DataActionÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢Action Kette: output-Anker wurde nicht als success-Branch erkannt     - Verlinkte Actions: data.type PrÃƒÆ’Ã‚Â¼fung fÃƒÆ’Ã‚Â¼r korrekte Branching-Behandlung  - [2026-03-14] DataAction Inspector SQL-Gruppen & Expert-Wizard & LLM-Training:   - Dateien:     - src/editor/flow/FlowDataAction.ts (getInspectorProperties: L337-420)     - src/components/TComponent.ts (GROUP_COLORS: L73-80, GROUP_ICONS: L63-69)     - src/editor/inspector/InspectorHost.ts (renderInspectableSections: L260-306)     - src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource: L971-1004)     - src/editor/config/rules/data_action_rules.json (kompletter Flow)     - src/editor/services/FlowContextMenuProvider.ts (initializeResolvers: L113-147)     - src/components/ExpertDialog.ts (renderNode Hybrid-Feld: L224-281, handleNext: L310-314)     - docs/AgentAPI.md (data_action Sektion: L519-533)     - src/tools/TrainingDataExporter.ts [NEU]     - src/tools/agent-api-schema.json [NEU]     - src/tools/prompt-templates/login.jsonl [NEU]     - src/tools/prompt-templates/crud_list.jsonl [NEU]     - tests/flow_data_action.test.ts [NEU] (8 Tests)     - scripts/test_runner.ts (Import + Aufruf: L24, L165-167)   - Methoden:     - FlowDataAction.getInspectorProperties(): SQL-Gruppen FROMÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢SELECTÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢INTOÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢WHEREÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢HTTP     - InspectorHost.renderInspectableSections(): Farbige BordÃƒÆ’Ã‚Â¼ren via GROUP_COLORS     - InspectorRenderer.getOptionsFromSource(): Sources 'dataStores', 'dataStoreFields'     - ExpertDialog.renderNode(): Hybrid-Button 'V' fÃƒÆ’Ã‚Â¼r Variablen-Picker     - TrainingDataExporter.exportFromProject(): project.json ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ JSONL-Paare  - [2026-03-12] UseCase: Ball-Reset bei Spielfeld-Aus (PingPong.json):   - Komplexe Task-Flows mit if/else Bedingungen (`hitSide == 'left'` / `hitSide == 'right'`)   - Dateien:     - demos/PingPong.json (Global Action: ResetBall; MainStage Task: HandleBallBoundary)     - src/runtime/executor/TaskConditionEvaluator.ts (wird intern von TaskExecutor verwendet)     - src/runtime/TaskExecutor.ts (lÃƒÆ’Ã‚Â¤dt hitSide aus dem Boundary-Event durch GameLoopManager)     - src/editor/PascalCodeGenerator.ts (rendert conditions als Pascal `IF x = y THEN`) - [2026-03-12] UseCase: Ball-Paddle Kollision (PingPong.json) & Collision Event Handling:   - Dateien:     - demos/PingPong.json (Action NegateBallX, Task HandlePaddleCollision, BallSprite Event onCollision)     - src/runtime/actions/StandardActions.ts (negate Action)     - src/runtime/GameLoopManager.ts (checkCollisions: L283-356)   - Methoden:     - GameLoopManager.checkCollisions(): PrÃƒÆ’Ã‚Â¼ft `getCollisionOverlap()`, drÃƒÆ’Ã‚Â¼ckt Sprites physisch auseinander (Ãƒâ€šÃ‚Â± overlap.depth) und feuert dann `onCollision` mit `hitSide` und `other`.   - Details: Da der GameLoopManager die Sprites bereits physisch bei Kollision trennt, reicht es fÃƒÆ’Ã‚Â¼r den Pong-Abprall aus, beim `onCollision` Event einfach die X-Geschwindigkeit (`velocityX`) via `negate`-Action umzukehren.  - [2026-03-12] UseCase: Ball-Abprall (PingPong.json) & Boundary Hit Handling:   - Dateien:     - demos/PingPong.json (Actions, Tasks: L?, BallSprite Events: L?)     - src/runtime/actions/StandardActions.ts (negate Action: L315-345)     - src/runtime/GameLoopManager.ts (triggerBoundaryEvent: L415-432)   - Methoden:     - actionRegistry.register('negate'): Negiert numerische Properties. Spezialfall: Wenn `value === 0`, wird auf `_prev{Prop}` zurÃƒÆ’Ã‚Â¼ckgegriffen, falls vorhanden.     - GameLoopManager.triggerBoundaryEvent(): Setzt bei 'top'/'bottom' Hit die `velocityY` auf 0, speichert den alten Wert in `_prevVelocityY` und feuert `onBoundaryHit`.   - Details: Da der GameLoopManager die Geschwindigkeit beim Rand-Treffer auf 0 setzt (um das Rausfliegen zu verhindern), greift die Negate-Action fÃƒÆ’Ã‚Â¼r den Abprall (`NegateBallY`) auf den intern gespeicherten vorherigen Wert `_prevVelocityY` zu und kehrt diesen um.      - src/editor/services/EditorRunManager.ts (setupKeyboardListeners: L302-351, removeKeyboardListeners: L356-367, _keydownHandler/_keyupHandler: L28-30)     - src/runtime/GameRuntime.ts (initInputControllers: L222-237, start: L204 Aufruf)     - src/editor/inspector/InspectorContextBuilder.ts (availableTasks: L162 getTasks('all'))     - src/components/TInputController.ts (Self-Healing onKeyDown: L105-111, initRuntime global: L56-58)   - Methoden:     - EditorRunManager.setupKeyboardListeners(): Registriert window.keydown/keyup, leitet Game-Keys an handleRuntimeEvent     - EditorRunManager.removeKeyboardListeners(): Entfernt Listener bei stopRuntime()     - GameRuntime.initInputControllers(): Initialisiert IC vor Splash-Check     - InspectorContextBuilder.build(): availableTasks mit getTasks('all') statt getTasks('active')   - Details: IC's start()/stop() ist im Editor unzuverlÃƒÆ’Ã‚Â¤ssig (HMR, Splash blockiert initMainGame). Fix: Direkte     Keyboard-Verwaltung im EditorRunManager. Events-Dropdown nutzt getTasks('all') fÃƒÆ’Ã‚Â¼r Cross-Stage-Sichtbarkeit.  - [2026-03-11] Performance: Editor-Rendering-Optimierung (60fps Sprite-Bewegung):   - Dateien:     - src/runtime/GameLoopManager.ts (spriteRenderCallback: L43, init: L80-88, loop: L247-258, stop: L161-163)     - src/editor/services/StageRenderer.ts (updateSpritePositions: L1043-1057, CSS-Transition entfernt: L188-189)     - src/runtime/GameRuntime.ts (RuntimeOptions.onSpriteRender: L20, glm.init: L227-234)     - src/editor/services/EditorRunManager.ts (renderSpritesOnly: L260-268, handleRuntimeEvent: L243-251, onSpriteRender: L116)     - src/editor/Stage.ts (renderer public: L11)   - Methoden:     - StageRenderer.updateSpritePositions(sprites): Direkte style.left/top Aktualisierung ohne volles Render     - EditorRunManager.renderSpritesOnly(): Filtert TSprite-Objekte und ruft Fast-Path auf     - GameLoopManager.loop(): Nutzt spriteRenderCallback statt renderCallback im Fast-Path   - Details: Separater Rendering-Pfad fÃƒÆ’Ã‚Â¼r Sprite-Positionen eliminiert 2-3 volle DOM-Render-Zyklen pro Frame.     CSS-Transition entfernt (kollidierte mit requestAnimationFrame). handleRuntimeEvent() kein doppeltes render().     QA-Report: 81/82 Tests Pass (1 vorexistierender Fehler: Inline-Actions in stage_main).  - [2026-03-10] Feature: Speichern unter Dialog:   - Dateien:     - src/editor/SaveAsDialog.ts (L1-210) [NEU]     - src/editor/services/EditorDataManager.ts (saveProjectAs: L222-250, currentSavePath: L46)     - game-server/src/server.ts (GET /api/dev/list-projects: L788-813)   - Methoden:     - SaveAsDialog.show(currentName): Modaler Dialog fÃƒÆ’Ã‚Â¼r Ordner/Datei-Auswahl     - EditorDataManager.saveProjectAs(): prompt() ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ SaveAsDialog     - EditorDataManager.saveProjectToFile(): Dynamischer Pfad via currentSavePath   - Details: "Speichern unter" zeigt modalen Dialog mit Ordnerauswahl, Dateiliste und Dateiname-Eingabe. Server-Endpoint listet vorhandene Projektordner.  - [2026-03-10] Feature: VariablePickerDialog (Inspector V-Button):   - Dateien:     - src/editor/inspector/VariablePickerDialog.ts (L1-247) [NEU]     - src/editor/inspector/InspectorActionHandler.ts (handlePickVariable: L174-251)     - src/editor/inspector/InspectorHost.ts (resolveValue: L488-530)   - Methoden:     - VariablePickerDialog.show(context): Modaler Auswahl-Dialog fÃƒÆ’Ã‚Â¼r Variablen mit Baumstruktur     - InspectorActionHandler.handlePickVariable(): prompt() ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ VariablePickerDialog     - InspectorHost.resolveValue(): Binding-Werte als Rohtext bewahren   - Details: V-Button im Inspector ÃƒÆ’Ã‚Â¶ffnet modalen Dialog statt prompt(). Variablen mit Subeigenschaften, Suchfeld, Scope-Gruppierung. Bugfix: Doppelte Template-AuflÃƒÆ’Ã‚Â¶sung in resolveValue() verhindert.  - [2026-03-10] UseCase: RunButton erzeugen (E2E-Test):   - Dateien: tests/e2e/07_RunButtonCreation.spec.ts (L1-133)   - Methoden: Toolbox-Click ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ selectObject ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Inspector caption/text   - Details: Button aus Toolbox auf MainStage platzieren, per Inspector auf 'run'### Rename Refactoring Bugfix (27.04.2026)
 - src/editor/refactoring/ObjectRefactoringService.ts:1-160
 - src/editor/refactoring/RefactoringUtils.ts:1-100
 
-### Drag & Drop und Object Registry Deduplizierung (27.04.2026)-03-10] UseCase: Action Typ ÃƒÂ¤ndern (E2E-Test):   - Dateien: tests/e2e/06_ActionTypeChange.spec.ts (L1-93)   - Methoden: switchActionFlow('VerifyTask') Ã¢â€ â€™ ActionTypeSelect Ã¢â€ â€™ stageId   - Details: VerifyAction auf navigate_stage setzen, HighscoreStage als Ziel. ActionTypeSelect und stageId Select im Inspector.  - [2026-03-10] UseCase: Stage erzeugen (E2E-Test):   - Dateien: tests/e2e/05_StageCreation.spec.ts (L1-87)   - Methoden: MenÃƒÂ¼ Stages Ã¢â€ â€™ Neue Stage, notifyDataChanged fÃƒÂ¼r Rename   - Details: Neue Stage via MenÃƒÂ¼ erzeugen, zu HighscoreStage umbenennen, switchStage zurÃƒÂ¼ck zu MainStage.  - [2026-03-10] Bugfix: getStageOptions in JSONDialogRenderer:   - Dateien: src/editor/JSONDialogRenderer.ts (L91-95)   - Methoden: getStageOptions() Runtime-Variable   - Details: Nutzt jetzt this.project.stages statt this.enrichedProject.stages. Neue Stages erscheinen im stageId-Select.  - [2026-03-09] UseCase: Projekt speichern (E2E-Test + Implementation):   - Dateien:     - src/editor/services/EditorDataManager.ts (saveProjectToFile: L97-211)     - src/editor/Editor.ts (saveProjectToFile-Delegation: L467)     - src/editor/services/EditorMenuManager.ts (handleMenuAction case 'save': L69, Interface: L17)     - tests/e2e/ProjectSaving.spec.ts (L1-190)     - src/utils/Serialization.ts (reservedKeys: L457-463)   - Methoden:     - EditorDataManager.saveProjectToFile(overwriteConfirmed?: boolean): Steps 1-4 des UseCases     - Serialization.hydrateObjects: reservedKeys um 'currentStageName' erweitert   - Details: 4-Schritte-UseCase implementiert. Bug-Fix: changeVar.defaultValue=false vor JSON.stringify gesetzt.     Fix: currentStageName zur reservedKeys-Liste hinzugefÃƒÂ¼gt (nur getter, kein setter).     E2E: 3 Tests: Abbruch kein Change, Abbruch Standard-Name, Round-Trip Speicherung. Alle passed (3.1s).    - Dateien: tests/e2e/ProjectCreation.spec.ts (L1-75)   - Details: Implementierung und Stabilisierung (Debouncing-Timings via waitForTimeout) eines E2E-Tests, der alle 6 Schritte des UseCases "Ein neues Projekt (Spiel) erstellen.txt" abdeckt.  - [2026-03-09] Blueprint-Visualisierung & Variablen-Inspector:   - Dateien: Editor.ts (L153-178), StageRenderer.ts (L204-210, L683-698), EditorDataManager.ts (L208), inspector_variable.json (L171-200)   - Details: Sichtbarkeit von Service-Objekten und globalen Variablen in der Blueprint-Stage implementiert. Anzeige von Variablenwerten auf der Stage. Optimierung des Variablen-Inspectors (Checkboxen fÃƒÂ¼r Booleans). Fix des initialen Dirty-Flags durch 'editor-load' Originator.  - [2026-03-09] **Variable Inspector & Stage Sync**:   - `public/inspector_variable.json`: Revert auf Textfelder, Entfernen redundanter Buttons.   - `src/runtime/ExpressionParser.ts`: Fix fÃƒÂ¼r Boolean-Werte (Typ-Erhaltung).   - `src/editor/inspector/InspectorHost.ts`: String-Konvertierung fÃƒÂ¼r `TEdit`.   - `src/editor/Editor.ts`: Initialisierung von `isProjectChangeAvailable`.   - `src/editor/services/EditorRenderManager.ts`: Integration von `updateStagesMenu`.   - `src/utils/Serialization.ts`: Fix fÃƒÂ¼r Read-Only Properties.   - `public/inspector_stage.json`: Checkbox fÃƒÂ¼r `snapToGrid` hinzugefÃƒÂ¼gt.   - `src/editor/services/StageInteractionManager.ts`: Logik fÃƒÂ¼r optionales Snapping implementiert (Methoden `snap` und `snapFloor`).  - [2026-03-06] Phase 5: LÃƒÂ¶sch-Synchronisation & SSOT-Fixes:   - Dateien: EditorCommandManager.ts (L155-235), FlowGraphManager.ts (L208-391), Editor.ts (L244-293), ProjectRegistry.ts (L381-405), AgentController.ts (L170-187)   - Details: Globales LÃƒÂ¶schen ÃƒÂ¼ber alle Stages, isInherited-Ghosting, Fix von Task-Duplikaten. QA-Report: 69/69 Pass.  - [2026-03-06] Systemische StabilitÃƒÂ¤ts-Analyse (SSOT) & Anti-Patterns:   - Dateien: Editor.ts (L230-300), FlowNodeHandler.ts (L34-112), TaskRefactoringService.ts (L11-148)   - Guidelines: Anti-Patterns in DEVELOPER_GUIDELINES.md (L79-83)   - Details: Analyse der Desynchronisation zwischen Inspector und RefactoringManager.  - [2026-03-05] Root-Cause Fix Dimensions-Leckage & Event-Handling:   - src/editor/Editor.ts: getActiveStage() dynamisch auf Runtime erweitert (L221)   - src/editor/services/EditorRunManager.ts: Isoliertes runStage-Rendering & Interaction-Init (L22-135)   - src/editor/services/EditorRenderManager.ts: Rendering-Target auf runStage fÃƒÂ¼r Run-View fixiert (L37-45)   - src/editor/services/StageRenderer.ts: onClick-Erkennung auf obj.events erweitert (L265)   - src/editor/Stage.ts: Layout-Cleanup in updategrid (L149)   - src/editor/EditorViewManager.ts: Container-Toggling implementiert (L77-135)   - src/player-standalone.ts: Umstellung auf #run-stage Host (L86)   - src/runtime/GameRuntime.ts: Grid-Referenz & TDialog Fix (L577, L580)   - src/editor/services/StageRenderer.ts: Host-Tracing Logs (L192)   - src/editor/Stage.ts: Background Color Fix (L142)   - src/editor/services/StageRenderer.ts (L190-210): Verfeinerung der Blueprint-Sichtbarkeit.   - src/runtime/CoordinateBinding.test.ts: Integrationstest fÃƒÂ¼r Koordinaten-Bindings.  UC-122: Stage Inheritance Removal | RuntimeStageManager.ts, EditorStageManager.ts, inspector_stage.json --- UseCase: 'Inspector-Action-Sync (Sofortige JSON-Persistenz)' --- - public/inspector_action.json: property: "type" ergÃƒÂ¤nzt (Z. 13) - src/editor/inspector/InspectorEventHandler.ts: Mapping fÃƒÂ¼r ActionTypeSelect (Z. 70) - src/editor/services/EditorDataManager.ts: updateProjectJSON triggert Server-Sync (Z. 235)  - [2026-03-09] Flow-Action Persistenz & Bereinigung (Index-basierte Suche):   - Dateien: FlowNodeHandler.ts (L145-250), SanitizationService.ts (L10-50), FlowSyncManager.ts (L811)   - Details: Umstellung der Action-Suche im Inspector auf Index-Lookup (ProjectRegistry). Broad-Field Matching fÃƒÂ¼r robuste Identifizierung. Implementierung automatischer Bereinigung verwaister Action-Referenzen in Sequenzen. QA-Report: 78/79 Pass (IntegritÃƒÂ¤t OK).  - [2026-03-09] Action-Typ-Persistenz & Dynamisierung:   - Dateien: FlowAction.ts (L8-11, L147-160), FlowDataAction.ts (L4-22), FlowSyncManager.ts (L272-283, L812)   - Details: Dynamisierung von getType() fÃƒÂ¼r korrekte Serialisierung. Synchronisation des Typs im SSoT-Objekt und Proxy. Implementierung von Sofort-Ports bei Typ-Wechsel. QA-Report: 75/76 Pass.  UC-123: Layout-Fixes & Container-Isolation | main.ts, EditorViewManager.ts, player-standalone.ts, GameRuntime.ts, StageRenderer.ts  - [2026-03-07] E2E-Test Fixes & Sync-Bridge (Run-Mode Execution):   - Dateien: GameRuntime.ts (L448-452), InspectorEventHandler.ts (L102-114), EditorRenderManager.ts (L81-83), DebugLogService.ts   - Details: Fix der Task-Priorisierung in Runtime. Implementierung von `__rawSource` Sync fÃƒÂ¼r Inspector-Ãƒâ€žnderungen. Aktivierung DebugLog im Run-Mode. QA-Report: 84 Tests Pass, E2E Deep Integration Pass.  - [2026-03-07] Intelligentes Speichermanagement & Projekt-Schutz:   - Dateien: Editor.ts (L139, L424), EditorDataManager.ts (L50, L60, L188, L339, L340), EditorViewManager.ts (L51)   - Methoden: Editor.newProject, EditorDataManager.saveProject, EditorDataManager.updateProjectJSON, EditorDataManager.triggerLoad, EditorDataManager.loadFromServer - [2026-03-07] E2E-Reporting Fix & Server Safety & Hydration:   - Dateien: scripts/test_runner.ts, src/runtime/GameRuntime.ts, src/runtime/RuntimeStageManager.ts, tests/e2e/deep_integration.spec.ts   - Details: Rekursives E2E-Ergebnis-Parsing fÃƒÂ¼r verschachtelte Suites implementiert. Server-Check fÃƒÂ¼r Port 8080 hinzugefÃƒÂ¼gt. Unbenutzte Deklarationen entfernt. E2E-StabilitÃƒÂ¤t durch loadProject (Hydrierung) sichergestellt.  - [2026-03-08] Projekt-Ladefehler beheben (TypeError: setProject):   - Dateien: EditorDataManager.ts (L153), EditorViewManager.ts (L31)   - Details: Behebung von TypeError durch Interface-Erweiterung (IViewHost) und robustes Error-Handling in loadProject. Automatisch verifiziert durch Test 74.  - [2026-03-09] UseCase: Eine Action umbenennen (E2E Test):   - Dateien: tests/e2e/ActionRenaming.spec.ts (L1-120)   - Methoden: FlowEditor.createNode, FlowEditor.syncToProject, InspectorEventHandler.handleControlChange, FlowSyncManager.updateGlobalActionDefinition, EditorStageManager.getTargetActionCollection   - Details: VollstÃƒÂ¤ndiger E2E-Test fÃƒÂ¼r den UseCase "Action Umbenennen via Inspector UI". Test prÃƒÂ¼ft:     1. Projekt und VerifyTask anlegen (via Editor-API)     2. Action erzeugen und syncToProject     3. Inspector-UI Rename: Input ausfÃƒÂ¼llen, Enter, blur     4. Explizites syncToProject() nach Rename     5. JSON-Validierung via findActionAnywhere (durchsucht Root, alle Stages, alle FlowCharts)     6. Manager-View UI-Verifikation (Manager Liste zeigt neuen Namen)   - Lernpunkte: Actions werden in activeStage.actions gespeichert (nicht Root-Level); findActionAnywhere Pattern fÃƒÂ¼r robuste Stage-unabhÃƒÂ¤ngige Suche eingefÃƒÂ¼hrt.  - [2026-03-09] UseCase: Task mit Action verknÃƒÂ¼pfen (E2E Test):   - Dateien: tests/e2e/TaskActionLinking.spec.ts (L1-185)   - Methoden: FlowEditor.switchActionFlow, FlowEditor.createNode, FlowEditor.restoreConnection, FlowEditor.syncToProject, FlowSyncManager.syncTaskFromFlow, FlowSyncManager.getTargetFlowCharts, FlowTaskManager.getTargetFlowCharts, FlowElement.toJSON, FlowConnection.toJSON   - Details: VollstÃƒÂ¤ndiger E2E-Test fÃƒÂ¼r den UseCase "Task mit Action verknÃƒÂ¼pfen via Flow-Editor". Test prÃƒÂ¼ft:     1. Projekt erstellen, Task und Action in mainStage.tasks / mainStage.actions ablegen     2. switchActionFlow('VerifyTask') aufrufen Ã¢â€ â€™ erzeugt automatisch Task-Knoten als Startpunkt     3. Action-Knoten via createNode erstellen (rechts neben bestehendem Task-Knoten)     4. Verbindung via restoreConnection() herstellen: Task(Output) Ã¢â€ â€™ Action(Input)     5. syncToProject() aufrufen Ã¢â€ â€™ lÃƒÂ¶st syncTaskFromFlow aus     6. JSON-Validierung: Connection in flowCharts, VerifyAction in actionSequence (kein Inline-Block)     7. Manager-View UI: VerifyAction in Aktions-Liste sichtbar   - Lernpunkte:     * switchActionFlow() erzeugt automatisch Task-Knoten als Startpunkt via generateFlowFromActionSequence()     * KRITISCH: Kein zweites createNode('Task', ...) aufrufen Ã¢â€ â€™ fÃƒÂ¼hrt zu zwei Task-Knoten im Canvas     * syncTaskFromFlow sucht startNode=elements.find(type==='task'), findet ERSTEN Knoten Ã¢â€ â€™ zweiter Knoten hat keine Connection     * Tasks und Actions gehÃƒÂ¶ren in stage.tasks / stage.actions der aktiven Stage (nicht Root-Level project.tasks)     * getTargetFlowCharts: priorisiert Stage-Tasks bei activeStage-Kontext   [Task: Overviews (Landkarte & ElementenÃƒÂ¼bersicht) Reparieren] Beteiligte Dateien: - src/editor/services/FlowMapManager.ts (generateElementOverview:205, createMapTaskNode:402) - src/editor/FlowEditor.ts (getAllVariables:241)   [Task: Landkarte (Event Map) um .events Property erweitert] Beteiligte Dateien: - src/editor/services/FlowMapManager.ts (generateEventMap:54)   [Task: Dynamische Action Parameter in Flow Details & Pascal Code] Beteiligte Dateien: - src/editor/flow/FlowAction.ts (getActionDetails:778) - src/editor/PascalCodeGenerator.ts (getActionPascalCode:404)   [Task: Resizable Modern Pascal Preview Panel] Beteiligte Dateien: - src/editor/FlowEditor.ts (applyPascalLayout:970, updatePascalPanel:996)   [Task: Pascal Panel Full Program View] Beteiligte Dateien: - src/editor/FlowEditor.ts (updatePascalPanel:1010)   [Task: Layout Initialisierung fÃƒÂ¼r Pascal Panel Side-by-Side repariert] Beteiligte Dateien: - src/editor/FlowEditor.ts (constructor:422)   [Task: Automatisches Layout nach Detail-Ansicht-Wechsel] Beteiligte Dateien: - src/editor/FlowEditor.ts (toggleDetailsView:1236)   [Task: Pascal Code - Deklaration verlinkter Tasks anzeigen] Beteiligte Dateien: - src/editor/PascalCodeGenerator.ts (generateFullProgram: 80-100)   Use Case: Fix Inspector Dropdown Fallback Bug Files changed: src/editor/inspector/InspectorRenderer.ts Method: renderSelect Description: Fixed an issue where HTML <select> elements in the Inspector silently fell back to the first available option ('GameLoop') when the actual JSON value ('RightPaddle') was missing due to cross-stage referential visibility limits.   Use Case: Expose onFrame Event in TGameLoop Files changed: src/components/TGameLoop.ts Method: getEvents Description: the onFrame event was implicitly supported by the runtime engine (GameLoopManager via EditorRunManager ticking) but was hidden from the user in the Inspector UI. Added it explicitly to the getEvents array of TGameLoop so users can assign flows directly to it.   Use Case: Retro Tennis Demo Cleanup Files changed: demos/RetroTennis.json Method: n/a Description: Removed entirely the MainGameLoop and PlayStateLoop tasks along with the onFrame binding from the GameLoop object, as they were empty and executing unconditionally 60 times a second without any content. The core game continues functioning solely via generic physics mechanisms (velocity, boundary events).   Use Case: Fix Condition UI Format in RetroTennis Demo Files changed: demos/RetroTennis.json Method: n/a Description: Conditions in CheckWallCollisions were authored as raw strings which is unsupported by the Editor's Node Renderer, resulting in empty 'Bedingung' labels. Translated them into JSON objects matching the LeftValue/Operator/RightValue interface.   Use Case: Fix Regression Bugs in UI Rendering Files changed: src/editor/flow/FlowAction.ts, src/editor/inspector/InspectorRenderer.ts, DEVELOPER_GUIDELINES.md Method: FlowAction.formatValue, InspectorRenderer.renderSelect Description: Resolved [object Object] rendering for changes maps on canvas by stringifying JSON. Resolved silent fail of boolean fields in inspector by extending custom keyvalue renderer to support negate, increment, decrement actions.   Use Case: Fix Engine Variable Resolution & Logging Files changed: src/runtime/executor/TaskConditionEvaluator.ts, src/runtime/TaskExecutor.ts Method: TaskConditionEvaluator.resolveVarPath, TaskExecutor.handleCondition Description: Fixed issue where event payload parameters like hitSide from onBoundaryHit were not resolvable by condition evaluators without explicit 'eventData.' prefix. Created auto-fallback to root.eventData. Fixed log console emitting 'undefined == undefined' when evaluating Object-based condition queries instead of legacy strings.   Use Case: Fix String Literal Quotes in JSON Conditions Files changed: demos/RetroTennis.json Method: None Description: Addressed a bug where the TaskConditionEvaluator failed to evaluate conditions properly due to extra single quotes enclosed as literals in the JSON string (rightValue: "'top'"). Evaluator does not strip quotes for 'literal' mode, so the JSON was sanitized.   UseCase: Fix FlowEditor Standalone-Node (Bedingung) Duplication Files changed: src/editor/services/FlowSyncManager.ts Method: FlowSyncManager.syncToProject (Lines 167-190), FlowSyncManager.syncTaskFromFlow (Lines 279-495) Description: Fixed issue where nodes without explicit 'name' properties (like 'Bedingung' conditions) were falsely identified as standalone nodes and duplicated on save/load. Used a graph traversal visitedSet from syncTaskFromFlow (including the start root task node) to correctly filter standalone nodes.  UseCase: Fix Inspector UI for Negate Boolean Properties Files changed: src/editor/flow/FlowAction.ts, src/editor/inspector/InspectorHost.ts Method: FlowAction.ts (added valueType: boolean), InspectorHost.ts (propDef.valueType override) Description: Forced Inspector's KeyValue renderer to utilize a boolean checkbox for 'negate' actions, preventing empty Number-Inputs for boolean flags on targets with numeric properties (like velocityX).  UseCase: Native Dateiverwaltung (Laden und Speichern) Files changed: src/editor/services/ProjectPersistenceService.ts, src/editor/services/EditorDataManager.ts Method: ProjectPersistenceService.triggerLoad (116-136), EditorDataManager.triggerLoad (74-88), EditorDataManager.saveProjectToFile (214-235), EditorDataManager.saveProjectAs (255-275) Description: Implementierung der File System Access API fÃ¼r native Dateiverwaltung (FileSystemFileHandle), damit beim Speichern echte Originaldateien Ã¼berschrieben werden und nicht nur eine Kopie im Serververzeichnis angelegt wird. - [2026-03-23] UX: Inspector Dropdown fÃ¼r alle Komponenten und verbesserte Sichtbarkeit im Editor:`n  - Datei: src/editor/inspector/InspectorHost.ts (renderHeader: ca L151-200)`n  - Datei: src/editor/services/StageRenderer.ts (renderObjects: ca L238-279)`n  - Details: Ein Dropdown im Inspector-Header erlaubt die Auswahl aller Komponenten. Komponenten mit visible: false werden im Design-Modus halb-transparent mit rotem gestricheltem Rahmen dargestellt. - [2026-03-23] UX: Copy-Button im Debug-Log-Viewer:`n  - Datei: src/components/TDebugLog.ts (createUI: ca L212, L260)`n  - Details: Ein "Copy" Button wurde neben "Clear All" hinzugefÃ¼gt, um die angezeigten Logs in die Zwischenablage (Clipboard) zu kopieren. - [2026-03-23] BUGFIX: Zuweisungen von Konstanten und Variablen-Update:`n  - Datei: src/runtime/ExpressionParser.ts (evaluate: L145-155)`n  - Datei: src/runtime/actions/StandardActions.ts (variable: L127-136)`n  - Details: Zahlen wie "0" wurden in interpolate/evaluate falsch als Property geparst und gaben undefined zurÃ¼ck. Zudem wurde der value von TVariable bei der variable-Action nicht direkt aktualisiert. - [2026-03-23] BUGFIX: AnimationManager require Crash behoben:`n  - Datei: src/runtime/AnimationManager.ts (addTween: L111-115)`n  - Details: Veralteter require-Aufruf durch ESM dynamic import() ersetzt, um AbstÃ¼rze in Browser-Environments zu verhindern. - [2026-03-23] FEATURE: Action "animate" fÃ¼r Komponenten-Animationen (shake, pulse, bounce, fade) inkl. Multi-Target (StandardActions.ts, AnimationManager.ts)
+### Drag & Drop und Object Registry Deduplizierung (27.04.2026)-03-10] UseCase: Action Typ ÃƒÆ’Ã‚Â¤ndern (E2E-Test):   - Dateien: tests/e2e/06_ActionTypeChange.spec.ts (L1-93)   - Methoden: switchActionFlow('VerifyTask') ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ActionTypeSelect ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ stageId   - Details: VerifyAction auf navigate_stage setzen, HighscoreStage als Ziel. ActionTypeSelect und stageId Select im Inspector.  - [2026-03-10] UseCase: Stage erzeugen (E2E-Test):   - Dateien: tests/e2e/05_StageCreation.spec.ts (L1-87)   - Methoden: MenÃƒÆ’Ã‚Â¼ Stages ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Neue Stage, notifyDataChanged fÃƒÆ’Ã‚Â¼r Rename   - Details: Neue Stage via MenÃƒÆ’Ã‚Â¼ erzeugen, zu HighscoreStage umbenennen, switchStage zurÃƒÆ’Ã‚Â¼ck zu MainStage.  - [2026-03-10] Bugfix: getStageOptions in JSONDialogRenderer:   - Dateien: src/editor/JSONDialogRenderer.ts (L91-95)   - Methoden: getStageOptions() Runtime-Variable   - Details: Nutzt jetzt this.project.stages statt this.enrichedProject.stages. Neue Stages erscheinen im stageId-Select.  - [2026-03-09] UseCase: Projekt speichern (E2E-Test + Implementation):   - Dateien:     - src/editor/services/EditorDataManager.ts (saveProjectToFile: L97-211)     - src/editor/Editor.ts (saveProjectToFile-Delegation: L467)     - src/editor/services/EditorMenuManager.ts (handleMenuAction case 'save': L69, Interface: L17)     - tests/e2e/ProjectSaving.spec.ts (L1-190)     - src/utils/Serialization.ts (reservedKeys: L457-463)   - Methoden:     - EditorDataManager.saveProjectToFile(overwriteConfirmed?: boolean): Steps 1-4 des UseCases     - Serialization.hydrateObjects: reservedKeys um 'currentStageName' erweitert   - Details: 4-Schritte-UseCase implementiert. Bug-Fix: changeVar.defaultValue=false vor JSON.stringify gesetzt.     Fix: currentStageName zur reservedKeys-Liste hinzugefÃƒÆ’Ã‚Â¼gt (nur getter, kein setter).     E2E: 3 Tests: Abbruch kein Change, Abbruch Standard-Name, Round-Trip Speicherung. Alle passed (3.1s).    - Dateien: tests/e2e/ProjectCreation.spec.ts (L1-75)   - Details: Implementierung und Stabilisierung (Debouncing-Timings via waitForTimeout) eines E2E-Tests, der alle 6 Schritte des UseCases "Ein neues Projekt (Spiel) erstellen.txt" abdeckt.  - [2026-03-09] Blueprint-Visualisierung & Variablen-Inspector:   - Dateien: Editor.ts (L153-178), StageRenderer.ts (L204-210, L683-698), EditorDataManager.ts (L208), inspector_variable.json (L171-200)   - Details: Sichtbarkeit von Service-Objekten und globalen Variablen in der Blueprint-Stage implementiert. Anzeige von Variablenwerten auf der Stage. Optimierung des Variablen-Inspectors (Checkboxen fÃƒÆ’Ã‚Â¼r Booleans). Fix des initialen Dirty-Flags durch 'editor-load' Originator.  - [2026-03-09] **Variable Inspector & Stage Sync**:   - `public/inspector_variable.json`: Revert auf Textfelder, Entfernen redundanter Buttons.   - `src/runtime/ExpressionParser.ts`: Fix fÃƒÆ’Ã‚Â¼r Boolean-Werte (Typ-Erhaltung).   - `src/editor/inspector/InspectorHost.ts`: String-Konvertierung fÃƒÆ’Ã‚Â¼r `TEdit`.   - `src/editor/Editor.ts`: Initialisierung von `isProjectChangeAvailable`.   - `src/editor/services/EditorRenderManager.ts`: Integration von `updateStagesMenu`.   - `src/utils/Serialization.ts`: Fix fÃƒÆ’Ã‚Â¼r Read-Only Properties.   - `public/inspector_stage.json`: Checkbox fÃƒÆ’Ã‚Â¼r `snapToGrid` hinzugefÃƒÆ’Ã‚Â¼gt.   - `src/editor/services/StageInteractionManager.ts`: Logik fÃƒÆ’Ã‚Â¼r optionales Snapping implementiert (Methoden `snap` und `snapFloor`).  - [2026-03-06] Phase 5: LÃƒÆ’Ã‚Â¶sch-Synchronisation & SSOT-Fixes:   - Dateien: EditorCommandManager.ts (L155-235), FlowGraphManager.ts (L208-391), Editor.ts (L244-293), ProjectRegistry.ts (L381-405), AgentController.ts (L170-187)   - Details: Globales LÃƒÆ’Ã‚Â¶schen ÃƒÆ’Ã‚Â¼ber alle Stages, isInherited-Ghosting, Fix von Task-Duplikaten. QA-Report: 69/69 Pass.  - [2026-03-06] Systemische StabilitÃƒÆ’Ã‚Â¤ts-Analyse (SSOT) & Anti-Patterns:   - Dateien: Editor.ts (L230-300), FlowNodeHandler.ts (L34-112), TaskRefactoringService.ts (L11-148)   - Guidelines: Anti-Patterns in DEVELOPER_GUIDELINES.md (L79-83)   - Details: Analyse der Desynchronisation zwischen Inspector und RefactoringManager.  - [2026-03-05] Root-Cause Fix Dimensions-Leckage & Event-Handling:   - src/editor/Editor.ts: getActiveStage() dynamisch auf Runtime erweitert (L221)   - src/editor/services/EditorRunManager.ts: Isoliertes runStage-Rendering & Interaction-Init (L22-135)   - src/editor/services/EditorRenderManager.ts: Rendering-Target auf runStage fÃƒÆ’Ã‚Â¼r Run-View fixiert (L37-45)   - src/editor/services/StageRenderer.ts: onClick-Erkennung auf obj.events erweitert (L265)   - src/editor/Stage.ts: Layout-Cleanup in updategrid (L149)   - src/editor/EditorViewManager.ts: Container-Toggling implementiert (L77-135)   - src/player-standalone.ts: Umstellung auf #run-stage Host (L86)   - src/runtime/GameRuntime.ts: Grid-Referenz & TDialog Fix (L577, L580)   - src/editor/services/StageRenderer.ts: Host-Tracing Logs (L192)   - src/editor/Stage.ts: Background Color Fix (L142)   - src/editor/services/StageRenderer.ts (L190-210): Verfeinerung der Blueprint-Sichtbarkeit.   - src/runtime/CoordinateBinding.test.ts: Integrationstest fÃƒÆ’Ã‚Â¼r Koordinaten-Bindings.  UC-122: Stage Inheritance Removal | RuntimeStageManager.ts, EditorStageManager.ts, inspector_stage.json --- UseCase: 'Inspector-Action-Sync (Sofortige JSON-Persistenz)' --- - public/inspector_action.json: property: "type" ergÃƒÆ’Ã‚Â¤nzt (Z. 13) - src/editor/inspector/InspectorEventHandler.ts: Mapping fÃƒÆ’Ã‚Â¼r ActionTypeSelect (Z. 70) - src/editor/services/EditorDataManager.ts: updateProjectJSON triggert Server-Sync (Z. 235)  - [2026-03-09] Flow-Action Persistenz & Bereinigung (Index-basierte Suche):   - Dateien: FlowNodeHandler.ts (L145-250), SanitizationService.ts (L10-50), FlowSyncManager.ts (L811)   - Details: Umstellung der Action-Suche im Inspector auf Index-Lookup (ProjectRegistry). Broad-Field Matching fÃƒÆ’Ã‚Â¼r robuste Identifizierung. Implementierung automatischer Bereinigung verwaister Action-Referenzen in Sequenzen. QA-Report: 78/79 Pass (IntegritÃƒÆ’Ã‚Â¤t OK).  - [2026-03-09] Action-Typ-Persistenz & Dynamisierung:   - Dateien: FlowAction.ts (L8-11, L147-160), FlowDataAction.ts (L4-22), FlowSyncManager.ts (L272-283, L812)   - Details: Dynamisierung von getType() fÃƒÆ’Ã‚Â¼r korrekte Serialisierung. Synchronisation des Typs im SSoT-Objekt und Proxy. Implementierung von Sofort-Ports bei Typ-Wechsel. QA-Report: 75/76 Pass.  UC-123: Layout-Fixes & Container-Isolation | main.ts, EditorViewManager.ts, player-standalone.ts, GameRuntime.ts, StageRenderer.ts  - [2026-03-07] E2E-Test Fixes & Sync-Bridge (Run-Mode Execution):   - Dateien: GameRuntime.ts (L448-452), InspectorEventHandler.ts (L102-114), EditorRenderManager.ts (L81-83), DebugLogService.ts   - Details: Fix der Task-Priorisierung in Runtime. Implementierung von `__rawSource` Sync fÃƒÆ’Ã‚Â¼r Inspector-ÃƒÆ’Ã¢â‚¬Å¾nderungen. Aktivierung DebugLog im Run-Mode. QA-Report: 84 Tests Pass, E2E Deep Integration Pass.  - [2026-03-07] Intelligentes Speichermanagement & Projekt-Schutz:   - Dateien: Editor.ts (L139, L424), EditorDataManager.ts (L50, L60, L188, L339, L340), EditorViewManager.ts (L51)   - Methoden: Editor.newProject, EditorDataManager.saveProject, EditorDataManager.updateProjectJSON, EditorDataManager.triggerLoad, EditorDataManager.loadFromServer - [2026-03-07] E2E-Reporting Fix & Server Safety & Hydration:   - Dateien: scripts/test_runner.ts, src/runtime/GameRuntime.ts, src/runtime/RuntimeStageManager.ts, tests/e2e/deep_integration.spec.ts   - Details: Rekursives E2E-Ergebnis-Parsing fÃƒÆ’Ã‚Â¼r verschachtelte Suites implementiert. Server-Check fÃƒÆ’Ã‚Â¼r Port 8080 hinzugefÃƒÆ’Ã‚Â¼gt. Unbenutzte Deklarationen entfernt. E2E-StabilitÃƒÆ’Ã‚Â¤t durch loadProject (Hydrierung) sichergestellt.  - [2026-03-08] Projekt-Ladefehler beheben (TypeError: setProject):   - Dateien: EditorDataManager.ts (L153), EditorViewManager.ts (L31)   - Details: Behebung von TypeError durch Interface-Erweiterung (IViewHost) und robustes Error-Handling in loadProject. Automatisch verifiziert durch Test 74.  - [2026-03-09] UseCase: Eine Action umbenennen (E2E Test):   - Dateien: tests/e2e/ActionRenaming.spec.ts (L1-120)   - Methoden: FlowEditor.createNode, FlowEditor.syncToProject, InspectorEventHandler.handleControlChange, FlowSyncManager.updateGlobalActionDefinition, EditorStageManager.getTargetActionCollection   - Details: VollstÃƒÆ’Ã‚Â¤ndiger E2E-Test fÃƒÆ’Ã‚Â¼r den UseCase "Action Umbenennen via Inspector UI". Test prÃƒÆ’Ã‚Â¼ft:     1. Projekt und VerifyTask anlegen (via Editor-API)     2. Action erzeugen und syncToProject     3. Inspector-UI Rename: Input ausfÃƒÆ’Ã‚Â¼llen, Enter, blur     4. Explizites syncToProject() nach Rename     5. JSON-Validierung via findActionAnywhere (durchsucht Root, alle Stages, alle FlowCharts)     6. Manager-View UI-Verifikation (Manager Liste zeigt neuen Namen)   - Lernpunkte: Actions werden in activeStage.actions gespeichert (nicht Root-Level); findActionAnywhere Pattern fÃƒÆ’Ã‚Â¼r robuste Stage-unabhÃƒÆ’Ã‚Â¤ngige Suche eingefÃƒÆ’Ã‚Â¼hrt.  - [2026-03-09] UseCase: Task mit Action verknÃƒÆ’Ã‚Â¼pfen (E2E Test):   - Dateien: tests/e2e/TaskActionLinking.spec.ts (L1-185)   - Methoden: FlowEditor.switchActionFlow, FlowEditor.createNode, FlowEditor.restoreConnection, FlowEditor.syncToProject, FlowSyncManager.syncTaskFromFlow, FlowSyncManager.getTargetFlowCharts, FlowTaskManager.getTargetFlowCharts, FlowElement.toJSON, FlowConnection.toJSON   - Details: VollstÃƒÆ’Ã‚Â¤ndiger E2E-Test fÃƒÆ’Ã‚Â¼r den UseCase "Task mit Action verknÃƒÆ’Ã‚Â¼pfen via Flow-Editor". Test prÃƒÆ’Ã‚Â¼ft:     1. Projekt erstellen, Task und Action in mainStage.tasks / mainStage.actions ablegen     2. switchActionFlow('VerifyTask') aufrufen ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ erzeugt automatisch Task-Knoten als Startpunkt     3. Action-Knoten via createNode erstellen (rechts neben bestehendem Task-Knoten)     4. Verbindung via restoreConnection() herstellen: Task(Output) ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Action(Input)     5. syncToProject() aufrufen ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ lÃƒÆ’Ã‚Â¶st syncTaskFromFlow aus     6. JSON-Validierung: Connection in flowCharts, VerifyAction in actionSequence (kein Inline-Block)     7. Manager-View UI: VerifyAction in Aktions-Liste sichtbar   - Lernpunkte:     * switchActionFlow() erzeugt automatisch Task-Knoten als Startpunkt via generateFlowFromActionSequence()     * KRITISCH: Kein zweites createNode('Task', ...) aufrufen ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ fÃƒÆ’Ã‚Â¼hrt zu zwei Task-Knoten im Canvas     * syncTaskFromFlow sucht startNode=elements.find(type==='task'), findet ERSTEN Knoten ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zweiter Knoten hat keine Connection     * Tasks und Actions gehÃƒÆ’Ã‚Â¶ren in stage.tasks / stage.actions der aktiven Stage (nicht Root-Level project.tasks)     * getTargetFlowCharts: priorisiert Stage-Tasks bei activeStage-Kontext   [Task: Overviews (Landkarte & ElementenÃƒÆ’Ã‚Â¼bersicht) Reparieren] Beteiligte Dateien: - src/editor/services/FlowMapManager.ts (generateElementOverview:205, createMapTaskNode:402) - src/editor/FlowEditor.ts (getAllVariables:241)   [Task: Landkarte (Event Map) um .events Property erweitert] Beteiligte Dateien: - src/editor/services/FlowMapManager.ts (generateEventMap:54)   [Task: Dynamische Action Parameter in Flow Details & Pascal Code] Beteiligte Dateien: - src/editor/flow/FlowAction.ts (getActionDetails:778) - src/editor/PascalCodeGenerator.ts (getActionPascalCode:404)   [Task: Resizable Modern Pascal Preview Panel] Beteiligte Dateien: - src/editor/FlowEditor.ts (applyPascalLayout:970, updatePascalPanel:996)   [Task: Pascal Panel Full Program View] Beteiligte Dateien: - src/editor/FlowEditor.ts (updatePascalPanel:1010)   [Task: Layout Initialisierung fÃƒÆ’Ã‚Â¼r Pascal Panel Side-by-Side repariert] Beteiligte Dateien: - src/editor/FlowEditor.ts (constructor:422)   [Task: Automatisches Layout nach Detail-Ansicht-Wechsel] Beteiligte Dateien: - src/editor/FlowEditor.ts (toggleDetailsView:1236)   [Task: Pascal Code - Deklaration verlinkter Tasks anzeigen] Beteiligte Dateien: - src/editor/PascalCodeGenerator.ts (generateFullProgram: 80-100)   Use Case: Fix Inspector Dropdown Fallback Bug Files changed: src/editor/inspector/InspectorRenderer.ts Method: renderSelect Description: Fixed an issue where HTML <select> elements in the Inspector silently fell back to the first available option ('GameLoop') when the actual JSON value ('RightPaddle') was missing due to cross-stage referential visibility limits.   Use Case: Expose onFrame Event in TGameLoop Files changed: src/components/TGameLoop.ts Method: getEvents Description: the onFrame event was implicitly supported by the runtime engine (GameLoopManager via EditorRunManager ticking) but was hidden from the user in the Inspector UI. Added it explicitly to the getEvents array of TGameLoop so users can assign flows directly to it.   Use Case: Retro Tennis Demo Cleanup Files changed: demos/RetroTennis.json Method: n/a Description: Removed entirely the MainGameLoop and PlayStateLoop tasks along with the onFrame binding from the GameLoop object, as they were empty and executing unconditionally 60 times a second without any content. The core game continues functioning solely via generic physics mechanisms (velocity, boundary events).   Use Case: Fix Condition UI Format in RetroTennis Demo Files changed: demos/RetroTennis.json Method: n/a Description: Conditions in CheckWallCollisions were authored as raw strings which is unsupported by the Editor's Node Renderer, resulting in empty 'Bedingung' labels. Translated them into JSON objects matching the LeftValue/Operator/RightValue interface.   Use Case: Fix Regression Bugs in UI Rendering Files changed: src/editor/flow/FlowAction.ts, src/editor/inspector/InspectorRenderer.ts, DEVELOPER_GUIDELINES.md Method: FlowAction.formatValue, InspectorRenderer.renderSelect Description: Resolved [object Object] rendering for changes maps on canvas by stringifying JSON. Resolved silent fail of boolean fields in inspector by extending custom keyvalue renderer to support negate, increment, decrement actions.   Use Case: Fix Engine Variable Resolution & Logging Files changed: src/runtime/executor/TaskConditionEvaluator.ts, src/runtime/TaskExecutor.ts Method: TaskConditionEvaluator.resolveVarPath, TaskExecutor.handleCondition Description: Fixed issue where event payload parameters like hitSide from onBoundaryHit were not resolvable by condition evaluators without explicit 'eventData.' prefix. Created auto-fallback to root.eventData. Fixed log console emitting 'undefined == undefined' when evaluating Object-based condition queries instead of legacy strings.   Use Case: Fix String Literal Quotes in JSON Conditions Files changed: demos/RetroTennis.json Method: None Description: Addressed a bug where the TaskConditionEvaluator failed to evaluate conditions properly due to extra single quotes enclosed as literals in the JSON string (rightValue: "'top'"). Evaluator does not strip quotes for 'literal' mode, so the JSON was sanitized.   UseCase: Fix FlowEditor Standalone-Node (Bedingung) Duplication Files changed: src/editor/services/FlowSyncManager.ts Method: FlowSyncManager.syncToProject (Lines 167-190), FlowSyncManager.syncTaskFromFlow (Lines 279-495) Description: Fixed issue where nodes without explicit 'name' properties (like 'Bedingung' conditions) were falsely identified as standalone nodes and duplicated on save/load. Used a graph traversal visitedSet from syncTaskFromFlow (including the start root task node) to correctly filter standalone nodes.  UseCase: Fix Inspector UI for Negate Boolean Properties Files changed: src/editor/flow/FlowAction.ts, src/editor/inspector/InspectorHost.ts Method: FlowAction.ts (added valueType: boolean), InspectorHost.ts (propDef.valueType override) Description: Forced Inspector's KeyValue renderer to utilize a boolean checkbox for 'negate' actions, preventing empty Number-Inputs for boolean flags on targets with numeric properties (like velocityX).  UseCase: Native Dateiverwaltung (Laden und Speichern) Files changed: src/editor/services/ProjectPersistenceService.ts, src/editor/services/EditorDataManager.ts Method: ProjectPersistenceService.triggerLoad (116-136), EditorDataManager.triggerLoad (74-88), EditorDataManager.saveProjectToFile (214-235), EditorDataManager.saveProjectAs (255-275) Description: Implementierung der File System Access API fÃƒÂ¼r native Dateiverwaltung (FileSystemFileHandle), damit beim Speichern echte Originaldateien ÃƒÂ¼berschrieben werden und nicht nur eine Kopie im Serververzeichnis angelegt wird. - [2026-03-23] UX: Inspector Dropdown fÃƒÂ¼r alle Komponenten und verbesserte Sichtbarkeit im Editor:`n  - Datei: src/editor/inspector/InspectorHost.ts (renderHeader: ca L151-200)`n  - Datei: src/editor/services/StageRenderer.ts (renderObjects: ca L238-279)`n  - Details: Ein Dropdown im Inspector-Header erlaubt die Auswahl aller Komponenten. Komponenten mit visible: false werden im Design-Modus halb-transparent mit rotem gestricheltem Rahmen dargestellt. - [2026-03-23] UX: Copy-Button im Debug-Log-Viewer:`n  - Datei: src/components/TDebugLog.ts (createUI: ca L212, L260)`n  - Details: Ein "Copy" Button wurde neben "Clear All" hinzugefÃƒÂ¼gt, um die angezeigten Logs in die Zwischenablage (Clipboard) zu kopieren. - [2026-03-23] BUGFIX: Zuweisungen von Konstanten und Variablen-Update:`n  - Datei: src/runtime/ExpressionParser.ts (evaluate: L145-155)`n  - Datei: src/runtime/actions/StandardActions.ts (variable: L127-136)`n  - Details: Zahlen wie "0" wurden in interpolate/evaluate falsch als Property geparst und gaben undefined zurÃƒÂ¼ck. Zudem wurde der value von TVariable bei der variable-Action nicht direkt aktualisiert. - [2026-03-23] BUGFIX: AnimationManager require Crash behoben:`n  - Datei: src/runtime/AnimationManager.ts (addTween: L111-115)`n  - Details: Veralteter require-Aufruf durch ESM dynamic import() ersetzt, um AbstÃƒÂ¼rze in Browser-Environments zu verhindern. - [2026-03-23] FEATURE: Action "animate" fÃƒÂ¼r Komponenten-Animationen (shake, pulse, bounce, fade) inkl. Multi-Target (StandardActions.ts, AnimationManager.ts)
 
 
 UC-3.27.0: Gap-Report Umsetzung
@@ -639,7 +664,7 @@ UC-3.27.0: Gap-Report Umsetzung
     Dateien: src/components/TTextControl.ts (L26-34), src/components/TWindow.ts (L178-183)
 
 UC-3.27.0: Inspector Textarea und TPanel Fix
-  - InspectorHost und InspectorRenderer um textarea Typ und "Ãœbernehmen"-Button erweitert
+  - InspectorHost und InspectorRenderer um textarea Typ und "ÃƒÅ“bernehmen"-Button erweitert
     Dateien: src/editor/inspector/InspectorHost.ts, src/editor/inspector/InspectorRenderer.ts
   - TTextControl Eigenschaft 'text' auf textarea umgestellt
     Dateien: src/components/TTextControl.ts
@@ -647,16 +672,16 @@ UC-3.27.0: Inspector Textarea und TPanel Fix
     Dateien: src/components/TPanel.ts
 
 UC-3.28.0: Stage Duplikation und System-Clipboard
-  - Stage-Ã¼bergreifendes Kopieren von Komponenten, Namenskollisions-PrÃ¼fung
+  - Stage-ÃƒÂ¼bergreifendes Kopieren von Komponenten, Namenskollisions-PrÃƒÂ¼fung
     Dateien: src/editor/services/StageInteractionManager.ts, src/editor/services/EditorInteractionManager.ts
   - Stage duplizieren und umordnen (up/down)
     Dateien: src/editor/EditorStageManager.ts, src/editor/MenuBar.ts, src/editor/services/EditorMenuManager.ts
 
-UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
+UC-3.29.0: Object Pool Pattern fÃƒÂ¼r dynamische Sprites
   - TSpriteTemplate Komponente erstellt (poolSize, autoRecycle, lifetime)
   - SpritePool Manager zur Vorhydrierung und Wiederverwendung echter Instanzen mit eigenen DOM-Elementen
   - Neue Actions 'spawn_object' und 'destroy_object'
-  - GameRuntime und GameLoopManager fÃ¼r Sichtbarkeits-Checks erweitert
+  - GameRuntime und GameLoopManager fÃƒÂ¼r Sichtbarkeits-Checks erweitert
   - Resolving von '%Self%' und '%Other%' Targets standardisiert
   - Dateien: src/components/TSpriteTemplate.ts, src/runtime/SpritePool.ts, src/runtime/GameRuntime.ts, src/runtime/GameLoopManager.ts, src/runtime/actions/StandardActions.ts, src/utils/Serialization.ts
 
@@ -672,8 +697,8 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
  
  
 ## UseCase: Rename Validation von Actions und Elementen mit aktiven Property-Bindings
-- Grund: Two-Way-Bound Properties in Inspector-Ansichten mutieren die aktive referenzierte Object-Instanz obj.name, bevor der EditorCommandManager.renameObject Validator anschlÃ¤gt, wodurch das Objekt fÃ¤lschlicherweise als Kollision mit sich selbst detektiert werden konnte.
-- **LÃ¶sung:** In src/editor/services/EditorCommandManager.ts:263 wird beim some(a => a.name === newName) explizit .id !== obj.id ausgeschlossen, um denselben Knoten beim Renaming zu ignorieren.
+- Grund: Two-Way-Bound Properties in Inspector-Ansichten mutieren die aktive referenzierte Object-Instanz obj.name, bevor der EditorCommandManager.renameObject Validator anschlÃƒÂ¤gt, wodurch das Objekt fÃƒÂ¤lschlicherweise als Kollision mit sich selbst detektiert werden konnte.
+- **LÃƒÂ¶sung:** In src/editor/services/EditorCommandManager.ts:263 wird beim some(a => a.name === newName) explizit .id !== obj.id ausgeschlossen, um denselben Knoten beim Renaming zu ignorieren.
 
 ## 2026-03-31 CleanCode Optimierung
 - **Verbleibende console.* Aufrufe auf Logger migriert**: GameRuntime.ts (Zeilen 382, 842), GameLoopManager.ts (190, 201, 230, 309), ReactiveRuntime.ts (43, 207, 309, 313, 314, 318, 319, 320), ExpressionParser.ts (90, 212, 226, 228, 237, 308), StandardActions.ts (955, 1100, 1119, 1124), StageRenderer.ts (60, 70, 380, 497).
@@ -688,7 +713,7 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
 - Grund: Dragging auf der Scene hat die Elemente fehlerhaft repositioniert und den Inspector desynchronisiert. Die alte Implementierung hatte `refreshAllViews()` im Store-Dispatch komplett deaktiviert, was DOM-Flickering verhinderte, den Inspector jedoch abstummte.
 - Betroffene Dateien:
   - `src/editor/Editor.ts`: initMediator() updated.
-  - `src/utils/Serialization.ts`: Getter-only props (wie maxImageCount) zu reservedKeys hinzugefÃ¼gt um Proxy TypeErrors zu vermeiden.
+  - `src/utils/Serialization.ts`: Getter-only props (wie maxImageCount) zu reservedKeys hinzugefÃƒÂ¼gt um Proxy TypeErrors zu vermeiden.
 
 [2026-04-02] Dynamic Inspector Bugfix:
 - src/editor/flow/FlowAction.ts: applyChange (Zeile 736) - force re-render on effect change
@@ -722,16 +747,16 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
  
 [USECASE 65] IFrame-Based Run-Tab (Standalone Preview)
 - Beschreibung: Integration eines isolierten IFrames zur Vorschau des Standalone-Game-Layers im Editor (100% Export Parity).
-- Flow: Nutzer klickt Tab 'Run (IFrame)' -> EditorViewManager zerstÃ¶rt/baut Iframe neu -> postMessage mit Project JSON (GameExporter.getCleanProject()) -> Iframe bootet public/iframe-runner.html.
+- Flow: Nutzer klickt Tab 'Run (IFrame)' -> EditorViewManager zerstÃƒÂ¶rt/baut Iframe neu -> postMessage mit Project JSON (GameExporter.getCleanProject()) -> Iframe bootet public/iframe-runner.html.
 - Dateien:
   - public/iframe-runner.html (Neu)
   - src/main.ts (Tabs/UI erweitert)
-  - src/editor/EditorViewManager.ts (Tab Logic & Iframe Mounten/ZerstÃ¶ren: switchView, renderIFrameView)
+  - src/editor/EditorViewManager.ts (Tab Logic & Iframe Mounten/ZerstÃƒÂ¶ren: switchView, renderIFrameView)
   - src/export/GameExporter.ts (getCleanProject public)
 
 [2026-04-03] Touch & Pointer Support:
-- src/editor/services/StageRenderer.ts: onpointerdown, onpointermove (RAF drosselt), onpointerup fÃ¼r Stage-Eingaben implementiert (ab Zeile 426).
-- src/player-standalone.ts: Drag&Drop Eingaben von MouseEvents auf PointerEvents migriert inkl. setPointerCapture fÃ¼r Touch-Robustheit (ab Zeile 508).
+- src/editor/services/StageRenderer.ts: onpointerdown, onpointermove (RAF drosselt), onpointerup fÃƒÂ¼r Stage-Eingaben implementiert (ab Zeile 426).
+- src/player-standalone.ts: Drag&Drop Eingaben von MouseEvents auf PointerEvents migriert inkl. setPointerCapture fÃƒÂ¼r Touch-Robustheit (ab Zeile 508).
 - src/components/TComponent.ts: getInspectorEvents() erweitert um onTouchStart, onTouchMove, onTouchEnd (Zeile 192).
 - src/services/ComponentRegistry.ts: getEvents() Fallback erweitert um Touch-Events (Zeile 307).
 - src/style.css, GameExporter.ts: touch-action: none auf #run-stage Container gesetzt.
@@ -746,12 +771,12 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
 ## Refactored Split Layout to automatically host a second D-pad if WASD and Arrows are mapped simultaneously (src/editor/services/renderers/VirtualGamepadRenderer.ts)
 
 [USECASE 66] Ruckelfreies Label Update & Optimierung (Targeted Rendering)
-- Problem: HÃ¤ufige Variablen-Ã„nderungen (z.B. Score, Counter) erzwangen einen vollstÃ¤ndigen Re-Render der Stage. Auf mobilen EndgerÃ¤ten wie Tablets fÃ¼hrte das zu starken Performance-EinbrÃ¼chen ("Ruckelndes Score-Label").
-- LÃ¶sung: Implementierung eines gezielten Rendering-Hooks ("Targeted Rendering").
+- Problem: HÃƒÂ¤ufige Variablen-Ãƒâ€žnderungen (z.B. Score, Counter) erzwangen einen vollstÃƒÂ¤ndigen Re-Render der Stage. Auf mobilen EndgerÃƒÂ¤ten wie Tablets fÃƒÂ¼hrte das zu starken Performance-EinbrÃƒÂ¼chen ("Ruckelndes Score-Label").
+- LÃƒÂ¶sung: Implementierung eines gezielten Rendering-Hooks ("Targeted Rendering").
 - Dateien:
   - src/runtime/GameRuntime.ts (GlobalListener umgeht onRender bei Eigenschaften, triggert onComponentUpdate)
-  - src/editor/services/StageRenderer.ts (updateSingleObject() um Layout-Thrashing fÃ¼r Single-Elemente auszulassen, transform: translate3d -> CSS translate Migration)
-  - src/style.css (CSS contain: layout style paint hinzugefÃ¼gt)
+  - src/editor/services/StageRenderer.ts (updateSingleObject() um Layout-Thrashing fÃƒÂ¼r Single-Elemente auszulassen, transform: translate3d -> CSS translate Migration)
+  - src/style.css (CSS contain: layout style paint hinzugefÃƒÂ¼gt)
   - src/editor/services/EditorRunManager.ts & src/player-standalone.ts (onComponentUpdate -> StageRenderer Binding)
 
 [USECASE 67] Virtual Gamepad Layout (Vertikale Ausrichtung)
@@ -761,7 +786,7 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
   - src/editor/services/renderers/VirtualGamepadRenderer.ts (Auswertung via alignItems, Zeile 68)
 
 [UseCase: Dev Server Proxy reparieren]
-- vite.config.ts: Methoden export default defineConfig (Zeile 67-74) -> Hinzufï¿½gen von proxy fï¿½r /api und /platform auf localhost:8080
+- vite.config.ts: Methoden export default defineConfig (Zeile 67-74) -> HinzufÃ¯Â¿Â½gen von proxy fÃ¯Â¿Â½r /api und /platform auf localhost:8080
 
 Task: ProjectRegistry Hard Break
 Files: src/services/registry/*.ts
@@ -770,7 +795,7 @@ Description: Decoupled ProjectRegistry into modular singletons.
 
 
 ## UC-2026-04-10-KopierFunktionFix
-- **Beschreibung:** Kopier-Funktion für den Editor repariert. crypto.randomUUID() wurde durch nativen UUID-Fallback ersetzt, da Electron/Lokaler Vite Dev Server teils ohne Secure Context (HTTPS) aufgerufen wird und die crypto API undefined war.
+- **Beschreibung:** Kopier-Funktion fÃ¼r den Editor repariert. crypto.randomUUID() wurde durch nativen UUID-Fallback ersetzt, da Electron/Lokaler Vite Dev Server teils ohne Secure Context (HTTPS) aufgerufen wird und die crypto API undefined war.
 - **Dateien:** 
   - src/editor/services/EditorInteractionManager.ts (Zeilen: ~195, Methode: onPasteCallback)
   - src/editor/EditorStageManager.ts (Zeilen: ~388, Methode: duplicateStage)
@@ -782,21 +807,21 @@ Description: Decoupled ProjectRegistry into modular singletons.
   - "public/editor/toolbox_horizontal.json"
 
 ## UC-2026-04-10-StringMap-ComponentRegistry
-- **Beschreibung:** StringMap wurde in die ComponentRegistry.ts eingefügt, damit Instanzen beim Drag & Drop aus der Toolbar von der Game-Engine erzeugt werden können.
+- **Beschreibung:** StringMap wurde in die ComponentRegistry.ts eingefÃ¼gt, damit Instanzen beim Drag & Drop aus der Toolbar von der Game-Engine erzeugt werden kÃ¶nnen.
 - **Dateien:** 
   - "src/services/ComponentRegistry.ts"
 
 UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg inspector dialog.
 
 [2026-04-10] UC-2026-04-10-TRichText-Fixes
-- Beschreibung: Rendering Fixes für TRichText (Textfarbe im Editor und Font-size-scaling im Run-Modus) und ComponentRegistry Fix.
+- Beschreibung: Rendering Fixes fÃ¼r TRichText (Textfarbe im Editor und Font-size-scaling im Run-Modus) und ComponentRegistry Fix.
 - Dateien:
   - src/editor/services/StageRenderer.ts
   - src/components/TRichText.ts
 
 
 [2026-04-10] UC-2026-04-10-ColorPicker-Bind
-- Beschreibung: Hinzufügen des 'V' (Bind) Buttons neben Color-Pickern (z.B. Hintergrund, Rahmenfarbe) im Inspector.
+- Beschreibung: HinzufÃ¼gen des 'V' (Bind) Buttons neben Color-Pickern (z.B. Hintergrund, Rahmenfarbe) im Inspector.
 - Dateien:
   - src/editor/inspector/renderers/InspectorSectionRenderer.ts
 
@@ -828,14 +853,14 @@ UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg
   - src/editor/inspector/renderers/InspectorSectionRenderer.ts (Methode: renderProperty, Zeilen ~88-840 - Validierungs-UI)
   - src/style.css (Zeilen ~665-700 - shake Animation + Validierungs-CSS-Klassen)
   - src/components/TWindow.ts (Methode: getInspectorProperties, Zeilen ~180-200 - Geometrie min/max)
-[2026-04-11] Feature: Stage-basierte PlausibillitÃ¤tsprÃ¼fung fÃ¼r Geometrie-Properties
+[2026-04-11] Feature: Stage-basierte PlausibillitÃƒÂ¤tsprÃƒÂ¼fung fÃƒÂ¼r Geometrie-Properties
   - src/components/TWindow.ts (Methode: getGeometryConstraints, Zeilen ~176-198 - Dynamische min/max basierend auf Stage-GridConfig)
   - src/components/TWindow.ts (Methode: getInspectorProperties, Zeilen ~200-230 - x/y min=0, max dynamisch; width/height max dynamisch)
   - Logik: x + width <= stageCols, y + height <= stageRows. Negative Positionen nicht erlaubt.
   - Nutzt coreStore.getActiveStage().grid als Quelle, Fallback auf project.stage.grid, dann 64x40 Defaults.
 
 [2026-04-12] Feature: TRichText Inline Links
-  - src/editor/inspector/RichTextEditorDialog.ts (Zeilen ~50-100, 180-260): Eigener Link-Button 🔗 mit Modal-Dialog (URL vs Stage). Erlauben von <a> Tags im HTML-Sanitizer. Focus/Selection-Wiederherstellung bei Range-Verlust.
+  - src/editor/inspector/RichTextEditorDialog.ts (Zeilen ~50-100, 180-260): Eigener Link-Button ðŸ”— mit Modal-Dialog (URL vs Stage). Erlauben von <a> Tags im HTML-Sanitizer. Focus/Selection-Wiederherstellung bei Range-Verlust.
   - src/editor/services/renderers/TextObjectRenderer.ts (Zeilen ~120-140): Event-Delegation fuer Klicks auf Links a-Tags im Run-Modus. Nutzt ctx.host.onEvent('system', '__SYSTEM_NAVIGATE__') um Navigation an Runtime zu senden.
   - src/runtime/GameRuntime.ts (Zeile ~630): Faengt '__SYSTEM_NAVIGATE__' in handleEvent ab und delegiert es an den onNavigate Callback, um nahtlos zw. UniversalPlayer und EditorRunManager umzuschalten.
 
@@ -845,7 +870,7 @@ UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg
 - Dateien: 
   - src/components/TStringMap.ts (116-140)
   - src/runtime/actions/handlers/MiscActions.ts (209-242)
-- Beschreibung: Flow-Action \load_theme_map\ implementiert. Kopierfunktion f�llt die Map interativ und feuert TStringMap-Proxy Setters, wodurch das automatische Reactive Rendering von Properties wie \StageBackground\ ausgel�st wird.
+- Beschreibung: Flow-Action \load_theme_map\ implementiert. Kopierfunktion fï¿½llt die Map interativ und feuert TStringMap-Proxy Setters, wodurch das automatische Reactive Rendering von Properties wie \StageBackground\ ausgelï¿½st wird.
 
 - Stage kopieren (In-Project): public/editor/menu_bar.json (Z. 93), src/editor/EditorStageManager.ts (Methode: duplicateStage, Z. 383)
 
@@ -913,7 +938,7 @@ Methoden: show
 ## Bugfix: Electron IFrame - Import Stage Persistence
 - **Dateien:** public/iframe-runner.html, src/player-standalone.ts 
 - **Methoden:** UniversalPlayer.init, <script> inline 
-- **Beschreibung:** Synchronisations-Fix (Race-Condition) durch Setzen eines WAIT_FOR_PROJECT Flags. Verhindert, dass der �ltere Local-Cache �ber Fallback-Fetch geladen wird, bevor die neue Projektstruktur �ber postMessage den IFrame erreicht.
+- **Beschreibung:** Synchronisations-Fix (Race-Condition) durch Setzen eines WAIT_FOR_PROJECT Flags. Verhindert, dass der ï¿½ltere Local-Cache ï¿½ber Fallback-Fetch geladen wird, bevor die neue Projektstruktur ï¿½ber postMessage den IFrame erreicht.
 
 ### Stage Import Serialization
 - Files modified: \src/editor/EditorStageManager.ts\, \src/services/ComponentRegistry.ts\`n- Fix: Switched loop to hydrateObjects() and forced ComponentRegistry.createInstance to use registered className instead of ESBuild minified constructor.name.
@@ -954,12 +979,12 @@ Methoden: show
   - src/editor/services/EditorCommandManager.ts (Methode: renameObject, Zeilen ~241)
 
 [2026-04-16] UC-2026-04-16-DialogVisibilityFix
-- Beschreibung: Behebung des Fehlers, dass TDialogRoot bei Sichtbarkeitswechsel im Run-Mode nicht animiert (Slide-In) wurde. Ursache war, dass der StageRenderer per updateSingleObject() nur display=flex setzte, aber zwingend ein Re-Render noetig ist um das CSS-Translate für Frame/Children korrekt anzusteuern.
+- Beschreibung: Behebung des Fehlers, dass TDialogRoot bei Sichtbarkeitswechsel im Run-Mode nicht animiert (Slide-In) wurde. Ursache war, dass der StageRenderer per updateSingleObject() nur display=flex setzte, aber zwingend ein Re-Render noetig ist um das CSS-Translate fÃ¼r Frame/Children korrekt anzusteuern.
 - Dateien:
   - src/runtime/GameRuntime.ts (Zeilen ~173-178 - Full-Render erzwingen wenn obj ein TDialogRoot ist)
 
 [2026-04-17] UC-2026-04-17-FlowEditorRenameFix
-- Beschreibung: Behebung des Fehlers, dass beim Umbenennen eines Tasks im FlowEditor die Ansicht ungewollt auf die Elementuebersicht (element-overview) zurücksprang. Ursache war ein Safety-Check im ToolbarManager, der auslöste, da das Project-Model im Moment der Umbenennung des FlowContexts noch nicht aktualisiert war.
+- Beschreibung: Behebung des Fehlers, dass beim Umbenennen eines Tasks im FlowEditor die Ansicht ungewollt auf die Elementuebersicht (element-overview) zurÃ¼cksprang. Ursache war ein Safety-Check im ToolbarManager, der auslÃ¶ste, da das Project-Model im Moment der Umbenennung des FlowContexts noch nicht aktualisiert war.
 - Dateien:
   - src/editor/FlowEditor.ts (Zeilen ~646: this.updateFlowSelector() entfernt in renameContext)
 
@@ -986,13 +1011,13 @@ Files:
   - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)
 
 [2026-04-18] UC-2026-04-18-DialogRootRuntimeFeatures
-- Beschreibung: Implementierung fehlender Laufzeitlogik für TDialogRoot. Die Eigenschaften "modal", "closable", "draggableAtRuntime" und "centerOnShow" funktionierten im Laufzeitmodus bislang nicht. Durch Modifikation des ComplexComponentRenderer.renderDialogRoot wurden diese Features nativ angebunden: Ein transparentes Hintergrund-Overlay (Modal-Blocking), ein Schliessen-Button, Pointer-Events als Drag-Handle und Grid-Cell-basiertes Zentrieren.
+- Beschreibung: Implementierung fehlender Laufzeitlogik fÃ¼r TDialogRoot. Die Eigenschaften "modal", "closable", "draggableAtRuntime" und "centerOnShow" funktionierten im Laufzeitmodus bislang nicht. Durch Modifikation des ComplexComponentRenderer.renderDialogRoot wurden diese Features nativ angebunden: Ein transparentes Hintergrund-Overlay (Modal-Blocking), ein Schliessen-Button, Pointer-Events als Drag-Handle und Grid-Cell-basiertes Zentrieren.
 - Dateien:
-  - src/editor/services/renderers/ComplexComponentRenderer.ts (Erweiterte Render-Logik für TDialogRoot)
+  - src/editor/services/renderers/ComplexComponentRenderer.ts (Erweiterte Render-Logik fÃ¼r TDialogRoot)
   - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)
 
 [2026-04-18] UC-2026-04-18-DialogRootChildTranslateFix
-- Beschreibung: Behebung des Fehlers, dass Kind-Komponenten eines TDialogRoot beim Schließen oder Draggen (Verschieben per Maus) an ihrem alten Platz verblieben oder aufgrund falsch addierter Relativ-Koordinaten unkontrolliert durchs Bild sprangen. Ursache war die flache DOM-Struktur des StageRenderers. TDialogRoot iteriert nun explizit über obj.children und berechnet in Echtzeit den korrekten absoluten Screen-Offset ((Dialog.x + Kind.x) * cellSize), ohne dabei die sauberen relativen Koordinaten (c.x/c.y) des Kindes zu mutieren.
+- Beschreibung: Behebung des Fehlers, dass Kind-Komponenten eines TDialogRoot beim SchlieÃŸen oder Draggen (Verschieben per Maus) an ihrem alten Platz verblieben oder aufgrund falsch addierter Relativ-Koordinaten unkontrolliert durchs Bild sprangen. Ursache war die flache DOM-Struktur des StageRenderers. TDialogRoot iteriert nun explizit Ã¼ber obj.children und berechnet in Echtzeit den korrekten absoluten Screen-Offset ((Dialog.x + Kind.x) * cellSize), ohne dabei die sauberen relativen Koordinaten (c.x/c.y) des Kindes zu mutieren.
 - Dateien:
   - src/editor/services/renderers/ComplexComponentRenderer.ts (Mouse-, Click- und centerOnShow EventHandler)
   - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)
@@ -1000,7 +1025,7 @@ U s e C a s e :   P r o j e c t - W i d e   R e n a m e   o f   N e s t e d   C 
  
  
 [2026-04-18] Architektur-Audit (F-01 bis F-06):
-- GameExporter.ts: exportServerBundle() (Z. 168), embedMedia() (Z. 600) (Relative Fetch-Pfade für Standalone Export)
+- GameExporter.ts: exportServerBundle() (Z. 168), embedMedia() (Z. 600) (Relative Fetch-Pfade fÃ¼r Standalone Export)
 - electron/main.cjs: fs:listFiles handler (Z. 113) (Path Traversal Fix)
 - player-standalone.ts: updateBackground(), render() (Z. 430-515) (Universal Logger Migration)
 - package.json (vite.runtime.config.ts entfernt zugunsten esbuild)
@@ -1066,17 +1091,17 @@ Root Cause: FlowEditor.switchActionFlow() setzt coreStore.activeStageId auf null
 Dateien: src/runtime/TaskExecutor.ts
 Zeilen: ca. 270-435
 Methoden: executeFlowChart
-Zweck: Behebung eines Fehlers, durch den im FlowEditor verbundene Action-Knoten in der Runtime stillschweigend übergangen wurden. Der Ausführungsbaum verlangte exakt 'action' als node.type, das JSON vom Flow-Editor lieferte jedoch oft 'Action'. Typ-Prüfung konvertiert nun alles konsequent in Kleinbuchstaben.
+Zweck: Behebung eines Fehlers, durch den im FlowEditor verbundene Action-Knoten in der Runtime stillschweigend Ã¼bergangen wurden. Der AusfÃ¼hrungsbaum verlangte exakt 'action' als node.type, das JSON vom Flow-Editor lieferte jedoch oft 'Action'. Typ-PrÃ¼fung konvertiert nun alles konsequent in Kleinbuchstaben.
 
 
-[AutoSave-Ziel Anzeige in Menüleiste]
+[AutoSave-Ziel Anzeige in MenÃ¼leiste]
 Dateien: src/editor/services/EditorDataManager.ts
 Zeilen: ca. 64-74
 Methoden: updateProjectPathDisplay
-Zweck: UI-Verbesserung. Anzeige des tatsächlichen Speicherorts je nach Umgebung (Dev-Server, Electron, Lokal) statt nur des Ladepfads, um Klarheit beim automatischen Speichern zu schaffen.
+Zweck: UI-Verbesserung. Anzeige des tatsÃ¤chlichen Speicherorts je nach Umgebung (Dev-Server, Electron, Lokal) statt nur des Ladepfads, um Klarheit beim automatischen Speichern zu schaffen.
 
 
-[Dynamisches Eigenschaften-Diagramm für alle Target-Actions]
+[Dynamisches Eigenschaften-Diagramm fÃ¼r alle Target-Actions]
 Dateien: src/editor/inspector/InspectorRenderer.ts
 Zeilen: 386-388, 475-476
 Methoden: renderActionParams
@@ -1096,28 +1121,28 @@ Zweck: Wenn im Eigenschaften-Diagramm (KeyValue) eine Eigenschaft definiert wird
 - **Dateien:**
   - src/runtime/GameLoopManager.ts
 - **Methoden:**
-  - loop() (Zeile ~258): Time-Step Clamping auf max 30FPS f�r Lade-Lags.
+  - loop() (Zeile ~258): Time-Step Clamping auf max 30FPS für Lade-Lags.
   - checkCollisions() (Zeile ~497): Velocity-Aware Collision Resolution.
   - checkBoundaries() (Zeile ~566): Abzug der Border-Width von panelHitbox.
   - checkStageExits() (Zeile ~671): Abzug der Border-Width.
-- **Beschreibung:** Behebt das Problem, dass Sprites im Iframe nach der ersten Kollision springen und �ber Panel-R�nder gleiten.
+- **Beschreibung:** Behebt das Problem, dass Sprites im Iframe nach der ersten Kollision springen und über Panel-Ränder gleiten.
 
 
-## Feature: Media-Picker f�r Strings im Inspector
+## Feature: Media-Picker für Strings im Inspector
 - **Dateien:**
   - src/editor/inspector/renderers/InspectorSectionRenderer.ts
 - **Methoden:**
-  - renderControl(): Wrapper f�r String-Inputs mit 'Bild/Audio ausw�hlen' Button.
-- **Beschreibung:** Erlaubt das �ffnen des MediaPickerDialogs f�r Standard-String-Eigenschaften, die 'image', 'src', 'icon', 'audio', 'sound', 'bgm' oder 'sfx' hei�en.
+  - renderControl(): Wrapper für String-Inputs mit 'Bild/Audio auswählen' Button.
+- **Beschreibung:** Erlaubt das Öffnen des MediaPickerDialogs für Standard-String-Eigenschaften, die 'image', 'src', 'icon', 'audio', 'sound', 'bgm' oder 'sfx' heißen.
 
 
-## Feature: Berechnung (Calculation) f�r Objekteigenschaften
+## Feature: Berechnung (Calculation) für Objekteigenschaften
 - **Dateien:**
   - src/editor/inspector/InspectorActionHandler.ts
   - src/runtime/actions/handlers/CalculateActions.ts
 - **Methoden:**
   - handlePickVariable(): Erlaubt die Auswahl von Objekt-Variablen (mit .) im VariablePicker.
-  - calculate(): Schreibt das Ergebnis nativ �ber PropertyHelper in Objekt-Eigenschaften (anstatt nur ins contextVars-Dictionary), sofern ein Punkt im resultVariable-Namen existiert.
+  - calculate(): Schreibt das Ergebnis nativ über PropertyHelper in Objekt-Eigenschaften (anstatt nur ins contextVars-Dictionary), sofern ein Punkt im resultVariable-Namen existiert.
 UseCase: Bugfix IFrame Runtime Leak
 Files: src/editor/EditorViewManager.ts
 Methods: switchView
@@ -1170,10 +1195,10 @@ Stage-bewusstes Refactoring
 
 [UC-2026-05-05-CollisionEnabled]
 Globale Kollisions-Steuerung & Panel Push-Out Fix
-- src/components/TWindow.ts: collisionEnabled Property hinzugefügt, in Inspektor (PHYSIK) aufgenommen
+- src/components/TWindow.ts: collisionEnabled Property hinzugefÃ¼gt, in Inspektor (PHYSIK) aufgenommen
 - src/components/TSprite.ts: collisionEnabled entfernt (geerbt), Gruppen auf PHYSIK umbenannt
 - src/runtime/GameLoopManager.ts: 
-  - collisionEnabled für Sprites, Panels und Boundaries ausgewertet
+  - collisionEnabled fÃ¼r Sprites, Panels und Boundaries ausgewertet
   - Push-Out bei Panel-vs-Sprite auf wantsPushOut umgestellt (analog Sprite-vs-Sprite)
 
 ## UseCase: Image Persistence Fix
@@ -1184,5 +1209,26 @@ Globale Kollisions-Steuerung & Panel Push-Out Fix
 ## UseCase: Explicit GameLoop Start im Run-Tab
 - Dateien: src/editor/services/EditorRunManager.ts
 - Methoden: setRunMode, createOrShowStartButton
-- Beschreibung: Das Spiel startet nicht mehr sofort beim Wechsel in den Run-Tab. Stattdessen wird ein Button eingeblendet, um den Start manuell auszul�sen. Dies gibt Zeit, den Debug-Log-Viewer in Ruhe zu konfigurieren.
+- Beschreibung: Das Spiel startet nicht mehr sofort beim Wechsel in den Run-Tab. Stattdessen wird ein Button eingeblendet, um den Start manuell auszulösen. Dies gibt Zeit, den Debug-Log-Viewer in Ruhe zu konfigurieren.
+
+
+## UseCase: Variable .value Interpolation Fix
+- Dateien: src/runtime/PropertyHelper.ts
+- Methoden: getPropertyValue (Line 38)
+- Beschreibung: Behebt das Problem, dass die Interpolation von  einen leeren String (bzw. undefined) liefert, wenn die Variable zur Laufzeit noch nicht modifiziert wurde und auf den defaultValue zurueckgreifen muss.
+
+## UseCase: Blueprint Stage Event Inheritance Fix
+- Dateien: src/runtime/GameRuntime.ts, src/components/TDebugLog.ts
+- Methoden: handleStageChange, getAllProjectObjects
+- Beschreibung: Sorgt dafuer, dass onEnter und onRuntimeStart Events, die in der Blueprint-Stage definiert wurden, als Fallback auf allen Stages ausgefuehrt werden. Ausserdem wurde der DebugLogViewer korrigiert, sodass Stage-Objekte selbst in der Objekt-Dropdown-Liste zur Event-Filterung auftauchen.
+
+## UseCase: Fix TDebugLog Unused Variables & Console Outputs
+- Dateien: src/components/TDebugLog.ts
+- Methoden: updateServiceRecordingFilter (Zeile ~375), createToggleButton (Zeile 105, 127), createUI (Zeile 332), loadFilters (Zeile 448)
+- Beschreibung: Behebung von TS6133-Fehlern (ungenutzte Variablen objectName und eventName) sowie Ersetzung nicht erlaubter console.* Aufrufe durch den internen Logger (TDebugLog.logger) zur Erfuellung der System-Guards.
+
+
+
+
+
 

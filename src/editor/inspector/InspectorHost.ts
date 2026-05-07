@@ -135,8 +135,9 @@ export class InspectorHost implements IInspectorContext {
     private isFlowElement(obj: any): boolean {
         if (!obj) return false;
         
-        // Check for variables
-        if (obj.isVariable === true || obj.className?.includes('Variable') || obj.constructor?.name?.includes('Variable')) return true;
+        // Variablen und Daten-Komponenten (wie TTimer mit isVariable=true) sind KEINE reinen Flow-Elemente.
+        // Sie haben explizite Events (wie onChange, onTimer) und benötigen den Events-Tab.
+        // Daher prüfen wir hier nur auf ECHTE Flow-Nodes.
         
         // Check Flow Node markers
         if (obj.isFlowNode === true) return true;

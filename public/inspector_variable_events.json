@@ -1,7 +1,7 @@
 {
     "meta": {
         "name": "Variable Events Inspector",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "description": "Context-aware Event Inspector for Variables"
     },
     "objects": [
@@ -21,17 +21,19 @@
             "className": "TDropdown",
             "name": "onValueChanged",
             "label": "Bei Wertänderung",
+            "property": "events.onValueChanged",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onValueChanged}"
+            "selectedValue": "${selectedObject.events?.onValueChanged || selectedObject.onValueChanged || ''}"
         },
         {
             "className": "TDropdown",
             "name": "onValueEmpty",
             "label": "Wenn Wert leer",
+            "property": "events.onValueEmpty",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onValueEmpty}"
+            "selectedValue": "${selectedObject.events?.onValueEmpty || selectedObject.onValueEmpty || ''}"
         },
         {
             "className": "TLabel",
@@ -50,19 +52,21 @@
             "className": "TDropdown",
             "name": "onTimer",
             "label": "Bei Intervall (onTimer)",
+            "property": "events.onTimer",
             "visible": "${selectedObject.type === 'timer' || selectedObject.className === 'TTimer'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onTimer}"
+            "selectedValue": "${selectedObject.events?.onTimer || selectedObject.onTimer || ''}"
         },
         {
             "className": "TDropdown",
-            "name": "onFinished",
-            "label": "Bei Abschluss",
+            "name": "onMaxIntervalReached",
+            "label": "Bei Abschluss (Max Interval)",
+            "property": "events.onMaxIntervalReached",
             "visible": "${selectedObject.type === 'timer' || selectedObject.className === 'TTimer'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onFinished}"
+            "selectedValue": "${selectedObject.events?.onMaxIntervalReached || selectedObject.onMaxIntervalReached || selectedObject.onFinished || ''}"
         },
         {
             "className": "TLabel",
@@ -81,19 +85,21 @@
             "className": "TDropdown",
             "name": "onMinReached",
             "label": "Minimum erreicht",
+            "property": "events.onMinReached",
             "visible": "${selectedObject.type === 'range' || selectedObject.className === 'TRangeVariable'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onMinReached}"
+            "selectedValue": "${selectedObject.events?.onMinReached || selectedObject.onMinReached || ''}"
         },
         {
             "className": "TDropdown",
             "name": "onMaxReached",
             "label": "Maximum erreicht",
+            "property": "events.onMaxReached",
             "visible": "${selectedObject.type === 'range' || selectedObject.className === 'TRangeVariable'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onMaxReached}"
+            "selectedValue": "${selectedObject.events?.onMaxReached || selectedObject.onMaxReached || ''}"
         },
         {
             "className": "TLabel",
@@ -112,19 +118,21 @@
             "className": "TDropdown",
             "name": "onTriggerEnter",
             "label": "Bei Übereinstimmung",
+            "property": "events.onTriggerEnter",
             "visible": "${selectedObject.type === 'trigger' || selectedObject.className === 'TTriggerVariable'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onTriggerEnter}"
+            "selectedValue": "${selectedObject.events?.onTriggerEnter || selectedObject.onTriggerEnter || ''}"
         },
         {
             "className": "TDropdown",
             "name": "onTriggerExit",
             "label": "Bei Verlassen",
+            "property": "events.onTriggerExit",
             "visible": "${selectedObject.type === 'trigger' || selectedObject.className === 'TTriggerVariable'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onTriggerExit}"
+            "selectedValue": "${selectedObject.events?.onTriggerExit || selectedObject.onTriggerExit || ''}"
         },
         {
             "className": "TLabel",
@@ -143,10 +151,11 @@
             "className": "TDropdown",
             "name": "onGenerated",
             "label": "Nach Generierung",
+            "property": "events.onGenerated",
             "visible": "${selectedObject.type === 'random' || selectedObject.className === 'TRandomVariable'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onGenerated}"
+            "selectedValue": "${selectedObject.events?.onGenerated || selectedObject.onGenerated || ''}"
         },
         {
             "className": "TLabel",
@@ -165,28 +174,31 @@
             "className": "TDropdown",
             "name": "onThresholdReached",
             "label": "Schwellwert erreicht",
+            "property": "events.onThresholdReached",
             "visible": "${selectedObject.type === 'threshold' || selectedObject.className === 'TThresholdVariable'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onThresholdReached}"
+            "selectedValue": "${selectedObject.events?.onThresholdReached || selectedObject.onThresholdReached || ''}"
         },
         {
             "className": "TDropdown",
             "name": "onThresholdLeft",
             "label": "Schwellwert verlassen",
+            "property": "events.onThresholdLeft",
             "visible": "${selectedObject.type === 'threshold' || selectedObject.className === 'TThresholdVariable'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onThresholdLeft}"
+            "selectedValue": "${selectedObject.events?.onThresholdLeft || selectedObject.onThresholdLeft || ''}"
         },
         {
             "className": "TDropdown",
             "name": "onThresholdExceeded",
             "label": "Schwellwert überschritten",
+            "property": "events.onThresholdExceeded",
             "visible": "${selectedObject.type === 'threshold' || selectedObject.className === 'TThresholdVariable'}",
             "source": "tasks",
             "placeholder": "Task wählen...",
-            "selectedValue": "${selectedObject.onThresholdExceeded}"
+            "selectedValue": "${selectedObject.events?.onThresholdExceeded || selectedObject.onThresholdExceeded || ''}"
         }
     ]
 }

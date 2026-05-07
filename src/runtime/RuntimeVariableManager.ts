@@ -203,15 +203,30 @@ export class RuntimeVariableManager {
                     this.stageVariables[actualProp] = finalValue;
                 }
 
+                let baseName = prop;
+                if (prop.includes('.')) {
+                    baseName = prop.split('.')[0];
+                }
+
                 // Sync to Stage Component if exists (for reactivity and visual consistency)
                 const component = (this.host as any).objects?.find((o: any) =>
                     (varDef && o.id === varDef.id) ||
-                    (o.name === prop && (o.isVariable || o.className?.includes('Variable')))
+                    (o.name === baseName && (o.isVariable || o.className?.includes('Variable')))
                 );
 
                 let componentUpdated = false;
                 if (component) {
-                    if (component.data !== undefined && Array.isArray(value)) {
+                    if (prop.includes('.')) {
+                        const propPath = prop.split('.').slice(1).join('.');
+                        try {
+                            const ExpressionParser = require('./ExpressionParser').ExpressionParser;
+                            ExpressionParser.setNestedProperty(propPath, finalValue, component);
+                            componentUpdated = true;
+                        } catch (e) {
+                            component[propPath] = finalValue;
+                            componentUpdated = true;
+                        }
+                    } else if (component.data !== undefined && Array.isArray(value)) {
                         // TObjectList uses .data for its array content
                         if (JSON.stringify(component.data) !== JSON.stringify(value)) {
                             component.data = value;

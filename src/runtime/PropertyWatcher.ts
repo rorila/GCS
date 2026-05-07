@@ -125,7 +125,7 @@ export class PropertyWatcher {
         const objName = target.name || target.id || 'Unknown';
 
         // List of internal properties that are not relevant for the user workflow
-        const INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className']);
+        const INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className', 'timerId', 'onTimerCallback', 'interval']);
 
         // HIGH-FREQUENCY sprite properties: updated 60x/sec by game loop, logging them
         // floods the debug output and blocks the main thread (exponential log growth!)

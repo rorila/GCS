@@ -87,8 +87,12 @@ export function registerVariableActions() {
                 varObj.value = val;
             }
 
-            DebugLogService.getInstance().log('Variable', `Variable "${variableName}" auf "${val}" gesetzt (Quelle: ${sourceName || action.value})${action.sourceProperty ? '.' + action.sourceProperty : ''}`, {
-                data: { value: val, source: sourceName, property: action.sourceProperty }
+            // Wir loggen hier NICHT mehr manuell als 'Variable', um Duplikate mit dem PropertyWatcher zu vermeiden.
+            // Stattdessen loggen wir es als 'Action', damit das berechnete Ergebnis
+            // in der UI übersichtlich direkt unter der Variablen-Zuweisung angezeigt wird.
+            runtimeLogger.info(`Variable "${variableName}" auf "${val}" gesetzt.`);
+            DebugLogService.getInstance().log('Action', `Evaluated: (${variableName} = ${val})`, {
+                data: { type: 'variable_result', variableName, value: val }
             });
         } else {
             runtimeLogger.warn(`Quelle "${sourceName}" (Value: ${action.value}) konnte nicht aufgelöst werden oder variableName fehlt.`);

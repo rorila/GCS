@@ -73,11 +73,16 @@ export class SyncValidator {
                 const nodeValue = object[propertyName] ?? object.data?.[propertyName];
                 const defValue = (actionDef as any)[propertyName];
                 if (nodeValue !== undefined && defValue !== undefined && nodeValue !== defValue) {
-                    results.push({
-                        rule: 'R4',
-                        severity: 'error',
-                        message: `Action "${nodeName}".${propertyName}: Flow-Node hat "${nodeValue}", Definition hat "${defValue}" — Desync!`
-                    });
+                    // Ignoriere rein visuelle Eigenschaften, die nur für den Flow-Node relevant sind
+                    const isVisualProperty = ['x', 'y', 'width', 'height', 'selected'].includes(propertyName);
+                    
+                    if (!isVisualProperty) {
+                        results.push({
+                            rule: 'R4',
+                            severity: 'error',
+                            message: `Action "${nodeName}".${propertyName}: Flow-Node hat "${nodeValue}", Definition hat "${defValue}" — Desync!`
+                        });
+                    }
                 }
             }
         } else if (nodeType === 'task') {

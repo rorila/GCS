@@ -99,16 +99,27 @@ export class FlowSyncManager {
         const persistentConnections = this.host.connections.filter(c => !c.data?.isEmbeddedInternal && !c.data?.parentProxyId);
         const connections = persistentConnections.map(c => c.toJSON());
 
+        // Stage-Scope: Actions gehören in die Stage ihres Tasks, nicht in die UI-aktive Stage
+        const taskStage = this.getStageForContext(currentContext);
+        const taskStageId = taskStage?.id || undefined;
+
         this.host.nodes.forEach(node => {
             const nodeType = node.getType().toLowerCase();
             if ((nodeType === 'action' || nodeType === 'data_action') && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {
                     if (node.data.isLinked) {
-                        FlowSyncManager.logger.debug(`[TRACE] syncToProject: SKIP linked action "${actionName}" (SSoT is project.actions).`);
+                        // Self-Healing: Prüfe ob Action in der Stage des aktuellen Tasks existiert
+                        const existsInTaskStage = taskStage?.actions?.some((a: any) => a.name === actionName);
+                        if (existsInTaskStage) {
+                            FlowSyncManager.logger.debug(`[TRACE] syncToProject: SKIP linked action "${actionName}" (exists in task stage).`);
+                        } else if (taskStage) {
+                            FlowSyncManager.logger.info(`[TRACE] syncToProject: Action "${actionName}" fehlt in Task-Stage "${taskStage.name}". Nachregistrierung...`);
+                            this.registrySync.updateGlobalActionDefinition({ id: node.id, details: (node as any).Details, ...node.data, name: actionName }, taskStageId);
+                        }
                     } else {
                         FlowSyncManager.logger.debug(`[TRACE] syncToProject: Aktualisiere Model-Definition für "${actionName}" (isLinked=${!!node.data.isLinked})`);
-                        this.registrySync.updateGlobalActionDefinition({ id: node.id, details: (node as any).Details, ...node.data, name: actionName });
+                        this.registrySync.updateGlobalActionDefinition({ id: node.id, details: (node as any).Details, ...node.data, name: actionName }, taskStageId);
                     }
                 }
             }
@@ -289,6 +300,19 @@ export class FlowSyncManager {
         }
     }
 
+    /**
+     * Ermittelt die Stage, in der der angegebene Task lebt.
+     * Wird für die korrekte Stage-Zuordnung von Actions verwendet.
+     */
+    private getStageForContext(context: string): any | null {
+        if (!this.host.project?.stages) return null;
+        if (context === 'global' || context === 'event-map' || context === 'element-overview') return null;
+        for (const stage of this.host.project.stages) {
+            if (stage.tasks?.some((t: any) => t.name === context)) return stage;
+        }
+        return null;
+    }
+
     public restoreNode(data: any): FlowElement | null {
         return this.parser.restoreNode(data);
     }
@@ -302,8 +326,8 @@ export class FlowSyncManager {
         return this.parser.findActionInSequence(sequence, name);
     }
 
-    public updateGlobalActionDefinition(actionData: any) {
-        this.registrySync.updateGlobalActionDefinition(actionData);
+    public updateGlobalActionDefinition(actionData: any, targetStageId?: string) {
+        this.registrySync.updateGlobalActionDefinition(actionData, targetStageId);
     }
 
     public registerActionsFromTask(task: any) {
