@@ -996,7 +996,7 @@ export class AgentController {
             x, y, width, height,
             velocityX: opts.velocityX ?? 0,
             velocityY: opts.velocityY ?? 0,
-            collisionEnabled: opts.collisionEnabled ?? true,
+            collisionEnabled: opts.collisionEnabled ?? false,
             collisionGroup: opts.collisionGroup ?? 'default',
             shape: opts.shape ?? 'rect',
             spriteColor: opts.spriteColor ?? '#ff6b6b',

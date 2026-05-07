@@ -100,7 +100,7 @@ export class TWindow extends TComponent {
     public isAnimating: boolean = false;
 
     // Collision flag for ALL components (Sprite vs Panel, Panel vs Sprite, etc)
-    public collisionEnabled: boolean = true;
+    public collisionEnabled: boolean = false;
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name);
