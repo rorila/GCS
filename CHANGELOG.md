@@ -204,3 +204,4 @@ U p d a t e :   T a s k E x e c u t o r . t s  
 - **Bugfix**: Timer und GameServer laufen nicht mehr beim Tab-Wechsel in Run-Mode sofort los, sondern warten ebenfalls auf den Start-Button.
 - **Bugfix**: Debug-Log-Viewer Dropdowns sind nicht mehr leer vor dem Start. TDebugLog scannt nun alle Stages nach Objekten und Tasks.
 
+

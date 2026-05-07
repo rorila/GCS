@@ -240,7 +240,6 @@ export class EditorRunManager {
     }
 
     private stopRuntime() {
-        DebugLogService.getInstance().setEnabled(false);
         if (this.runtime) {
             this.runtime.stop();
             this.runtime = null;
@@ -359,6 +358,7 @@ export class EditorRunManager {
 
             btn.onclick = () => {
                 if (!this.isGameStarted) {
+                    DebugLogService.getInstance().clear();
                     // Erster Klick: Spiel starten
                     this.isGameStarted = true;
                     this.isGamePaused = false;
@@ -444,6 +444,7 @@ export class EditorRunManager {
             restartBtn.onmouseout = () => { restartBtn!.style.transform = 'translateY(0)'; };
 
             restartBtn.onclick = () => {
+                DebugLogService.getInstance().clear();
                 // Run-Mode komplett neu starten
                 this.setRunMode(false);
                 setTimeout(() => this.setRunMode(true), 50);
@@ -490,3 +491,4 @@ export class EditorRunManager {
         });
     }
 }
+

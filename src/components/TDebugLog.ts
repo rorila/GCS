@@ -132,6 +132,10 @@ export class TDebugLog {
         TDebugLog.logger.debug('Toggle button ready');
     }
 
+    public clearLogs() {
+        this.service.clear();
+    }
+
     public toggle() {
         const isHidden = this.element.style.transform === 'translateX(100%)';
         this.setPanelVisible(isHidden);
@@ -862,3 +866,4 @@ export class TDebugLog {
         if (toggleBtn) toggleBtn.remove();
     }
 }
+

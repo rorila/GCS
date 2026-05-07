@@ -202,6 +202,9 @@ export class EditorViewManager {
                 h.inspector.setFlowContext(null);
             }
         } else if (view === 'run') {
+            if (h.debugLog) {
+                h.debugLog.clearLogs();
+            }
             h.setRunMode(true);
             if (stageWrapper) stageWrapper.style.display = 'none';
             if (runStage) runStage.style.display = 'flex';
@@ -1161,3 +1164,4 @@ export class EditorViewManager {
         }
     }
 }
+
