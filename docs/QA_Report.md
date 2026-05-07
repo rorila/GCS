@@ -1,6 +1,6 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 6.5.2026, 19:15:01
+**Generiert am**: 7.5.2026, 09:08:29
 **Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
@@ -87,9 +87,9 @@ pie title Test-Status (Gesamt: 195)
 | Hydrate: Prototype Pollution Regression<br><small>Object.prototype blieb unveraendert</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 70 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 32</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1164), src/editor/flow/FlowAction.ts (1026), src/editor/inspector/InspectorRenderer.ts (1239), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1106), src/services/AgentController.ts (1302)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Guard: bundle:runtime Freshness<br><small>Bundle 3220s veraltet (juengste Quelle: src/runtime/TaskExecutor.ts). Bitte "npm run bundle:runtime" ausfuehren!</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 31</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1168), src/editor/flow/FlowAction.ts (1028), src/editor/inspector/InspectorRenderer.ts (1239), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1106), src/services/AgentController.ts (1302)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: bundle:runtime Freshness<br><small>Bundle 1226s veraltet (juengste Quelle: src/runtime/actions/handlers/CalculateActions.ts). Bitte "npm run bundle:runtime" ausfuehren!</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Action: ValidatePin → CheckPinCode<br><small>Action=true, Sequence=true, Flow=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -156,7 +156,7 @@ pie title Test-Status (Gesamt: 195)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778087615687_us (erwartet: stage_import_1778087615687_us), BackToLobby.stageId=stage_import_1778087615687_jt (erwartet: stage_import_1778087615687_jt)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778137625686_ww (erwartet: stage_import_1778137625686_ww), BackToLobby.stageId=stage_import_1778137625686_3x (erwartet: stage_import_1778137625686_3x)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
