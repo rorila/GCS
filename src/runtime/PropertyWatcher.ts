@@ -131,8 +131,8 @@ export class PropertyWatcher {
         // floods the debug output and blocks the main thread (exponential log growth!)
         const HIGH_FREQ_SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
 
-        // High-frequency animation properties (fade-in, fade-out, shake)
-        const HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity', 'transform', 'style.transform']);
+        // High-frequency animation properties (fade-in, fade-out, shake, shrink/grow)
+        const HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity', 'transform', 'style.transform', 'width', 'height', 'style.width', 'style.height']);
 
         // Log to DebugLogService — but ONLY for user-relevant, low-frequency changes.
         // CRITICAL: We must NOT use `return` here! The old code aborted the ENTIRE notify()
