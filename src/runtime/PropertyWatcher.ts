@@ -131,8 +131,8 @@ export class PropertyWatcher {
         // floods the debug output and blocks the main thread (exponential log growth!)
         const HIGH_FREQ_SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
 
-        // High-frequency animation properties (fade-in, fade-out)
-        const HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity']);
+        // High-frequency animation properties (fade-in, fade-out, shake)
+        const HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity', 'transform', 'style.transform']);
 
         // Log to DebugLogService — but ONLY for user-relevant, low-frequency changes.
         // CRITICAL: We must NOT use `return` here! The old code aborted the ENTIRE notify()
@@ -140,9 +140,12 @@ export class PropertyWatcher {
         if (DebugLogService.getInstance().isEnabled()) {
             const isInternal = INTERNAL_PROPERTIES.has(propertyPath) || propertyPath.startsWith('_');
             const isHighFreqSprite = HIGH_FREQ_SPRITE_PROPS.has(propertyPath) && target?.className === 'TSprite';
-            const isHighFreqAnim = HIGH_FREQ_ANIM_PROPS.has(propertyPath);
+            
+            // Bei Animations-Eigenschaften loggen wir nur die ALLERERSTE Änderung (wenn oldValue undefined ist),
+            // damit im Log sichtbar ist, DASS eine Animation gestartet wurde. Das 60fps-Spamming danach wird ignoriert.
+            const isHighFreqAnimSpam = HIGH_FREQ_ANIM_PROPS.has(propertyPath) && oldValue !== undefined;
 
-            if (!isInternal && !isHighFreqSprite && !isHighFreqAnim) {
+            if (!isInternal && !isHighFreqSprite && !isHighFreqAnimSpam) {
                 const displayNew = typeof newValue === 'object' ? JSON.stringify(newValue)?.substring(0, 50) : newValue;
                 const displayOld = typeof oldValue === 'object' ? JSON.stringify(oldValue)?.substring(0, 50) : oldValue;
 
