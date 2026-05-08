@@ -162,6 +162,8 @@ export class InspectorSectionRenderer {
         // FlowElement.x (canvas position, e.g. 40) instead of the action parameter (e.g. '${MyVar}').
         // Use getActionDefinition() – the same SSoT method all FlowAction getters use internally.
         let currentValue: any;
+        let wasMissing = false;
+        
         const isFlowNode = obj.isFlowNode === true || typeof obj.setShowDetails === 'function';
         if (isFlowNode && typeof obj.getActionDefinition === 'function') {
             const actionDef = obj.getActionDefinition();
@@ -172,9 +174,26 @@ export class InspectorSectionRenderer {
             } else {
                 currentValue = PropertyHelper.getPropertyValue(obj, propDef.name);
             }
-            currentValue = currentValue ?? propDef.defaultValue ?? '';
+            if (currentValue === undefined || currentValue === null || currentValue === '') {
+                currentValue = propDef.defaultValue ?? '';
+                wasMissing = true;
+            }
         } else {
-            currentValue = PropertyHelper.getPropertyValue(obj, propDef.name) ?? propDef.defaultValue ?? '';
+            currentValue = PropertyHelper.getPropertyValue(obj, propDef.name);
+            if (currentValue === undefined || currentValue === null || currentValue === '') {
+                currentValue = propDef.defaultValue ?? '';
+                wasMissing = true;
+            }
+        }
+
+        // Globaler Sync: Wenn ein Default-Wert injiziert wurde (und nicht leer ist),
+        // schreiben wir ihn leise zurück ins Objekt, damit UI und JSON übereinstimmen!
+        if (wasMissing && currentValue !== undefined && currentValue !== '') {
+            if (isFlowNode && obj.data) {
+                obj.data[propDef.name] = currentValue;
+            } else {
+                PropertyHelper.setPropertyValue(obj, propDef.name, currentValue);
+            }
         }
 
         if (propDef.type === 'select') {
@@ -189,11 +208,20 @@ export class InspectorSectionRenderer {
                 (propDef.source === 'objects_and_services' ? '--- Ziel wählen ---' :
                  propDef.source === 'methods_of_target'   ? '--- Methode wählen ---' : undefined);
 
-            // Wenn obj.target fehlt aber Optionen vorhanden: ersten Wert als Default setzen
+            // Wenn Wert fehlt aber Optionen vorhanden: ersten Wert als Default setzen
             let effectiveValue = currentValue;
-            if (!effectiveValue && (propDef.source === 'objects_and_services') && options.length > 0) {
-                effectiveValue = options[0].value || options[0];
-                PropertyHelper.setPropertyValue(obj, propDef.name, effectiveValue);
+            if ((!effectiveValue || effectiveValue === '') && options.length > 0) {
+                effectiveValue = typeof options[0] === 'object' ? options[0].value : options[0];
+                wasMissing = true;
+            }
+            
+            // Sync default back to the object silently to avoid UI mismatch
+            if (wasMissing && effectiveValue !== undefined && effectiveValue !== '') {
+                if (isFlowNode && obj.data) {
+                    obj.data[propDef.name] = effectiveValue;
+                } else {
+                    PropertyHelper.setPropertyValue(obj, propDef.name, effectiveValue);
+                }
             }
 
             const select = context.renderer.renderSelect(
@@ -233,6 +261,33 @@ export class InspectorSectionRenderer {
             };
             select.style.flex = '1';
             container.appendChild(select);
+        } else if (propDef.type === 'number') {
+            if (wasMissing && currentValue !== undefined && currentValue !== '') {
+                if (isFlowNode && obj.data) obj.data[propDef.name] = currentValue;
+                else PropertyHelper.setPropertyValue(obj, propDef.name, currentValue);
+            }
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = currentValue;
+            input.style.flex = '1';
+            input.onchange = () => {
+                if (context.eventHandler) {
+                    const event = context.eventHandler.handleControlChange(
+                        propDef.name, Number(input.value), obj,
+                        { ...propDef, property: propDef.name }
+                    );
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        if (context.onObjectUpdate) context.onObjectUpdate(event);
+                    }
+                }
+            };
+            container.appendChild(input);
         } else if (propDef.type === 'boolean' || propDef.type === 'checkbox') {
             const cb = document.createElement('input');
             cb.type = 'checkbox';

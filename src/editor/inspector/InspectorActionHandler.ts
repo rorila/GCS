@@ -16,6 +16,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { MediaPickerDialog } from './MediaPickerDialog';
 import { ImageListEditorDialog } from './ImageListEditorDialog';
 import { projectStore } from '../../services/ProjectStore';
+import { ActionRegistry } from '../../runtime/ActionRegistry';
 
 const logger = Logger.get('InspectorActionHandler');
 
@@ -92,6 +93,21 @@ export class InspectorActionHandler {
         const oldType = selectedObject.type || 'property';
         const name = selectedObject.Name || selectedObject.name || selectedObject.data?.name;
         InspectorActionHandler.logger.info(`[FLOW-TRACE] handleChangeActionType: Node="${name}", OldType="${oldType}", NewType="${newType}"`);
+
+        // Inject default values for the new action type into the data model
+        const meta = ActionRegistry.getInstance().getMetadata(newType);
+        if (meta && meta.parameters) {
+            const dataTarget = selectedObject.data || selectedObject;
+            
+            // Clean up old parameters that are no longer valid (optional but good practice)
+            // But for safety, we only inject new ones so we don't accidentally delete useful data.
+            meta.parameters.forEach(param => {
+                if (param.defaultValue !== undefined && dataTarget[param.name] === undefined) {
+                    dataTarget[param.name] = param.defaultValue;
+                    InspectorActionHandler.logger.debug(`[FLOW-TRACE] Injected default value for ${param.name}: ${param.defaultValue}`);
+                }
+            });
+        }
 
         // 1. Update logic if it's a FlowNode
         if (selectedObject.id && typeof selectedObject.setShowDetails === 'function') {
