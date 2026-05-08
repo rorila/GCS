@@ -102,6 +102,7 @@ export class StageHandler implements IInspectorHandler {
                     options: ['linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic'],
                     defaultValue: 'easeOut'
                 },
+                { name: 'startLogicAfterAnimation', label: 'Warte auf Logik', type: 'boolean', defaultValue: false }
             ]
         });
 

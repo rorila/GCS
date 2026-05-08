@@ -372,9 +372,9 @@ export class EditorRunManager {
 
                     if (this.runtime) {
                         try {
-                            this.startRuntimeComponents();
                             this.runtime.start();
                         } catch(e) {
+
                             logger.error(`[RUN-FATAL] Crash during runtime start:`, e);
                             NotificationToast.show("Fatal error during Run-Mode start! Check Console for details.");
                         }

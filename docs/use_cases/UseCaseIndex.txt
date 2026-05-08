@@ -1,4 +1,13 @@
-﻿[UC-2026-05-07-SpawnObjectExpressionFix]
+[UC-2026-05-08-StartLogicAfterAnimation]
+Dateien:
+- src/model/types.ts
+- src/components/TStage.ts
+- src/editor/Stage.ts
+- src/editor/inspector/handlers/StageHandler.ts
+- src/runtime/GameRuntime.ts
+Beschreibung: Ein neues Feature wurde implementiert, um den Start von Spiellogik (Timer, onEnter, onRuntimeStart) optional zu verzoegern, bis die konfektionierte Stage-Start-Animation (z.B. Fade-In, Fly-In) vollstaendig abgelaufen ist. Dafuer gibt es nun eine Checkbox 'Warte auf Logik' in den Stage-Eigenschaften unter 'Animation'.
+
+[UC-2026-05-07-SpawnObjectExpressionFix]
 Dateien:
 - src/runtime/actions/handlers/ObjectPoolActions.ts
 Beschreibung: Erweiterung der 'Objekt spawnen' (spawn_object) Action, um Variablen und Formeln per ExpressionParser aufzulösen. Felder wie OffsetX, OffsetY, X und Y werten nun dynamische Ausdrücke wie \ korrekt über den Laufzeit-Kontext aus. Zusätzlich wurde ein detailliertes Logging (runtimeLogger.info) eingebaut, das im Debug-Log-Viewer anzeigt, welche Rohwerte konfiguriert waren und zu welchen finalen Koordinaten sie ausgewertet wurden, was die Fehlersuche bei fehlerhaften Koordinaten erheblich erleichtert.

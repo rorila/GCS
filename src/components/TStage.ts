@@ -1,4 +1,4 @@
-﻿import { TWindow } from './TWindow';
+import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { ImageFit, IMAGE_DEFAULTS } from './ImageCapable';
 
@@ -22,6 +22,7 @@ export class TStage extends TWindow {
     public startAnimation: string = 'none'; // Fly-In Pattern bei Spielstart
     public startAnimationDuration: number = 1000; // Dauer in ms
     public startAnimationEasing: string = 'easeOut';
+    public startLogicAfterAnimation: boolean = false;
 
     constructor(
         name: string,
@@ -165,7 +166,8 @@ export class TStage extends TWindow {
             // Start Animation
             { name: 'startAnimation', label: 'Start-Animation', type: 'select', group: 'ANIMATION', options: ['none', 'UpLeft', 'UpMiddle', 'UpRight', 'Left', 'Right', 'BottomLeft', 'BottomMiddle', 'BottomRight', 'ChaosIn', 'ChaosOut', 'Matrix', 'Random'] },
             { name: 'startAnimationDuration', label: 'Dauer (ms)', type: 'number', group: 'ANIMATION', inline: true },
-            { name: 'startAnimationEasing', label: 'Easing', type: 'select', group: 'ANIMATION', options: ['linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic'], inline: true }
+            { name: 'startAnimationEasing', label: 'Easing', type: 'select', group: 'ANIMATION', options: ['linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic'], inline: true },
+            { name: 'startLogicAfterAnimation', label: 'Warte auf Logik', type: 'boolean', group: 'ANIMATION' }
         ];
     }
 
@@ -186,7 +188,8 @@ export class TStage extends TWindow {
             objectFit: this._objectFit,
             startAnimation: this.startAnimation,
             startAnimationDuration: this.startAnimationDuration,
-            startAnimationEasing: this.startAnimationEasing
+            startAnimationEasing: this.startAnimationEasing,
+            startLogicAfterAnimation: this.startLogicAfterAnimation
         };
     }
 

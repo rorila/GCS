@@ -294,7 +294,11 @@ export class GameRuntime implements IVariableHost {
     }
 
     public start() {
+        if (this.isMainGameStarted) return;
+        this.isMainGameStarted = true;
+
         logger.info(`[GameRuntime] START() called, objectCount=${this.objects.length}, splash=${this.isSplashActive}, stage=${this.stage?.id}`);
+
         if (this.options.onRender) this.options.onRender();
         this.objects.forEach(obj => this.handleEvent(obj.id, 'onStart'));
 
@@ -336,8 +340,8 @@ export class GameRuntime implements IVariableHost {
 
         this.objects.forEach(obj => {
             obj.initRuntime?.(runtimeCallbacks);
-            obj.onRuntimeStart?.();
         });
+
 
         // START GAME LOOP via GameLoopManager Singleton
         // The GameLoopManager is NOT a stage object and NOT proxied by ReactiveRuntime.
@@ -372,7 +376,22 @@ export class GameRuntime implements IVariableHost {
         });
 
         // Trigger onEnter and onRuntimeStart for the initially loaded stage
-        this.triggerStageStartEvents();
+        // optionally delayed by animation duration
+        const delayLogic = this.stage?.startLogicAfterAnimation;
+        const duration = (animType !== 'none') ? (this.stage?.startAnimationDuration || 1000) : 0;
+
+        const startLogic = () => {
+            this.objects.forEach(obj => {
+                obj.onRuntimeStart?.();
+            });
+            this.triggerStageStartEvents();
+        };
+
+        if (delayLogic && duration > 0) {
+            setTimeout(startLogic, duration);
+        } else {
+            startLogic();
+        }
 
         this.options.onRender?.();
     }
@@ -509,8 +528,8 @@ export class GameRuntime implements IVariableHost {
         // Kein doppeltes glm.init() hier nötig.
         this.start();
 
-        // 2. AFTER Stage Change: Trigger onEnter and onRuntimeStart on the NEW stage
-        this.triggerStageStartEvents();
+        // 2. AFTER Stage Change: startLogic() will be triggered via initMainGame() 
+        // which handles the delay if configured.
 
         if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }

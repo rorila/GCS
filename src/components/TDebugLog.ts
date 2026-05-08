@@ -656,10 +656,10 @@ export class TDebugLog {
 
         let projectEvents: string[] = [];
         if (this.objectFilter) {
-            const obj = allProjectObjects.find((o: any) => (o.name || o.id) === this.objectFilter);
-            if (obj) {
-                projectEvents = this.getAssignedEventsForObject(obj);
-            }
+            const objs = allProjectObjects.filter((o: any) => (o.name || o.id) === this.objectFilter);
+            objs.forEach((obj: any) => {
+                projectEvents.push(...this.getAssignedEventsForObject(obj));
+            });
         } else {
             allProjectObjects.forEach((obj: any) => {
                 projectEvents.push(...this.getAssignedEventsForObject(obj));
@@ -672,35 +672,39 @@ export class TDebugLog {
             allEvents.map(evt => `<option value="${evt}" ${evt === current ? 'selected' : ''}>${evt}</option>`).join('');
     }
 
+    private getRelevantTasksForCurrentFilters(): string[] {
+        const allProjectObjects = this.getAllProjectObjects();
+        let relevantTaskNames: string[] = [];
+
+        if (this.objectFilter) {
+            const objs = allProjectObjects.filter((o: any) => (o.name || o.id) === this.objectFilter);
+            objs.forEach((obj: any) => {
+                if (this.eventFilter) {
+                    if (obj.events && obj.events[this.eventFilter]) {
+                        relevantTaskNames.push(obj.events[this.eventFilter]);
+                    } else if (obj.Tasks && obj.Tasks[this.eventFilter]) {
+                        relevantTaskNames.push(obj.Tasks[this.eventFilter]);
+                    } else if (typeof obj[this.eventFilter] === 'string') {
+                        relevantTaskNames.push(obj[this.eventFilter]);
+                    }
+                } else {
+                    relevantTaskNames.push(...this.getTaskNamesForObject(obj));
+                }
+            });
+        } else {
+            const allTasks = this.getAllProjectTasks();
+            relevantTaskNames = allTasks.map((t: any) => t.name);
+        }
+        return Array.from(new Set(relevantTaskNames.filter(n => n && n.trim() !== ''))).sort();
+    }
+
     private updateTaskDropdown() {
         const taskSelect = this.element.querySelector('#task-filter') as HTMLSelectElement;
         if (!taskSelect) return;
 
         taskSelect.disabled = false;
-        const allProjectObjects = this.getAllProjectObjects();
-        let relevantTaskNames: string[] = [];
-
-        if (this.objectFilter) {
-            // Nur Tasks dieses Objekts
-            const obj = allProjectObjects.find((o: any) => (o.name || o.id) === this.objectFilter);
-            if (obj) {
-                relevantTaskNames = this.getTaskNamesForObject(obj);
-                // Falls Event-Filter aktiv: nur den Task dieses Events
-                if (this.eventFilter && obj.events && obj.events[this.eventFilter]) {
-                    relevantTaskNames = [obj.events[this.eventFilter]];
-                } else if (this.eventFilter && obj.Tasks && obj.Tasks[this.eventFilter]) {
-                    relevantTaskNames = [obj.Tasks[this.eventFilter]];
-                } else if (this.eventFilter && typeof obj[this.eventFilter] === 'string') {
-                    relevantTaskNames = [obj[this.eventFilter]];
-                }
-            }
-        } else {
-            // Alle Tasks aus allen Stages
-            const allTasks = this.getAllProjectTasks();
-            relevantTaskNames = allTasks.map((t: any) => t.name);
-        }
-
-        const uniqueTasks = Array.from(new Set(relevantTaskNames.filter(n => n && n.trim() !== ''))).sort();
+        const uniqueTasks = this.getRelevantTasksForCurrentFilters();
+        
         const current = this.taskFilter;
         taskSelect.innerHTML = '<option value="">All Tasks</option>' +
             uniqueTasks.map(t => `<option value="${t}" ${t === current ? 'selected' : ''}>${t}</option>`).join('');
@@ -716,6 +720,12 @@ export class TDebugLog {
         if (this.taskFilter) {
             // Nur Actions dieses Tasks
             relevantActionNames = this.getActionNamesForTask(this.taskFilter);
+        } else if (this.objectFilter || this.eventFilter) {
+            // Actions aller relevanten Tasks für den aktuellen Objekt/Event-Filter
+            const relevantTasks = this.getRelevantTasksForCurrentFilters();
+            relevantTasks.forEach(taskName => {
+                relevantActionNames.push(...this.getActionNamesForTask(taskName));
+            });
         } else {
             // Alle Actions aus allen Stages
             const allActions = this.getAllProjectActions();

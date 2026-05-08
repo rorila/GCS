@@ -432,6 +432,7 @@ export interface StageDefinition {
     startAnimation?: string;
     startAnimationDuration?: number;
     startAnimationEasing?: string;
+    startLogicAfterAnimation?: boolean;
 
     // Stage-spezifische Flow-Diagramme
     flowCharts?: FlowCharts;

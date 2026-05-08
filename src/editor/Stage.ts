@@ -38,6 +38,7 @@ export class Stage implements StageHost, StageInteractionHost {
     public startAnimation: string = 'none';
     public startAnimationDuration: number = 1000;
     public startAnimationEasing: string = 'easeOut';
+    public startLogicAfterAnimation: boolean = false;
     public backgroundImage: string = '';
     public backgroundImageMode: 'cover' | 'tile' = 'cover';
     private gridConfig: GridConfig;
