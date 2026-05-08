@@ -133,10 +133,15 @@ export class SpriteRenderer {
             const y = obj.hitboxOffsetY || 0;
             const shape = (obj.hitboxShape === 'auto' || !obj.hitboxShape) ? obj.shape : obj.hitboxShape;
 
-            hbEl.style.left = `${x}px`;
-            hbEl.style.top = `${y}px`;
-            hbEl.style.width = `${w}px`;
-            hbEl.style.height = `${h}px`;
+            const wPct = obj.width > 0 ? (w / obj.width) * 100 : 100;
+            const hPct = obj.height > 0 ? (h / obj.height) * 100 : 100;
+            const xPct = obj.width > 0 ? (x / obj.width) * 100 : 0;
+            const yPct = obj.height > 0 ? (y / obj.height) * 100 : 0;
+
+            hbEl.style.left = `${xPct}%`;
+            hbEl.style.top = `${yPct}%`;
+            hbEl.style.width = `${wPct}%`;
+            hbEl.style.height = `${hPct}%`;
             hbEl.style.borderRadius = shape === 'circle' ? '50%' : '0';
             hbEl.style.display = 'block';
         } else {
