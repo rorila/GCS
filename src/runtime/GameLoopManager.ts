@@ -662,16 +662,11 @@ export class GameLoopManager {
         const now = performance.now();
         const lastHit = this.boundaryCooldowns.get(cooldownKey) || 0;
 
-        // Skip if we hit recently
-        if (now - lastHit < this.BOUNDARY_COOLDOWN_MS) return;
-
         // Velocity protection: Only trigger if the sprite is actually moving TOWARDS that boundary
         if (side === 'left' && sprite.velocityX >= 0) return;
         if (side === 'right' && sprite.velocityX <= 0) return;
         if (side === 'top' && sprite.velocityY >= 0) return;
         if (side === 'bottom' && sprite.velocityY <= 0) return;
-
-        this.boundaryCooldowns.set(cooldownKey, now);
 
         // ONLY apply physical clamp/bounce if the onBoundaryHit event is assigned!
         const hasBoundaryEvent = sprite.events?.onBoundaryHit;
@@ -706,6 +701,10 @@ export class GameLoopManager {
                 if (side === 'bottom') sprite.y = bHeight - bOffBottom - sprite.height - EPSILON;
             }
         }
+
+        // Skip event firing if we hit recently
+        if (now - lastHit < this.BOUNDARY_COOLDOWN_MS) return;
+        this.boundaryCooldowns.set(cooldownKey, now);
 
         if (this.eventCallback) {
             this.eventCallback(sprite.id, 'onBoundaryHit', { hitSide: side });
