@@ -223,7 +223,22 @@ export class TextObjectRenderer {
 
     public static renderButton(ctx: IRenderContext, el: HTMLElement, obj: any, _isNew: boolean): void {
         if (el.querySelector('.table-title-bar')) el.innerHTML = '';
-        if (el.innerText !== (obj.text || obj.caption || obj.name)) el.innerText = obj.text || obj.caption || obj.name;
+        // FIX: Text in ein span wrappen statt innerText, damit Resize-Handles
+        // (position: absolute Kinder) die Flex-Zentrierung nicht stören.
+        const textValue = obj.text || obj.caption || obj.name;
+        let textSpan = el.querySelector('.btn-text') as HTMLSpanElement;
+        if (!textSpan) {
+            // Vorherigen innerText / Text-Nodes entfernen
+            el.childNodes.forEach(child => {
+                if (child.nodeType === Node.TEXT_NODE) child.remove();
+            });
+            textSpan = document.createElement('span');
+            textSpan.className = 'btn-text';
+            textSpan.style.pointerEvents = 'none';
+            textSpan.style.width = '100%';
+            el.insertBefore(textSpan, el.firstChild);
+        }
+        if (textSpan.textContent !== textValue) textSpan.textContent = textValue;
         const fw = obj.style?.fontWeight;
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
         const fstyle = obj.style?.fontStyle;
@@ -233,7 +248,12 @@ export class TextObjectRenderer {
         if (obj.style?.color) el.style.color = obj.style.color;
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
         const align = obj.style?.textAlign;
-        el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+        const flexJustify = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+        const flexAlign = align === 'left' ? 'left' : (align === 'right' ? 'right' : 'center');
+        el.style.justifyContent = flexJustify;
+        el.style.textAlign = flexAlign;
+
+        console.log(`[DEBUG-RENDER-BUTTON] ID: ${obj.id || obj.name} | text: "${textValue}" | align-prop: ${align} | set justifyContent: ${flexJustify} | set textAlign: ${flexAlign}`);
         if (ctx.host.runMode) {
             el.onmouseenter = () => {
                 el.style.filter = 'brightness(1.1)';

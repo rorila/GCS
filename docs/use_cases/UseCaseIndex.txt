@@ -1,3 +1,9 @@
+### 2026-05-09
+[UC-2026-05-09-SpriteTemplateRenderFix]
+Beschreibung: TSpriteTemplate nutzt nun im Editor denselben optimierten Render-Pfad wie TSprite. Dadurch wird die Hintergrundfarbe bei vorhandenem Bild transparent, das Rendering profitiert von der GPU-Beschleunigung (<img>-Tag) und Hitbox-Visualisierungen werden im Editor korrekt gezeichnet.
+Beteiligte Dateien:
+- src/editor/services/StageRenderer.ts (Zeilen ~706, ~782) - Ergänzung von className === 'TSpriteTemplate' in den Sprite-Render-Bedingungen.
+
 [UC-2026-05-09-InspectorSSoTSyncFix]
 Dateien:
 - src/editor/flow/FlowAction.ts: applyChange() (Line 730)

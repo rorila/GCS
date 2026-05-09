@@ -213,11 +213,14 @@ export class InspectorSectionRenderer {
                 (propDef.source === 'objects_and_services' ? '--- Ziel wählen ---' :
                  propDef.source === 'methods_of_target'   ? '--- Methode wählen ---' : undefined);
 
-            // Wenn Wert fehlt aber Optionen vorhanden: ersten Wert als Default setzen
+            // Wenn Wert fehlt aber Optionen vorhanden: ersten Wert als visuellen Fallback setzen
             let effectiveValue = currentValue;
             if ((!effectiveValue || effectiveValue === '') && options.length > 0) {
                 effectiveValue = typeof options[0] === 'object' ? options[0].value : options[0];
-                wasMissing = true;
+                // KRITISCHER FIX: Wir setzen hier NICHT mehr "wasMissing = true;". 
+                // Wenn wir das tun würden, würde der Inspektor bei jeder Selektion den allerersten
+                // Wert der Liste (z.B. "left" bei textAlign) hart in das Objekt speichern und
+                // damit die Theme-Defaults überschreiben!
             }
             
             // Sync default back to the object AND SSoT silently to avoid UI mismatch

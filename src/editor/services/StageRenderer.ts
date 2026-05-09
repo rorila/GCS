@@ -703,7 +703,7 @@ export class StageRenderer {
         // gerendert, NICHT als CSS background-image. CSS background-image erzwingt CPU-Rasterung
         // bei translate3d-Animationen, ein <img>-Tag wird dagegen als eigenständige GPU-Textur
         // composited und erlaubt jitterfreie Subpixel-Bewegungen.
-        if (bgImg && className === 'TSprite') {
+        if (bgImg && (className === 'TSprite' || className === 'TSpriteTemplate')) {
             // Nur Hintergrundfarbe setzen; das Bild wird als <img> Child gerendert
             el.style.background = bgColor;
             el.style.backgroundImage = 'none';
@@ -779,7 +779,7 @@ export class StageRenderer {
         else if (className === 'TPanel') TextObjectRenderer.renderPanel(ctx, el, obj);
         else if (className === 'TRichText') TextObjectRenderer.renderRichText(ctx, el, obj);
         else if (className === 'TGameHeader') TextObjectRenderer.renderGameHeader(ctx, el, obj);
-        else if (className === 'TSprite') SpriteRenderer.render(ctx, el, obj);
+        else if (className === 'TSprite' || className === 'TSpriteTemplate') SpriteRenderer.render(ctx, el, obj);
         else if (className === 'TShape') ShapeRenderer.render(ctx, el, obj, isNew);
         else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
         else if (className === 'TDialogRoot') ComplexComponentRenderer.renderDialogRoot(ctx, el, obj);

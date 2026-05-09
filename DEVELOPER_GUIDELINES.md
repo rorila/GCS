@@ -144,18 +144,6 @@
 
 ## 9. Best Practices
 
-- **Interface Konsistenz**: Host-Objekte für Manager-Klassen müssen Anforderungen in einem dedizierten Interface definieren. Siehe `IViewHost` in `EditorViewManager.ts`.
-- **GCS Dashboard Pattern**: Für Dashboards `TTable` im `displayMode: "cards"` verwenden. Datenquellen: `TObjectList`-Variablen in der `stage_blueprint`.
-- **Expert-Wizard Dynamisierung**: In der Regel-JSON `type: "select"` und `options: "@objects"` verwenden. Auflösung zur Laufzeit via `ProjectRegistry`.
-- **Expert-Wizard Prompts**: Platzhalter in geschweiften Klammern (z. B. `"Wert für {target}.{property}?"`) werden automatisch durch Session-Werte ersetzt.
-- **ComponentData vs TWindow**: Im Datenmodell `ComponentData[]` verwenden. `TWindow` nur wo Methoden aufgerufen werden (`Serialization.ts`, `GameRuntime.ts`).
-- **Storage über IStorageAdapter**: Neuer I/O-Code MUSS über `IStorageAdapter` laufen (`src/ports/IStorageAdapter.ts`). Adapter in `src/adapters/`.
-- **Electron-Vorbereitung**: `NativeFileAdapter` erwartet `window.electronFS`-IPC-Bridge. Kein `showSaveFilePicker` ohne Fallback.
-
-### Architectural Registries
-
-- **DO NOT** use a monolithic `ProjectRegistry`. It has been decentralized.
-- **DO** use the domain-specific registries under `src/services/registry/` (z. B. `projectObjectRegistry`, `coreStore`), um Single-Source-of-Truth zu garantieren und zirkuläre Abhängigkeiten zu vermeiden.
 
 ## 10. Architektur-Hinweise (Sync-Strategie)
 

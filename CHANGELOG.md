@@ -151,22 +151,28 @@ umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 
 - **UI: Inspector Consolidation**:
   - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgew�hlt wird, da diese dort keinen logischen Sinn ergeben.
+### 2026-04-29 (Session 2)
+- **Runtime Fix**: ExpressionParser MemberExpression loeste TVariable-Objekte vorzeitig via `resolveValue` auf, wodurch `Var.value` als `(4.75)["value"]` = `undefined` evaluiert wurde -> NaN. Fix: Rohobjekt ohne resolveValue holen.
+- **Runtime Fix**: `VariableActions` und `CalculateActions` strippten `${...}`-Wrapper nicht aus `variableName`/`resultVariable` (V-Button-Bug). Fix: Defensives Stripping am Handler-Anfang.
+- **Runtime Fix**: Dot-Path-Variablen (z.B. `CurrentY.value`) wurden nur als flacher Key in `context.vars` gespeichert, aber nicht auf dem TVariable-Objekt. JSEP-Property-Access konnte den Wert nicht finden. Fix: Beides schreiben.
+- **Inspector**: V-Button war bei numerischen Signatur-Parametern und Default-Parametern explizit blockiert (`param.type !== 'number'`). Fix: Bedingung entfernt.
+- **Inspector**: Key-Value-Editor (Changes) erkennt jetzt Binding-Strings bei numerischen Werten und schaltet auf `type="text"` um.
+- **Inspector**: Komponenten-Properties (x, y, width, height, speed etc.) erkennen Binding-Werte und schalten dynamisch auf `type="text"` um.
 
-- **FEATURE: Flow Editor Task Sorting**:
-  - Tasknamen in den Dropdown-Men�s des Flow-Editors werden nun alphabetisch sortiert angezeigt, um die �bersichtlichkeit zu verbessern.
+### 2026-04-29
+- **Inspector Fix**: Behoben, dass Variablen-Bindings aus dem V-Button bei numerischen Feldern (z.B. X/Y Koordinaten) im Inspector vom Browser blockiert und gelscht wurden, indem das Eingabefeld dynamisch von \
+umber\ auf \	ext\ umschaltet, sobald ein Binding \\\ erkannt wird.
 
-- **FIX: IndexedDB Getter Loss Prevention**:
-  - Verhindert das stille L�schen von Objekt-Gettern (wie backgroundImage) durch den *Structured Clone Algorithm* der IndexedDB.
-  - ProjectPersistenceService.ts wandelt nun vor jedem Autosave das gesamte Projekt explizit in ein bereinigtes JSON-DTO um (JSON.parse(JSON.stringify())). Dies zwingt das System, alle Getter �ber die implementierten toJSON()-Methoden der TComponent-Klasse in persistierbare Werte zu evaluieren, bevor die Datenbank den Klon-Algorithmus anwendet. - 2026-04-30
-
-### Fixed
-- **Inspector x/y Shadowing (Root-Cause)**: FlowActions wie `move_to` zeigten im Inspector die Canvas-Koordinaten (z.B. 40, 120) statt der Action-Parameter (z.B. `$`{MyVar.value}`). Ursache: `InspectorSectionRenderer.renderProperty()` nutzte `PropertyHelper.getPropertyValue()`, welches `FlowElement.x` (Canvas-Position) statt den Action-Parameter las. Fix: `getActionDefinition()` wird jetzt als SSoT-Methode zum Lesen und Schreiben verwendet.
-- **getActionDefinition() public**: `FlowAction.getActionDefinition()` und `FlowDataAction.getActionDefinition()` von `protected` auf `public` geaendert, damit der InspectorSectionRenderer darauf zugreifen kann.
-- **FlowNodeHandler Schreib-Fix**: Action-Parameter werden jetzt via `getActionDefinition()` in die JSON-Definition geschrieben und zusaetzlich in `object.data` synchronisiert, statt `PropertyHelper.setPropertyValue(object, ...)` zu nutzen (was Canvas-Koordinaten ueberschrieb).
+# Changelog
 
 ## [Unreleased]
-
-- **UI: Inspector Consolidation**:
+### Fixed
+- **TSpriteTemplate Rendering**: `TSpriteTemplate` nutzt nun im Editor denselben optimierten Render-Pfad wie `TSprite` (inkl. GPU-beschleunigtem `<img>`-Tag). Dadurch verschwindet der Default-Hintergrund, sobald ein Bild geladen wird, und Hitbox-Debug-Overlays werden im Editor korrekt gezeichnet.
+- **UI-Regression / Inspector-Datenkorruption**: Das Auswählen von Objekten (z.B. TButton) führte bisher dazu, dass nicht gesetzte `select`-Eigenschaften (wie `textAlign`) automatisch mit der ersten Option aus dem Dropdown überschrieben wurden (z.B. von 'center' Theme-Default auf 'left'). Die `wasMissing`-Auto-Save Logik im `InspectorSectionRenderer` wurde für reine Fallbacks deaktiviert.
+- **Theme-Vererbung (Typografie)**: `style.textAlign` und `style.fontFamily` in `TWindow` haben nun eine "Standard" Option (leerer String), die klar signalisiert, dass der Theme-Standardwert (z.B. von "modern-glass") erbt, anstatt User zu zwingen, den Theme-Wert zu überschreiben.
+- **Action-Properties SSoT Sync**: Properties von dynamischen Flow-Actions (inkl. Default-Werte via `wasMissing`) werden nun verlässlich in die Projekt-JSON geschrieben (`FlowAction.ts` & `InspectorSectionRenderer.ts`).
+- **Inspector-Synchronisation**: Korrektur bei der Daten-Synchronisation zwischen `FlowElement` und `ActionDefinition`, um Canvas-Positionen nicht mehr fälschlicherweise als Parameter zu interpretieren.
+- **getActionDefinition() public**: `FlowAction.getActionDefinition()` und `FlowDataAction.getActionDefinition()` von `protected` auf `public` geaendert, damit der InspectorSectionRenderer darauf zugreifen kann.
   - Die Tabs 'Events' und 'Logs' im Inspector werden ab sofort automatisch ausgeblendet, sobald ein Flow-Element (wie Task, Action, Condition) ausgew�hlt wird, da diese dort keinen logischen Sinn ergeben.
 
 - **FEATURE: Flow Editor Task Sorting**:

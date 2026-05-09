@@ -106,11 +106,18 @@
         "cellSize": 20,
         "snapToGrid": true,
         "visible": true,
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#ffffff",
+        "gridColor": "#dddddd"
+      },
+      "gameName": "Neues Spiel",
+      "backgroundImageMode": "cover",
+      "startAnimation": "none",
+      "startAnimationDuration": 1000,
+      "startAnimationEasing": "easeOut",
+      "startLogicAfterAnimation": false
     },
     {
-      "id": "stage-1778258197049",
+      "id": "stage-1778317571854",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],
@@ -123,9 +130,15 @@
         "cellSize": 20,
         "snapToGrid": true,
         "visible": true,
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#ffffff",
+        "gridColor": "#dddddd"
+      },
+      "backgroundImageMode": "cover",
+      "startAnimation": "none",
+      "startAnimationDuration": 1000,
+      "startAnimationEasing": "easeOut",
+      "startLogicAfterAnimation": false
     }
   ],
-  "activeStageId": "stage-1778258197049"
+  "activeStageId": "stage-1778317571854"
 }

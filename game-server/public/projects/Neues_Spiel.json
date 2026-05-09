@@ -17,6 +17,14 @@
     }
   },
   "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
     "elements": [],
     "connections": []
   },
@@ -103,8 +111,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -122,138 +130,6 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1778258187617_s1lg2680b",
-          "name": "Button_3",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Button_3",
-          "icon": ""
-        },
-        {
-          "className": "TButton",
-          "id": "obj_1778258187968_1mnk7ijxx",
-          "name": "Button_4",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Button_4",
-          "icon": ""
-        }
-      ],
-      "actions": [
-        {
-          "id": "node-1778258172768",
-          "details": "",
-          "type": "navigate_stage",
-          "name": "ShowTheHighscoreStage_Unique",
-          "showDetails": false,
-          "target": "",
-          "changes": {}
-        },
-        {
-          "id": "node-1778258175752",
-          "details": "",
-          "type": "property",
-          "name": "Action1",
-          "showDetails": false,
-          "target": "",
-          "changes": {}
-        }
-      ],
-      "tasks": [
-        {
-          "name": "SwitchToTheHighscoreStage",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "ShowTheHighscoreStage_Unique",
-              "type": "action"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "SwitchToTheHighscoreStage": {
-              "x": 40,
-              "y": 40
-            },
-            "ShowTheHighscoreStage_Unique": {
-              "x": 300,
-              "y": 300
-            }
-          },
-          "standaloneNodes": [
-            {
-              "id": "node-1778258175752",
-              "type": "action",
-              "x": 300,
-              "y": 300,
-              "width": 300,
-              "height": 60,
-              "properties": {
-                "name": "ShowTheHighscoreStage_Unique",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "ShowTheHighscoreStage_Unique",
-                "type": "navigate_stage",
-                "isLinked": true,
-                "showDetails": false
-              }
-            }
-          ]
-        }
-      ],
-      "variables": [],
-      "grid": {
-        "cols": 60,
-        "rows": 38,
-        "cellSize": 22,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#16da36"
-      },
-      "flowCharts": {}
-    },
-    {
-      "id": "stage-1778258180867",
-      "name": "Stage 1",
-      "type": "standard",
       "objects": [],
       "actions": [],
       "tasks": [],
@@ -264,9 +140,15 @@
         "cellSize": 20,
         "snapToGrid": true,
         "visible": true,
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "gridColor": "#dddddd"
       },
-      "flowCharts": {}
+      "gameName": "Neues Spiel",
+      "backgroundImageMode": "cover",
+      "startAnimation": "none",
+      "startAnimationDuration": 1000,
+      "startAnimationEasing": "easeOut",
+      "startLogicAfterAnimation": false
     }
   ],
   "activeStageId": "main"
