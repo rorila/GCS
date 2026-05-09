@@ -659,10 +659,10 @@ Aggregierte Liste aus allen Phasen — vor Implementierung sind explizite Freiga
 
 | Phase | Status | Datum | Bemerkung |
 |:---:|:---|:---:|:---|
-| 0 | ⏳ pending | — | Test-Netz |
-| 1 | ⏳ pending | — | Schema-Normalisierung |
-| 2 | ⏳ pending | — | `wasMissing` entfernen |
-| 3 | ⏳ pending | — | `applyChange`-only |
+| 0 | ✅ done | 2026-05-09 | Test-Netz (28 Tests in 4 Suiten) |
+| 1 | ✅ done | 2026-05-09 | Schema-Normalisierung (SchemaMigrator v4.0.0, 8 Tests) |
+| 2 | ✅ done | 2026-05-09 | wasMissing entfernt, applyRegistryDefaults (4 Tests) |
+| 3 | ✅ done | 2026-05-09 | `applyChange`-only (Setter-Wrapper, Doppel-Dispatch eliminiert, Bulk-Sync entfernt) |
 | 4 | ⏳ pending | — | Store-Selektoren |
 | 5 | ⏳ pending | — | Generisches Dispatching |
 

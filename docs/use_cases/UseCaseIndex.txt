@@ -1,4 +1,40 @@
 ### 2026-05-09
+[UC-2026-05-09-SyncRefactor-Phase3]
+Beschreibung: SYNC_REFACTOR Phase 3 (applyChange-only Schreibpfad) — Die Architektur für die Datenmutation im Editor wurde grundlegend umgestellt. Statt des fehleranfälligen Doppel-Dispatches (Inspector-Change -> SSoT -> applyChange -> SSoT) läuft nun sämtliche Mutation von FlowNodes ausschließlich über `applyChange()`. Der Bulk-Sync von Properties in `FlowSyncManager.syncToProject()` wurde entfernt, sodass `syncToProject` nun nur noch für Topologie (Nachregistrierung fehlender Actions) zuständig ist. Die `InspectorSectionRenderer`-Handler für Select, Number und Checkbox wurden refaktorisiert und dedupliziert.
+Beteiligte Dateien:
+- src/editor/flow/FlowAction.ts (Zeilen ~241-655): Alle Setter (z.B. type, effect, value, etc.) auf `this.applyChange` umgebaut. Setter-Callbacks entfernt.
+- src/editor/inspector/renderers/InspectorSectionRenderer.ts (Zeilen ~225-373): Doppel-Dispatch in select/number/checkbox auf `applyChange` oder `handleControlChange` aufgesplittet und redundante `notifyDataChanged` Calls in helper `notify` extrahiert.
+- src/editor/services/FlowSyncManager.ts (Zeilen ~110-118): Property-Bulk-Sync aus `syncToProject()` entfernt, Nachregistrierung beibehalten.
+Ergebnis: 40 Regression-Tests bestanden. Architektur ist nun Single Source of Truth für Mutations-Pfade.
+[UC-2026-05-09-SyncRefactor-Phase2]
+Beschreibung: SYNC_REFACTOR Phase 2 (wasMissing-Writer entfernen) — Die 3 wasMissing-Blöcke im InspectorSectionRenderer, die zur Render-Zeit Default-Werte in die SSoT geschrieben haben, wurden entfernt. Stattdessen füllt der SchemaMigrator.applyRegistryDefaults() beim Laden fehlende Defaults anhand der ActionRegistry-Metadaten auf. Render ist jetzt read-only.
+Beteiligte Dateien:
+- src/services/SchemaMigrator.ts (Zeile ~153-211): Neue Methode applyRegistryDefaults() mit Registry-Lookup-Callback
+- src/editor/services/EditorDataManager.ts (Zeile ~513-522): Hook nach migrateToV4, ActionRegistry-Import
+- src/editor/inspector/renderers/InspectorSectionRenderer.ts (Zeilen ~189-202, ~227-238, ~278-280): 3 wasMissing-Blöcke entfernt
+- tests/sync/schema_migrator.test.ts (Zeilen ~272-400): 4 neue Tests (Defaults aufgefüllt, nicht überschrieben, unbekannter Typ, Stage-Actions)
+Ergebnis: 4 neue Tests (gesamt 12), alle grün.
+
+[UC-2026-05-09-SyncRefactor-Phase1]
+Beschreibung: SYNC_REFACTOR Phase 1 (Schema-Normalisierung) — SchemaMigrator erstellt, der beim Projekt-Laden 5 Legacy-Alias-Feldnamen (actionType→type, propertyChanges→changes, variable→variableName, methodName→method, expression→formula) automatisch auf kanonische Namen migriert. Schema-Version wird auf '4.0.0' gesetzt. Migration ist idempotent.
+Beteiligte Dateien:
+- src/services/SchemaMigrator.ts [NEU]: Migrations-Modul mit migrateToV4(), normalizeAction(), ALIAS_MAP
+- src/editor/services/EditorDataManager.ts (Zeile ~509): Hook in loadProject() nach cleanActionSequences
+- src/player.ts (Zeile ~57): Hook im Standalone-Player vor Objekt-Hydration
+- tests/sync/schema_migrator.test.ts [NEU]: 8 Tests (alle Aliase, gemischte Felder, Idempotenz, FlowChart-data, Rückgabewert)
+- scripts/test_runner.ts (Zeilen ~42, ~257): Integration in Test-Runner
+Ergebnis: 8 neue Tests, alle grün.
+
+[UC-2026-05-09-SyncRefactor-Phase0]
+Beschreibung: SYNC_REFACTOR Phase 0 (Test-Netz) — 4 neue Test-Suiten erstellt, die die Inspector↔JSON-Synchronisation deterministisch absichern, BEVOR das eigentliche Refactoring beginnt.
+Beteiligte Dateien:
+- tests/sync/store_set_property.test.ts (Layer A): 6 Tests für ProjectStore.dispatch SET_PROPERTY (Mutation, Dot-Path, Null-Guard, Listener, Isolation)
+- tests/sync/sync_validator_strict.test.ts (Layer B): 8 Tests für alle 6 Regeln R1-R6 mit autoRepair=false + Gutfall
+- tests/sync/flowaction_aliases.test.ts (Layer C): 6 Tests für alle 5 Alias-Paare (type/actionType, changes/propertyChanges, variableName/variable, method/methodName, formula/expression)
+- tests/sync/inspector_writeback.test.ts (Layer C): 8 Tests für applyChange SSoT-Schreibung, data-Spiegelung, Re-Render-Signale, Registry-Parameter
+- scripts/test_runner.ts (Zeilen ~37-41, ~245-258): Integration aller 4 Suiten in den zentralen Test-Runner
+Ergebnis: 28 neue Tests, alle grün.
+
 [UC-2026-05-09-SpriteTemplateRenderFix]
 Beschreibung: TSpriteTemplate nutzt nun im Editor denselben optimierten Render-Pfad wie TSprite. Dadurch wird die Hintergrundfarbe bei vorhandenem Bild transparent, das Rendering profitiert von der GPU-Beschleunigung (<img>-Tag) und Hitbox-Visualisierungen werden im Editor korrekt gezeichnet.
 Beteiligte Dateien:

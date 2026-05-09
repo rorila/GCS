@@ -6,6 +6,7 @@ import { TGameLoop } from './components/TGameLoop';
 import { TInputController } from './components/TInputController';
 import { GameRuntime } from './runtime/GameRuntime';
 import { TDebugLog } from './components/TDebugLog';
+import { SchemaMigrator } from './services/SchemaMigrator';
 import { Logger } from './utils/Logger';
 
 const logger = Logger.get('Player');
@@ -54,7 +55,10 @@ export class Player {
                     this.stage.updategrid();
                 }
 
-                // 1. Hydrate Objects
+                // 1. Schema-Migration (Phase 1, SYNC_REFACTOR)
+                SchemaMigrator.migrateToV4(this.project);
+
+                // 2. Hydrate Objects
                 this.objects = hydrateObjects(this.project.objects);
 
                 // 2. Initialize Unified GameRuntime

@@ -34,6 +34,13 @@ import { runElectronSecurityTests } from '../tests/electron_security.test.js';
 import { runStageTransitionRegressionTests } from '../tests/stage_transition_regression.test.js';
 import { runTests as runSidePanelTests } from '../tests/side_panel.test.js';
 import { runComponentEventsTests } from '../tests/component_events.test.js';
+// Phase 0 — SYNC_REFACTOR Test-Netz
+import { runStoreSetPropertyTests } from '../tests/sync/store_set_property.test.js';
+import { runSyncValidatorStrictTests } from '../tests/sync/sync_validator_strict.test.js';
+import { runFlowActionAliasTests } from '../tests/sync/flowaction_aliases.test.js';
+import { runInspectorWritebackTests } from '../tests/sync/inspector_writeback.test.js';
+// Phase 1 — SYNC_REFACTOR Schema-Normalisierung
+import { runSchemaMigratorTests } from '../tests/sync/schema_migrator.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -232,6 +239,24 @@ async function main() {
         // 23. Component Events Tests
         console.log('🏃 Starte Component Events Tests...');
         allResults.push(...await runComponentEventsTests());
+
+        // ═══════════════════════════════════════════════════════
+        // Phase 0 — SYNC_REFACTOR Test-Netz
+        // ═══════════════════════════════════════════════════════
+        console.log('🏃 Starte Sync-Refactor Phase 0: Store SET_PROPERTY Tests...');
+        allResults.push(...await runStoreSetPropertyTests());
+
+        console.log('🏃 Starte Sync-Refactor Phase 0: SyncValidator Strict Tests...');
+        allResults.push(...await runSyncValidatorStrictTests());
+
+        console.log('🏃 Starte Sync-Refactor Phase 0: FlowAction Alias Tests...');
+        allResults.push(...await runFlowActionAliasTests());
+
+        console.log('🏃 Starte Sync-Refactor Phase 0: Inspector Writeback Tests...');
+        allResults.push(...await runInspectorWritebackTests());
+
+        console.log('🏃 Starte Sync-Refactor Phase 1: SchemaMigrator Tests...');
+        allResults.push(...await runSchemaMigratorTests());
 
         // 🌐 Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');

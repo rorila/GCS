@@ -13,6 +13,8 @@ import { SaveAsDialog } from '../SaveAsDialog';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PromptDialog } from '../ui/PromptDialog';
 import { NotificationToast } from '../ui/NotificationToast';
+import { SchemaMigrator } from '../../services/SchemaMigrator';
+import { actionRegistry } from '../../runtime/ActionRegistry';
 
 export interface EditorDataHost {
     project: GameProject;
@@ -505,6 +507,19 @@ export class EditorDataManager {
 
         // 2. DATA PREPARATION (Sanitization & Hydration)
         RefactoringManager.cleanActionSequences(data);
+
+        // Schema-Migration (Phase 1, SYNC_REFACTOR): Alias-Felder normalisieren
+        SchemaMigrator.migrateToV4(data);
+
+        // Phase 2: Registry-Defaults auffüllen (ersetzt wasMissing-Blöcke im Inspector)
+        try {
+            SchemaMigrator.applyRegistryDefaults(data, (type: string) => {
+                const meta = actionRegistry.getMetadata(type);
+                return meta?.parameters || null;
+            });
+        } catch (e) {
+            EditorDataManager.logger.warn('[SchemaMigrator] Registry-Defaults konnten nicht angewendet werden:', e);
+        }
 
         // Hydrate objects in legacy lists if present
         if (data.objects) data.objects = hydrateObjects(data.objects);

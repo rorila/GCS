@@ -140,16 +140,10 @@
         "cellSize": 20,
         "snapToGrid": true,
         "visible": true,
-        "backgroundColor": "#ffffff",
-        "gridColor": "#dddddd"
-      },
-      "gameName": "Neues Spiel",
-      "backgroundImageMode": "cover",
-      "startAnimation": "none",
-      "startAnimationDuration": 1000,
-      "startAnimationEasing": "easeOut",
-      "startLogicAfterAnimation": false
+        "backgroundColor": "#ffffff"
+      }
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "main",
+  "schemaVersion": "4.0.0"
 }

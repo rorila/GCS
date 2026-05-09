@@ -108,17 +108,13 @@ export class FlowSyncManager {
             if ((nodeType === 'action' || nodeType === 'data_action') && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {
-                    if (node.data.isLinked) {
-                        // Self-Healing: Prüfe ob Action in der Stage des aktuellen Tasks existiert
-                        const existsInTaskStage = taskStage?.actions?.some((a: any) => a.name === actionName);
-                        if (existsInTaskStage) {
-                            FlowSyncManager.logger.debug(`[TRACE] syncToProject: SKIP linked action "${actionName}" (exists in task stage).`);
-                        } else if (taskStage) {
-                            FlowSyncManager.logger.info(`[TRACE] syncToProject: Action "${actionName}" fehlt in Task-Stage "${taskStage.name}". Nachregistrierung...`);
-                            this.registrySync.updateGlobalActionDefinition({ id: node.id, details: (node as any).Details, ...node.data, name: actionName }, taskStageId);
-                        }
-                    } else {
-                        FlowSyncManager.logger.debug(`[TRACE] syncToProject: Aktualisiere Model-Definition für "${actionName}" (isLinked=${!!node.data.isLinked})`);
+                    // Phase 3 (SYNC_REFACTOR): Property-Bulk-Sync entfernt.
+                    // Properties werden jetzt live via applyChange geschrieben.
+                    // Nur Nachregistrierung für neue/fehlende Actions bleibt.
+                    const existsInStage = taskStage?.actions?.some((a: any) => a.name === actionName)
+                        || this.host.project.actions?.some((a: any) => a.name === actionName);
+                    if (!existsInStage) {
+                        FlowSyncManager.logger.info(`[TRACE] syncToProject: Neue Action "${actionName}" wird nachregistriert.`);
                         this.registrySync.updateGlobalActionDefinition({ id: node.id, details: (node as any).Details, ...node.data, name: actionName }, taskStageId);
                     }
                 }

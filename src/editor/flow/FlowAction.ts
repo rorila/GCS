@@ -7,7 +7,6 @@ import { ExpressionParser } from '../../runtime/ExpressionParser';
 
 import { InspectorSection } from '../inspector/types';
 
-import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('FlowAction');
@@ -232,21 +231,9 @@ export class FlowAction extends FlowElement {
         return action?.type || 'property';
     }
     public set type(v: string) {
-        const action = this.getActionDefinition();
-        if (action) {
-            action.type = v;
-            // SYNC: Update local data type to avoid stale saves in toJSON
-            if (this.data) {
-                this.data.type = v;
-                // Sync actionType alias in data if present
-                if ((this.data as any).actionType) (this.data as any).actionType = v;
-            }
-
-            // Visual Update: Data Action Ports might need to be added/removed
-            this.applyActionStyling();
-
-            this.setShowDetails(this.showDetails, this.projectRef);
-        }
+        // Phase 3 (SYNC_REFACTOR): Setter delegiert an applyChange als einzigen Writer.
+        // Side-Effects (applyActionStyling, setShowDetails) werden von applyChange gehandhabt.
+        this.applyChange('type', v);
     }
 
     // Alias for compatibility with templates and hydrator
@@ -257,10 +244,7 @@ export class FlowAction extends FlowElement {
         const action = this.getActionDefinition();
         return action?.target || '';
     }
-    public set target(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.target = v;
-    }
+    public set target(v: string) { this.applyChange('target', v); }
 
     // Direct changes accessor — CRITICAL: Der Inspector ruft
     // PropertyHelper.getPropertyValue(obj, 'changes') auf und braucht
@@ -269,16 +253,7 @@ export class FlowAction extends FlowElement {
         const action = this.getActionDefinition();
         return action?.changes || action?.propertyChanges || {};
     }
-    public set changes(v: Record<string, any>) {
-        const action = this.getActionDefinition();
-        if (action) {
-            if (action.propertyChanges && !action.changes) {
-                action.propertyChanges = v;
-            } else {
-                action.changes = v;
-            }
-        }
-    }
+    public set changes(v: Record<string, any>) { this.applyChange('changes', v); }
 
     // JSON Helper for 'changes' object
     public get changesJSON(): string {
@@ -288,18 +263,10 @@ export class FlowAction extends FlowElement {
         return JSON.stringify(changes, null, 2);
     }
     public set changesJSON(v: string) {
-        const action = this.getActionDefinition();
-        if (action) {
-            try {
-                // Determine which field to use (prefer 'changes')
-                if (action.propertyChanges && !action.changes) {
-                    action.propertyChanges = JSON.parse(v);
-                } else {
-                    action.changes = JSON.parse(v);
-                }
-            } catch (e) {
-                logger.warn('Invalid JSON for changes:', e);
-            }
+        try {
+            this.applyChange('changes', JSON.parse(v));
+        } catch (e) {
+            logger.warn('Invalid JSON for changes:', e);
         }
     }
 
@@ -311,12 +278,7 @@ export class FlowAction extends FlowElement {
         // inspector_action.json uses 'variableName' as property name, but binds to what?
         // We act as proxy. Let's support both or check types.ts.
     }
-    public set variableName(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.variableName = v;
-        // Note: New standard might use 'variable'? types.ts says 'variableName' for VariableAction?
-        // Let's assume variableName based on existing code.
-    }
+    public set variableName(v: string) { this.applyChange('variableName', v); }
 
     // Support 'variable' alias if types.ts uses that
     public get variable(): string { return this.variableName; }
@@ -326,65 +288,44 @@ export class FlowAction extends FlowElement {
         const action = this.getActionDefinition();
         return action?.operation || 'set';
     }
-    public set operation(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.operation = v;
-    }
+    public set operation(v: string) { this.applyChange('operation', v); }
 
     public get value(): string {
         const action = this.getActionDefinition();
         return action?.value ?? '';
     }
-    public set value(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.value = v;
-    }
+    public set value(v: string) { this.applyChange('value', v); }
 
     public get source(): string {
         const action = this.getActionDefinition();
         return action?.source || '';
     }
-    public set source(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.source = v;
-    }
+    public set source(v: string) { this.applyChange('source', v); }
 
     public get sourceProperty(): string {
         const action = this.getActionDefinition();
         return action?.sourceProperty || '';
     }
-    public set sourceProperty(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.sourceProperty = v;
-    }
+    public set sourceProperty(v: string) { this.applyChange('sourceProperty', v); }
 
     public get service(): string {
         const action = this.getActionDefinition();
         return action?.service || '';
     }
-    public set service(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.service = v;
-    }
+    public set service(v: string) { this.applyChange('service', v); }
 
     public get method(): string {
         const action = this.getActionDefinition();
         // Support method (standard) or methodName (legacy)
         return action?.method || action?.methodName || '';
     }
-    public set method(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.method = v;
-    }
+    public set method(v: string) { this.applyChange('method', v); }
 
     public get params(): any[] {
         const action = this.getActionDefinition();
         return action?.params || [];
     }
-    public set params(v: any[]) {
-        const action = this.getActionDefinition();
-        if (action) action.params = v;
-    }
+    public set params(v: any[]) { this.applyChange('params', v); }
 
     public get paramsJSON(): string {
         const params = this.params;
@@ -392,7 +333,7 @@ export class FlowAction extends FlowElement {
     }
     public set paramsJSON(v: string) {
         try {
-            this.params = JSON.parse(v);
+            this.applyChange('params', JSON.parse(v));
         } catch (e) {
             logger.warn('Invalid JSON for params:', e);
         }
@@ -402,10 +343,7 @@ export class FlowAction extends FlowElement {
         const action = this.getActionDefinition();
         return action?.resultVariable || '';
     }
-    public set resultVariable(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.resultVariable = v;
-    }
+    public set resultVariable(v: string) { this.applyChange('resultVariable', v); }
 
     // --- HTTP / API Actions ---
 
@@ -413,44 +351,29 @@ export class FlowAction extends FlowElement {
         const action = this.getActionDefinition();
         return action?.url || '';
     }
-    public set url(v: string) {
-        const action = this.getActionDefinition();
-        if (action) {
-            action.url = v;
-            this.updateNodeDetails();
-        }
-    }
+    public set url(v: string) { this.applyChange('url', v); }
 
     public get body(): string {
         const action = this.getActionDefinition();
         return action?.body || '';
     }
-    public set body(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.body = v;
-    }
+    public set body(v: string) { this.applyChange('body', v); }
 
     public get resultPath(): string {
         const action = this.getActionDefinition();
         return action?.resultPath || '';
     }
-    public set resultPath(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.resultPath = v;
-    }
+    public set resultPath(v: string) { this.applyChange('resultPath', v); }
 
     public get headersJSON(): string {
         const action = this.getActionDefinition();
         return JSON.stringify((action as any)?.headers || {}, null, 2);
     }
     public set headersJSON(v: string) {
-        const action = this.getActionDefinition();
-        if (action) {
-            try {
-                (action as any).headers = JSON.parse(v);
-            } catch (e) {
-                logger.warn('Invalid JSON for headers:', e);
-            }
+        try {
+            this.applyChange('headers', JSON.parse(v));
+        } catch (e) {
+            logger.warn('Invalid JSON for headers:', e);
         }
     }
 
@@ -458,37 +381,25 @@ export class FlowAction extends FlowElement {
         const action = this.getActionDefinition();
         return action?.dataStore || '';
     }
-    public set dataStore(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.dataStore = v;
-    }
+    public set dataStore(v: string) { this.applyChange('dataStore', v); }
 
     public get resource(): string {
         const action = this.getActionDefinition();
         return action?.resource || '';
     }
-    public set resource(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.resource = v;
-    }
+    public set resource(v: string) { this.applyChange('resource', v); }
 
     public get queryProperty(): string {
         const action = this.getActionDefinition();
         return action?.queryProperty || '';
     }
-    public set queryProperty(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.queryProperty = v;
-    }
+    public set queryProperty(v: string) { this.applyChange('queryProperty', v); }
 
     public get queryValue(): string {
         const action = this.getActionDefinition();
         return action?.queryValue || '';
     }
-    public set queryValue(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.queryValue = v;
-    }
+    public set queryValue(v: string) { this.applyChange('queryValue', v); }
 
     // --- JWT / Token Actions ---
 
@@ -496,32 +407,23 @@ export class FlowAction extends FlowElement {
         const action = this.getActionDefinition();
         return (action as any)?.token || '';
     }
-    public set token(v: string) {
-        const action = this.getActionDefinition();
-        if (action) (action as any).token = v;
-    }
+    public set token(v: string) { this.applyChange('token', v); }
 
     public get tokenKey(): string {
         const action = this.getActionDefinition();
         return action?.tokenKey || '';
     }
-    public set tokenKey(v: string) {
-        const action = this.getActionDefinition();
-        if (action) action.tokenKey = v;
-    }
+    public set tokenKey(v: string) { this.applyChange('tokenKey', v); }
 
     public get calcStepsJSON(): string {
         const action = this.getActionDefinition();
         return JSON.stringify(action?.calcSteps || [], null, 2);
     }
     public set calcStepsJSON(v: string) {
-        const action = this.getActionDefinition();
-        if (action) {
-            try {
-                action.calcSteps = JSON.parse(v);
-            } catch (e) {
-                logger.warn('Invalid JSON for calcSteps:', e);
-            }
+        try {
+            this.applyChange('calcSteps', JSON.parse(v));
+        } catch (e) {
+            logger.warn('Invalid JSON for calcSteps:', e);
         }
     }
 
@@ -529,16 +431,7 @@ export class FlowAction extends FlowElement {
         const action = this.getActionDefinition();
         return action?.formula || action?.expression || '';
     }
-    public set formula(v: string) {
-        const action = this.getActionDefinition();
-        if (action) {
-            action.formula = v;
-            // Clear legacy property to ensure single source of truth
-            if (action.expression !== undefined) {
-                delete action.expression;
-            }
-        }
-    }
+    public set formula(v: string) { this.applyChange('formula', v); }
 
     public get expression(): string {
         return this.formula;
@@ -699,22 +592,25 @@ export class FlowAction extends FlowElement {
 
     /**
      * Wendet eine Property-Änderung an und synchronisiert mit der Projekt-JSON.
-     * Dies ist die Single Source of Truth für Action-Datenänderungen.
+     * 
+     * Phase 3 (SYNC_REFACTOR): Dies ist der EINZIGE Schreibpfad für Action-Properties.
+     * Alle Setter delegieren hierher. Der alte Setter-Callback (PropertyHelper.setPropertyValue)
+     * wurde entfernt, da Setter jetzt selbst applyChange aufrufen → Rekursionsgefahr.
+     * Side-Effects (applyActionStyling, legacy expression cleanup) werden hier direkt gehandhabt.
      *
      * @returns true wenn ein vollständiger Inspector-Re-Render nötig ist (z.B. bei Typ-Wechsel)
      */
     public applyChange(propertyName: string, newValue: any, _oldValue?: any): boolean {
-        // Spezialbehandlung: 'changes' als Objekt direkt schreiben (Key-Value-Editor)
+        const actionDef = this.getActionDefinition();
+
+        // Spezialbehandlung: 'changes' als Objekt (Key-Value-Editor, Legacy propertyChanges)
         if (propertyName === 'changes' && typeof newValue === 'object' && newValue !== null) {
-            const actionDef = this.getActionDefinition();
             if (actionDef) {
-                // Direkt in die Action-Definition schreiben
                 if (actionDef.propertyChanges && !actionDef.changes) {
                     actionDef.propertyChanges = newValue;
                 } else {
                     actionDef.changes = newValue;
                 }
-                // Auch in lokale data spiegeln
                 if (this.data) {
                     if ((this.data as any).propertyChanges && !(this.data as any).changes) {
                         (this.data as any).propertyChanges = newValue;
@@ -727,26 +623,30 @@ export class FlowAction extends FlowElement {
             return false;
         }
 
-        // SSoT-FIRST: Immer zuerst direkt in die Action-Definition schreiben.
-        // PropertyHelper.setPropertyValue(this, ...) funktioniert nur für Properties
-        // mit explizitem TypeScript-Setter (target, type, method, etc.).
-        // Für Registry-basierte Parameter (effect, duration, targetScale, fragments, etc.)
-        // existieren KEINE Setter → der Wert würde nur am Canvas-Proxy landen, nicht in SSoT.
-        const actionDef = this.getActionDefinition();
+        // SSoT-FIRST: In die Action-Definition schreiben
         if (actionDef) {
             actionDef[propertyName] = newValue;
+
+            // Spezial: formula → legacy expression-Feld aufräumen
+            if (propertyName === 'formula' && actionDef.expression !== undefined) {
+                delete actionDef.expression;
+            }
         }
 
-        // Auch in lokale data spiegeln (für toJSON und sofortige UI-Konsistenz)
+        // Lokale data spiegeln (für toJSON und sofortige UI-Konsistenz)
         if (this.data) {
             (this.data as any)[propertyName] = newValue;
+
+            // Spezial: type → actionType-Alias in data mitziehen
+            if (propertyName === 'type' && (this.data as any).actionType) {
+                (this.data as any).actionType = newValue;
+            }
         }
 
-        // Setter aufrufen, falls vorhanden (für Side-Effects wie Styling-Updates bei Typ-Wechsel)
-        const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), propertyName)
-            || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Object.getPrototypeOf(this)), propertyName);
-        if (descriptor?.set) {
-            PropertyHelper.setPropertyValue(this, propertyName, newValue);
+        // Side-Effects (ehemals in Settern):
+        if (propertyName === 'type' || propertyName === 'actionType') {
+            // Typ-Wechsel → Styling (Orange/Blau, Data-Ports) + Details aktualisieren
+            this.applyActionStyling();
         }
 
         // Visuelles Update
@@ -754,7 +654,7 @@ export class FlowAction extends FlowElement {
 
         // Bei Typ-Wechsel: Re-Render des gesamten Inspectors auslösen
         if (propertyName === 'type' || propertyName === 'actionType' || propertyName === 'effect') {
-            return true; // Inspector muss mit neuen Sektionen neu gerendert werden
+            return true;
         }
 
         return false;

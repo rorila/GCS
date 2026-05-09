@@ -7,6 +7,18 @@ import { NotificationToast } from '../../ui/NotificationToast';
 import { MediaPickerDialog } from '../MediaPickerDialog';
 
 export class InspectorSectionRenderer {
+    private static notify(context: IInspectorContext, propName: string, newVal: any, oldVal: any, obj: any, event?: any) {
+        mediatorService.notifyDataChanged({
+            property: propName,
+            value: newVal,
+            oldValue: oldVal,
+            object: obj
+        }, 'inspector');
+        if (event && context.onObjectUpdate) {
+            context.onObjectUpdate(event);
+        }
+    }
+
     public static renderSections(obj: IInspectable, parent: HTMLElement, context: IInspectorContext): void {
         const groupColors = GROUP_COLORS;
         const sections = obj.getInspectorSections();
@@ -186,20 +198,9 @@ export class InspectorSectionRenderer {
             }
         }
 
-        // Globaler Sync: Wenn ein Default-Wert injiziert wurde (und nicht leer ist),
-        // schreiben wir ihn leise zurück ins Objekt UND in die SSoT, damit UI und JSON übereinstimmen!
-        if (wasMissing && currentValue !== undefined && currentValue !== '') {
-            if (isFlowNode && obj.data) {
-                obj.data[propDef.name] = currentValue;
-                // SSoT-Sync: Auch in die Action-Definition schreiben!
-                if (typeof obj.getActionDefinition === 'function') {
-                    const actionDef = obj.getActionDefinition();
-                    if (actionDef) actionDef[propDef.name] = currentValue;
-                }
-            } else {
-                PropertyHelper.setPropertyValue(obj, propDef.name, currentValue);
-            }
-        }
+        // Phase 2 (SYNC_REFACTOR): wasMissing-Writer ENTFERNT.
+        // Defaults werden jetzt beim Laden via SchemaMigrator.applyRegistryDefaults() geschrieben.
+        // Render ist read-only — keine State-Mutation mehr zur Render-Zeit.
 
         if (propDef.type === 'select') {
             let options = propDef.options || [];
@@ -223,19 +224,8 @@ export class InspectorSectionRenderer {
                 // damit die Theme-Defaults überschreiben!
             }
             
-            // Sync default back to the object AND SSoT silently to avoid UI mismatch
-            if (wasMissing && effectiveValue !== undefined && effectiveValue !== '') {
-                if (isFlowNode && obj.data) {
-                    obj.data[propDef.name] = effectiveValue;
-                    // SSoT-Sync: Auch in die Action-Definition schreiben!
-                    if (typeof obj.getActionDefinition === 'function') {
-                        const actionDef = obj.getActionDefinition();
-                        if (actionDef) actionDef[propDef.name] = effectiveValue;
-                    }
-                } else {
-                    PropertyHelper.setPropertyValue(obj, propDef.name, effectiveValue);
-                }
-            }
+            // Phase 2 (SYNC_REFACTOR): wasMissing-Writer ENTFERNT.
+            // Defaults werden beim Laden geschrieben, nicht zur Render-Zeit.
 
             const select = context.renderer.renderSelect(
                 Array.isArray(options) ? options : [],
@@ -245,7 +235,21 @@ export class InspectorSectionRenderer {
             const selectName = propDef.controlName || propDef.name || '';
             if (selectName) select.name = selectName;
             select.onchange = async () => {
-                if (context.eventHandler) {
+                // Phase 3 (SYNC_REFACTOR): Kein Doppel-Dispatch mehr.
+                // FlowNodes nutzen NUR applyChange als einzigen Writer.
+                if (typeof obj.applyChange === 'function') {
+                    const needsReRender = obj.applyChange(propDef.name, select.value, currentValue);
+                    mediatorService.notifyDataChanged({
+                        property: propDef.name,
+                        value: select.value,
+                        oldValue: currentValue,
+                        object: obj
+                    }, 'inspector');
+                    if (needsReRender || propDef.name === 'target' || propDef.name === 'service') {
+                        context.update(obj);
+                    }
+                } else if (context.eventHandler) {
+                    // Nicht-FlowNodes: Legacy-Pfad via handleControlChange
                     const event = context.eventHandler.handleControlChange(
                         selectName, select.value, obj,
                         { ...propDef, property: propDef.name }
@@ -259,44 +263,34 @@ export class InspectorSectionRenderer {
                         }, 'inspector');
                         if (context.onObjectUpdate) context.onObjectUpdate(event);
                     }
-                }
-                if (typeof obj.applyChange === 'function') {
-                    const needsReRender = obj.applyChange(propDef.name, select.value, currentValue);
-                    if (needsReRender) {
+                    // Bei Ziel-Wechsel: Inspector neu rendern damit Methoden-Liste sich aktualisiert
+                    if (propDef.name === 'target' || propDef.name === 'service') {
+                        PropertyHelper.setPropertyValue(obj, propDef.name, select.value);
                         context.update(obj);
                     }
-                }
-                // Bei Ziel-Wechsel: Inspector neu rendern damit Methoden-Liste sich aktualisiert
-                if (propDef.name === 'target' || propDef.name === 'service') {
-                    PropertyHelper.setPropertyValue(obj, propDef.name, select.value);
-                    context.update(obj);
                 }
             };
             select.style.flex = '1';
             container.appendChild(select);
         } else if (propDef.type === 'number') {
-            if (wasMissing && currentValue !== undefined && currentValue !== '') {
-                if (isFlowNode && obj.data) obj.data[propDef.name] = currentValue;
-                else PropertyHelper.setPropertyValue(obj, propDef.name, currentValue);
-            }
+            // Phase 2 (SYNC_REFACTOR): wasMissing-Writer ENTFERNT.
+            // Defaults werden beim Laden geschrieben, nicht zur Render-Zeit.
             const input = document.createElement('input');
             input.type = 'number';
             input.value = currentValue;
             input.style.flex = '1';
             input.onchange = () => {
-                if (context.eventHandler) {
+                // Phase 3 (SYNC_REFACTOR): FlowNodes nutzen nur applyChange
+                if (typeof obj.applyChange === 'function') {
+                    obj.applyChange(propDef.name, Number(input.value), currentValue);
+                    InspectorSectionRenderer.notify(context, propDef.name, Number(input.value), currentValue, obj);
+                } else if (context.eventHandler) {
                     const event = context.eventHandler.handleControlChange(
                         propDef.name, Number(input.value), obj,
                         { ...propDef, property: propDef.name }
                     );
                     if (event) {
-                        mediatorService.notifyDataChanged({
-                            property: event.propertyName,
-                            value: event.newValue,
-                            oldValue: event.oldValue,
-                            object: event.object
-                        }, 'inspector');
-                        if (context.onObjectUpdate) context.onObjectUpdate(event);
+                        InspectorSectionRenderer.notify(context, event.propertyName, event.newValue, event.oldValue, event.object, event);
                     }
                 }
             };
@@ -321,19 +315,17 @@ export class InspectorSectionRenderer {
                 if (isFontWeight) newValue = cb.checked ? 'bold' : 'normal';
                 if (isFontStyle) newValue = cb.checked ? 'italic' : 'normal';
 
-                if (context.eventHandler) {
+                // Phase 3 (SYNC_REFACTOR): FlowNodes nutzen nur applyChange
+                if (typeof obj.applyChange === 'function') {
+                    obj.applyChange(propDef.name, newValue, currentValue);
+                    InspectorSectionRenderer.notify(context, propDef.name, newValue, currentValue, obj);
+                } else if (context.eventHandler) {
                     const event = context.eventHandler.handleControlChange(
                         propDef.name, newValue, obj,
                         { ...propDef, property: propDef.name }
                     );
                     if (event) {
-                        mediatorService.notifyDataChanged({
-                            property: event.propertyName,
-                            value: event.newValue,
-                            oldValue: event.oldValue,
-                            object: event.object
-                        }, 'inspector');
-                        if (context.onObjectUpdate) context.onObjectUpdate(event);
+                        InspectorSectionRenderer.notify(context, event.propertyName, event.newValue, event.oldValue, event.object, event);
                     }
                 }
             };
