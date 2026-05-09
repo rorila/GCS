@@ -727,19 +727,32 @@ export class FlowAction extends FlowElement {
             return false;
         }
 
-        // 1. Über Setter anwenden (FlowAction Setter schreibt in actionDefinition + data)
-        PropertyHelper.setPropertyValue(this, propertyName, newValue);
-
-        // 2. Zusätzlich direkt in die Action-Definition schreiben (SSoT)
+        // SSoT-FIRST: Immer zuerst direkt in die Action-Definition schreiben.
+        // PropertyHelper.setPropertyValue(this, ...) funktioniert nur für Properties
+        // mit explizitem TypeScript-Setter (target, type, method, etc.).
+        // Für Registry-basierte Parameter (effect, duration, targetScale, fragments, etc.)
+        // existieren KEINE Setter → der Wert würde nur am Canvas-Proxy landen, nicht in SSoT.
         const actionDef = this.getActionDefinition();
-        if (actionDef && actionDef !== this.data) {
-            PropertyHelper.setPropertyValue(actionDef, propertyName, newValue);
+        if (actionDef) {
+            actionDef[propertyName] = newValue;
         }
 
-        // 3. Visuelles Update
+        // Auch in lokale data spiegeln (für toJSON und sofortige UI-Konsistenz)
+        if (this.data) {
+            (this.data as any)[propertyName] = newValue;
+        }
+
+        // Setter aufrufen, falls vorhanden (für Side-Effects wie Styling-Updates bei Typ-Wechsel)
+        const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), propertyName)
+            || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Object.getPrototypeOf(this)), propertyName);
+        if (descriptor?.set) {
+            PropertyHelper.setPropertyValue(this, propertyName, newValue);
+        }
+
+        // Visuelles Update
         this.refreshVisuals();
 
-        // 4. Bei Typ-Wechsel: Re-Render des gesamten Inspectors auslösen
+        // Bei Typ-Wechsel: Re-Render des gesamten Inspectors auslösen
         if (propertyName === 'type' || propertyName === 'actionType' || propertyName === 'effect') {
             return true; // Inspector muss mit neuen Sektionen neu gerendert werden
         }

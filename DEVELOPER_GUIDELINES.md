@@ -1,4 +1,4 @@
-﻿# Developer Guidelines
+# Developer Guidelines
 
 > [!CAUTION]
 > **PFLICHT-REGEL FÜR KI-AGENTEN**: Jede Code-Änderung MUSS mit `npm run test` (oder `run_tests.bat`) validiert werden. Der `docs/QA_Report.md` ist Teil der „Definition of Done". Tests VOR der Nutzer-Benachrichtigung ausführen.
@@ -69,6 +69,7 @@
 - **Inspector-Typen**: `type: "color"` zeigt Farbwähler, `inline: true` gruppiert horizontal.
 - **Inspector Dropdowns**: Alle Listen für Tasks, Actions und Variablen über `ProjectRegistry.getTasks('all')` etc. speisen.
 - **FlowAction Proxy-Regel**: Neue Felder in `StandardActions.ts` oder `action_rules.json` MÜSSEN auch als Getter/Setter in `FlowAction.ts` implementiert werden. In `mapParameterTypeToInspector()` MUSS `'object'` auf `'select'` gemappt werden.
+- **FlowAction applyChange() — SSoT-First (v3.24.0)**: `applyChange()` schreibt IMMER direkt in `actionDef[prop]` und `this.data[prop]`. Setter werden nur aufgerufen, wenn ein TypeScript-Setter existiert (für Side-Effects wie Styling-Updates). **DO NOT** `PropertyHelper.setPropertyValue(this, prop, val)` in `applyChange()` verwenden — das funktioniert nur für Properties mit explizitem Setter und schreibt bei Registry-basierten Parametern (effect, duration, targetScale, etc.) nur auf den Canvas-Proxy statt in die SSoT!
 - **Geometrie-Plausi (v3.23.0)**: `x/y/width/height` in `TWindow.getInspectorProperties()` haben **dynamische** min/max basierend auf `coreStore.getActiveStage().grid`. Negative Positionen sind **nicht erlaubt** (min: 0). Regel: `x + width <= cols`, `y + height <= rows`.
 - **E2E-Tests**: Input name=`{propName}Input`, Select name=`controlName || propName`.
 

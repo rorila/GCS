@@ -1,3 +1,9 @@
+[UC-2026-05-09-InspectorSSoTSyncFix]
+Dateien:
+- src/editor/flow/FlowAction.ts: applyChange() (Line 730)
+- src/editor/inspector/renderers/InspectorSectionRenderer.ts: renderProperty() wasMissing-Sync (Line 191, Line 222)
+Beschreibung: Grundsaetzlicher Fix fuer die Inspector→JSON Synchronisation. Zwei Ursachen behoben: 1) FlowAction.applyChange() nutzte PropertyHelper.setPropertyValue(this, ...), was nur fuer Properties mit Setter funktionierte. Fix: Direkte Zuweisung actionDef[prop] = newValue. 2) Der wasMissing-Default-Sync im InspectorSectionRenderer schrieb Default-Werte nur in obj.data, nicht in die SSoT. syncToProject() uebernahm dann die veralteten obj.data-Werte und ueberschrieb die SSoT. Fix: Beide wasMissing-Sync-Bloecke schreiben jetzt auch via getActionDefinition() in die SSoT.
+
 [UC-2026-05-08-StartLogicAfterAnimation]
 Dateien:
 - src/model/types.ts

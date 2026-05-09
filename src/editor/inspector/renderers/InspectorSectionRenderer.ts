@@ -187,10 +187,15 @@ export class InspectorSectionRenderer {
         }
 
         // Globaler Sync: Wenn ein Default-Wert injiziert wurde (und nicht leer ist),
-        // schreiben wir ihn leise zurück ins Objekt, damit UI und JSON übereinstimmen!
+        // schreiben wir ihn leise zurück ins Objekt UND in die SSoT, damit UI und JSON übereinstimmen!
         if (wasMissing && currentValue !== undefined && currentValue !== '') {
             if (isFlowNode && obj.data) {
                 obj.data[propDef.name] = currentValue;
+                // SSoT-Sync: Auch in die Action-Definition schreiben!
+                if (typeof obj.getActionDefinition === 'function') {
+                    const actionDef = obj.getActionDefinition();
+                    if (actionDef) actionDef[propDef.name] = currentValue;
+                }
             } else {
                 PropertyHelper.setPropertyValue(obj, propDef.name, currentValue);
             }
@@ -215,10 +220,15 @@ export class InspectorSectionRenderer {
                 wasMissing = true;
             }
             
-            // Sync default back to the object silently to avoid UI mismatch
+            // Sync default back to the object AND SSoT silently to avoid UI mismatch
             if (wasMissing && effectiveValue !== undefined && effectiveValue !== '') {
                 if (isFlowNode && obj.data) {
                     obj.data[propDef.name] = effectiveValue;
+                    // SSoT-Sync: Auch in die Action-Definition schreiben!
+                    if (typeof obj.getActionDefinition === 'function') {
+                        const actionDef = obj.getActionDefinition();
+                        if (actionDef) actionDef[propDef.name] = effectiveValue;
+                    }
                 } else {
                     PropertyHelper.setPropertyValue(obj, propDef.name, effectiveValue);
                 }
