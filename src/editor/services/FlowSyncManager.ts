@@ -188,7 +188,7 @@ export class FlowSyncManager {
         this.host.updateFlowSelector();
         mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
 
-        const violations = SyncValidator.validate(this.host.project, currentContext);
+        const violations = SyncValidator.validate(this.host.project, currentContext, true);
         if (violations.length > 0) {
             SyncValidator.logger.warn(`${violations.length} Konsistenz-Verletzung(en) nach Sync von "${currentContext}":`);
             violations.forEach(v => {

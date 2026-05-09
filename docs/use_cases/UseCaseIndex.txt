@@ -1,4 +1,15 @@
 ### 2026-05-09
+[UC-2026-05-09-SyncRefactor-Phase3.5]
+Beschreibung: SYNC_REFACTOR Phase 3.5 (Cleanup) — Finalisierung des Sync-Refactorings nach Fehleranalyse. Ein Fehler nach Phase 2 führte dazu, dass neue Actions oder Actions, bei denen der Typ geändert wurde, leere Felder im Inspector anzeigten, da Default-Werte nur beim Laden des Projekts injiziert wurden. Die Methode `SchemaMigrator.initializeActionDefaults` wurde hinzugefügt, um Action-Defaults zur Laufzeit beim Erstellen (`AgentController.ensureActionDefined`) und beim Typwechsel (`FlowAction.applyChange`) nachzuziehen. `SyncValidator.validate` setzt nun standardmäßig `autoRepair: false` (explizit auf `true` in `FlowSyncManager`). Das Feld `schemaVersion` wurde zu `GameProject` hinzugefügt.
+Beteiligte Dateien:
+- src/model/types.ts (Zeilen ~450): `schemaVersion?: string` in `GameProject` ergänzt.
+- src/editor/services/SyncValidator.ts (Zeile ~31): `autoRepair: boolean = false` als Default in `validate`.
+- src/editor/services/FlowSyncManager.ts (Zeile ~191): `this.validator.validate(..., true)` explizit auf true gesetzt.
+- src/services/SchemaMigrator.ts (Zeile ~208): `initializeActionDefaults(action, lookup)` implementiert.
+- src/services/AgentController.ts (Zeile ~547): `SchemaMigrator.initializeActionDefaults` in `ensureActionDefined` aufgerufen.
+- src/editor/flow/FlowAction.ts (Zeile ~649): `SchemaMigrator.initializeActionDefaults` in `applyChange` bei type-Wechsel aufgerufen.
+Ergebnis: Alle Tests bestanden. Inspector zeigt nach Hinzufügen von Actions sofort die korrekten Default-Werte.
+
 [UC-2026-05-09-SyncRefactor-Phase3]
 Beschreibung: SYNC_REFACTOR Phase 3 (applyChange-only Schreibpfad) — Die Architektur für die Datenmutation im Editor wurde grundlegend umgestellt. Statt des fehleranfälligen Doppel-Dispatches (Inspector-Change -> SSoT -> applyChange -> SSoT) läuft nun sämtliche Mutation von FlowNodes ausschließlich über `applyChange()`. Der Bulk-Sync von Properties in `FlowSyncManager.syncToProject()` wurde entfernt, sodass `syncToProject` nun nur noch für Topologie (Nachregistrierung fehlender Actions) zuständig ist. Die `InspectorSectionRenderer`-Handler für Select, Number und Checkbox wurden refaktorisiert und dedupliziert.
 Beteiligte Dateien:

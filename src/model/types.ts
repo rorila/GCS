@@ -451,6 +451,7 @@ export interface StageDefinition {
 // ─────────────────────────────────────────────
 export interface GameProject {
     meta: ProjectMetadata;
+    schemaVersion?: string;       // Phase 1 SYNC_REFACTOR — Schema-Versionierung
     stage: {
         grid: GridConfig;
     };

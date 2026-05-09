@@ -8,6 +8,7 @@ import { ExpressionParser } from '../../runtime/ExpressionParser';
 import { InspectorSection } from '../inspector/types';
 
 import { Logger } from '../../utils/Logger';
+import { SchemaMigrator } from '../../services/SchemaMigrator';
 
 const logger = Logger.get('FlowAction');
 
@@ -645,6 +646,14 @@ export class FlowAction extends FlowElement {
 
         // Side-Effects (ehemals in Settern):
         if (propertyName === 'type' || propertyName === 'actionType') {
+            // Phase 3: Defaults nachziehen bei Typ-Wechsel
+            if (actionDef) {
+                SchemaMigrator.initializeActionDefaults(actionDef, (t) => projectActionRegistry.getActionParams(t));
+                // Kopiere Defaults zurück in data (für Inspector View)
+                if (this.data) {
+                    Object.assign(this.data, actionDef);
+                }
+            }
             // Typ-Wechsel → Styling (Orange/Blau, Data-Ports) + Details aktualisieren
             this.applyActionStyling();
         }

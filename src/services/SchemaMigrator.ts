@@ -207,4 +207,25 @@ export class SchemaMigrator {
 
         return filledCount;
     }
+
+    /**
+     * Phase 3: Initialisiert Defaults für eine einzelne (neue) Action.
+     * Wird beim Erstellen einer Action via UI oder beim Typ-Wechsel aufgerufen.
+     * @param action Das Action-Objekt
+     * @param registryLookup Funktion die für einen ActionType die Parameter-Defaults liefert
+     */
+    public static initializeActionDefaults(
+        action: any,
+        registryLookup: (type: string) => Array<{ name: string; defaultValue?: any }> | null
+    ): void {
+        if (!action || typeof action !== 'object' || !action.type) return;
+        const params = registryLookup(action.type);
+        if (!params) return;
+
+        for (const param of params) {
+            if (param.defaultValue !== undefined && action[param.name] === undefined) {
+                action[param.name] = param.defaultValue;
+            }
+        }
+    }
 }

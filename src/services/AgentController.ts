@@ -7,6 +7,7 @@ import { mediatorService } from './MediatorService';
 import { serviceRegistry } from './ServiceRegistry';
 import { Logger } from '../utils/Logger';
 import { RESERVED_VARIABLE_NAMES } from '../runtime/EventContext';
+import { SchemaMigrator } from './SchemaMigrator';
 
 /**
  * BranchBuilder
@@ -534,12 +535,13 @@ export class AgentController {
             Object.assign(actionDef, params);
             AgentController.logger.info(`Updated existing action: ${actionName}`);
         } else {
-            // Neu erstellen
             actionDef = {
                 name: actionName,
                 type: actionType,
                 ...params
             } as any;
+
+            SchemaMigrator.initializeActionDefaults(actionDef, (type) => projectActionRegistry.getActionParams(type));
 
             if (stageId) {
                 const stage = this.project!.stages?.find(s => s.id === stageId);

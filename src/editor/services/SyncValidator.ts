@@ -28,7 +28,7 @@ export class SyncValidator {
      * @param context Der aktuelle Flow-Kontext (Task-Name oder 'global')
      * @param autoRepair Wenn true, werden unkritische Probleme automatisch behoben
      */
-    public static validate(project: GameProject, context: string, autoRepair: boolean = true): ValidationResult[] {
+    public static validate(project: GameProject, context: string, autoRepair: boolean = false): ValidationResult[] {
         if (!project) return [];
 
         const results: ValidationResult[] = [];
