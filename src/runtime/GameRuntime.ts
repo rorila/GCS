@@ -42,6 +42,7 @@ export class GameRuntime implements IVariableHost {
     public spritePool: SpritePool = new SpritePool();
     private isSplashActive: boolean = false;
     private splashTimerId: any = null;
+    private isMainGameStarted: boolean = false;
     public stage: any = null;
     private stageController: TStageController | null = null;
     private varTimers: Map<string, any> = new Map();

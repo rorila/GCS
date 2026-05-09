@@ -226,8 +226,8 @@ Aggregiert aus den 5 Restpunkten — vor Implementierung sind diese Approvals n�
 | Datum | Aktion |
 |:---|:---|
 | 2026-05-09 | Initiales Review nach User-Implementation Phase 1–3 |
-| TBD | §2.1 Implementation (nach Approval) |
-| TBD | §2.2 Implementation (nach Approval) |
+| 2026-05-09 | §2.1-A/B/C/E + §2.2 + §2.4 (Phase 3.5 Cleanup) implementiert |
+| 2026-05-09 | §2.1-D (FlowNodeFactory Action Defaults) implementiert |
 | TBD | §2.3 Verifikation Snapshot-Kopplung |
 | TBD | §2.4 + §2.5 Implementation (nach Approval) |
 

@@ -10,7 +10,6 @@
  */
 
 import { Logger } from '../utils/Logger';
-import { GameProject } from '../model/types';
 
 const logger = Logger.get('SchemaMigrator');
 

@@ -174,7 +174,6 @@ export class InspectorSectionRenderer {
         // FlowElement.x (canvas position, e.g. 40) instead of the action parameter (e.g. '${MyVar}').
         // Use getActionDefinition() – the same SSoT method all FlowAction getters use internally.
         let currentValue: any;
-        let wasMissing = false;
         
         const isFlowNode = obj.isFlowNode === true || typeof obj.setShowDetails === 'function';
         if (isFlowNode && typeof obj.getActionDefinition === 'function') {
@@ -188,13 +187,11 @@ export class InspectorSectionRenderer {
             }
             if (currentValue === undefined || currentValue === null || currentValue === '') {
                 currentValue = propDef.defaultValue ?? '';
-                wasMissing = true;
             }
         } else {
             currentValue = PropertyHelper.getPropertyValue(obj, propDef.name);
             if (currentValue === undefined || currentValue === null || currentValue === '') {
                 currentValue = propDef.defaultValue ?? '';
-                wasMissing = true;
             }
         }
 

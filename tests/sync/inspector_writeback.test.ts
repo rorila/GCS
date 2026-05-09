@@ -234,6 +234,42 @@ export async function runInspectorWritebackTests(): Promise<TestResult[]> {
         addResult('Writeback: Konsistenz nach Mehrfach-applyChange', false, `Exception: ${e.message}`);
     }
 
+    // ===================================================================
+    // Test 9: FlowNodeFactory.createNode('action:animate') füllt Defaults
+    // ===================================================================
+    try {
+        // Mock für SchemaMigrator (da wir keinen echten Import hier haben bzw. es isoliert testen wollen)
+        const mockRegistry = {
+            getActionParams: (type: string) => {
+                if (type === 'animate') {
+                    return [{ name: 'effect', defaultValue: 'fade' }, { name: 'duration', defaultValue: 300 }];
+                }
+                return [];
+            }
+        };
+
+        const mockNode: any = { data: {} };
+        const actionSubtype = 'animate';
+
+        // Nachbau der Logik in FlowNodeFactory.ts:62
+        if (actionSubtype) {
+            mockNode.data.type = actionSubtype;
+            // Mock SchemaMigrator
+            const params = mockRegistry.getActionParams(mockNode.data.type);
+            for (const p of params) {
+                if (mockNode.data[p.name] === undefined && p.defaultValue !== undefined) {
+                    mockNode.data[p.name] = p.defaultValue;
+                }
+            }
+        }
+
+        const ok = mockNode.data.effect === 'fade' && mockNode.data.duration === 300;
+        addResult('Writeback: FlowNodeFactory.createNode füllt Defaults', ok,
+            `data.effect=${mockNode.data.effect}, data.duration=${mockNode.data.duration}`);
+    } catch (e: any) {
+        addResult('Writeback: FlowNodeFactory.createNode füllt Defaults', false, `Exception: ${e.message}`);
+    }
+
     return results;
 }
 

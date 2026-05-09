@@ -473,22 +473,5 @@ export class EditorRunManager {
         const restartBtn = document.getElementById('run-restart-game-btn');
         if (restartBtn) restartBtn.style.display = 'none';
     }
-
-    private startRuntimeComponents() {
-        this.activeTimers.forEach(timer => {
-            if (timer && typeof timer.start === 'function') {
-                timer.start(() => this.handleRuntimeEvent(timer.id, 'onTimer'));
-            }
-        });
-        
-        this.activeGameServers.forEach(server => {
-            if (server && typeof server.start === 'function') {
-                server.start((eventName: string, data: any) => {
-                    if (this.runtime) this.runtime.handleEvent(server.id, eventName, data);
-                    this.editor.render();
-                });
-            }
-        });
-    }
 }
 

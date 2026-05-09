@@ -1,5 +1,7 @@
 import { FlowElement } from '../flow/FlowElement';
 import { FlowAction } from '../flow/FlowAction';
+import { SchemaMigrator } from '../../services/SchemaMigrator';
+import { actionRegistry } from '../../runtime/ActionRegistry';
 import { FlowCommentNode } from '../flow/FlowCommentNode';
 import { FlowTask } from '../flow/FlowTask';
 
@@ -60,6 +62,7 @@ export class FlowNodeFactory {
                 if (actionSubtype) {
                     node.data = node.data || {};
                     node.data.type = actionSubtype;
+                    SchemaMigrator.initializeActionDefaults(node.data, (t) => actionRegistry.getMetadata(t)?.parameters || null);
                 }
                 if (this.host.project) {
                     (node as FlowAction).setProjectRef(this.host.project);

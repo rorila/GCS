@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 9.5.2026, 20:43:35
+**Generiert am**: 9.5.2026, 20:56:46
 **Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 240)
-    "Bestanden ✅" : 217
-    "Fehlgeschlagen ❌" : 23
+pie title Test-Status (Gesamt: 241)
+    "Bestanden ✅" : 219
+    "Fehlgeschlagen ❌" : 22
 ```
 
 ## 🧪 Test-Details
@@ -90,7 +90,7 @@ pie title Test-Status (Gesamt: 240)
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 30</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1168), src/editor/inspector/InspectorRenderer.ts (1239), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1057), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1144), src/services/AgentController.ts (1304)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Guard: bundle:runtime Freshness<br><small>Bundle 7212s veraltet (juengste Quelle: src/editor/services/StageRenderer.ts). Bitte "npm run bundle:runtime" ausfuehren!</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Action: ValidatePin → CheckPinCode<br><small>Action=true, Sequence=true, Flow=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -157,7 +157,7 @@ pie title Test-Status (Gesamt: 240)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778352153795_j8 (erwartet: stage_import_1778352153795_j8), BackToLobby.stageId=stage_import_1778352153795_as (erwartet: stage_import_1778352153795_as)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778352944572_g6 (erwartet: stage_import_1778352944572_g6), BackToLobby.stageId=stage_import_1778352944572_fs (erwartet: stage_import_1778352944572_fs)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
@@ -208,6 +208,7 @@ pie title Test-Status (Gesamt: 240)
 | Writeback: Registry-Parameter ohne Setter → SSoT + data<br><small>SSoT.duration=500, data.duration=500</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Writeback: changes-Objekt → SSoT + data<br><small>SSoT.changes={"visible":false,"opacity":0.5}, data.changes={"visible":false,"opacity":0.5}</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Writeback: Konsistenz nach Mehrfach-applyChange<br><small>SSoT: target=B, type=navigate, url=/menu</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Writeback: FlowNodeFactory.createNode füllt Defaults<br><small>data.effect=fade, data.duration=300</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Phase1: Alle Aliase normalisiert<br><small>type=property, changes=true, variableName=score, method=doStuff, formula=2 + 2</small> | SyncRefactor-Phase1 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Phase1: Gemischt → kanonisch gewinnt<br><small>type=navigate, changes.x=1, aliasDeleted=true</small> | SyncRefactor-Phase1 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Phase1: schemaVersion = 4.0.0<br><small>schemaVersion=4.0.0</small> | SyncRefactor-Phase1 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

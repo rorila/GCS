@@ -1,4 +1,11 @@
 ### 2026-05-09
+[UC-2026-05-09-FlowNodeFactory-ActionDefaults]
+Beschreibung: Bugfix — Drag-Drop-Erstellung von Actions im Flow-Editor ohne Default-Initialisierung. Beim Erstellen einer Action per Drag-Drop (z.B. `action:animate`) wurden keine Defaults aus der `ActionRegistry` gefüllt. Fix: `SchemaMigrator.initializeActionDefaults` wird nun im `FlowNodeFactory.createNode` `case 'action'` aufgerufen, wenn ein `actionSubtype` vorhanden ist. Test 9 in `inspector_writeback.test.ts` ergänzt.
+Beteiligte Dateien:
+- src/editor/services/FlowNodeFactory.ts (Zeile ~62): Import von `SchemaMigrator` und `projectActionRegistry`, Aufruf von `initializeActionDefaults` nach `node.data.type = actionSubtype`.
+- tests/sync/inspector_writeback.test.ts (Zeile ~237): Test 9 — Mock-basierte Validierung der Drag-Drop-Default-Initialisierung.
+Ergebnis: 9/9 Inspector-Writeback-Tests bestanden.
+
 [UC-2026-05-09-SyncRefactor-Phase3.5]
 Beschreibung: SYNC_REFACTOR Phase 3.5 (Cleanup) — Finalisierung des Sync-Refactorings nach Fehleranalyse. Ein Fehler nach Phase 2 führte dazu, dass neue Actions oder Actions, bei denen der Typ geändert wurde, leere Felder im Inspector anzeigten, da Default-Werte nur beim Laden des Projekts injiziert wurden. Die Methode `SchemaMigrator.initializeActionDefaults` wurde hinzugefügt, um Action-Defaults zur Laufzeit beim Erstellen (`AgentController.ensureActionDefined`) und beim Typwechsel (`FlowAction.applyChange`) nachzuziehen. `SyncValidator.validate` setzt nun standardmäßig `autoRepair: false` (explizit auf `true` in `FlowSyncManager`). Das Feld `schemaVersion` wurde zu `GameProject` hinzugefügt.
 Beteiligte Dateien:

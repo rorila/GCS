@@ -441,11 +441,6 @@ export class FlowAction extends FlowElement {
         this.formula = v;
     }
 
-    private updateNodeDetails() {
-        if (this.showDetails) {
-            this.setShowDetails(true, this.projectRef);
-        }
-    }
 
     // =====================================================================
     // IInspectable Implementation (Component-Owned Inspector)
@@ -648,7 +643,7 @@ export class FlowAction extends FlowElement {
         if (propertyName === 'type' || propertyName === 'actionType') {
             // Phase 3: Defaults nachziehen bei Typ-Wechsel
             if (actionDef) {
-                SchemaMigrator.initializeActionDefaults(actionDef, (t) => projectActionRegistry.getActionParams(t));
+                SchemaMigrator.initializeActionDefaults(actionDef, (t) => actionRegistry.getMetadata(t)?.parameters || null);
                 // Kopiere Defaults zurück in data (für Inspector View)
                 if (this.data) {
                     Object.assign(this.data, actionDef);

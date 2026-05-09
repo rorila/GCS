@@ -23,7 +23,11 @@ export function registerObjectPoolActions() {
         }
 
         // --- Variablen-Auflösung via ExpressionParser ---
-        const exprContext = { ...context.vars, ...context.objects };
+        const objMap: Record<string, any> = {};
+        if (context.objects) {
+            context.objects.forEach((o: any) => { if (o && o.name) objMap[o.name] = o; });
+        }
+        const exprContext: Record<string, any> = { ...context.vars, ...objMap };
         if (context.eventData) {
             exprContext.$event = context.eventData;
             exprContext.self = context.eventData.self || context.vars?.self;

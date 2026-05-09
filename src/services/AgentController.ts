@@ -8,6 +8,7 @@ import { serviceRegistry } from './ServiceRegistry';
 import { Logger } from '../utils/Logger';
 import { RESERVED_VARIABLE_NAMES } from '../runtime/EventContext';
 import { SchemaMigrator } from './SchemaMigrator';
+import { actionRegistry } from '../runtime/ActionRegistry';
 
 /**
  * BranchBuilder
@@ -541,7 +542,7 @@ export class AgentController {
                 ...params
             } as any;
 
-            SchemaMigrator.initializeActionDefaults(actionDef, (type) => projectActionRegistry.getActionParams(type));
+            SchemaMigrator.initializeActionDefaults(actionDef, (type) => actionRegistry.getMetadata(type)?.parameters || null);
 
             if (stageId) {
                 const stage = this.project!.stages?.find(s => s.id === stageId);
