@@ -1,3 +1,14 @@
+### 2026-05-10
+[UC-2026-05-10-TestRunner-Timing]
+Beschreibung: Timing-Infrastruktur für die Regressions-Test-Suite (`scripts/test_runner.ts`). Jede der 31 Test-Suiten plus die Playwright-E2E-Phase wird via `SuiteTimer.measure()` umrandet und zeitlich gemessen. Ergebnisse werden im `docs/QA_Report.md` als sortierte Timing-Übersicht ausgegeben (langsamste zuerst, 🐌-Flag ab 5000ms Einzelsuite). Gesamtlauf-Budget 180s als Warnschwelle (KEIN Fail bei Überschreitung). Konsolen-Output zeigt pro Suite die Dauer in ms. Exception-Verhalten und Exit-Codes bleiben unverändert (0 grün, 1 rot). Keine Änderungen an den 30 einzelnen Test-Files.
+Beteiligte Dateien:
+- scripts/test_runner.ts (Zeile 50-88): Neue `SuiteTimer`-Klasse, Konstanten `SUITE_BUDGET_MS=180_000`, `SLOW_SUITE_MS=5_000`, Interface `SuiteTiming`.
+- scripts/test_runner.ts (Zeile 102-150): `generateReport(results, timer, totalDurationMs)` erweitert um Timing-Tabelle und Budget-Hinweis im Header.
+- scripts/test_runner.ts (Zeile 154-359): `main()` umgeschrieben — alle 31 Suiten via `await timer.measure(name, async () => { ... })` instrumentiert.
+- scripts/test_runner.ts (Zeile 380, 411-412, 450-451): Playwright-E2E manuell instrumentiert (außerhalb des `timer.measure`-Pfads, da `execSync`).
+- scripts/test_runner.ts (Zeile 454-462): Abschließende Konsolen-Zusammenfassung mit Gesamtlauf-Zeit und Budget-Warnung.
+Ergebnis: Test-Suite läuft wie zuvor; zusätzlich liefert jeder Lauf Timing-Daten als Grundlage für spätere Performance-Regression-Erkennung (Stufe 2 — Baseline-Vergleich, optional).
+
 ### 2026-05-09
 [UC-2026-05-09-FlowNodeFactory-ActionDefaults]
 Beschreibung: Bugfix — Drag-Drop-Erstellung von Actions im Flow-Editor ohne Default-Initialisierung. Beim Erstellen einer Action per Drag-Drop (z.B. `action:animate`) wurden keine Defaults aus der `ActionRegistry` gefüllt. Fix: `SchemaMigrator.initializeActionDefaults` wird nun im `FlowNodeFactory.createNode` `case 'action'` aufgerufen, wenn ein `actionSubtype` vorhanden ist. Test 9 in `inspector_writeback.test.ts` ergänzt.
@@ -1124,12 +1135,18 @@ U s e C a s e :   P r o j e c t - W i d e   R e n a m e   o f   N e s t e d   C 
 Beteiligte Dateien:
 - src/editor/EditorViewManager.ts: renderManagementView() Zeile 652-657 - Stage-Fallback wenn coreStore.activeStageId null ist. handleManagerRowClick() Zeile 1056-1081 - Actions/Variables ohne switchView('stage') selektieren.
 Root Cause: FlowEditor.switchActionFlow() setzt coreStore.activeStageId auf null bei globalem Kontext (Zeile 588).
--   T I n f o W i n d o w / T D i a l o g R o o t   R e a c t i v i t y   F i x :   s r c / e d i t o r / s e r v i c e s / r e n d e r e r s / C o m p l e x C o m p o n e n t R e n d e r e r . t s   ( r e n d e r I n f o W i n d o w ,   r e n d e r D i a l o g R o o t )  
- -   P r o p e r t y W a t c h e r   L o g   S p a m   F i x :   s r c / r u n t i m e / P r o p e r t y W a t c h e r . t s   ( n o t i f y )  
- [ 2 0 2 6 - 0 4 - 2 4 ]   U C - 2 0 2 6 - 0 4 - 2 4 - V a r i a b l e H y d r a t i o n F i x  
- -   B e s c h r e i b u n g :   B e h e b u n g   d e s   F e h l e r s ,   d a s s   v o m   A g e n t e n   o h n e   ' c l a s s N a m e '   g e n e r i e r t e   V a r i a b l e n   b e i   d e r   D e s e r i a l i s i e r u n g   i g n o r i e r t   w u r d e n .   D i e s   f u e h r t e   d a z u ,   d a s s   d i e s e   V a r i a b l e n   n i c h t   i n   d e n   P r o j e k t z u s t a n d   a u f g e n o m m e n   u n d   i m   R u n - M o d e   ( z .   B .   i m   T a s k E x e c u t o r )   a l s   ' u n d e f i n e d '   a u s g e w e r t e t   w u r d e n ,   w a s   L o g i k f e h l e r   w i e   f e h l s c h l a g e n d e   C o n d i t i o n s   ( ' C a n F l i p _ 1   = =   f a l s e ' )   v e r u r s a c h t e .   E i n   e r w e i t e r t e r   F a l l b a c k   i n   ' S e r i a l i z a t i o n . t s '   e r k e n n t   n u n   a u c h   V a r i a b l e n   a n   t y p i s c h e n   A t t r i b u t e n   w i e   ' d e f a u l t V a l u e '   u n d   ' s c o p e '   u n d   w e i s t   d e n   k o r r e k t e n   ' c l a s s N a m e '   z u .  
- -   D a t e i e n :  
-     -   s r c / u t i l s / S e r i a l i z a t i o n . t s   ( M e t h o d e :   h y d r a t e O b j e c t s ,   Z e i l e n   2 6 - 3 8   -   E r w e i t e r t e r   i s L i k e l y V a r i a b l e - G u a r d )  
+-   T I n f o W i n d o w / T D i a l o g R o o t   R e a c t i v i t y   F i x :   s r c / e d i t o r / s e r v i c e s / r e n d e r e r s / C o m p l e x C o m p o n e n t R e n d e r e r . t s   ( r e n d e r I n f o W i n d o w ,   r e n d e r D i a l o g R o o t ) 
+ 
+ -   P r o p e r t y W a t c h e r   L o g   S p a m   F i x :   s r c / r u n t i m e / P r o p e r t y W a t c h e r . t s   ( n o t i f y ) 
+ 
+ [ 2 0 2 6 - 0 4 - 2 4 ]   U C - 2 0 2 6 - 0 4 - 2 4 - V a r i a b l e H y d r a t i o n F i x 
+ 
+ -   B e s c h r e i b u n g :   B e h e b u n g   d e s   F e h l e r s ,   d a s s   v o m   A g e n t e n   o h n e   ' c l a s s N a m e '   g e n e r i e r t e   V a r i a b l e n   b e i   d e r   D e s e r i a l i s i e r u n g   i g n o r i e r t   w u r d e n .   D i e s   f u e h r t e   d a z u ,   d a s s   d i e s e   V a r i a b l e n   n i c h t   i n   d e n   P r o j e k t z u s t a n d   a u f g e n o m m e n   u n d   i m   R u n - M o d e   ( z .   B .   i m   T a s k E x e c u t o r )   a l s   ' u n d e f i n e d '   a u s g e w e r t e t   w u r d e n ,   w a s   L o g i k f e h l e r   w i e   f e h l s c h l a g e n d e   C o n d i t i o n s   ( ' C a n F l i p _ 1   = =   f a l s e ' )   v e r u r s a c h t e .   E i n   e r w e i t e r t e r   F a l l b a c k   i n   ' S e r i a l i z a t i o n . t s '   e r k e n n t   n u n   a u c h   V a r i a b l e n   a n   t y p i s c h e n   A t t r i b u t e n   w i e   ' d e f a u l t V a l u e '   u n d   ' s c o p e '   u n d   w e i s t   d e n   k o r r e k t e n   ' c l a s s N a m e '   z u . 
+ 
+ -   D a t e i e n : 
+ 
+     -   s r c / u t i l s / S e r i a l i z a t i o n . t s   ( M e t h o d e :   h y d r a t e O b j e c t s ,   Z e i l e n   2 6 - 3 8   -   E r w e i t e r t e r   i s L i k e l y V a r i a b l e - G u a r d ) 
+ 
  
 [Task: Architektur-Gaps] TForEach Diffing, EventContext & Magic Pfade
 - src/components/TForEach.ts (Diff-Reconciliation updateClone: L175-L200)
@@ -1231,10 +1248,14 @@ Lines: 585
 
  [ 2 0 2 6 - 0 4 - 2 9 ]   I n s p e c t o r :   S u p p o r t   V - B u t t o n   b i n d i n g   f o r   n u m e r i c   p r o p e r t i e s 
  -   s r c / e d i t o r / i n s p e c t o r / r e n d e r e r s / I n s p e c t o r S e c t i o n R e n d e r e r . t s   ( r e n d e r S e c t i o n s ,   l i n e   ~ 5 3 0 ) 
-  
- U S E _ C A S E :   L o k a l e   V a r i a b l e n   E i g e n s c h a f t e n   b e a r b e i t e n   -   s r c / e d i t o r / f l o w / F l o w V a r i a b l e . t s   ( g e t I n s p e c t o r S e c t i o n s )  
- U S E _ C A S E :   D a t e n q u e l l e n   ( V a r i a b l e n   &   K o m p o n e n t e n )   p e r   D i a l o g   a u s w a e h l e n   -   s r c / e d i t o r / i n s p e c t o r / V a r i a b l e P i c k e r D i a l o g . t s   ( r e n d e r L i s t ,   g e t S u b F i e l d s )  
- U S E _ C A S E :   ' s e l f '   K o m p o n e n t e   i m   D a t a P i c k e r   a u s w a e h l e n   -   s r c / e d i t o r / i n s p e c t o r / V a r i a b l e P i c k e r D i a l o g . t s   ( s t a g e C o m p s )  
+ 
+ 
+ U S E _ C A S E :   L o k a l e   V a r i a b l e n   E i g e n s c h a f t e n   b e a r b e i t e n   -   s r c / e d i t o r / f l o w / F l o w V a r i a b l e . t s   ( g e t I n s p e c t o r S e c t i o n s ) 
+ 
+ U S E _ C A S E :   D a t e n q u e l l e n   ( V a r i a b l e n   &   K o m p o n e n t e n )   p e r   D i a l o g   a u s w a e h l e n   -   s r c / e d i t o r / i n s p e c t o r / V a r i a b l e P i c k e r D i a l o g . t s   ( r e n d e r L i s t ,   g e t S u b F i e l d s ) 
+ 
+ U S E _ C A S E :   ' s e l f '   K o m p o n e n t e   i m   D a t a P i c k e r   a u s w a e h l e n   -   s r c / e d i t o r / i n s p e c t o r / V a r i a b l e P i c k e r D i a l o g . t s   ( s t a g e C o m p s ) 
+ 
  
 USE_CASE: Universal Data Setter (Pascal Export) - src/editor/PascalCodeGenerator.ts (getActionPascalCode), src/editor/PascalCodeParser.ts (parseSimpleStatement), src/editor/refactoring/ObjectRefactoringService.ts (renameObject)
 

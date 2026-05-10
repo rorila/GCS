@@ -47,6 +47,46 @@ const __dirname = path.dirname(__filename);
 
 const REPORT_FILE = path.join(__dirname, '../docs/QA_Report.md');
 
+// ═══════════════════════════════════════════════════════════════════
+// Timing-Budgets (Warnschwellen, KEIN Fail)
+// ═══════════════════════════════════════════════════════════════════
+const SUITE_BUDGET_MS = 180_000; // Gesamtlauf: 3 Min Warnschwelle
+const SLOW_SUITE_MS = 5_000;     // Einzelsuite: 5s Warnschwelle
+
+interface SuiteTiming {
+    name: string;
+    durationMs: number;
+    failed: boolean;
+}
+
+/**
+ * Misst die Laufzeit einzelner Test-Suiten. Fehler werden durchgereicht —
+ * bestehendes main()-try/catch-Verhalten bleibt unverändert.
+ */
+class SuiteTimer {
+    private timings: SuiteTiming[] = [];
+
+    async measure<T>(name: string, fn: () => Promise<T> | T): Promise<T> {
+        const t0 = performance.now();
+        try {
+            const result = await fn();
+            const durationMs = performance.now() - t0;
+            this.timings.push({ name, durationMs, failed: false });
+            const flag = durationMs > SLOW_SUITE_MS ? ' 🐌' : '';
+            console.log(`  ⏱  ${name}: ${durationMs.toFixed(0)}ms${flag}`);
+            return result;
+        } catch (e) {
+            const durationMs = performance.now() - t0;
+            this.timings.push({ name, durationMs, failed: true });
+            console.log(`  ⏱  ${name}: ${durationMs.toFixed(0)}ms (❌ crashed)`);
+            throw e;
+        }
+    }
+
+    getTimings(): SuiteTiming[] { return this.timings; }
+    getTotalMs(): number { return this.timings.reduce((sum, t) => sum + t.durationMs, 0); }
+}
+
 function generateMermaidChart(results: TestResult[]): string {
     const passed = results.filter(r => r.passed).length;
     const failed = results.length - passed;
@@ -59,18 +99,35 @@ pie title Test-Status (Gesamt: ${results.length})
 `.trim();
 }
 
-function generateReport(results: TestResult[]) {
+function generateReport(results: TestResult[], timer: SuiteTimer, totalDurationMs: number) {
     const timestamp = new Date().toLocaleString('de-DE');
     const allPassed = results.every(r => r.passed);
-    const passedCount = results.filter(r => r.passed).length;
+    const overBudget = totalDurationMs > SUITE_BUDGET_MS;
 
     let markdown = `# 🛡️ QA Test Report\n\n`;
     markdown += `**Generiert am**: ${timestamp}\n`;
-    markdown += `**Status**: ${allPassed ? '✅ ALLE TESTS BESTANDEN' : '❌ FEHLER GEFUNDEN'}\n\n`;
+    markdown += `**Status**: ${allPassed ? '✅ ALLE TESTS BESTANDEN' : '❌ FEHLER GEFUNDEN'}\n`;
+    markdown += `**Gesamtlauf**: ${(totalDurationMs / 1000).toFixed(1)}s`;
+    if (overBudget) {
+        markdown += ` ⚠️ (Budget ${(SUITE_BUDGET_MS / 1000).toFixed(0)}s überschritten)`;
+    }
+    markdown += `\n\n`;
 
     markdown += `## 📊 Visuelle Übersicht\n`;
     markdown += generateMermaidChart(results);
     markdown += `\n\n`;
+
+    // ─── Timing-Übersicht (neu) ────────────────────────────────────
+    const timings = timer.getTimings().slice().sort((a, b) => b.durationMs - a.durationMs);
+    markdown += `## ⏱ Timing-Übersicht (sortiert nach Dauer)\n\n`;
+    markdown += `| Suite | Dauer | Status |\n|:---|---:|:---:|\n`;
+    for (const t of timings) {
+        const flag = t.durationMs > SLOW_SUITE_MS ? ' 🐌' : '';
+        markdown += `| ${t.name} | ${t.durationMs.toFixed(0)}ms${flag} | ${t.failed ? '❌' : '✅'} |\n`;
+    }
+    markdown += `\n**Summe Suiten**: ${timer.getTotalMs().toFixed(0)}ms\n`;
+    markdown += `**Gesamtlauf inkl. Setup/Report**: ${totalDurationMs.toFixed(0)}ms\n`;
+    markdown += `**Budget-Warnschwelle**: ${SUITE_BUDGET_MS}ms (Einzelsuite 🐌 ab ${SLOW_SUITE_MS}ms)\n\n`;
 
     markdown += `## 🧪 Test-Details\n`;
     markdown += `| Test-Fall | Kategorie | Typ | Erwartet | Ergebnis | Status |\n`;
@@ -100,163 +157,206 @@ async function main() {
     console.log('===================================================\n');
 
     const allResults: TestResult[] = [];
+    const timer = new SuiteTimer();
+    const t0Total = performance.now();
 
     try {
-        // 1. Logic Tests
-        console.log('🏃 Starte Logik-Tests (Login)...');
-        allResults.push(...await runLoginTests());
+        await timer.measure('Login-Logic', async () => {
+            console.log('🏃 Starte Logik-Tests (Login)...');
+            allResults.push(...await runLoginTests());
+        });
 
-        // 2. Smart Mapping & Discovery Tests
-        console.log('🏃 Starte Smart Mapping & Discovery Tests...');
-        allResults.push(...await runSmartMappingTests());
+        await timer.measure('Smart-Mapping & Discovery', async () => {
+            console.log('🏃 Starte Smart Mapping & Discovery Tests...');
+            allResults.push(...await runSmartMappingTests());
+        });
 
-        // 3. Unification & Auto-Unwrap Tests
-        console.log('🏃 Starte Unification & Auto-Unwrap Tests...');
-        allResults.push(...await runUnificationTests());
+        await timer.measure('Unification & Auto-Unwrap', async () => {
+            console.log('🏃 Starte Unification & Auto-Unwrap Tests...');
+            allResults.push(...await runUnificationTests());
+        });
 
-        // 4. TTable Smart-Unwrap Tests
-        console.log('🏃 Starte TTable Smart-Unwrap Tests...');
-        allResults.push(...await runTableUnwrapTests());
+        await timer.measure('TTable Smart-Unwrap', async () => {
+            console.log('🏃 Starte TTable Smart-Unwrap Tests...');
+            allResults.push(...await runTableUnwrapTests());
+        });
 
-        // 5. SELECT COUNT(*) Tests
-        console.log('🏃 Starte SELECT COUNT(*) Tests...');
-        allResults.push(...await runSelectCountTests());
+        await timer.measure('SELECT COUNT(*)', async () => {
+            console.log('🏃 Starte SELECT COUNT(*) Tests...');
+            allResults.push(...await runSelectCountTests());
+        });
 
-        // 13. Action Registration Tests
-        console.log('🏃 Starte Action Registration Tests...');
-        allResults.push(...await runActionRegistrationTests());
+        await timer.measure('Action Registration', async () => {
+            console.log('🏃 Starte Action Registration Tests...');
+            allResults.push(...await runActionRegistrationTests());
+        });
 
-        // 14. Action CRUD Tests
-        console.log('🏃 Starte Action CRUD Tests...');
-        allResults.push(...await runActionCRUDTests());
+        await timer.measure('Action CRUD', async () => {
+            console.log('🏃 Starte Action CRUD Tests...');
+            allResults.push(...await runActionCRUDTests());
+        });
 
-        // 15. Coordinate Binding Tests
-        console.log('🏃 Starte Coordinate Binding Tests...');
-        allResults.push(...await runCoordinateTests());
+        await timer.measure('Coordinate Binding', async () => {
+            console.log('🏃 Starte Coordinate Binding Tests...');
+            allResults.push(...await runCoordinateTests());
+        });
 
-        // 15.5 GameLoopManager Physics Tests
-        console.log('🏃 Starte GameLoopManager Physics Tests...');
-        try {
-            runGameLoopManagerTests();
-            allResults.push({ name: 'GameLoopManager Tests', passed: true, type: 'Physics', expectedSuccess: true, actualSuccess: true });
-        } catch (e: any) {
-            allResults.push({ name: 'GameLoopManager Tests', passed: false, type: 'Physics', expectedSuccess: true, actualSuccess: false, details: e.message });
-        }
+        await timer.measure('GameLoopManager Physics', async () => {
+            console.log('🏃 Starte GameLoopManager Physics Tests...');
+            try {
+                runGameLoopManagerTests();
+                allResults.push({ name: 'GameLoopManager Tests', passed: true, type: 'Physics', expectedSuccess: true, actualSuccess: true });
+            } catch (e: any) {
+                allResults.push({ name: 'GameLoopManager Tests', passed: false, type: 'Physics', expectedSuccess: true, actualSuccess: false, details: e.message });
+            }
+        });
 
-        // 16. AgentController Tests
-        console.log('🏃 Starte AgentController Tests...');
-        allResults.push(...await runAgentControllerTests());
+        await timer.measure('AgentController', async () => {
+            console.log('🏃 Starte AgentController Tests...');
+            allResults.push(...await runAgentControllerTests());
+        });
 
-        // 17. Raketen-Countdown Demo Tests
-        console.log('🏃 Starte Raketen-Countdown Tests...');
-        allResults.push(...await runRocketCountdownTests());
+        await timer.measure('Raketen-Countdown', async () => {
+            console.log('🏃 Starte Raketen-Countdown Tests...');
+            allResults.push(...await runRocketCountdownTests());
+        });
 
-        // 18. Mathe-Quiz Demo Tests
-        console.log('🏃 Starte Mathe-Quiz Tests...');
-        allResults.push(...await runMatheQuizTests());
+        await timer.measure('Mathe-Quiz', async () => {
+            console.log('🏃 Starte Mathe-Quiz Tests...');
+            allResults.push(...await runMatheQuizTests());
+        });
 
-        // 19. Virtual Gamepad Tests
-        console.log('🏃 Starte Virtual Gamepad Tests...');
-        allResults.push(...await runVirtualGamepadTests());
+        await timer.measure('Virtual Gamepad', async () => {
+            console.log('🏃 Starte Virtual Gamepad Tests...');
+            allResults.push(...await runVirtualGamepadTests());
+        });
 
-        // 6. Serialization Tests
-        console.log('🏃 Starte Serialization Tests...');
-        allResults.push(...await runSerializationTests());
+        await timer.measure('Serialization', async () => {
+            console.log('🏃 Starte Serialization Tests...');
+            allResults.push(...await runSerializationTests());
+        });
 
-        // 6.5. System Guards (Code Quality & Security)
-        console.log('🛡️  Starte Code Quality & Security Guards...');
-        allResults.push(...await runGuardTests());
+        await timer.measure('Code Quality & Security Guards', async () => {
+            console.log('🛡️  Starte Code Quality & Security Guards...');
+            allResults.push(...await runGuardTests());
+        });
 
-        // 7. RefactoringManager Tests
-        console.log('🏃 Starte RefactoringManager Tests...');
-        allResults.push(...await runRefactoringTests());
+        await timer.measure('RefactoringManager', async () => {
+            console.log('🏃 Starte RefactoringManager Tests...');
+            allResults.push(...await runRefactoringTests());
+        });
 
-        // 8. TaskExecutor Tests
-        console.log('🏃 Starte TaskExecutor Tests...');
-        allResults.push(...await runTaskExecutorTests());
+        await timer.measure('TaskExecutor', async () => {
+            console.log('🏃 Starte TaskExecutor Tests...');
+            allResults.push(...await runTaskExecutorTests());
+        });
 
-        // 9. FlowSync Tests
-        console.log('🏃 Starte FlowSync Tests...');
-        allResults.push(...await runFlowSyncTests());
+        await timer.measure('FlowSync', async () => {
+            console.log('🏃 Starte FlowSync Tests...');
+            allResults.push(...await runFlowSyncTests());
+        });
 
-        // 10. Project Integrity Tests
-        console.log('🏃 Starte Project Integrity Tests...');
-        allResults.push(...await runProjectIntegrityTests());
+        await timer.measure('Project Integrity', async () => {
+            console.log('🏃 Starte Project Integrity Tests...');
+            allResults.push(...await runProjectIntegrityTests());
+        });
 
-        // 11. Renaming Robustness Tests
-        console.log('🏃 Starte Renaming Robustness Tests...');
-        allResults.push(...await runRenamingRobustnessTests());
+        await timer.measure('Renaming Robustness', async () => {
+            console.log('🏃 Starte Renaming Robustness Tests...');
+            allResults.push(...await runRenamingRobustnessTests());
+        });
 
-        // 12. SyncValidator Tests
-        console.log('🏃 Starte SyncValidator Tests...');
-        allResults.push(...await runSyncValidatorTests());
+        await timer.measure('SyncValidator', async () => {
+            console.log('🏃 Starte SyncValidator Tests...');
+            allResults.push(...await runSyncValidatorTests());
+        });
 
-        // 13. SnapshotManager Tests
-        console.log('🏃 Starte SnapshotManager Tests...');
-        try {
-            runSnapshotTests();
-            allResults.push({ name: 'SnapshotManager Tests', passed: true, type: 'Undo/Redo', expectedSuccess: true, actualSuccess: true });
-        } catch (e: any) {
-            allResults.push({ name: 'SnapshotManager Tests', passed: false, type: 'Undo/Redo', expectedSuccess: true, actualSuccess: false, details: e.message });
-        }
+        await timer.measure('SnapshotManager', async () => {
+            console.log('🏃 Starte SnapshotManager Tests...');
+            try {
+                runSnapshotTests();
+                allResults.push({ name: 'SnapshotManager Tests', passed: true, type: 'Undo/Redo', expectedSuccess: true, actualSuccess: true });
+            } catch (e: any) {
+                allResults.push({ name: 'SnapshotManager Tests', passed: false, type: 'Undo/Redo', expectedSuccess: true, actualSuccess: false, details: e.message });
+            }
+        });
 
-        // 14. ProjectStore Tests
-        console.log('🏃 Starte ProjectStore Tests...');
-        try {
-            runProjectStoreTests();
-            allResults.push({ name: 'ProjectStore Tests', passed: true, type: 'State-Management', expectedSuccess: true, actualSuccess: true });
-        } catch (e: any) {
-            allResults.push({ name: 'ProjectStore Tests', passed: false, type: 'State-Management', expectedSuccess: true, actualSuccess: false, details: e.message });
-        }
+        await timer.measure('ProjectStore', async () => {
+            console.log('🏃 Starte ProjectStore Tests...');
+            try {
+                runProjectStoreTests();
+                allResults.push({ name: 'ProjectStore Tests', passed: true, type: 'State-Management', expectedSuccess: true, actualSuccess: true });
+            } catch (e: any) {
+                allResults.push({ name: 'ProjectStore Tests', passed: false, type: 'State-Management', expectedSuccess: true, actualSuccess: false, details: e.message });
+            }
+        });
 
-        // 15. FlowDataAction Inspector Tests
-        console.log('🏃 Starte FlowDataAction Inspector Tests...');
-        allResults.push(...await runFlowDataActionTests());
+        await timer.measure('FlowDataAction Inspector', async () => {
+            console.log('🏃 Starte FlowDataAction Inspector Tests...');
+            allResults.push(...await runFlowDataActionTests());
+        });
 
-        // 17. Export Integrity Tests
-        console.log('🏃 Starte Export Integrity Tests...');
-        allResults.push(...await runExportIntegrityTests());
+        await timer.measure('Export Integrity', async () => {
+            console.log('🏃 Starte Export Integrity Tests...');
+            allResults.push(...await runExportIntegrityTests());
+        });
 
-        // 18. Pascal Code Generator Tests
-        console.log('🏃 Starte Pascal Code Generator Tests...');
-        allResults.push(...await runPascalGeneratorTests());
+        await timer.measure('Pascal Code Generator', async () => {
+            console.log('🏃 Starte Pascal Code Generator Tests...');
+            allResults.push(...await runPascalGeneratorTests());
+        });
 
-        // 19. Stage-Import Tests
-        console.log('🏃 Starte Stage-Import Tests...');
-        allResults.push(...await runStageImportTests());
+        await timer.measure('Stage-Import', async () => {
+            console.log('🏃 Starte Stage-Import Tests...');
+            allResults.push(...await runStageImportTests());
+        });
 
-        // 20. Electron Security Tests
-        allResults.push(...await runElectronSecurityTests());
+        await timer.measure('Electron Security', async () => {
+            allResults.push(...await runElectronSecurityTests());
+        });
 
-        // 21. Stage-Transition Regressions-Tests & TDialogRoot Feature-Tests
-        console.log('🏃 Starte Stage-Transition Regressions-Tests...');
-        allResults.push(...await runStageTransitionRegressionTests());
+        await timer.measure('Stage-Transition Regression', async () => {
+            console.log('🏃 Starte Stage-Transition Regressions-Tests...');
+            allResults.push(...await runStageTransitionRegressionTests());
+        });
 
-        // 22. SidePanel Component Unit Tests
-        console.log('🏃 Starte SidePanel Tests...');
-        allResults.push(...await runSidePanelTests());
+        await timer.measure('SidePanel', async () => {
+            console.log('🏃 Starte SidePanel Tests...');
+            allResults.push(...await runSidePanelTests());
+        });
 
-        // 23. Component Events Tests
-        console.log('🏃 Starte Component Events Tests...');
-        allResults.push(...await runComponentEventsTests());
+        await timer.measure('Component Events', async () => {
+            console.log('🏃 Starte Component Events Tests...');
+            allResults.push(...await runComponentEventsTests());
+        });
 
         // ═══════════════════════════════════════════════════════
         // Phase 0 — SYNC_REFACTOR Test-Netz
         // ═══════════════════════════════════════════════════════
-        console.log('🏃 Starte Sync-Refactor Phase 0: Store SET_PROPERTY Tests...');
-        allResults.push(...await runStoreSetPropertyTests());
+        await timer.measure('SyncRefactor P0: Store SET_PROPERTY', async () => {
+            console.log('🏃 Starte Sync-Refactor Phase 0: Store SET_PROPERTY Tests...');
+            allResults.push(...await runStoreSetPropertyTests());
+        });
 
-        console.log('🏃 Starte Sync-Refactor Phase 0: SyncValidator Strict Tests...');
-        allResults.push(...await runSyncValidatorStrictTests());
+        await timer.measure('SyncRefactor P0: SyncValidator Strict', async () => {
+            console.log('🏃 Starte Sync-Refactor Phase 0: SyncValidator Strict Tests...');
+            allResults.push(...await runSyncValidatorStrictTests());
+        });
 
-        console.log('🏃 Starte Sync-Refactor Phase 0: FlowAction Alias Tests...');
-        allResults.push(...await runFlowActionAliasTests());
+        await timer.measure('SyncRefactor P0: FlowAction Aliases', async () => {
+            console.log('🏃 Starte Sync-Refactor Phase 0: FlowAction Alias Tests...');
+            allResults.push(...await runFlowActionAliasTests());
+        });
 
-        console.log('🏃 Starte Sync-Refactor Phase 0: Inspector Writeback Tests...');
-        allResults.push(...await runInspectorWritebackTests());
+        await timer.measure('SyncRefactor P0: Inspector Writeback', async () => {
+            console.log('🏃 Starte Sync-Refactor Phase 0: Inspector Writeback Tests...');
+            allResults.push(...await runInspectorWritebackTests());
+        });
 
-        console.log('🏃 Starte Sync-Refactor Phase 1: SchemaMigrator Tests...');
-        allResults.push(...await runSchemaMigratorTests());
+        await timer.measure('SyncRefactor P1: SchemaMigrator', async () => {
+            console.log('🏃 Starte Sync-Refactor Phase 1: SchemaMigrator Tests...');
+            allResults.push(...await runSchemaMigratorTests());
+        });
 
         // 🌐 Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
@@ -277,6 +377,7 @@ async function main() {
             console.warn('   Starte den Server mit: cd game-server && npm run dev\n');
         }
 
+        const playwrightT0 = performance.now();
         try {
             const e2eOutput = execSync('npx playwright test --reporter=json', { encoding: 'utf-8', stdio: 'pipe' });
             const e2eData = JSON.parse(e2eOutput);
@@ -307,6 +408,8 @@ async function main() {
             };
 
             extractResults(e2eData.suites);
+            timer.getTimings().push({ name: 'Playwright E2E', durationMs: performance.now() - playwrightT0, failed: false });
+            console.log(`  ⏱  Playwright E2E: ${(performance.now() - playwrightT0).toFixed(0)}ms`);
             console.log('✅ Browser-Tests abgeschlossen.');
         } catch (e2eErr: any) {
             console.warn('⚠️ Playwright Tests fehlgeschlagen oder mit Warnungen abgeschlossen.');
@@ -344,10 +447,19 @@ async function main() {
                     console.error('❌ Fehler beim Parsen der Playwright-Ergebnisse.');
                 }
             }
+            timer.getTimings().push({ name: 'Playwright E2E', durationMs: performance.now() - playwrightT0, failed: true });
+            console.log(`  ⏱  Playwright E2E: ${(performance.now() - playwrightT0).toFixed(0)}ms (❌ mit Fehlern)`);
         }
 
         // Report Generation
-        generateReport(allResults);
+        const totalDurationMs = performance.now() - t0Total;
+        generateReport(allResults, timer, totalDurationMs);
+
+        // Timing-Zusammenfassung auf Konsole
+        console.log(`\n⏱  Gesamtlauf: ${(totalDurationMs / 1000).toFixed(1)}s (Suiten: ${(timer.getTotalMs() / 1000).toFixed(1)}s)`);
+        if (totalDurationMs > SUITE_BUDGET_MS) {
+            console.warn(`⚠️  Budget ${(SUITE_BUDGET_MS / 1000).toFixed(0)}s überschritten — siehe Timing-Übersicht im Report.`);
+        }
 
         if (allResults.every(r => r.passed)) {
             console.log('\n✅ ALLE KRITISCHEN PFADE VERIFIZIERT');

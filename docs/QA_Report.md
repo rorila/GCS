@@ -1,14 +1,61 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 9.5.2026, 20:56:46
+**Generiert am**: 10.5.2026, 09:54:45
 **Status**: ❌ FEHLER GEFUNDEN
+**Gesamtlauf**: 66.1s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
 pie title Test-Status (Gesamt: 241)
-    "Bestanden ✅" : 219
-    "Fehlgeschlagen ❌" : 22
+    "Bestanden ✅" : 218
+    "Fehlgeschlagen ❌" : 23
 ```
+
+## ⏱ Timing-Übersicht (sortiert nach Dauer)
+
+| Suite | Dauer | Status |
+|:---|---:|:---:|
+| Playwright E2E | 65880ms 🐌 | ❌ |
+| Code Quality & Security Guards | 145ms | ✅ |
+| AgentController | 11ms | ✅ |
+| Coordinate Binding | 9ms | ✅ |
+| Stage-Transition Regression | 6ms | ✅ |
+| RefactoringManager | 6ms | ✅ |
+| Mathe-Quiz | 5ms | ✅ |
+| ProjectStore | 3ms | ✅ |
+| Serialization | 3ms | ✅ |
+| TaskExecutor | 3ms | ✅ |
+| Stage-Import | 3ms | ✅ |
+| SyncRefactor P1: SchemaMigrator | 3ms | ✅ |
+| Export Integrity | 2ms | ✅ |
+| SyncValidator | 2ms | ✅ |
+| Project Integrity | 2ms | ✅ |
+| GameLoopManager Physics | 2ms | ✅ |
+| Pascal Code Generator | 2ms | ✅ |
+| SyncRefactor P0: Store SET_PROPERTY | 2ms | ✅ |
+| FlowDataAction Inspector | 1ms | ✅ |
+| Action CRUD | 1ms | ✅ |
+| Raketen-Countdown | 1ms | ✅ |
+| SnapshotManager | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
+| Action Registration | 1ms | ✅ |
+| Virtual Gamepad | 1ms | ✅ |
+| Unification & Auto-Unwrap | 1ms | ✅ |
+| SidePanel | 1ms | ✅ |
+| FlowSync | 1ms | ✅ |
+| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
+| SyncRefactor P0: Inspector Writeback | 1ms | ✅ |
+| Renaming Robustness | 1ms | ✅ |
+| Login-Logic | 1ms | ✅ |
+| Electron Security | 1ms | ✅ |
+| Smart-Mapping & Discovery | 1ms | ✅ |
+| SELECT COUNT(*) | 1ms | ✅ |
+| Component Events | 0ms | ✅ |
+| TTable Smart-Unwrap | 0ms | ✅ |
+
+**Summe Suiten**: 66107ms
+**Gesamtlauf inkl. Setup/Report**: 66143ms
+**Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
 | Test-Fall | Kategorie | Typ | Erwartet | Ergebnis | Status |
@@ -89,7 +136,7 @@ pie title Test-Status (Gesamt: 241)
 | Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 70 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 30</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1168), src/editor/inspector/InspectorRenderer.ts (1239), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1057), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1144), src/services/AgentController.ts (1304)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1168), src/editor/inspector/InspectorRenderer.ts (1239), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1054), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1145), src/services/AgentController.ts (1305)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -147,7 +194,7 @@ pie title Test-Status (Gesamt: 241)
 | Export-Integrität: GameExporter.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Export-Integrität: ProjectPersistenceService.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Export-Integrität: player-standalone.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: GameRuntime.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Export-Integrität: GameRuntime.ts<br><small>Hash geändert! Erwartet: 02D1C1260DEF3F04..., Aktuell: 5D76A0EBDBBB5F6C... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Export-Integrität: GameLoopManager.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Nested Task Declaration Generation<br><small>Recursive Tasks successfully output</small> | Pascal Generator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Basis-Import (Objekte, Tasks, Actions, Variables)<br><small>2 Objekte, 1 Task, 2 Actions, 1 Variable korrekt kopiert</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -157,7 +204,7 @@ pie title Test-Status (Gesamt: 241)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778352944572_g6 (erwartet: stage_import_1778352944572_g6), BackToLobby.stageId=stage_import_1778352944572_fs (erwartet: stage_import_1778352944572_fs)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778399619500_i5 (erwartet: stage_import_1778399619500_i5), BackToLobby.stageId=stage_import_1778399619500_lw (erwartet: stage_import_1778399619500_lw)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
