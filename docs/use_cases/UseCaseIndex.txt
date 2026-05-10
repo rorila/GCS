@@ -1,4 +1,14 @@
 ### 2026-05-10
+[UC-2026-05-10-DebugLogViewer-FilterScope]
+Beschreibung: Bugfix — Debug-Log-Viewer-Filter zeigten Komponenten/Tasks/Actions aus ALLEN Stages an statt nur aus der aktiven Stage + Blueprint-Stage. Anforderung (siehe Commit dda79fdf, e29f0782): Die 4 kaskadierenden Filter (Object, Event, Task, Action) sollen sich auf die im Fokus stehende Stage und die Blueprint-Stage beschraenken. Der ursprueliche Code in `getAllProjectObjects/Tasks/Actions` durchlief `project.stages` komplett (mit Kommentar "Alle Stages fuer die Filter verwenden"). Fix: Neuer Helper `getRelevantStages()` liefert nur Blueprint + aktive Stage. TDebugLog kennt den Editor jetzt via neuem Setter `setEditor()` und ruft `editor.getActiveStage()` auf. Bei Stage-Wechsel triggert `Editor.switchStage` ein `debugLog.updateFilterDropdowns()`, damit die Dropdowns sofort die neue Stage reflektieren. Stages selbst und Variables bleiben in der Object-Dropdown enthalten (sie haben Events).
+Beteiligte Dateien:
+- src/components/TDebugLog.ts (Zeile 19): Neuer Member `editor: any | null`.
+- src/components/TDebugLog.ts (Zeile 471-487): Neuer public Setter `setEditor()`, neuer private Helper `getRelevantStages()`.
+- src/components/TDebugLog.ts (Zeile 511-516, 527-538, 549-552): `getAllProjectObjects/Tasks/Actions` nutzen jetzt `getRelevantStages()` statt aller Stages.
+- src/editor/Editor.ts (Zeile 129): `this.debugLog.setEditor(this)` direkt nach `setProject()` im Init.
+- src/editor/Editor.ts (Zeile 460): `this.debugLog?.updateFilterDropdowns()` am Ende von `switchStage()`.
+Ergebnis: Filter zeigen nur noch Komponenten/Events/Tasks/Actions der aktiven Stage und der Blueprint-Stage. Bei Stage-Wechsel werden die Dropdowns automatisch aktualisiert.
+
 [UC-2026-05-10-TestRunner-Timing]
 Beschreibung: Timing-Infrastruktur für die Regressions-Test-Suite (`scripts/test_runner.ts`). Jede der 31 Test-Suiten plus die Playwright-E2E-Phase wird via `SuiteTimer.measure()` umrandet und zeitlich gemessen. Ergebnisse werden im `docs/QA_Report.md` als sortierte Timing-Übersicht ausgegeben (langsamste zuerst, 🐌-Flag ab 5000ms Einzelsuite). Gesamtlauf-Budget 180s als Warnschwelle (KEIN Fail bei Überschreitung). Konsolen-Output zeigt pro Suite die Dauer in ms. Exception-Verhalten und Exit-Codes bleiben unverändert (0 grün, 1 rot). Keine Änderungen an den 30 einzelnen Test-Files.
 Beteiligte Dateien:

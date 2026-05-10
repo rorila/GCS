@@ -126,6 +126,7 @@ export class Editor implements IViewHost {
         // 4. UI Setup
         this.debugLog = new TDebugLog();
         this.debugLog.setProject(this.project);
+        this.debugLog.setEditor(this);
         this.initInspector();
         this.initJSONToolbox();
         this.initComponentPalette();
@@ -456,6 +457,7 @@ export class Editor implements IViewHost {
             this.switchView('stage');
         }
         this.updateStageLabel();
+        this.debugLog?.updateFilterDropdowns();
     }
     public updateStagesMenu() { this.menuManager.updateStagesMenu(); }
 

@@ -16,6 +16,7 @@ export class TDebugLog {
     private isPaused: boolean = false;
     private unsubscribe: (() => void) | null = null;
     private project: any | null = null;
+    private editor: any | null = null;
     private isVisible: boolean = false;
 
     private renderRafId: number | null = null;
@@ -463,14 +464,34 @@ export class TDebugLog {
         this.updateFilterDropdowns();
     }
 
+    /**
+     * Setzt eine Referenz auf den Editor, damit der Filter die aktuell aktive Stage
+     * ermitteln kann (siehe getRelevantStages). Wird beim Editor-Init aufgerufen.
+     */
+    public setEditor(editor: any) {
+        this.editor = editor;
+    }
+
+    /**
+     * Liefert die fuer die Filter relevanten Stages: aktive Stage + Blueprint-Stage.
+     * Anforderung: Filter beziehen sich auf die Stage im Fokus + Blueprint.
+     */
+    private getRelevantStages(): any[] {
+        if (!this.project?.stages) return [];
+        const activeStage = this.editor?.getActiveStage?.() || null;
+        const blueprint = this.project.stages.find((s: any) => s.type === 'blueprint') || null;
+        const stages: any[] = [];
+        if (blueprint) stages.push(blueprint);
+        if (activeStage && activeStage !== blueprint) stages.push(activeStage);
+        return stages;
+    }
+
     public updateFilterDropdowns() {
         this.updateObjectDropdown();
         this.updateEventDropdown();
         this.updateTaskDropdown();
         this.updateActionDropdown();
     }
-
-    // private getRelevantStages(): any[] - Entfernt, da wir für Filter ALLE Stages durchsuchen wollen.
 
     private getAllProjectObjects(): any[] {
         if (!this.project) return [];
@@ -487,51 +508,47 @@ export class TDebugLog {
         if (this.project.objects) flatten(this.project.objects);
         if (this.project.variables) result.push(...this.project.variables);
 
-        // Alle Stages für die Filter verwenden (auch inaktive), damit alte Logs filterbar bleiben
-        if (this.project.stages) {
-            for (const stage of this.project.stages) {
-                result.push(stage);
-                if (stage.objects) flatten(stage.objects);
-                if (stage.variables) result.push(...stage.variables);
-            }
+        // Nur aktive Stage + Blueprint (Stages selbst haben Events, Variables ebenso)
+        for (const stage of this.getRelevantStages()) {
+            result.push(stage);
+            if (stage.objects) flatten(stage.objects);
+            if (stage.variables) result.push(...stage.variables);
         }
         return result;
     }
 
     /**
-     * Sammelt Tasks aus ALLEN Stages, da Logs auch Tasks aus vorherigen Stages enthalten können.
+     * Sammelt Tasks aus aktiver Stage + Blueprint.
      */
     private getAllProjectTasks(): any[] {
         if (!this.project) return [];
         const tasks: any[] = [];
         if (this.project.tasks) tasks.push(...this.project.tasks);
-        if (this.project.stages) {
-            for (const stage of this.project.stages) {
-                if (stage.tasks) tasks.push(...stage.tasks);
-                // Tasks können auch nur im FlowChart existieren (ohne ActionSequence)
-                if (stage.flowCharts) {
-                    Object.keys(stage.flowCharts).forEach(key => {
-                        if (key !== 'global' && !tasks.find(t => t.name === key)) {
-                            tasks.push({ name: key });
-                        }
-                    });
-                }
+        // Nur aktive Stage + Blueprint
+        for (const stage of this.getRelevantStages()) {
+            if (stage.tasks) tasks.push(...stage.tasks);
+            // Tasks können auch nur im FlowChart existieren (ohne ActionSequence)
+            if (stage.flowCharts) {
+                Object.keys(stage.flowCharts).forEach(key => {
+                    if (key !== 'global' && !tasks.find(t => t.name === key)) {
+                        tasks.push({ name: key });
+                    }
+                });
             }
         }
         return tasks;
     }
 
     /**
-     * Sammelt Actions aus ALLEN Stages.
+     * Sammelt Actions aus aktiver Stage + Blueprint.
      */
     private getAllProjectActions(): any[] {
         if (!this.project) return [];
         const actions: any[] = [];
         if (this.project.actions) actions.push(...this.project.actions);
-        if (this.project.stages) {
-            for (const stage of this.project.stages) {
-                if (stage.actions) actions.push(...stage.actions);
-            }
+        // Nur aktive Stage + Blueprint
+        for (const stage of this.getRelevantStages()) {
+            if (stage.actions) actions.push(...stage.actions);
         }
         return actions;
     }
