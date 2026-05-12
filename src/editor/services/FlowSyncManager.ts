@@ -99,9 +99,15 @@ export class FlowSyncManager {
         const persistentConnections = this.host.connections.filter(c => !c.data?.isEmbeddedInternal && !c.data?.parentProxyId);
         const connections = persistentConnections.map(c => c.toJSON());
 
-        // Stage-Scope: Actions gehören in die Stage ihres Tasks, nicht in die UI-aktive Stage
+        // Stage-Scope: Actions gehören in die Stage ihres Tasks, nicht in die UI-aktive Stage.
+        // Fallback (kein Task-Match): Aktive Stage des Editors — NICHT Blueprint via Name-Match,
+        // damit neu angelegte Actions immer in der vom User intendierten Stage landen.
         const taskStage = this.getStageForContext(currentContext);
-        const taskStageId = taskStage?.id || undefined;
+        const fallbackStage = !taskStage
+            ? (typeof (this.host as any).getActiveStage === 'function' ? (this.host as any).getActiveStage() : null)
+            : null;
+        const effectiveStage = taskStage || fallbackStage;
+        const taskStageId = effectiveStage?.id || undefined;
 
         this.host.nodes.forEach(node => {
             const nodeType = node.getType().toLowerCase();
@@ -111,9 +117,13 @@ export class FlowSyncManager {
                     // Phase 3 (SYNC_REFACTOR): Property-Bulk-Sync entfernt.
                     // Properties werden jetzt live via applyChange geschrieben.
                     // Nur Nachregistrierung für neue/fehlende Actions bleibt.
-                    const existsInStage = taskStage?.actions?.some((a: any) => a.name === actionName)
+                    // Regel: Pro Stage darf eine Action nur EINMAL vorkommen — aber dieselbe
+                    // Action darf in mehreren Stages (z.B. Blueprint + Stage-Override) existieren.
+                    // Deshalb pruefen wir nur die Ziel-Stage (effectiveStage) und den project.actions-Root.
+                    const existsInTargetStage =
+                        effectiveStage?.actions?.some((a: any) => a.name === actionName)
                         || this.host.project.actions?.some((a: any) => a.name === actionName);
-                    if (!existsInStage) {
+                    if (!existsInTargetStage) {
                         FlowSyncManager.logger.info(`[TRACE] syncToProject: Neue Action "${actionName}" wird nachregistriert.`);
                         this.registrySync.updateGlobalActionDefinition({ id: node.id, details: (node as any).Details, ...node.data, name: actionName }, taskStageId);
                     }

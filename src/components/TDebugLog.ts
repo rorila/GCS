@@ -377,6 +377,11 @@ export class TDebugLog {
     }
 
     private updateServiceRecordingFilter() {
+        const activeTypes = Array.from(this.typeFilters);
+        console.info('[DEBUG-LOG-FILTER] active types:', activeTypes);
+        if (activeTypes.length === 0) {
+            console.warn('[DEBUG-LOG-FILTER] typeFilters ist LEER — alle Eintraege wuerden verworfen.');
+        }
         this.service.setFilterPredicate((type: string, _objectName?: string, _eventName?: string) => {
             // Recording Filter wendet NUR die Type-Filter an, damit
             // spammy Events (wie System, Variable) früh verworfen werden.
@@ -429,6 +434,17 @@ export class TDebugLog {
                         const normalizedLabel = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
                         return normalizedLabel as LogType;
                     }));
+                    // Sicherheits-Fallback: Wenn der gespeicherte Filter leer/korrupt ist,
+                    // wuerde der Recording-Filter ALLES verwerfen. Auf Default zuruecksetzen.
+                    const validTypes: LogType[] = ['Event', 'Task', 'Action', 'Variable', 'Condition', 'System'];
+                    const filtered = Array.from(this.typeFilters).filter(t => validTypes.includes(t as LogType));
+                    if (filtered.length === 0) {
+                        console.warn('[TDebugLog] Gespeicherte typeFilters waren leer oder ungueltig. Setze auf Default zurueck. Geladen:', filters.types);
+                        this.typeFilters = new Set(validTypes);
+                    } else if (filtered.length !== this.typeFilters.size) {
+                        console.warn('[TDebugLog] Gespeicherte typeFilters enthielten ungueltige Werte. Bereinige.', filters.types);
+                        this.typeFilters = new Set(filtered as LogType[]);
+                    }
                 }
                 if (filters.showDetails !== undefined) this.showDetails = filters.showDetails;
                 if (filters.object !== undefined) this.objectFilter = filters.object;

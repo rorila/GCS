@@ -10,6 +10,7 @@ import { serviceRegistry } from '../../services/ServiceRegistry';
 import { MethodRegistry } from '../MethodRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { DialogDomainHelper } from '../dialogs/utils/DialogDomainHelper';
+import { componentRegistry } from '../../services/ComponentRegistry';
 import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('InspectorRenderer');
@@ -1170,6 +1171,32 @@ export class InspectorRenderer {
                 ...validObjects.map((o: any) => ({ value: o.name, label: o.name })),
                 ...serviceRegistry.listServices().map((s: string) => ({ value: s, label: s + ' (Service)' }))
             ];
+        }
+        if (prop.source === 'objects_and_variables') {
+            return [
+                { value: 'self', label: 'self (Selbstreferenz)' },
+                ...projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name })),
+                ...projectVariableRegistry.getVariables().map(v => ({ value: v.name, label: v.name + ' (Variable)' }))
+            ];
+        }
+        if (prop.source === 'events_of_target') {
+            const targetName = prop._context?.target || actionObj?.target;
+            if (targetName && targetName !== 'self') {
+                const obj = projectObjectRegistry.getObjects().find(o => o.name === targetName);
+                if (obj) {
+                    try {
+                        const events = componentRegistry.getEvents(obj);
+                        if (events && events.length) return events.map((e: string) => ({ value: e, label: e }));
+                    } catch (_e) { /* fallthrough to union */ }
+                }
+            }
+            // Variable / self / unbekanntes Target -> Union aller bekannten Events
+            const allEvents = new Set<string>();
+            projectObjectRegistry.getObjects().forEach(o => {
+                try { componentRegistry.getEvents(o).forEach((ev: string) => allEvents.add(ev)); }
+                catch { /* skip */ }
+            });
+            return Array.from(allEvents).sort().map(e => ({ value: e, label: e }));
         }
         if (prop.source === 'methods_of_target') {
             const targetName = prop._context?.target || actionObj?.target;

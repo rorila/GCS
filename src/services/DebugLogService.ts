@@ -52,8 +52,11 @@ export class DebugLogService {
 
     public setEnabled(enabled: boolean) {
         DebugLogService.logger.info(`setEnabled(${enabled})`);
+        console.info(`[DebugLogService] setEnabled(${enabled})`);
         this.enabled = enabled;
     }
+
+    private _droppedDueToDisabled = 0;
 
     public isEnabled(): boolean {
         return this.enabled;
@@ -78,7 +81,17 @@ export class DebugLogService {
         level?: any,
         category?: any
     } = {}): string {
-        if (!this.enabled || this.isNotifying) return '';
+        if (!this.enabled || this.isNotifying) {
+            // Diagnose: einmalig pro 50 verworfene Eintraege ein Hinweis,
+            // damit wir sehen ob enabled=false die Ursache ist.
+            if (!this.enabled) {
+                this._droppedDueToDisabled++;
+                if (this._droppedDueToDisabled === 1 || this._droppedDueToDisabled % 50 === 0) {
+                    console.warn(`[DebugLogService] LOG VERWORFEN (enabled=false). count=${this._droppedDueToDisabled}, type=${type}, msg="${message}"`);
+                }
+            }
+            return '';
+        }
 
         // Recording-Filter: Verwerfe Logs, die nicht dem UI-Filter entsprechen
         if (this.filterPredicate && !this.filterPredicate(type, options.objectName, options.eventName)) {
@@ -115,6 +128,11 @@ export class DebugLogService {
         if (parentId) {
             const parent = this.entryMap.get(parentId);
             if (parent) {
+                // Erbe objectName/eventName vom Parent, falls nicht explizit gesetzt.
+                // Damit greifen Display-Filter (Object/Event) auch auf Kind-Eintraege
+                // (Task, Action, Variable, Condition) ohne Tree-Walk.
+                if (!entry.eventName)  entry.eventName  = parent.eventName;
+                if (!entry.objectName) entry.objectName = parent.objectName;
                 parent.children.push(entry);
                 // Children-Limit: älteste Kinder entfernen
                 if (parent.children.length > this.maxChildren) {

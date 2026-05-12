@@ -253,7 +253,6 @@ export class TextObjectRenderer {
         el.style.justifyContent = flexJustify;
         el.style.textAlign = flexAlign;
 
-        console.log(`[DEBUG-RENDER-BUTTON] ID: ${obj.id || obj.name} | text: "${textValue}" | align-prop: ${align} | set justifyContent: ${flexJustify} | set textAlign: ${flexAlign}`);
         if (ctx.host.runMode) {
             el.onmouseenter = () => {
                 el.style.filter = 'brightness(1.1)';

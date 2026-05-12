@@ -550,7 +550,9 @@ export class FlowAction extends FlowElement {
                         name: param.name, label: param.label,
                         type: this.mapParameterTypeToInspector(param.type),
                         hint: param.hint,
-                        visibleWhen: param.visibleWhen, defaultValue: param.defaultValue
+                        visibleWhen: param.visibleWhen, defaultValue: param.defaultValue,
+                        allowVariableBinding: param.allowVariableBinding,
+                        placeholder: param.placeholder
                     };
                     if (param.options) field.options = param.options.map((o: string) => ({ value: o, label: o }));
                     else if (param.source) field.source = param.source;

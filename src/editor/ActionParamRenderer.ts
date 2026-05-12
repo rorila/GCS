@@ -1,7 +1,9 @@
 import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
 import { projectActionRegistry } from '../services/registry/ActionRegistry';
 import { projectTaskRegistry } from '../services/registry/TaskRegistry';
+import { projectVariableRegistry } from '../services/registry/VariableRegistry';
 import { actionRegistry } from '../runtime/ActionRegistry';
+import { componentRegistry } from '../services/ComponentRegistry';
 
 
 import { serviceRegistry } from '../services/ServiceRegistry';
@@ -77,6 +79,34 @@ export class ActionParamRenderer {
                             ...validObjects.map((o: any) => ({ value: o.name, label: o.name })),
                             ...serviceRegistry.listServices().map((s: string) => ({ value: s, label: s + ' (Service)' }))
                         ];
+                    }
+                    else if (param.source === 'objects_and_variables') {
+                        items = [
+                            ...projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name })),
+                            ...projectVariableRegistry.getVariables().map((v: any) => ({ value: v.name, label: v.name + ' (Variable)' }))
+                        ];
+                    }
+                    else if (param.source === 'events_of_target') {
+                        const tgt = ctx.dialogData.target;
+                        if (tgt && tgt !== 'self') {
+                            const obj = projectObjectRegistry.getObjects().find(o => o.name === tgt);
+                            if (obj) {
+                                try {
+                                    const events = componentRegistry.getEvents(obj);
+                                    if (events && events.length) {
+                                        items = events.map((e: string) => ({ value: e, label: e }));
+                                    }
+                                } catch (_e) { /* fallthrough */ }
+                            }
+                        }
+                        if (items.length === 0) {
+                            const allEvents = new Set<string>();
+                            projectObjectRegistry.getObjects().forEach(o => {
+                                try { componentRegistry.getEvents(o).forEach((ev: string) => allEvents.add(ev)); }
+                                catch { /* skip */ }
+                            });
+                            items = Array.from(allEvents).sort().map(e => ({ value: e, label: e }));
+                        }
                     }
                     else if (param.source === 'methods_of_target') {
                         const targetName = ctx.dialogData.target;

@@ -34,6 +34,8 @@ import { runElectronSecurityTests } from '../tests/electron_security.test.js';
 import { runStageTransitionRegressionTests } from '../tests/stage_transition_regression.test.js';
 import { runTests as runSidePanelTests } from '../tests/side_panel.test.js';
 import { runComponentEventsTests } from '../tests/component_events.test.js';
+import { runEventActionsTests } from '../tests/event_actions.test.js';
+import { runActionStageRoutingTests } from '../tests/action_stage_routing.test.js';
 // Phase 0 — SYNC_REFACTOR Test-Netz
 import { runStoreSetPropertyTests } from '../tests/sync/store_set_property.test.js';
 import { runSyncValidatorStrictTests } from '../tests/sync/sync_validator_strict.test.js';
@@ -328,6 +330,16 @@ async function main() {
         await timer.measure('Component Events', async () => {
             console.log('🏃 Starte Component Events Tests...');
             allResults.push(...await runComponentEventsTests());
+        });
+
+        await timer.measure('Event Actions (bind/unbind)', async () => {
+            console.log('🏃 Starte Event-Action Tests (bind_event / unbind_event)...');
+            allResults.push(...await runEventActionsTests());
+        });
+
+        await timer.measure('Action Stage Routing & Duplicates', async () => {
+            console.log('🏃 Starte Action-Stage-Routing & Duplikat-Tests...');
+            allResults.push(...await runActionStageRoutingTests());
         });
 
         // ═══════════════════════════════════════════════════════

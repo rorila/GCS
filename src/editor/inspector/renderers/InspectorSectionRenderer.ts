@@ -269,6 +269,39 @@ export class InspectorSectionRenderer {
             };
             select.style.flex = '1';
             container.appendChild(select);
+
+            // Optional: V-Button fuer Variable-Binding via VariablePickerDialog.
+            // Ermoeglicht Stage-/Task-Variablen, Repeater-Felder und Pfade wie ${obj.prop},
+            // die im Dropdown nicht enthalten sind.
+            if (propDef.allowVariableBinding) {
+                // Falls aktueller Wert ein ${...}-Binding ist und nicht in den Optionen
+                // vorkommt, als Zusatz-Option einblenden, damit das Select ihn anzeigt.
+                if (typeof currentValue === 'string' && currentValue.includes('${')) {
+                    const exists = Array.from(select.options).some(o => o.value === currentValue);
+                    if (!exists) {
+                        const opt = document.createElement('option');
+                        opt.value = currentValue;
+                        opt.text = currentValue + ' (Variable)';
+                        opt.selected = true;
+                        select.appendChild(opt);
+                    }
+                }
+
+                container.style.gap = '4px';
+                const pickVarBtn = document.createElement('button');
+                pickVarBtn.textContent = 'V';
+                pickVarBtn.title = 'Variable verknuepfen (Bind)';
+                pickVarBtn.style.cssText = 'padding: 4px; background: #e67e22; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; width: 24px; font-weight: bold; flex-shrink: 0;';
+                pickVarBtn.onclick = () => {
+                    if (context.actionHandler) {
+                        (context.actionHandler as any).handleAction(
+                            { action: 'pickVariable', property: propDef.name, propertyType: propDef.type },
+                            obj
+                        );
+                    }
+                };
+                container.appendChild(pickVarBtn);
+            }
         } else if (propDef.type === 'number') {
             // Phase 2 (SYNC_REFACTOR): wasMissing-Writer ENTFERNT.
             // Defaults werden beim Laden geschrieben, nicht zur Render-Zeit.

@@ -313,52 +313,96 @@ export class SyncValidator {
     }
 
     // =========================================================================
-    // R5: Duplikat-Erkennung
-    // Keine Task/Action darf in mehreren Stages doppelt existieren
+    // R5: Duplikat-Erkennung — INTRA-STAGE
+    // Regel: Pro Stage (inkl. Blueprint) darf eine Task/Action/Variable nur EINMAL
+    // existieren. Dieselbe Entitaet darf jedoch in mehreren Stages parallel existieren
+    // (Blueprint + Stage-Override). Cross-Stage-Vorkommen sind also NICHT verboten.
+    // Auto-Repair entfernt leere Phantom-Huellen, wenn im SELBEN Container eine echte
+    // Definition existiert.
     // =========================================================================
-    private static validateDuplicates(project: GameProject, _autoRepair: boolean): ValidationResult[] {
+    private static validateDuplicates(project: GameProject, autoRepair: boolean): ValidationResult[] {
         const results: ValidationResult[] = [];
 
-        const checkDuplicates = (type: 'task' | 'action') => {
-            const seen = new Map<string, string>(); // name → first location
+        // Heuristik: "Phantom-Hülle" = property-Action ohne befüllte changes/target und
+        // ohne calculate/service/data_action-spezifische Felder.
+        const isPhantomHull = (a: any): boolean => {
+            if (!a) return false;
+            const isPropertyShell = a.type === 'property'
+                && (!a.target || a.target === '')
+                && (!a.changes || Object.keys(a.changes).length === 0);
+            const hasNoCalcFields = !a.resultVariable && !a.formula && !a.calcSteps;
+            const hasNoServiceFields = !a.service && !a.method;
+            const hasNoDataFields = !a.url && !a.dataStore;
+            return isPropertyShell && hasNoCalcFields && hasNoServiceFields && hasNoDataFields;
+        };
 
-            // Root-Level
-            const rootItems = type === 'task' ? (project.tasks || []) : (project.actions || []);
-            for (const item of rootItems) {
-                const key = item.name.toLowerCase();
-                if (seen.has(key)) {
-                    results.push({
-                        rule: 'R5',
-                        severity: 'warn',
-                        message: `${type === 'task' ? 'Task' : 'Action'} "${item.name}" existiert doppelt: in Root und in ${seen.get(key)}.`
-                    });
-                } else {
-                    seen.set(key, 'Root');
-                }
-            }
+        // Pruefe Duplikate innerhalb genau EINES Containers (intra-container).
+        const checkContainer = (
+            container: any[],
+            kind: 'task' | 'action' | 'variable',
+            locationLabel: string,
+            allowAutoRepair: boolean
+        ) => {
+            if (!container || container.length < 2) return;
 
-            // Stages
-            if (project.stages) {
-                for (const stage of project.stages) {
-                    const items = type === 'task' ? (stage.tasks || []) : (stage.actions || []);
-                    for (const item of items) {
-                        const key = item.name.toLowerCase();
-                        if (seen.has(key)) {
-                            results.push({
-                                rule: 'R5',
-                                severity: 'warn',
-                                message: `${type === 'task' ? 'Task' : 'Action'} "${item.name}" existiert doppelt: in Stage "${stage.name}" und in ${seen.get(key)}.`
-                            });
-                        } else {
-                            seen.set(key, `Stage "${stage.name}"`);
-                        }
+            const byName = new Map<string, number[]>();
+            container.forEach((item, idx) => {
+                if (!item?.name) return;
+                const key = String(item.name).toLowerCase();
+                const arr = byName.get(key) || [];
+                arr.push(idx);
+                byName.set(key, arr);
+            });
+
+            const ruleId = kind === 'action' ? 'R5-actions'
+                : (kind === 'variable' ? 'R5-variables' : 'R5');
+            const kindLabel = kind === 'task' ? 'Task'
+                : (kind === 'variable' ? 'Variable' : 'Action');
+
+            for (const [, indices] of byName) {
+                if (indices.length < 2) continue;
+                const itemName = container[indices[0]].name;
+
+                // Auto-Repair nur fuer Actions: entferne Phantom-Huellen, wenn mindestens
+                // eine "echte" Definition im selben Container existiert.
+                if (kind === 'action' && allowAutoRepair) {
+                    const phantomIndices = indices.filter(i => isPhantomHull(container[i]));
+                    const hasReal = indices.some(i => !isPhantomHull(container[i]));
+                    if (hasReal && phantomIndices.length >= 1) {
+                        // Von hinten nach vorn entfernen, damit Indizes stabil bleiben.
+                        phantomIndices.sort((a, b) => b - a).forEach(i => container.splice(i, 1));
+                        results.push({
+                            rule: ruleId,
+                            severity: 'warn',
+                            message: `Action "${itemName}" in ${locationLabel}: ${phantomIndices.length} leere Phantom-Hülle(n) automatisch entfernt.`,
+                            autoRepaired: true
+                        });
+                        continue;
                     }
                 }
+
+                results.push({
+                    rule: ruleId,
+                    severity: 'error',
+                    message: `${kindLabel} "${itemName}" existiert ${indices.length}x in ${locationLabel}. Pro Stage ist nur ein Eintrag erlaubt.`
+                });
             }
         };
 
-        checkDuplicates('task');
-        checkDuplicates('action');
+        // Root-Container (legacy)
+        checkContainer(project.tasks || [], 'task', 'Root', autoRepair);
+        checkContainer(project.actions || [], 'action', 'Root', autoRepair);
+        checkContainer(project.variables || [], 'variable', 'Root', autoRepair);
+
+        // Pro Stage
+        if (project.stages) {
+            for (const stage of project.stages) {
+                const label = `Stage "${stage.name}"`;
+                checkContainer(stage.tasks || [], 'task', label, autoRepair);
+                checkContainer(stage.actions || [], 'action', label, autoRepair);
+                checkContainer((stage as any).variables || [], 'variable', label, autoRepair);
+            }
+        }
 
         return results;
     }

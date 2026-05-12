@@ -556,7 +556,12 @@ export class FlowContextMenuProvider {
     }
 
     private linkActionToNode(node: FlowElement, action: any): void {
-        node.data = { ...node.data, name: action.name, isLinked: true };
+        // SSoT: Reine Referenz — KEIN Spread des bestehenden node.data, weil dort
+        // Default-Felder (type='property', target='', changes={}) aus createNode liegen,
+        // die sonst eine Phantom-Hülle in stage.actions[] erzeugen wuerden.
+        // Der `isMinimalLink`-Check in FlowRegistrySync greift nur, wenn weder
+        // type noch target noch service gesetzt sind.
+        node.data = { name: action.name, isLinked: true };
         node.setText(action.name);
         node.setDetailed(true);
         node.setLinked(true);

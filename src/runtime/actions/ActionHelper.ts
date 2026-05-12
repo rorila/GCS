@@ -29,7 +29,13 @@ export function resolveTarget(targetName: string, objects: any[], vars: Record<s
     let actualName = cleanTargetName;
     if (cleanTargetName.startsWith('${') && cleanTargetName.endsWith('}')) {
         const varName = cleanTargetName.substring(2, cleanTargetName.length - 1);
-        actualName = String(vars[varName] || cleanTargetName);
+        const v = vars[varName];
+        // TVariable-Objekte ({ name, type, value, className: 'TVariable' }) korrekt entpacken.
+        if (v && typeof v === 'object' && 'value' in (v as any)) {
+            actualName = String((v as any).value);
+        } else if (v !== undefined && v !== null) {
+            actualName = String(v);
+        }
     }
     let foundObj = objects.find(o => o.name === actualName || o.id === actualName);
     if (!foundObj && typeof vars === 'object' && vars[actualName]) {

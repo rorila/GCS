@@ -10,6 +10,7 @@ export class TObjectList extends TTable {
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 8, 4); // Größerer Default
         this.isVariable = true;
+        this.isHiddenInRun = true; // Wie alle Variablen-Komponenten: nur im Edit-Mode sichtbar
         this.style.backgroundColor = '#009688';
         this.style.borderColor = '#00796b';
         this.style.borderWidth = 2;

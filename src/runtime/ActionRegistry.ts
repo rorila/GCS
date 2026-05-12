@@ -21,6 +21,9 @@ export interface ActionParameter {
     placeholder?: string;
     defaultValue?: any;
     visibleWhen?: { field: string; values: any[] };
+    /** Aktiviert einen V-Button neben dem Eingabefeld, der den VariablePickerDialog oeffnet
+     *  und den Wert als ${...}-Binding einfuegt. Aktuell vom select-Renderer ausgewertet. */
+    allowVariableBinding?: boolean;
 }
 
 export interface ActionMetadata {

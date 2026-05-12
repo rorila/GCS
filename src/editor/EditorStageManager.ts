@@ -82,8 +82,15 @@ export class EditorStageManager {
             return activeStage.actions;
         }
 
-        if (blueprintStage?.actions && blueprintStage.actions.find(a => a.name === actionName)) {
-            return blueprintStage.actions;
+        // Blueprint-Match nur, wenn die existierende Action explizit als globale
+        // Blueprint-Action markiert ist. Reiner Namens-Match darf NICHT mehr nach
+        // Blueprint umlenken (verhinderte bisher, dass Actions in der vom User
+        // intendierten Stage angelegt wurden).
+        if (blueprintStage?.actions) {
+            const bpAction = blueprintStage.actions.find(a => a.name === actionName);
+            if (bpAction && (bpAction as any).scope === 'global') {
+                return blueprintStage.actions;
+            }
         }
 
         // Default to active stage

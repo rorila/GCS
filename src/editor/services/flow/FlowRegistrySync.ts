@@ -88,7 +88,8 @@ export class FlowRegistrySync {
             } else {
                 Object.assign(existingAction, newAction, { type: newType });
             }
-        } else {
+        }
+        if (idx === -1) {
             const typeDefaults: Record<string, Record<string, any>> = {
                 'data_action': { details: '(data_action)', url: '', method: 'GET', requestJWT: false, queryValue: '', resultVariable: '', selectFields: '*' },
                 'navigate_stage': { actionType: 'navigate_stage', stageId: '' },

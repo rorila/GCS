@@ -1,60 +1,62 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 10.5.2026, 09:54:45
+**Generiert am**: 12.5.2026, 10:07:46
 **Status**: ❌ FEHLER GEFUNDEN
-**Gesamtlauf**: 66.1s
+**Gesamtlauf**: 62.8s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 241)
-    "Bestanden ✅" : 218
-    "Fehlgeschlagen ❌" : 23
+pie title Test-Status (Gesamt: 260)
+    "Bestanden ✅" : 234
+    "Fehlgeschlagen ❌" : 26
 ```
 
 ## ⏱ Timing-Übersicht (sortiert nach Dauer)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 65880ms 🐌 | ❌ |
-| Code Quality & Security Guards | 145ms | ✅ |
-| AgentController | 11ms | ✅ |
+| Playwright E2E | 62550ms 🐌 | ❌ |
+| Code Quality & Security Guards | 135ms | ✅ |
+| AgentController | 10ms | ✅ |
 | Coordinate Binding | 9ms | ✅ |
-| Stage-Transition Regression | 6ms | ✅ |
-| RefactoringManager | 6ms | ✅ |
-| Mathe-Quiz | 5ms | ✅ |
+| Stage-Transition Regression | 5ms | ✅ |
+| Mathe-Quiz | 4ms | ✅ |
+| RefactoringManager | 4ms | ✅ |
 | ProjectStore | 3ms | ✅ |
-| Serialization | 3ms | ✅ |
 | TaskExecutor | 3ms | ✅ |
 | Stage-Import | 3ms | ✅ |
-| SyncRefactor P1: SchemaMigrator | 3ms | ✅ |
-| Export Integrity | 2ms | ✅ |
+| Serialization | 3ms | ✅ |
+| Action CRUD | 2ms | ✅ |
 | SyncValidator | 2ms | ✅ |
+| SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
+| Export Integrity | 2ms | ✅ |
 | Project Integrity | 2ms | ✅ |
-| GameLoopManager Physics | 2ms | ✅ |
-| Pascal Code Generator | 2ms | ✅ |
 | SyncRefactor P0: Store SET_PROPERTY | 2ms | ✅ |
-| FlowDataAction Inspector | 1ms | ✅ |
-| Action CRUD | 1ms | ✅ |
+| GameLoopManager Physics | 1ms | ✅ |
+| Action Stage Routing & Duplicates | 1ms | ✅ |
 | Raketen-Countdown | 1ms | ✅ |
+| FlowDataAction Inspector | 1ms | ✅ |
+| Pascal Code Generator | 1ms | ✅ |
 | SnapshotManager | 1ms | ✅ |
-| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
 | Action Registration | 1ms | ✅ |
 | Virtual Gamepad | 1ms | ✅ |
 | Unification & Auto-Unwrap | 1ms | ✅ |
-| SidePanel | 1ms | ✅ |
+| Event Actions (bind/unbind) | 1ms | ✅ |
 | FlowSync | 1ms | ✅ |
+| SidePanel | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
 | SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
 | SyncRefactor P0: Inspector Writeback | 1ms | ✅ |
-| Renaming Robustness | 1ms | ✅ |
+| Smart-Mapping & Discovery | 1ms | ✅ |
 | Login-Logic | 1ms | ✅ |
 | Electron Security | 1ms | ✅ |
-| Smart-Mapping & Discovery | 1ms | ✅ |
-| SELECT COUNT(*) | 1ms | ✅ |
+| Renaming Robustness | 1ms | ✅ |
 | Component Events | 0ms | ✅ |
+| SELECT COUNT(*) | 0ms | ✅ |
 | TTable Smart-Unwrap | 0ms | ✅ |
 
-**Summe Suiten**: 66107ms
-**Gesamtlauf inkl. Setup/Report**: 66143ms
+**Summe Suiten**: 62760ms
+**Gesamtlauf inkl. Setup/Report**: 62777ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -136,7 +138,7 @@ pie title Test-Status (Gesamt: 241)
 | Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 70 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 30</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1168), src/editor/inspector/InspectorRenderer.ts (1239), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1054), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1145), src/services/AgentController.ts (1305)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/EditorViewManager.ts (1168), src/editor/inspector/InspectorRenderer.ts (1266), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1087), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1145), src/services/AgentController.ts (1305)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -177,7 +179,7 @@ pie title Test-Status (Gesamt: 241)
 | R2: FlowChart ohne Task erkennen<br><small>Erkannt: Stage "MainStage": FlowChart "PhantomTask" hat keine zugehörige Task-Definition.</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | R2: Auto-Repair entfernt verwaisten FlowChart<br><small>PhantomTask-Schlüssel entfernt</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | R3: Kaputte Connection erkennen<br><small>Erkannt: Flow "BlueprintTask": Connection "broken-conn" zeigt auf nicht-existierenden Start-Node "non-existent-node".</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| R5: Task-Duplikat erkennen<br><small>Erkannt: Task "BlueprintTask" existiert doppelt: in Stage "MainStage" und in Stage "Blueprint".</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| R5: Task-Duplikat erkennen<br><small>Keine R5-Verletzung</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | R6: FlowChart Split-Brain erkennen<br><small>Erkannt: FlowChart "BlueprintTask" existiert sowohl in Root als auch in Stage "Blueprint" — Split-Brain!</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | R6: Auto-Repair entfernt Root-Duplikat<br><small>Root-FlowChart entfernt, Stage-Version behalten</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Spot-Validierung: Konsistentes Objekt → 0 Verletzungen<br><small>Keine Desync</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -204,7 +206,7 @@ pie title Test-Status (Gesamt: 241)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778399619500_i5 (erwartet: stage_import_1778399619500_i5), BackToLobby.stageId=stage_import_1778399619500_lw (erwartet: stage_import_1778399619500_lw)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1778573203875_pu (erwartet: stage_import_1778573203875_pu), BackToLobby.stageId=stage_import_1778573203875_is (erwartet: stage_import_1778573203875_is)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
@@ -228,6 +230,25 @@ pie title Test-Status (Gesamt: 241)
 | DOM Runtime Element<br><small>Methodengarantie: createRuntimeElement ist überladen.</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | TComponent.getEvents includes Hover Events<br><small>Found: onClick, onDoubleClick, onMouseEnter, onMouseLeave, onDragStart, onDragEnd, onDrop, onTouchStart, onTouchMove, onTouchEnd, onFlipMidpoint, onFocus, onBlur</small> | Component Events | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | ComponentRegistry Fallback includes Hover Events<br><small>Found: onClick, onDoubleClick, onMouseEnter, onMouseLeave, onDragStart, onDragEnd, onDrop, onTouchStart, onTouchMove, onTouchEnd</small> | Component Events | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| bind_event registered | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| unbind_event registered | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| bind_event sets events[event] = task<br><small>{"onClick":"TaskA"}</small> | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| bind_event with empty task removes binding<br><small>{}</small> | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| bind_event overwrites existing binding<br><small>{"onClick":"NewTask"}</small> | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| unbind_event removes only specified event<br><small>{"onHover":"TaskB"}</small> | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| bind_event initializes events object if missing<br><small>{"onCollision":"Boom"}</small> | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| bind_event with unknown target does not throw | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| bind_event ignores empty event name | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| bind_event metadata exposes target/event/task params<br><small>params: target,event,task</small> | Event Actions | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TC-1 createAction routes to target stage (not blueprint)<br><small>Action in stage_main, nicht in Blueprint.</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TC-2 fallback routes to active stage (not blueprint)<br><small>inMain=false, inBlueprint=true</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| TC-3 cross-stage override allowed (per-stage uniqueness only)<br><small>Beide Definitionen koexistieren mit eigenen Werten.</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TC-4 minimal link skipped<br><small>Reine Referenz erzeugt keine Action-Definition.</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TC-5 validator ignores cross-stage same-name (allowed override)<br><small>Kein Konflikt gemeldet.</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TC-6 validator detects intra-stage duplicate<br><small>Intra-Stage-Duplikat als error gemeldet.</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TC-7 auto-repair removes intra-stage phantom hull<br><small>Phantom entfernt, echte Definition bleibt.</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TC-7b auto-repair preserves real intra-stage duplicates<br><small>Beide bleiben, error gemeldet.</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TC-8 update keeps single entry, fields refreshed<br><small>Update korrekt; keine Duplikate.</small> | ActionStageRouting | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | LayerA: SET_PROPERTY mutiert Ziel-Objekt<br><small>x: 10 → 99, dispatch=true</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | LayerA: SET_PROPERTY mit Dot-Path (style.textAlign)<br><small>style.textAlign=right, dispatch=true</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | LayerA: SET_PROPERTY ohne Projekt → false<br><small>dispatch=false</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -239,7 +260,7 @@ pie title Test-Status (Gesamt: 241)
 | Strict R2: FlowChart ohne Task erkannt, NICHT repariert<br><small>R2-Verletzungen=1, Phantom noch da=true</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Strict R3: Kaputte Connection erkannt<br><small>R3-Verletzungen=1</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Strict R4: Typ-Desync erkannt<br><small>R4-Verletzungen=1, msg=Action "BlueprintAction": Flow-Node hat type="navigate", Definition hat type="property" — Typ-Desync!</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Strict R5: Task-Duplikat erkannt<br><small>R5-Verletzungen=1</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Strict R5: Task-Duplikat erkannt<br><small>R5-Verletzungen=0</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Strict R6: FlowChart Split-Brain erkannt, NICHT repariert<br><small>R6-Verletzungen=1, Root noch da=true</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Alias: actionType setzt type korrekt<br><small>def.type=navigate, proxy.type=navigate, proxy.actionType=navigate</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Alias: changes liest both propertyChanges und changes<br><small>A(propertyChanges)=true, B(changes)=true</small> | SyncRefactor-Phase0 | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

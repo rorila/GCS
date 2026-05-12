@@ -8,6 +8,7 @@ export class TListVariable extends TWindow {
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 4, 2);
         this.isVariable = true;
+        this.isHiddenInRun = true; // Wie alle Variablen-Komponenten: nur im Edit-Mode sichtbar
         this.style.backgroundColor = '#9c27b0'; // Purple for List
         this.style.borderColor = '#7b1fa2';
         this.style.borderWidth = 2;
