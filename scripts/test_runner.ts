@@ -43,6 +43,7 @@ import { runFlowActionAliasTests } from '../tests/sync/flowaction_aliases.test.j
 import { runInspectorWritebackTests } from '../tests/sync/inspector_writeback.test.js';
 // Phase 1 — SYNC_REFACTOR Schema-Normalisierung
 import { runSchemaMigratorTests } from '../tests/sync/schema_migrator.test.js';
+import { runTimerVariableTests } from '../tests/timer_variable.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -368,6 +369,10 @@ async function main() {
         await timer.measure('SyncRefactor P1: SchemaMigrator', async () => {
             console.log('🏃 Starte Sync-Refactor Phase 1: SchemaMigrator Tests...');
             allResults.push(...await runSchemaMigratorTests());
+        });
+
+        await timer.measure('TTimer Variable Resolution', async () => {
+            allResults.push(...await runTimerVariableTests());
         });
 
         // 🌐 Browser E2E Tests (Playwright)

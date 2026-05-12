@@ -116,6 +116,7 @@
 - **Koordinaten & Dimensionen (ARCHITEKTUR 2026-04-26)**: Positionen werden in **Grid-Zellen** relativ zum Parent gespeichert. `GameRuntime.getObjects()` gibt **Original-Proxy-Referenzen** zurueck (keine Spread-Kopien!). Die Umrechnung in absolute Pixel-Koordinaten erfolgt **ausschliesslich** im `StageRenderer` ueber `parentId`-Chain-Traversal. Bindings (`${...}`) werden von der `ReactiveRuntime` beim Registrieren aufgeloest.
 - **Blueprint-Objekte**: Service-Objekte und globale Variablen nur auf der `blueprint`-Stage anzeigen (`this.host.isBlueprint`).
 - **Variablen-Visualisierung**: Variablen zeigen Name + aktuellen Wert in Klammern an.
+- **Variablen-Initialisierung**: Variablen können entweder im `variables`-Array der Stage oder als eigenständige `TVariable`/`TStringMap`-Komponenten im `objects`-Array existieren. Die `GameRuntime` nutzt den `RuntimeVariableManager.importVariablesFromObjects()`, um sicherzustellen, dass alle Komponenten-basierten Variablen (auch vererbte aus der Blueprint-Stage) vor dem Start der Engine-Logik und der Pool-Initialisierung im Kontext verfügbar sind.
 - **Stage-Vererbung**: NIEMALS `inheritsFrom` für Stage-zu-Stage Vererbung. Nur Blueprint-Merge erlaubt.
 
 ### Runtime & Standalone Player (bundle:runtime-Pflicht)
@@ -163,6 +164,8 @@
 - **Validierung:** Outputs gegen `src/tools/agent-api-schema.json` validieren.
 - **Tooling:** QLoRA-Finetuning mit [Unsloth](https://github.com/unslothai/unsloth), Modelle: Phi-3-mini (3.8 B) oder Qwen2.5-7B.
 
+---
+
 ## 12. Object Pooling für dynamische Sprites
 
 - **Problem**: `spawnObject`-Aufrufe erzeugten „Geister-Sprites" (Logik-Objekte ohne DOM-Elemente).
@@ -172,6 +175,7 @@
   2. Action `spawn_object` nutzt eine Pool-Instanz (Clone). Position/Velocity wird temporär überschrieben.
   3. Action `destroy_object` (`Target: %Self%`) blendet aus und legt ins Pool zurück (`visible: false`).
 - **Performance:** Die GameLoop überspringt alle `visible: false` Objekte.
+- **Dynamische Pool-Größe (v3.32.0):** Das Feld `poolSize` in `TSpriteTemplate` unterstützt Variablen und Ausdrücke (z. B. `${globalPoolSize}`). Da die Pool-Erzeugung zum Start der Runtime erfolgt, muss der `SpritePool` den Ausdruck mittels `ExpressionParser.evaluateRaw(template.poolSize, contextVars)` auflösen, bevor die Instanzen erzeugt werden.
 
 ---
 
@@ -238,7 +242,7 @@
 - **DO**: Jede numerische Property in `getInspectorProperties()` MUSS `min`, `max` und `step` definieren. Der `InspectorSectionRenderer` nutzt diese für native HTML5-Input-Constraints, Live-Validierung und Auto-Clamping.
 - **DO**: Nutze `type: 'hidden'` für Properties, die serialisiert (`toDTO`) aber nicht im Inspector angezeigt werden sollen (z. B. `htmlContent` bei `TRichText`).
 - **DO NOT**: Akzeptiere keine ungeprüften User-Eingaben im Inspector. Die Validierungs-Pipeline (Live `oninput` + Auto-Clamp `onchange`) verhindert ungültige Werte.
-- **DO**: Verwende das `validate`-Callback in `TPropertyDef` für komponentenspezifische Validierungslogik, die über `min`/`max` hinausgeht.
+- **DO**: Verwende das `validate`-Callback in `TPropertyDef` für komponentenspezifische Validierungslogik, die über `min`/`max` und `step` hinausgeht.
 
 ### 13.8 Serialization & Hydration
 
@@ -298,7 +302,7 @@
   - KRITISCH (`EditorRunManager`): `runStage.runtime = this.runtime` MUSS nach `new GameRuntime()` gesetzt werden.
 - **Positions-Architektur (Single Source of Truth)**:
   - Positionen (x, y) werden in **Grid-Zellen relativ zum Parent** gespeichert.
-  - Die Umrechnung in absolute Pixel-Koordinaten erfolgt **ausschließlich im `StageRenderer`** über `parentId`-Chain-Traversal. KEINE andere Stelle im Code darf absolute Positionen berechnen.
+  - Die Umrechnung in absolute Pixel-Koordinaten erfolgt **ausschliesslich im `StageRenderer`** über `parentId`-Chain-Traversal. KEINE andere Stelle im Code darf absolute Positionen berechnen.
   - Die `RuntimeStageManager` flacht die Objekt-Hierarchie ab und setzt `parentId`-Referenzen. Children werden als eigenständige Einträge im flachen `this.objects`-Array geführt.
   - Start-Animationen (fade-in, slide-up, fly-in) animieren NUR Top-Level-Objekte (`!obj.parentId`). Kinder reiten visuell auf dem Parent mit.
 - **Reactive Bindings & Type Coercion**: Wenn Variablen (z. B. aus einer `TStringMap`) an Eigenschaften gebunden werden, die spezifische Typen wie `number` erwarten (z. B. `borderWidth`, `Rahmenbreite`, `Abrundung`), findet in der `ReactiveRuntime.ts` eine automatische Type-Coercion (String → Number) statt. Dies ist „defensiv" programmiert und greift nur bei bekannten numerischen Eigenschaften oder bei Ziel-Eigenschaften vom Typ `number`. Erweitere die Arrays `germanNumericProps` oder `numericProps` in `ReactiveRuntime.ts`, falls weitere UI-Felder eine implizite Konvertierung benötigen.
@@ -443,21 +447,16 @@ Die Plattform nutzt eine hierarchische Struktur in `game-server/data/db.json`:
 - Greife auf Properties des aufrufenden Objekts via ${self.propertyName} oder ${.source.propertyName} zu.
 
 ### Container & Verschachtelung
-Objekte wie \TGroupPanel\ oder \TCard\ k�nnen Kinder enthalten (\isContainer = true\). Bei jeglicher Iteration �ber \stage.objects\ (z.B. in Registry oder CommandManager zum L�schen) **MUSS** rekursiv iteriert werden (z.B. mittels \lattenObjects\ oder \
-emoveDeep\), da sonst tief verschachtelte Elemente in Dropdowns fehlen oder als Dateileichen zur�ckbleiben.
+Objekte wie \TGroupPanel\ oder \TCard\ knnen Kinder enthalten (\isContainer = true\). Bei jeglicher Iteration ber \stage.objects\ (z.B. in Registry oder CommandManager zum Lschen) **MUSS** rekursiv iteriert werden (z.B. mittels \lattenObjects\ oder \removeDeep\), da sonst tief verschachtelte Elemente in Dropdowns fehlen oder als Dateileichen zurckbleiben.
 
 ### Tauri UI / Electron UI
-Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) m�ssen zwingend einen extrem hohen z-index (z.B. 99999) f�r ihr Overlay verwenden, da in der Tauri-App ansonsten andere UI-Layer des Editors die Dialoge �berlagern und diese unsichtbar machen.
+Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mssen zwingend einen extrem hohen z-index (z.B. 99999) fr ihr Overlay verwenden, da in der Tauri-App ansonsten andere UI-Layer des Editors die Dialoge berlagern und diese unsichtbar machen.
 - DO NOT: Beim Implementieren von Reparenting-Logiken (Drag & Drop) in flachen Datenstrukturen (\stage.objects\ mit \parentId\) niemals abbrechen, nur weil Quell- und Ziel-Array identisch sind (\sourceArray === targetArray\). Die \parentId\ muss zwingend gelöscht oder auf die neue ID gesetzt werden, auch wenn sich das Objekt weiterhin im gleichen globalen Array befindet!
 
-
-
-### 17. Single Source of Truth f�r den Komponenten-Baum
-- **DO NOT** ersetze das gesamte ctiveStage.objects-Array durch eine abgeflachte Liste aus der Registry (projectObjectRegistry.getObjects()). Das Zerst�ren der Baumstruktur (mit children-Arrays) f�hrt dazu, dass Container-Kinder ihre parentId-Bindungen doppelt generieren oder verlieren, was zu unvorhersehbarem Zappeln im Run-Mode (Konflikt global vs. relativ) und kaputtem Drag & Drop f�hrt.
-- **DO** operiere stets direkt auf dem referenzierten Baum (ctiveStage.objects.push() oder splice() �ber rekursive Finder wie 
-emoveObjectSilent) und belasse die Array-Referenz unangetastet.
-- NIEMALS Core-Runtime-Änderungen (AnimationManager, GameRuntime etc.) durchführen, ohne anschließend 
-pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verwendet das vorkompilierte Bundle public/runtime-standalone.js. Ohne Neubau werden im Editor funktionierende Änderungen im IFrame schlichtweg ignoriert.
+### 17. Single Source of Truth fr den Komponenten-Baum
+- **DO NOT** ersetze das gesamte  ctiveStage.objects-Array durch eine abgeflachte Liste aus der Registry (projectObjectRegistry.getObjects()). Das Zerstren der Baumstruktur (mit children-Arrays) fhrt dazu, dass Container-Kinder ihre parentId-Bindungen doppelt generieren oder verlieren, was zu unvorhersehbarem Zappeln im Run-Mode (Konflikt global vs. relativ) und kaputtem Drag & Drop fhrt.
+- **DO** operiere stets direkt auf dem referenzierten Baum ( ctiveStage.objects.push() oder splice() ber rekursive Finder wie removeObjectSilent) und belasse die Array-Referenz unangetastet.
+- NIEMALS Core-Runtime-Änderungen (AnimationManager, GameRuntime etc.) durchführen, ohne anschließend npm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verwendet das vorkompilierte Bundle public/runtime-standalone.js. Ohne Neubau werden im Editor funktionierende Änderungen im IFrame schlichtweg ignoriert.
 
 ### 18. Refactoring & Objektnamen
 - **DO NOT** ersetze beim Umbenennen eines Objekts blind alle Objekte mit demselben Namen (wie bisher in ObjectRefactoringService.ts). Es darf nur das ausgewaehlte Objekt umbenannt werden (was der ProjectStore bereits via SET_PROPERTY erledigt), sowie dessen *Referenzen* (in Actions, Tasks, Conditions).
@@ -469,11 +468,11 @@ pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verw
 - **DO NOT**: V-Button (`pickVariable`) bei `param.type === 'number'` blockieren. Numerische Felder muessen auch Variable-Bindings akzeptieren koennen.
 - **DO NOT**: In `onchange`-Handlern Binding-Strings durch `Number()` oder `autoConvert()` verarbeiten. Pruefen ob `raw.includes('${')` und den Wert als String belassen.
 - **ExpressionParser BUG (behoben)**: Im `MemberExpression`-Case darf das Identifier-Objekt NICHT via `resolveValue` aufgeloest werden, weil sonst TVariable-Objekte vorzeitig zu Primitiven werden und `.value`-Zugriff `undefined` ergibt.
-- **VariableActions/CalculateActions**: Wenn `variableName` oder `resultVariable` einen Punkt enth�lt (z.B. `MyVar.value`), muss der Wert sowohl als flacher Key in `context.vars` als auch via `setPropertyValue` auf dem TVariable-Objekt geschrieben werden.
+- **VariableActions/CalculateActions**: Wenn `variableName` oder `resultVariable` einen Punkt enthlt (z.B. `MyVar.value`), muss der Wert sowohl als flacher Key in `context.vars` als auch via `setPropertyValue` auf dem TVariable-Objekt geschrieben werden.
 
 
 ### 20. FlowNode Property-Shadowing (x/y Namenskonflikt)
-- **DO NOT**: `PropertyHelper.getPropertyValue(flowNode, paramName)` verwenden, um Action-Parameter aus FlowNodes zu lesen. FlowElement (Basisklasse) besitzt `this.x` und `this.y` als Canvas-Position. Actions wie `move_to` definieren ebenfalls Parameter namens `x` und `y`. PropertyHelper liest dann die Canvas-Koordinate (z.B. 40) statt den Action-Parameter (z.B. `$`{MyVar.value}`).
+- **DO NOT**: `PropertyHelper.getPropertyValue(flowNode, paramName)` verwenden, um Action-Parameter aus FlowNodes zu lesen. FlowElement (Basisklasse) besitzt `this.x` und `this.y` als Canvas-Position. Actions wie `move_to` definieren ebenfalls Parameter namens `x` und `y`. PropertyHelper liest dann die Canvas-Koordinate (z.B. 40) statt den Action-Parameter (z.B. `${MyVar.value}`).
 - **DO**: Fuer FlowNodes mit `getActionDefinition()` immer die Action-Definition (SSoT) nutzen: `const actionDef = obj.getActionDefinition(); currentValue = actionDef[paramName]`. Dies ist die gleiche Methode, die alle FlowAction-Getter (`target`, `formula`, `value`, etc.) intern verwenden.
 - **ACHTUNG Rendering-Pfade**: FlowActions mit `getInspectorSections()` werden durch `InspectorSectionRenderer.renderProperty()` gerendert, NICHT durch `InspectorRenderer.renderActionParams()`. Fixes muessen in `InspectorSectionRenderer.ts` erfolgen.
 - **Schreiben**: `FlowNodeHandler.handlePropertyChange()` muss Action-Parameter via `getActionDefinition()` in die JSON-Definition schreiben UND in `object.data` synchronisieren. Niemals `PropertyHelper.setPropertyValue(flowNode, 'x', value)` - das ueberschreibt die Canvas-Position.
@@ -494,10 +493,9 @@ pm run bundle:runtime auszuführen! Der Standalone-Player (IFrame-Run-Mode) verw
 - **DO NOT**: Die Push-Out-Logik in `checkCollisions()` ohne Event-Pruefung ausfuehren. Sprites ohne Collision-Handler sollen frei durcheinander fliegen koennen.
 
 ### DOM Queries & Blueprint-Stage Falle
-- **DO NOT** use a simple \document.querySelector('[data-id=...]')\ when resolving stage objects in the DOM, because objects that exist in both the Blueprint Stage and the Main Stage will have duplicate IDs in the DOM. The Blueprint element is usually \display: none\ (hidden), but \querySelector\ will still return it first, leading to a \ x0\ BoundingClientRect.
+- **DO NOT** use a simple \document.querySelector('[data-id=...]')\ when resolving stage objects in the DOM, because objects that exist in both the Blueprint Stage and the Main Stage will have duplicate IDs in the DOM. The Blueprint element is usually \display: none\ (hidden), but \querySelector\ will still return it first, leading to a \ x0\ BoundingClientRect.
 - **DO** use \document.querySelectorAll\ and filter by \el.offsetWidth > 0 && el.offsetHeight > 0\ to guarantee you are targeting the actually *visible* element on the active stage.
 
 ### CSS Transitions & Neu erstellte DOM-Elemente
-- **DO NOT** set target transition properties (e.g. \	ransform\, \opacity: 0\) on a newly created and appended DOM element synchronously or within a single \equestAnimationFrame\. The browser will merge the initial and target states in the same layout pass, completely skipping the CSS transition.
-- **DO** force a synchronous layout reflow (e.g. \oid document.body.offsetHeight;\) OR use a short \setTimeout(..., 30)\ before assigning the target properties to ensure the browser has painted the initial state first.
-
+- **DO NOT** set target transition properties (e.g. \transform\, \opacity: 0\) on a newly created and appended DOM element synchronously or within a single \requestAnimationFrame\. The browser will merge the initial and target states in the same layout pass, completely skipping the CSS transition.
+- **DO** force a synchronous layout reflow (e.g. \void document.body.offsetHeight;\) OR use a short \setTimeout(..., 30)\ before assigning the target properties to ensure the browser has painted the initial state first.

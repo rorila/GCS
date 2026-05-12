@@ -1,6 +1,7 @@
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
 import { Logger } from '../utils/Logger';
+import { ExpressionParser } from '../runtime/ExpressionParser';
 
 const logger = Logger.get('TTimer');
 
@@ -8,12 +9,13 @@ export class TTimer extends TWindow implements IRuntimeComponent {
     public className: string = 'TTimer';
     public interval: number = 1000; // in milliseconds
     public enabled: boolean = true;
-    public maxInterval: number = 0; // 0 = infinite, >0 = max number of intervals
+    public maxInterval: number | string = 0; // 0 = infinite, >0 = max number of intervals
     public currentInterval: number = 0; // current interval count
 
     private timerId: number | null = null;
     private onTimerCallback: (() => void) | null = null;
     public onEvent: ((eventName: string) => void) | null = null;
+    private runtimeContextVars: Record<string, any> | null = null;
 
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 4, 2);
@@ -32,7 +34,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
             ...super.getInspectorProperties(),
             { name: 'interval', label: 'Interval (ms)', type: 'number', group: 'Timer' },
             { name: 'enabled', label: 'Aktiviert', type: 'boolean', group: 'Timer' },
-            { name: 'maxInterval', label: 'Max Intervalle (0=∞)', type: 'number', group: 'Timer' },
+            { name: 'maxInterval', label: 'Max Intervalle (0=∞)', type: 'string', group: 'Timer' },
             { name: 'currentInterval', label: 'Aktuelle Anzahl', type: 'number', group: 'Timer' }
         ];
     }
@@ -49,11 +51,23 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         return super.toDTO();
     }
 
-    public initRuntime(callbacks: { handleEvent: any }): void {
+    public initRuntime(callbacks: { handleEvent: any, contextVars?: Record<string, any> }): void {
         this.onEvent = (ev: string) => callbacks.handleEvent(this.id, ev);
+        this.runtimeContextVars = callbacks.contextVars || null;
     }
 
     public onRuntimeStart(): void {
+        // Resolve maxInterval if it's a string expression
+        if (typeof this.maxInterval === 'string' && this.runtimeContextVars) {
+            try {
+                const resolved = ExpressionParser.evaluateRaw(this.maxInterval, this.runtimeContextVars);
+                this.maxInterval = Number(resolved) || 0;
+            } catch (e) {
+                logger.error(`Error resolving maxInterval for timer ${this.name}:`, e);
+                this.maxInterval = 0;
+            }
+        }
+
         if (this.enabled) {
             this.start(() => {
                 // Der Callback wird nun über onEvent (gesetzt in initRuntime) gesteuert

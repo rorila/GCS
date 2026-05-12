@@ -62,7 +62,38 @@ export class RuntimeVariableManager {
             });
         }
 
+        // NEW: Also scan for TVariable components that might be in the project-level objects (Legacy)
+        if (project.objects) {
+            this.importVariablesFromObjects(project.objects);
+        }
+
         this.syncAllToReactive();
+    }
+
+    /**
+     * Scans a list of objects for TVariable/TStringMap components and imports them.
+     * This is critical for projects where variables are stored as stage components.
+     */
+    public importVariablesFromObjects(objects: any[]) {
+        const variableObjects = objects.filter(o => 
+            o && (o.isVariable || o.className === 'TVariable' || o.className === 'TStringMap' || o.className === 'TIntegerVariable' || o.className === 'TObjectList')
+        );
+
+        variableObjects.forEach(v => {
+            // Convert component to a "variable definition" like structure for importVariables
+            const vDef = {
+                id: v.id,
+                name: v.name,
+                scope: v.scope || 'stage',
+                defaultValue: v.defaultValue !== undefined ? v.defaultValue : (v.value !== undefined ? v.value : (v.entries || v.items || v.data)),
+                isInteger: v.className === 'TIntegerVariable' || v.isInteger
+            };
+            
+            this.globalDefinitions.set(vDef.name, vDef);
+            if (vDef.id) this.globalDefinitions.set(vDef.id, vDef);
+            
+            this.importVariables([vDef], true);
+        });
     }
 
     public syncAllToReactive() {

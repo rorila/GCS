@@ -1,4 +1,32 @@
 ### 2026-05-12
+[UC-2026-05-12-TTimer-MaxInterval-Variable]
+Beschreibung: Feature — Unterstützung für Variablen und Ausdrücke im Feld "Max Intervalle" von TTimer. Wie zuvor bei TSpriteTemplate ermöglicht die Umstellung auf den Typ `string` im Inspector die Verwendung von Ausdrücken wie `${myTimerCount}`. Die Auflösung erfolgt beim Start des Timers (`onRuntimeStart`) gegen die `contextVars` der Runtime.
+Beteiligte Dateien:
+- src/components/TComponent.ts (Z. 25): `initRuntime` Callback-Interface um `contextVars` erweitert.
+- src/runtime/GameRuntime.ts (Z. 328): `this.contextVars` an `initRuntime` übergeben.
+- src/components/TTimer.ts (Z. 11, 19, 35, 50, 56-65): `maxInterval` Typ zu `number | string` geändert; Inspector-Typ zu `string` geändert; Import `ExpressionParser`; `initRuntime` speichert `contextVars`; `onRuntimeStart` führt Auflösung durch.
+- tests/timer_variable.test.ts [NEU]: 3 Tests für variable Auflösung, mathematische Ausdrücke und Fallbacks.
+Ergebnis: Die maximale Anzahl an Intervallen eines Timers kann nun dynamisch konfiguriert werden.
+
+### 2026-05-12
+[UC-2026-05-12-SpritePool-Variable-Fix]
+Beschreibung: Bugfix - Dynamische PoolSize Auflösung bei inherited Variablen. Variablen aus der Blueprint-Stage (als Komponenten) wurden zum Zeitpunkt der Pool-Initialisierung nicht gefunden, da sie nicht im `variables`-Array der Stage standen. Der `RuntimeVariableManager` wurde erweitert, um Variablen auch aus `objects` zu importieren, und die Initialisierungsreihenfolge in `GameRuntime` wurde korrigiert.
+Beteiligte Dateien:
+- src/runtime/RuntimeVariableManager.ts (Z. 65-92): Neue Methode `importVariablesFromObjects`.
+- src/runtime/GameRuntime.ts (Z. 118, 504): Aufruf von `importVariablesFromObjects` vor Pool-Init und bei Stage-Wechsel.
+- tests/sprite_pool_variable.test.ts (Z. 1-80): Neuer Regressionstest.
+Status: Erledigt
+
+[UC-2026-05-12-TSpriteTemplate-PoolSize-Variable]
+Beschreibung: Feature — Unterstützung für Variablen und Ausdrücke im Feld "Pool Size" von TSpriteTemplate. Bisher war dieses Feld rein numerisch und statisch. Durch die Umstellung auf den Typ `string` im Inspector können nun Ausdrücke wie `${globalPoolSize}` oder `${stageSize + 5}` verwendet werden. Die Auswertung erfolgt zum Zeitpunkt der Pool-Initialisierung (Runtime-Start oder Stage-Wechsel) über den `ExpressionParser`.
+Beteiligte Dateien:
+- src/components/TSpriteTemplate.ts (Z. 23, 49): poolSize Typ zu `number | string` geändert; Inspector-Typ zu `string` geändert.
+- src/runtime/SpritePool.ts (Z. 6, 42-55): Import ExpressionParser; `init` Methode um `context` erweitert und `poolSize` Auswertung implementiert.
+- src/runtime/GameRuntime.ts (Z. 123): `this.contextVars` an `spritePool.init` übergeben.
+- tests/sprite_pool_variable.test.ts [NEU]: 6 Tests für verschiedene Szenarien (Zahl, Variable, Ausdruck, Fallback).
+Ergebnis: Die Pool-Größe von Sprite-Templates kann nun dynamisch über globale oder Stage-Variablen gesteuert werden.
+
+### 2026-05-12
 [UC-2026-05-12-ActionStageRoutingAndDuplicateGuard]
 Beschreibung: Bugfix — Drei Probleme bei Action-Anlage/Referenzierung im Flow-Editor + Regelangleichung.
 (1) **Stage-Routing**: Beim Anlegen einer Action via FlowEditor wurde sie u.U. in Blueprint statt in der vom User intendierten Stage registriert. Ursache: `EditorStageManager.getTargetActionCollection` lenkte bei reinem Namens-Match nach Blueprint um und `FlowSyncManager.syncToProject` setzte `taskStageId` nicht, wenn `getStageForContext()` null lieferte.

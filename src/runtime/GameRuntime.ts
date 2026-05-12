@@ -112,6 +112,11 @@ export class GameRuntime implements IVariableHost {
 
             // NEW: Initialize stage variables for the first stage correctly!
             this.variableManager.initializeStageVariables(activeStage);
+            
+            // CRITICAL: Also import variables from the merged objects (Inherited from Blueprint etc.)
+            // because they might be needed for SpritePool.init which follows immediately.
+            this.variableManager.importVariablesFromObjects(this.objects);
+            
             this.syncVariableComponents();
 
             // ─── OBJECT POOL: TSpriteTemplate → Pool-Instanzen erzeugen ───
@@ -120,7 +125,7 @@ export class GameRuntime implements IVariableHost {
             ) as TSpriteTemplate[];
 
             templates.forEach(template => {
-                this.spritePool.init(template, this.objects);
+                this.spritePool.init(template, this.objects, this.contextVars);
             });
 
             if (options.makeReactive) {
@@ -325,6 +330,7 @@ export class GameRuntime implements IVariableHost {
             render: this.options.onRender || (() => { }),
             gridConfig,
             objects: this.objects,
+            contextVars: this.contextVars,
             // Feature C: TForEach-Callbacks für dynamisches Spawning/Destroying
             addObject: (obj: any) => {
                 this.objects.push(obj);
@@ -495,6 +501,7 @@ export class GameRuntime implements IVariableHost {
             // so contextVars is populated with stage variables for interpolation binding.
             this.variableManager.stageVariables = {};
             this.variableManager.initializeStageVariables(this.stage);
+            this.variableManager.importVariablesFromObjects(this.objects);
 
             this.initializeReactiveBindings();
 

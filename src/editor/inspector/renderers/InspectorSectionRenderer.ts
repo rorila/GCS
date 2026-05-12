@@ -234,7 +234,7 @@ export class InspectorSectionRenderer {
             select.onchange = async () => {
                 // Phase 3 (SYNC_REFACTOR): Kein Doppel-Dispatch mehr.
                 // FlowNodes nutzen NUR applyChange als einzigen Writer.
-                if (typeof obj.applyChange === 'function') {
+                if (isFlowNode && typeof obj.applyChange === 'function') {
                     const needsReRender = obj.applyChange(propDef.name, select.value, currentValue);
                     mediatorService.notifyDataChanged({
                         property: propDef.name,
@@ -311,7 +311,7 @@ export class InspectorSectionRenderer {
             input.style.flex = '1';
             input.onchange = () => {
                 // Phase 3 (SYNC_REFACTOR): FlowNodes nutzen nur applyChange
-                if (typeof obj.applyChange === 'function') {
+                if (isFlowNode && typeof obj.applyChange === 'function') {
                     obj.applyChange(propDef.name, Number(input.value), currentValue);
                     InspectorSectionRenderer.notify(context, propDef.name, Number(input.value), currentValue, obj);
                 } else if (context.eventHandler) {
@@ -346,7 +346,7 @@ export class InspectorSectionRenderer {
                 if (isFontStyle) newValue = cb.checked ? 'italic' : 'normal';
 
                 // Phase 3 (SYNC_REFACTOR): FlowNodes nutzen nur applyChange
-                if (typeof obj.applyChange === 'function') {
+                if (isFlowNode && typeof obj.applyChange === 'function') {
                     obj.applyChange(propDef.name, newValue, currentValue);
                     InspectorSectionRenderer.notify(context, propDef.name, newValue, currentValue, obj);
                 } else if (context.eventHandler) {
@@ -435,7 +435,7 @@ export class InspectorSectionRenderer {
             rowsContainer.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
 
             const applyChanges = (newChanges: Record<string, any>) => {
-                if (typeof obj.applyChange === 'function') {
+                if (isFlowNode && typeof obj.applyChange === 'function') {
                     obj.applyChange('changes', newChanges);
                 } else {
                     PropertyHelper.setPropertyValue(obj, 'changes', newChanges);

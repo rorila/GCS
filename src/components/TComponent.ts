@@ -22,6 +22,7 @@ export interface IRuntimeComponent {
         render: () => void;
         gridConfig: GridConfig;
         objects: ComponentData[];
+        contextVars?: Record<string, any>;
     }): void;
 
     onRuntimeStart?(): void;

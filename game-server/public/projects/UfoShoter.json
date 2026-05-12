@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "Spawning Shooter DemoUmbennenung der Sprites Tasks und Actions",
+    "name": "UfoShoter",
     "version": "1.0",
     "author": "Antigravity",
     "description": "",
-    "_sourcePath": "projects/project_Spawning_Shooter_DemoUmbennenung_der_Sprites_Tasks_und_Actions.json"
+    "_sourcePath": "projects/UfoShoter.json"
   },
   "stages": [
     {
@@ -356,8 +356,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -605,7 +605,7 @@
           },
           "interval": 1000,
           "enabled": true,
-          "maxInterval": 10,
+          "maxInterval": "${MaxCannons}",
           "currentInterval": 0
         },
         {
@@ -680,7 +680,7 @@
           "hitboxOffsetY": 0,
           "hitboxWidth": 3,
           "hitboxHeight": 2,
-          "poolSize": 10,
+          "poolSize": "${MaxCannons}",
           "autoRecycle": true,
           "lifetime": 0
         },

@@ -90,7 +90,8 @@ export class InspectorEventHandler {
             }
         }
 
-        // 2. Capture old value safely
+
+        // 2. Capture old value safely (vom selectedObject)
         const oldValue = PropertyHelper.getPropertyValue(selectedObject, propertyPath);
 
         // 3. Create event object
@@ -104,6 +105,21 @@ export class InspectorEventHandler {
 
         InspectorEventHandler.logger.info(`[INSPECTOR-TRACE] Property change: ${propertyPath} = ${newValue} (was ${oldValue})`);
 
+        // DIAGNOSE: garantiert sichtbarer Konsolen-Block fuer Inspector→JSON Sync-Probleme.
+        const _diagOriginal = (selectedObject as any).__rawSource
+            || (selectedObject?.id || selectedObject?.name ? this.getOriginalObject(selectedObject.id || selectedObject.name) : null);
+        console.info('[INSPECTOR-SYNC] BEFORE', {
+            propertyPath,
+            newValue,
+            oldValue,
+            selectedObject: { id: selectedObject?.id, name: selectedObject?.name, className: selectedObject?.className, isPoolInstance: (selectedObject as any)?.isPoolInstance, templateId: (selectedObject as any)?.templateId },
+            hasRawSource: !!(selectedObject as any).__rawSource,
+            originalFound: !!_diagOriginal,
+            originalSameAsSelected: _diagOriginal === selectedObject,
+            originalIdentity: _diagOriginal ? { id: _diagOriginal.id, name: _diagOriginal.name } : null,
+            inspectorDef
+        });
+
         // 3.5 Snapshot wird nun vom Store übernommen
         // snapshotManager.pushSnapshot(this.project, `${propertyPath}: ${oldValue} → ${newValue}`);
 
@@ -115,6 +131,9 @@ export class InspectorEventHandler {
             InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Delegating to specialized handler: ${handler.constructor.name}`);
             wasHandled = handler.handlePropertyChange(event, this.project, this.runtime);
             InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Handler wasHandled=${wasHandled}`);
+            console.info('[INSPECTOR-SYNC] handler', { handlerName: handler.constructor.name, wasHandled });
+        } else {
+            console.info('[INSPECTOR-SYNC] handler: <none>');
         }
 
         // 5. Default behavior if not handled by specialized logic
@@ -141,7 +160,18 @@ export class InspectorEventHandler {
                     projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: propertyPath, value: convertedValue });
                     InspectorEventHandler.logger.debug(`Synchronized update with original project JSON object.`);
                 }
+                console.info('[INSPECTOR-SYNC] AFTER', {
+                    propertyPath,
+                    convertedValue,
+                    selectedObjectValue: PropertyHelper.getPropertyValue(selectedObject, propertyPath),
+                    originalObjValue: originalObj ? PropertyHelper.getPropertyValue(originalObj, propertyPath) : '<no original>',
+                    originalSameAsSelected: originalObj === selectedObject
+                });
+            } else {
+                console.info('[INSPECTOR-SYNC] SKIPPED (oldValue === newValue)', { propertyPath, value: newValue });
             }
+        } else {
+            console.info('[INSPECTOR-SYNC] handler claimed wasHandled=true → default sync ueberSPRUNGEN', { propertyPath });
         }
 
         return event;

@@ -20,7 +20,7 @@ export class TSpriteTemplate extends TSprite {
      * Anzahl der vorhydrierten Pool-Instanzen.
      * Werden beim Runtime-Start erzeugt und bekommen echte DOM-Elemente.
      */
-    public poolSize: number = 10;
+    public poolSize: number | string = 10;
 
     /**
      * Wenn true und der Pool erschöpft ist, wird die älteste aktive
@@ -46,7 +46,7 @@ export class TSpriteTemplate extends TSprite {
         return [
             ...super.getInspectorProperties(),
             // Pool Settings group
-            { name: 'poolSize', label: 'Pool Size', type: 'number', group: 'Pool Settings' },
+            { name: 'poolSize', label: 'Pool Size', type: 'string', group: 'Pool Settings' },
             { name: 'autoRecycle', label: 'Auto Recycle', type: 'boolean', group: 'Pool Settings' },
             { name: 'lifetime', label: 'Lifetime (Sek.)', type: 'number', group: 'Pool Settings' },
         ];

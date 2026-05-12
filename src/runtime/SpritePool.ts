@@ -3,6 +3,7 @@ import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { hydrateObjects } from '../utils/Serialization';
 
 import { Logger } from '../utils/Logger';
+import { ExpressionParser } from './ExpressionParser';
 
 const logger = Logger.get('SpritePool', 'ObjectPooling');
 
@@ -39,11 +40,24 @@ export class SpritePool {
      * @param targetObjects Die globale Object-Liste, in die Instanzen eingefügt werden
      * @returns Die erzeugten Pool-Sprites (zum Einfügen in this.objects)
      */
-    public init(template: TSpriteTemplate, targetObjects: any[]): TSprite[] {
-        const poolSize = template.poolSize || 10;
+    public init(template: TSpriteTemplate, targetObjects: any[], context: Record<string, any> = {}): TSprite[] {
+        let poolSize = template.poolSize;
+
+        // Falls poolSize ein String/Ausdruck ist, jetzt auswerten
+        if (typeof poolSize === 'string') {
+            const evaluated = ExpressionParser.evaluateRaw(poolSize, context);
+            poolSize = Number(evaluated);
+            if (isNaN(poolSize)) {
+                logger.warn(`Pool Size Ausdruck "${template.poolSize}" ergab keinen gültigen Zahlenwert: ${evaluated}. Fallback auf 10.`);
+                poolSize = 10;
+            }
+        }
+
+        if (!poolSize || poolSize < 1) poolSize = 10;
+
         const createdSprites: TSprite[] = [];
 
-        logger.info(`Initialisiere Pool für "${template.name}" mit ${poolSize} Instanzen`);
+        logger.info(`Initialisiere Pool für "${template.name}" mit ${poolSize} Instanzen (Original: ${template.poolSize})`);
 
         const entries: PoolEntry[] = [];
 
