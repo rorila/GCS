@@ -44,6 +44,7 @@ import { runInspectorWritebackTests } from '../tests/sync/inspector_writeback.te
 // Phase 1 — SYNC_REFACTOR Schema-Normalisierung
 import { runSchemaMigratorTests } from '../tests/sync/schema_migrator.test.js';
 import { runTimerVariableTests } from '../tests/timer_variable.test.js';
+import { runSpawnObjectVariableTests } from '../tests/spawn_object_variable.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -373,6 +374,10 @@ async function main() {
 
         await timer.measure('TTimer Variable Resolution', async () => {
             allResults.push(...await runTimerVariableTests());
+        });
+
+        await timer.measure('SpawnObject Variable Support', async () => {
+            allResults.push(...await runSpawnObjectVariableTests());
         });
 
         // 🌐 Browser E2E Tests (Playwright)

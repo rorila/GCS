@@ -1,5 +1,10 @@
+### [3.32.2] - 2026-05-13
+### Hinzugefügt
+- **Variable Template & Reference in Spawn Action:** Die Aktion `spawn_object` (Objekt spawnen) wurde auf **Editierfelder** (type: string) umgestellt. Dies ermöglicht die direkte Eingabe von Objektnamen sowie die Verwendung von Variablen und Ausdrücken für die Felder **Template** und **Bezugsobjekt**. Der Inspector zeigt zudem weiterhin den Variablen-Button ("V") an, um den komfortablen Dialog-Picker zu nutzen.
+
 ### [3.32.1] - 2026-05-12
 ### Behoben
+- **Task Execution in Composite Actions:** Ein kritischer Bug wurde behoben, bei dem sekundäre Tasks innerhalb von `Composite Actions` (geschachtelte Aktionsketten) nicht ausgeführt wurden. Der `TaskExecutor` übernimmt nun die rekursive Auflösung von Aktions-Bodys, anstatt diese strikt an den `ActionExecutor` zu delegieren, der keine Kenntnis von Task-Aufrufen hat.
 - **SpritePool Dynamic Sizing:** Ein Bug wurde behoben, bei dem Ausdrücke in `poolSize` (z.B. `${MaxCannons}`) auf 10 zurückfielen, weil Variablen aus der Blueprint-Stage zum Initialisierungszeitpunkt noch nicht im Kontext verfügbar waren.
 - **Runtime Variable Initialization:** Der `RuntimeVariableManager` importiert nun Variablen auch direkt aus Stage-Komponenten (`TVariable`, `TStringMap`), um sicherzustellen, dass inherited Variables vor der Engine-Initialisierung bereitstehen.
 

@@ -499,3 +499,13 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mssen zwingen
 ### CSS Transitions & Neu erstellte DOM-Elemente
 - **DO NOT** set target transition properties (e.g. \transform\, \opacity: 0\) on a newly created and appended DOM element synchronously or within a single \requestAnimationFrame\. The browser will merge the initial and target states in the same layout pass, completely skipping the CSS transition.
 - **DO** force a synchronous layout reflow (e.g. \void document.body.offsetHeight;\) OR use a short \setTimeout(..., 30)\ before assigning the target properties to ensure the browser has painted the initial state first.
+
+### 23. Task-Ausführung in Composite Actions
+- **Regel:** Der `TaskExecutor` muss die Abarbeitung von Aktions-Bodys (`body`-Liste in Composite Actions) rekursiv über seine eigene `executeSequenceItem`-Logik abwickeln.
+- **Hintergrund:** Der `ActionExecutor` ist rein auf die Ausführung von atomaren Aktionen spezialisiert und hat keine Kenntnis von Task-Referenzen. Würde der `TaskExecutor` die gesamte Liste an den `ActionExecutor` delegieren, würden geschachtelte Tasks (z. B. ein Task-Aufruf innerhalb einer "Warten"-Aktion oder einer bedingten Sequenz) ignoriert.
+- **DO NOT:** Delegiere die `body`-Verarbeitung von Composite Actions direkt an `ActionExecutor.execute()`. Nutze stattdessen eine Schleife im `TaskExecutor`, die jedes Element einzeln an `executeSequenceItem()` übergibt.
+
+### 24. Variablen-Bindung für Select-Felder in Aktionen
+- **Regel:** Wenn ein `select`-Feld in einer Aktions-Definition (ActionRegistry) auch Variablen-Ausdrücke (`${...}`) unterstützen soll, muss das Flag `allowVariableBinding: true` in der Parameter-Definition gesetzt werden.
+- **Wirkung:** Der Inspector zeigt dann automatisch den "V"-Button neben dem Dropdown an und erlaubt die Auswahl von Variablen über den `VariablePickerDialog`. Zudem wird ein aktuell gesetzter Variablen-Wert (der nicht in der statischen Optionsliste steht) als temporäre Option im Dropdown eingeblendet.
+- **Implementierung:** In der Laufzeit-Aktion (Handler) muss der Wert dann durch `resolveTarget` oder `ExpressionParser.interpolate` aufgelöst werden.

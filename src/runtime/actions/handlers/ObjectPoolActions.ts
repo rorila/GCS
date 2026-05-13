@@ -125,8 +125,8 @@ export function registerObjectPoolActions() {
         label: 'Objekt spawnen',
         description: 'Holt eine Instanz aus dem Object Pool eines TSpriteTemplate.',
         parameters: [
-            { name: 'templateId', label: 'Template', type: 'select', source: 'objects', hint: 'Das TSpriteTemplate' },
-            { name: 'referenceObject', label: 'Spawnen bei Objekt', type: 'select', source: 'objects', hint: 'Optional: Koords von dieses Objekts übernehmen' },
+            { name: 'templateId', label: 'Template', type: 'string', source: 'objects', allowVariableBinding: true, hint: 'Das TSpriteTemplate' },
+            { name: 'referenceObject', label: 'Spawnen bei Objekt', type: 'string', source: 'objects', allowVariableBinding: true, hint: 'Optional: Koords von dieses Objekts übernehmen' },
             { name: 'spawnMode', label: 'Template Spawn Modus', type: 'select', options: ['normal', 'all_active', 'random_active'], defaultValue: 'normal', hint: 'Gilt nur, wenn das Bezugsobjekt ein Template ist.' },
             { name: 'offsetX', label: 'Offset X', type: 'number', hint: 'Verschiebung auf X-Achse' },
             { name: 'offsetY', label: 'Offset Y', type: 'number', hint: 'Verschiebung auf Y-Achse' },
