@@ -21,10 +21,11 @@ export class SystemComponentRenderer {
                 if (val === undefined) val = '-';
 
                 el.innerText = obj.isVariable ? `${obj.name}\n(${val})` : obj.name;
-                el.style.color = '#ffffff';
+                el.style.color = '#000000';
                 el.style.fontSize = '10px';
                 el.style.textAlign = 'center';
                 el.style.whiteSpace = 'pre-wrap';
+                el.style.opacity = '1';
 
                 if (obj.isVariable) {
                     el.style.border = '1px solid rgba(255, 255, 255, 0.5)';
