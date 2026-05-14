@@ -119,7 +119,7 @@ export class DebugLogService {
             timestamp: Date.now(),
             parentId: parentId,
             children: [],
-            isExpanded: true,
+            isExpanded: false, // Standardmäßig eingeklappt - User kann durch Klick auf Pfeil erweitern
             data: options.data,
             objectName: options.objectName,
             eventName: options.eventName

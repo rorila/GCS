@@ -900,6 +900,12 @@ export class TDebugLog {
             const data = entry.data;
             if (data.type === 'calculate') {
                 detailText = `(${data.resultVariable || 'result'} = ${data.formula || '?'})`;
+            } else if (data.type === 'negate' && data.changes) {
+                const changes = Object.entries(data.changes).map(([k, v]) => `${k}=${v}`).join(', ');
+                detailText = `(negate: ${changes})`;
+            } else if (data.type === 'increment' && data.changes) {
+                const changes = Object.entries(data.changes).map(([k, v]) => `${k}+=${v}`).join(', ');
+                detailText = `(increment: ${changes})`;
             } else if (data.type === 'variable') {
                 detailText = `(${data.variableName || 'var'} = ${data.source || '?'}.${data.sourceProperty || '?'})`;
             } else if (data.type === 'property' && data.changes) {

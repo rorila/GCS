@@ -349,7 +349,7 @@ export class TaskExecutor {
                 } else if (action && action.type && action.type !== 'action') {
                     // If action has a body (is an action-definition), we execute its body ourselves
                     if (action.body && Array.isArray(action.body)) {
-                        // Log composite action
+                        // Log composite action (only logged here, not in ActionExecutor)
                         const logId = DebugLogService.getInstance().log('Action', action.name || name, {
                             parentId,
                             data: action
@@ -389,13 +389,8 @@ export class TaskExecutor {
                             DebugLogService.getInstance().popContext();
                         }
                     } else {
-                        // Regular action (no body), execute directly
-                        const logId = DebugLogService.getInstance().log('Action', action.name || name, {
-                            parentId,
-                            objectName: contextObj?.name,
-                            data: action
-                        });
-                        await this.actionExecutor.execute(action, vars, globalVars, contextObj, logId || parentId);
+                        // Regular action (no body), execute directly via ActionExecutor (which will log)
+                        await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
                     }
                 }
 
@@ -554,6 +549,7 @@ export class TaskExecutor {
                 if (action) {
                     // If action has a body (is an action-definition), we execute its body ourselves
                     if (action.body && Array.isArray(action.body)) {
+                        // Log composite action (only logged here, not in ActionExecutor)
                         const logId = DebugLogService.getInstance().log('Action', action.name || item.name, {
                             parentId,
                             data: action
@@ -592,13 +588,8 @@ export class TaskExecutor {
                             DebugLogService.getInstance().popContext();
                         }
                     } else {
-                        // Regular action (no body), execute directly
-                        const logId = DebugLogService.getInstance().log('Action', action.name || item.name, {
-                            parentId,
-                            objectName: contextObj?.name,
-                            data: action
-                        });
-                        await this.actionExecutor.execute(action, vars, globalVars, contextObj, logId || parentId);
+                        // Regular action (no body), execute directly via ActionExecutor (which will log)
+                        await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
                     }
                 } else {
                     const availableNames = this.actions.map(a => a.name).filter(Boolean);
