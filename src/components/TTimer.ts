@@ -95,7 +95,18 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         }
 
         if (this.enabled) {
-            this.timerId = window.setInterval(() => {
+            logger.info(`[TTimer] "${this.name}" starting (interval: ${this.interval}ms, current: ${this.currentInterval})`);
+            const currentId = window.setInterval(() => {
+                // GHOST-EVENT PROTECTION:
+                // Only fire if this interval is still the active one and timer is enabled
+                if (this.timerId !== currentId || !this.enabled) {
+                    if (this.timerId !== currentId) {
+                        logger.warn(`[TTimer] "${this.name}" ghost interval detected, stopping. (currentId: ${currentId}, activeId: ${this.timerId})`);
+                        window.clearInterval(currentId);
+                    }
+                    return;
+                }
+
                 this.currentInterval++;
 
                 // Fire onTimer event via callback (legacy)
@@ -109,14 +120,16 @@ export class TTimer extends TWindow implements IRuntimeComponent {
                 }
 
                 // Check if max interval reached
-                if (this.maxInterval > 0 && this.currentInterval >= this.maxInterval) {
-                    logger.info(`[TTimer] ${this.name}: MaxInterval reached (${this.maxInterval})`);
+                const maxInt = Number(this.maxInterval);
+                if (maxInt > 0 && this.currentInterval >= maxInt) {
+                    logger.info(`[TTimer] "${this.name}": MaxInterval reached (${maxInt})`);
                     this.stop();
                     if (this.onEvent) {
                         this.onEvent('onMaxIntervalReached');
                     }
                 }
             }, this.interval);
+            this.timerId = currentId;
         }
     }
 
@@ -125,6 +138,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
      */
     public stop(): void {
         if (this.timerId !== null) {
+            logger.info(`[TTimer] "${this.name}" stopped. (timerId: ${this.timerId})`);
             window.clearInterval(this.timerId);
             this.timerId = null;
         }

@@ -1,4 +1,13 @@
 ### 2026-05-13
+[UC-2026-05-13-TimerLifecycleFix]
+Beschreibung: Bugfix — Behebung von Timer-Leaks und Ghost-Events bei Stage-Wechseln. 
+Lösung: In `GameRuntime.handleStageChange` wird nun sichergestellt, dass `onRuntimeStop` auf allen Objekten der alten Stage aufgerufen wird, BEVOR die Objektreferenzen überschrieben werden. Zusätzlich wurde in `TTimer.ts` eine ID-Validierung im Interval-Callback eingebaut, um "Geister-Ticks" gestoppter Timer zu ignorieren.
+Beteiligte Dateien:
+- src/runtime/GameRuntime.ts (Z. 448-458): Aufruf von `onRuntimeStop` und `clearAllTimers` an den Anfang von `handleStageChange` verschoben.
+- src/components/TTimer.ts (Z. 98-111): ID-Validierung und Ghost-Event Protection im Interval-Callback implementiert.
+Ergebnis: Saubere Bereinigung aller Stage-Komponenten beim Wechsel; keine unerwünschten Action-Aufrufe durch Hintergrund-Timer mehr.
+
+### 2026-05-13
 [UC-2026-05-13-SpawnObject-VariableSupport]
 Beschreibung: Feature — Variablen-Unterstützung für "Template" und "Bezugsobjekt" in der `spawn_object` Aktion. Um maximale Flexibilität zu gewährleisten, wurden diese Felder auf den Typ `string` (Editierfeld) umgestellt. Dies ermöglicht sowohl die direkte Eingabe von Objektnamen als auch die Verwendung von Variablen-Ausdrücken wie `${MyBulletTemplate}`. Der "V"-Button für den Dialog bleibt zur Unterstützung erhalten.
 Beteiligte Dateien:

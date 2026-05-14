@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "UfoShoter",
+    "name": "UfoShoter2",
     "version": "1.0",
     "author": "Antigravity",
     "description": "",
-    "_sourcePath": "projects/UfoShoter.json"
+    "_sourcePath": "projects/UfoShoter2.json"
   },
   "stages": [
     {
@@ -283,7 +283,7 @@
           "x": 8,
           "y": 13,
           "width": 11,
-          "height": 22,
+          "height": 25,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
@@ -294,7 +294,7 @@
             "borderWidth": 0,
             "opacity": 1
           },
-          "text": "Breite,\n\nHöhe,\n\nx-Position,\n\ny-Position,\n\nx-Offset (wird berechnet),\n\nAktueller Name der Kanone,\n(z.B. \"KanonenTemplate_pool_\"+3),\n\nAktuelle Anzahl der Kanonen,\n(diese Zahl wird für den Zusammenbau des Namens genötigt)\n\nMaximale Anzahl der Kanonen\n"
+          "text": "KanonenTemplateBreite: Breite,\n\nKanonenTemplateHoehe: Höhe,\n\nKanonenBasisXPos: x-Position,\n\nKanonenBasisYPos:y-Position,\n\nUfoTemplateXOffset: \nx-Offset (wird berechnet), Der Abstand zwischen Basis und Kanone\n\nCurrSpriteName: \nAktueller Name der Kanone,\n(z.B. \"KanonenTemplate_pool_\"+3),\n\nCurrCannonCount:\nAktuelle Anzahl der Kanonen,\n(diese Zahl wird für den Zusammenbau des Namens genötigt)\n\nMaxCannons:\nMaximale Anzahl der Kanonen\n\nNull:\nWann soll das Spiel beendet sein. Ist eine Hilfsvariable, weil die Action nicht auf literal funktioniert."
         },
         {
           "className": "TVariable",
@@ -1147,7 +1147,7 @@
           },
           "visible": true,
           "x": 54,
-          "y": 34,
+          "y": 38,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -1175,7 +1175,7 @@
           },
           "visible": true,
           "x": 46,
-          "y": 34,
+          "y": 38,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -1203,7 +1203,7 @@
           },
           "visible": true,
           "x": 39,
-          "y": 34,
+          "y": 38,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -2848,7 +2848,7 @@
       }
     }
   ],
-  "activeStageId": "stage_7e3d920f-d083-48a1-9610-a1086b4b538c",
+  "activeStageId": "blueprint",
   "objects": [],
   "actions": [],
   "tasks": [],

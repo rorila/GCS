@@ -61,8 +61,6 @@ export class TaskExecutor {
         if (isEnabled) {
             logger.info(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || 'none'})`);
         }
-        // Diagnose-Konsolen-Log (umgeht UseCase-Filter)
-        console.info(`[TASK-START] task="${taskName}" depth=${depth} ctx="${contextObj?.name || 'none'}" actionsInRegistry=${this.actions.length}`);
 
         const taskLogId = DebugLogService.getInstance().log('Task', `START: ${taskName}`, {
             parentId,
@@ -310,14 +308,12 @@ export class TaskExecutor {
             if (nodeType === 'action') {
                 // Execute this action
                 // Try to resolve custom action definition FIRST
-                console.info(`[ACTION-RESOLVE] flowChart node="${name}" task="${taskName}" node.data.type="${node.data?.type}" isLinked=${!!node.data?.isLinked} availableActions=${this.actions.length}`);
                 let action = this.resolveAction({ type: 'action', name: name });
                 const resolvedFromRegistry = !!action;
 
                 // If no custom definition found, OR it's just a placeholder without body, use local node data
                 if (!action || (action.type === 'action' && !action.body)) {
                     action = node.data;
-                    console.warn(`[ACTION-RESOLVE] fallback to node.data for "${name}" (resolvedFromRegistry=${resolvedFromRegistry})`);
                 }
 
                 // SAFETY FALLBACK: If we still have an action but it's missing the 'type', 
@@ -345,7 +341,6 @@ export class TaskExecutor {
                         task: taskName,
                         contextObj: contextObj?.name
                     };
-                    console.error(`[ACTION-SKIPPED-FLOW] "${name}" konnte nicht zu einer ausfuehrbaren Action aufgeloest werden.`, diag);
                     logger.error(`[ACTION-SKIPPED] "${name}" konnte nicht zu einer ausfuehrbaren Action aufgeloest werden.`, diag);
                     DebugLogService.getInstance().log('Event',
                         `SKIPPED unresolved action "${name}" in task "${taskName}"`,
@@ -386,9 +381,9 @@ export class TaskExecutor {
                             // Make $params available in the vars context for body execution
                             const bodyVars = { ...vars, $params: resolvedParams };
 
-                            // Execute each body item
+                            // Execute each body item using executeSequenceItem to allow tasks inside actions
                             for (const bodyItem of action.body) {
-                                await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, logId);
+                                await this.executeSequenceItem(bodyItem, bodyVars, globalVars, contextObj, depth, logId);
                             }
                         } finally {
                             DebugLogService.getInstance().popContext();
@@ -554,7 +549,6 @@ export class TaskExecutor {
                 await this.execute(item.name, vars, globalVars, contextObj, depth + 1, parentId, item.params);
                 break;
             case 'action': {
-                console.info(`[ACTION-RESOLVE] sequence item.name="${item.name}" item.type="${item.type}" hasParams=${!!item.params} availableActions=${this.actions.length}`);
                 const action = this.resolveAction(item);
 
                 if (action) {
@@ -590,9 +584,9 @@ export class TaskExecutor {
 
                             const bodyVars = { ...vars, $params: resolvedParams };
 
-                            // Execute each body item
+                            // Execute each body item using executeSequenceItem to allow tasks inside actions
                             for (const bodyItem of action.body) {
-                                await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, logId);
+                                await this.executeSequenceItem(bodyItem, bodyVars, globalVars, contextObj, depth, logId);
                             }
                         } finally {
                             DebugLogService.getInstance().popContext();
@@ -616,7 +610,6 @@ export class TaskExecutor {
                         availableActionNames: availableNames,
                         contextObj: contextObj?.name
                     };
-                    console.error(`[ACTION-SKIPPED-SEQ] Action "${item.name}" nicht in Registry gefunden — Sequence-Item wird uebersprungen.`, diag);
                     logger.error(`[ACTION-SKIPPED] "${item.name}" not in Runtime-Actions.`, diag);
                     DebugLogService.getInstance().log('Event',
                         `SKIPPED unresolved action "${item.name}" (sequence)`,
@@ -661,10 +654,6 @@ export class TaskExecutor {
             if (found) return found;
             // Miss-Log nur wenn wir nicht ohnehin auf die Hülle zurückfallen sollen
             // (item.type === 'action' && !item.body) → wird vom Aufrufer als "miss" behandelt.
-            if (!(item.type === 'action' && !item.body)) {
-                console.warn(`[resolveAction] "${item.name}" nicht in Runtime-Action-Liste gefunden (size=${this.actions.length}). Verfuegbar: [${this.actions.map(a => a.name).filter(Boolean).join(', ')}]`);
-                logger.warn(`[resolveAction] "${item.name}" not found`);
-            }
         }
 
         // If it was a generic search for 'action' type and not found in custom actions, 

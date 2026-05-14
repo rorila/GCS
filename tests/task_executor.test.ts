@@ -284,6 +284,57 @@ export async function runTaskExecutorTests(): Promise<TestResult[]> {
         addResult('Execute: Max Recursion Depth Guard', false, `Exception: ${e.message}`);
     }
 
+    // --- Test 8: Task in Composite Action ---
+    try {
+        const project = createTestProject();
+        const loginStage = project.stages.find(s => s.id === 'stage_login')!;
+        
+        // Setup: A composite action that calls a target task
+        const actions = [
+            {
+                name: 'CompositeAction',
+                type: 'action',
+                body: [
+                    { name: 'InnerAction', type: 'property', target: 'X', changes: { x: 1 } },
+                    { name: 'TargetTask', type: 'task' }
+                ]
+            },
+            { name: 'InnerAction', type: 'property', target: 'X', changes: { x: 1 } },
+            { name: 'FinalAction', type: 'property', target: 'Y', changes: { y: 2 } }
+        ];
+
+        const tasks = [
+            {
+                name: 'CallingTask',
+                actionSequence: [{ name: 'CompositeAction', type: 'action' }]
+            },
+            {
+                name: 'TargetTask',
+                actionSequence: [{ name: 'FinalAction', type: 'action' }]
+            }
+        ];
+
+        const mock = new MockActionExecutor();
+        const executor = new TaskExecutor(
+            project,
+            actions as any,
+            mock as any as ActionExecutor,
+            undefined,
+            undefined,
+            tasks as any
+        );
+
+        await executor.execute('CallingTask', {}, {});
+        
+        const executedNames = mock.executedActions.map(a => a.name);
+        const ok = executedNames.includes('InnerAction') && executedNames.includes('FinalAction');
+        
+        addResult('Execute: Task in Composite Action', ok,
+            `Ausgeführt: [${executedNames.join(', ')}]`);
+    } catch (e: any) {
+        addResult('Execute: Task in Composite Action', false, `Exception: ${e.message}`);
+    }
+
     return results;
 }
 

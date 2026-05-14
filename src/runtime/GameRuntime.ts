@@ -435,8 +435,10 @@ export class GameRuntime implements IVariableHost {
     }
 
     private handleStageChange(_oldStageId: string, newStageId: string): void {
-        // 1. BEFORE Stage Change: Trigger onLeave on the OLD stage
-        // We use the current this.stage as it still represents the old stage
+        // 1. BEFORE Stage Change: Cleanup current stage state
+        logger.info(`--- STAGE CHANGE: Preparing to leave stage... ---`);
+
+        // 1.1 Trigger onLeave on the OLD stage
         if (this.stage && this.taskExecutor) {
             const onLeaveTask = (this.stage.events || this.stage.Tasks)?.onLeave;
             if (onLeaveTask) {
@@ -449,6 +451,21 @@ export class GameRuntime implements IVariableHost {
             }
         }
 
+        // 1.2 STOP ALL current objects BEFORE they are replaced
+        // This ensures TTimer, TInputController etc. can clean up their intervals and listeners.
+        this.objects.forEach(obj => {
+            try {
+                if (typeof obj.onRuntimeStop === 'function') obj.onRuntimeStop();
+            } catch (e) {
+                logger.error(`Error during onRuntimeStop for object ${obj.id}:`, e);
+            }
+        });
+
+        // 1.3 Clear shared runtime state
+        this.clearAllTimers(); // Variable timers
+        AnimationManager.getInstance().clear();
+        
+        // 2. SWITCH to new stage data
         this.stage = this.project.stages?.find((s: any) => s.id === newStageId);
         if (!this.stage) return;
 
@@ -461,17 +478,13 @@ export class GameRuntime implements IVariableHost {
             this.taskExecutor.setActions(merged.actions);
         }
 
-        logger.info(`--- STAGE CHANGE: ${newStageId} ---`);
+        logger.info(`--- STAGE CHANGE: Switched to ${newStageId} ---`);
 
-        // IMPORTANT: Update ActionExecutor with new objects!
+        // 3. RE-INITIALIZE runtime state for new stage
         if (this.options.makeReactive) {
             this.reactiveRuntime.clear(false); // DO NOT CLEAR VARIABLES! Keep the data state.
-            this.clearAllTimers();
-            AnimationManager.getInstance().clear();
 
             // Register ALL objects including global variables.
-            // Global variables persist via clear(false) + cachedGlobalObjects.
-            // The context resolution in ReactiveRuntime.getContext() handles
             // First PASS: Register variables and systemic data objects FIRST
             this.objects.forEach(obj => {
                 if ((obj as any).isVariable || obj.className === 'TStringMap' || obj.className?.includes('Variable') || obj.className === 'TTheme') {
@@ -491,10 +504,6 @@ export class GameRuntime implements IVariableHost {
             }
             this.reactiveRuntime.setVariable('isSplashActive', false);
 
-            // GlobalListeners überleben clear(false) dank PropertyWatcher-Fix:
-            // PropertyWatcher.clear() löscht nur object-spezifische Watchers,
-            // NICHT die globalListeners (Rendering-Brücke aus dem Konstruktor).
-
             this.objects = this.reactiveRuntime.getObjects();
 
             // FIXED ORDER: Initialize stage variables BEFORE reactive bindings 
@@ -504,40 +513,22 @@ export class GameRuntime implements IVariableHost {
             this.variableManager.importVariablesFromObjects(this.objects);
 
             this.initializeReactiveBindings();
-
-            logger.debug(`Global Vars AFTER initializeReactiveBindings:`, this.reactiveRuntime.getContext());
         }
 
-        // IMPORTANT: Update ActionExecutor with new objects (Proxies if reactive)
+        // 4. SYNC and START
         if (this.actionExecutor) {
             this.actionExecutor.setObjects(this.objects);
         }
 
         this.syncVariableComponents();
-
-        this.actionExecutor.setObjects(this.objects);
         this.initStageController();
         
-        // WICHTIG: TStageController mitteilen, auf welcher Stage wir WIRKLICH sind! 
-        // (Für den Fall dass der Wechsel nicht durch ihn selbst, sondern durch eine navigate_stage Action passierte)
         if (this.stageController && this.stage) {
             this.stageController.setCurrentStageId(this.stage.id);
         }
 
-        // Alte Objekte sauber herunterfahren bevor die neuen starten.
-        // Verhindert Timer-Leaks und doppelte Event-Handler.
-        this.objects.forEach(obj => {
-            try {
-                if (typeof obj.onRuntimeStop === 'function') obj.onRuntimeStop();
-            } catch (e) { /* silent */ }
-        });
-
         // glm.init() + glm.start() wird in initMainGame() erledigt.
-        // Kein doppeltes glm.init() hier nötig.
         this.start();
-
-        // 2. AFTER Stage Change: startLogic() will be triggered via initMainGame() 
-        // which handles the delay if configured.
 
         if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }

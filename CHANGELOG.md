@@ -1,3 +1,8 @@
+### [3.32.3] - 2026-05-13
+### Behoben
+- **Stage-Lifecycle & Timer-Leaks:** Kritischer Fehler im Stage-Wechsel behoben. Alle Komponenten (insbes. `TTimer` und `TInputController`) werden nun korrekt gestoppt (`onRuntimeStop`), BEVOR die neue Stage geladen wird. Dies verhindert "Ghost-Events" und unerwünschte Eigenschafts-Mutationen in der Ziel-Stage.
+- **TTimer Ghost-Event Protection:** Zusätzliche ID-Validierung in `TTimer.ts` verhindert das Feuern von Intervallen, die bereits logisch beendet wurden.
+
 ### [3.32.2] - 2026-05-13
 ### Hinzugefügt
 - **Variable Template & Reference in Spawn Action:** Die Aktion `spawn_object` (Objekt spawnen) wurde auf **Editierfelder** (type: string) umgestellt. Dies ermöglicht die direkte Eingabe von Objektnamen sowie die Verwendung von Variablen und Ausdrücken für die Felder **Template** und **Bezugsobjekt**. Der Inspector zeigt zudem weiterhin den Variablen-Button ("V") an, um den komfortablen Dialog-Picker zu nutzen.
