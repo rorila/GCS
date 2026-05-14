@@ -189,7 +189,7 @@ export class FlowCondition extends FlowElement {
     }
 
     public get LeftOperandValue(): string {
-        const v = this.data.condition?.leftValue || this.data.condition?.variable || '';
+        const v = this.data.condition?.leftValue !== undefined ? this.data.condition.leftValue : (this.data.condition?.variable !== undefined ? this.data.condition.variable : '');
         logger.info(`[FlowCondition] get LeftOperandValue: "${v}"`);
         return v;
     }
@@ -249,7 +249,7 @@ export class FlowCondition extends FlowElement {
     }
 
     public get RightOperandValue(): string {
-        const v = this.data.condition?.rightValue || this.data.condition?.value || '';
+        const v = this.data.condition?.rightValue !== undefined ? this.data.condition.rightValue : (this.data.condition?.value !== undefined ? this.data.condition.value : '');
         // logger.info(`[FlowCondition] get RightOperandValue: "${v}"`);
         return v;
     }
@@ -307,8 +307,8 @@ export class FlowCondition extends FlowElement {
     private updateText() {
         const cond = this.data.condition;
         if (cond) {
-            const left = cond.leftValue || cond.variable || '?';
-            const right = cond.rightValue || cond.value || '?';
+            const left = cond.leftValue !== undefined ? cond.leftValue : (cond.variable !== undefined ? cond.variable : '?');
+            const right = cond.rightValue !== undefined ? cond.rightValue : (cond.value !== undefined ? cond.value : '?');
             const op = cond.operator || '==';
             this.setText(`${left} ${op} ${right}`, true);
         } else {

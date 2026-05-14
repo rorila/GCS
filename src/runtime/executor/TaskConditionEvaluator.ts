@@ -27,8 +27,8 @@ export class TaskConditionEvaluator {
         } else {
             const leftType = condition.leftType || 'variable';
             const rightType = condition.rightType || 'literal';
-            const leftValRaw = condition.leftValue || condition.variable;
-            const rightValRaw = condition.rightValue || condition.value;
+            const leftValRaw = condition.leftValue !== undefined ? condition.leftValue : condition.variable;
+            const rightValRaw = condition.rightValue !== undefined ? condition.rightValue : condition.value;
             operator = condition.operator || '==';
 
             if (leftType === 'variable' || leftType === 'property') {
@@ -68,15 +68,23 @@ export class TaskConditionEvaluator {
         if (value === undefined || value === null) return value;
 
         if (typeof value === 'string') {
+            // Check for quoted strings
             if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
                 return value.substring(1, value.length - 1);
             }
 
+            // Check for variable references
             const match = value.match(/^\$\{(.+)\}$/);
             if (match) {
                 return this.resolveVarPath(match[1], vars, globalVars);
             }
 
+            // Try to parse as number (integer or float)
+            if (!isNaN(Number(value)) && value.trim() !== '') {
+                return Number(value);
+            }
+
+            // Otherwise treat as variable path
             return this.resolveVarPath(value, vars, globalVars);
         }
         return value;

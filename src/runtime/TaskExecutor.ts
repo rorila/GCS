@@ -677,19 +677,27 @@ export class TaskExecutor {
             const varName = item.condition.leftValue || item.condition.variable || '???';
             // Variable resolves either against vars or globalVars
             const varValue = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
-            const compareValue = item.condition.rightValue || item.condition.value || '???';
+            let compareValue = item.condition.rightValue !== undefined ? item.condition.rightValue : (item.condition.value !== undefined ? item.condition.value : '???');
+            // Convert compareValue to number if it's a numeric string
+            if (typeof compareValue === 'string' && !isNaN(Number(compareValue)) && compareValue.trim() !== '') {
+                compareValue = Number(compareValue);
+            }
             const operator = item.condition.operator || '==';
             
             // Format for logging: Show the variable name AND the actual evaluated value (if it differs)
             let displayLeft = varName;
             if (varName.includes('${') || varName.includes('self.') || varName === 'hitSide' || varName === 'other') {
-                const safeVal = varValue !== undefined ? String(varValue) : 'undefined';
-                displayLeft = `${varName} (ist: "${safeVal}")`;
+                // Display value without quotes if it's a number
+                const safeVal = varValue !== undefined ? (typeof varValue === 'number' ? varValue : `"${varValue}"`) : 'undefined';
+                displayLeft = `${varName} (ist: ${safeVal})`;
             } else if (varName !== String(varValue)) {
-                displayLeft = `${varName} ("${varValue}")`;
+                const displayValue = typeof varValue === 'number' ? varValue : `"${varValue}"`;
+                displayLeft = `${varName} (${displayValue})`;
             }
-            
-            conditionExpr = `${displayLeft} ${operator} "${compareValue}"`;
+
+            // Display compareValue without quotes if it's a number
+            const displayCompareValue = typeof compareValue === 'number' ? compareValue : `"${compareValue}"`;
+            conditionExpr = `${displayLeft} ${operator} ${displayCompareValue}`;
             logData = { variable: varName, value: varValue, expected: compareValue, result };
         }
 
