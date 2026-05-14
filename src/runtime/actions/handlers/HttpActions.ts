@@ -298,7 +298,19 @@ export function registerHttpActions() {
 
     // 18. Execute Login Request
     actionRegistry.register('execute_login_request', async (_action, context) => {
-        const pin = context.vars['currentPIN'] || context.contextVars['currentPIN'];
+        let pin = context.vars['currentPIN'] || context.contextVars['currentPIN'];
+        // Wenn pin ein Objekt ist, extrahiere den value
+        if (pin && typeof pin === 'object' && 'value' in pin) {
+            pin = pin.value;
+        }
+        // Wenn pin ${} Syntax hat, entferne sie
+        if (pin && typeof pin === 'string' && pin.startsWith('${') && pin.endsWith('}')) {
+            pin = pin.slice(2, -1);
+            pin = context.vars[pin] || context.contextVars[pin];
+            if (pin && typeof pin === 'object' && 'value' in pin) {
+                pin = pin.value;
+            }
+        }
 
         dataLogger.info('Attempting login with PIN:', pin);
 

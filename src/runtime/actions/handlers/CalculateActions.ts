@@ -211,10 +211,14 @@ export function registerCalculateActions() {
     actionRegistry.register('negate', (action, context) => {
         if (action.changes) {
             Object.keys(action.changes).forEach(key => {
-                const parts = key.split('.');
+                // Entferne ${} Syntax, falls vorhanden (z.B. ${CurrCannonCount} → CurrCannonCount)
+                const cleanKey = key.replace(/^\${(.+)}$/, '$1');
+                // Wenn target gesetzt ist, baue den vollständigen Pfad: target.key
+                const fullKey = action.target ? `${action.target}.${cleanKey}` : cleanKey;
+                const parts = fullKey.split('.');
                 const rootName = parts[0];
                 const propPath = parts.length > 1 ? parts.slice(1).join('.') : '';
-                
+
                 const target = resolveTarget(rootName, context.objects, context.vars, context.eventData);
 
                 if (target && propPath) {
@@ -231,8 +235,12 @@ export function registerCalculateActions() {
                         const negated = valueToNegate * -1;
                         PropertyHelper.setPropertyValue(target, propPath, negated);
                     }
-                } else if (target && !propPath) { // Global Variable
-                    const currentValue = context.vars[rootName] !== undefined ? context.vars[rootName] : context.contextVars[rootName];
+                } else if (!propPath) { // Global Variable (target kann null sein für globale Variablen)
+                    let currentValue = context.vars[rootName] !== undefined ? context.vars[rootName] : context.contextVars[rootName];
+                    // Wenn currentValue ein Objekt ist, extrahiere den value
+                    if (currentValue && typeof currentValue === 'object' && 'value' in currentValue) {
+                        currentValue = currentValue.value;
+                    }
                     if (typeof currentValue === 'number') {
                         const negated = currentValue * -1;
                         context.vars[rootName] = negated;
@@ -256,20 +264,28 @@ export function registerCalculateActions() {
     actionRegistry.register('increment', (action, context) => {
         if (action.changes) {
             Object.keys(action.changes).forEach(key => {
+                // Entferne ${} Syntax, falls vorhanden (z.B. ${CurrCannonCount} → CurrCannonCount)
+                const cleanKey = key.replace(/^\${(.+)}$/, '$1');
                 const rawValue = action.changes[key];
                 const incrementAmount = Number(PropertyHelper.interpolate(String(rawValue), { ...context.vars, ...context.contextVars, $eventData: context.eventData }, context.objects)) || 0;
 
-                const parts = key.split('.');
+                const parts = cleanKey.split('.');
                 const rootName = parts[0];
                 const propPath = parts.length > 1 ? parts.slice(1).join('.') : '';
-                
+
                 const target = resolveTarget(rootName, context.objects, context.vars, context.eventData);
 
                 if (target && propPath) {
                     const currentValue = Number(PropertyHelper.getPropertyValue(target, propPath)) || 0;
-                    PropertyHelper.setPropertyValue(target, propPath, currentValue + incrementAmount);
-                } else if (target && !propPath) { // Global Variable
-                    const currentValue = Number(context.vars[rootName] !== undefined ? context.vars[rootName] : context.contextVars[rootName]) || 0;
+                    const newValue = currentValue + incrementAmount;
+                    PropertyHelper.setPropertyValue(target, propPath, newValue);
+                } else if (!propPath) { // Global Variable (target kann null sein für globale Variablen)
+                    let rawVarValue = context.vars[rootName] !== undefined ? context.vars[rootName] : context.contextVars[rootName];
+                    // Wenn rawVarValue ein Objekt ist, extrahiere den value
+                    if (rawVarValue && typeof rawVarValue === 'object' && 'value' in rawVarValue) {
+                        rawVarValue = rawVarValue.value;
+                    }
+                    const currentValue = Number(rawVarValue) || 0;
                     const newValue = currentValue + incrementAmount;
                     context.vars[rootName] = newValue;
                     context.contextVars[rootName] = newValue;

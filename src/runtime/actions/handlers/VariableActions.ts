@@ -9,7 +9,11 @@ const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 export function registerVariableActions() {
     const handler = (action: any, context: any) => {
         let val: any = undefined;
-        const sourceName = action.source;
+        let sourceName = action.source;
+        // FIX: Strip ${...} wrapper from sourceName if present (Editor V-Button bug)
+        if (sourceName && sourceName.startsWith('${') && sourceName.endsWith('}')) {
+            sourceName = sourceName.slice(2, -1);
+        }
         // FIX: Strip ${...} wrapper from variableName if present (Editor V-Button bug)
         let rawVarName = action.variableName;
         if (rawVarName && rawVarName.startsWith('${') && rawVarName.endsWith('}')) {
@@ -36,7 +40,12 @@ export function registerVariableActions() {
                 if (action.sourceProperty && typeof varVal === 'object' && varVal !== null) {
                     val = PropertyHelper.getPropertyValue(varVal, action.sourceProperty);
                 } else {
-                    val = varVal;
+                    // Wenn varVal ein Objekt ist, extrahiere den value (für globale Variablen)
+                    if (typeof varVal === 'object' && varVal !== null && 'value' in varVal) {
+                        val = varVal.value;
+                    } else {
+                        val = varVal;
+                    }
                 }
             }
         }

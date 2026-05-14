@@ -82,7 +82,12 @@ export class DialogStateManager {
         }
 
         if (action.type === 'negate') {
-            return `${action.target}.value := !${action.target}.value`;
+            const changes = action.changes || {};
+            const entries = Object.entries(changes);
+            if (entries.length === 0) {
+                return action.target ? `-${action.target}.value` : '(negate - keine Details)';
+            }
+            return entries.map(([prop]) => `-${action.target}.${prop}`).join('; ');
         }
 
         return `(${action.type})`;
