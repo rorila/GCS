@@ -13,9 +13,13 @@ export class VariablePickerDialog {
     /**
      * Öffnet den Variablen-Auswahl-Dialog und gibt den gewählten Variablennamen zurück.
      * @param context Optional: Zusätzlicher Kontext (z.B. für Repeater-Daten)
-     * @returns Promise<string | null> - Gewählter Variablenname oder null bei Abbruch
+     * @param mode Modus: 'all' für alles (default), 'variable' für nur Variablen, 'component' für nur Komponenten
+     * @returns Promise<string | null> - Gewählter Wert oder null bei Abbruch
+     *   - Im 'variable'-Modus: "${VariablenName}" (z.B. "${score}")
+     *   - Im 'component'-Modus: "Komponente.Eigenschaft" (z.B. "Sprite1.x")
+     *   - Im 'all'-Modus: wie bisher (je nach Auswahl)
      */
-    public static show(context?: { objectId?: string, repeaterFields?: string[] }): Promise<string | null> {
+    public static show(context?: { objectId?: string, repeaterFields?: string[] }, mode: 'all' | 'variable' | 'component' = 'all'): Promise<string | null> {
         return new Promise((resolve) => {
             const overlay = VariablePickerDialog.createOverlay();
             const dialog = VariablePickerDialog.createDialog();
@@ -36,6 +40,54 @@ export class VariablePickerDialog {
             header.appendChild(closeBtn);
             dialog.appendChild(header);
 
+            // Modus-Auswahl (Radio-Buttons)
+            const modeRow = document.createElement('div');
+            modeRow.style.cssText = 'padding:12px 16px; border-bottom:1px solid #333; display:flex; gap:16px; align-items:center;';
+            
+            const allRadio = document.createElement('label');
+            allRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const allRadioInput = document.createElement('input');
+            allRadioInput.type = 'radio';
+            allRadioInput.name = 'pickerMode';
+            allRadioInput.value = 'all';
+            allRadioInput.checked = mode === 'all';
+            allRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const allLabel = document.createElement('span');
+            allLabel.innerText = '📋 Alles';
+            allRadio.appendChild(allRadioInput);
+            allRadio.appendChild(allLabel);
+            
+            const variableRadio = document.createElement('label');
+            variableRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const variableRadioInput = document.createElement('input');
+            variableRadioInput.type = 'radio';
+            variableRadioInput.name = 'pickerMode';
+            variableRadioInput.value = 'variable';
+            variableRadioInput.checked = mode === 'variable';
+            variableRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const variableLabel = document.createElement('span');
+            variableLabel.innerText = '📦 Nur Variablen';
+            variableRadio.appendChild(variableRadioInput);
+            variableRadio.appendChild(variableLabel);
+            
+            const componentRadio = document.createElement('label');
+            componentRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const componentRadioInput = document.createElement('input');
+            componentRadioInput.type = 'radio';
+            componentRadioInput.name = 'pickerMode';
+            componentRadioInput.value = 'component';
+            componentRadioInput.checked = mode === 'component';
+            componentRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const componentLabel = document.createElement('span');
+            componentLabel.innerText = '🔧 Nur Komponenten';
+            componentRadio.appendChild(componentRadioInput);
+            componentRadio.appendChild(componentLabel);
+            
+            modeRow.appendChild(allRadio);
+            modeRow.appendChild(variableRadio);
+            modeRow.appendChild(componentRadio);
+            dialog.appendChild(modeRow);
+
             // Suchfeld
             const searchRow = document.createElement('div');
             searchRow.style.cssText = 'padding:8px 16px; border-bottom:1px solid #333;';
@@ -50,6 +102,18 @@ export class VariablePickerDialog {
             const content = document.createElement('div');
             content.style.cssText = 'flex:1; overflow-y:auto; padding:8px 0;';
             dialog.appendChild(content);
+
+            // Aktuellen Modus tracken
+            let currentMode: 'all' | 'variable' | 'component' = mode;
+
+            // Event-Listener für Radio-Buttons
+            const updateMode = () => {
+                currentMode = allRadioInput.checked ? 'all' : (variableRadioInput.checked ? 'variable' : 'component');
+                renderList(searchInput.value);
+            };
+            allRadioInput.onchange = updateMode;
+            variableRadioInput.onchange = updateMode;
+            componentRadioInput.onchange = updateMode;
 
             // Variablen sammeln
             const variables = projectVariableRegistry.getVariables().map(v => ({ ...v, _isVar: true }));
@@ -78,7 +142,18 @@ export class VariablePickerDialog {
 
             const selectVar = (varName: string) => {
                 overlay.remove();
-                resolve(varName);
+                
+                // Rückgabewert je nach Modus
+                if (currentMode === 'variable') {
+                    // Nur-Variablen-Modus: "${VariablenName}"
+                    resolve(`\${${varName}}`);
+                } else if (currentMode === 'component') {
+                    // Nur-Komponenten-Modus: "Komponente.Eigenschaft" (bereits im varName enthalten)
+                    resolve(varName);
+                } else {
+                    // All-Modus: wie bisher
+                    resolve(varName);
+                }
             };
 
             // Render-Funktion
@@ -86,32 +161,36 @@ export class VariablePickerDialog {
                 content.innerHTML = '';
                 const filterLower = filter.toLowerCase();
 
+                // Filter je nach Modus
+                const showVariables = currentMode === 'all' || currentMode === 'variable';
+                const showComponents = currentMode === 'all' || currentMode === 'component';
+
                 // Globale Variablen
-                if (globalVars.length > 0) {
+                if (showVariables && globalVars.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(globalVars, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('🌐 Globale Variablen', filtered, selectVar, filterLower));
+                        content.appendChild(VariablePickerDialog.createSection('🌐 Globale Variablen', filtered, selectVar, filterLower, currentMode === 'variable'));
                     }
                 }
 
                 // Stage Variablen
-                if (stageVars.length > 0) {
+                if (showVariables && stageVars.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(stageVars, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('🎭 Stage-Variablen', filtered, selectVar, filterLower));
+                        content.appendChild(VariablePickerDialog.createSection('🎭 Stage-Variablen', filtered, selectVar, filterLower, currentMode === 'variable'));
                     }
                 }
 
                 // Task Variablen
-                if (taskVars.length > 0) {
+                if (showVariables && taskVars.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(taskVars, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('⚡ Task-Variablen (Lokal)', filtered, selectVar, filterLower));
+                        content.appendChild(VariablePickerDialog.createSection('⚡ Task-Variablen (Lokal)', filtered, selectVar, filterLower, currentMode === 'variable'));
                     }
                 }
 
                 // Globale Komponenten
-                if (globalComps.length > 0) {
+                if (showComponents && globalComps.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(globalComps, filterLower);
                     if (filtered.length > 0) {
                         content.appendChild(VariablePickerDialog.createSection('🧩 Globale Komponenten', filtered, selectVar, filterLower));
@@ -119,15 +198,15 @@ export class VariablePickerDialog {
                 }
 
                 // Stage Komponenten
-                if (stageComps.length > 0) {
+                if (showComponents && stageComps.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(stageComps, filterLower);
                     if (filtered.length > 0) {
                         content.appendChild(VariablePickerDialog.createSection('📦 Stage-Komponenten', filtered, selectVar, filterLower));
                     }
                 }
 
-                // Repeater-Daten
-                if (context?.repeaterFields && context.repeaterFields.length > 0) {
+                // Repeater-Daten (nur im all-Modus)
+                if (currentMode === 'all' && context?.repeaterFields && context.repeaterFields.length > 0) {
                     const repeaterItems = context.repeaterFields
                         .filter(f => !filterLower || f.toLowerCase().includes(filterLower) || 'row'.includes(filterLower));
                     if (repeaterItems.length > 0) {
@@ -233,7 +312,7 @@ export class VariablePickerDialog {
         return dialog;
     }
 
-    private static createSection(title: string, vars: any[], onSelect: (name: string) => void, filter: string): HTMLDivElement {
+    private static createSection(title: string, vars: any[], onSelect: (name: string) => void, filter: string, hideSubFields: boolean = false): HTMLDivElement {
         const section = document.createElement('div');
         section.style.cssText = 'padding:4px 0;';
 
@@ -245,7 +324,7 @@ export class VariablePickerDialog {
 
         vars.forEach(v => {
             const subFields = VariablePickerDialog.getSubFields(v);
-            const hasSubFields = subFields.length > 0;
+            const hasSubFields = subFields.length > 0 && !hideSubFields; // Keine Subeigenschaften im Nur-Variablen-Modus
             let isExpanded = filter.length > 0; // auto-expand bei Suche
 
             // Variable-Zeile

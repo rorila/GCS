@@ -212,6 +212,16 @@ export class FlowAction extends FlowElement {
                 this.data.name = action.name;
                 logger.info(`[FLOW-TRACE] Action "${this.Name}" is now LINKED.`);
             }
+
+            // FIX: If this.data has a different type than the project action, prefer this.data
+            // This allows the Inspector to override the action type
+            if (this.data && this.data.type && this.data.type !== action.type) {
+                // Merge this.data overrides into the action definition
+                const merged = { ...action };
+                Object.assign(merged, this.data);
+                return merged;
+            }
+
             // Scope-Erkennung: Wird bei Bedarf in detectAndApplyGlobalScope() gesetzt
             return action;
         }
@@ -229,7 +239,8 @@ export class FlowAction extends FlowElement {
             action.type = 'property';
             if (this.data && !this.data.type) this.data.type = 'property';
         }
-        return action?.type || 'property';
+        const type = action?.type || 'property';
+        return type;
     }
     public set type(v: string) {
         // Phase 3 (SYNC_REFACTOR): Setter delegiert an applyChange als einzigen Writer.

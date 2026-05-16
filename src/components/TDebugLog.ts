@@ -256,6 +256,7 @@ export class TDebugLog {
                 if (e.target.checked) this.typeFilters.add(type);
                 else this.typeFilters.delete(type);
                 this.saveFilters();
+                this.updateFilterDropdowns();
                 this.renderLogs(this.service.getLogs());
             });
         });
@@ -774,10 +775,8 @@ export class TDebugLog {
     private renderLogs(logs: LogEntry[]) {
         if (this.isPaused || !this.isVisible) return;
 
-        this.updateObjectDropdown();
-        this.updateEventDropdown();
-        this.updateTaskDropdown();
-        this.updateActionDropdown();
+        // PERFORMANCE: Dropdowns nur aktualisieren, wenn sich die Filter geändert haben
+        // Nicht bei jedem renderLogs() aufrufen
         this.logList.innerHTML = '';
 
         if (logs.length === 0) {

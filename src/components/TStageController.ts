@@ -26,7 +26,7 @@ export class TStageController extends TWindow {
     private _mainStageId: string = 'main';
 
     // Callback für Stage-Wechsel (wird von GameRuntime registriert)
-    private _onStageChangeCallback: ((oldStageId: string, newStageId: string, newStageObjects: any[]) => void) | null = null;
+    private _onStageChangeCallback: ((oldStageId: string, newStageId: string, newStageObjects: any[], reset: boolean) => void) | null = null;
 
     constructor(name: string = 'StageController', x: number = 0, y: number = 0) {
         super(name, x, y, 5, 2);  // Breite: 5, Höhe: 2 (Grid-Einheiten)
@@ -89,7 +89,7 @@ export class TStageController extends TWindow {
     /**
      * Registriert einen Callback für Stage-Wechsel
      */
-    public setOnStageChangeCallback(cb: (oldId: string, newId: string, objects: any[]) => void): void {
+    public setOnStageChangeCallback(cb: (oldId: string, newId: string, objects: any[], reset: boolean) => void): void {
         this._onStageChangeCallback = cb;
     }
 
@@ -170,8 +170,10 @@ export class TStageController extends TWindow {
 
     /**
      * Wechselt zu einer bestimmten Stage
+     * @param stageId ID der Ziel-Stage
+     * @param reset Wenn true, wird die Stage komplett neu aufgebaut (alle Komponenten auf Initialwerte)
      */
-    public goToStage(stageId: string): void {
+    public goToStage(stageId: string, reset: boolean = false): void {
         const stage = this._stages.find(s => s.id === stageId);
         if (!stage) {
             logger.warn(`[TStageController] Stage not found: ${stageId}`);
@@ -181,18 +183,19 @@ export class TStageController extends TWindow {
         const oldStageId = this._currentStageId;
         this._currentStageId = stageId;
 
-        TStageController.logger.info(`Switching from ${oldStageId} to ${stageId}`);
+        console.log(`[TStageController] Switching from ${oldStageId} to ${stageId} (reset=${reset})`);
 
-        // Callback mit neuen Objekten aufrufen
+        // Callback mit neuen Objekten und Reset-Flag aufrufen
         if (this._onStageChangeCallback) {
-            this._onStageChangeCallback(oldStageId, stageId, stage.objects || []);
+            this._onStageChangeCallback(oldStageId, stageId, stage.objects || [], reset);
         }
 
         this.triggerEvent('onStageChange', {
             oldStageId,
             newStageId: stageId,
             stageName: stage.name,
-            stageType: stage.type
+            stageType: stage.type,
+            reset
         });
     }
 

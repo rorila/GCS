@@ -28,6 +28,7 @@ export interface RuntimeOptions {
     onSpriteRender?: (sprites: any[]) => void;
     startStageId?: string;
     onStageSwitch?: (stageId: string) => void;
+    onRestartGame?: () => void;
 }
 
 export class GameRuntime implements IVariableHost {
@@ -92,14 +93,13 @@ export class GameRuntime implements IVariableHost {
 
         if (objects) {
             this.objects = objects;
-            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined);
             this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
         } else if (activeStage) {
             this.stage = activeStage;
             this.isSplashActive = activeStage.type === 'splash';
 
             const merged = this.stageManager.getMergedStageData(activeStage.id);
-            
             this.objects = merged.objects;
 
             // Apply merged stage properties (grid, background)
@@ -210,7 +210,7 @@ export class GameRuntime implements IVariableHost {
             this.taskExecutor = new TaskExecutor(project, merged.actions, this.actionExecutor, merged.flowCharts, options.multiplayerManager, merged.tasks);
         } else {
             this.objects = [];
-            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined);
             this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
         }
 
@@ -423,7 +423,7 @@ export class GameRuntime implements IVariableHost {
 
         if (this.stageController && this.project.stages) {
             this.stageController.setStages(this.project.stages);
-            this.stageController.setOnStageChangeCallback((oldId, newId) => this.handleStageChange(oldId, newId));
+            this.stageController.setOnStageChangeCallback((oldId, newId, _objects, reset) => this.handleStageChange(oldId, newId, reset));
         }
     }
 
@@ -434,15 +434,13 @@ export class GameRuntime implements IVariableHost {
         }
     }
 
-    private handleStageChange(_oldStageId: string, newStageId: string): void {
+    private handleStageChange(_oldStageId: string, newStageId: string, reset: boolean = false): void {
         // 1. BEFORE Stage Change: Cleanup current stage state
-        logger.info(`--- STAGE CHANGE: Preparing to leave stage... ---`);
 
         // 1.1 Trigger onLeave on the OLD stage
         if (this.stage && this.taskExecutor) {
             const onLeaveTask = (this.stage.events || this.stage.Tasks)?.onLeave;
             if (onLeaveTask) {
-                logger.info(`Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
                 try {
                     this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
                 } catch (e) {
@@ -464,21 +462,52 @@ export class GameRuntime implements IVariableHost {
         // 1.3 Clear shared runtime state
         this.clearAllTimers(); // Variable timers
         AnimationManager.getInstance().clear();
-        
+
+        // 1.4 Reset wird nicht unterstützt - pool-Objekte können nicht neu erstellt werden
+        // ohne globale Blueprint-Elemente zu verletzen
+        if (reset) {
+            logger.warn('Stage reset is not supported - pool objects cannot be recreated without violating global blueprint elements');
+            return;
+        }
+
         // 2. SWITCH to new stage data
         this.stage = this.project.stages?.find((s: any) => s.id === newStageId);
         if (!this.stage) return;
 
+        // Aktuelles Verhalten: Merged objects verwenden
         const merged = this.stageManager.getMergedStageData(newStageId);
         this.objects = merged.objects;
 
         if (this.taskExecutor) {
+            const merged = this.stageManager.getMergedStageData(newStageId);
             this.taskExecutor.setFlowCharts(merged.flowCharts);
             this.taskExecutor.setTasks(merged.tasks);
             this.taskExecutor.setActions(merged.actions);
         }
 
-        logger.info(`--- STAGE CHANGE: Switched to ${newStageId} ---`);
+        const gridConfig = (this.stage && this.stage.grid) || this.project.stage?.grid || this.project.grid;
+        const runtimeCallbacks = {
+            handleEvent: (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data),
+            render: this.options.onRender || (() => { }),
+            gridConfig,
+            objects: this.objects,
+            contextVars: this.contextVars,
+            addObject: (obj: any) => {
+                this.objects.push(obj);
+                if (this.reactiveRuntime && obj.name) {
+                    this.reactiveRuntime.registerObject(obj.name, obj, true);
+                }
+            },
+            removeObject: (id: string) => {
+                const idx = this.objects.findIndex((o: any) => o.id === id);
+                if (idx >= 0) this.objects.splice(idx, 1);
+            }
+        };
+
+        this.objects.forEach(obj => {
+            obj.initRuntime?.(runtimeCallbacks);
+        });
+
 
         // 3. RE-INITIALIZE runtime state for new stage
         if (this.options.makeReactive) {
@@ -529,6 +558,7 @@ export class GameRuntime implements IVariableHost {
 
         // glm.init() + glm.start() wird in initMainGame() erledigt.
         this.start();
+
 
         if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }
