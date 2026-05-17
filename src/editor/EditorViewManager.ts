@@ -882,19 +882,362 @@ export class EditorViewManager {
     private showAddStageDialog() {
         const modal = document.getElementById('userstories-edit-modal');
         if (!modal) return;
-        modal.style.display = 'block';
-        modal.innerHTML = `
-            <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-                <div style="background: #1a1a2e; border: 1px solid #3a3a6a; border-radius: 8px; padding: 24px; width: 420px; color: #e0e0e0;">
-                    <h3 style="margin: 0 0 16px 0; color: #fff;">Stage hinzufügen</h3>
-                    <div style="color: #9090c0; font-size: 13px; margin-bottom: 20px;">Diese Funktion wird in Kürze verfügbar sein.</div>
-                    <div style="display:flex;justify-content:flex-end;">
-                        <button id="add-stage-ok" style="padding:6px 20px;background:#388e3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;">OK</button>
+
+        const WIZARD_STEPS = 5;
+        let wizardStep = 1;
+
+        const sData: any = {
+            stageId: '',
+            stageName: '',
+            purposeType: '',
+            purposeOther: '',
+            controls: [] as string[],
+            objects:  [] as string[],
+            exitType: '',
+        };
+
+        const inputStyle   = 'width:100%;padding:8px;background:#0f1830;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;font-size:14px;';
+        const labelStyle   = 'display:block;font-size:13px;margin-bottom:5px;color:#c0c8e0;font-weight:bold;';
+        const sectionStyle = 'background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:18px;margin-bottom:14px;';
+        const tileBase     = 'display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;border:2px solid #2a2a5a;border-radius:8px;cursor:pointer;background:#0a1020;min-width:110px;min-height:80px;font-size:11px;text-align:center;white-space:pre-line;color:#c0c8e0;gap:6px;';
+        const tileSelected = 'border-color:#1976d2;background:#0a1a3a;color:#fff;';
+
+        const renderProgress = () => {
+            const steps = ['Name & Zweck', 'Steuerung', 'Objekte', 'Übergänge', 'Ergebnis'];
+            return `<div style="display:flex;gap:4px;margin-bottom:18px;">
+                ${steps.map((s, i) => {
+                    const num = i + 1;
+                    const active = num === wizardStep;
+                    const done   = num < wizardStep;
+                    const bg     = done ? '#1565c0' : active ? '#0d2a4a' : '#1a1a3a';
+                    const col    = done || active ? '#fff' : '#6060a0';
+                    const border = active ? '2px solid #60a0ff' : '2px solid transparent';
+                    return `<div style="flex:1;padding:6px 4px;border-radius:6px;text-align:center;background:${bg};color:${col};font-size:11px;font-weight:bold;border:${border};">
+                        ${done ? '✓' : num}. ${s}
+                    </div>`;
+                }).join('')}
+            </div>`;
+        };
+
+        const renderStep = (): string => {
+            // ── Schritt 1: Name & Zweck ───────────────────────────────
+            if (wizardStep === 1) {
+                const purposes = [
+                    { id: 'menu',       icon: '🏠', label: 'Startmenü /\nTitelbildschirm' },
+                    { id: 'gameplay',   icon: '🎮', label: 'Haupt-\nSpielfeld' },
+                    { id: 'transition', icon: '🔄', label: 'Level-Übergang /\nLadescreen' },
+                    { id: 'gameover',   icon: '🏆', label: 'Game Over /\nErgebnis' },
+                    { id: 'settings',   icon: '⚙️', label: 'Einstellungen' },
+                    { id: 'other',      icon: '❓', label: 'Etwas\nanderes' },
+                ];
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">📋 Was ist diese Stage?</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        ${purposes.map(p => `
+                            <div class="stage-tile" data-field="purposeType" data-val="${p.id}"
+                                style="${tileBase}${sData.purposeType===p.id?tileSelected:''}">
+                                <span style="font-size:26px;">${p.icon}</span>
+                                <span>${p.label}</span>
+                            </div>`).join('')}
+                    </div>
+                    ${sData.purposeType === 'other' ? `
+                    <div style="margin-top:12px;">
+                        <label style="${labelStyle}">Beschreibe den Zweck:</label>
+                        <input id="stage-purpose-other" type="text" placeholder="z.B. Charakterauswahl, Cutscene..."
+                            style="${inputStyle}" value="${sData.purposeOther}">
+                    </div>` : ''}
+                    <div style="display:flex;gap:10px;margin-top:14px;">
+                        <div style="flex:1;">
+                            <label style="${labelStyle}">Stage-ID (technisch)</label>
+                            <input id="stage-id-input" type="text" placeholder="z.B. stage_main"
+                                style="${inputStyle}" value="${sData.stageId}">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="${labelStyle}">Stage-Name (Anzeige)</label>
+                            <input id="stage-name-input" type="text" placeholder="z.B. Hauptspiel"
+                                style="${inputStyle}" value="${sData.stageName}">
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            // ── Schritt 2: Steuerung ──────────────────────────────────
+            if (wizardStep === 2) {
+                const controls = [
+                    { id: 'keyboard', icon: '⌨️',  label: 'Tastatur' },
+                    { id: 'mouse',    icon: '🖱️',  label: 'Maus /\nPC-Klicks' },
+                    { id: 'touch',    icon: '📱',  label: 'Touch /\nMobil' },
+                    { id: 'auto',     icon: '🤖',  label: 'Nur\nautomatisch' },
+                ];
+                const needsInput    = sData.controls.includes('keyboard') || sData.controls.includes('mouse');
+                const needsGamepad  = sData.controls.includes('touch');
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">🕹️ Wie wird auf dieser Stage gesteuert? <span style="font-weight:normal;color:#8080b0;">(Mehrfachauswahl)</span></label>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        ${controls.map(c => {
+                            const sel = sData.controls.includes(c.id);
+                            return `<div class="stage-ctrl-tile" data-ctrl="${c.id}"
+                                style="${tileBase}${sel?tileSelected:''}">
+                                <span style="font-size:26px;">${c.icon}</span>
+                                <span>${c.label}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    ${needsInput ? `
+                    <div style="margin-top:12px;padding:10px;background:#0a1a3a;border-radius:6px;border:1px solid #1976d2;">
+                        <span style="color:#60a0ff;font-size:12px;">ℹ️ Tastatur/Maus → <b>TInputController</b> wird in dieser Stage benötigt.</span>
+                    </div>` : ''}
+                    ${needsGamepad ? `
+                    <div style="margin-top:8px;padding:10px;background:#0a1a3a;border-radius:6px;border:1px solid #1976d2;">
+                        <span style="color:#60a0ff;font-size:12px;">ℹ️ Touch/Mobil → <b>TVirtualGamepad</b> wird in dieser Stage benötigt.</span>
+                    </div>` : ''}
+                </div>`;
+            }
+
+            // ── Schritt 3: Objekte ────────────────────────────────────
+            if (wizardStep === 3) {
+                const objects = [
+                    { id: 'player',     icon: '🏃', label: 'Spieler-\nSprite(s)' },
+                    { id: 'enemies',    icon: '👾', label: 'Gegner /\nHindernisse' },
+                    { id: 'score',      icon: '🏆', label: 'Punkte-\nAnzeige' },
+                    { id: 'lives',      icon: '❤️', label: 'Leben-\nAnzeige' },
+                    { id: 'timer',      icon: '⏱️', label: 'Timer-\nAnzeige' },
+                    { id: 'buttons',    icon: '🔘', label: 'Buttons\n(Start, Weiter...)' },
+                    { id: 'background', icon: '🖼️', label: 'Hintergrund' },
+                ];
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">🧩 Was soll auf der Stage sein? <span style="font-weight:normal;color:#8080b0;">(Mehrfachauswahl)</span></label>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        ${objects.map(o => {
+                            const sel = sData.objects.includes(o.id);
+                            return `<div class="stage-obj-tile" data-obj="${o.id}"
+                                style="${tileBase}${sel?tileSelected:''}">
+                                <span style="font-size:26px;">${o.icon}</span>
+                                <span>${o.label}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // ── Schritt 4: Übergänge ──────────────────────────────────
+            if (wizardStep === 4) {
+                const exits = [
+                    { id: 'button',    icon: '🖱️', label: 'Button-Klick\n→ nächste Stage' },
+                    { id: 'timer',     icon: '⏱️', label: 'Zeitlimit\n(TTimer)' },
+                    { id: 'condition', icon: '🎯', label: 'Bedingung\nerfüllt' },
+                    { id: 'restart',   icon: '🔁', label: 'Neustart /\nGame Over' },
+                    { id: 'none',      icon: '—',  label: 'Gar nicht\n(Endscreen)' },
+                ];
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">🚪 Wie verlässt der Spieler diese Stage?</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        ${exits.map(e => `
+                            <div class="stage-tile" data-field="exitType" data-val="${e.id}"
+                                style="${tileBase}${sData.exitType===e.id?tileSelected:''}">
+                                <span style="font-size:26px;">${e.icon}</span>
+                                <span>${e.label}</span>
+                            </div>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // ── Schritt 5: Ergebnis ───────────────────────────────────
+            if (wizardStep === 5) {
+                const comps: { icon: string; name: string; reason: string; code: string }[] = [];
+                const sid  = sData.stageId  || 'stage_neu';
+                const sname = sData.stageName || 'Neue Stage';
+
+                comps.push({ icon: '📋', name: `Stage "${sname}"`, reason: `ID: ${sid}`,
+                    code: `agentController.createStage('${sid}', '${sname}');` });
+
+                if (sData.controls.includes('keyboard') || sData.controls.includes('mouse')) {
+                    comps.push({ icon: '⌨️', name: 'TInputController', reason: 'Tastatur / Maus',
+                        code: `agentController.addObject('${sid}', { className: 'TInputController', name: 'InputController', x: 0, y: 0, width: 2, height: 2, visible: false });` });
+                }
+                if (sData.controls.includes('touch')) {
+                    comps.push({ icon: '📱', name: 'TVirtualGamepad', reason: 'Touch / Mobil',
+                        code: `agentController.addObject('${sid}', { className: 'TVirtualGamepad', name: 'VirtualGamepad', x: 0, y: 0, width: 10, height: 4, visible: true });` });
+                }
+                if (sData.objects.includes('player')) {
+                    comps.push({ icon: '🏃', name: 'TSprite (Spieler)', reason: 'Spieler-Sprite',
+                        code: `agentController.createSprite('${sid}', 'Player', 30, 20, 3, 3, { collisionEnabled: true, collisionGroup: 'player', spriteColor: '#4ecdc4' });` });
+                }
+                if (sData.objects.includes('enemies')) {
+                    comps.push({ icon: '👾', name: 'TSprite (Gegner)', reason: 'Gegner / Hindernisse',
+                        code: `agentController.createSprite('${sid}', 'Enemy', 10, 5, 3, 3, { collisionEnabled: true, collisionGroup: 'enemy', spriteColor: '#e74c3c' });` });
+                }
+                if (sData.objects.includes('score')) {
+                    comps.push({ icon: '🏆', name: 'TLabel (Punkte)', reason: 'Punkte-Anzeige',
+                        code: `agentController.createLabel('${sid}', 'ScoreLabel', 1, 1, '\${score}', { fontSize: 20, color: '#ffffff' });` });
+                }
+                if (sData.objects.includes('lives')) {
+                    comps.push({ icon: '❤️', name: 'TLabel (Leben)', reason: 'Leben-Anzeige',
+                        code: `agentController.createLabel('${sid}', 'LivesLabel', 50, 1, '\${lives}', { fontSize: 20, color: '#e74c3c' });` });
+                }
+                if (sData.objects.includes('timer') || sData.exitType === 'timer') {
+                    comps.push({ icon: '⏱️', name: 'TTimer', reason: 'Timer / Zeitlimit',
+                        code: `agentController.addObject('${sid}', { className: 'TTimer', name: 'StageTimer', x: 0, y: 0, width: 2, height: 2, visible: false, interval: 1000, autoStart: true });` });
+                }
+                if (sData.objects.includes('buttons')) {
+                    comps.push({ icon: '🔘', name: 'TButton', reason: 'Button',
+                        code: `agentController.addObject('${sid}', { className: 'TButton', name: 'ActionButton', x: 20, y: 30, width: 12, height: 3, caption: 'Start', visible: true });` });
+                }
+                if (sData.objects.includes('background')) {
+                    comps.push({ icon: '🖼️', name: 'TPanel (Hintergrund)', reason: 'Hintergrund',
+                        code: `agentController.addObject('${sid}', { className: 'TPanel', name: 'Background', x: 0, y: 0, width: 64, height: 40, visible: true, style: { backgroundColor: '#1a1a2e' } });` });
+                }
+                if (sData.exitType === 'button') {
+                    comps.push({ icon: '🚪', name: 'navigate_stage (UseCase)', reason: 'Übergang via Button-Klick',
+                        code: `// → UseCase hinzufügen: Button onClick → Task → navigate_stage Action` });
+                }
+                if (sData.exitType === 'condition') {
+                    comps.push({ icon: '🎯', name: 'navigate_stage (UseCase)', reason: 'Übergang via Bedingung',
+                        code: `// → UseCase hinzufügen: Bedingung erfüllt → Task → navigate_stage Action` });
+                }
+                if (sData.exitType === 'restart') {
+                    comps.push({ icon: '🔁', name: 'restart_game (UseCase)', reason: 'Neustart / Game Over',
+                        code: `// → UseCase hinzufügen: Bedingung (lives == 0) → Task → restart_game Action` });
+                }
+
+                const codeLines = comps.map(c => c.code).join('\n');
+                const purposeLabel: Record<string,string> = { menu:'Startmenü', gameplay:'Spielfeld', transition:'Übergang', gameover:'Game Over', settings:'Einstellungen', other: sData.purposeOther||'Eigener Zweck' };
+                const ctrlLabel = sData.controls.length > 0 ? sData.controls.join(', ') : '(keine)';
+                const objLabel  = sData.objects.length  > 0 ? sData.objects.join(', ')  : '(keine)';
+                const exitLabel: Record<string,string> = { button:'Button-Klick', timer:'Zeitlimit', condition:'Bedingung', restart:'Neustart', none:'Kein Übergang' };
+
+                const diag = `<div style="display:flex;flex-direction:column;gap:6px;">
+                    ${[
+                        { icon:'📋', label:'Stage',      val: `${sname} (${sid})` },
+                        { icon:'🎯', label:'Zweck',      val: purposeLabel[sData.purposeType]||'—' },
+                        { icon:'🕹️', label:'Steuerung',  val: ctrlLabel },
+                        { icon:'🧩', label:'Objekte',    val: objLabel },
+                        { icon:'🚪', label:'Übergang',   val: exitLabel[sData.exitType]||'—' },
+                    ].map(r => `
+                        <div style="display:flex;align-items:center;gap:10px;background:#0a1020;border-radius:6px;padding:7px 12px;">
+                            <span style="font-size:16px;">${r.icon}</span>
+                            <span style="color:#8090b0;font-size:11px;min-width:65px;">${r.label}</span>
+                            <span style="color:#e0e0ff;font-size:12px;font-weight:bold;">${r.val}</span>
+                        </div>`).join('')}
+                    <div style="margin-top:8px;border-top:1px solid #2a2a5a;padding-top:10px;">
+                        <div style="color:#60a0ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                            🧩 Komponenten (${comps.length})
+                        </div>
+                        ${comps.map(c => `
+                            <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1a1a3a;">
+                                <span style="font-size:14px;">${c.icon}</span>
+                                <div>
+                                    <div style="color:#fff;font-size:12px;font-weight:bold;">${c.name}</div>
+                                    <div style="color:#8080b0;font-size:11px;">${c.reason}</div>
+                                </div>
+                            </div>`).join('')}
+                    </div>
+                </div>`;
+
+                return `<div style="${sectionStyle}">
+                    <div style="font-size:17px;font-weight:bold;color:#fff;margin-bottom:14px;">🎉 Stage ist konfiguriert!</div>
+                    <div style="display:flex;gap:14px;">
+                        <div style="flex:1;">${diag}</div>
+                        <div style="flex:1;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                <span style="color:#60a0ff;font-size:11px;font-weight:bold;text-transform:uppercase;">AgentController-Code</span>
+                                <button id="stage-copy-prompt" style="padding:3px 10px;background:#1565c0;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">📋 Kopieren</button>
+                            </div>
+                            <pre id="stage-prompt-text" style="background:#0a0a1a;border:1px solid #1a3a7a;border-radius:6px;padding:12px;color:#d0d0ff;font-size:11px;white-space:pre-wrap;margin:0;line-height:1.5;max-height:300px;overflow-y:auto;">${codeLines}</pre>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            return '';
+        };
+
+        const renderDialog = () => {
+            modal.style.display = 'block';
+            modal.innerHTML = `
+            <div style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 0;">
+                <div style="background:#1a1a2e;border:1px solid #3a3a6a;border-radius:10px;padding:28px;width:720px;color:#e0e0e0;margin:auto;">
+                    <div style="margin-bottom:16px;">
+                        <h3 style="margin:0 0 4px 0;color:#fff;font-size:17px;">📋 Stage hinzufügen</h3>
+                        <div style="color:#60a0e0;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Neue Stage konfigurieren</div>
+                    </div>
+                    ${renderProgress()}
+                    <div id="stage-content">${renderStep()}</div>
+                    <div style="display:flex;justify-content:space-between;margin-top:16px;">
+                        <button id="stage-cancel" style="padding:7px 18px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Abbrechen</button>
+                        <div style="display:flex;gap:8px;">
+                            ${wizardStep > 1 ? `<button id="stage-back" style="padding:7px 18px;background:#1a2a4a;color:#c0c8e0;border:1px solid #3a3a6a;border-radius:4px;cursor:pointer;font-size:13px;">◀ Zurück</button>` : ''}
+                            ${wizardStep < WIZARD_STEPS
+                                ? `<button id="stage-next" style="padding:7px 20px;background:#1565c0;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">Weiter ▶</button>`
+                                : `<button id="stage-save" style="padding:7px 20px;background:#388e3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">✓ Fertig</button>`}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        document.getElementById('add-stage-ok')?.addEventListener('click', () => { modal.style.display = 'none'; modal.innerHTML = ''; });
+            </div>`;
+
+            document.getElementById('stage-cancel')?.addEventListener('click', () => {
+                modal.style.display = 'none';
+                modal.innerHTML = '';
+            });
+
+            document.getElementById('stage-save')?.addEventListener('click', () => {
+                modal.style.display = 'none';
+                modal.innerHTML = '';
+            });
+
+            document.getElementById('stage-back')?.addEventListener('click', () => {
+                wizardStep--;
+                renderDialog();
+            });
+
+            document.getElementById('stage-next')?.addEventListener('click', () => {
+                if (wizardStep === 1) {
+                    sData.purposeOther = (document.getElementById('stage-purpose-other') as HTMLInputElement)?.value || '';
+                    sData.stageId      = (document.getElementById('stage-id-input')       as HTMLInputElement)?.value || '';
+                    sData.stageName    = (document.getElementById('stage-name-input')     as HTMLInputElement)?.value || '';
+                }
+                wizardStep++;
+                renderDialog();
+            });
+
+            document.getElementById('stage-copy-prompt')?.addEventListener('click', () => {
+                const text = (document.getElementById('stage-prompt-text') as HTMLElement)?.innerText || '';
+                navigator.clipboard.writeText(text).catch(() => {});
+            });
+
+            // Einfachauswahl-Kacheln
+            document.querySelectorAll('.stage-tile').forEach(tile => {
+                tile.addEventListener('click', () => {
+                    const field = (tile as HTMLElement).dataset.field!;
+                    const val   = (tile as HTMLElement).dataset.val!;
+                    sData[field] = val;
+                    renderDialog();
+                });
+            });
+
+            // Steuerungs-Kacheln (Mehrfachauswahl)
+            document.querySelectorAll('.stage-ctrl-tile').forEach(tile => {
+                tile.addEventListener('click', () => {
+                    const ctrl = (tile as HTMLElement).dataset.ctrl!;
+                    const idx  = sData.controls.indexOf(ctrl);
+                    if (idx >= 0) sData.controls.splice(idx, 1);
+                    else sData.controls.push(ctrl);
+                    renderDialog();
+                });
+            });
+
+            // Objekt-Kacheln (Mehrfachauswahl)
+            document.querySelectorAll('.stage-obj-tile').forEach(tile => {
+                tile.addEventListener('click', () => {
+                    const obj = (tile as HTMLElement).dataset.obj!;
+                    const idx = sData.objects.indexOf(obj);
+                    if (idx >= 0) sData.objects.splice(idx, 1);
+                    else sData.objects.push(obj);
+                    renderDialog();
+                });
+            });
+        };
+
+        renderDialog();
     }
 
     private showConfigureProjectDialog() {
