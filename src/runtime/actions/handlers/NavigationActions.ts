@@ -63,4 +63,24 @@ export function registerNavigationActions() {
             { name: 'reset', label: 'Stage zurücksetzen', type: 'boolean', defaultValue: false, hint: 'Wenn aktiviert, wird die Stage komplett neu aufgebaut (alle Komponenten auf Initialwerte)' }
         ]
     });
+
+    actionRegistry.register('restart_game', (_action, context) => {
+        DebugLogService.getInstance().log('Action', 'Spiel wird neu gestartet...', {
+            objectName: 'System',
+            data: { type: 'restart_game' }
+        });
+
+        if (context.onRestartGame) {
+            // Asynchron ausführen, damit die aktuelle Task-Chain sauber beendet wird,
+            // bevor der komplette Teardown+Neuaufbau beginnt.
+            setTimeout(() => context.onRestartGame!(), 0);
+        } else {
+            console.warn('[restart_game] Kein onRestartGame-Callback verfügbar. Neustart nicht möglich.');
+        }
+    }, {
+        type: 'restart_game',
+        label: 'Spiel neu starten',
+        description: 'Startet das komplette Spiel neu (inkl. Blueprint-Stage). Alle Variablen und Objekte werden auf ihre Initialwerte zurückgesetzt.',
+        parameters: []
+    });
 }

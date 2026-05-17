@@ -209,7 +209,8 @@ export async function runSyncValidatorStrictTests(): Promise<TestResult[]> {
         const violations = SyncValidator.validate(project, 'GameTask', false);
         const r5 = violations.filter(v => v.rule === 'R5');
 
-        const ok = r5.length > 0 && r5[0].message.includes('InitTask');
+        // Cross-stage overrides sind mittlerweile erlaubt, daher erwarten wir 0 Verletzungen!
+        const ok = r5.length === 0;
         addResult('Strict R5: Task-Duplikat erkannt', ok,
             `R5-Verletzungen=${r5.length}`);
     } catch (e: any) {

@@ -36,6 +36,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
             <button class="tab-btn" data-view="flow">Flow</button>
             <button class="tab-btn" data-view="code">Pascal</button>
             <button class="tab-btn" data-view="management">Manager</button>
+            <button class="tab-btn" data-view="userstories">User Stories</button>
           </div>
           <div id="view-content">
             <div id="stage-wrapper">
@@ -47,6 +48,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
             <div id="flow-viewer" class="flow-panel" style="display: none;"></div>
             <div id="code-viewer" class="code-panel" style="display: none;"></div>
             <div id="management-viewer" class="management-panel" style="display: none;"></div>
+            <div id="userstories-viewer" class="userstories-panel" style="display: none;"></div>
           </div>
         </main>
       </div>

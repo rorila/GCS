@@ -1,3 +1,7 @@
+### [3.32.4] - 2026-05-16
+### Hinzugefügt
+- **Spiel-Neustart (restart_game):** Eine neue Action `restart_game` wurde hinzugefügt, mit der Spiele im Runtime-Modus komplett zurückgesetzt werden können, ohne den Browser neu zu laden. Ein sauberer Teardown-und-Rebuild Mechanismus verhindert "Ghost-Timers", statische Singletons und DOM-Lecks. Die Logik delegiert über den neuen Callback `onRestartGame` an Editor (`setRunMode(false/true)`) und Standalone-Player (`startProject()`).
+
 ### [3.32.3] - 2026-05-13
 ### Behoben
 - **Stage-Lifecycle & Timer-Leaks:** Kritischer Fehler im Stage-Wechsel behoben. Alle Komponenten (insbes. `TTimer` und `TInputController`) werden nun korrekt gestoppt (`onRuntimeStop`), BEVOR die neue Stage geladen wird. Dies verhindert "Ghost-Events" und unerwünschte Eigenschafts-Mutationen in der Ziel-Stage.

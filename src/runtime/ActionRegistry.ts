@@ -10,6 +10,7 @@ export interface ActionContext {
     onNavigate?: (target: string, params?: any) => void;
     spawnObject?: (templateId: string, x?: number, y?: number) => any;
     destroyObject?: (instanceId: string) => void;
+    onRestartGame?: () => void;
 }
 
 export interface ActionParameter {

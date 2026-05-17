@@ -482,4 +482,10 @@ export interface GameProject {
     actions: GameAction[];        // All defined actions
     tasks: GameTask[];            // Tasks referencing actions
     variables: ProjectVariable[]; // Project-level variables
+
+    // User Stories (neu)
+    userStories?: {
+        projectDescription?: any;
+        userStories?: any[];
+    };
 }

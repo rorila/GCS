@@ -217,6 +217,7 @@ export async function runSyncValidatorTests(): Promise<TestResult[]> {
         project.stages[1].tasks.push({ name: 'BlueprintTask', actionSequence: [] });
 
         const violations = SyncValidator.validate(project, 'MainTask', false);
+        const r5 = violations.filter(v => v.rule === 'R5');
         const ok = r5.length === 0;
         addResult('R5: Task-Duplikat erkennen', ok,
             ok ? `Keine R5-Verletzung (Cross-Stage Overrides erlaubt)` : `Faelschlich R5-Verletzung gefunden: ${r5[0].message}`);

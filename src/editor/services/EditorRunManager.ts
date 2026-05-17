@@ -153,7 +153,12 @@ export class EditorRunManager {
                 },
                 onSpriteRender: (sprites: any[]) => this.renderSpritesOnly(sprites),
                 startStageId: startStageId,
-                onStageSwitch: (stageId: string) => this.handleStageSwitch(stageId)
+                onStageSwitch: (stageId: string) => this.handleStageSwitch(stageId),
+                onRestartGame: () => {
+                    DebugLogService.getInstance().clear();
+                    this.setRunMode(false);
+                    setTimeout(() => this.setRunMode(true), 50);
+                }
             });
 
             if (this.runtime) {

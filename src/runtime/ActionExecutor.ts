@@ -14,7 +14,8 @@ export class ActionExecutor {
         private multiplayerManager?: any,
         private onNavigate?: (target: string, params?: any) => void,
         private spawnCallback?: (templateId: string, x?: number, y?: number) => any,
-        private destroyCallback?: (instanceId: string) => void
+        private destroyCallback?: (instanceId: string) => void,
+        private onRestartGame?: () => void
     ) {
         // Registriere Standard-Aktionen
         registerStandardActions();
@@ -71,7 +72,8 @@ export class ActionExecutor {
                     multiplayerManager: this.multiplayerManager,
                     onNavigate: this.onNavigate,
                     spawnObject: this.spawnCallback,
-                    destroyObject: this.destroyCallback
+                    destroyObject: this.destroyCallback,
+                    onRestartGame: this.onRestartGame
                 });
             }
 

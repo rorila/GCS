@@ -306,6 +306,12 @@ class UniversalPlayer implements StageHost {
             onStageSwitch: (_stageId: string) => {
                 this.setupScaling();
                 this.render();
+            },
+            onRestartGame: () => {
+                if (this.currentProject) {
+                    this.isStarted = false;
+                    this.startProject(this.currentProject);
+                }
             }
         });
 

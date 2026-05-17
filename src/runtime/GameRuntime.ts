@@ -93,7 +93,7 @@ export class GameRuntime implements IVariableHost {
 
         if (objects) {
             this.objects = objects;
-            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined);
+            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined, options.onRestartGame);
             this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
         } else if (activeStage) {
             this.stage = activeStage;
@@ -206,11 +206,11 @@ export class GameRuntime implements IVariableHost {
                 this.initializeReactiveBindings();
             }
 
-            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, this.spawnObject.bind(this), this.destroyObject.bind(this));
+            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, this.spawnObject.bind(this), this.destroyObject.bind(this), options.onRestartGame);
             this.taskExecutor = new TaskExecutor(project, merged.actions, this.actionExecutor, merged.flowCharts, options.multiplayerManager, merged.tasks);
         } else {
             this.objects = [];
-            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined);
+            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined, options.onRestartGame);
             this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
         }
 

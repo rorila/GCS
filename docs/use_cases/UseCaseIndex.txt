@@ -1,3 +1,15 @@
+### 2026-05-16
+[UC-2026-05-16-GameRestart]
+Beschreibung: Implementierung einer robusten `restart_game` Action, die das Spiel komplett re-instanziiert (Teardown & Rebuild), um State-Leakage und Ghost-Timers zu verhindern.
+Beteiligte Dateien:
+- src/runtime/ActionRegistry.ts (Z. 10-12): onRestartGame Callback hinzugefügt.
+- src/runtime/ActionExecutor.ts (Z. 12-18, 72-76): onRestartGame Callback weitergereicht.
+- src/runtime/GameRuntime.ts (Z. 96, 209, 213): Callback aus RuntimeOptions in ActionExecutor injiziert.
+- src/runtime/actions/handlers/NavigationActions.ts (Z. 63-82): restart_game Action registriert (setTimeout-Dispatch).
+- src/editor/services/EditorRunManager.ts (Z. 153-162): Editor-Implementierung des Restarts via setRunMode(false) -> true.
+- src/player-standalone.ts (Z. 306-318): Player-Implementierung via startProject.
+Ergebnis: Ein robuster, non-refresh Spielneustart ohne State-Leaks.
+
 ### 2026-05-13
 [UC-2026-05-13-TimerLifecycleFix]
 Beschreibung: Bugfix — Behebung von Timer-Leaks und Ghost-Events bei Stage-Wechseln. 
