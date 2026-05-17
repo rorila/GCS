@@ -495,6 +495,7 @@ export class EditorViewManager {
                     ${projInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${projInfo}</span>` : ''}
                 </div>
                 <div style="display:flex;gap:6px;">
+                    <button onclick="window.configureProject()" style="padding: 4px 12px; background-color: #7b1fa2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">🧙 Projekt konfigurieren</button>
                     <button onclick="window.addStage()" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">+ Stage hinzufügen</button>
                     <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
                 </div>
@@ -678,6 +679,7 @@ export class EditorViewManager {
 
         // Window-Callbacks
         (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
+        (window as any).configureProject = () => this.showConfigureProjectDialog();
         (window as any).addStage = () => this.showAddStageDialog();
         (window as any).addUseCase = (stageId: string) => this.showAddUseCaseDialog(stageId);
         (window as any).editStageDescription = (stageId: string) => this.showStageDescriptionEditor(stageId);
@@ -893,6 +895,304 @@ export class EditorViewManager {
             </div>
         `;
         document.getElementById('add-stage-ok')?.addEventListener('click', () => { modal.style.display = 'none'; modal.innerHTML = ''; });
+    }
+
+    private showConfigureProjectDialog() {
+        const modal = document.getElementById('userstories-edit-modal');
+        if (!modal) return;
+
+        const WIZARD_STEPS = 5;
+        let wizardStep = 1;
+
+        const pData: any = {
+            gameType: '',
+            players: '',
+            networkPlay: false,
+            stageCount: '',
+            features: [] as string[],
+        };
+
+        const inputStyle  = 'width:100%;padding:8px;background:#0f1830;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;font-size:14px;';
+        const labelStyle  = 'display:block;font-size:13px;margin-bottom:5px;color:#c0c8e0;font-weight:bold;';
+        const sectionStyle = 'background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:18px;margin-bottom:14px;';
+        const tileBase    = 'display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;border:2px solid #2a2a5a;border-radius:8px;cursor:pointer;background:#0a1020;min-width:110px;min-height:80px;font-size:11px;text-align:center;white-space:pre-line;color:#c0c8e0;gap:6px;transition:border-color 0.15s;';
+        const tileSelected = 'border-color:#7b1fa2;background:#1a0a2a;color:#fff;';
+
+        const renderProgress = () => {
+            const steps = ['Spielart', 'Spieler', 'Struktur', 'Features', 'Ergebnis'];
+            return `<div style="display:flex;gap:4px;margin-bottom:18px;">
+                ${steps.map((s, i) => {
+                    const num = i + 1;
+                    const active = num === wizardStep;
+                    const done   = num < wizardStep;
+                    const bg     = done ? '#7b1fa2' : active ? '#4a1a7a' : '#1a1a3a';
+                    const col    = done || active ? '#fff' : '#6060a0';
+                    const border = active ? '2px solid #c060ff' : '2px solid transparent';
+                    return `<div style="flex:1;padding:6px 4px;border-radius:6px;text-align:center;background:${bg};color:${col};font-size:11px;font-weight:bold;border:${border};">
+                        ${done ? '✓' : num}. ${s}
+                    </div>`;
+                }).join('')}
+            </div>`;
+        };
+
+        const renderStep = (): string => {
+            if (wizardStep === 1) {
+                const types = [
+                    { id: 'arcade',   icon: '🕹️', label: 'Arcade /\nAction' },
+                    { id: 'puzzle',   icon: '🧩', label: 'Rätsel /\nPuzzle' },
+                    { id: 'quiz',     icon: '📝', label: 'Quiz /\nLernspiel' },
+                    { id: 'story',    icon: '📖', label: 'Story /\nAbenteuer' },
+                    { id: 'other',    icon: '❓', label: 'Etwas\nanderes' },
+                ];
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">🎮 Was für ein Spiel wird es?</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        ${types.map(t => `
+                            <div class="proj-tile" data-field="gameType" data-val="${t.id}"
+                                style="${tileBase}${pData.gameType===t.id?tileSelected:''}">
+                                <span style="font-size:26px;">${t.icon}</span>
+                                <span>${t.label}</span>
+                            </div>`).join('')}
+                    </div>
+                    ${pData.gameType === 'other' ? `
+                    <div style="margin-top:12px;">
+                        <label style="${labelStyle}">Beschreibe das Spiel:</label>
+                        <input id="proj-gametype-other" type="text" placeholder="z.B. Simulation, Rennsport..."
+                            style="${inputStyle}" value="${pData.gameTypeOther||''}">
+                    </div>` : ''}
+                </div>`;
+            }
+
+            if (wizardStep === 2) {
+                const options = [
+                    { id: '1',       icon: '🧑', label: '1 Spieler' },
+                    { id: '2local',  icon: '👥', label: '2 Spieler\nam selben Gerät' },
+                    { id: '2net',    icon: '🌐', label: '2 Spieler\nüber Netz' },
+                ];
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">👥 Wie viele Spieler?</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        ${options.map(o => `
+                            <div class="proj-tile" data-field="players" data-val="${o.id}"
+                                style="${tileBase}${pData.players===o.id?tileSelected:''}">
+                                <span style="font-size:26px;">${o.icon}</span>
+                                <span>${o.label}</span>
+                            </div>`).join('')}
+                    </div>
+                    ${pData.players === '2net' ? `
+                    <div style="margin-top:12px;padding:10px;background:#1a0a2a;border-radius:6px;border:1px solid #7b1fa2;">
+                        <span style="color:#c080ff;font-size:12px;">ℹ️ Netzwerkspiel → <b>TGameServer</b> wird in der Blueprint-Stage benötigt.</span>
+                    </div>` : ''}
+                </div>`;
+            }
+
+            if (wizardStep === 3) {
+                const options = [
+                    { id: 'single',  icon: '1️⃣', label: 'Eine Stage\n(einfach)' },
+                    { id: 'multi',   icon: '📚', label: 'Mehrere Stages\n/ Level' },
+                    { id: 'menu',    icon: '🏠', label: 'Startmenü +\nmehrere Stages' },
+                ];
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">📐 Wie ist das Spiel aufgebaut?</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        ${options.map(o => `
+                            <div class="proj-tile" data-field="stageCount" data-val="${o.id}"
+                                style="${tileBase}${pData.stageCount===o.id?tileSelected:''}">
+                                <span style="font-size:26px;">${o.icon}</span>
+                                <span>${o.label}</span>
+                            </div>`).join('')}
+                    </div>
+                    ${pData.stageCount !== '' && pData.stageCount !== 'single' ? `
+                    <div style="margin-top:12px;padding:10px;background:#1a0a2a;border-radius:6px;border:1px solid #7b1fa2;">
+                        <span style="color:#c080ff;font-size:12px;">ℹ️ Mehrere Stages → <b>TStageController</b> wird in der Blueprint-Stage benötigt.</span>
+                    </div>` : ''}
+                </div>`;
+            }
+
+            if (wizardStep === 4) {
+                const features = [
+                    { id: 'score',  icon: '🏆', label: 'Punkte /\nScore' },
+                    { id: 'audio',  icon: '🔊', label: 'Töne /\nMusik' },
+                    { id: 'save',   icon: '💾', label: 'Daten\nspeichern' },
+                    { id: 'timer',  icon: '⏱️', label: 'Zeitsteuerung\n/ Timer' },
+                    { id: 'lives',  icon: '❤️', label: 'Leben /\nVersuche' },
+                ];
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">⚙️ Was braucht das Spiel? <span style="font-weight:normal;color:#8080b0;">(Mehrfachauswahl)</span></label>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        ${features.map(f => {
+                            const sel = pData.features.includes(f.id);
+                            return `<div class="proj-feature-tile" data-feat="${f.id}"
+                                style="${tileBase}${sel?tileSelected:''}">
+                                <span style="font-size:26px;">${f.icon}</span>
+                                <span>${f.label}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            }
+
+            if (wizardStep === 5) {
+                // Blueprint-Komponenten ableiten
+                const blueprintComps: { icon: string; name: string; reason: string; code: string }[] = [];
+
+                if (pData.gameType === 'arcade') {
+                    blueprintComps.push({ icon: '🔄', name: 'GameLoop', reason: 'Arcade-Spiel → Sprites bewegen sich mit 60 FPS', code: `// GameLoop ist automatisch aktiv wenn TSprite mit velocityX/Y vorhanden sind` });
+                }
+                if (pData.players === '2net') {
+                    blueprintComps.push({ icon: '🌐', name: 'TGameServer', reason: 'Netzwerk-Multiplayer', code: `agentController.addObject('stage_blueprint', { className: 'TGameServer', name: 'GameServer', x: 0, y: 0, width: 2, height: 2, visible: false });` });
+                }
+                if (pData.stageCount === 'multi' || pData.stageCount === 'menu') {
+                    blueprintComps.push({ icon: '📚', name: 'TStageController', reason: 'Mehrere Stages / Level', code: `agentController.addObject('stage_blueprint', { className: 'TStageController', name: 'StageController', x: 0, y: 0, width: 2, height: 2, visible: false });` });
+                }
+                if (pData.features.includes('score')) {
+                    blueprintComps.push({ icon: '🏆', name: 'score (Variable)', reason: 'Punkte-System', code: `agentController.addVariable('score', 'number', 0, 'global');` });
+                }
+                if (pData.features.includes('lives')) {
+                    blueprintComps.push({ icon: '❤️', name: 'lives (Variable)', reason: 'Leben / Versuche', code: `agentController.addVariable('lives', 'number', 3, 'global');` });
+                }
+                if (pData.features.includes('audio')) {
+                    blueprintComps.push({ icon: '🔊', name: 'TAudio', reason: 'Töne / Musik', code: `agentController.addObject('stage_blueprint', { className: 'TAudio', name: 'GameAudio', x: 0, y: 0, width: 2, height: 2, visible: false, src: '' });` });
+                }
+                if (pData.features.includes('save')) {
+                    blueprintComps.push({ icon: '💾', name: 'TDataStore', reason: 'Daten speichern', code: `agentController.addObject('stage_blueprint', { className: 'TDataStore', name: 'DataStore', x: 0, y: 0, width: 2, height: 2, visible: false });` });
+                }
+                if (pData.features.includes('timer')) {
+                    blueprintComps.push({ icon: '⏱️', name: 'TTimer', reason: 'Zeitsteuerung', code: `agentController.addObject('stage_blueprint', { className: 'TTimer', name: 'GameTimer', x: 0, y: 0, width: 2, height: 2, visible: false, interval: 1000 });` });
+                }
+
+                const gameTypeLabel: Record<string,string> = { arcade:'Arcade/Action', puzzle:'Rätsel/Puzzle', quiz:'Quiz/Lernspiel', story:'Story/Abenteuer', other: pData.gameTypeOther||'Eigene Art' };
+                const playersLabel: Record<string,string>  = { '1':'1 Spieler', '2local':'2 Spieler (selbes Gerät)', '2net':'2 Spieler (Netzwerk)' };
+                const stageLabel: Record<string,string>    = { single:'1 Stage', multi:'Mehrere Stages', menu:'Startmenü + Stages' };
+
+                const codeLines = blueprintComps.map(c => c.code).join('\n');
+                const nothingNeeded = blueprintComps.length === 0;
+
+                const diag = `
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                        ${[
+                            { icon:'🎮', label:'Spielart',  val: gameTypeLabel[pData.gameType]||'—' },
+                            { icon:'👥', label:'Spieler',   val: playersLabel[pData.players]||'—'  },
+                            { icon:'📐', label:'Struktur',  val: stageLabel[pData.stageCount]||'—' },
+                            { icon:'⚙️', label:'Features',  val: pData.features.length>0 ? pData.features.join(', ') : '(keine)' },
+                        ].map(r => `
+                            <div style="display:flex;align-items:center;gap:10px;background:#0a1020;border-radius:6px;padding:7px 12px;">
+                                <span style="font-size:18px;">${r.icon}</span>
+                                <span style="color:#8090b0;font-size:11px;min-width:60px;">${r.label}</span>
+                                <span style="color:#e0e0ff;font-size:13px;font-weight:bold;">${r.val}</span>
+                            </div>`).join('')}
+                        <div style="margin-top:8px;border-top:1px solid #2a2a5a;padding-top:10px;">
+                            <div style="color:#c080ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
+                                🧩 Blueprint-Komponenten (${blueprintComps.length})
+                            </div>
+                            ${nothingNeeded
+                                ? `<div style="color:#60a060;font-size:12px;">✓ Keine zusätzlichen Blueprint-Komponenten nötig.</div>`
+                                : blueprintComps.map(c => `
+                                    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1a1a3a;">
+                                        <span style="font-size:16px;">${c.icon}</span>
+                                        <div>
+                                            <div style="color:#fff;font-size:12px;font-weight:bold;">${c.name}</div>
+                                            <div style="color:#8080b0;font-size:11px;">${c.reason}</div>
+                                        </div>
+                                    </div>`).join('')}
+                        </div>
+                    </div>`;
+
+                return `<div style="${sectionStyle}">
+                    <div style="font-size:17px;font-weight:bold;color:#fff;margin-bottom:14px;">🎉 Dein Projekt ist konfiguriert!</div>
+                    <div style="display:flex;gap:14px;">
+                        <div style="flex:1;">${diag}</div>
+                        <div style="flex:1;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                <span style="color:#c080ff;font-size:11px;font-weight:bold;text-transform:uppercase;">AgentController-Code</span>
+                                <button id="proj-copy-prompt" style="padding:3px 10px;background:#7b1fa2;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">📋 Kopieren</button>
+                            </div>
+                            <pre id="proj-prompt-text" style="background:#0a0a1a;border:1px solid #4a3a7a;border-radius:6px;padding:12px;color:#d0d0ff;font-size:11px;white-space:pre-wrap;margin:0;line-height:1.5;max-height:300px;overflow-y:auto;">${nothingNeeded ? '// Keine Blueprint-Komponenten nötig.\n// Du kannst direkt mit den Stages starten!' : codeLines}</pre>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            return '';
+        };
+
+        const renderDialog = () => {
+            modal.style.display = 'block';
+            modal.innerHTML = `
+            <div style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 0;">
+                <div style="background:#1a1a2e;border:1px solid #3a3a6a;border-radius:10px;padding:28px;width:720px;color:#e0e0e0;margin:auto;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                        <div>
+                            <h3 style="margin:0 0 4px 0;color:#fff;font-size:17px;">🧙 Projekt konfigurieren</h3>
+                            <div style="color:#c080ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Blueprint-Komponenten ermitteln</div>
+                        </div>
+                    </div>
+                    ${renderProgress()}
+                    <div id="proj-content">${renderStep()}</div>
+                    <div style="display:flex;justify-content:space-between;margin-top:16px;">
+                        <button id="proj-cancel" style="padding:7px 18px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Abbrechen</button>
+                        <div style="display:flex;gap:8px;">
+                            ${wizardStep > 1 ? `<button id="proj-back" style="padding:7px 18px;background:#1a2a4a;color:#c0c8e0;border:1px solid #3a3a6a;border-radius:4px;cursor:pointer;font-size:13px;">◀ Zurück</button>` : ''}
+                            ${wizardStep < WIZARD_STEPS
+                                ? `<button id="proj-next" style="padding:7px 20px;background:#7b1fa2;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">Weiter ▶</button>`
+                                : `<button id="proj-save" style="padding:7px 20px;background:#388e3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">✓ Fertig</button>`}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+            // Listeners
+            document.getElementById('proj-cancel')?.addEventListener('click', () => {
+                modal.style.display = 'none';
+                modal.innerHTML = '';
+            });
+
+            document.getElementById('proj-save')?.addEventListener('click', () => {
+                modal.style.display = 'none';
+                modal.innerHTML = '';
+            });
+
+            document.getElementById('proj-back')?.addEventListener('click', () => {
+                wizardStep--;
+                renderDialog();
+            });
+
+            document.getElementById('proj-next')?.addEventListener('click', () => {
+                // Schritt-spezifisches Speichern
+                if (wizardStep === 1) {
+                    pData.gameTypeOther = (document.getElementById('proj-gametype-other') as HTMLInputElement)?.value || '';
+                }
+                wizardStep++;
+                renderDialog();
+            });
+
+            document.getElementById('proj-copy-prompt')?.addEventListener('click', () => {
+                const text = (document.getElementById('proj-prompt-text') as HTMLElement)?.innerText || '';
+                navigator.clipboard.writeText(text).catch(() => {});
+            });
+
+            // Kachel-Klicks (Einfachauswahl)
+            document.querySelectorAll('.proj-tile').forEach(tile => {
+                tile.addEventListener('click', () => {
+                    const field = (tile as HTMLElement).dataset.field!;
+                    const val   = (tile as HTMLElement).dataset.val!;
+                    pData[field] = val;
+                    renderDialog();
+                });
+            });
+
+            // Feature-Kacheln (Mehrfachauswahl)
+            document.querySelectorAll('.proj-feature-tile').forEach(tile => {
+                tile.addEventListener('click', () => {
+                    const feat = (tile as HTMLElement).dataset.feat!;
+                    const idx = pData.features.indexOf(feat);
+                    if (idx >= 0) pData.features.splice(idx, 1);
+                    else pData.features.push(feat);
+                    renderDialog();
+                });
+            });
+        };
+
+        renderDialog();
     }
 
     private showAddUseCaseDialog(stageId: string) {
