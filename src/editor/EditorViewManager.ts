@@ -267,8 +267,8 @@ export class EditorViewManager {
         } else if (view === 'userstories') {
             h.setRunMode(false);
             if (userstoriesPanel) {
-                userstoriesPanel.style.display = 'flex';
-                userstoriesPanel.style.height = '800px';
+                userstoriesPanel.style.display = 'block';
+                userstoriesPanel.style.height = '100%';
                 userstoriesPanel.style.overflowY = 'auto';
                 console.log('[UserStories] Panel-Höhe gesetzt:', userstoriesPanel.style.height);
                 console.log('[UserStories] Panel-Overflow gesetzt:', userstoriesPanel.style.overflowY);
@@ -297,7 +297,7 @@ export class EditorViewManager {
 
     private renderUserStoriesView(panel: HTMLElement) {
         panel.innerHTML = `
-            <div style="padding: 20px; background-color: #1a1a2e; min-height: 100%; color: #e0e0e0;">
+            <div style="padding: 20px 20px 40px 20px; background-color: #1a1a2e; min-height: 100%; box-sizing: border-box; color: #e0e0e0;">
                 <h2 style="margin: 0 0 12px 0; color: #ffffff; font-size: 20px; font-weight: bold;">Use Cases</h2>
                 <div id="user-stories-list"></div>
                 <div id="userstories-edit-modal" style="display:none;"></div>
@@ -475,44 +475,32 @@ export class EditorViewManager {
         const sortOption = (document.getElementById('userstories-sort') as HTMLSelectElement)?.value || 'component-name';
         const filterComponent = (document.getElementById('userstories-filter-component') as HTMLSelectElement)?.value || 'all';
         const filterEvent = (document.getElementById('userstories-filter-event') as HTMLSelectElement)?.value || 'all';
-        const scopeMode = (document.getElementById('userstories-scope') as HTMLSelectElement)?.value || 'stage';
+        const filterStage = (document.getElementById('userstories-filter-stage') as HTMLSelectElement)?.value || 'all';
         const project = this.host.project;
         const activeStage = this.host.getActiveStage();
         const projectDesc = (project as any).projectDescription || {};
 
-        // Scope-Toggle (oben)
-        const scopeToggle = `
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
-                <select id="userstories-scope" style="padding: 6px 12px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px; cursor: pointer;">
-                    <option value="stage" ${scopeMode === 'stage' ? 'selected' : ''}>Ansicht: Stage</option>
-                    <option value="project" ${scopeMode === 'project' ? 'selected' : ''}>Ansicht: Gesamtes Projekt</option>
-                </select>
+        // Ebene 1: Projektbeschreibung (immer sichtbar)
+        const projTitle = projectDesc.title || (project as any).title || '(Kein Titel)';
+        const projGenre = projectDesc.genre ? `Genre: ${projectDesc.genre}` : '';
+        const projAudience = projectDesc.targetAudience ? `Zielgruppe: ${projectDesc.targetAudience}` : '';
+        const projInfo = [projGenre, projAudience].filter(Boolean).join(' | ');
+        const projectRow = `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background-color: #16213e; border: 1px solid #3a3a6a; border-radius: 6px; margin-bottom: 4px;">
+                <div>
+                    <span style="font-size: 11px; font-weight: bold; color: #5080c0; text-transform: uppercase; letter-spacing: 1px; margin-right: 10px;">Projekt</span>
+                    <span style="font-weight: bold; font-size: 15px; color: #ffffff;">${projTitle}</span>
+                    ${projInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${projInfo}</span>` : ''}
+                </div>
+                <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
             </div>
         `;
 
-        // Ebene 1: Projektbeschreibung (nur bei scope=project)
-        let projectRow = '';
-        if (scopeMode === 'project') {
-            const projTitle = projectDesc.title || (project as any).title || '(Kein Titel)';
-            const projGenre = projectDesc.genre ? `Genre: ${projectDesc.genre}` : '';
-            const projAudience = projectDesc.targetAudience ? `Zielgruppe: ${projectDesc.targetAudience}` : '';
-            const projInfo = [projGenre, projAudience].filter(Boolean).join(' | ');
-            projectRow = `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background-color: #16213e; border: 1px solid #3a3a6a; border-radius: 6px; margin-bottom: 4px;">
-                    <div>
-                        <span style="font-size: 11px; font-weight: bold; color: #5080c0; text-transform: uppercase; letter-spacing: 1px; margin-right: 10px;">Projekt</span>
-                        <span style="font-weight: bold; font-size: 15px; color: #ffffff;">${projTitle}</span>
-                        ${projInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${projInfo}</span>` : ''}
-                    </div>
-                    <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
-                </div>
-            `;
-        }
-
-        // Stages bestimmen: bei 'project' alle, sonst nur aktive
-        const stagesToShow: any[] = scopeMode === 'project'
-            ? (project.stages || [])
-            : (activeStage ? [activeStage] : []);
+        // Stages: immer alle, gefiltert nach Stage-Dropdown
+        const allStages: any[] = project.stages || [];
+        const stagesToShow: any[] = filterStage === 'all'
+            ? allStages
+            : allStages.filter(s => s.id === filterStage);
 
         // Manuelle UserStories als Map
         const manualStories: Map<string, any> = new Map();
@@ -527,9 +515,13 @@ export class EditorViewManager {
             UserStoryExtractor.extractInteractionsFromStage(project, stage)
         );
 
-        // Eindeutige Komponentennamen und Event-Namen für Dropdowns
-        const allComponents = ['all', ...Array.from(new Set(allExtracted.map(i => i.triggerComponent?.componentName || '').filter(Boolean))).sort()];
-        const allEvents = ['all', ...Array.from(new Set(allExtracted.map(i => i.event?.eventName || '').filter(Boolean))).sort()];
+        // Eindeutige Werte für Dropdowns (aus allen Stages, nicht nur gefilterten)
+        const allExtractedFull = allStages.flatMap(stage =>
+            UserStoryExtractor.extractInteractionsFromStage(project, stage)
+        );
+        const allComponents = ['all', ...Array.from(new Set(allExtractedFull.map(i => i.triggerComponent?.componentName || '').filter(Boolean))).sort()];
+        const allEvents = ['all', ...Array.from(new Set(allExtractedFull.map(i => i.event?.eventName || '').filter(Boolean))).sort()];
+        const allStageOptions = ['all', ...allStages.map(s => s.id)];
 
         const componentOptions = allComponents.map(c =>
             `<option value="${c}" ${filterComponent === c ? 'selected' : ''}>${c === 'all' ? '— Alle Komponenten —' : c}</option>`
@@ -537,10 +529,19 @@ export class EditorViewManager {
         const eventOptions = allEvents.map(e =>
             `<option value="${e}" ${filterEvent === e ? 'selected' : ''}>${e === 'all' ? '— Alle Events —' : e}</option>`
         ).join('');
+        const stageOptions = allStageOptions.map(sid =>
+            sid === 'all'
+                ? `<option value="all" ${filterStage === 'all' ? 'selected' : ''}>— Alle Stages —</option>`
+                : `<option value="${sid}" ${filterStage === sid ? 'selected' : ''}>${allStages.find(s => s.id === sid)?.name || sid}</option>`
+        ).join('');
 
-        // Filter-Leiste (einmalig, über allen Stage-Blöcken)
+        // Filter-Leiste
         const filterBar = `
             <div style="display: flex; gap: 8px; align-items: center; padding: 10px 12px; background-color: #0d0d1f; border: 1px solid #2a2a4a; border-radius: 6px; margin-bottom: 4px;">
+                <select id="userstories-filter-stage"
+                    style="flex: 1; padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
+                    ${stageOptions}
+                </select>
                 <select id="userstories-filter-component"
                     style="flex: 1; padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
                     ${componentOptions}
@@ -627,7 +628,7 @@ export class EditorViewManager {
         }).join('');
 
         this._lastExtracted = allExtracted;
-        listElement.innerHTML = scopeToggle + projectRow + filterBar + stageBlocks;
+        listElement.innerHTML = projectRow + filterBar + stageBlocks;
 
         // Window-Callbacks
         (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
@@ -641,11 +642,12 @@ export class EditorViewManager {
     }
 
     private bindFilterBarListeners() {
-        document.getElementById('userstories-scope')?.addEventListener('change', () => this.renderUserStoriesList());
+        document.getElementById('userstories-filter-stage')?.addEventListener('change', () => this.renderUserStoriesList());
         document.getElementById('userstories-filter-component')?.addEventListener('change', () => this.renderUserStoriesList());
         document.getElementById('userstories-filter-event')?.addEventListener('change', () => this.renderUserStoriesList());
         document.getElementById('userstories-sort')?.addEventListener('change', () => this.renderUserStoriesList());
         document.getElementById('userstories-reset-filter')?.addEventListener('click', () => {
+            (document.getElementById('userstories-filter-stage') as HTMLSelectElement).value = 'all';
             (document.getElementById('userstories-filter-component') as HTMLSelectElement).value = 'all';
             (document.getElementById('userstories-filter-event') as HTMLSelectElement).value = 'all';
             (document.getElementById('userstories-sort') as HTMLSelectElement).value = 'component-name';
@@ -1065,132 +1067,140 @@ export class EditorViewManager {
     }
 
     private generateInteractionDiagram(interaction: any): string {
-        let diagram = '';
-        
-        // Trigger Component
-        diagram += `<div style="background-color: #e3f2fd; border: 2px solid #2196f3; border-radius: 8px; padding: 12px; margin-bottom: 12px;">`;
-        diagram += `<h4 style="color: #1565c0; margin: 0 0 8px 0;">TRIGGER COMPONENT</h4>`;
-        diagram += `<div style="color: #333;"><strong>Name:</strong> ${interaction.triggerComponent.componentName}</div>`;
-        diagram += `<div style="color: #333;"><strong>Type:</strong> ${interaction.triggerComponent.componentType}</div>`;
-        diagram += `<div style="color: #333;"><strong>Trigger:</strong> ${interaction.triggerComponent.triggerType}</div>`;
-        diagram += `</div>`;
-        
-        // Event
-        diagram += `<div style="background-color: #fff3e0; border: 2px solid #ff9800; border-radius: 8px; padding: 12px; margin-bottom: 12px;">`;
-        diagram += `<h4 style="color: #e65100; margin: 0 0 8px 0;">EVENT</h4>`;
-        diagram += `<div style="color: #333;"><strong>Name:</strong> ${interaction.event.eventName}</div>`;
-        diagram += `<div style="color: #333;"><strong>Description:</strong> ${interaction.event.description}</div>`;
-        if (interaction.event.parameters && interaction.event.parameters.key) {
-            diagram += `<div style="color: #333;"><strong>Key:</strong> ${interaction.event.parameters.key}</div>`;
-        }
-        diagram += `</div>`;
-        
-        // Task
-        diagram += `<div style="background-color: #e8f5e9; border: 2px solid #4caf50; border-radius: 8px; padding: 12px; margin-bottom: 12px;">`;
-        diagram += `<h4 style="color: #2e7d32; margin: 0 0 8px 0;">TASK</h4>`;
-        diagram += `<div style="color: #333;"><strong>Name:</strong> ${interaction.task.taskName}</div>`;
-        diagram += `<div style="color: #333;"><strong>Type:</strong> ${interaction.task.taskType}</div>`;
-        diagram += `<div style="color: #333;"><strong>FlowChart:</strong> ${interaction.task.flowChartId}</div>`;
-        diagram += `</div>`;
-        
-        // Actions
-        diagram += `<div style="background-color: #f3e5f5; border: 2px solid #9c27b0; border-radius: 8px; padding: 12px; margin-bottom: 12px;">`;
-        diagram += `<h4 style="color: #6a1b9a; margin: 0 0 8px 0;">ACTIONS</h4>`;
-        if (interaction.actions && interaction.actions.length > 0) {
-            interaction.actions.forEach((action: any, index: number) => {
-                diagram += `<div style="background-color: #fff; border: 1px solid #ce93d8; border-radius: 4px; padding: 8px; margin-bottom: 8px;">`;
-                diagram += `<div style="color: #333;"><strong>${index + 1}.</strong> ${action.actionName}</div>`;
-                diagram += `<div style="color: #666; font-size: 14px;"><strong>Type:</strong> ${action.actionType}</div>`;
-                diagram += `</div>`;
-            });
-        } else {
-            diagram += `<div style="color: #666;">Keine Actions</div>`;
-        }
-        diagram += `</div>`;
-        
-        // Variable Changes
-        if (interaction.variableChanges && interaction.variableChanges.length > 0) {
-            diagram += `<div style="background-color: #fff8e1; border: 2px solid #ffc107; border-radius: 8px; padding: 12px; margin-bottom: 12px;">`;
-            diagram += `<h4 style="color: #f57f17; margin: 0 0 8px 0;">VARIABLE CHANGES</h4>`;
-            interaction.variableChanges.forEach((change: any, index: number) => {
-                diagram += `<div style="background-color: #fff; border: 1px solid #ffe082; border-radius: 4px; padding: 8px; margin-bottom: 8px;">`;
-                diagram += `<div style="color: #333;"><strong>${index + 1}.</strong> ${change.variableName}</div>`;
-                diagram += `<div style="color: #666; font-size: 14px;"><strong>Type:</strong> ${change.changeType}</div>`;
-                diagram += `<div style="color: #666; font-size: 14px;"><strong>Value:</strong> ${change.newValue}</div>`;
-                diagram += `</div>`;
-            });
-            diagram += `</div>`;
-        }
-        
-        // Audio/Visual Effects
-        if (interaction.audioVisualEffects && interaction.audioVisualEffects.length > 0) {
-            diagram += `<div style="background-color: #fce4ec; border: 2px solid #e91e63; border-radius: 8px; padding: 12px; margin-bottom: 12px;">`;
-            diagram += `<h4 style="color: #c2185b; margin: 0 0 8px 0;">AUDIO/VISUAL EFFECTS</h4>`;
-            interaction.audioVisualEffects.forEach((effect: any, index: number) => {
-                diagram += `<div style="background-color: #fff; border: 1px solid #f48fb1; border-radius: 4px; padding: 8px; margin-bottom: 8px;">`;
-                diagram += `<div style="color: #333;"><strong>${index + 1}.</strong> ${effect.effectType}</div>`;
-                diagram += `<div style="color: #666; font-size: 14px;"><strong>Description:</strong> ${effect.description}</div>`;
-                diagram += `</div>`;
-            });
-            diagram += `</div>`;
-        }
-        
-        // Flowchart Visualization
-        diagram += `<div style="background-color: #f5f5f5; border: 2px solid #607d8b; border-radius: 8px; padding: 12px;">`;
-        diagram += `<h4 style="color: #37474f; margin: 0 0 12px 0;">FLOWCHART</h4>`;
-        diagram += `<div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">`;
-        
-        // Trigger
-        diagram += `<div style="background-color: #e3f2fd; border: 2px solid #2196f3; border-radius: 8px; padding: 8px 16px; text-align: center; width: 200px;">`;
-        diagram += `<div style="color: #1565c0; font-weight: bold; font-size: 12px;">Trigger</div>`;
-        diagram += `<div style="color: #0d47a1; font-size: 14px;">${interaction.triggerComponent.componentName || 'Unknown'}</div>`;
-        diagram += `</div>`;
-        
-        // Arrow
-        diagram += `<div style="color: #607d8b; font-size: 24px;">↓</div>`;
-        
-        // Event
-        diagram += `<div style="background-color: #fff3e0; border: 2px solid #ff9800; border-radius: 8px; padding: 8px 16px; text-align: center; width: 200px;">`;
-        diagram += `<div style="color: #e65100; font-weight: bold; font-size: 12px;">Event</div>`;
-        diagram += `<div style="color: #bf360c; font-size: 14px;">${interaction.event.eventName || 'Unknown'}</div>`;
-        diagram += `</div>`;
-        
-        // Arrow
-        diagram += `<div style="color: #607d8b; font-size: 24px;">↓</div>`;
-        
-        // Task
-        diagram += `<div style="background-color: #e8f5e9; border: 2px solid #4caf50; border-radius: 8px; padding: 8px 16px; text-align: center; width: 200px;">`;
-        diagram += `<div style="color: #2e7d32; font-weight: bold; font-size: 12px;">Task</div>`;
-        diagram += `<div style="color: #1b5e20; font-size: 14px;">${interaction.task.taskName || 'Unknown'}</div>`;
-        diagram += `</div>`;
-        
-        // Arrow
-        diagram += `<div style="color: #607d8b; font-size: 24px;">↓</div>`;
-        
-        // Actions
-        if (interaction.actions && interaction.actions.length > 0) {
-            interaction.actions.forEach((action: any, index: number) => {
-                diagram += `<div style="background-color: #f3e5f5; border: 2px solid #9c27b0; border-radius: 8px; padding: 8px 16px; text-align: center; width: 200px;">`;
-                diagram += `<div style="color: #6a1b9a; font-weight: bold; font-size: 12px;">Action ${index + 1}</div>`;
-                diagram += `<div style="color: #4a148c; font-size: 14px;">${action.actionName || 'Unknown'}</div>`;
-                diagram += `</div>`;
-                if (index < interaction.actions.length - 1) {
-                    diagram += `<div style="color: #607d8b; font-size: 24px;">↓</div>`;
+        const project = this.host.project;
+
+        // ── Hilfsfunktionen ──────────────────────────────────────────
+
+        const arrow = () => `<div style="text-align:center;color:#607d8b;font-size:20px;line-height:1.2;">↓</div>`;
+
+        const renderAction = (name: string, typeLbl?: string): string =>
+            `<div style="background:#f3e5f5;border:2px solid #9c27b0;border-radius:6px;padding:7px 14px;margin:2px 0;">
+                <span style="color:#6a1b9a;font-size:11px;font-weight:bold;text-transform:uppercase;">Action</span>
+                <span style="color:#4a148c;font-size:13px;margin-left:8px;font-weight:bold;">${name}</span>
+                ${typeLbl ? `<span style="color:#888;font-size:11px;margin-left:6px;">(${typeLbl})</span>` : ''}
+            </div>`;
+
+        const renderTaskBox = (name: string, expanded: string): string =>
+            `<div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:6px;padding:7px 14px;margin:2px 0;">
+                <span style="color:#2e7d32;font-size:11px;font-weight:bold;text-transform:uppercase;">Task</span>
+                <span style="color:#1b5e20;font-size:13px;margin-left:8px;font-weight:bold;">${name}</span>
+            </div>
+            ${expanded ? `<div style="border-left:3px solid #4caf50;margin-left:20px;padding-left:10px;">${expanded}</div>` : ''}`;
+
+        const findTask = (name: string): any => {
+            let found: any = null;
+            (project.tasks || []).forEach((t: any) => { if (t.name === name) found = t; });
+            if (!found) {
+                (project.stages || []).forEach((s: any) => {
+                    (s.tasks || []).forEach((t: any) => { if (t.name === name) found = t; });
+                });
+            }
+            return found;
+        };
+
+        const findAction = (name: string): any => {
+            let found: any = null;
+            (project.actions || []).forEach((a: any) => { if (a.name === name) found = a; });
+            if (!found) {
+                (project.stages || []).forEach((s: any) => {
+                    (s.actions || []).forEach((a: any) => { if (a.name === name) found = a; });
+                });
+            }
+            return found;
+        };
+
+        // Rekursive Sequence-Renderer (max. Tiefe 6 zur Sicherheit)
+        const renderSequence = (sequence: any[], depth: number): string => {
+            if (!sequence || depth > 6) return '';
+            return sequence.map(item => {
+                if (item.type === 'action') {
+                    const def = findAction(item.name);
+                    return renderAction(item.name, def?.type) + arrow();
                 }
-            });
+                if (item.type === 'task') {
+                    const taskDef = findTask(item.name);
+                    const inner = taskDef?.actionSequence
+                        ? renderSequence(taskDef.actionSequence, depth + 1)
+                        : '';
+                    return renderTaskBox(item.name, inner) + arrow();
+                }
+                if (item.type === 'condition') {
+                    const cond = item.condition || {};
+                    const condLabel = `${cond.leftValue || '?'} == ${cond.rightValue || '?'}`;
+                    const bodyHtml = renderSequence(item.body || [], depth + 1);
+                    const elseHtml = renderSequence(item.elseBody || [], depth + 1);
+                    const hasElse = item.elseBody && item.elseBody.length > 0;
+                    return `
+                        <div style="border:2px solid #ff9800;border-radius:6px;padding:8px 12px;margin:2px 0;background:#fff8e1;">
+                            <div style="color:#e65100;font-size:11px;font-weight:bold;text-transform:uppercase;margin-bottom:4px;">⬡ Condition</div>
+                            <div style="color:#bf360c;font-size:12px;font-family:monospace;margin-bottom:8px;">${condLabel}</div>
+                            <div style="display:flex;gap:12px;align-items:flex-start;">
+                                <div style="flex:1;border:1px solid #4caf50;border-radius:4px;padding:8px;background:#f1f8e9;">
+                                    <div style="color:#2e7d32;font-size:11px;font-weight:bold;margin-bottom:6px;">✓ DANN</div>
+                                    ${bodyHtml || '<div style="color:#999;font-size:12px;font-style:italic;">leer</div>'}
+                                </div>
+                                ${hasElse ? `
+                                <div style="flex:1;border:1px solid #ef5350;border-radius:4px;padding:8px;background:#ffebee;">
+                                    <div style="color:#c62828;font-size:11px;font-weight:bold;margin-bottom:6px;">✗ SONST</div>
+                                    ${elseHtml}
+                                </div>` : `
+                                <div style="flex:1;border:1px dashed #ccc;border-radius:4px;padding:8px;background:#fafafa;">
+                                    <div style="color:#aaa;font-size:11px;font-weight:bold;margin-bottom:6px;">✗ SONST</div>
+                                    <div style="color:#bbb;font-size:12px;font-style:italic;">leer</div>
+                                </div>`}
+                            </div>
+                        </div>
+                        ${arrow()}`;
+                }
+                return '';
+            }).join('');
+        };
+
+        // ── Diagramm aufbauen ────────────────────────────────────────
+
+        // Header-Infos
+        let diagram = `<div style="font-family:sans-serif;max-width:720px;">`;
+
+        // Trigger + Event
+        diagram += `<div style="display:flex;gap:8px;margin-bottom:8px;">
+            <div style="flex:1;background:#e3f2fd;border:2px solid #2196f3;border-radius:6px;padding:8px 12px;">
+                <div style="color:#1565c0;font-size:11px;font-weight:bold;text-transform:uppercase;">Trigger-Komponente</div>
+                <div style="color:#0d47a1;font-size:13px;font-weight:bold;">${interaction.triggerComponent?.componentName || '—'}</div>
+                <div style="color:#555;font-size:12px;">${interaction.triggerComponent?.componentType || ''}</div>
+            </div>
+            <div style="flex:1;background:#fff3e0;border:2px solid #ff9800;border-radius:6px;padding:8px 12px;">
+                <div style="color:#e65100;font-size:11px;font-weight:bold;text-transform:uppercase;">Event</div>
+                <div style="color:#bf360c;font-size:13px;font-weight:bold;">${interaction.event?.eventName || '—'}</div>
+                ${interaction.event?.parameters?.key ? `<div style="color:#555;font-size:12px;">Key: ${interaction.event.parameters.key}</div>` : ''}
+            </div>
+        </div>`;
+
+        diagram += arrow();
+
+        // Haupt-Task + rekursive Sequenz
+        const mainTaskName = interaction.task?.taskName || '';
+        const mainTask = findTask(mainTaskName);
+
+        diagram += `<div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:6px;padding:8px 12px;margin:2px 0;">
+            <div style="color:#2e7d32;font-size:11px;font-weight:bold;text-transform:uppercase;">Haupt-Task</div>
+            <div style="color:#1b5e20;font-size:13px;font-weight:bold;">${mainTaskName || '—'}</div>
+            ${mainTask?.description ? `<div style="color:#555;font-size:12px;">${mainTask.description}</div>` : ''}
+        </div>`;
+
+        if (mainTask?.actionSequence && mainTask.actionSequence.length > 0) {
+            diagram += `<div style="border-left:3px solid #4caf50;margin-left:20px;padding-left:12px;margin-top:4px;">`;
+            diagram += renderSequence(mainTask.actionSequence, 0);
+            diagram += `</div>`;
+        } else {
+            diagram += arrow();
         }
-        
-        // Arrow
-        diagram += `<div style="color: #607d8b; font-size: 24px;">↓</div>`;
-        
+
         // End
-        diagram += `<div style="background-color: #eceff1; border: 2px solid #455a64; border-radius: 8px; padding: 8px 16px; text-align: center; width: 200px;">`;
-        diagram += `<div style="color: #37474f; font-weight: bold;">End</div>`;
+        diagram += `<div style="background:#eceff1;border:2px solid #455a64;border-radius:6px;padding:7px 14px;text-align:center;margin-top:2px;">
+            <span style="color:#37474f;font-weight:bold;">Ende</span>
+        </div>`;
+
         diagram += `</div>`;
-        
-        diagram += `</div>`;
-        diagram += `</div>`;
-        
         return diagram;
     }
 
