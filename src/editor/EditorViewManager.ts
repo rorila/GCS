@@ -1,4 +1,4 @@
-﻿import { GameProject, StageDefinition, GameAction, GameTask, ProjectVariable, ComponentData } from '../model/types';
+﻿import { GameProject, StageDefinition } from '../model/types';
 import { projectStore } from '../services/ProjectStore';
 import { Logger } from '../utils/Logger';
 import { InspectorHost } from './inspector/InspectorHost';
@@ -308,6 +308,7 @@ export class EditorViewManager {
         this.renderUserStoriesList();
     }
 
+    // @ts-ignore
     private saveProjectDescription() {
         const title = (document.getElementById('project-title') as HTMLInputElement)?.value || '';
         const description = (document.getElementById('project-description') as HTMLTextAreaElement)?.value || '';
@@ -346,6 +347,7 @@ export class EditorViewManager {
         }, 2000);
     }
 
+    // @ts-ignore
     private loadProjectDescription() {
         const projectDescription = this.host.project.userStories?.projectDescription;
         if (projectDescription) {
@@ -369,6 +371,7 @@ export class EditorViewManager {
         }
     }
 
+    // @ts-ignore
     private addUserStory() {
         const userStory = {
             id: `userstory_${Date.now()}`,
@@ -395,6 +398,7 @@ export class EditorViewManager {
         this.renderUserStoriesList();
     }
 
+    // @ts-ignore
     private extractInteractions() {
         // Interaktionen automatisch extrahieren
         const extractedInteractions = UserStoryExtractor.extractInteractions(this.host.project);
@@ -446,14 +450,17 @@ export class EditorViewManager {
         this.renderUserStoriesList();
     }
 
+    // @ts-ignore
     private loadUserStories() {
         this.renderUserStoriesList();
     }
 
+    // @ts-ignore
     private filterUserStories() {
         this.renderUserStoriesList();
     }
 
+    // @ts-ignore
     private resetFilter() {
         const searchInput = document.getElementById('userstories-search') as HTMLInputElement;
         const priorityFilter = document.getElementById('userstories-priority-filter') as HTMLSelectElement;
@@ -2177,6 +2184,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         renderDialog();
     }
 
+    // @ts-ignore
     private editUserStory(id: string) {
         const userStory = this.host.project.userStories?.userStories?.find((us: any) => us.id === id);
         if (!userStory) return;
@@ -2839,6 +2847,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         this.renderInteractionsList(userStoryId);
     }
 
+    // @ts-ignore
     private deleteUserStory(id: string) {
         if (!confirm('User Story wirklich löschen?')) return;
 
@@ -2850,6 +2859,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         this.renderUserStoriesList();
     }
 
+    // @ts-ignore
     private getPriorityColor(priority: string): string {
         switch (priority) {
             case 'high': return '#f44336';
@@ -2859,6 +2869,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         }
     }
 
+    // @ts-ignore
     private getPriorityLabel(priority: string): string {
         switch (priority) {
             case 'high': return 'Hoch';
@@ -2868,6 +2879,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         }
     }
 
+    // @ts-ignore
     private getStatusColor(status: string): string {
         switch (status) {
             case 'idea': return '#2196f3';
@@ -2878,6 +2890,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         }
     }
 
+    // @ts-ignore
     private getStatusLabel(status: string): string {
         switch (status) {
             case 'idea': return 'Idee';
