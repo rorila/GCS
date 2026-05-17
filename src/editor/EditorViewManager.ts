@@ -476,6 +476,8 @@ export class EditorViewManager {
         const filterComponent = (document.getElementById('userstories-filter-component') as HTMLSelectElement)?.value || 'all';
         const filterEvent = (document.getElementById('userstories-filter-event') as HTMLSelectElement)?.value || 'all';
         const filterStage = (document.getElementById('userstories-filter-stage') as HTMLSelectElement)?.value || 'all';
+        const filterStatus = (document.getElementById('userstories-filter-status') as HTMLSelectElement)?.value || 'all';
+        const filterPriority = (document.getElementById('userstories-filter-priority') as HTMLSelectElement)?.value || 'all';
         const project = this.host.project;
         const activeStage = this.host.getActiveStage();
         const projectDesc = (project as any).projectDescription || {};
@@ -555,6 +557,21 @@ export class EditorViewManager {
                     <option value="component-name" ${sortOption === 'component-name' ? 'selected' : ''}>Sortierung: Komponente</option>
                     <option value="event-type" ${sortOption === 'event-type' ? 'selected' : ''}>Sortierung: Event</option>
                 </select>
+                <select id="userstories-filter-status"
+                    style="padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
+                    <option value="all" ${filterStatus === 'all' ? 'selected' : ''}>— Alle Status —</option>
+                    <option value="completed" ${filterStatus === 'completed' ? 'selected' : ''}>✓ Abgeschlossen</option>
+                    <option value="in_progress" ${filterStatus === 'in_progress' ? 'selected' : ''}>⟳ In Arbeit</option>
+                    <option value="idea" ${filterStatus === 'idea' ? 'selected' : ''}>💡 Idee</option>
+                    <option value="blocked" ${filterStatus === 'blocked' ? 'selected' : ''}>✗ Blockiert</option>
+                </select>
+                <select id="userstories-filter-priority"
+                    style="padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
+                    <option value="all" ${filterPriority === 'all' ? 'selected' : ''}>— Alle Prioritäten —</option>
+                    <option value="high" ${filterPriority === 'high' ? 'selected' : ''}>🔴 Hoch</option>
+                    <option value="medium" ${filterPriority === 'medium' ? 'selected' : ''}>🟡 Mittel</option>
+                    <option value="low" ${filterPriority === 'low' ? 'selected' : ''}>🟢 Niedrig</option>
+                </select>
                 <button id="userstories-reset-filter"
                     style="padding: 6px 12px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 13px;">
                     ✕ Zurücksetzen
@@ -588,7 +605,12 @@ export class EditorViewManager {
             const filtered = stageExtracted.filter(interaction => {
                 const matchComponent = filterComponent === 'all' || (interaction.triggerComponent?.componentName || '') === filterComponent;
                 const matchEvent = filterEvent === 'all' || (interaction.event?.eventName || '') === filterEvent;
-                return matchComponent && matchEvent;
+                const manual = manualStories.get(interaction.id);
+                const ucStatus = manual ? (manual.userStory?.status || 'idea') : 'completed';
+                const ucPriority = manual ? (manual.userStory?.priority || 'medium') : 'medium';
+                const matchStatus = filterStatus === 'all' || ucStatus === filterStatus;
+                const matchPriority = filterPriority === 'all' || ucPriority === filterPriority;
+                return matchComponent && matchEvent && matchStatus && matchPriority;
             });
 
             filtered.sort((a, b) => {
@@ -608,10 +630,28 @@ export class EditorViewManager {
                     const displayDesc = manual?.userStory?.description || interaction.description || '';
                     const flowChartId = interaction.task?.flowChartId || '';
                     const hasManual = !!manual;
+                    const ucStatus = manual ? (manual.userStory?.status || 'idea') : 'completed';
+                    const ucPriority = manual ? (manual.userStory?.priority || 'medium') : 'medium';
+                    const statusCfg: Record<string, {label: string, color: string}> = {
+                        completed: { label: '✓ Abgeschlossen', color: '#2e7d32' },
+                        in_progress: { label: '⟳ In Arbeit',    color: '#1565c0' },
+                        idea:        { label: '💡 Idee',         color: '#555577' },
+                        blocked:     { label: '✗ Blockiert',    color: '#b71c1c' }
+                    };
+                    const priorityCfg: Record<string, {label: string, color: string}> = {
+                        high:   { label: '🔴 Hoch',    color: '#b71c1c' },
+                        medium: { label: '🟡 Mittel',  color: '#e65100' },
+                        low:    { label: '🟢 Niedrig', color: '#2e7d32' }
+                    };
+                    const sBadge = statusCfg[ucStatus]   || statusCfg['idea'];
+                    const pBadge = priorityCfg[ucPriority] || priorityCfg['medium'];
+                    const badgeStyle = (bg: string) => `display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff;background:${bg};margin-left:6px;`;
                     return `
                         <div style="${rowStyle}">
                             <div>
                                 <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${displayTitle}</span>
+                                <span style="${badgeStyle(sBadge.color)}">${sBadge.label}</span>
+                                <span style="${badgeStyle(pBadge.color)}">${pBadge.label}</span>
                                 ${displayDesc ? `<div style="${descStyle}">${displayDesc}</div>` : ''}
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
@@ -645,11 +685,15 @@ export class EditorViewManager {
         document.getElementById('userstories-filter-stage')?.addEventListener('change', () => this.renderUserStoriesList());
         document.getElementById('userstories-filter-component')?.addEventListener('change', () => this.renderUserStoriesList());
         document.getElementById('userstories-filter-event')?.addEventListener('change', () => this.renderUserStoriesList());
+        document.getElementById('userstories-filter-status')?.addEventListener('change', () => this.renderUserStoriesList());
+        document.getElementById('userstories-filter-priority')?.addEventListener('change', () => this.renderUserStoriesList());
         document.getElementById('userstories-sort')?.addEventListener('change', () => this.renderUserStoriesList());
         document.getElementById('userstories-reset-filter')?.addEventListener('click', () => {
             (document.getElementById('userstories-filter-stage') as HTMLSelectElement).value = 'all';
             (document.getElementById('userstories-filter-component') as HTMLSelectElement).value = 'all';
             (document.getElementById('userstories-filter-event') as HTMLSelectElement).value = 'all';
+            (document.getElementById('userstories-filter-status') as HTMLSelectElement).value = 'all';
+            (document.getElementById('userstories-filter-priority') as HTMLSelectElement).value = 'all';
             (document.getElementById('userstories-sort') as HTMLSelectElement).value = 'component-name';
             this.renderUserStoriesList();
         });
@@ -758,8 +802,23 @@ export class EditorViewManager {
                     <div style="margin-bottom: 4px; color: #9090c0; font-size: 12px;">${interaction.title}</div>
                     <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Titel</label>
                         <input id="uc-title" type="text" value="${existingStory?.title || interaction.title}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
-                    <div style="margin-bottom: 16px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Beschreibung</label>
-                        <textarea id="uc-description" rows="4" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">${existingStory?.description || ''}</textarea></div>
+                    <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Beschreibung</label>
+                        <textarea id="uc-description" rows="3" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">${existingStory?.description || ''}</textarea></div>
+                    <div style="display:flex;gap:12px;margin-bottom:16px;">
+                        <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">Status</label>
+                            <select id="uc-status" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;">
+                                <option value="completed" ${(existingStory?.status || 'completed') === 'completed' ? 'selected' : ''}>✓ Abgeschlossen</option>
+                                <option value="in_progress" ${existingStory?.status === 'in_progress' ? 'selected' : ''}>⟳ In Arbeit</option>
+                                <option value="idea" ${existingStory?.status === 'idea' ? 'selected' : ''}>💡 Idee</option>
+                                <option value="blocked" ${existingStory?.status === 'blocked' ? 'selected' : ''}>✗ Blockiert</option>
+                            </select></div>
+                        <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">Priorität</label>
+                            <select id="uc-priority" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;">
+                                <option value="high" ${existingStory?.priority === 'high' ? 'selected' : ''}>🔴 Hoch</option>
+                                <option value="medium" ${(existingStory?.priority || 'medium') === 'medium' ? 'selected' : ''}>🟡 Mittel</option>
+                                <option value="low" ${existingStory?.priority === 'low' ? 'selected' : ''}>🟢 Niedrig</option>
+                            </select></div>
+                    </div>
                     <div style="display:flex;gap:8px;justify-content:flex-end;">
                         <button id="uc-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
                         <button id="uc-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
@@ -771,20 +830,24 @@ export class EditorViewManager {
         document.getElementById('uc-save')?.addEventListener('click', () => {
             const title = (document.getElementById('uc-title') as HTMLInputElement).value;
             const description = (document.getElementById('uc-description') as HTMLTextAreaElement).value;
+            const status = (document.getElementById('uc-status') as HTMLSelectElement).value;
+            const priority = (document.getElementById('uc-priority') as HTMLSelectElement).value;
             if (!project.userStories) (project as any).userStories = { userStories: [] };
             if (!project.userStories!.userStories) project.userStories!.userStories = [];
 
             if (existingStory) {
                 existingStory.title = title;
                 existingStory.description = description;
+                existingStory.status = status;
+                existingStory.priority = priority;
             } else {
                 project.userStories!.userStories!.push({
                     id: `us_${Date.now()}`,
                     title,
                     description,
                     interactions: [{ id: interactionId }],
-                    priority: 'medium',
-                    status: 'idea',
+                    priority,
+                    status,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 });
