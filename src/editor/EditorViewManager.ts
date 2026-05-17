@@ -297,175 +297,15 @@ export class EditorViewManager {
 
     private renderUserStoriesView(panel: HTMLElement) {
         panel.innerHTML = `
-            <div style="padding: 20px;">
-                <h2>User Stories</h2>
-                <div id="userstories-content">
-                    <h3>Projektbeschreibung</h3>
-                    <div id="project-description-form">
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Titel</label>
-                            <input type="text" id="project-title" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Projekt-Titel eingeben...">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Beschreibung</label>
-                            <textarea id="project-description" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Projekt-Beschreibung eingeben..."></textarea>
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Genre</label>
-                            <input type="text" id="project-genre" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="z.B. Shooter, Platformer, RPG">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Zielgruppe</label>
-                            <input type="text" id="project-target-audience" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="z.B. Kids, Teens, Adults">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Plattform</label>
-                            <input type="text" id="project-platform" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="z.B. Web, Mobile, Desktop">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Kernmechaniken</label>
-                            <input type="text" id="project-core-mechanics" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="z.B. Shooting, Collecting, Puzzle Solving">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Spielziele</label>
-                            <input type="text" id="project-game-goals" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="z.B. High Score, Level Completion, Story Progression">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Narrative</label>
-                            <textarea id="project-narrative" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Story/Narrative eingeben..."></textarea>
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <button id="save-project-description" style="padding: 8px 16px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">Speichern</button>
-                        </div>
-                    </div>
-                    <h3>User Stories</h3>
-                    <div style="margin-bottom: 16px;">
-                        <button id="add-user-story" style="padding: 8px 16px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">+ User Story hinzufügen</button>
-                        <button id="extract-interactions" style="padding: 8px 16px; background-color: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 8px;">Interaktionen automatisch extrahieren</button>
-                    </div>
-                    <div style="margin-bottom: 16px; padding: 12px; background-color: #f5f5f5; border-radius: 4px;">
-                        <div style="margin-bottom: 8px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Suche</label>
-                            <input type="text" id="userstories-search" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="User Stories durchsuchen...">
-                        </div>
-                        <div style="margin-bottom: 8px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Filter nach Priorität</label>
-                            <select id="userstories-priority-filter" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                                <option value="all">Alle</option>
-                                <option value="high">Hoch</option>
-                                <option value="medium">Mittel</option>
-                                <option value="low">Niedrig</option>
-                            </select>
-                        </div>
-                        <div style="margin-bottom: 8px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Filter nach Status</label>
-                            <select id="userstories-status-filter" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                                <option value="all">Alle</option>
-                                <option value="idea">Idee</option>
-                                <option value="in_progress">In Arbeit</option>
-                                <option value="completed">Abgeschlossen</option>
-                                <option value="blocked">Blockiert</option>
-                            </select>
-                        </div>
-                        <div style="margin-bottom: 8px;">
-                            <label style="display: block; margin-bottom: 4px; font-weight: bold;">Sortierung</label>
-                            <select id="userstories-sort" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                                <option value="title">Nach Titel</option>
-                                <option value="component-name">Nach Komponenten-Name</option>
-                                <option value="component-type">Nach Komponenten-Art</option>
-                                <option value="event-type">Nach Event-Art</option>
-                            </select>
-                        </div>
-                        <div>
-                            <button id="userstories-reset-filter" style="padding: 8px 16px; background-color: #999; color: white; border: none; border-radius: 4px; cursor: pointer;">Filter zurücksetzen</button>
-                        </div>
-                    </div>
-                    <div id="user-stories-list"></div>
-                </div>
+            <div style="padding: 20px; background-color: #1a1a2e; min-height: 100%; color: #e0e0e0;">
+                <h2 style="margin: 0 0 12px 0; color: #ffffff; font-size: 20px; font-weight: bold;">Use Cases</h2>
+                <div id="user-stories-list"></div>
+                <div id="userstories-edit-modal" style="display:none;"></div>
             </div>
         `;
 
-        // Event-Listener für Speichern
-        const saveButton = document.getElementById('save-project-description');
-        if (saveButton) {
-            console.log('[UserStories] Speichern-Button gefunden:', saveButton);
-            saveButton.addEventListener('click', () => {
-                console.log('[UserStories] Speichern-Button geklickt');
-                this.saveProjectDescription();
-            });
-        } else {
-            console.log('[UserStories] Speichern-Button NICHT gefunden');
-        }
-
-        // Event-Listener für Hinzufügen
-        const addButton = document.getElementById('add-user-story');
-        if (addButton) {
-            console.log('[UserStories] User-Story-hinzufügen-Button gefunden:', addButton);
-            addButton.addEventListener('click', () => {
-                console.log('[UserStories] User-Story-hinzufügen-Button geklickt');
-                this.addUserStory();
-            });
-        } else {
-            console.log('[UserStories] User-Story-hinzufügen-Button NICHT gefunden');
-        }
-
-        // Event-Listener für Extraktion
-        const extractButton = document.getElementById('extract-interactions');
-        if (extractButton) {
-            console.log('[UserStories] Extraktions-Button gefunden:', extractButton);
-            extractButton.addEventListener('click', () => {
-                console.log('[UserStories] Extraktions-Button geklickt');
-                this.extractInteractions();
-            });
-        } else {
-            console.log('[UserStories] Extraktions-Button NICHT gefunden');
-        }
-
-        // Event-Listener für Suche
-        const searchInput = document.getElementById('userstories-search');
-        if (searchInput) {
-            searchInput.addEventListener('input', () => {
-                this.filterUserStories();
-            });
-        }
-
-        // Event-Listener für Prioritäts-Filter
-        const priorityFilter = document.getElementById('userstories-priority-filter');
-        if (priorityFilter) {
-            priorityFilter.addEventListener('change', () => {
-                this.filterUserStories();
-            });
-        }
-
-        // Event-Listener für Status-Filter
-        const statusFilter = document.getElementById('userstories-status-filter');
-        if (statusFilter) {
-            statusFilter.addEventListener('change', () => {
-                this.filterUserStories();
-            });
-        }
-
-        // Event-Listener für Sortierung
-        const sortSelect = document.getElementById('userstories-sort');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', () => {
-                this.filterUserStories();
-            });
-        }
-
-        // Event-Listener für Reset
-        const resetButton = document.getElementById('userstories-reset-filter');
-        if (resetButton) {
-            resetButton.addEventListener('click', () => {
-                this.resetFilter();
-            });
-        }
-
-        // Projektbeschreibung laden
-        this.loadProjectDescription();
-
-        // User-Stories laden
-        this.loadUserStories();
+        // Tabelle initial rendern
+        this.renderUserStoriesList();
     }
 
     private saveProjectDescription() {
@@ -632,90 +472,336 @@ export class EditorViewManager {
         const listElement = document.getElementById('user-stories-list');
         if (!listElement) return;
 
-        const userStories = this.host.project.userStories?.userStories || [];
+        const sortOption = (document.getElementById('userstories-sort') as HTMLSelectElement)?.value || 'component-name';
+        const filterComponent = (document.getElementById('userstories-filter-component') as HTMLSelectElement)?.value || 'all';
+        const filterEvent = (document.getElementById('userstories-filter-event') as HTMLSelectElement)?.value || 'all';
+        const scopeMode = (document.getElementById('userstories-scope') as HTMLSelectElement)?.value || 'stage';
+        const project = this.host.project;
+        const activeStage = this.host.getActiveStage();
+        const projectDesc = (project as any).projectDescription || {};
 
-        // Filter anwenden
-        const searchTerm = (document.getElementById('userstories-search') as HTMLInputElement)?.value.toLowerCase() || '';
-        const priorityFilter = (document.getElementById('userstories-priority-filter') as HTMLSelectElement)?.value || 'all';
-        const statusFilter = (document.getElementById('userstories-status-filter') as HTMLSelectElement)?.value || 'all';
-        const sortOption = (document.getElementById('userstories-sort') as HTMLSelectElement)?.value || 'title';
+        // Scope-Toggle (oben)
+        const scopeToggle = `
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                <select id="userstories-scope" style="padding: 6px 12px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px; cursor: pointer;">
+                    <option value="stage" ${scopeMode === 'stage' ? 'selected' : ''}>Ansicht: Stage</option>
+                    <option value="project" ${scopeMode === 'project' ? 'selected' : ''}>Ansicht: Gesamtes Projekt</option>
+                </select>
+            </div>
+        `;
 
-        const filteredUserStories = userStories.filter((userStory: any) => {
-            const matchesSearch = userStory.title.toLowerCase().includes(searchTerm) || 
-                                  (userStory.description && userStory.description.toLowerCase().includes(searchTerm));
-            const matchesPriority = priorityFilter === 'all' || userStory.priority === priorityFilter;
-            const matchesStatus = statusFilter === 'all' || userStory.status === statusFilter;
-            
-            // Nur User Stories mit Events anzeigen
-            const hasEvents = userStory.interactions && userStory.interactions.some((interaction: any) => 
-                interaction.event && interaction.event.eventName
-            );
-            
-            return matchesSearch && matchesPriority && matchesStatus && hasEvents;
-        });
-
-        // Sortierung anwenden
-        filteredUserStories.sort((a: any, b: any) => {
-            switch (sortOption) {
-                case 'title':
-                    return a.title.localeCompare(b.title);
-                case 'component-name':
-                    const aComponentName = a.interactions?.[0]?.triggerComponent?.componentName || '';
-                    const bComponentName = b.interactions?.[0]?.triggerComponent?.componentName || '';
-                    return aComponentName.localeCompare(bComponentName);
-                case 'component-type':
-                    const aComponentType = a.interactions?.[0]?.triggerComponent?.componentType || '';
-                    const bComponentType = b.interactions?.[0]?.triggerComponent?.componentType || '';
-                    return aComponentType.localeCompare(bComponentType);
-                case 'event-type':
-                    // Alle Events einer User Story sammeln und nach dem ersten Event sortieren
-                    const aEvents = a.interactions?.map((i: any) => i.event?.eventName || '').filter((e: string) => e).sort() || [];
-                    const bEvents = b.interactions?.map((i: any) => i.event?.eventName || '').filter((e: string) => e).sort() || [];
-                    const aFirstEvent = aEvents[0] || '';
-                    const bFirstEvent = bEvents[0] || '';
-                    const comparison = aFirstEvent.localeCompare(bFirstEvent);
-                    // Wenn Events gleich sind, nach Komponenten-Name sortieren für bessere Gruppierung
-                    if (comparison === 0) {
-                        const aComponentName = a.interactions?.[0]?.triggerComponent?.componentName || '';
-                        const bComponentName = b.interactions?.[0]?.triggerComponent?.componentName || '';
-                        return aComponentName.localeCompare(bComponentName);
-                    }
-                    return comparison;
-                default:
-                    return 0;
-            }
-        });
-
-        if (filteredUserStories.length === 0) {
-            listElement.innerHTML = '<p style="color: #999;">Keine User Stories gefunden.</p>';
-            return;
+        // Ebene 1: Projektbeschreibung (nur bei scope=project)
+        let projectRow = '';
+        if (scopeMode === 'project') {
+            const projTitle = projectDesc.title || (project as any).title || '(Kein Titel)';
+            const projGenre = projectDesc.genre ? `Genre: ${projectDesc.genre}` : '';
+            const projAudience = projectDesc.targetAudience ? `Zielgruppe: ${projectDesc.targetAudience}` : '';
+            const projInfo = [projGenre, projAudience].filter(Boolean).join(' | ');
+            projectRow = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background-color: #16213e; border: 1px solid #3a3a6a; border-radius: 6px; margin-bottom: 4px;">
+                    <div>
+                        <span style="font-size: 11px; font-weight: bold; color: #5080c0; text-transform: uppercase; letter-spacing: 1px; margin-right: 10px;">Projekt</span>
+                        <span style="font-weight: bold; font-size: 15px; color: #ffffff;">${projTitle}</span>
+                        ${projInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${projInfo}</span>` : ''}
+                    </div>
+                    <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
+                </div>
+            `;
         }
 
-        listElement.innerHTML = filteredUserStories.map((userStory: any) => `
-            <div style="border: 1px solid #ccc; border-radius: 4px; padding: 16px; margin-bottom: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h4 style="margin: 0;">${userStory.title}</h4>
+        // Stages bestimmen: bei 'project' alle, sonst nur aktive
+        const stagesToShow: any[] = scopeMode === 'project'
+            ? (project.stages || [])
+            : (activeStage ? [activeStage] : []);
+
+        // Manuelle UserStories als Map
+        const manualStories: Map<string, any> = new Map();
+        (project.userStories?.userStories || []).forEach((us: any) => {
+            (us.interactions || []).forEach((inter: any) => {
+                manualStories.set(inter.id, { userStory: us, interaction: inter });
+            });
+        });
+
+        // Alle Interaktionen aller relevanten Stages (für Filter-Dropdowns)
+        const allExtracted = stagesToShow.flatMap(stage =>
+            UserStoryExtractor.extractInteractionsFromStage(project, stage)
+        );
+
+        // Eindeutige Komponentennamen und Event-Namen für Dropdowns
+        const allComponents = ['all', ...Array.from(new Set(allExtracted.map(i => i.triggerComponent?.componentName || '').filter(Boolean))).sort()];
+        const allEvents = ['all', ...Array.from(new Set(allExtracted.map(i => i.event?.eventName || '').filter(Boolean))).sort()];
+
+        const componentOptions = allComponents.map(c =>
+            `<option value="${c}" ${filterComponent === c ? 'selected' : ''}>${c === 'all' ? '— Alle Komponenten —' : c}</option>`
+        ).join('');
+        const eventOptions = allEvents.map(e =>
+            `<option value="${e}" ${filterEvent === e ? 'selected' : ''}>${e === 'all' ? '— Alle Events —' : e}</option>`
+        ).join('');
+
+        // Filter-Leiste (einmalig, über allen Stage-Blöcken)
+        const filterBar = `
+            <div style="display: flex; gap: 8px; align-items: center; padding: 10px 12px; background-color: #0d0d1f; border: 1px solid #2a2a4a; border-radius: 6px; margin-bottom: 4px;">
+                <select id="userstories-filter-component"
+                    style="flex: 1; padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
+                    ${componentOptions}
+                </select>
+                <select id="userstories-filter-event"
+                    style="flex: 1; padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
+                    ${eventOptions}
+                </select>
+                <select id="userstories-sort"
+                    style="padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
+                    <option value="component-name" ${sortOption === 'component-name' ? 'selected' : ''}>Sortierung: Komponente</option>
+                    <option value="event-type" ${sortOption === 'event-type' ? 'selected' : ''}>Sortierung: Event</option>
+                </select>
+                <button id="userstories-reset-filter"
+                    style="padding: 6px 12px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                    ✕ Zurücksetzen
+                </button>
+            </div>
+        `;
+
+        const rowStyle = 'display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #0f3460; border: 1px solid #1a1a4a; border-radius: 6px; margin-bottom: 4px;';
+        const descStyle = 'color: #9090c0; font-size: 12px; margin-top: 2px;';
+
+        // Pro Stage: Stage-Zeile + gefilterte UseCases
+        const stageBlocks = stagesToShow.map(stage => {
+            const sd = (stage as any).stageDescription || {};
+            const sName = sd.title || stage.name || '(Keine Stage)';
+            const sInfo = sd.description || '';
+            const isActive = stage.id === activeStage?.id;
+
+            const stageRow = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #1a2744; border: 1px solid #2a3a6a; border-radius: 6px; margin-bottom: 4px;">
                     <div>
-                        <button onclick="window.editUserStory('${userStory.id}')" style="padding: 4px 8px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">Bearbeiten</button>
-                        <button onclick="window.deleteUserStory('${userStory.id}')" style="padding: 4px 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Löschen</button>
+                        <span style="font-size: 11px; font-weight: bold; color: #60a0e0; text-transform: uppercase; letter-spacing: 1px; margin-right: 10px;">Stage</span>
+                        <span style="font-weight: bold; font-size: 14px; color: #d0e0ff;">${sName}</span>
+                        ${isActive ? `<span style="font-size: 11px; color: #4caf50; margin-left: 8px;">(aktiv)</span>` : ''}
+                        ${sInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${sInfo}</span>` : ''}
+                    </div>
+                    <button onclick="window.editStageDescription('${stage.id}')" style="padding: 4px 12px; background-color: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
+                </div>
+            `;
+
+            const stageExtracted = UserStoryExtractor.extractInteractionsFromStage(project, stage);
+            const filtered = stageExtracted.filter(interaction => {
+                const matchComponent = filterComponent === 'all' || (interaction.triggerComponent?.componentName || '') === filterComponent;
+                const matchEvent = filterEvent === 'all' || (interaction.event?.eventName || '') === filterEvent;
+                return matchComponent && matchEvent;
+            });
+
+            filtered.sort((a, b) => {
+                if (sortOption === 'event-type') {
+                    const cmp = (a.event?.eventName || '').localeCompare(b.event?.eventName || '');
+                    return cmp !== 0 ? cmp : (a.triggerComponent?.componentName || '').localeCompare(b.triggerComponent?.componentName || '');
+                }
+                const cmpC = (a.triggerComponent?.componentName || '').localeCompare(b.triggerComponent?.componentName || '');
+                return cmpC !== 0 ? cmpC : (a.event?.eventName || '').localeCompare(b.event?.eventName || '');
+            });
+
+            const useCaseRows = filtered.length === 0
+                ? `<div style="padding: 8px 16px; color: #9090b0; font-size: 13px; font-style: italic;">Keine Use Cases gefunden.</div>`
+                : filtered.map(interaction => {
+                    const manual = manualStories.get(interaction.id);
+                    const displayTitle = manual?.userStory?.title || interaction.title;
+                    const displayDesc = manual?.userStory?.description || interaction.description || '';
+                    const flowChartId = interaction.task?.flowChartId || '';
+                    const hasManual = !!manual;
+                    return `
+                        <div style="${rowStyle}">
+                            <div>
+                                <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${displayTitle}</span>
+                                ${displayDesc ? `<div style="${descStyle}">${displayDesc}</div>` : ''}
+                            </div>
+                            <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                                ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Flow-Editor öffnen</button>` : ''}
+                                <button onclick="window.showInteractionDiagram('', '${interaction.id}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Diagramm anzeigen</button>
+                                <button onclick="window.editUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
+                                ${hasManual ? `<button onclick="window.deleteUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            return stageRow + useCaseRows;
+        }).join('');
+
+        this._lastExtracted = allExtracted;
+        listElement.innerHTML = scopeToggle + projectRow + filterBar + stageBlocks;
+
+        // Window-Callbacks
+        (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
+        (window as any).editStageDescription = (stageId: string) => this.showStageDescriptionEditor(stageId);
+        (window as any).navigateToFlowChart = (flowChartId: string) => this.navigateToFlowChart(flowChartId);
+        (window as any).showInteractionDiagram = (storyId: string, interactionId: string) => this.showInteractionDiagram(storyId, interactionId);
+        (window as any).editUseCaseManual = (interactionId: string) => this.editUseCaseManual(interactionId, allExtracted);
+        (window as any).deleteUseCaseManual = (interactionId: string) => this.deleteUseCaseManual(interactionId);
+
+        this.bindFilterBarListeners();
+    }
+
+    private bindFilterBarListeners() {
+        document.getElementById('userstories-scope')?.addEventListener('change', () => this.renderUserStoriesList());
+        document.getElementById('userstories-filter-component')?.addEventListener('change', () => this.renderUserStoriesList());
+        document.getElementById('userstories-filter-event')?.addEventListener('change', () => this.renderUserStoriesList());
+        document.getElementById('userstories-sort')?.addEventListener('change', () => this.renderUserStoriesList());
+        document.getElementById('userstories-reset-filter')?.addEventListener('click', () => {
+            (document.getElementById('userstories-filter-component') as HTMLSelectElement).value = 'all';
+            (document.getElementById('userstories-filter-event') as HTMLSelectElement).value = 'all';
+            (document.getElementById('userstories-sort') as HTMLSelectElement).value = 'component-name';
+            this.renderUserStoriesList();
+        });
+    }
+
+    private showStageDescriptionEditor(stageId?: string) {
+        const modal = document.getElementById('userstories-edit-modal');
+        if (!modal) return;
+        const project = this.host.project;
+        const stage = stageId
+            ? (project.stages || []).find((s: any) => s.id === stageId)
+            : this.host.getActiveStage();
+        if (!stage) return;
+        const activeStage = stage;
+        const sd = (activeStage as any).stageDescription || {};
+
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+                <div style="background: #1a1a2e; border: 1px solid #3a3a6a; border-radius: 8px; padding: 24px; width: 500px; color: #e0e0e0;">
+                    <h3 style="margin: 0 0 16px 0; color: #fff;">Stage-Beschreibung bearbeiten</h3>
+                    <div style="margin-bottom: 4px; color: #60a0e0; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">${activeStage.name}</div>
+                    <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Titel</label>
+                        <input id="sd-title" type="text" value="${sd.title || activeStage.name || ''}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
+                    <div style="margin-bottom: 16px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Beschreibung</label>
+                        <textarea id="sd-description" rows="4" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">${sd.description || ''}</textarea></div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button id="sd-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
+                        <button id="sd-save" style="padding:6px 16px;background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
                     </div>
                 </div>
-                <p style="margin: 0; color: #666;">${userStory.description || 'Keine Beschreibung'}</p>
-                <div style="margin-top: 8px;">
-                    <span style="background-color: ${this.getPriorityColor(userStory.priority)}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 8px;">${this.getPriorityLabel(userStory.priority)}</span>
-                    <span style="background-color: ${this.getStatusColor(userStory.status)}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${this.getStatusLabel(userStory.status)}</span>
-                    <span style="background-color: #607d8b; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${userStory.interactions?.length || 0} Interaktionen</span>
+            </div>
+        `;
+        document.getElementById('sd-cancel')?.addEventListener('click', () => { modal.style.display = 'none'; modal.innerHTML = ''; });
+        document.getElementById('sd-save')?.addEventListener('click', () => {
+            if (!(activeStage as any).stageDescription) (activeStage as any).stageDescription = {};
+            const sd = (activeStage as any).stageDescription;
+            sd.title = (document.getElementById('sd-title') as HTMLInputElement).value;
+            sd.description = (document.getElementById('sd-description') as HTMLTextAreaElement).value;
+            this.isProjectDirty = true;
+            modal.style.display = 'none';
+            modal.innerHTML = '';
+            this.renderUserStoriesList();
+        });
+    }
+
+    private showProjectDescriptionEditor() {
+        const modal = document.getElementById('userstories-edit-modal');
+        if (!modal) return;
+        const project = this.host.project;
+        const pd = (project as any).projectDescription || {};
+
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+                <div style="background: #1a1a2e; border: 1px solid #3a3a6a; border-radius: 8px; padding: 24px; width: 500px; color: #e0e0e0;">
+                    <h3 style="margin: 0 0 16px 0; color: #fff;">Projektbeschreibung bearbeiten</h3>
+                    <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Titel</label>
+                        <input id="pd-title" type="text" value="${pd.title || (project as any).title || ''}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
+                    <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Beschreibung</label>
+                        <textarea id="pd-description" rows="3" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">${pd.description || ''}</textarea></div>
+                    <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Genre</label>
+                        <input id="pd-genre" type="text" value="${pd.genre || ''}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
+                    <div style="margin-bottom: 16px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Zielgruppe</label>
+                        <input id="pd-audience" type="text" value="${pd.targetAudience || ''}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button id="pd-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
+                        <button id="pd-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
+                    </div>
                 </div>
             </div>
-        `).join('');
+        `;
+        document.getElementById('pd-cancel')?.addEventListener('click', () => { modal.style.display = 'none'; modal.innerHTML = ''; });
+        document.getElementById('pd-save')?.addEventListener('click', () => {
+            if (!(project as any).projectDescription) (project as any).projectDescription = {};
+            const pd = (project as any).projectDescription;
+            pd.title = (document.getElementById('pd-title') as HTMLInputElement).value;
+            pd.description = (document.getElementById('pd-description') as HTMLTextAreaElement).value;
+            pd.genre = (document.getElementById('pd-genre') as HTMLInputElement).value;
+            pd.targetAudience = (document.getElementById('pd-audience') as HTMLInputElement).value;
+            this.isProjectDirty = true;
+            modal.style.display = 'none';
+            modal.innerHTML = '';
+            this.renderUserStoriesList();
+        });
+    }
 
-        // Event-Listener für Bearbeiten und Löschen
-        (window as any).editUserStory = (id: string) => {
-            this.editUserStory(id);
-        };
-        (window as any).deleteUserStory = (id: string) => {
-            this.deleteUserStory(id);
-        };
+    private editUseCaseManual(interactionId: string, extracted: any[]) {
+        const modal = document.getElementById('userstories-edit-modal');
+        if (!modal) return;
+        const project = this.host.project;
+        const interaction = extracted.find(i => i.id === interactionId);
+        if (!interaction) return;
+
+        // Bestehende manuelle UserStory suchen
+        let existingStory: any = null;
+        (project.userStories?.userStories || []).forEach((us: any) => {
+            if ((us.interactions || []).some((i: any) => i.id === interactionId)) existingStory = us;
+        });
+
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+                <div style="background: #1a1a2e; border: 1px solid #3a3a6a; border-radius: 8px; padding: 24px; width: 500px; color: #e0e0e0;">
+                    <h3 style="margin: 0 0 16px 0; color: #fff;">Use Case bearbeiten</h3>
+                    <div style="margin-bottom: 4px; color: #9090c0; font-size: 12px;">${interaction.title}</div>
+                    <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Titel</label>
+                        <input id="uc-title" type="text" value="${existingStory?.title || interaction.title}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
+                    <div style="margin-bottom: 16px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Beschreibung</label>
+                        <textarea id="uc-description" rows="4" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">${existingStory?.description || ''}</textarea></div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button id="uc-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
+                        <button id="uc-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('uc-cancel')?.addEventListener('click', () => { modal.style.display = 'none'; modal.innerHTML = ''; });
+        document.getElementById('uc-save')?.addEventListener('click', () => {
+            const title = (document.getElementById('uc-title') as HTMLInputElement).value;
+            const description = (document.getElementById('uc-description') as HTMLTextAreaElement).value;
+            if (!project.userStories) (project as any).userStories = { userStories: [] };
+            if (!project.userStories!.userStories) project.userStories!.userStories = [];
+
+            if (existingStory) {
+                existingStory.title = title;
+                existingStory.description = description;
+            } else {
+                project.userStories!.userStories!.push({
+                    id: `us_${Date.now()}`,
+                    title,
+                    description,
+                    interactions: [{ id: interactionId }],
+                    priority: 'medium',
+                    status: 'idea',
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                });
+            }
+            this.isProjectDirty = true;
+            modal.style.display = 'none';
+            modal.innerHTML = '';
+            this.renderUserStoriesList();
+        });
+    }
+
+    private deleteUseCaseManual(interactionId: string) {
+        const project = this.host.project;
+        if (!project.userStories?.userStories) return;
+        project.userStories.userStories = project.userStories.userStories.filter((us: any) =>
+            !(us.interactions || []).some((i: any) => i.id === interactionId)
+        );
+        this.isProjectDirty = true;
+        this.renderUserStoriesList();
     }
 
     private editUserStory(id: string) {
@@ -937,11 +1023,19 @@ export class EditorViewManager {
         }, 3000);
     }
 
-    private showInteractionDiagram(userStoryId: string, interactionId: string) {
-        const userStory = this.host.project.userStories?.userStories?.find((us: any) => us.id === userStoryId);
-        if (!userStory) return;
+    private _lastExtracted: any[] = [];
 
-        const interaction = userStory.interactions?.find((i: any) => i.id === interactionId);
+    private showInteractionDiagram(userStoryId: string, interactionId: string) {
+        let interaction: any = null;
+
+        if (userStoryId) {
+            const userStory = this.host.project.userStories?.userStories?.find((us: any) => us.id === userStoryId);
+            if (!userStory) return;
+            interaction = userStory.interactions?.find((i: any) => i.id === interactionId);
+        } else {
+            interaction = this._lastExtracted.find(i => i.id === interactionId);
+        }
+
         if (!interaction) return;
 
         // Modal für Diagramm anzeigen

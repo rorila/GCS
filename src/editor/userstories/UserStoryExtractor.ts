@@ -9,6 +9,31 @@ import { Interaction, TriggerComponent, Event, Task, Action } from './UserStoryT
 
 export class UserStoryExtractor {
     /**
+     * Extrahiert Interaktionen nur aus der aktiven Stage (Objekt → Event → Task → Action)
+     */
+    public static extractInteractionsFromStage(project: GameProject, stage: any): Interaction[] {
+        const interactions: Interaction[] = [];
+        const stageObjects = stage?.objects || [];
+
+        stageObjects.forEach((obj: any) => {
+            if (obj.events) {
+                Object.entries(obj.events).forEach(([eventKey, flowChartId]) => {
+                    if (!flowChartId) return;
+                    // Nur anzeigen wenn ein Task mit Actions verknüpft ist
+                    const task = this.extractTaskFromFlowChart(flowChartId as string, project);
+                    const actions = this.extractActionsFromTask(task, project);
+                    if (actions.length === 0) return;
+
+                    const interaction = this.extractFromObject(obj, eventKey, flowChartId as string, project);
+                    if (interaction) interactions.push(interaction);
+                });
+            }
+        });
+
+        return interactions;
+    }
+
+    /**
      * Extrahiert alle Interaktionen aus dem Projekt-JSON
      */
     public static extractInteractions(project: GameProject): Interaction[] {
