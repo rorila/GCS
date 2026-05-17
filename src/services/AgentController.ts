@@ -1269,6 +1269,91 @@ export class AgentController {
     }
 
     // ─────────────────────────────────────────────
+    // 11. UserStories API
+    // ─────────────────────────────────────────────
+
+    /**
+     * Speichert einen UseCase (aus dem Wizard) in project.userStories.
+     * Erzeugt die Struktur falls noch nicht vorhanden.
+     */
+    public addUseCase(stageId: string, data: {
+        id?: string;
+        title: string;
+        description?: string;
+        priority?: 'high' | 'medium' | 'low';
+        triggerType?: string;
+        compType?: string;
+        compName?: string;
+        eventName?: string;
+        eventParam?: string;
+        taskName?: string;
+        actions?: { name: string; type: string; otherDesc?: string }[];
+        condition?: { leftValue: string; op: string; rightValue: string } | null;
+        agentHints?: string;
+        otherTriggerDesc?: string;
+    }): string {
+        this.validateProjectLoaded();
+        const id = data.id || `uc_${Date.now()}`;
+        this.project!.userStories = this.project!.userStories || {};
+        this.project!.userStories.userStories = this.project!.userStories.userStories || [];
+
+        const existing = this.project!.userStories.userStories.find((uc: any) => uc.id === id);
+        if (existing) {
+            Object.assign(existing, { ...data, id, stageId, updatedAt: new Date() });
+            AgentController.logger.info(`UseCase '${data.title}' (${id}) updated.`);
+        } else {
+            this.project!.userStories.userStories.push({
+                ...data, id, stageId,
+                status: 'idea',
+                linkedTaskName: data.taskName || '',
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
+            AgentController.logger.info(`UseCase '${data.title}' (${id}) created for stage '${stageId}'.`);
+        }
+        this.notifyChange();
+        return id;
+    }
+
+    /**
+     * Aktualisiert den Status eines UseCases.
+     * @param id - ID des UseCases
+     * @param status - 'idea' | 'in_progress' | 'completed' | 'blocked'
+     */
+    public updateUseCaseStatus(id: string, status: 'idea' | 'in_progress' | 'completed' | 'blocked'): void {
+        this.validateProjectLoaded();
+        const uc = (this.project!.userStories?.userStories || []).find((u: any) => u.id === id);
+        if (!uc) throw new Error(`UseCase '${id}' not found.`);
+        uc.status = status;
+        uc.updatedAt = new Date();
+        AgentController.logger.info(`UseCase '${id}' status → '${status}'.`);
+        this.notifyChange();
+    }
+
+    /**
+     * Verknüpft einen UseCase mit einem Task (nach dessen Implementierung).
+     */
+    public linkUseCaseToTask(useCaseId: string, taskName: string): void {
+        this.validateProjectLoaded();
+        const uc = (this.project!.userStories?.userStories || []).find((u: any) => u.id === useCaseId);
+        if (!uc) throw new Error(`UseCase '${useCaseId}' not found.`);
+        if (!this.getTaskByName(taskName)) throw new Error(`Task '${taskName}' not found.`);
+        uc.linkedTaskName = taskName;
+        uc.updatedAt = new Date();
+        AgentController.logger.info(`UseCase '${useCaseId}' linked to Task '${taskName}'.`);
+        this.notifyChange();
+    }
+
+    /**
+     * Gibt alle UseCases zurück, optional gefiltert nach Stage.
+     */
+    public listUseCases(stageId?: string): any[] {
+        this.validateProjectLoaded();
+        const all = this.project!.userStories?.userStories || [];
+        return stageId ? all.filter((uc: any) => uc.stageId === stageId) : all;
+    }
+
+    // ─────────────────────────────────────────────
     // Internal Helpers
     // ─────────────────────────────────────────────
 
