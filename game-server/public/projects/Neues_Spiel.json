@@ -1,9 +1,9 @@
 {
   "meta": {
-    "name": "MyCoolGame",
+    "name": "Neues Spiel",
     "version": "1.0.0",
-    "author": "GCS-Team",
-    "description": "Das ist mein cooles Spiel",
+    "author": "",
+    "description": "",
     "_sourcePath": "projects/Neues_Spiel.json"
   },
   "stage": {
@@ -114,6 +114,36 @@
           "defaultValue": true,
           "value": true,
           "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "var_score",
+          "name": "score",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 24,
+          "y": 2,
+          "width": 6,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "number",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
         }
       ],
       "grid": {
@@ -128,9 +158,91 @@
     },
     {
       "id": "main",
-      "name": "MainStage",
+      "name": "Haupt-Level",
       "type": "main",
-      "objects": [],
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "input_controller",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 3,
+          "y": 15,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TVirtualGamepad",
+          "id": "virtual_gamepad",
+          "name": "VirtualGamepad",
+          "scope": "stage",
+          "isService": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 8,
+          "y": 9,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#00ffcc",
+            "borderWidth": 1,
+            "opacity": 0.8
+          },
+          "layoutStyle": "split",
+          "splitVerticalAlignment": "bottom",
+          "autoHideOnDesktop": true,
+          "scale": 1
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1779100424603_ufk1s6ufc",
+          "name": "Button_6",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18,
+          "y": 15,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_6",
+          "icon": ""
+        }
+      ],
       "actions": [],
       "tasks": [],
       "variables": [],

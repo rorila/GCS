@@ -315,6 +315,15 @@ export class EditorInteractionManager {
                     this.host.autoSaveToLocalStorage();
                 } else if (eventName === 'showStageContextMenu') {
                     this.showStageBackgroundMenu(data.clientX, data.clientY);
+                } else if (eventName === 'createUseCase') {
+                    const activeStageId = this.host.project.activeStageId || '';
+                    const vm: any = (this.host as any).viewManager;
+                    logger.info('[Wizard] createUseCase Event empfangen, id=' + id + ', activeStageId=' + activeStageId + ', data=' + JSON.stringify(data) + ', vm=' + !!vm);
+                    if (vm && typeof vm.showAddUseCaseDialog === 'function') {
+                        vm.showAddUseCaseDialog(activeStageId, data);
+                    } else {
+                        logger.error('[Wizard] createUseCase: viewManager.showAddUseCaseDialog nicht verfügbar!');
+                    }
                 } else if (eventName === 'propertyChange') {
                     const obj = (this.host as any).lastRenderedObjects?.find((o: any) => (o.id || o.name) === id) || this.getOriginalObject(id);
                     if (obj && data && data.path && data.value !== undefined) {

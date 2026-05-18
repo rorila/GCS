@@ -699,8 +699,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -3023,9 +3023,71 @@
         "onTouchMove",
         "onTouchEnd"
       ]
+    },
+    {
+      "id": "stage-1779032565270",
+      "name": "Stage 4",
+      "type": "standard",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      }
+    },
+    {
+      "id": "stage-1779035107991",
+      "name": "Stage 5",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TPanel",
+          "id": "obj_1779035113636_fk3e2dvqx",
+          "name": "Panel_42",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      }
     }
   ],
-  "activeStageId": "stage_fc0d59d8-6d35-471f-95cb-db41b1b33dc0",
+  "activeStageId": "stage-1779035107991",
   "objects": [],
   "actions": [],
   "tasks": [],

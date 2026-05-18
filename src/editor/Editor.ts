@@ -518,19 +518,287 @@ export class Editor implements IViewHost {
     }
 
     public async newProject() {
+        Editor.logger.info('[NewProject] newProject() aufgerufen, isProjectDirty=' + this.isProjectDirty);
         if (this.isProjectDirty) {
             if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich ein neues Projekt starten?')) {
+                Editor.logger.info('[NewProject] Abgebrochen durch Bestätigungsdialog');
                 return;
             }
         }
         // LocalStorage komplett leeren (alte Projekt-Daten, Panel-Einstellungen etc.)
         localStorage.clear();
-        Editor.logger.info('LocalStorage geleert für neues Projekt');
+        Editor.logger.info('[NewProject] LocalStorage geleert, starte Projekt-Wizard...');
 
-        const freshProject = this.createDefaultProject();
+        // 1. Projekt-Wizard (Ebene 1) aufrufen
+        const projectData = await new Promise<any>((resolve) => {
+            this.viewManager.showConfigureProjectDialog(resolve);
+        });
+        Editor.logger.info('[NewProject] Projekt-Wizard beendet, projectData=' + JSON.stringify(projectData));
+        if (!projectData) {
+            Editor.logger.info('[NewProject] Projekt-Erstellung abgebrochen (Projekt-Wizard)');
+            return;
+        }
+
+        // 2. Stage-Wizard (Ebene 2) aufrufen
+        Editor.logger.info('[NewProject] Starte Stage-Wizard...');
+        const stageData = await new Promise<any>((resolve) => {
+            this.viewManager.showAddStageDialog(resolve);
+        });
+        Editor.logger.info('[NewProject] Stage-Wizard beendet, stageData=' + JSON.stringify(stageData));
+        if (!stageData) {
+            Editor.logger.info('[NewProject] Projekt-Erstellung abgebrochen (Stage-Wizard)');
+            return;
+        }
+
+        // 3. Projekt mit Wizard-Daten erstellen
+        const freshProject = this.createProjectFromWizardData(projectData, stageData);
         this.loadProject(freshProject);
-        Editor.logger.info('Neues Projekt initialisiert');
+        Editor.logger.info('[NewProject] Neues Projekt mit Wizard-Konfiguration initialisiert');
     }
+
+    private createProjectFromWizardData(projectData: any, stageData: any): GameProject {
+        // Blueprint Stage mit StageController
+        const blueprintStage: StageDefinition = {
+            id: 'blueprint',
+            name: 'Blueprint (Global)',
+            type: 'blueprint',
+            objects: [
+                {
+                    id: 'stage_controller',
+                    name: 'StageController',
+                    className: 'TStageController',
+                    scope: 'global',
+                    isService: true,
+                    x: 2,
+                    y: 2,
+                    width: 8,
+                    height: 4
+                } as any
+            ],
+            actions: [],
+            tasks: [],
+            variables: [
+                {
+                    id: 'var_project_change',
+                    name: 'isProjectChangeAvailable',
+                    type: 'boolean',
+                    defaultValue: false,
+                    value: false,
+                    scope: 'global',
+                    className: 'TVariable',
+                    isVariable: true,
+                    x: 12,
+                    y: 2,
+                    width: 10,
+                    height: 4
+                } as any
+            ],
+            grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#f5f5f5' }
+        };
+
+        // Blueprint-Variablen aus Projekt-Wizard ableiten
+        const features: string[] = projectData?.features || [];
+        if (features.includes('score')) {
+            blueprintStage.variables!.push({
+                id: 'var_score', name: 'score', type: 'number',
+                defaultValue: 0, value: 0, scope: 'global',
+                className: 'TVariable', isVariable: true,
+                x: 24, y: 2, width: 6, height: 4
+            } as any);
+        }
+        if (features.includes('lives')) {
+            blueprintStage.variables!.push({
+                id: 'var_lives', name: 'lives', type: 'number',
+                defaultValue: 3, value: 3, scope: 'global',
+                className: 'TVariable', isVariable: true,
+                x: 32, y: 2, width: 6, height: 4
+            } as any);
+        }
+        if (projectData?.players === '2net') {
+            blueprintStage.objects.push({
+                id: 'game_server', name: 'GameServer', className: 'TGameServer',
+                x: 0, y: 8, width: 2, height: 2, visible: false
+            } as any);
+        }
+
+        // Main Stage mit Wizard-Konfiguration
+        const mainStage: StageDefinition = {
+            id: stageData.stageId || 'main',
+            name: stageData.stageName || 'Haupt-Level',
+            type: 'main',
+            objects: [],
+            actions: [],
+            tasks: [],
+            variables: [],
+            grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' }
+        };
+        this.populateStageFromWizardData(mainStage, stageData);
+
+        return {
+            meta: { name: "Neues Spiel", version: "1.0.0", author: "", description: "" },
+            stage: { grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' } },
+            flow: { stage: { cols: 100, rows: 100, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#1e1e1e' }, elements: [], connections: [] },
+            input: { player1Controls: 'arrows', player1Target: '', player1Speed: 0.2, player2Controls: 'wasd', player2Target: '', player2Speed: 0.2 },
+            objects: [], splashObjects: [], splashDuration: 3000, splashAutoHide: true, actions: [], tasks: [], variables: [],
+            stages: [blueprintStage, mainStage],
+            activeStageId: stageData.stageId || 'main'
+        };
+    }
+
+    /**
+     * Fügt einer Stage Komponenten gemäß Stage-Wizard-Daten hinzu.
+     * Wird sowohl beim Neu-Projekt-Flow als auch beim "Neue Stage"-Menü genutzt.
+     */
+    private populateStageFromWizardData(stage: StageDefinition, stageData: any): void {
+        // Steuerungs-Objekte hinzufügen
+        if (stageData.controls.includes('keyboard') || stageData.controls.includes('mouse')) {
+            stage.objects.push({
+                id: 'input_controller',
+                name: 'InputController',
+                className: 'TInputController',
+                x: 0, y: 0, width: 2, height: 2,
+                visible: false
+            } as any);
+        }
+        if (stageData.controls.includes('touch')) {
+            stage.objects.push({
+                id: 'virtual_gamepad',
+                name: 'VirtualGamepad',
+                className: 'TVirtualGamepad',
+                x: 0, y: 0, width: 10, height: 4,
+                visible: true
+            } as any);
+        }
+
+        // Spieler-Objekt
+        if (stageData.objects.includes('player')) {
+            stage.objects.push({
+                id: 'player_sprite',
+                name: 'Player',
+                className: 'TSprite',
+                x: 30, y: 20, width: 3, height: 3,
+                collisionEnabled: true,
+                collisionGroup: 'player',
+                spriteColor: '#4ecdc4'
+            } as any);
+        }
+
+        // Gegner-Objekte
+        if (stageData.objects.includes('enemies')) {
+            stage.objects.push({
+                id: 'enemy_sprite',
+                name: 'Enemy',
+                className: 'TSprite',
+                x: 10, y: 5, width: 3, height: 3,
+                collisionEnabled: true,
+                collisionGroup: 'enemy',
+                spriteColor: '#e74c3c'
+            } as any);
+        }
+
+        // UI-Elemente
+        if (stageData.objects.includes('score')) {
+            stage.objects.push({
+                id: 'score_label',
+                name: 'ScoreLabel',
+                className: 'TLabel',
+                x: 1, y: 1, width: 8, height: 2,
+                caption: '${score}',
+                fontSize: 20,
+                color: '#ffffff'
+            } as any);
+        }
+        if (stageData.objects.includes('lives')) {
+            stage.objects.push({
+                id: 'lives_label',
+                name: 'LivesLabel',
+                className: 'TLabel',
+                x: 50, y: 1, width: 8, height: 2,
+                caption: '${lives}',
+                fontSize: 20,
+                color: '#e74c3c'
+            } as any);
+        }
+        if (stageData.objects.includes('buttons')) {
+            stage.objects.push({
+                id: 'action_button',
+                name: 'ActionButton',
+                className: 'TButton',
+                x: 20, y: 30, width: 12, height: 3,
+                caption: 'Start',
+                visible: true
+            } as any);
+        }
+        if (stageData.objects.includes('background')) {
+            stage.objects.push({
+                id: 'background_panel',
+                name: 'Background',
+                className: 'TPanel',
+                x: 0, y: 0, width: 64, height: 40,
+                visible: true,
+                style: { backgroundColor: '#1a1a2e' }
+            } as any);
+        }
+
+        // Timer
+        if (stageData.objects.includes('timer') || stageData.exitType === 'timer') {
+            stage.objects.push({
+                id: 'stage_timer',
+                name: 'StageTimer',
+                className: 'TTimer',
+                x: 0, y: 0, width: 2, height: 2,
+                visible: false,
+                interval: 1000,
+                autoStart: true
+            } as any);
+        }
+
+    }
+
+    /**
+     * Öffnet den Stage-Wizard und fügt eine neue Stage zum bestehenden Projekt hinzu.
+     * Wird vom Hauptmenü "Neue Stage" und vom UserStories-Tab-Button aufgerufen.
+     */
+    public async createStageFromWizard(): Promise<void> {
+        Editor.logger.info('[NewStage] createStageFromWizard() aufgerufen');
+        const stageData = await new Promise<any>((resolve) => {
+            this.viewManager.showAddStageDialog(resolve);
+        });
+        Editor.logger.info('[NewStage] Stage-Wizard beendet, stageData=' + JSON.stringify(stageData));
+        if (!stageData) {
+            Editor.logger.info('[NewStage] Stage-Erstellung abgebrochen');
+            return;
+        }
+        if (!this.project.stages) this.project.stages = [];
+
+        // Eindeutige ID erzwingen
+        let id = stageData.stageId || ('stage_' + Date.now().toString(36));
+        const existing = new Set(this.project.stages.map((s: any) => s.id));
+        let counter = 1;
+        const baseId = id;
+        while (existing.has(id)) { id = baseId + '_' + counter++; }
+
+        const newStage: StageDefinition = {
+            id,
+            name: stageData.stageName || 'Neue Stage',
+            type: 'standard' as any,
+            objects: [],
+            actions: [],
+            tasks: [],
+            variables: [],
+            grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' }
+        };
+        this.populateStageFromWizardData(newStage, stageData);
+        this.project.stages.push(newStage);
+        this.project.activeStageId = id;
+        this.isProjectDirty = true;
+        this.render();
+        this.updateStagesMenu();
+        this.updateStageLabel();
+        this.autoSaveToLocalStorage();
+        Editor.logger.info('[NewStage] Stage angelegt: id=' + id + ', name=' + newStage.name);
+    }
+
     public saveProject() { this.dataManager.saveProject(); }
     public saveProjectToFile(overwriteConfirmed?: boolean) { return this.dataManager.saveProjectToFile(overwriteConfirmed); }
     public saveProjectAs() { return this.dataManager.saveProjectAs(); }

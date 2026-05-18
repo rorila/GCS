@@ -687,7 +687,15 @@ export class EditorViewManager {
         // Window-Callbacks
         (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
         (window as any).configureProject = () => this.showConfigureProjectDialog();
-        (window as any).addStage = () => this.showAddStageDialog();
+        (window as any).addStage = () => {
+            EditorViewManager.logger.info('[Wizard] window.addStage() ausgelöst');
+            const editor: any = this.host;
+            if (typeof editor.createStageFromWizard === 'function') {
+                editor.createStageFromWizard().then(() => this.renderUserStoriesList());
+            } else {
+                this.showAddStageDialog();
+            }
+        };
         (window as any).addUseCase = (stageId: string) => this.showAddUseCaseDialog(stageId);
         (window as any).editStageDescription = (stageId: string) => this.showStageDescriptionEditor(stageId);
         (window as any).navigateToFlowChart = (flowChartId: string) => this.navigateToFlowChart(flowChartId);
@@ -886,9 +894,25 @@ export class EditorViewManager {
         this.renderUserStoriesList();
     }
 
-    private showAddStageDialog() {
-        const modal = document.getElementById('userstories-edit-modal');
-        if (!modal) return;
+    /**
+     * Stellt sicher, dass das Modal-Element existiert. Falls nicht (z.B. aktueller Tab ist nicht "UserStories"),
+     * wird es dynamisch in <body> eingehängt. So funktionieren Wizards auch außerhalb des UserStories-Tabs.
+     */
+    private ensureModal(): HTMLElement {
+        let modal = document.getElementById('userstories-edit-modal');
+        if (!modal) {
+            EditorViewManager.logger.info('[Wizard] ensureModal: erzeuge fehlendes Modal-Element in document.body');
+            modal = document.createElement('div');
+            modal.id = 'userstories-edit-modal';
+            modal.style.display = 'none';
+            document.body.appendChild(modal);
+        }
+        return modal;
+    }
+
+    public showAddStageDialog(onComplete?: (data: any) => void) {
+        EditorViewManager.logger.info('[Wizard] showAddStageDialog aufgerufen, hasCallback=' + !!onComplete);
+        const modal = this.ensureModal();
 
         const WIZARD_STEPS = 5;
         let wizardStep = 1;
@@ -1184,11 +1208,13 @@ export class EditorViewManager {
             document.getElementById('stage-cancel')?.addEventListener('click', () => {
                 modal.style.display = 'none';
                 modal.innerHTML = '';
+                onComplete?.(null);
             });
 
             document.getElementById('stage-save')?.addEventListener('click', () => {
                 modal.style.display = 'none';
                 modal.innerHTML = '';
+                onComplete?.(sData);
             });
 
             document.getElementById('stage-back')?.addEventListener('click', () => {
@@ -1247,9 +1273,9 @@ export class EditorViewManager {
         renderDialog();
     }
 
-    private showConfigureProjectDialog() {
-        const modal = document.getElementById('userstories-edit-modal');
-        if (!modal) return;
+    public showConfigureProjectDialog(onComplete?: (data: any) => void) {
+        EditorViewManager.logger.info('[Wizard] showConfigureProjectDialog aufgerufen, hasCallback=' + !!onComplete);
+        const modal = this.ensureModal();
 
         const WIZARD_STEPS = 5;
         let wizardStep = 1;
@@ -1494,11 +1520,13 @@ export class EditorViewManager {
             document.getElementById('proj-cancel')?.addEventListener('click', () => {
                 modal.style.display = 'none';
                 modal.innerHTML = '';
+                onComplete?.(null);
             });
 
             document.getElementById('proj-save')?.addEventListener('click', () => {
                 modal.style.display = 'none';
                 modal.innerHTML = '';
+                onComplete?.(pData);
             });
 
             document.getElementById('proj-back')?.addEventListener('click', () => {
@@ -1545,9 +1573,9 @@ export class EditorViewManager {
         renderDialog();
     }
 
-    private showAddUseCaseDialog(stageId: string) {
-        const modal = document.getElementById('userstories-edit-modal');
-        if (!modal) return;
+    public showAddUseCaseDialog(stageId: string, prefilled?: { className?: string, name?: string }) {
+        EditorViewManager.logger.info('[Wizard] showAddUseCaseDialog aufgerufen, stageId=' + stageId + ', prefilled=' + JSON.stringify(prefilled));
+        const modal = this.ensureModal();
         const project = this.host.project;
         const stage = (project.stages || []).find((s: any) => s.id === stageId);
         const stageName = (stage as any)?.stageDescription?.title || (stage as any)?.name || stageId;
@@ -1570,10 +1598,15 @@ export class EditorViewManager {
         const WIZARD_STEPS = 6;
         const wData: any = {
             title: '', description: '', priority: 'medium',
-            triggerType: '', compType: '', compName: '', eventName: '', eventParam: '',
+            triggerType: '',
+            compType: prefilled?.className || '',
+            compName: prefilled?.name || '',
+            eventName: '', eventParam: '',
             taskName: '', actions: [], condition: null, agentHints: '',
             otherTriggerDesc: '', otherActionDesc: ''
         };
+        // Wenn Komponente per Kontextmenü vorausgewählt wurde, Schritt "Objekt" als erledigt markieren
+        const componentStepPrefilled = !!(prefilled?.className && prefilled?.name);
 
         // Trigger-Kacheln
         const TRIGGERS = [
@@ -1622,7 +1655,8 @@ export class EditorViewManager {
                 ${steps.map((s, i) => {
                     const num = i + 1;
                     const active = num === wizardStep;
-                    const done = num < wizardStep;
+                    // Schritt 3 ('Objekt') vorausgefüllt-grün markieren, wenn per Kontextmenü gestartet
+                    const done = num < wizardStep || (componentStepPrefilled && num === 3);
                     const bg = done ? '#2e7d32' : active ? '#1565c0' : '#1a1a3a';
                     const color = (done || active) ? '#fff' : '#606080';
                     return `<div style="flex:1;padding:7px 4px;background:${bg};text-align:center;font-size:11px;font-weight:bold;color:${color};border-right:1px solid #0a0a20;">

@@ -99,11 +99,24 @@ export class EditorMenuManager {
                 if (lobby) lobby.style.display = 'flex';
                 break;
             case 'new-stage':
-                this.host.createStage('standard');
-                this.host.selectObject(null);
-                if (this.host.inspector) {
-                    const ns = this.host.getActiveStage();
-                    if (ns) this.host.inspector.update(ns);
+                EditorMenuManager.logger.info('[Menu] new-stage geklickt → createStageFromWizard');
+                const editor: any = this.host as any;
+                if (typeof editor.createStageFromWizard === 'function') {
+                    editor.createStageFromWizard().then(() => {
+                        this.host.selectObject(null);
+                        if (this.host.inspector) {
+                            const ns = this.host.getActiveStage();
+                            if (ns) this.host.inspector.update(ns);
+                        }
+                    });
+                } else {
+                    EditorMenuManager.logger.error('[Menu] createStageFromWizard nicht verfügbar, Fallback auf createStage');
+                    this.host.createStage('standard');
+                    this.host.selectObject(null);
+                    if (this.host.inspector) {
+                        const ns = this.host.getActiveStage();
+                        if (ns) this.host.inspector.update(ns);
+                    }
                 }
                 break;
             case 'new-splash':

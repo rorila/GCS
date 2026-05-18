@@ -838,6 +838,12 @@ export class StageInteractionManager {
             }
         }
 
+        if (obj && obj.className && !obj.isInherited) {
+            this.addContextItem('🎯 UseCase erstellen', '#80deea', () => {
+                if (this.host.onEvent) this.host.onEvent(objectId, 'createUseCase', { className: obj.className, name: obj.name });
+            });
+        }
+
         this.addContextItem('📋 Kopieren', '#fff', () => {
             if (!this.host.selectedIds.has(objectId)) {
                 this.host.selectedIds.clear(); this.host.selectedIds.add(objectId);
