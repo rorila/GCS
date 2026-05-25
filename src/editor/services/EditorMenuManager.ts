@@ -82,6 +82,14 @@ export class EditorMenuManager {
     public handleMenuAction(action: string) {
         switch (action) {
             case 'new-project': this.host.newProject(); break;
+            case 'project-properties':
+                const editorVM = (this.host as any).viewManager;
+                if (editorVM && typeof editorVM.showEditProjectPropertiesDialog === 'function') {
+                    editorVM.showEditProjectPropertiesDialog();
+                } else {
+                    NotificationToast.show('Projekt-Eigenschaften-Dialog nicht verfügbar.', 'error');
+                }
+                break;
             case 'save': this.host.saveProjectToFile(); break;
             case 'save-as': this.host.saveProjectAs(); break;
             case 'save-dev': this.host.saveProject(); break;

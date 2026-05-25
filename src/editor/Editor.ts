@@ -634,8 +634,20 @@ export class Editor implements IViewHost {
         };
         this.populateStageFromWizardData(mainStage, stageData);
 
+        // Meta-Daten aus Wizard-Daten übernehmen (Schritt 1)
+        const projectName = projectData?.projectName || 'Mein Spiel';
+        const author = projectData?.author || '';
+        const description = projectData?.description || '';
+        const safeFileName = projectName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
+
         return {
-            meta: { name: "Neues Spiel", version: "1.0.0", author: "", description: "" },
+            meta: {
+                name: projectName,
+                version: "1.0.0",
+                author: author,
+                description: description,
+                _sourcePath: `projects/${safeFileName}.json`
+            },
             stage: { grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' } },
             flow: { stage: { cols: 100, rows: 100, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#1e1e1e' }, elements: [], connections: [] },
             input: { player1Controls: 'arrows', player1Target: '', player1Speed: 0.2, player2Controls: 'wasd', player2Target: '', player2Speed: 0.2 },

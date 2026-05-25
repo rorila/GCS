@@ -337,6 +337,9 @@ export class EditorViewManager {
         this.host.project.userStories.projectDescription = projectDescription;
         this.isProjectDirty = true;
 
+        // SOFORT in Datei/IndexedDB persistieren (Option A)
+        this.host.autoSaveToLocalStorage();
+
         // Benachrichtigung anzeigen
         const notification = document.createElement('div');
         notification.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #4caf50; color: white; padding: 12px 24px; border-radius: 4px; z-index: 1000;';
@@ -395,6 +398,9 @@ export class EditorViewManager {
         this.host.project.userStories.userStories.push(userStory);
         this.isProjectDirty = true;
 
+        // SOFORT in Datei/IndexedDB persistieren
+        this.host.autoSaveToLocalStorage();
+
         this.renderUserStoriesList();
     }
 
@@ -437,6 +443,9 @@ export class EditorViewManager {
         this.host.project.userStories.userStories = this.host.project.userStories.userStories || [];
         this.host.project.userStories.userStories.push(userStory);
         this.isProjectDirty = true;
+
+        // SOFORT in Datei/IndexedDB persistieren
+        this.host.autoSaveToLocalStorage();
 
         // Benachrichtigung anzeigen
         const notification = document.createElement('div');
@@ -1277,10 +1286,13 @@ export class EditorViewManager {
         EditorViewManager.logger.info('[Wizard] showConfigureProjectDialog aufgerufen, hasCallback=' + !!onComplete);
         const modal = this.ensureModal();
 
-        const WIZARD_STEPS = 5;
+        const WIZARD_STEPS = 6;
         let wizardStep = 1;
 
         const pData: any = {
+            projectName: '',
+            author: '',
+            description: '',
             gameType: '',
             players: '',
             networkPlay: false,
@@ -1295,7 +1307,7 @@ export class EditorViewManager {
         const tileSelected = 'border-color:#7b1fa2;background:#1a0a2a;color:#fff;';
 
         const renderProgress = () => {
-            const steps = ['Spielart', 'Spieler', 'Struktur', 'Features', 'Ergebnis'];
+            const steps = ['Projekt', 'Spielart', 'Spieler', 'Struktur', 'Features', 'Ergebnis'];
             return `<div style="display:flex;gap:4px;margin-bottom:18px;">
                 ${steps.map((s, i) => {
                     const num = i + 1;
@@ -1313,6 +1325,31 @@ export class EditorViewManager {
 
         const renderStep = (): string => {
             if (wizardStep === 1) {
+                // Projekt-Metadaten (Schritt 1)
+                const safeFileName = pData.projectName
+                    ? pData.projectName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_')
+                    : 'Mein_Spiel';
+                return `<div style="${sectionStyle}">
+                    <label style="${labelStyle}">📁 Projektname *</label>
+                    <input id="proj-name" type="text" placeholder="z.B. Mein cooles Spiel" maxlength="50"
+                        style="${inputStyle}" value="${pData.projectName||''}">
+                    <div style="font-size:11px;color:#8080b0;margin-top:4px;">
+                        Datei: projects/<span id="proj-filename-preview" style="color:#c080ff;">${safeFileName}</span>.json
+                    </div>
+                </div>
+                <div style="${sectionStyle}">
+                    <label style="${labelStyle}">👤 Autor</label>
+                    <input id="proj-author" type="text" placeholder="Dein Name"
+                        style="${inputStyle}" value="${pData.author||''}">
+                </div>
+                <div style="${sectionStyle}">
+                    <label style="${labelStyle}">📝 Beschreibung</label>
+                    <textarea id="proj-desc" placeholder="Kurze Beschreibung des Spiels..." rows="3"
+                        style="${inputStyle};resize:vertical;min-height:60px;">${pData.description||''}</textarea>
+                </div>`;
+            }
+
+            if (wizardStep === 2) {
                 const types = [
                     { id: 'arcade',   icon: '🕹️', label: 'Arcade /\nAction' },
                     { id: 'puzzle',   icon: '🧩', label: 'Rätsel /\nPuzzle' },
@@ -1339,7 +1376,7 @@ export class EditorViewManager {
                 </div>`;
             }
 
-            if (wizardStep === 2) {
+            if (wizardStep === 3) {
                 const options = [
                     { id: '1',       icon: '🧑', label: '1 Spieler' },
                     { id: '2local',  icon: '👥', label: '2 Spieler\nam selben Gerät' },
@@ -1362,7 +1399,7 @@ export class EditorViewManager {
                 </div>`;
             }
 
-            if (wizardStep === 3) {
+            if (wizardStep === 4) {
                 const options = [
                     { id: 'single',  icon: '1️⃣', label: 'Eine Stage\n(einfach)' },
                     { id: 'multi',   icon: '📚', label: 'Mehrere Stages\n/ Level' },
@@ -1385,7 +1422,7 @@ export class EditorViewManager {
                 </div>`;
             }
 
-            if (wizardStep === 4) {
+            if (wizardStep === 5) {
                 const features = [
                     { id: 'score',  icon: '🏆', label: 'Punkte /\nScore' },
                     { id: 'audio',  icon: '🔊', label: 'Töne /\nMusik' },
@@ -1408,7 +1445,7 @@ export class EditorViewManager {
                 </div>`;
             }
 
-            if (wizardStep === 5) {
+            if (wizardStep === 6) {
                 // Blueprint-Komponenten ableiten
                 const blueprintComps: { icon: string; name: string; reason: string; code: string }[] = [];
 
@@ -1537,11 +1574,41 @@ export class EditorViewManager {
             document.getElementById('proj-next')?.addEventListener('click', () => {
                 // Schritt-spezifisches Speichern
                 if (wizardStep === 1) {
+                    // Metadaten aus Schritt 1 speichern
+                    pData.projectName = (document.getElementById('proj-name') as HTMLInputElement)?.value?.trim() || '';
+                    pData.author = (document.getElementById('proj-author') as HTMLInputElement)?.value?.trim() || '';
+                    pData.description = (document.getElementById('proj-desc') as HTMLTextAreaElement)?.value?.trim() || '';
+                    // Validierung: Projektname erforderlich
+                    if (!pData.projectName) {
+                        const nameInput = document.getElementById('proj-name') as HTMLInputElement;
+                        if (nameInput) {
+                            nameInput.style.borderColor = '#ff4444';
+                            nameInput.placeholder = 'Bitte Projektname eingeben!';
+                            nameInput.focus();
+                        }
+                        return; // Nicht weitergehen
+                    }
+                }
+                if (wizardStep === 2) {
                     pData.gameTypeOther = (document.getElementById('proj-gametype-other') as HTMLInputElement)?.value || '';
                 }
                 wizardStep++;
                 renderDialog();
             });
+
+            // Live-Vorschau des Dateinamens bei Eingabe (Schritt 1)
+            if (wizardStep === 1) {
+                const nameInput = document.getElementById('proj-name') as HTMLInputElement;
+                const previewSpan = document.getElementById('proj-filename-preview');
+                if (nameInput && previewSpan) {
+                    nameInput.addEventListener('input', () => {
+                        const safeName = nameInput.value
+                            .replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_') || 'Mein_Spiel';
+                        previewSpan.textContent = safeName;
+                        nameInput.style.borderColor = '#3a3a6a'; // Reset error state
+                    });
+                }
+            }
 
             document.getElementById('proj-copy-prompt')?.addEventListener('click', () => {
                 const text = (document.getElementById('proj-prompt-text') as HTMLElement)?.innerText || '';
@@ -1571,6 +1638,126 @@ export class EditorViewManager {
         };
 
         renderDialog();
+    }
+
+    /**
+     * Dialog zum Bearbeiten der Projekt-Eigenschaften (Name, Autor, Beschreibung).
+     * Erreichbar über Menü: Projekt → Eigenschaften
+     */
+    public showEditProjectPropertiesDialog() {
+        EditorViewManager.logger.info('[ProjectProperties] Dialog geöffnet');
+        const modal = this.ensureModal();
+        const project = this.host.project;
+        const meta = project.meta || {};
+
+        const inputStyle = 'width:100%;padding:8px;background:#0f1830;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;font-size:14px;';
+        const labelStyle = 'display:block;font-size:13px;margin-bottom:5px;color:#c0c8e0;font-weight:bold;';
+        const sectionStyle = 'background:#12122a;border:1px solid #2a2a5a;border-radius:8px;padding:18px;margin-bottom:14px;';
+
+        const safeFileName = (meta.name || 'Mein_Spiel')
+            .replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
+
+        modal.style.display = 'block';
+        modal.innerHTML = `
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 0;">
+            <div style="background:#1a1a2e;border:1px solid #3a3a6a;border-radius:10px;padding:28px;width:560px;color:#e0e0e0;margin:auto;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                    <div>
+                        <h3 style="margin:0 0 4px 0;color:#fff;font-size:17px;">📁 Projekteigenschaften</h3>
+                        <div style="color:#c080ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Metadaten bearbeiten</div>
+                    </div>
+                </div>
+
+                <div style="${sectionStyle}">
+                    <label style="${labelStyle}">Spielname / Projektname *</label>
+                    <input id="edit-proj-name" type="text" placeholder="z.B. Mein cooles Spiel" maxlength="50"
+                        style="${inputStyle}" value="${meta.name || ''}">
+                    <div style="font-size:11px;color:#8080b0;margin-top:4px;">
+                        Datei: projects/<span id="edit-proj-filename-preview" style="color:#c080ff;">${safeFileName}</span>.json
+                    </div>
+                </div>
+
+                <div style="${sectionStyle}">
+                    <label style="${labelStyle}">👤 Autor</label>
+                    <input id="edit-proj-author" type="text" placeholder="Dein Name"
+                        style="${inputStyle}" value="${meta.author || ''}">
+                </div>
+
+                <div style="${sectionStyle}">
+                    <label style="${labelStyle}">📝 Beschreibung</label>
+                    <textarea id="edit-proj-desc" placeholder="Kurze Beschreibung des Spiels..." rows="4"
+                        style="${inputStyle};resize:vertical;min-height:80px;">${meta.description || ''}</textarea>
+                </div>
+
+                <div style="${sectionStyle}">
+                    <label style="${labelStyle}">🔢 Version</label>
+                    <input id="edit-proj-version" type="text" readonly
+                        style="${inputStyle};background:#0a1020;color:#8080b0;cursor:not-allowed;"
+                        value="${meta.version || '1.0.0'}">
+                    <div style="font-size:11px;color:#606060;margin-top:4px;">Version wird automatisch verwaltet</div>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;margin-top:20px;">
+                    <button id="edit-proj-cancel" style="padding:7px 18px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Abbrechen</button>
+                    <div style="display:flex;gap:8px;">
+                        <button id="edit-proj-save" style="padding:7px 20px;background:#388e3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">💾 Speichern</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        // Listeners
+        const nameInput = document.getElementById('edit-proj-name') as HTMLInputElement;
+        const previewSpan = document.getElementById('edit-proj-filename-preview');
+
+        if (nameInput && previewSpan) {
+            nameInput.addEventListener('input', () => {
+                const safeName = nameInput.value
+                    .replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_') || 'Mein_Spiel';
+                previewSpan.textContent = safeName;
+                nameInput.style.borderColor = '#3a3a6a';
+            });
+        }
+
+        document.getElementById('edit-proj-cancel')?.addEventListener('click', () => {
+            modal.style.display = 'none';
+            modal.innerHTML = '';
+        });
+
+        document.getElementById('edit-proj-save')?.addEventListener('click', () => {
+            const newName = (document.getElementById('edit-proj-name') as HTMLInputElement)?.value?.trim();
+            const newAuthor = (document.getElementById('edit-proj-author') as HTMLInputElement)?.value?.trim();
+            const newDesc = (document.getElementById('edit-proj-desc') as HTMLTextAreaElement)?.value?.trim();
+
+            // Validierung
+            if (!newName) {
+                if (nameInput) {
+                    nameInput.style.borderColor = '#ff4444';
+                    nameInput.focus();
+                }
+                return;
+            }
+
+            // Speichern
+            if (!project.meta) (project as any).meta = {};
+            project.meta.name = newName;
+            project.meta.author = newAuthor;
+            project.meta.description = newDesc;
+
+            // _sourcePath aktualisieren (Dateiname könnte sich geändert haben)
+            const safeName = newName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
+            project.meta._sourcePath = `projects/${safeName}.json`;
+
+            // SOFORT persistieren
+            this.isProjectDirty = true;
+            this.host.autoSaveToLocalStorage();
+
+            NotificationToast.show('Projekteigenschaften gespeichert!', 'success');
+            modal.style.display = 'none';
+            modal.innerHTML = '';
+
+            EditorViewManager.logger.info('[ProjectProperties] Gespeichert:', { name: newName, author: newAuthor });
+        });
     }
 
     public showAddUseCaseDialog(stageId: string, prefilled?: { className?: string, name?: string }) {

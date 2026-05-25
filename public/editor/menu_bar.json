@@ -35,6 +35,16 @@
                     "icon": "🔄"
                 },
                 {
+                    "id": "separator-props",
+                    "type": "separator"
+                },
+                {
+                    "id": "project-properties",
+                    "label": "Projekteigenschaften...",
+                    "action": "project-properties",
+                    "icon": "📁"
+                },
+                {
                     "id": "export-theme",
                     "label": "Theme aus Stage exportieren",
                     "action": "export-theme",
