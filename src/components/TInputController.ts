@@ -1,4 +1,4 @@
-﻿import { TPropertyDef, IRuntimeComponent } from './TComponent';
+import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
 import { Logger } from '../utils/Logger';
 
@@ -21,6 +21,7 @@ export class TInputController extends TWindow implements IRuntimeComponent {
     public keysPressed: Set<string> = new Set();
     public isActive: boolean = false;
     public eventCallback: ((id: string, event: string, data?: any) => void) | null = null;
+    private keyupTimeouts: Map<string, number> = new Map();
 
     // 🔍 Debug: Instance-ID um mehrere Instanzen zu unterscheiden
     public _instanceId = Math.random().toString(36).substr(2, 5);
@@ -81,6 +82,8 @@ export class TInputController extends TWindow implements IRuntimeComponent {
         this.keysPressed.clear();
         this.isActive = false;
         this.eventCallback = null;
+        this.keyupTimeouts.forEach(id => clearTimeout(id));
+        this.keyupTimeouts.clear();
     }
 
     /**
@@ -103,6 +106,13 @@ export class TInputController extends TWindow implements IRuntimeComponent {
      */
     public handleKeyDownEvent(e: KeyboardEvent): void {
         if (!this.isActive || !this.enabled) return;
+
+        // Cancel any pending keyup debouncing for this key, since it is still pressed
+        const pendingKeyup = this.keyupTimeouts.get(e.code);
+        if (pendingKeyup !== undefined) {
+            clearTimeout(pendingKeyup);
+            this.keyupTimeouts.delete(e.code);
+        }
 
         // Prevent default for game keys to avoid scrolling or button re-triggering
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD', 'Space', 'Enter'].includes(e.code)) {
@@ -132,17 +142,30 @@ export class TInputController extends TWindow implements IRuntimeComponent {
     public handleKeyUpEvent(e: KeyboardEvent): void {
         if (!this.isActive || !this.enabled) return;
 
-        this.keysPressed.delete(e.code);
+        const code = e.code;
 
-        // Notify multiplayer syncer if available
-        if ((window as any).__multiplayerInputCallback) {
-            (window as any).__multiplayerInputCallback(e.code, 'up');
+        // Debounce keyup to filter out OS auto-repeat keyup/keydown patterns
+        const pendingKeyup = this.keyupTimeouts.get(code);
+        if (pendingKeyup !== undefined) {
+            clearTimeout(pendingKeyup);
         }
 
-        // TRIGGER TASK SIGNAL VIA DOM
-        window.dispatchEvent(new CustomEvent('GameRuntime_Event', {
-            detail: { id: this.id, event: `onKeyUp_${e.code}`, data: { keyCode: e.code } }
-        }));
+        const timeoutId = window.setTimeout(() => {
+            this.keyupTimeouts.delete(code);
+            this.keysPressed.delete(code);
+
+            // Notify multiplayer syncer if available
+            if ((window as any).__multiplayerInputCallback) {
+                (window as any).__multiplayerInputCallback(code, 'up');
+            }
+
+            // TRIGGER TASK SIGNAL VIA DOM
+            window.dispatchEvent(new CustomEvent('GameRuntime_Event', {
+                detail: { id: this.id, event: `onKeyUp_${code}`, data: { keyCode: code } }
+            }));
+        }, 20); // 20ms debouncing is enough to swallow keyboard repeat gaps without creating input lag
+
+        this.keyupTimeouts.set(code, timeoutId);
     }
 
     /**

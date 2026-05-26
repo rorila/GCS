@@ -112,6 +112,16 @@ export class StageHandler implements IInspectorHandler {
     handlePropertyChange(event: PropertyChangeEvent, _project: GameProject, _runtime: ReactiveRuntime): boolean {
         let { propertyName, newValue, object } = event;
 
+        let hadPrefix = false;
+        if (propertyName.startsWith('activeStage.')) {
+            propertyName = propertyName.replace('activeStage.', '');
+            event.propertyName = propertyName; // Update event for subsequent logic
+            hadPrefix = true;
+        }
+
+
+
+
         // META-FELDER: gameName, author, description → project.meta umleiten
         if (propertyName === 'gameName' && _project?.meta) {
             projectStore.dispatch({ type: 'SET_PROPERTY', target: _project.meta, path: 'name', value: newValue });
@@ -132,11 +142,8 @@ export class StageHandler implements IInspectorHandler {
             return true;
         }
 
-        // FIX: Strip 'activeStage.' prefix if present (template artifact)
-        if (propertyName.startsWith('activeStage.')) {
-            propertyName = propertyName.replace('activeStage.', '');
-            event.propertyName = propertyName; // Update event for subsequent logic
-
+        // Fallback für sonstige Eigenschaften mit activeStage. Präfix
+        if (hadPrefix) {
             projectStore.dispatch({ type: 'SET_PROPERTY', target: object, path: propertyName, value: newValue });
             return true;
         }

@@ -660,8 +660,11 @@ h2 {
 }
 
 /* GPU Rendering Optimization for Run Mode */
-#run-stage .game-object {
+#run-stage .game-object,
+.standalone-player .game-object,
+.game-object.TSprite {
   contain: layout style paint;
+  will-change: transform, opacity;
 }
 
 /* ─── Inspector Input Validation ─── */

@@ -54,9 +54,11 @@ export class ProjectStore {
     private constructor() { }
 
     public static getInstance(): ProjectStore {
-        if (!ProjectStore.instance) {
-            ProjectStore.instance = new ProjectStore();
+        const globalScope = typeof window !== 'undefined' ? window : global;
+        if (!(globalScope as any).__projectStoreInstance) {
+            (globalScope as any).__projectStoreInstance = new ProjectStore();
         }
+        ProjectStore.instance = (globalScope as any).__projectStoreInstance;
         return ProjectStore.instance;
     }
 
@@ -185,9 +187,11 @@ export class ProjectStore {
      * @returns true wenn die Mutation erfolgreich war
      */
     public dispatch(mutation: ProjectMutation): boolean {
+
         ProjectStore.logger.debug(`[DND-FLOW 5.5] Enter dispatch: project exists=${!!this.project}, isDispatching=${this.isDispatching}`);
         if (!this.project) {
             ProjectStore.logger.warn('dispatch(): Kein Projekt geladen.');
+
             return false;
         }
 

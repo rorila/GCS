@@ -94,6 +94,7 @@ export class Editor implements IViewHost {
 
         // 1. Core Services & Registry
         coreStore.setProject(this.project);
+        projectStore.setProject(this.project);
         this.stage = new Stage('stage', this.project.stage?.grid || this.project.stages?.[1]?.grid || this.project.stages?.[0]?.grid || { cols: 64, rows: 40, cellSize: 20 });
         this.dialogManager = new DialogManager();
         this.dialogManager.setProject(this.project);
@@ -529,6 +530,13 @@ export class Editor implements IViewHost {
         localStorage.clear();
         Editor.logger.info('[NewProject] LocalStorage geleert, starte Projekt-Wizard...');
 
+        if (window.location.search.includes('e2e=true')) {
+            const defaultProj = this.createDefaultProject();
+            this.loadProject(defaultProj);
+            Editor.logger.info('[NewProject] E2E-Mode: Neues Projekt direkt geladen');
+            return;
+        }
+
         // 1. Projekt-Wizard (Ebene 1) aufrufen
         const projectData = await new Promise<any>((resolve) => {
             this.viewManager.showConfigureProjectDialog(resolve);
@@ -773,10 +781,25 @@ export class Editor implements IViewHost {
      */
     public async createStageFromWizard(): Promise<void> {
         Editor.logger.info('[NewStage] createStageFromWizard() aufgerufen');
-        const stageData = await new Promise<any>((resolve) => {
-            this.viewManager.showAddStageDialog(resolve);
-        });
-        Editor.logger.info('[NewStage] Stage-Wizard beendet, stageData=' + JSON.stringify(stageData));
+
+        let stageData: any;
+
+        // E2E-Modus: Wizard überspringen und direkt Standard-Stage erstellen
+        if (window.location.search.includes('e2e=true')) {
+            const stageNum = (this.project.stages?.length || 1);
+            stageData = {
+                stageId: 'stage_e2e_' + Date.now().toString(36),
+                stageName: 'Stage ' + stageNum,
+                stageType: 'standard'
+            };
+            Editor.logger.info('[NewStage] E2E-Mode: Wizard übersprungen, Stage-Daten=' + JSON.stringify(stageData));
+        } else {
+            stageData = await new Promise<any>((resolve) => {
+                this.viewManager.showAddStageDialog(resolve);
+            });
+            Editor.logger.info('[NewStage] Stage-Wizard beendet, stageData=' + JSON.stringify(stageData));
+        }
+
         if (!stageData) {
             Editor.logger.info('[NewStage] Stage-Erstellung abgebrochen');
             return;

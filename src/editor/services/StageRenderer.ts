@@ -1074,6 +1074,9 @@ export class StageRenderer {
             const transX = absPos.x * cellSize;
             const transY = absPos.y * cellSize;
 
+            let finalTransX = transX;
+            let finalTransY = transY;
+
             if (this.host.runMode) {
                 // ── Sichtbarkeits-Sync (Pool-Sprites) ──
                 let isVisible = obj.visible !== false;
@@ -1108,16 +1111,16 @@ export class StageRenderer {
                     (el.style as any).translate = 'none';
                 } else if (parentDialog) {
                     if (parentDialog.visible !== false) {
-                        (el.style as any).translate = `${transX}px ${transY}px`;
+                        (el.style as any).translate = `${finalTransX}px ${finalTransY}px`;
                     } else {
                         const isLeft = parentDialog.className === 'TSidePanel' 
                             ? parentDialog.side === 'left' 
                             : parentDialog.slideDirection === 'left';
                         const outOfBoundsOffset = isLeft ? -1500 : 1500;
-                        (el.style as any).translate = `${transX + outOfBoundsOffset}px ${transY}px`;
+                        (el.style as any).translate = `${finalTransX + outOfBoundsOffset}px ${finalTransY}px`;
                     }
                 } else {
-                    (el.style as any).translate = `${transX}px ${transY}px`;
+                    (el.style as any).translate = `${finalTransX}px ${finalTransY}px`;
                 }
                 
                 let transformStr = (obj.style && obj.style.transform !== undefined) ? obj.style.transform : '';

@@ -1,64 +1,64 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 18.5.2026, 18:10:40
+**Generiert am**: 26.5.2026, 11:30:35
 **Status**: ❌ FEHLER GEFUNDEN
-**Gesamtlauf**: 89.7s
+**Gesamtlauf**: 86.6s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 267)
-    "Bestanden ✅" : 243
-    "Fehlgeschlagen ❌" : 24
+pie title Test-Status (Gesamt: 261)
+    "Bestanden ✅" : 259
+    "Fehlgeschlagen ❌" : 2
 ```
 
 ## ⏱ Timing-Übersicht (sortiert nach Dauer)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 89464ms 🐌 | ❌ |
-| Code Quality & Security Guards | 151ms | ✅ |
-| Coordinate Binding | 10ms | ✅ |
-| AgentController | 9ms | ✅ |
-| Stage-Transition Regression | 8ms | ✅ |
-| ProjectStore | 6ms | ✅ |
-| Mathe-Quiz | 6ms | ✅ |
-| Stage-Import | 4ms | ✅ |
-| RefactoringManager | 3ms | ✅ |
+| Playwright E2E | 86370ms 🐌 | ✅ |
+| Code Quality & Security Guards | 139ms | ✅ |
+| Coordinate Binding | 8ms | ✅ |
+| AgentController | 8ms | ✅ |
+| Stage-Transition Regression | 4ms | ✅ |
+| Mathe-Quiz | 4ms | ✅ |
+| RefactoringManager | 4ms | ✅ |
 | TaskExecutor | 3ms | ✅ |
-| Export Integrity | 3ms | ✅ |
-| Project Integrity | 3ms | ✅ |
-| Serialization | 2ms | ✅ |
-| SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
+| Stage-Import | 2ms | ✅ |
+| ProjectStore | 2ms | ✅ |
 | SyncValidator | 2ms | ✅ |
-| Pascal Code Generator | 2ms | ✅ |
-| Action Stage Routing & Duplicates | 2ms | ✅ |
-| SpawnObject Variable Support | 2ms | ✅ |
-| Event Actions (bind/unbind) | 1ms | ✅ |
-| FlowDataAction Inspector | 1ms | ✅ |
+| Serialization | 2ms | ✅ |
+| Export Integrity | 2ms | ✅ |
+| Project Integrity | 2ms | ✅ |
+| SyncRefactor P1: SchemaMigrator | 1ms | ✅ |
 | GameLoopManager Physics | 1ms | ✅ |
-| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
-| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
-| Raketen-Countdown | 1ms | ✅ |
+| FlowDataAction Inspector | 1ms | ✅ |
+| Action Stage Routing & Duplicates | 1ms | ✅ |
+| Pascal Code Generator | 1ms | ✅ |
 | Action CRUD | 1ms | ✅ |
-| TTimer Variable Resolution | 1ms | ✅ |
+| SpawnObject Variable Support | 1ms | ✅ |
+| Event Actions (bind/unbind) | 1ms | ✅ |
+| Raketen-Countdown | 1ms | ✅ |
+| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
 | SnapshotManager | 1ms | ✅ |
-| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
-| SidePanel | 1ms | ✅ |
-| Virtual Gamepad | 1ms | ✅ |
-| Unification & Auto-Unwrap | 1ms | ✅ |
+| TTimer Variable Resolution | 1ms | ✅ |
 | Action Registration | 1ms | ✅ |
-| SyncRefactor P0: Inspector Writeback | 1ms | ✅ |
+| Unification & Auto-Unwrap | 1ms | ✅ |
+| Virtual Gamepad | 1ms | ✅ |
+| SidePanel | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
+| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
 | FlowSync | 1ms | ✅ |
-| Electron Security | 1ms | ✅ |
 | Login-Logic | 1ms | ✅ |
-| Renaming Robustness | 1ms | ✅ |
+| Smart-Mapping & Discovery | 1ms | ✅ |
+| SyncRefactor P0: Inspector Writeback | 0ms | ✅ |
+| Renaming Robustness | 0ms | ✅ |
+| Electron Security | 0ms | ✅ |
 | Component Events | 0ms | ✅ |
-| Smart-Mapping & Discovery | 0ms | ✅ |
-| SELECT COUNT(*) | 0ms | ✅ |
 | TTable Smart-Unwrap | 0ms | ✅ |
+| SELECT COUNT(*) | 0ms | ✅ |
 
-**Summe Suiten**: 89701ms
-**Gesamtlauf inkl. Setup/Report**: 89718ms
+**Summe Suiten**: 86572ms
+**Gesamtlauf inkl. Setup/Report**: 86585ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -139,8 +139,8 @@ pie title Test-Status (Gesamt: 267)
 | Hydrate: Prototype Pollution Regression<br><small>Object.prototype blieb unveraendert</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 70 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Keine unerlaubten console.* Aufrufe<br><small>Zu viele: src/components/TDebugLog.ts:382, src/components/TDebugLog.ts:384, src/components/TDebugLog.ts:443, src/components/TDebugLog.ts:446, src/components/TStageController.ts:186, src/editor/EditorViewManager.ts:273, src/editor/EditorViewManager.ts:274, src/editor/EditorViewManager.ts:275, src/editor/EditorViewManager.ts:2957, src/editor/EditorViewManager.ts:2964, src/editor/EditorViewManager.ts:2966, src/editor/inspector/InspectorContextBuilder.ts:257, src/editor/inspector/InspectorEventHandler.ts:111, src/editor/inspector/InspectorEventHandler.ts:134, src/editor/inspector/InspectorEventHandler.ts:136, src/editor/inspector/InspectorEventHandler.ts:163, src/editor/inspector/InspectorEventHandler.ts:171, src/editor/inspector/InspectorEventHandler.ts:174, src/editor/inspector/renderers/InspectorSectionRenderer.ts:685, src/editor/services/EditorInteractionManager.ts:99, src/editor/services/EditorInteractionManager.ts:106, src/editor/services/EditorInteractionManager.ts:123, src/editor/services/renderers/ComplexComponentRenderer.ts:401, src/editor/services/renderers/TextObjectRenderer.ts:124, src/editor/services/renderers/VirtualGamepadRenderer.ts:72, src/editor/services/StageInteractionManager.ts:180, src/editor/services/StageInteractionManager.ts:199, src/editor/services/StageInteractionManager.ts:521, src/editor/services/StageInteractionManager.ts:631, src/editor/services/StageInteractionManager.ts:632, src/editor/services/StageInteractionManager.ts:665, src/editor/services/StageInteractionManager.ts:719, src/editor/services/StageRenderer.ts:835, src/editor/services/StageRenderer.ts:841, src/export/GameExporter.ts:463, src/export/GameExporter.ts:467, src/export/GameExporter.ts:560, src/runtime/actions/handlers/NavigationActions.ts:31, src/runtime/actions/handlers/NavigationActions.ts:37, src/runtime/actions/handlers/NavigationActions.ts:49, src/runtime/actions/handlers/NavigationActions.ts:78, src/runtime/actions/handlers/ObjectPoolActions.ts:162, src/runtime/actions/handlers/ObjectPoolActions.ts:170, src/runtime/actions/handlers/ObjectPoolActions.ts:178, src/runtime/actions/handlers/ObjectPoolActions.ts:184, src/runtime/GameRuntime.ts:576, src/runtime/GameRuntime.ts:587, src/services/DebugLogService.ts:55, src/services/DebugLogService.ts:90, src/services/ProjectStore.ts:286, src/services/ProjectStore.ts:289, src/utils/TauriFSAdapter.ts:21, src/utils/TauriFSAdapter.ts:60</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/Editor.ts (1174), src/editor/EditorViewManager.ts (3822), src/editor/inspector/InspectorRenderer.ts (1266), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1087), src/editor/services/StageRenderer.ts (1162), src/runtime/GameRuntime.ts (1173), src/services/AgentController.ts (1390)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Keine unerlaubten console.* Aufrufe<br><small>Zu viele: src/components/TDebugLog.ts:382, src/components/TDebugLog.ts:384, src/components/TDebugLog.ts:443, src/components/TDebugLog.ts:446, src/components/TStageController.ts:186, src/editor/EditorViewManager.ts:273, src/editor/EditorViewManager.ts:274, src/editor/EditorViewManager.ts:275, src/editor/EditorViewManager.ts:3144, src/editor/EditorViewManager.ts:3151, src/editor/EditorViewManager.ts:3153, src/editor/inspector/InspectorContextBuilder.ts:257, src/editor/inspector/InspectorEventHandler.ts:111, src/editor/inspector/InspectorEventHandler.ts:134, src/editor/inspector/InspectorEventHandler.ts:136, src/editor/inspector/InspectorEventHandler.ts:163, src/editor/inspector/InspectorEventHandler.ts:171, src/editor/inspector/InspectorEventHandler.ts:174, src/editor/inspector/renderers/InspectorSectionRenderer.ts:662, src/editor/services/EditorInteractionManager.ts:99, src/editor/services/EditorInteractionManager.ts:106, src/editor/services/EditorInteractionManager.ts:123, src/editor/services/renderers/ComplexComponentRenderer.ts:401, src/editor/services/renderers/TextObjectRenderer.ts:124, src/editor/services/renderers/VirtualGamepadRenderer.ts:72, src/editor/services/StageInteractionManager.ts:180, src/editor/services/StageInteractionManager.ts:199, src/editor/services/StageInteractionManager.ts:521, src/editor/services/StageInteractionManager.ts:631, src/editor/services/StageInteractionManager.ts:632, src/editor/services/StageInteractionManager.ts:665, src/editor/services/StageInteractionManager.ts:719, src/editor/services/StageRenderer.ts:835, src/editor/services/StageRenderer.ts:841, src/export/GameExporter.ts:463, src/export/GameExporter.ts:467, src/export/GameExporter.ts:560, src/runtime/actions/handlers/NavigationActions.ts:31, src/runtime/actions/handlers/NavigationActions.ts:37, src/runtime/actions/handlers/NavigationActions.ts:49, src/runtime/actions/handlers/NavigationActions.ts:78, src/runtime/actions/handlers/ObjectPoolActions.ts:162, src/runtime/actions/handlers/ObjectPoolActions.ts:170, src/runtime/actions/handlers/ObjectPoolActions.ts:178, src/runtime/actions/handlers/ObjectPoolActions.ts:184, src/runtime/GameRuntime.ts:576, src/runtime/GameRuntime.ts:587, src/services/DebugLogService.ts:55, src/services/DebugLogService.ts:90, src/services/ProjectStore.ts:290, src/services/ProjectStore.ts:293, src/utils/TauriFSAdapter.ts:21, src/utils/TauriFSAdapter.ts:60</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/Editor.ts (1209), src/editor/EditorViewManager.ts (4009), src/editor/inspector/InspectorRenderer.ts (1266), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1064), src/editor/services/StageRenderer.ts (1165), src/runtime/GameRuntime.ts (1173), src/services/AgentController.ts (1390)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -209,7 +209,7 @@ pie title Test-Status (Gesamt: 267)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1779120550840_t7 (erwartet: stage_import_1779120550840_t7), BackToLobby.stageId=stage_import_1779120550840_mp (erwartet: stage_import_1779120550840_mp)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1779787748703_ub (erwartet: stage_import_1779787748703_ub), BackToLobby.stageId=stage_import_1779787748703_em (erwartet: stage_import_1779787748703_em)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
@@ -298,64 +298,33 @@ pie title Test-Status (Gesamt: 267)
 | spawn_object: Resolve templateId from variable<br><small>Expected bullet_id/50/60, got bullet_id/50/60</small> | undefined | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | spawn_object: Resolve referenceObject from variable<br><small>Expected bullet_id/110/220, got bullet_id/110/220</small> | undefined | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | spawn_object: Metadata check<br><small>templateId type: string, refObj type: string</small> | undefined | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
-| E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-
-Expected: [32m"MyCoolGame"[39m
-Received: [31m"Neues Spiel"[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Neue Stage über Menü erzeugen<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Action-Typ auf navigate_stage ändern<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: MyCoolGame.json auf Disk vollständig validieren<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-
-Expected: [32mtrue[39m
-Received: [31mfalse[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Roundtrip: Werte bleiben nach Speichern und Laden konsistent<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte den Run-Modus starten und stoppen können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte den Run-Modus erneut starten können (Restart)<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte das Stages-Menü anzeigen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte zur Blueprint-Stage wechseln können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte nach Stage-Wechsel zurückkehren können<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Szenario 1: JSON Import Injection wird vom StageRenderer blockiert<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Szenario 2: Inspector UI (Rich-Text Dialog) Injection wird gefiltert<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Szenario 3: Laden einer manipulierten externen JSON-Datei (Drag Drop Simulation)<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kein Overlay-Leak nach Dialog-Schließen<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Fokus-Restore: Input bleibt editierbar nach Dialog<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Delete-Taste in Input löscht keine Stage-Objekte<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: 3x Dialog-Zyklus: Fokus bleibt stabil<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: E1: Run-Modus zeigt Objekte innerhalb der Bühne<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: E2: Objekt-Positionen korrekt nach Animations-Ende<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: E3: Stage-Wechsel im Run-Modus friert nicht ein<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: E4: Objekte nicht außerhalb der Bühne nach Stage-Wechsel<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: D1: Dialog per toggle_dialog einblendbar<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: D2: Modal: Hintergrund-Overlay wird angezeigt<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: D3: Closable: Dialog kann geschlossen werden<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: D4: Dialog bleibt nach mehrfachem Toggle stabil<br><small>Browser: chromium - Error: [loadMyCoolGame] Datei nicht gefunden: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\MyCoolGame.json
-Bitte zuerst ProjectCreation.spec.ts ausführen!</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: sollte den Editor korrekt laden<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Memory Game Cards Visible<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Action-Typ auf navigate_stage ändern<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: MyCoolGame.json auf Disk vollständig validieren<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Roundtrip: Werte bleiben nach Speichern und Laden konsistent<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Run-Modus starten und stoppen können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Run-Modus erneut starten können (Restart)<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte das Stages-Menü anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte zur Blueprint-Stage wechseln können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 1: JSON Import Injection wird vom StageRenderer blockiert<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 2: Inspector UI (Rich-Text Dialog) Injection wird gefiltert<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 3: Laden einer manipulierten externen JSON-Datei (Drag Drop Simulation)<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kein Overlay-Leak nach Dialog-Schließen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Fokus-Restore: Input bleibt editierbar nach Dialog<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Delete-Taste in Input löscht keine Stage-Objekte<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: 3x Dialog-Zyklus: Fokus bleibt stabil<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E1: Run-Modus zeigt Objekte innerhalb der Bühne<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E2: Objekt-Positionen korrekt nach Animations-Ende<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E3: Stage-Wechsel im Run-Modus friert nicht ein<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Editor korrekt laden<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte das Movement der Kanone loggen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Memory Game Cards Visible<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 
 ---
 *Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*

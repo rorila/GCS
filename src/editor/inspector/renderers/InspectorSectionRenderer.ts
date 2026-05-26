@@ -302,29 +302,6 @@ export class InspectorSectionRenderer {
                 };
                 container.appendChild(pickVarBtn);
             }
-        } else if (propDef.type === 'number') {
-            // Phase 2 (SYNC_REFACTOR): wasMissing-Writer ENTFERNT.
-            // Defaults werden beim Laden geschrieben, nicht zur Render-Zeit.
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.value = currentValue;
-            input.style.flex = '1';
-            input.onchange = () => {
-                // Phase 3 (SYNC_REFACTOR): FlowNodes nutzen nur applyChange
-                if (isFlowNode && typeof obj.applyChange === 'function') {
-                    obj.applyChange(propDef.name, Number(input.value), currentValue);
-                    InspectorSectionRenderer.notify(context, propDef.name, Number(input.value), currentValue, obj);
-                } else if (context.eventHandler) {
-                    const event = context.eventHandler.handleControlChange(
-                        propDef.name, Number(input.value), obj,
-                        { ...propDef, property: propDef.name }
-                    );
-                    if (event) {
-                        InspectorSectionRenderer.notify(context, event.propertyName, event.newValue, event.oldValue, event.object, event);
-                    }
-                }
-            };
-            container.appendChild(input);
         } else if (propDef.type === 'boolean' || propDef.type === 'checkbox') {
             const cb = document.createElement('input');
             cb.type = 'checkbox';
