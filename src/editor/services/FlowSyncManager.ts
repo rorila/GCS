@@ -313,6 +313,15 @@ export class FlowSyncManager {
     private getStageForContext(context: string): any | null {
         if (!this.host.project?.stages) return null;
         if (context === 'global' || context === 'event-map' || context === 'element-overview') return null;
+
+        // PRIORITÄT: aktive Stage zuerst prüfen, damit gleichnamige Tasks in mehreren
+        // Stages nicht zur falschen (ersten) Stage zugeordnet werden.
+        const activeStage = typeof (this.host as any).getActiveStage === 'function'
+            ? (this.host as any).getActiveStage() : null;
+        if (activeStage?.tasks?.some((t: any) => t.name === context)) {
+            return activeStage;
+        }
+
         for (const stage of this.host.project.stages) {
             if (stage.tasks?.some((t: any) => t.name === context)) return stage;
         }

@@ -1,0 +1,4032 @@
+{
+  "meta": {
+    "name": "FirstSteps",
+    "version": "1.0.0",
+    "author": "RoRiLa",
+    "description": "UserAction 1: erzeuge einen 2. Schläger",
+    "_sourcePath": "projects/FirstSteps.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        },
+        {
+          "className": "TAudio",
+          "id": "obj_1780207706562_22bsqgove",
+          "name": "GoalAudio",
+          "scope": "global",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 7,
+          "width": 8,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "./audio/ball_lost.wav",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        },
+        {
+          "className": "TAudio",
+          "id": "obj_1780207736143_xh0kwemdf",
+          "name": "HitAudio",
+          "scope": "global",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 11,
+          "width": 8,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "./audio/pingpong-hit.wav",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "var_score",
+          "name": "score",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 24,
+          "y": 2,
+          "width": 6,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "number",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "main",
+      "name": "Lektion 1",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "input_controller",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TSprite",
+          "id": "player_sprite",
+          "name": "PaddleRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 57,
+          "y": 15,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#4ecdc4",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1780063989381_tvv3fij3t",
+          "name": "StickyNote_6",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Spriteanimation 1",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 15,
+          "y": 2,
+          "width": 24,
+          "height": 13,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Wenn Du das Kästchen anklickst siehst du im Inspecter (rechts) die Eingenschaften des Elements:\nIn der Sektion: IDENTITÄT kannst du den Namen des Elements ändern, Da wir ein Tennisspiel bauen wollen, ändere bitte den Namen auf: PaddleRight.\nIm 1. Schritt möchte ich dir zeigen, wie man dieses Element (es handelt sich um ein Sprite) in Bewegung bringt. Das ist ganz einfach, man muss nur die Geschwindigkeit des Sprite anpassen (konfigurieren). \nIm Inspector gibt es eine Section: MOTION. Gebe doch bitte hier im Feld: VelocityY den Wert 0.3 ein.\nUm zu sehen, ob sich das Sprite auf der Y-Achse nach unten bewegt musst du in den Reiter (Tab) 'Run' gehen. (Dieser befindet sich oberhalb der Stage) \nKlicke auf den Button: Spiel starten, - das Sprite sollte sich nach unten bwegen."
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    },
+    {
+      "id": "stage_842ecbf5-a640-4a22-b970-5a19b12cf97f",
+      "name": "Lektion 2",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_import_1780065083581_ihpl",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowUp": "RightPaddleMoveUp",
+            "onKeyDown_ArrowDown": "RightPaddleMoveDown",
+            "onKeyUp_ArrowUp": "RightPaddleStop",
+            "onKeyUp_ArrowDown": "RightPaddleStop"
+          },
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780065083581_tvqk",
+          "name": "PaddleRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 57,
+          "y": 15,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#4ecdc4",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_import_1780065083581_xzbt",
+          "name": "StickyNote_6",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "InputController zündet Event",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 12,
+          "y": 1,
+          "width": 36,
+          "height": 32,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Ist-Zustand: \nWir haben ein Sprite, welches sich nach unten  auf der Y-Achse bewegt.\nZiel dieser Lektion: \nDas Sprite soll über die Pfeiltasten: oben/unten gesteuert werden.\nUm dieses zu erreichen verwenden wir den InputController. Der InputController überwacht die Tastatureingaben. Er registriert, ob eine Taste gedrückt oder losgelassen wird.\nIn unserem Fall soll sich das Sprite nach oben bewegen wenn die 'Oben'-Pfeiltaste gerückt wird. Dafür wird die Geschwindigkeit eingestellt. (VolocityY = -0.3)  Wenn diese Taste losgelassen wird, wird die Geschwindigkeit auf 0 gesetzt. \nÄhnlich verfahren wir mit der 'Unten'-Pfeiltaste, nur das die Geschwindigkeit auf VelocityY= 0.3 gesetzt wird. \n\nWie können wir jetzt dem InputController so konfigurieren, dass die o.g. Anforderungen erfüllt werden?\nWir brauchen Arbeitsaufträge (Tasks). Diese habe ich für Dich schon erzeugt. \nTasks:\n1. Rechter Schläger bewegt sich nach oben:   --> RightPaddleMoveUp\n2. Rechter Schläger bewegt sich nach unten: --> RightPaddleMoveDown\n3. Rechter Schläger stoppt:                           --> RightPaddleStop\n\nGehe bitte in den Tab: Flow. Dort kannst du Dir anschauen, wie ich die Tasks gebaut habe.\n\nJetzt haben wir:\n1. den InputController und ein Sprite (der Schläger)\n2. Tasks die, wenn sie ausgeführt werden, den Schläger bewegen. \n\nDie nächste Aufgabe besteht darin, diese Tasks mit dem Inputcontroller zu verbinden.\nDieses wird über Ereignisse (Events) erledigt. \nBitte markiere mit der Maus den InputController. Im Inspector gibt es einen Reiter (Tab) Events.\nBitte klicke darauf. Auch hier habe ich schon die Tasten-Events mit den Tasks verknüpft. \nScrolle im Tab nach unten. Da kannst du sehen, wie ich die Tasten-Events mit den Tasks verknüpft habe.\n1. onKeyDown_ArrowDown --> RightPaddleMoveDown\n2. onKeyDown_ArrowUp    --> RightPaddleMoveUp\n3. onKeyUp_ArrowDown    --> RightPaddleStop\n4. onKeyUp_Arrow            --> RightPaddleStop\n\nDu kannst es jetzt ausprobieren: Klicke auf den Reiter (Tab) Run, starte das 'Spiel' und drücke die Pfeiltasten.\n"
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780068685584",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780068872125",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780068947919",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RightPaddleMoveUp",
+          "description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach oben bewegen": {
+              "x": 680,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069276920",
+              "type": "comment",
+              "x": 680,
+              "y": 40,
+              "width": 417,
+              "height": 183,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "showDetails": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleMoveDown",
+          "description": "Der rechte Schläger soll sich nach unten bewegen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoDown": {
+              "x": 320,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach unten bewegen": {
+              "x": 720,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach unten bewegen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069334995",
+              "type": "comment",
+              "x": 720,
+              "y": 40,
+              "width": 420,
+              "height": 220,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3"
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleStop",
+          "description": "Der rechte Schläger soll stoppen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToStop": {
+              "x": 260,
+              "y": 40
+            },
+            "Stoppe den Schläger": {
+              "x": 580,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll stoppen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069001097",
+              "type": "comment",
+              "x": 580,
+              "y": 40,
+              "width": 420,
+              "height": 180,
+              "properties": {
+                "name": "Stoppe den Schläger",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Stoppe den Schläger",
+                "showDetails": true,
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_5a635de0-ce15-49fb-b8a5-fe1ccdde444c",
+      "name": "Lektion 3",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_import_1780128163336_3irj",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowUp": "RightPaddleMoveUp",
+            "onKeyDown_ArrowDown": "RightPaddleMoveDown",
+            "onKeyUp_ArrowUp": "RightPaddleStop",
+            "onKeyUp_ArrowDown": "RightPaddleStop"
+          },
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780128163336_0smp",
+          "name": "PaddleRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "RightPaddleStop"
+          },
+          "visible": true,
+          "x": 57,
+          "y": 15,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#4ecdc4",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_import_1780128163336_bd8d",
+          "name": "StickyNote_6",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Boundary (Rand) wird berührt --> Schläger stoppt",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 12,
+          "y": 1,
+          "width": 36,
+          "height": 16,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Ist-Zustand: \nWir haben ein Sprite, welches sich per Pfeiltasten gelenkt werden kann (auf der Y-Achse). Werden die Tasten losgelassen stoppt das Sprite.\nZiel dieser Lektion: \nAktuell kann das Sprite (der Schläger) über den unteren und oberen Rand bewegt werden. \nDas soll unterbunden werden. \n\nWie bekommen wir das hin?\nAuch Sprites haben Ereignisse (Events). In diesem Fall brauchen wir das Event: onBoundaryHit (Dieses Ereigniss feuert immer dann, wenn ein Element den linken, rechten,oberen und unteren Rand des Spielfeldes berührt.\nWir müssen also den Schlägäer markieren, im Inspector den Reiter: Events anklicken, das Event: onBoundaryHit suchen und dort die Action: RightPaddleStop auswählen.\n\nDu kannst es jetzt ausprobieren: Klicke auf den Reiter (Tab) Run, starte das 'Spiel' und drücke die Pfeiltasten. Jetzt stoppt der Schläger, wenn der obere oder untere Rand berührt wird.\n"
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780068685584",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780068872125",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780068947919",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RightPaddleMoveUp",
+          "description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach oben bewegen": {
+              "x": 680,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069276920",
+              "type": "comment",
+              "x": 680,
+              "y": 40,
+              "width": 417,
+              "height": 183,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "showDetails": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleMoveDown",
+          "description": "Der rechte Schläger soll sich nach unten bewegen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoDown": {
+              "x": 320,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach unten bewegen": {
+              "x": 720,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach unten bewegen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069334995",
+              "type": "comment",
+              "x": 720,
+              "y": 40,
+              "width": 420,
+              "height": 220,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3"
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleStop",
+          "description": "Der rechte Schläger soll stoppen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToStop": {
+              "x": 260,
+              "y": 40
+            },
+            "Stoppe den Schläger": {
+              "x": 580,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll stoppen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069001097",
+              "type": "comment",
+              "x": 580,
+              "y": 40,
+              "width": 420,
+              "height": 180,
+              "properties": {
+                "name": "Stoppe den Schläger",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Stoppe den Schläger",
+                "showDetails": true,
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_56665a17-a069-4176-b65e-a6d9c36c07c2",
+      "name": "Lektion 4",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_import_1780128891005_bq1z",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowUp": "RightPaddleMoveUp",
+            "onKeyDown_ArrowDown": "RightPaddleMoveDown",
+            "onKeyUp_ArrowUp": "RightPaddleStop",
+            "onKeyUp_ArrowDown": "RightPaddleStop",
+            "onKeyDown_KeyW": "LeftPaddleMoveUp",
+            "onKeyDown_KeyS": "LeftPaddleMoveDown",
+            "onKeyUp_KeyW": "LeftPaddleStop",
+            "onKeyUp_KeyS": "LeftPaddleStop"
+          },
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780128891005_dvvm",
+          "name": "PaddleRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "RightPaddleStop"
+          },
+          "visible": true,
+          "x": 60,
+          "y": 15,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#4ecdc4",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_import_1780128891005_a85t",
+          "name": "StickyNote_6",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Erstelle einen 2. Schläger mit allem Drum und Drann",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 7,
+          "y": 1,
+          "width": 50,
+          "height": 37,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Ist-Zustand: \nWir haben ein Sprite, welches sich per Pfeiltasten gelenkt werden kann (auf der Y-Achse). \nWerden die Tasten losgelassen stoppt das Sprite.\nWenn der Schläger einen Rand berührt, stoppt der Schläger automatisch.\n\nZiel dieser Lektion: \nWir benötigen einen 2. Schläger (PaddleLeft), der sich genau so verhält wie PaddleRight.\n\nWie soll ich denn das schaffen?\nHier eine kurze Anleitung dafür:\n\n1. Ziehe ein Sprite-Element auf die Spielfläche. (Toolbox-Section: 'Game' auswählen /Sprite auswählen (linke Maustaste gedrückt lassen, das Sprite auf die Spielfläche ziehen. und dort wo es ungefähr platziert werden soll, die Maustaste loslassen)\n2. Die Form des Schlägers kannst du auf 2 Arten anpassen: \na) Per Maus: über die schwarzen Kästchen am Rand des markierten Sprites kannst du die Form verändern, und wenn du das Sprite in der Mitte anklickst, und die Maustaste gedrückt hälst,kannst du das Sprite neu platzieren.\nb) Sprite makieren. Im Inspector kannst du jetzt unter der Section: GEOMETRIE die Breite/Höhe des Sprites anpassen und mit den Eigenschaften: X/Y das Sprite neu platzieren.\n\nNenne das Sprite im Inspector um: Name: LeftPaddle\n\n2. Erzeuge jetzt die Tasks: LeftPaddleStop/LeftPaddleMoveDown/LeftPaddleMoveUp\nLeftPaddleStop:\nGehe dafür in den Tab: Flow und drücke auf den +Button\nEs erscheint ein grünes Task-Element. dieses bitte im Inspector entsprechend umbenennen: z.B. LeftPaddleStop\nAls nächstes ziehst du eine Action in das Feld (orange) und nenne dieses Action ebenfalls um: z.B. Act_SetLeftPaddleVelocityToStop\nDann wähle den Typ der Action aus (Daten/Eigenschaft ändern) und betätige den Button: +Eigenschaft hinzufügen.\nEs erscheint ein Dialog, in dem du das Element: LeftPaddle auswählen kannst. Hier musst du dann auch die Eigenschaft: VelocityY auswählen. Jetzt fehlt nur noch der Wert 0, Damit ist die Action fertig konfiguriert.\nAls nächstes musst du den Task  noch mit der Action verbinden. Dazu ziehe bitte einen Pfeil aus der Tollbox auf das Diagrammfeld. Makiere den Pfeil. Verbinde das Ende des Pfeils mit dem Task und die Spitze des Pfeils mit der Action.\nDamit hast du den Task fertiggestellt. \n\nLeftPaddleMoveDown\nGehe wie oben vor, nur dass du den Wert: 0.3 eingibst\n\nLeftPaddleMoveUp\nGehe wie oben vorn, nur dass du den Wert: -0.3 eingibst.\n\nDiese Tasks musst du jetzt noch mit den Events verknüpfen.\nDazu markiere das Sprite. Klicke im Inspector auf den Reiter: Events. Suche das Event: onBoundaryHit und wähle dort den Task: LeftPaddleStop aus, Das bewirkt, dass das Sprite nicht über die Ränder hinaus gefahren werden kann.\nMarkiere jetzt den InputController. Auch hier klickst du auf den Reiter Events im Inspector. Suche nach folgenden Events: \n"
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780068685584",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780068872125",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780068947919",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780130446853",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780132495692",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780132553832",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": 0.3
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RightPaddleMoveUp",
+          "description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach oben bewegen": {
+              "x": 680,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069276920",
+              "type": "comment",
+              "x": 680,
+              "y": 40,
+              "width": 417,
+              "height": 183,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "showDetails": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleMoveDown",
+          "description": "Der rechte Schläger soll sich nach unten bewegen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoDown": {
+              "x": 320,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach unten bewegen": {
+              "x": 720,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach unten bewegen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069334995",
+              "type": "comment",
+              "x": 720,
+              "y": 40,
+              "width": 420,
+              "height": 220,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3"
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleStop",
+          "description": "Der rechte Schläger soll stoppen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToStop": {
+              "x": 260,
+              "y": 40
+            },
+            "Stoppe den Schläger": {
+              "x": 580,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll stoppen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069001097",
+              "type": "comment",
+              "x": 580,
+              "y": 40,
+              "width": 420,
+              "height": 180,
+              "properties": {
+                "name": "Stoppe den Schläger",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Stoppe den Schläger",
+                "showDetails": true,
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0"
+              }
+            }
+          ]
+        },
+        {
+          "name": "LeftPaddleMoveDown",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToGoDown": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LeftPaddleStop",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToStop": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LeftPaddleMoveUp",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_df5b1a09-9a1e-4545-b127-49daaf5fdd47",
+      "name": "Lektion 5",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_import_1780151821428_pyc2",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowUp": "RightPaddleMoveUp",
+            "onKeyDown_ArrowDown": "RightPaddleMoveDown",
+            "onKeyUp_ArrowUp": "RightPaddleStop",
+            "onKeyUp_ArrowDown": "RightPaddleStop",
+            "onKeyDown_KeyW": "LeftPaddleMoveUp",
+            "onKeyDown_KeyS": "LeftPaddleMoveDown",
+            "onKeyUp_KeyW": "LeftPaddleStop",
+            "onKeyUp_KeyS": "LeftPaddleStop",
+            "onKeyDown_Space": "BallStart"
+          },
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780151821428_pt6m",
+          "name": "PaddleRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "RightPaddleStop"
+          },
+          "visible": true,
+          "x": 60,
+          "y": 15,
+          "width": 1,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#4ecdc4",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_import_1780151821428_70nv",
+          "name": "StickyNote_6",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Ein neues Sprite (Ball) wird erzeugt",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 7,
+          "y": 1,
+          "width": 50,
+          "height": 15,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Ist-Zustand: \nWir haben zwei Sprites, der rechte Schläger kann über die Pfeiltasten gesteuert werden und der linke Schläger kann über die Tasten W und S gesteuert werden.\nWerden die Tasten losgelassen, stoppen die Sprites.\nWenn die Schläger einen Rand berühren, stoppen die Schläger automatisch.\n\nZiel dieser Lektion: \nWir benötigen einen Ball, der von den Schägern zurückgeschlagen werden kann. \n\nWie soll ich denn das schaffen?\nHier eine kurze Anleitung dafür:\n\n1. Ziehe ein Sprite-Element auf Mitte der Spielfläche. \n2.Die Größe des Balls soll genau ein Kästchen groß sein. \n\nNenne das Sprite im Inspector um: Name: Ball"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780151821428_a9v3",
+          "name": "PaddleLeft",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "LeftPaddleStop"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 15,
+          "width": 1,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_1780152478056_fw5l52b44",
+          "name": "Ball",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "",
+            "onCollisionLeft": "BallXDirectionChange",
+            "onCollisionRight": "BallXDirectionChange",
+            "onCollisionTop": "",
+            "onCollisionBottom": "",
+            "onBoundaryHit": "CheckBoundaryHitside"
+          },
+          "visible": true,
+          "x": 27,
+          "y": 17,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1780152629696_9o8f3osmc",
+          "name": "StickyNote_9",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Tasks für den Ball erzeugen",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 7,
+          "y": 19,
+          "width": 49,
+          "height": 19,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Task 1: BallStart                    --> Wenn die Leertaste betätigt wird, fliegt der Ball los (in dieser Version immer zuerst auf die rechte Seite)\nTask 2: CheckBoundaryHitside   --> Wenn der Ball einen Schläger, oder einen Rand berührt, wird er zurückgeschleudert."
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780068685584",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780068872125",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780068947919",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780130446853",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780132495692",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780132553832",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780152992069",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBallVelocityToMove",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": 0.3,
+            "Ball.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780153390362",
+          "details": "",
+          "type": "negate",
+          "name": "Act_NegateTheBallVelocityX",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": true
+          }
+        },
+        {
+          "id": "node-1780155448593",
+          "details": "",
+          "type": "negate",
+          "name": "Act_NegateTheBallVelocityY",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityY": true
+          }
+        },
+        {
+          "id": "node-1780157801921",
+          "details": "",
+          "type": "property",
+          "name": "Act_IncSoreLeft",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1780157822887",
+          "details": "",
+          "type": "property",
+          "name": "Act_IncScoreRight",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1780157958635",
+          "details": "",
+          "type": "move_to",
+          "name": "Act_SetBallToStartPoint",
+          "showDetails": false,
+          "target": "Ball",
+          "changes": {},
+          "duration": 1000,
+          "easing": "easeOut",
+          "x": 27,
+          "y": 17
+        },
+        {
+          "id": "node-1780158197893",
+          "details": "",
+          "type": "property",
+          "name": "Act_BallStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": 0,
+            "Ball.velocityY": 0
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RightPaddleMoveUp",
+          "description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach oben bewegen": {
+              "x": 680,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069276920",
+              "type": "comment",
+              "x": 680,
+              "y": 40,
+              "width": 417,
+              "height": 183,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "showDetails": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleMoveDown",
+          "description": "Der rechte Schläger soll sich nach unten bewegen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoDown": {
+              "x": 320,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach unten bewegen": {
+              "x": 720,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach unten bewegen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069334995",
+              "type": "comment",
+              "x": 720,
+              "y": 40,
+              "width": 420,
+              "height": 220,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3"
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleStop",
+          "description": "Der rechte Schläger soll stoppen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToStop": {
+              "x": 260,
+              "y": 40
+            },
+            "Stoppe den Schläger": {
+              "x": 580,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll stoppen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069001097",
+              "type": "comment",
+              "x": 580,
+              "y": 40,
+              "width": 420,
+              "height": 180,
+              "properties": {
+                "name": "Stoppe den Schläger",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Stoppe den Schläger",
+                "showDetails": true,
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0"
+              }
+            }
+          ]
+        },
+        {
+          "name": "LeftPaddleMoveDown",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToGoDown": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LeftPaddleStop",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToStop": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LeftPaddleMoveUp",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallStart",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBallVelocityToMove",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallStart": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetBallVelocityToMove": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallXDirectionChange",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_NegateTheBallVelocityX",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallXDirectionChange": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_NegateTheBallVelocityX": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallYDirectionChange",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_NegateTheBallVelocityY",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallYDirectionChange": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_NegateTheBallVelocityY": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "CheckBoundaryHitside",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "rightValue": "left",
+                "leftValue": "${hitSide}"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_NegateTheBallVelocityX",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${hitSide}",
+                    "rightValue": "right"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Act_NegateTheBallVelocityX",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "leftValue": "${hitSide}",
+                        "rightValue": "bottom"
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "Act_NegateTheBallVelocityY",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${hitSide}",
+                            "rightValue": "top"
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "Act_NegateTheBallVelocityY",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckBoundaryHitside": {
+              "x": 40,
+              "y": 40
+            },
+            "condition": {
+              "x": 40,
+              "y": 440
+            },
+            "Act_NegateTheBallVelocityX": {
+              "x": 300,
+              "y": 240
+            },
+            "Act_NegateTheBallVelocityY": {
+              "x": 300,
+              "y": 440
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_af257d57-bdbb-4867-9094-e625a642b604",
+      "name": "Lektion 6",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_import_1780156654243_htau",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowUp": "RightPaddleMoveUp",
+            "onKeyDown_ArrowDown": "RightPaddleMoveDown",
+            "onKeyUp_ArrowUp": "RightPaddleStop",
+            "onKeyUp_ArrowDown": "RightPaddleStop",
+            "onKeyDown_KeyW": "LeftPaddleMoveUp",
+            "onKeyDown_KeyS": "LeftPaddleMoveDown",
+            "onKeyUp_KeyW": "LeftPaddleStop",
+            "onKeyUp_KeyS": "LeftPaddleStop",
+            "onKeyDown_Space": "BallStart"
+          },
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780156654243_qyhm",
+          "name": "PaddleRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "RightPaddleStop"
+          },
+          "visible": true,
+          "x": 59,
+          "y": 16,
+          "width": 1,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#4ecdc4",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_import_1780156654243_jyd8",
+          "name": "StickyNote_6",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Wenn der Ball nicht getroffen wird, bekommt der Gegenspieler einen Punkt ",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 6,
+          "y": 7,
+          "width": 50,
+          "height": 15,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Ist-Zustand: \nWir haben zwei Sprites, der rechte Schläger kann über die Pfeiltasten gesteuert werden und der linke Schläger kann über die Tasten W und S gesteuert werden.\nWenn die Schläger einen Rand berühren, stoppen die Schläger automatisch.\nWerden die Tasten losgelassen, stoppen die Sprites.\n\nWir haben einen Ball, der von den Schlägern und vom Rand jeweils zurückgeschleudert wird.\n\nZiel dieser Lektion: \nWenn der Ball nicht mit einem Schläger berührt wird, also an den rechten bzw. linken Rand prallt, bekommt der Gegenspieler einen Punkt.\nEs werden 2 Labels erzeugt, die den Punktestand anzeigen.\n\nWie soll ich denn das schaffen?\nHier eine kurze Anleitung dafür:\n\n1. Ziehe 2 Labels auf das Spielfeld.\n2.Die Größe des Balls soll genau ein Kästchen groß sein. \n\nNenne das Sprite im Inspector um: Name: Ball"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780156654243_pan5",
+          "name": "PaddleLeft",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "LeftPaddleStop"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 15,
+          "width": 1,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780156654243_x4ii",
+          "name": "Ball",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "",
+            "onCollisionLeft": "BallXDirectionChange",
+            "onCollisionRight": "BallXDirectionChange",
+            "onCollisionTop": "",
+            "onCollisionBottom": "",
+            "onBoundaryHit": "CheckBoundaryHitside"
+          },
+          "visible": true,
+          "x": 29,
+          "y": 17,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_import_1780156654243_ehfu",
+          "name": "StickyNote_9",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Tasks für den Ball erzeugen",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 6,
+          "y": 29,
+          "width": 49,
+          "height": 8,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Task 1: CheckBoundaryHitside (wird geändert)   --> Wenn der Ball einen Schläger berührt, wird er zurückgeschleudert. Wenn der Ball am rechten bzw. linken Rand prallt bekommt der Gegenspieler einen Punkt.\n\nTask 2: SetNewScorePlayerRight\nTask 3: SetNewScorePlayerLeft\nTask 4: SetBallToStartPoint"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1780157250966_xscvj32we",
+          "name": "Lbl_ScoreLeft",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 17,
+          "y": 1,
+          "width": 3,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#0a0a0a",
+            "fontSize": 120,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": 0
+        },
+        {
+          "className": "TLabel",
+          "id": "93dcfdfb-1bf7-4246-9176-87fe3f5df6ec",
+          "name": "Lbl_ScoreRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 40,
+          "y": 1,
+          "width": 3,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#0a0a0a",
+            "fontSize": 120,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": 0
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780068685584",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780068872125",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780068947919",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780130446853",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780132495692",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780132553832",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780152992069",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBallVelocityToMove",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": 0.3,
+            "Ball.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780153390362",
+          "details": "",
+          "type": "negate",
+          "name": "Act_NegateTheBallVelocityX",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": true
+          }
+        },
+        {
+          "id": "node-1780155448593",
+          "details": "",
+          "type": "negate",
+          "name": "Act_NegateTheBallVelocityY",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityY": true
+          }
+        },
+        {
+          "id": "node-1780157531860",
+          "details": "",
+          "type": "increment",
+          "name": "Act_IncSoreLeft",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Lbl_ScoreLeft.text": 1
+          }
+        },
+        {
+          "id": "node-1780157687872",
+          "details": "",
+          "type": "increment",
+          "name": "Act_IncScoreRight",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Lbl_ScoreRight.text": 1
+          }
+        },
+        {
+          "id": "node-1780157958635",
+          "details": "",
+          "type": "move_to",
+          "name": "Act_SetBallToStartPoint",
+          "showDetails": false,
+          "target": "Ball",
+          "changes": {},
+          "duration": 1000,
+          "easing": "easeOut",
+          "x": 27,
+          "y": 17
+        },
+        {
+          "id": "node-1780158197893",
+          "details": "",
+          "type": "property",
+          "name": "Act_BallStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": 0,
+            "Ball.velocityY": 0
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RightPaddleMoveUp",
+          "description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach oben bewegen": {
+              "x": 680,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069276920",
+              "type": "comment",
+              "x": 680,
+              "y": 40,
+              "width": 417,
+              "height": 183,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "showDetails": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleMoveDown",
+          "description": "Der rechte Schläger soll sich nach unten bewegen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoDown": {
+              "x": 320,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach unten bewegen": {
+              "x": 720,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach unten bewegen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069334995",
+              "type": "comment",
+              "x": 720,
+              "y": 40,
+              "width": 420,
+              "height": 220,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3"
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleStop",
+          "description": "Der rechte Schläger soll stoppen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToStop": {
+              "x": 260,
+              "y": 40
+            },
+            "Stoppe den Schläger": {
+              "x": 580,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll stoppen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069001097",
+              "type": "comment",
+              "x": 580,
+              "y": 40,
+              "width": 420,
+              "height": 180,
+              "properties": {
+                "name": "Stoppe den Schläger",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Stoppe den Schläger",
+                "showDetails": true,
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0"
+              }
+            }
+          ]
+        },
+        {
+          "name": "LeftPaddleMoveDown",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToGoDown": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LeftPaddleStop",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToStop": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LeftPaddleMoveUp",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallStart",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBallVelocityToMove",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallStart": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetBallVelocityToMove": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallXDirectionChange",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_NegateTheBallVelocityX",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallXDirectionChange": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_NegateTheBallVelocityX": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallYDirectionChange",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_NegateTheBallVelocityY",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallYDirectionChange": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_NegateTheBallVelocityY": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "CheckBoundaryHitside",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "rightValue": "left",
+                "leftValue": "${hitSide}"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_IncScoreRight",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_SetBallToStartPoint",
+                  "type": "action",
+                  "layout": "horizontal"
+                },
+                {
+                  "name": "Act_BallStop",
+                  "type": "action",
+                  "layout": "horizontal"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${hitSide}",
+                    "rightValue": "right"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Act_IncSoreLeft",
+                      "type": "action"
+                    },
+                    {
+                      "name": "Act_SetBallToStartPoint",
+                      "type": "action",
+                      "layout": "horizontal"
+                    },
+                    {
+                      "name": "Act_BallStop",
+                      "type": "action",
+                      "layout": "horizontal"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "leftValue": "${hitSide}",
+                        "rightValue": "bottom"
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "Act_NegateTheBallVelocityY",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${hitSide}",
+                            "rightValue": "top"
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "Act_NegateTheBallVelocityY",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckBoundaryHitside": {
+              "x": 40,
+              "y": 40
+            },
+            "${hitSide} == left": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_IncScoreRight": {
+              "x": 300,
+              "y": 140
+            },
+            "Act_SetBallToStartPoint": {
+              "x": 500,
+              "y": 240
+            },
+            "Act_BallStop": {
+              "x": 760,
+              "y": 240
+            },
+            "${hitSide} == right": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_IncSoreLeft": {
+              "x": 300,
+              "y": 240
+            },
+            "${hitSide} == bottom": {
+              "x": 40,
+              "y": 340
+            },
+            "Act_NegateTheBallVelocityY": {
+              "x": 300,
+              "y": 440
+            },
+            "${hitSide} == top": {
+              "x": 40,
+              "y": 440
+            }
+          }
+        },
+        {
+          "name": "SetNewScorePlayerLeft",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_IncSoreLeft",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetNewScorePlayerLeft": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_IncSoreLeft": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "SetNewScorePlayerRight",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_IncScoreRight",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetNewScorePlayerRight": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_IncScoreRight": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_bd015010-927f-4ef1-83c1-c9ca8420389c",
+      "name": "Lektion 7",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_import_1780207465485_vcrk",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowUp": "RightPaddleMoveUp",
+            "onKeyDown_ArrowDown": "RightPaddleMoveDown",
+            "onKeyUp_ArrowUp": "RightPaddleStop",
+            "onKeyUp_ArrowDown": "RightPaddleStop",
+            "onKeyDown_KeyW": "LeftPaddleMoveUp",
+            "onKeyDown_KeyS": "LeftPaddleMoveDown",
+            "onKeyUp_KeyW": "LeftPaddleStop",
+            "onKeyUp_KeyS": "LeftPaddleStop",
+            "onKeyDown_Space": "BallStart"
+          },
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780207465485_jx2e",
+          "name": "PaddleRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "RightPaddleStop"
+          },
+          "visible": true,
+          "x": 59,
+          "y": 16,
+          "width": 1,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#4ecdc4",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_import_1780207465485_dsmx",
+          "name": "StickyNote_6",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Wenn der Ball nicht getroffen wird, bekommt der Gegenspieler einen Punkt ",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 6,
+          "y": 7,
+          "width": 50,
+          "height": 15,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Ist-Zustand: \nWir haben zwei Sprites, der rechte Schläger kann über die Pfeiltasten gesteuert werden und der linke Schläger kann über die Tasten W und S gesteuert werden.\nWenn die Schläger einen Rand berühren, stoppen die Schläger automatisch.\nWerden die Tasten losgelassen, stoppen die Sprites.\n\nWir haben einen Ball, der von den Schlägern und vom Rand jeweils zurückgeschleudert wird.\n\nZiel dieser Lektion: \nWenn der Ball nicht mit einem Schläger berührt wird, also an den rechten bzw. linken Rand prallt, bekommt der Gegenspieler einen Punkt.\nEs werden 2 Labels erzeugt, die den Punktestand anzeigen.\n\nWie soll ich denn das schaffen?\nHier eine kurze Anleitung dafür:\n\n1. Ziehe 2 Labels auf das Spielfeld.\n2.Die Größe des Balls soll genau ein Kästchen groß sein. \n\nNenne das Sprite im Inspector um: Name: Ball"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780207465485_k6qg",
+          "name": "PaddleLeft",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "LeftPaddleStop"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 15,
+          "width": 1,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1780207465485_ca1d",
+          "name": "Ball",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "",
+            "onCollisionLeft": "BallXDirectionChange",
+            "onCollisionRight": "BallXDirectionChange",
+            "onCollisionTop": "",
+            "onCollisionBottom": "",
+            "onBoundaryHit": "CheckBoundaryHitside"
+          },
+          "visible": true,
+          "x": 29,
+          "y": 17,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_import_1780207465485_g6xm",
+          "name": "StickyNote_9",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Tasks für den Ball erzeugen",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 6,
+          "y": 29,
+          "width": 49,
+          "height": 8,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Task 1: CheckBoundaryHitside (wird geändert)   --> Wenn der Ball einen Schläger berührt, wird er zurückgeschleudert. Wenn der Ball am rechten bzw. linken Rand prallt bekommt der Gegenspieler einen Punkt.\n\nTask 2: SetNewScorePlayerRight\nTask 3: SetNewScorePlayerLeft\nTask 4: SetBallToStartPoint"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1780207465485_lvy9",
+          "name": "Lbl_ScoreLeft",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 17,
+          "y": 1,
+          "width": 3,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#0a0a0a",
+            "fontSize": 120,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": 0
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1780207465485_u826",
+          "name": "Lbl_ScoreRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 40,
+          "y": 1,
+          "width": 3,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#0a0a0a",
+            "fontSize": 120,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": 0
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780068685584",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780068872125",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780068947919",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetRightPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleRight.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780130446853",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780132495692",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToGoUp",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": -0.3
+          }
+        },
+        {
+          "id": "node-1780132553832",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetLeftPaddleVelocityToGoDown",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "PaddleLeft.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780152992069",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBallVelocityToMove",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": 0.3,
+            "Ball.velocityY": 0.3
+          }
+        },
+        {
+          "id": "node-1780153390362",
+          "details": "",
+          "type": "negate",
+          "name": "Act_NegateTheBallVelocityX",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": true
+          }
+        },
+        {
+          "id": "node-1780155448593",
+          "details": "",
+          "type": "negate",
+          "name": "Act_NegateTheBallVelocityY",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityY": true
+          }
+        },
+        {
+          "id": "node-1780157531860",
+          "details": "",
+          "type": "increment",
+          "name": "Act_IncSoreLeft",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Lbl_ScoreLeft.text": 1
+          }
+        },
+        {
+          "id": "node-1780157687872",
+          "details": "",
+          "type": "increment",
+          "name": "Act_IncScoreRight",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Lbl_ScoreRight.text": 1
+          }
+        },
+        {
+          "id": "node-1780157958635",
+          "details": "",
+          "type": "move_to",
+          "name": "Act_SetBallToStartPoint",
+          "showDetails": false,
+          "target": "Ball",
+          "changes": {},
+          "duration": 1000,
+          "easing": "easeOut",
+          "x": 27,
+          "y": 17
+        },
+        {
+          "id": "node-1780158197893",
+          "details": "",
+          "type": "property",
+          "name": "Act_BallStop",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Ball.velocityX": 0,
+            "Ball.velocityY": 0
+          }
+        },
+        {
+          "id": "node-1780208917616",
+          "details": "",
+          "type": "play_audio",
+          "name": "Act_PlayGoalAudio",
+          "showDetails": false,
+          "target": "GoalAudio",
+          "changes": {}
+        },
+        {
+          "id": "node-1780208979854",
+          "details": "",
+          "type": "play_audio",
+          "name": "Act_PlayHitAudio",
+          "showDetails": false,
+          "target": "HitAudio",
+          "changes": {}
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RightPaddleMoveUp",
+          "description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach oben bewegen": {
+              "x": 680,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach oben bewegen.",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069276920",
+              "type": "comment",
+              "x": 680,
+              "y": 40,
+              "width": 417,
+              "height": 183,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach oben bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: -0.3",
+                "showDetails": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleMoveDown",
+          "description": "Der rechte Schläger soll sich nach unten bewegen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToGoDown": {
+              "x": 320,
+              "y": 40
+            },
+            "Rechter Schläger soll sich nach unten bewegen": {
+              "x": 720,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll sich nach unten bewegen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069334995",
+              "type": "comment",
+              "x": 720,
+              "y": 40,
+              "width": 420,
+              "height": 220,
+              "properties": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Rechter Schläger soll sich nach unten bewegen",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0.3"
+              }
+            }
+          ]
+        },
+        {
+          "name": "RightPaddleStop",
+          "description": "Der rechte Schläger soll stoppen",
+          "actionSequence": [
+            {
+              "name": "Act_SetRightPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RightPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetRightPaddleVelocityToStop": {
+              "x": 260,
+              "y": 40
+            },
+            "Stoppe den Schläger": {
+              "x": 580,
+              "y": 40
+            }
+          },
+          "Description": "Der rechte Schläger soll stoppen",
+          "standaloneNodes": [
+            {
+              "id": "node-1780069001097",
+              "type": "comment",
+              "x": 580,
+              "y": 40,
+              "width": 420,
+              "height": 180,
+              "properties": {
+                "name": "Stoppe den Schläger",
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0",
+                "description": "",
+                "text": ""
+              },
+              "data": {
+                "name": "Stoppe den Schläger",
+                "showDetails": true,
+                "details": "Bitte markiere die Aciton. (Oranges Element)\nHier kannst du sehen, welcher Typ die Action hat: \nDaten/Eigenschaft ändern. \nWie ändern die Eigenschaft VelocityY des Elements: PaddleRight auf den Wert: 0"
+              }
+            }
+          ]
+        },
+        {
+          "name": "LeftPaddleMoveDown",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToGoDown",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleMoveDown": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToGoDown": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LeftPaddleStop",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToStop",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleStop": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToStop": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "LeftPaddleMoveUp",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetLeftPaddleVelocityToGoUp",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LeftPaddleMoveUp": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetLeftPaddleVelocityToGoUp": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallStart",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBallVelocityToMove",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallStart": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetBallVelocityToMove": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallXDirectionChange",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_NegateTheBallVelocityX",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_PlayHitAudio",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallXDirectionChange": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_NegateTheBallVelocityX": {
+              "x": 300,
+              "y": 40
+            },
+            "Act_PlayHitAudio": {
+              "x": 600,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BallYDirectionChange",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_NegateTheBallVelocityY",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallYDirectionChange": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_NegateTheBallVelocityY": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "CheckBoundaryHitside",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "rightValue": "left",
+                "leftValue": "${hitSide}"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_IncScoreRight",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_PlayGoalAudio",
+                  "type": "action",
+                  "layout": "horizontal"
+                },
+                {
+                  "name": "Act_SetBallToStartPoint",
+                  "type": "action",
+                  "layout": "horizontal"
+                },
+                {
+                  "name": "Act_BallStop",
+                  "type": "action",
+                  "layout": "horizontal"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${hitSide}",
+                    "rightValue": "right"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Act_IncSoreLeft",
+                      "type": "action"
+                    },
+                    {
+                      "name": "Act_PlayGoalAudio",
+                      "type": "action",
+                      "layout": "horizontal"
+                    },
+                    {
+                      "name": "Act_SetBallToStartPoint",
+                      "type": "action",
+                      "layout": "horizontal"
+                    },
+                    {
+                      "name": "Act_BallStop",
+                      "type": "action",
+                      "layout": "horizontal"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "leftValue": "${hitSide}",
+                        "rightValue": "bottom"
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "Act_NegateTheBallVelocityY",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${hitSide}",
+                            "rightValue": "top"
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "Act_NegateTheBallVelocityY",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckBoundaryHitside": {
+              "x": 40,
+              "y": 40
+            },
+            "${hitSide} == left": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_IncScoreRight": {
+              "x": 300,
+              "y": 140
+            },
+            "Act_PlayGoalAudio": {
+              "x": 500,
+              "y": 240
+            },
+            "Act_SetBallToStartPoint": {
+              "x": 740,
+              "y": 240
+            },
+            "Act_BallStop": {
+              "x": 1000,
+              "y": 240
+            },
+            "${hitSide} == right": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_IncSoreLeft": {
+              "x": 300,
+              "y": 240
+            },
+            "${hitSide} == bottom": {
+              "x": 40,
+              "y": 340
+            },
+            "Act_NegateTheBallVelocityY": {
+              "x": 300,
+              "y": 440
+            },
+            "${hitSide} == top": {
+              "x": 40,
+              "y": 440
+            }
+          }
+        },
+        {
+          "name": "SetNewScorePlayerLeft",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_IncSoreLeft",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetNewScorePlayerLeft": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_IncSoreLeft": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "SetNewScorePlayerRight",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_IncScoreRight",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetNewScorePlayerRight": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_IncScoreRight": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    }
+  ],
+  "activeStageId": "stage_bd015010-927f-4ef1-83c1-c9ca8420389c",
+  "schemaVersion": "4.0.0"
+}

@@ -77,6 +77,15 @@ class TaskRegistry {
         }
 
         if (project.stages) {
+            // PRIORITÄT: Wenn der Task in der aktiven Stage existiert, diese zurückgeben
+            // (verhindert falsche Zuordnung bei gleichnamigen Tasks in mehreren Stages)
+            const activeId = coreStore.activeStageId;
+            if (activeId) {
+                const activeStage = project.stages.find(s => s.id === activeId);
+                if (activeStage?.tasks?.some(t => t.name === taskName)) {
+                    return { type: 'stage', stageId: activeStage.id };
+                }
+            }
             for (const stage of project.stages) {
                 if (stage.tasks && stage.tasks.some(t => t.name === taskName)) {
                     return { type: 'stage', stageId: stage.id };
