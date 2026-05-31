@@ -490,9 +490,9 @@ export class FlowContextMenuProvider {
         });
         
         const insertActionItems: ContextMenuItem[] = allActions.map(a => {
-            // Ermittle Stage für diese Action
-            let stageName = 'Global';
-            if (a.uiScope === 'stage' && this.host.project?.stages) {
+            // Ermittle Stage für diese Action (direkte Suche, keine uiScope-Abhängigkeit)
+            let stageName = 'Global/Blueprint';
+            if (this.host.project?.stages) {
                 const stage = this.host.project.stages.find((s: any) => 
                     s.actions?.some((action: any) => action.name === a.name)
                 );
@@ -531,9 +531,9 @@ export class FlowContextMenuProvider {
         });
         
         const insertTaskItems: ContextMenuItem[] = allTasks.map(t => {
-            // Ermittle Stage für diesen Task
-            let stageName = 'Global';
-            if (t.uiScope === 'stage' && this.host.project?.stages) {
+            // Ermittle Stage für diesen Task (direkte Suche, keine uiScope-Abhängigkeit)
+            let stageName = 'Global/Blueprint';
+            if (this.host.project?.stages) {
                 const stage = this.host.project.stages.find((s: any) => 
                     s.tasks?.some((task: any) => task.name === t.name)
                 );
