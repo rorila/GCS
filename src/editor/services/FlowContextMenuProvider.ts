@@ -480,30 +480,8 @@ export class FlowContextMenuProvider {
         ];
 
         // Vorhandene Actions einfügen (Link)
-        // Phase 4: Zeige Stage-Info bei allen Actions (getActions dedupliziert)
-        const allActions = projectActionRegistry.getActions('all');
-        
-        const insertActionItems: ContextMenuItem[] = allActions.map(a => {
-            // Ermittle Stage für diese Action
-            let stageName = 'Global/Blueprint';
-            if (this.host.project?.stages) {
-                const stage = this.host.project.stages.find((s: any) => 
-                    s.actions?.some((action: any) => action.name === a.name)
-                );
-                if (stage) stageName = stage.name;
-            }
-            
-            // Immer Stage-Info anzeigen für Klarheit
-            const label = `${a.name} [${stageName}]`;
-            
-            return {
-                label,
-                action: async () => {
-                    const node = await this.host.createNode('Action', x, y, a.name);
-                    if (node) this.linkActionToNode(node, a);
-                }
-            };
-        });
+        // Phase 4: Variante 2 - Nur unterschiedliche Actions anzeigen, identische zusammenfassen
+        const insertActionItems: ContextMenuItem[] = this.buildSmartActionMenuItems(x, y);
 
         if (insertActionItems.length > 0) {
             items.push({ separator: true, label: '' });
@@ -514,30 +492,8 @@ export class FlowContextMenuProvider {
         }
 
         // Vorhandene Globale Tasks einfügen
-        // Phase 4: Zeige Stage-Info bei allen Tasks (getTasks dedupliziert)
-        const allTasks = projectTaskRegistry.getTasks('all');
-        
-        const insertTaskItems: ContextMenuItem[] = allTasks.map(t => {
-            // Ermittle Stage für diesen Task
-            let stageName = 'Global/Blueprint';
-            if (this.host.project?.stages) {
-                const stage = this.host.project.stages.find((s: any) => 
-                    s.tasks?.some((task: any) => task.name === t.name)
-                );
-                if (stage) stageName = stage.name;
-            }
-            
-            // Immer Stage-Info anzeigen für Klarheit
-            const label = `${t.name} [${stageName}]`;
-            
-            return {
-                label,
-                action: async () => {
-                    const node = await this.host.createNode('Task', x, y, t.name);
-                    if (node) this.assignTaskToNode(node, t);
-                }
-            };
-        });
+        // Phase 4: Variante 2 - Nur unterschiedliche Tasks anzeigen, identische zusammenfassen
+        const insertTaskItems: ContextMenuItem[] = this.buildSmartTaskMenuItems(x, y);
 
         if (insertTaskItems.length > 0) {
             if (insertActionItems.length === 0) items.push({ separator: true, label: '' });
@@ -871,5 +827,203 @@ export class FlowContextMenuProvider {
             label: '🧙‍♂️ Expert Edit (Data Action)',
             action: () => this.showExpertWizard(node, 'data_action')
         };
+    }
+
+    // ========================================================================
+    // Phase 4: Intelligente Menu-Items (Variante 2)
+    // ========================================================================
+
+    /**
+     * Baut Action-Menu-Items mit Deduplizierung nach Inhalt.
+     * Identische Actions (gleicher Name, gleicher Inhalt) werden zusammengefasst.
+     * Unterschiedliche Actions werden mit Stage-Info angezeigt.
+     */
+    private buildSmartActionMenuItems(x: number, y: number): ContextMenuItem[] {
+        if (!this.host.project) return [];
+        const proj = this.host.project;
+        const items: ContextMenuItem[] = [];
+
+        // Sammle ALLE Actions aus allen Stages + Root
+        const actionLocations: Array<{ action: any; stageId?: string; stageName?: string }> = [];
+
+        // Root-Actions
+        (proj.actions || []).forEach((a: any) => {
+            actionLocations.push({ action: a, stageId: undefined, stageName: 'Global' });
+        });
+
+        // Stage-Actions
+        (proj.stages || []).forEach((stage: any) => {
+            (stage.actions || []).forEach((a: any) => {
+                actionLocations.push({ action: a, stageId: stage.id, stageName: stage.name });
+            });
+        });
+
+        // Gruppiere nach Name
+        const byName = new Map<string, typeof actionLocations>();
+        actionLocations.forEach(loc => {
+            const list = byName.get(loc.action.name) || [];
+            list.push(loc);
+            byName.set(loc.action.name, list);
+        });
+
+        // Für jede Gruppe: Vergleiche Inhalte
+        byName.forEach((locations, name) => {
+            if (locations.length === 1) {
+                // Eindeutig → einfach anzeigen
+                const loc = locations[0];
+                const label = loc.stageId ? `${name} [${loc.stageName}]` : name;
+                items.push({
+                    label,
+                    action: async () => {
+                        const node = await this.host.createNode('Action', x, y, name);
+                        if (node) this.linkActionToNode(node, loc.action);
+                    }
+                });
+            } else {
+                // Mehrere Versionen → Vergleiche Inhalt
+                const uniqueVersions = new Map<string, typeof locations>();
+                locations.forEach(loc => {
+                    const contentKey = this.getActionContentHash(loc.action);
+                    const list = uniqueVersions.get(contentKey) || [];
+                    list.push(loc);
+                    uniqueVersions.set(contentKey, list);
+                });
+
+                if (uniqueVersions.size === 1) {
+                    // Alle identisch → einmal anzeigen
+                    const label = `${name} [Mehrere Stages, identisch]`;
+                    items.push({
+                        label,
+                        action: async () => {
+                            const node = await this.host.createNode('Action', x, y, name);
+                            if (node) this.linkActionToNode(node, locations[0].action);
+                        }
+                    });
+                } else {
+                    // Unterschiedlich → alle mit Stage-Info anzeigen
+                    locations.forEach(loc => {
+                        const label = `${name} [${loc.stageName || 'Global'}]`;
+                        items.push({
+                            label,
+                            action: async () => {
+                                const node = await this.host.createNode('Action', x, y, name);
+                                if (node) this.linkActionToNode(node, loc.action);
+                            }
+                        });
+                    });
+                }
+            }
+        });
+
+        return items.sort((a, b) => a.label.localeCompare(b.label));
+    }
+
+    /**
+     * Baut Task-Menu-Items mit Deduplizierung nach Inhalt.
+     * Identische Tasks (gleicher Name, gleiche ActionSequence) werden zusammengefasst.
+     * Unterschiedliche Tasks werden mit Stage-Info angezeigt.
+     */
+    private buildSmartTaskMenuItems(x: number, y: number): ContextMenuItem[] {
+        if (!this.host.project) return [];
+        const proj = this.host.project;
+        const items: ContextMenuItem[] = [];
+
+        // Sammle ALLE Tasks aus allen Stages + Root
+        const taskLocations: Array<{ task: any; stageId?: string; stageName?: string }> = [];
+
+        // Root-Tasks
+        (proj.tasks || []).forEach((t: any) => {
+            taskLocations.push({ task: t, stageId: undefined, stageName: 'Global/Blueprint' });
+        });
+
+        // Stage-Tasks
+        (proj.stages || []).forEach((stage: any) => {
+            (stage.tasks || []).forEach((t: any) => {
+                taskLocations.push({ task: t, stageId: stage.id, stageName: stage.name });
+            });
+        });
+
+        // Gruppiere nach Name
+        const byName = new Map<string, typeof taskLocations>();
+        taskLocations.forEach(loc => {
+            const list = byName.get(loc.task.name) || [];
+            list.push(loc);
+            byName.set(loc.task.name, list);
+        });
+
+        // Für jede Gruppe: Vergleiche Inhalte
+        byName.forEach((locations, name) => {
+            if (locations.length === 1) {
+                // Eindeutig
+                const loc = locations[0];
+                const label = loc.stageId ? `${name} [${loc.stageName}]` : name;
+                items.push({
+                    label,
+                    action: async () => {
+                        const node = await this.host.createNode('Task', x, y, name);
+                        if (node) this.assignTaskToNode(node, loc.task);
+                    }
+                });
+            } else {
+                // Mehrere Versionen → Vergleiche actionSequence
+                const uniqueVersions = new Map<string, typeof locations>();
+                locations.forEach(loc => {
+                    const contentKey = this.getTaskContentHash(loc.task);
+                    const list = uniqueVersions.get(contentKey) || [];
+                    list.push(loc);
+                    uniqueVersions.set(contentKey, list);
+                });
+
+                if (uniqueVersions.size === 1) {
+                    // Alle identisch
+                    const label = `${name} [Mehrere Stages, identisch]`;
+                    items.push({
+                        label,
+                        action: async () => {
+                            const node = await this.host.createNode('Task', x, y, name);
+                            if (node) this.assignTaskToNode(node, locations[0].task);
+                        }
+                    });
+                } else {
+                    // Unterschiedlich → alle anzeigen
+                    locations.forEach(loc => {
+                        const label = `${name} [${loc.stageName || 'Global'}]`;
+                        items.push({
+                            label,
+                            action: async () => {
+                                const node = await this.host.createNode('Task', x, y, name);
+                                if (node) this.assignTaskToNode(node, loc.task);
+                            }
+                        });
+                    });
+                }
+            }
+        });
+
+        return items.sort((a, b) => a.label.localeCompare(b.label));
+    }
+
+    /**
+     * Erzeugt einen Hash für Action-Inhalt (Vergleich).
+     */
+    private getActionContentHash(action: any): string {
+        const relevant = {
+            type: action.type,
+            target: action.target,
+            service: action.service,
+            method: action.method,
+            changes: action.changes,
+            params: action.params,
+            condition: action.condition,
+            body: action.body
+        };
+        return JSON.stringify(relevant);
+    }
+
+    /**
+     * Erzeugt einen Hash für Task-Inhalt (Vergleich).
+     */
+    private getTaskContentHash(task: any): string {
+        return JSON.stringify(task.actionSequence || []);
     }
 }
