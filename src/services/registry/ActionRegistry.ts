@@ -93,16 +93,25 @@ class ActionRegistry {
         return finalName;
     }
 
-    public renameAction(oldName: string, newName: string): boolean {
+    public renameAction(oldName: string, newName: string, stageId?: string): boolean {
         const project = coreStore.project;
         if (!project) return false;
         
-        let action = project.actions.find((a: any) => a.name === oldName);
-        if (!action && project.stages) {
-            for (const stage of project.stages) {
-                if (stage.actions) {
-                    action = stage.actions.find((a: any) => a.name === oldName);
-                    if (action) break;
+        // Phase 4: Wenn stageId angegeben, explizit in dieser Stage suchen
+        let action: any;
+        if (stageId) {
+            const stage = project.stages?.find((s: any) => s.id === stageId);
+            action = stage?.actions?.find((a: any) => a.name === oldName);
+        }
+        // Fallback: Standardsuche (erste Stage mit passendem Namen)
+        if (!action) {
+            action = project.actions.find((a: any) => a.name === oldName);
+            if (!action && project.stages) {
+                for (const stage of project.stages) {
+                    if (stage.actions) {
+                        action = stage.actions.find((a: any) => a.name === oldName);
+                        if (action) break;
+                    }
                 }
             }
         }
@@ -120,10 +129,22 @@ class ActionRegistry {
         return true;
     }
 
-    public deleteAction(name: string): boolean {
+    public deleteAction(name: string, stageId?: string): boolean {
         const project = coreStore.project;
         if (!project) return false;
         
+        // Phase 4: Wenn stageId angegeben, nur in dieser Stage löschen
+        if (stageId) {
+            const stage = project.stages?.find((s: any) => s.id === stageId);
+            if (stage?.actions) {
+                stage.actions = stage.actions.filter((a: any) => a.name !== name);
+            }
+            // Auch aus Root-Actions entfernen falls vorhanden
+            project.actions = project.actions.filter(a => a.name !== name);
+            return true;
+        }
+        
+        // Fallback: Überall löschen (altes Verhalten)
         project.actions = project.actions.filter(a => a.name !== name);
         if (project.stages) {
             project.stages.forEach(s => { if (s.actions) s.actions = s.actions.filter((a: any) => a.name !== name); });

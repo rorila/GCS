@@ -138,11 +138,29 @@ class TaskRegistry {
         return null;
     }
 
-    public renameTask(oldName: string, newName: string): boolean {
+    public renameTask(oldName: string, newName: string, stageId?: string): boolean {
         const project = coreStore.project;
         if (!project || !this.validateTaskName(newName).valid) return false;
         
-        let task = this.getTasks('all', false).find(t => t.name === oldName);
+        // Phase 4: Wenn stageId angegeben, explizit in dieser Stage suchen
+        let task: any;
+        if (stageId) {
+            const stage = project.stages?.find((s: any) => s.id === stageId);
+            task = stage?.tasks?.find((t: any) => t.name === oldName);
+        }
+        // Fallback: Über ID suchen (wenn mehrdeutig)
+        if (!task) {
+            const candidates = this.getTasks('all', false).filter(t => t.name === oldName);
+            if (candidates.length > 1) {
+                // Mehrdeutig: aktive Stage priorisieren (mit unserem Fix)
+                const activeId = coreStore.activeStageId;
+                if (activeId) {
+                    const activeStage = project.stages?.find((s: any) => s.id === activeId);
+                    task = activeStage?.tasks?.find((t: any) => t.name === oldName);
+                }
+            }
+            task = task || candidates[0];
+        }
         if (task) { task.name = newName; } else { return false; }
 
         this.getTasks('all', false).forEach(t => {
@@ -176,11 +194,29 @@ class TaskRegistry {
         return true;
     }
 
-    public deleteTask(name: string): boolean {
+    public deleteTask(name: string, stageId?: string): boolean {
         const project = coreStore.project;
         if (!project) return false;
         
-        const task = this.getTasks('all', false).find(t => t.name === name);
+        // Phase 4: Wenn stageId angegeben, explizit in dieser Stage suchen
+        let task: any;
+        if (stageId) {
+            const stage = project.stages?.find((s: any) => s.id === stageId);
+            task = stage?.tasks?.find((t: any) => t.name === name);
+        }
+        // Fallback: Über ID suchen (wenn mehrdeutig)
+        if (!task) {
+            const candidates = this.getTasks('all', false).filter(t => t.name === name);
+            if (candidates.length > 1) {
+                // Mehrdeutig: aktive Stage priorisieren (mit unserem Fix)
+                const activeId = coreStore.activeStageId;
+                if (activeId) {
+                    const activeStage = project.stages?.find((s: any) => s.id === activeId);
+                    task = activeStage?.tasks?.find((t: any) => t.name === name);
+                }
+            }
+            task = task || candidates[0];
+        }
         if (!task) return false;
 
         const actionsToCleanup = (task.actionSequence || []).filter(item => item.type === 'action').map(item => item.name!);
