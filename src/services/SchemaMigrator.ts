@@ -14,6 +14,21 @@ import { Logger } from '../utils/Logger';
 const logger = Logger.get('SchemaMigrator');
 
 /**
+ * Generiert eine UUID v4 ( Fallback für ältere Umgebungen ohne crypto.randomUUID )
+ */
+function generateId(): string {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    // Fallback UUID v4
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+/**
  * Alias-Mapping: Legacy-Feldname → kanonischer Feldname.
  * 
  * Belege aus FlowAction.ts:
@@ -103,6 +118,12 @@ export class SchemaMigrator {
             }
         }
 
+        // Phase 1: IDs für Tasks und Actions zuweisen (falls fehlend)
+        const idCount = this.assignMissingIds(project);
+        if (idCount > 0) {
+            logger.info(`[Migration] Phase 1: ${idCount} fehlende IDs zugewiesen.`);
+        }
+
         // Schema-Version setzen
         project.schemaVersion = TARGET_SCHEMA_VERSION;
 
@@ -141,6 +162,69 @@ export class SchemaMigrator {
         }
 
         return count;
+    }
+
+    /**
+     * Phase 1 (ID-Migration): Weist fehlende IDs für Tasks und Actions zu.
+     * 
+     * Durchläuft alle Tasks und Actions im Projekt (Root und Stages) und
+     * generiert stabile IDs für Elemente ohne `id` Feld.
+     * 
+     * @param project Das Projekt-Objekt
+     * @returns Anzahl zugewiesener IDs
+     */
+    public static assignMissingIds(project: any): number {
+        if (!project) return 0;
+
+        let idCount = 0;
+
+        // Hilfsfunktion für Actions
+        const ensureActionId = (action: any): void => {
+            if (action && typeof action === 'object' && !action.id) {
+                action.id = generateId();
+                idCount++;
+            }
+        };
+
+        // Hilfsfunktion für Tasks
+        const ensureTaskId = (task: any): void => {
+            if (task && typeof task === 'object' && !task.id) {
+                task.id = generateId();
+                idCount++;
+            }
+        };
+
+        // Root-Actions
+        if (Array.isArray(project.actions)) {
+            for (const action of project.actions) {
+                ensureActionId(action);
+            }
+        }
+
+        // Root-Tasks
+        if (Array.isArray(project.tasks)) {
+            for (const task of project.tasks) {
+                ensureTaskId(task);
+            }
+        }
+
+        // Stage-Actions und Stage-Tasks
+        if (Array.isArray(project.stages)) {
+            for (const stage of project.stages) {
+                if (Array.isArray(stage.actions)) {
+                    for (const action of stage.actions) {
+                        ensureActionId(action);
+                    }
+                }
+                if (Array.isArray(stage.tasks)) {
+                    for (const task of stage.tasks) {
+                        ensureTaskId(task);
+                    }
+                }
+            }
+        }
+
+        return idCount;
     }
 
     /**
