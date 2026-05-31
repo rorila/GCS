@@ -107,6 +107,7 @@ export interface CalcStep {
  * BaseAction - Die Wurzel aller Aktionen (RootAction)
  */
 export interface BaseAction {
+    id?: string;                   // Stabile Identität für Rename/Delete (Phase 1)
     name: string;
     type: ActionType;
     description?: string;
@@ -255,6 +256,7 @@ export interface SequenceItem {
 }
 
 export interface GameTask {
+    id?: string;                   // Stabile Identität für Rename/Delete (Phase 1)
     name: string;
     description?: string;
     triggerMode?: 'local' | 'local-sync' | 'broadcast';  // Multiplayer sync mode (default: 'local-sync')
