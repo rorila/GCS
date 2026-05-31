@@ -480,14 +480,37 @@ export class FlowContextMenuProvider {
         ];
 
         // Vorhandene Actions einfügen (Link)
+        // Phase 4: Zeige Stage-Info bei gleichnamigen Actions in verschiedenen Stages
         const allActions = projectActionRegistry.getActions('all');
-        const insertActionItems: ContextMenuItem[] = allActions.map(a => ({
-            label: a.name,
-            action: async () => {
-                const node = await this.host.createNode('Action', x, y, a.name);
-                if (node) this.linkActionToNode(node, a);
+        
+        // Finde Duplikate (gleicher Name, verschiedene Stages)
+        const actionNameCount = new Map<string, number>();
+        allActions.forEach(a => {
+            actionNameCount.set(a.name, (actionNameCount.get(a.name) || 0) + 1);
+        });
+        
+        const insertActionItems: ContextMenuItem[] = allActions.map(a => {
+            // Ermittle Stage für diese Action
+            let stageName = 'Global';
+            if (a.uiScope === 'stage' && this.host.project?.stages) {
+                const stage = this.host.project.stages.find((s: any) => 
+                    s.actions?.some((action: any) => action.name === a.name)
+                );
+                if (stage) stageName = stage.name;
             }
-        }));
+            
+            // Label: Bei Duplikaten Stage-Info anzeigen
+            const isDuplicate = (actionNameCount.get(a.name) || 0) > 1;
+            const label = isDuplicate ? `${a.name} (Stage: ${stageName})` : a.name;
+            
+            return {
+                label,
+                action: async () => {
+                    const node = await this.host.createNode('Action', x, y, a.name);
+                    if (node) this.linkActionToNode(node, a);
+                }
+            };
+        });
 
         if (insertActionItems.length > 0) {
             items.push({ separator: true, label: '' });
@@ -498,16 +521,37 @@ export class FlowContextMenuProvider {
         }
 
         // Vorhandene Globale Tasks einfügen
+        // Phase 4: Zeige Stage-Info bei gleichnamigen Tasks in verschiedenen Stages
         const allTasks = projectTaskRegistry.getTasks('all');
-        const globalTasks = allTasks;
         
-        const insertTaskItems: ContextMenuItem[] = globalTasks.map(t => ({
-            label: t.name,
-            action: async () => {
-                const node = await this.host.createNode('Task', x, y, t.name);
-                if (node) this.assignTaskToNode(node, t);
+        // Finde Duplikate (gleicher Name, verschiedene Stages)
+        const taskNameCount = new Map<string, number>();
+        allTasks.forEach(t => {
+            taskNameCount.set(t.name, (taskNameCount.get(t.name) || 0) + 1);
+        });
+        
+        const insertTaskItems: ContextMenuItem[] = allTasks.map(t => {
+            // Ermittle Stage für diesen Task
+            let stageName = 'Global';
+            if (t.uiScope === 'stage' && this.host.project?.stages) {
+                const stage = this.host.project.stages.find((s: any) => 
+                    s.tasks?.some((task: any) => task.name === t.name)
+                );
+                if (stage) stageName = stage.name;
             }
-        }));
+            
+            // Label: Bei Duplikaten Stage-Info anzeigen
+            const isDuplicate = (taskNameCount.get(t.name) || 0) > 1;
+            const label = isDuplicate ? `${t.name} (Stage: ${stageName})` : t.name;
+            
+            return {
+                label,
+                action: async () => {
+                    const node = await this.host.createNode('Task', x, y, t.name);
+                    if (node) this.assignTaskToNode(node, t);
+                }
+            };
+        });
 
         if (insertTaskItems.length > 0) {
             if (insertActionItems.length === 0) items.push({ separator: true, label: '' });
