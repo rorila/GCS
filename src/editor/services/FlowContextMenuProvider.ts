@@ -480,17 +480,11 @@ export class FlowContextMenuProvider {
         ];
 
         // Vorhandene Actions einfügen (Link)
-        // Phase 4: Zeige Stage-Info bei gleichnamigen Actions in verschiedenen Stages
+        // Phase 4: Zeige Stage-Info bei allen Actions (getActions dedupliziert)
         const allActions = projectActionRegistry.getActions('all');
         
-        // Finde Duplikate (gleicher Name, verschiedene Stages)
-        const actionNameCount = new Map<string, number>();
-        allActions.forEach(a => {
-            actionNameCount.set(a.name, (actionNameCount.get(a.name) || 0) + 1);
-        });
-        
         const insertActionItems: ContextMenuItem[] = allActions.map(a => {
-            // Ermittle Stage für diese Action (direkte Suche, keine uiScope-Abhängigkeit)
+            // Ermittle Stage für diese Action
             let stageName = 'Global/Blueprint';
             if (this.host.project?.stages) {
                 const stage = this.host.project.stages.find((s: any) => 
@@ -499,9 +493,8 @@ export class FlowContextMenuProvider {
                 if (stage) stageName = stage.name;
             }
             
-            // Label: Bei Duplikaten Stage-Info anzeigen
-            const isDuplicate = (actionNameCount.get(a.name) || 0) > 1;
-            const label = isDuplicate ? `${a.name} (Stage: ${stageName})` : a.name;
+            // Immer Stage-Info anzeigen für Klarheit
+            const label = `${a.name} [${stageName}]`;
             
             return {
                 label,
@@ -521,17 +514,11 @@ export class FlowContextMenuProvider {
         }
 
         // Vorhandene Globale Tasks einfügen
-        // Phase 4: Zeige Stage-Info bei gleichnamigen Tasks in verschiedenen Stages
+        // Phase 4: Zeige Stage-Info bei allen Tasks (getTasks dedupliziert)
         const allTasks = projectTaskRegistry.getTasks('all');
         
-        // Finde Duplikate (gleicher Name, verschiedene Stages)
-        const taskNameCount = new Map<string, number>();
-        allTasks.forEach(t => {
-            taskNameCount.set(t.name, (taskNameCount.get(t.name) || 0) + 1);
-        });
-        
         const insertTaskItems: ContextMenuItem[] = allTasks.map(t => {
-            // Ermittle Stage für diesen Task (direkte Suche, keine uiScope-Abhängigkeit)
+            // Ermittle Stage für diesen Task
             let stageName = 'Global/Blueprint';
             if (this.host.project?.stages) {
                 const stage = this.host.project.stages.find((s: any) => 
@@ -540,9 +527,8 @@ export class FlowContextMenuProvider {
                 if (stage) stageName = stage.name;
             }
             
-            // Label: Bei Duplikaten Stage-Info anzeigen
-            const isDuplicate = (taskNameCount.get(t.name) || 0) > 1;
-            const label = isDuplicate ? `${t.name} (Stage: ${stageName})` : t.name;
+            // Immer Stage-Info anzeigen für Klarheit
+            const label = `${t.name} [${stageName}]`;
             
             return {
                 label,
