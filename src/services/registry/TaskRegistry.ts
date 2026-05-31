@@ -219,7 +219,9 @@ class TaskRegistry {
         }
         if (!task) return false;
 
-        const actionsToCleanup = (task.actionSequence || []).filter(item => item.type === 'action').map(item => item.name!);
+        const actionsToCleanup = (task.actionSequence || [])
+            .filter((item: any) => item.type === 'action')
+            .map((item: any) => item.name!);
         project.tasks = project.tasks.filter(t => t.name !== name);
         
         if (project.stages) {
@@ -230,7 +232,7 @@ class TaskRegistry {
         }
         if (project.flowCharts && project.flowCharts[name]) delete project.flowCharts[name];
 
-        actionsToCleanup.forEach(actionName => {
+        actionsToCleanup.forEach((actionName: string) => {
             if (projectReferenceTracker.getActionUsage(actionName).length === 0) projectActionRegistry.deleteAction(actionName);
         });
 

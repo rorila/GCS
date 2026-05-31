@@ -10,8 +10,8 @@ import { mediatorService } from './MediatorService';
 
 export type ProjectMutation =
     | { type: 'SET_PROPERTY'; target: any; path: string; value: any }
-    | { type: 'RENAME_ACTION'; oldName: string; newName: string }
-    | { type: 'RENAME_TASK'; oldName: string; newName: string }
+    | { type: 'RENAME_ACTION'; oldName: string; newName: string; stageId?: string }
+    | { type: 'RENAME_TASK'; oldName: string; newName: string; stageId?: string }
     | { type: 'ADD_ACTION'; action: any; stageId?: string }
     | { type: 'REMOVE_ACTION'; name: string; stageId?: string }
     | { type: 'ADD_TASK'; task: any; stageId?: string }
@@ -294,21 +294,32 @@ export class ProjectStore {
         return true;
     }
 
-    private reduceRenameAction(m: { oldName: string; newName: string }): boolean {
+    private reduceRenameAction(m: { oldName: string; newName: string; stageId?: string }): boolean {
         if (!this.project) return false;
 
-        const renameIn = (actions: any[]) => {
-            const action = actions.find((a: any) => a.name === m.oldName);
-            if (action) action.name = m.newName;
-        };
-
-        // Global
-        if (this.project.actions) renameIn(this.project.actions);
-
-        // Alle Stages
-        this.project.stages?.forEach(stage => {
-            if (stage.actions) renameIn(stage.actions);
-        });
+        // Phase 4: Wenn stageId angegeben, nur in dieser Stage umbenennen
+        if (m.stageId) {
+            const stage = this.project.stages?.find((s: any) => s.id === m.stageId);
+            if (stage?.actions) {
+                const action = stage.actions.find((a: any) => a.name === m.oldName);
+                if (action) action.name = m.newName;
+            }
+            // Auch in Root-Actions prüfen
+            if (this.project.actions) {
+                const action = this.project.actions.find((a: any) => a.name === m.oldName);
+                if (action) action.name = m.newName;
+            }
+        } else {
+            // Fallback: Überall umbenennen (altes Verhalten)
+            const renameIn = (actions: any[]) => {
+                const action = actions.find((a: any) => a.name === m.oldName);
+                if (action) action.name = m.newName;
+            };
+            if (this.project.actions) renameIn(this.project.actions);
+            this.project.stages?.forEach(stage => {
+                if (stage.actions) renameIn(stage.actions);
+            });
+        }
 
         // ActionSequence-Referenzen aktualisieren
         this.updateActionReferences(m.oldName, m.newName);
@@ -316,21 +327,32 @@ export class ProjectStore {
         return true;
     }
 
-    private reduceRenameTask(m: { oldName: string; newName: string }): boolean {
+    private reduceRenameTask(m: { oldName: string; newName: string; stageId?: string }): boolean {
         if (!this.project) return false;
 
-        const renameIn = (tasks: any[]) => {
-            const task = tasks.find((t: any) => t.name === m.oldName);
-            if (task) task.name = m.newName;
-        };
-
-        // Global
-        if (this.project.tasks) renameIn(this.project.tasks);
-
-        // Alle Stages
-        this.project.stages?.forEach(stage => {
-            if (stage.tasks) renameIn(stage.tasks);
-        });
+        // Phase 4: Wenn stageId angegeben, nur in dieser Stage umbenennen
+        if (m.stageId) {
+            const stage = this.project.stages?.find((s: any) => s.id === m.stageId);
+            if (stage?.tasks) {
+                const task = stage.tasks.find((t: any) => t.name === m.oldName);
+                if (task) task.name = m.newName;
+            }
+            // Auch in Root-Tasks prüfen
+            if (this.project.tasks) {
+                const task = this.project.tasks.find((t: any) => t.name === m.oldName);
+                if (task) task.name = m.newName;
+            }
+        } else {
+            // Fallback: Überall umbenennen (altes Verhalten)
+            const renameIn = (tasks: any[]) => {
+                const task = tasks.find((t: any) => t.name === m.oldName);
+                if (task) task.name = m.newName;
+            };
+            if (this.project.tasks) renameIn(this.project.tasks);
+            this.project.stages?.forEach(stage => {
+                if (stage.tasks) renameIn(stage.tasks);
+            });
+        }
 
         // FlowChart-Task-Referenzen
         this.updateTaskReferences(m.oldName, m.newName);
