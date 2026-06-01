@@ -463,6 +463,9 @@ export class GameRuntime implements IVariableHost {
         this.clearAllTimers(); // Variable timers
         AnimationManager.getInstance().clear();
 
+        // 1.3b GameLoopManager explizit stoppen (cancelAnimationFrame)
+        GameLoopManager.getInstance().stop();
+
         // 1.4 Reset: Stage-Cache leeren, damit Objekte neu hydratisiert werden
         if (reset) {
             this.stageManager.clearCache();
@@ -555,8 +558,9 @@ export class GameRuntime implements IVariableHost {
             this.stageController.setCurrentStageId(this.stage.id);
         }
 
-        // glm.init() + glm.start() wird in initMainGame() erledigt.
-        this.start();
+        // Stage-Wechsel: direkt initMainGame() aufrufen (start() wuerde wegen isMainGameStarted abbrechen)
+        this.objects.forEach(obj => this.handleEvent(obj.id, 'onStart'));
+        this.initMainGame();
 
 
         if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
