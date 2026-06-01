@@ -560,6 +560,10 @@ export class GameRuntime implements IVariableHost {
 
         // Stage-Wechsel: direkt initMainGame() aufrufen (start() wuerde wegen isMainGameStarted abbrechen)
         this.objects.forEach(obj => this.handleEvent(obj.id, 'onStart'));
+
+        // InputHandler neu initialisieren: alte Keyboard-Listener entfernen, neue registrieren
+        this.inputHandler.init();
+
         this.initMainGame();
 
 
