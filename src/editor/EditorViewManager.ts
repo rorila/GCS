@@ -668,6 +668,7 @@ export class EditorViewManager {
                     };
                     const sBadge = statusCfg[ucStatus]   || statusCfg['idea'];
                     const pBadge = priorityCfg[ucPriority] || priorityCfg['medium'];
+                    const taskName = interaction.task?.taskName || '';
                     const badgeStyle = (bg: string) => `display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff;background:${bg};margin-left:6px;`;
                     return `
                         <div style="${rowStyle}">
@@ -675,6 +676,7 @@ export class EditorViewManager {
                                 <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${displayTitle}</span>
                                 <span style="${badgeStyle(sBadge.color)}">${sBadge.label}</span>
                                 <span style="${badgeStyle(pBadge.color)}">${pBadge.label}</span>
+                                ${taskName ? `<span style="${badgeStyle('#1a6b8a')}">⚡ ${taskName}</span>` : ''}
                                 ${displayDesc ? `<div style="${descStyle}">${displayDesc}</div>` : ''}
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
