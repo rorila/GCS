@@ -463,11 +463,10 @@ export class GameRuntime implements IVariableHost {
         this.clearAllTimers(); // Variable timers
         AnimationManager.getInstance().clear();
 
-        // 1.4 Reset wird nicht unterstützt - pool-Objekte können nicht neu erstellt werden
-        // ohne globale Blueprint-Elemente zu verletzen
+        // 1.4 Reset: Stage-Cache leeren, damit Objekte neu hydratisiert werden
         if (reset) {
-            logger.warn('Stage reset is not supported - pool objects cannot be recreated without violating global blueprint elements');
-            return;
+            this.stageManager.clearCache();
+            logger.info(`[handleStageChange] Reset angefordert: Stage-Cache geleert fuer Stage ${newStageId}`);
         }
 
         // 2. SWITCH to new stage data

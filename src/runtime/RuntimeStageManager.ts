@@ -43,6 +43,15 @@ export class RuntimeStageManager {
         return result;
     }
 
+    /**
+     * Leert den Cache für globale/Blueprint-Objekte.
+     * Wird bei reset=true aufgerufen, damit Objekte beim nächsten
+     * getMergedStageData() neu aus dem JSON hydratisiert werden.
+     */
+    public clearCache(): void {
+        this.cachedGlobalObjects = null;
+    }
+
     public getMergedStageData(stageId: string): MergedStageData {
         const stage = this.project.stages?.find((s: StageDefinition) => s.id === stageId);
         const stageChain: StageDefinition[] = stage ? [stage] : [];
