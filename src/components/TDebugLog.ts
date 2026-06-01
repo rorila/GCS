@@ -135,6 +135,7 @@ export class TDebugLog {
 
     public clearLogs() {
         this.service.clear();
+        this.updateFilterDropdowns();
     }
 
     public toggle() {
@@ -677,8 +678,12 @@ export class TDebugLog {
         const allObjects = Array.from(new Set([...mappedLogObjects, ...projectObjects])).sort();
 
         const current = this.objectFilter;
+        // Wenn der gespeicherte Filter nicht mehr in der Liste ist, zurücksetzen
+        if (current && !allObjects.includes(current)) {
+            this.objectFilter = '';
+        }
         objSelect.innerHTML = '<option value="">All Objects</option>' +
-            allObjects.map(obj => `<option value="${obj}" ${obj === current ? 'selected' : ''}>${obj}</option>`).join('');
+            allObjects.map(obj => `<option value="${obj}" ${obj === this.objectFilter ? 'selected' : ''}>${obj}</option>`).join('');
     }
 
     private updateEventDropdown() {
@@ -906,7 +911,15 @@ export class TDebugLog {
                 const changes = Object.entries(data.changes).map(([k, v]) => `${k}+=${v}`).join(', ');
                 detailText = `(increment: ${changes})`;
             } else if (data.type === 'variable') {
-                detailText = `(${data.variableName || 'var'} = ${data.source || '?'}.${data.sourceProperty || '?'})`;
+                if (data.value !== undefined) {
+                    const oldValStr = data.oldValue !== undefined ? ` (vorher: ${data.oldValue})` : '';
+                    detailText = `Wert: ${data.value}${oldValStr}`;
+                } else {
+                    detailText = `(${data.variableName || 'var'} = ${data.source || '?'}.${data.sourceProperty || '?'})`;
+                }
+            } else if (data.newValue !== undefined) {
+                const oldValStr = data.oldValue !== undefined ? ` (vorher: ${data.oldValue})` : '';
+                detailText = `Wert: ${data.newValue}${oldValStr}`;
             } else if (data.type === 'property' && data.changes) {
                 const changes = Object.entries(data.changes).map(([k, v]) => `${k}=${v}`).join(', ');
                 detailText = `(${data.target || '?'}: ${changes})`;
