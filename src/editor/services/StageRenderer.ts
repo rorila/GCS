@@ -1215,6 +1215,12 @@ export class StageRenderer {
         videoEl.muted = !!(obj._muted ?? obj.muted);
         videoEl.playbackRate = obj._playbackRate ?? obj.playbackRate ?? 1;
 
+        // Reset auf Anfang wenn stop() aufgerufen wurde
+        if (obj.resetRequested) {
+            videoEl.currentTime = 0;
+            obj.resetRequested = false;
+        }
+
         // Playback-Zustand
         const shouldPlay = !!(obj._isPlaying ?? obj.isPlaying);
         if (shouldPlay && videoEl.paused) videoEl.play().catch(() => {});

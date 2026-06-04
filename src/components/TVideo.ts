@@ -22,6 +22,7 @@ export class TVideo extends TPanel {
 
     // Runtime state (renderer should sync with this)
     private _isPlaying: boolean = false;
+    public resetRequested: boolean = false;
 
     constructor(name: string, x: number, y: number, width: number = 10, height: number = 6) {
         super(name, x, y, width, height);
@@ -72,8 +73,7 @@ export class TVideo extends TPanel {
 
     public stop(): void {
         this.isPlaying = false;
-        // The renderer should reset currentTime to 0 when it sees a stop transition 
-        // or we could keep a separate state for reset.
+        this.resetRequested = true;
         logger.info(`[TVideo] ${this.name}.stop()`);
     }
 
