@@ -362,14 +362,6 @@ export class TextObjectRenderer {
                     const url = prompt(hasSelection ? `URL für "${sel!.toString()}" eingeben:` : 'URL eingeben:', 'https://');
                     if (url && url !== 'https://') {
                         exec('createLink', url);
-                        // target=_blank auf alle Links setzen damit Chrome im neuen Tab öffnet
-                        body.querySelectorAll('a').forEach((a: HTMLAnchorElement) => {
-                            a.target = '_blank';
-                            a.rel = 'noopener noreferrer';
-                        });
-                        // HTML nach target-Korrektur erneut speichern
-                        obj.text = body.innerHTML;
-                        if (ctx.host.onEvent) ctx.host.onEvent(obj.id || obj.name, 'propertyChange', { path: 'text', value: body.innerHTML });
                     }
                 };
 
@@ -419,11 +411,6 @@ export class TextObjectRenderer {
         if (body && document.activeElement !== body) {
             if (body.innerHTML !== textValue) {
                 body.innerHTML = textValue;
-                // Sicherstellen dass alle gespeicherten Links target=_blank haben
-                body.querySelectorAll('a').forEach((a: HTMLAnchorElement) => {
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
-                });
             }
         }
 
