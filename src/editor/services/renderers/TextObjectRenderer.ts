@@ -288,12 +288,21 @@ export class TextObjectRenderer {
         const isRunMode = ctx.host.runMode;
 
         if (isNew) {
+            const toolbarBtnStyle = 'background:rgba(0,0,0,0.12); border:none; border-radius:3px; cursor:pointer; padding:2px 6px; font-size:12px; color:inherit; line-height:1.4;';
             el.innerHTML = `
                 <div class="sticky-header" style="display:flex; background:rgba(0,0,0,0.06); border-bottom:1px solid rgba(0,0,0,0.1); cursor:move;">
                     <div style="padding: 4px; color:#888; pointer-events:none; font-size:10px; display:flex; align-items:center;">⋮⋮</div>
                     <input type="text" class="sticky-title" placeholder="Titel..." style="flex:1; font-weight:bold; font-size:1.1em; background:transparent; border:none; outline:none; padding: 4px 6px; color:inherit; font-family:inherit;">
                 </div>
-                <textarea class="sticky-body" placeholder="Notiz eingeben..." style="flex:1; background:transparent; border:none; outline:none; font-size:0.95em; padding: 10px; color:inherit; font-family:inherit; resize:none;"></textarea>
+                <div class="sticky-toolbar" style="display:flex; gap:2px; padding:3px 6px; background:rgba(0,0,0,0.05); border-bottom:1px solid rgba(0,0,0,0.08); flex-wrap:wrap;">
+                    <button class="stb-bold" title="Fett (Ctrl+B)" style="${toolbarBtnStyle}"><b>B</b></button>
+                    <button class="stb-italic" title="Kursiv (Ctrl+I)" style="${toolbarBtnStyle}"><i>I</i></button>
+                    <button class="stb-underline" title="Unterstrichen (Ctrl+U)" style="${toolbarBtnStyle}"><u>U</u></button>
+                    <div style="width:1px; background:rgba(0,0,0,0.15); margin:2px 3px;"></div>
+                    <button class="stb-link" title="Link einfügen" style="${toolbarBtnStyle}">🔗</button>
+                    <button class="stb-unlink" title="Link entfernen" style="${toolbarBtnStyle}">✂️</button>
+                </div>
+                <div class="sticky-body" contenteditable="true" data-placeholder="Notiz eingeben..." style="flex:1; background:transparent; border:none; outline:none; font-size:0.95em; padding:10px; color:inherit; font-family:inherit; overflow-y:auto; word-break:break-word; white-space:pre-wrap; min-height:40px;"></div>
                 <div class="sticky-resize-handle" style="position:absolute; right:2px; bottom:2px; width:12px; height:12px; background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.15) 50%) bottom right / 8px 8px no-repeat; pointer-events:none;"></div>
             `;
             el.style.display = 'flex';
@@ -304,48 +313,107 @@ export class TextObjectRenderer {
             el.style.justifyContent = 'flex-start';
 
             const ti = el.querySelector('.sticky-title') as HTMLInputElement;
-            const ta = el.querySelector('.sticky-body') as HTMLTextAreaElement;
+            const body = el.querySelector('.sticky-body') as HTMLElement;
             const header = el.querySelector('.sticky-header') as HTMLElement;
+            const toolbar = el.querySelector('.sticky-toolbar') as HTMLElement;
 
             if (!isRunMode) {
                 // Verhindere Stage-Drag beim Klicken in Inputs, aber erlaube Selektion!
                 ti.onmousedown = (e) => e.stopPropagation();
-                ta.onmousedown = (e) => e.stopPropagation();
-                
+                body.onmousedown = (e) => e.stopPropagation();
+                toolbar.onmousedown = (e) => e.stopPropagation();
+
                 // Schütze Editor-Shortcuts (Backspace, Delete) beim Tippen
                 const captureKey = (e: KeyboardEvent) => e.stopPropagation();
                 ti.onkeydown = captureKey;
-                ta.onkeydown = captureKey;
+                body.onkeydown = captureKey;
 
                 ti.oninput = () => {
-                    obj.title = ti.value; // Local Update for instant feel
+                    obj.title = ti.value;
                     if (ctx.host.onEvent) ctx.host.onEvent(obj.id || obj.name, 'propertyChange', { path: 'title', value: ti.value });
                 };
-                ta.oninput = () => {
-                    obj.text = ta.value; // Local Update for instant feel
-                    if (ctx.host.onEvent) ctx.host.onEvent(obj.id || obj.name, 'propertyChange', { path: 'text', value: ta.value });
+
+                // contenteditable → HTML speichern
+                body.oninput = () => {
+                    const html = body.innerHTML;
+                    obj.text = html;
+                    if (ctx.host.onEvent) ctx.host.onEvent(obj.id || obj.name, 'propertyChange', { path: 'text', value: html });
                 };
+
+                // Toolbar-Aktionen
+                const exec = (cmd: string, value?: string) => {
+                    body.focus();
+                    document.execCommand(cmd, false, value);
+                    // Nach execCommand HTML sichern
+                    const html = body.innerHTML;
+                    obj.text = html;
+                    if (ctx.host.onEvent) ctx.host.onEvent(obj.id || obj.name, 'propertyChange', { path: 'text', value: html });
+                };
+
+                (el.querySelector('.stb-bold') as HTMLElement).onclick = (e) => { e.stopPropagation(); exec('bold'); };
+                (el.querySelector('.stb-italic') as HTMLElement).onclick = (e) => { e.stopPropagation(); exec('italic'); };
+                (el.querySelector('.stb-underline') as HTMLElement).onclick = (e) => { e.stopPropagation(); exec('underline'); };
+                (el.querySelector('.stb-unlink') as HTMLElement).onclick = (e) => { e.stopPropagation(); exec('unlink'); };
+
+                (el.querySelector('.stb-link') as HTMLElement).onclick = (e) => {
+                    e.stopPropagation();
+                    const sel = window.getSelection();
+                    const hasSelection = sel && sel.toString().trim().length > 0;
+                    const url = prompt(hasSelection ? `URL für "${sel!.toString()}" eingeben:` : 'URL eingeben:', 'https://');
+                    if (url && url !== 'https://') exec('createLink', url);
+                };
+
+                // Links im Editor: Ctrl+Klick öffnet URL
+                body.addEventListener('click', (e) => {
+                    const target = e.target as HTMLElement;
+                    const anchor = target.closest('a') as HTMLAnchorElement | null;
+                    if (anchor && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.open(anchor.href, '_blank', 'noopener,noreferrer');
+                    }
+                });
+
             } else {
-                ti.readOnly = true;
-                ta.readOnly = true;
+                // Run-Mode: nicht editierbar, Links direkt klickbar
+                body.removeAttribute('contenteditable');
+                toolbar.style.display = 'none';
                 header.style.cursor = 'default';
+                body.addEventListener('click', (e) => {
+                    const anchor = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null;
+                    if (anchor) {
+                        e.preventDefault();
+                        window.open(anchor.href, '_blank', 'noopener,noreferrer');
+                    }
+                });
             }
         }
-        
+
         const ti = el.querySelector('.sticky-title') as HTMLInputElement;
-        const ta = el.querySelector('.sticky-body') as HTMLTextAreaElement;
-        
+        const body = el.querySelector('.sticky-body') as HTMLElement;
+
         const titleValue = obj.title !== undefined ? String(obj.title) : 'Notiz';
-        // Aktiviere Sync von außen, WENN der Nutzer NICHT gerade aktiv tippt
         if (ti && ti.value !== titleValue && document.activeElement !== ti) {
             ti.value = titleValue;
         }
-        
+
+        // HTML-Inhalt nur setzen wenn nicht gerade aktiv bearbeitet wird
         const textValue = obj.text !== undefined ? String(obj.text) : '';
-        if (ta && ta.value !== textValue && document.activeElement !== ta) {
-            ta.value = textValue;
+        if (body && document.activeElement !== body) {
+            if (body.innerHTML !== textValue) body.innerHTML = textValue;
         }
-        
+
+        // Placeholder via CSS-Trick (contenteditable hat kein natives placeholder)
+        if (body) {
+            body.setAttribute('data-placeholder', 'Notiz eingeben...');
+            if (!body.classList.contains('sticky-placeholder-init')) {
+                body.classList.add('sticky-placeholder-init');
+                const style = document.createElement('style');
+                style.textContent = `.sticky-body[data-placeholder]:empty::before { content: attr(data-placeholder); color: rgba(0,0,0,0.35); pointer-events: none; }`;
+                document.head.appendChild(style);
+            }
+        }
+
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
         if (obj.style?.color) el.style.color = obj.style.color;
     }

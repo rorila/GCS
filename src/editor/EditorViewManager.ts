@@ -3755,8 +3755,16 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                     item.innerHTML = `
                         <div style="font-weight:bold;font-size:13px;color:#fff;margin-bottom:4px;">${this.escapeHtml(n.title)}</div>
                         <div style="font-size:11px;color:#aaa;margin-bottom:6px;">${this.escapeHtml(subtitle)}</div>
-                        <div style="font-size:12px;color:#ccc;white-space:pre-wrap;line-height:1.4;">${this.escapeHtml(n.text)}</div>
+                        <div class="sticky-note-text" style="font-size:12px;color:#ccc;white-space:pre-wrap;line-height:1.4;">${n.text}</div>
                     `;
+                    // Links im Text klickbar machen (öffnen neuen Tab)
+                    item.querySelectorAll('.sticky-note-text a').forEach((a: Element) => {
+                        (a as HTMLElement).style.cssText = 'color:#4fc3f7;';
+                        (a as HTMLElement).onclick = (e) => {
+                            e.stopPropagation();
+                            window.open((a as HTMLAnchorElement).href, '_blank', 'noopener,noreferrer');
+                        };
+                    });
 
                     item.onclick = () => {
                         // Navigiere zum Objekt
