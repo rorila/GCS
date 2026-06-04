@@ -54,23 +54,24 @@ export class TVideo extends TPanel {
     set playbackRate(value: number) { this._playbackRate = value; }
 
     get isPlaying(): boolean { return this._isPlaying; }
+    set isPlaying(value: boolean) { this._isPlaying = value; }
 
     // ─────────────────────────────────────────────
     // Methods (callable via Action System)
     // ─────────────────────────────────────────────
 
     public play(): void {
-        this._isPlaying = true;
+        this.isPlaying = true;
         logger.info(`[TVideo] ${this.name}.play()`);
     }
 
     public pause(): void {
-        this._isPlaying = false;
+        this.isPlaying = false;
         logger.info(`[TVideo] ${this.name}.pause()`);
     }
 
     public stop(): void {
-        this._isPlaying = false;
+        this.isPlaying = false;
         // The renderer should reset currentTime to 0 when it sees a stop transition 
         // or we could keep a separate state for reset.
         logger.info(`[TVideo] ${this.name}.stop()`);
