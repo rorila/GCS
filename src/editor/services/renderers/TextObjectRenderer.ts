@@ -373,7 +373,7 @@ export class TextObjectRenderer {
                     }
                 };
 
-                // Links im Editor: Ctrl+Klick öffnet URL im neuen Tab
+                // Links im Editor: Ctrl+Klick öffnet HelpOverlay (iframe über dem Editor)
                 body.addEventListener('click', (e) => {
                     const target = e.target as HTMLElement;
                     const anchor = target.closest('a') as HTMLAnchorElement | null;
@@ -381,8 +381,12 @@ export class TextObjectRenderer {
                         e.preventDefault();
                         e.stopPropagation();
                         if (e.ctrlKey || e.metaKey) {
-                            // window.open ohne 'noopener' → Chrome bringt Tab in den Vordergrund
-                            window.open(anchor.href, '_blank');
+                            const helpOverlay = (window as any).helpOverlay;
+                            if (helpOverlay) {
+                                helpOverlay.show(anchor.href);
+                            } else {
+                                window.open(anchor.href, '_blank');
+                            }
                         }
                     }
                 });

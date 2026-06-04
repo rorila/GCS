@@ -38,6 +38,7 @@ import { EditorInteractionManager } from './services/EditorInteractionManager';
 import { ObjectStore } from './services/ObjectStore';
 import { Logger } from '../utils/Logger';
 import { loadComponentSchemas } from '../services/SchemaLoader';
+import { HelpOverlay } from './HelpOverlay';
 
 
 
@@ -155,6 +156,9 @@ export class Editor implements IViewHost {
         if (window.location.search.includes('e2e=true')) {
             (window as any).mediatorService = mediatorService;
         }
+
+        // 8a. HelpOverlay global initialisieren
+        (window as any).helpOverlay = HelpOverlay.getInstance();
 
         // 8. Browser Navigation Guard (Back-Button / Refresh)
         window.onbeforeunload = (e) => {
