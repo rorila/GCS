@@ -30,38 +30,24 @@ export class HelpOverlay {
     public show(url: string): void {
         this.errorBanner.style.display = 'none';
         this.titleEl.textContent = url;
-        this.iframe.src = url;
         this.overlay.style.display = 'flex';
 
-        // Kurz warten — wenn iframe leer bleibt (X-Frame-Options), Fallback zeigen
-        setTimeout(() => {
-            try {
-                const iframeDoc = this.iframe.contentDocument || this.iframe.contentWindow?.document;
-                if (!iframeDoc || iframeDoc.body?.innerHTML === '') {
-                    this.showFallback(url);
-                }
-            } catch {
-                // Cross-Origin: iframe ist geblockt
-                this.showFallback(url);
-            }
-        }, 3000);
+        // Fallback-Link immer anzeigen (oben im Banner) damit User notfalls neuen Tab öffnen kann
+        this.errorBanner.innerHTML = `
+            <a href="${url}" target="_blank" rel="noopener noreferrer"
+               style="color:#4fc3f7;">
+               ↗ In neuem Tab öffnen
+            </a>
+        `;
+        this.errorBanner.style.display = 'flex';
+
+        this.iframe.src = url;
     }
 
     public hide(): void {
         this.overlay.style.display = 'none';
         this.iframe.src = 'about:blank';
         this.errorBanner.style.display = 'none';
-    }
-
-    private showFallback(url: string): void {
-        this.errorBanner.innerHTML = `
-            ⚠️ Diese Seite erlaubt keine Einbettung. 
-            <a href="${url}" target="_blank" rel="noopener noreferrer" 
-               style="color:#4fc3f7; margin-left:8px;">
-               In neuem Tab öffnen ↗
-            </a>
-        `;
-        this.errorBanner.style.display = 'flex';
     }
 
     private buildOverlay(): HTMLElement {
