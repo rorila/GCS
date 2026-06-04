@@ -787,6 +787,7 @@ export class StageRenderer {
         else if (className === 'TInfoWindow') ComplexComponentRenderer.renderInfoWindow(ctx, el, obj, isNew);
         else if (className === 'TColorPicker') InputRenderer.renderColorPicker(ctx, el, obj, isNew);
         else if (className === 'TImageList') this.renderImageList(el, obj);
+        else if (className === 'TVideo') this.renderVideo(el, obj);
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
         else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) TextObjectRenderer.renderLabel(ctx, el, obj);
     }
@@ -862,6 +863,15 @@ export class StageRenderer {
 
         // 3. Inhalt (z.B. TLabel Text, Bilder)
         this.renderComponentContent(el, obj, className, false);
+
+        // 4. TVideo: _isPlaying-State auf das DOM-<video>-Element übertragen
+        if (className === 'TVideo') {
+            const videoEl = el.querySelector('video') as HTMLVideoElement | null;
+            if (videoEl) {
+                if (obj._isPlaying && videoEl.paused) videoEl.play().catch(() => {});
+                else if (!obj._isPlaying && !videoEl.paused) videoEl.pause();
+            }
+        }
     }
 
     private updateSelectionState(el: HTMLElement, id: string) {
@@ -1158,6 +1168,57 @@ export class StageRenderer {
                 }
             }
         }
+    }
+
+    /**
+     * Rendert TVideo: Platzhalter im Editor, echtes <video>-Element im Run-Mode.
+     */
+    private renderVideo(el: HTMLElement, obj: any): void {
+        const runMode = this.host.runMode;
+        const src = obj._videoSource || obj.videoSource || '';
+
+        if (!runMode) {
+            // Editor: Platzhalter anzeigen
+            const existing = el.querySelector('video');
+            if (existing) existing.remove();
+            if (!el.querySelector('.tvideo-placeholder')) {
+                el.innerHTML = '';
+                const ph = document.createElement('div');
+                ph.className = 'tvideo-placeholder';
+                ph.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.5;pointer-events:none;background:#000;color:#fff;';
+                ph.textContent = '🎥';
+                el.appendChild(ph);
+            }
+            return;
+        }
+
+        // Run-Mode: <video>-Element erstellen oder aktualisieren
+        let videoEl = el.querySelector('video') as HTMLVideoElement | null;
+        const placeholder = el.querySelector('.tvideo-placeholder');
+        if (placeholder) placeholder.remove();
+
+        if (!videoEl) {
+            el.innerHTML = '';
+            videoEl = document.createElement('video');
+            videoEl.style.cssText = 'width:100%;height:100%;display:block;pointer-events:none;';
+            el.appendChild(videoEl);
+        }
+
+        // Eigenschaften synchronisieren
+        const normalizedSrc = src.startsWith('/videos/') ? '.' + src : src;
+        if (videoEl.getAttribute('src') !== normalizedSrc) {
+            videoEl.src = normalizedSrc;
+        }
+        videoEl.style.objectFit = (obj._objectFit || obj.objectFit || 'contain') as any;
+        videoEl.style.opacity = String(obj._imageOpacity ?? obj.imageOpacity ?? 1);
+        videoEl.loop = !!(obj._loop ?? obj.loop);
+        videoEl.muted = !!(obj._muted ?? obj.muted);
+        videoEl.playbackRate = obj._playbackRate ?? obj.playbackRate ?? 1;
+
+        // Playback-Zustand
+        const shouldPlay = !!(obj._isPlaying ?? obj.isPlaying);
+        if (shouldPlay && videoEl.paused) videoEl.play().catch(() => {});
+        else if (!shouldPlay && !videoEl.paused) videoEl.pause();
     }
 }
 
