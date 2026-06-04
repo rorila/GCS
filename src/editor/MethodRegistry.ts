@@ -8,6 +8,15 @@ export interface MethodParamDef {
     optional?: boolean;
 }
 
+export interface MethodDef {
+    params: MethodParamDef[];
+    hasReturn?: boolean;
+}
+
+export const MethodReturnMap: Record<string, boolean> = {
+    'generate': true,
+};
+
 export const MethodRegistry: Record<string, MethodParamDef[]> = {
     'setVelocity': [
         { name: 'vx', type: 'number', label: 'Velocity X' },
@@ -23,6 +32,7 @@ export const MethodRegistry: Record<string, MethodParamDef[]> = {
         { name: 'message', type: 'string', label: 'Nachricht' },
         { name: 'type', type: 'select', label: 'Typ', options: ['info', 'success', 'warning', 'error'], default: 'info' }
     ],
+    'play': [],
     'hide': [],
     'toggle': [],
     'enable': [],

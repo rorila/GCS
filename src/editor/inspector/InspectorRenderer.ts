@@ -7,7 +7,7 @@ import { projectVariableRegistry } from '../../services/registry/VariableRegistr
 
 import { serviceRegistry } from '../../services/ServiceRegistry';
 
-import { MethodRegistry } from '../MethodRegistry';
+import { MethodRegistry, MethodReturnMap } from '../MethodRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { DialogDomainHelper } from '../dialogs/utils/DialogDomainHelper';
 import { componentRegistry } from '../../services/ComponentRegistry';
@@ -427,7 +427,10 @@ export class InspectorRenderer {
             // --- SPECIAL: Dynamic Method Parameters for call_method ---
             if (type === 'call_method' && param.name === 'params') {
                 const methodName = selectedObject.method;
-                const signature = (MethodRegistry as any)[methodName] || [{ name: 'params', type: 'string', label: 'Parameter' }];
+                const knownMethod = methodName in (MethodRegistry as any);
+                const signature = knownMethod ? (MethodRegistry as any)[methodName] : [{ name: 'params', type: 'string', label: 'Parameter' }];
+                // Keine Parameter → Feld ausblenden
+                if (signature.length === 0) return;
 
                 const paramContainer = document.createElement('div');
                 paramContainer.style.display = 'flex';
@@ -496,6 +499,10 @@ export class InspectorRenderer {
                     paramContainer.appendChild(sigRow);
                 });
                 input = paramContainer;
+            } else if (type === 'call_method' && param.name === 'resultVariable') {
+                // Nur anzeigen wenn die gewählte Methode einen Rückgabewert hat
+                const methodName = selectedObject.method;
+                if (!MethodReturnMap[methodName]) return;
             } else {
                 switch (param.type) {
                     case 'json': {

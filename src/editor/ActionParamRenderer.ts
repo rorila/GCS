@@ -7,6 +7,7 @@ import { componentRegistry } from '../services/ComponentRegistry';
 
 
 import { serviceRegistry } from '../services/ServiceRegistry';
+import { MethodReturnMap } from './MethodRegistry';
 import { Logger } from '../utils/Logger';
 
 const logger = Logger.get('ActionParamRenderer');
@@ -146,6 +147,9 @@ export class ActionParamRenderer {
                 default: {
                     if (type === 'call_method' && param.name === 'params') {
                         input = this.renderMethodParams(ctx);
+                        if (!input) return;
+                    } else if (type === 'call_method' && param.name === 'resultVariable') {
+                        if (!MethodReturnMap[ctx.dialogData.method]) return;
                     } else {
                         const edit = document.createElement('input');
                         edit.type = 'text';
@@ -200,9 +204,10 @@ export class ActionParamRenderer {
         return container;
     }
 
-    private static renderMethodParams(ctx: ActionParamContext): HTMLElement {
+    private static renderMethodParams(ctx: ActionParamContext): HTMLElement | null {
         const methodName = ctx.dialogData.method;
         const signature = ctx.getMethodSignature(ctx.dialogData.target, methodName);
+        if (signature.length === 0) return null;
 
         const paramContainer = document.createElement('div');
         paramContainer.style.cssText = 'display: flex; flex-direction: column; gap: 8px; padding-left: 10px; border-left: 2px solid #555; margin-top: 4px;';
