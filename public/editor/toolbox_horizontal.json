@@ -53,6 +53,11 @@
                     "type": "EmojiPicker",
                     "icon": "😊",
                     "label": "EmojiPicker"
+                },
+                {
+                    "type": "Link",
+                    "icon": "🔗",
+                    "label": "Link"
                 }
             ]
         },

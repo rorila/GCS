@@ -137,6 +137,7 @@ export class DialogDomainHelper {
             'TCard': ['show', 'hide', 'toggle', 'moveTo', 'flip'],
             'TImage': ['setSrc', 'show', 'hide', 'moveTo', 'flip'],
             'TVideo': ['play', 'pause', 'stop', 'setSrc', 'moveTo'],
+            'TLink': ['open', 'show', 'hide', 'moveTo'],
             'TAudio': ['play', 'pause', 'stop', 'setSrc'],
             'TGameServer': ['connect', 'disconnect', 'createRoom', 'joinRoom', 'leaveRoom', 'sendMessage'],
             'TGameCard': ['flip', 'reset', 'moveTo'],

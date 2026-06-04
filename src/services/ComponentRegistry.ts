@@ -23,6 +23,7 @@ import { TTable } from '../components/TTable';
 import { TTextControl } from '../components/TTextControl';
 import { TStickyNote } from '../components/TStickyNote';
 import { TVideo } from '../components/TVideo';
+import { TLink } from '../components/TLink';
 import { TVariable } from '../components/TVariable';
 import { TTriggerVariable } from '../components/TTriggerVariable';
 import { TTimer } from '../components/TTimer';
@@ -124,6 +125,7 @@ export class ComponentRegistry {
         this.register('TTextControl', TTextControl);
         this.register('TStickyNote', TStickyNote);
         this.register('TVideo', TVideo);
+        this.register('TLink', TLink);
         this.register('TProgressBar', TProgressBar);
 
         // System Komponenten
@@ -190,6 +192,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Image', 'TImage');
         this.typeMapping.set('ImageList', 'TImageList');
         this.typeMapping.set('Video', 'TVideo');
+        this.typeMapping.set('Link', 'TLink');
         this.typeMapping.set('SplashScreen', 'TSplashScreen');
         this.typeMapping.set('Label', 'TLabel');
         this.typeMapping.set('StickyNote', 'TStickyNote');

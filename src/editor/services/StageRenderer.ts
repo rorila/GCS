@@ -788,6 +788,7 @@ export class StageRenderer {
         else if (className === 'TColorPicker') InputRenderer.renderColorPicker(ctx, el, obj, isNew);
         else if (className === 'TImageList') this.renderImageList(el, obj);
         else if (className === 'TVideo') this.renderVideo(el, obj);
+        else if (className === 'TLink') this.renderLink(el, obj);
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
         else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) TextObjectRenderer.renderLabel(ctx, el, obj);
     }
@@ -1167,6 +1168,36 @@ export class StageRenderer {
                     el.style.opacity = String(obj.opacity);
                 }
             }
+        }
+    }
+
+    /**
+     * Rendert TLink: klickbarer Link-Text der eine URL in einem neuen Tab öffnet.
+     */
+    private renderLink(el: HTMLElement, obj: any): void {
+        const text = obj.text || obj.name || 'Link';
+        const url = obj.url || '';
+        const underline = obj.underline !== false;
+        const color = obj.style?.color || '#4fc3f7';
+        const fontSize = obj.style?.fontSize || 14;
+
+        let span = el.querySelector('.tlink-text') as HTMLElement | null;
+        if (!span) {
+            el.innerHTML = '';
+            span = document.createElement('span');
+            span.className = 'tlink-text';
+            el.appendChild(span);
+        }
+        span.textContent = text;
+        span.style.cssText = `color:${color};font-size:${fontSize}px;text-decoration:${underline ? 'underline' : 'none'};cursor:pointer;`;
+
+        if (this.host.runMode) {
+            el.onclick = (e) => {
+                e.stopPropagation();
+                if (url) window.open(url, '_blank', 'noopener,noreferrer');
+            };
+        } else {
+            el.onclick = null;
         }
     }
 
