@@ -1,3 +1,8 @@
+### [3.32.6] - 2026-05-31
+### Behoben
+- **Threshold- & Range-Variablen Events:** Ein kritischer Fehler wurde behoben, bei dem die Events von Schwellenwert-Variablen (`TThresholdVariable`) und Bereichs-Variablen (`TRangeVariable`) nicht ausgelöst wurden. Der `RuntimeVariableManager` kopiert nun beim Laden von Stage-Komponenten (`importVariablesFromObjects`) alle relevanten Konfigurationsfelder (wie `threshold`, `comparison`, `min`, `max`, `triggerValue`, `isRandom` und `Tasks`/`events`) in die interne Variablen-Definition.
+- **Debug-Log-Viewer Details:** Die Detail-Anzeige von Variablen-Änderungen im Debug-Log-Viewer zeigt nun den tatsächlichen Wert und den vorherigen Wert anstelle von Platzhalter-Fragezeichen (`?.?`).
+
 ### [3.32.5] - 2026-05-26
 ### Behoben
 - **E2E-Tests stabilisiert & übersprungen:** Um unnötige Token-Kosten und Timeouts zu vermeiden, wurden instabile E2E-Tests wie der Stage-Erstellungs-Test (`05_StageCreation.spec.ts`) und der Stage-Wechsel-Rückkehr-Test (`11_StageSwitching.spec.ts`) via `test.skip()` deaktiviert.

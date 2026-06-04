@@ -86,7 +86,15 @@ export class RuntimeVariableManager {
                 name: v.name,
                 scope: v.scope || 'stage',
                 defaultValue: v.defaultValue !== undefined ? v.defaultValue : (v.value !== undefined ? v.value : (v.entries || v.items || v.data)),
-                isInteger: v.className === 'TIntegerVariable' || v.isInteger
+                isInteger: v.className === 'TIntegerVariable' || v.isInteger,
+                threshold: v.threshold,
+                comparison: v.comparison,
+                min: v.min,
+                max: v.max,
+                triggerValue: v.triggerValue,
+                isRandom: v.isRandom,
+                type: v.type || (v.className === 'TThresholdVariable' ? 'threshold' : (v.className === 'TRangeVariable' ? 'range' : undefined)),
+                Tasks: { ...(v.events || {}), ...(v.Tasks || {}) }
             };
             
             this.globalDefinitions.set(vDef.name, vDef);

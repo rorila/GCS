@@ -1,0 +1,385 @@
+{
+  "meta": {
+    "name": "VideoTest",
+    "version": "1.0.0",
+    "author": "RoRiLa",
+    "description": "",
+    "_sourcePath": "projects/VideoTest.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "main",
+      "name": "Haupt-Level",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "input_controller",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TVirtualGamepad",
+          "id": "virtual_gamepad",
+          "name": "VirtualGamepad",
+          "scope": "stage",
+          "isService": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 5,
+          "y": 1,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#00ffcc",
+            "borderWidth": 1,
+            "opacity": 0.8
+          },
+          "layoutStyle": "split",
+          "splitVerticalAlignment": "bottom",
+          "autoHideOnDesktop": true,
+          "scale": 1
+        },
+        {
+          "className": "TVideo",
+          "id": "obj_1780557615447_hj39rku3l",
+          "name": "Video_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 0,
+          "width": 41,
+          "height": 22,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#000000",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "videoSource": "./videos/Video Project.mp4",
+          "objectFit": "contain",
+          "imageOpacity": 1,
+          "autoplay": false,
+          "loop": false,
+          "muted": true,
+          "playbackRate": 1
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1780558136677_atu0e48og",
+          "name": "Btn_PlayVideo",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "PlayVideo"
+          },
+          "visible": true,
+          "x": 7,
+          "y": 24,
+          "width": 3,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#110d0d",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Play",
+          "icon": ""
+        },
+        {
+          "className": "TLink",
+          "id": "obj_1780560992335_ico406xj6",
+          "name": "Link_7",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 24,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#4fc3f7",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Link_7",
+          "url": "",
+          "underline": true
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1780563611032_gwout784z",
+          "name": "StickyNote_8",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Notiz",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 26,
+          "y": 24,
+          "width": 19,
+          "height": 9,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "<a href=\"https://Mathildr.de\" target=\"_blank\" rel=\"noopener noreferrer\">Mathildr.com</a> <b>BlaBla</b> ssss"
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1780564976799_2i5za42lt",
+          "name": "StickyNote_9",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Notiz",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 4,
+          "y": 30,
+          "width": 17,
+          "height": 7,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "https://Mathildr.deNeue Notiz..."
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780558224176",
+          "details": "",
+          "type": "call_method",
+          "name": "Act_VideoStart",
+          "showDetails": false,
+          "target": "Video_5",
+          "changes": {},
+          "method": "play"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "a1147bd3-bcbb-4861-9a10-fd48437aeb64",
+          "name": "PlayVideo",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_VideoStart",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "PlayVideo": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_VideoStart": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {}
+    }
+  ],
+  "activeStageId": "main",
+  "schemaVersion": "4.0.0"
+}

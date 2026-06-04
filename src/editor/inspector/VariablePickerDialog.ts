@@ -19,7 +19,7 @@ export class VariablePickerDialog {
      *   - Im 'component'-Modus: "Komponente.Eigenschaft" (z.B. "Sprite1.x")
      *   - Im 'all'-Modus: wie bisher (je nach Auswahl)
      */
-    public static show(context?: { objectId?: string, repeaterFields?: string[] }, mode: 'all' | 'variable' | 'component' = 'all'): Promise<string | null> {
+    public static show(context?: { objectId?: string, repeaterFields?: string[] }, mode: 'all' | 'variable' | 'component' | 'pure_variable' = 'all'): Promise<string | null> {
         return new Promise((resolve) => {
             const overlay = VariablePickerDialog.createOverlay();
             const dialog = VariablePickerDialog.createDialog();
@@ -63,7 +63,7 @@ export class VariablePickerDialog {
             variableRadioInput.type = 'radio';
             variableRadioInput.name = 'pickerMode';
             variableRadioInput.value = 'variable';
-            variableRadioInput.checked = mode === 'variable';
+            variableRadioInput.checked = mode === 'variable' || mode === 'pure_variable';
             variableRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
             const variableLabel = document.createElement('span');
             variableLabel.innerText = '📦 Nur Variablen';
@@ -104,11 +104,17 @@ export class VariablePickerDialog {
             dialog.appendChild(content);
 
             // Aktuellen Modus tracken
-            let currentMode: 'all' | 'variable' | 'component' = mode;
+            let currentMode: 'all' | 'variable' | 'component' | 'pure_variable' = mode;
 
             // Event-Listener für Radio-Buttons
             const updateMode = () => {
-                currentMode = allRadioInput.checked ? 'all' : (variableRadioInput.checked ? 'variable' : 'component');
+                if (allRadioInput.checked) {
+                    currentMode = 'all';
+                } else if (variableRadioInput.checked) {
+                    currentMode = mode === 'pure_variable' ? 'pure_variable' : 'variable';
+                } else {
+                    currentMode = 'component';
+                }
                 renderList(searchInput.value);
             };
             allRadioInput.onchange = updateMode;
@@ -147,6 +153,9 @@ export class VariablePickerDialog {
                 if (currentMode === 'variable') {
                     // Nur-Variablen-Modus: "${VariablenName}"
                     resolve(`\${${varName}}`);
+                } else if (currentMode === 'pure_variable') {
+                    // Reiner Variablenname ohne Wrapper
+                    resolve(varName);
                 } else if (currentMode === 'component') {
                     // Nur-Komponenten-Modus: "Komponente.Eigenschaft" (bereits im varName enthalten)
                     resolve(varName);
@@ -162,14 +171,16 @@ export class VariablePickerDialog {
                 const filterLower = filter.toLowerCase();
 
                 // Filter je nach Modus
-                const showVariables = currentMode === 'all' || currentMode === 'variable';
+                const showVariables = currentMode === 'all' || currentMode === 'variable' || currentMode === 'pure_variable';
                 const showComponents = currentMode === 'all' || currentMode === 'component';
+
+                const hideSub = currentMode === 'variable' || currentMode === 'pure_variable';
 
                 // Globale Variablen
                 if (showVariables && globalVars.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(globalVars, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('🌐 Globale Variablen', filtered, selectVar, filterLower, currentMode === 'variable'));
+                        content.appendChild(VariablePickerDialog.createSection('🌐 Globale Variablen', filtered, selectVar, filterLower, hideSub));
                     }
                 }
 
@@ -177,7 +188,7 @@ export class VariablePickerDialog {
                 if (showVariables && stageVars.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(stageVars, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('🎭 Stage-Variablen', filtered, selectVar, filterLower, currentMode === 'variable'));
+                        content.appendChild(VariablePickerDialog.createSection('🎭 Stage-Variablen', filtered, selectVar, filterLower, hideSub));
                     }
                 }
 
@@ -185,7 +196,7 @@ export class VariablePickerDialog {
                 if (showVariables && taskVars.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(taskVars, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('⚡ Task-Variablen (Lokal)', filtered, selectVar, filterLower, currentMode === 'variable'));
+                        content.appendChild(VariablePickerDialog.createSection('⚡ Task-Variablen (Lokal)', filtered, selectVar, filterLower, hideSub));
                     }
                 }
 
@@ -257,6 +268,16 @@ export class VariablePickerDialog {
     }
 
     private static getSubFields(v: any): string[] {
+        const className = (v.className || '') as string;
+        const VARIABLE_CLASSNAMES = [
+            'TVariable', 'TIntegerVariable', 'TBooleanVariable', 'TStringVariable',
+            'TRealVariable', 'TRandomVariable', 'TTimerVariable', 'TTriggerVariable',
+            'TThresholdVariable', 'TRangeVariable'
+        ];
+        if (VARIABLE_CLASSNAMES.includes(className)) {
+            return [];
+        }
+
         let fields: string[] = [];
 
         if (v._isComp) {
@@ -272,7 +293,7 @@ export class VariablePickerDialog {
         }
 
         const type = (v.type || '') as string;
-        const className = (v.className || '') as string;
+        // className ist bereits oben deklariert
 
         if (type === 'object' || type === 'object_list' || type === 'json' || type === 'any' ||
             className === 'TObjectVariable' || className === 'TVariable' || className === 'TStringMap') {

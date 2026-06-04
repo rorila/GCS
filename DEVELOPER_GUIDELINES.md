@@ -314,6 +314,7 @@
 - **Electron IFrame IPC Race Condition**: Die `iframe-runner.html` erwartet Projekt-Daten über `postMessage`. Der integrierte `UniversalPlayer` lädt als Fallback standardmäßig das `project.json` via Fetch-API, falls `window.PROJECT` undefiniert ist. In gesicherten Umgebungen wie Electron (`contextIsolation`, no frameElement access) führt der Fallback dazu, dass VOR dem Eintreffen der `postMessage` eine veraltete JSON-Version geladen und gerendert wird. Um dies zu verhindern, wurde das Flag `window.WAIT_FOR_PROJECT = true` im Runner-HTML integriert.
 - **TypeScript ES2022+ class fields**: Werden NACH dem `super()`-Aufruf initialisiert und können Referenzen zerschießen, wenn diese in `createRoot` angelegt wurden. Nutze z. B. Re-Acquirement im Konstruktor.
 - **Vite Hot-Reload stillschweigende Blockade**: Vite Hot-Reload blockiert stillschweigend bei jeglichen TS-Kompilierungsfehlern (z. B. TS6133 unused var). Dies führt zu irreführenden Alt-Zuständen beim Testen im Browser.
+- **Metadaten-Import bei Komponenten-Variablen**: Variablen, die als visuelle Komponenten auf der Stage existieren (wie `TThresholdVariable`, `TRangeVariable`), müssen beim Import (`importVariablesFromObjects` im `RuntimeVariableManager`) all ihre konfigurierbaren Metadaten wie `threshold`, `comparison`, `min`, `max`, `triggerValue`, `isRandom` und `Tasks`/`events` explizit in die generierten `vDef`-Definitionsobjekte kopiert bekommen. Andernfalls ignoriert die Runtime die Events (z. B. `onThresholdReached`), da diese in der reinen Variablen-Definition fehlen.
 
 ### 13.11 Electron-Spezifisch
 
@@ -510,8 +511,10 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mssen zwingen
 - **Wirkung:** Der Inspector zeigt dann automatisch den "V"-Button neben dem Dropdown an und erlaubt die Auswahl von Variablen über den `VariablePickerDialog`. Zudem wird ein aktuell gesetzter Variablen-Wert (der nicht in der statischen Optionsliste steht) als temporäre Option im Dropdown eingeblendet.
 - **Implementierung:** In der Laufzeit-Aktion (Handler) muss der Wert dann durch `resolveTarget` oder `ExpressionParser.interpolate` aufgelöst werden.
 
-### 25. E2E-Tests: Menü-Filterung & E2E-Bypass
-- **E2E-Bypass**: Wenn ein Editor-Workflow im E2E-Modus (`window.location.search.includes('e2e=true')`) Dialoge bypassen soll (z. B. `createStageFromWizard`), müssen alle erforderlichen Datenstrukturen initialisiert werden (z. B. leere Arrays für `controls` und `objects` in `stageData`), da Methoden wie `populateStageFromWizardData` sonst ungeschützt darauf zugreifen und zu TypeErrors führen.
-- **Menü-Filterung in Tests**: Im Stages-Menü sind statische Befehle (z. B. `📋 Stages verwalten...`, `Neue Stage`) und dynamische Stages gemischt. E2E-Tests dürfen nicht blind annehmen, dass jeder Menüpunkt eine Stage ist. Echte Stages sollten im Test immer über Namens-Merkmale gefiltert werden (z. B. Vorhandensein von `🏗️` für Blueprint oder `🎭` für Standard-Stages).
-- **DO NOT** führe Tests, die extrem instabil oder zeitaufwändig sind, in jedem Commit-Lauf aktiv aus, wenn dies zu hohen Token-Kosten führt. Verwende `test.skip(true, 'Grund')`, um sie temporär zu deaktivieren, bis der E2E-Bypass robuster implementiert ist.
+### 26. Variablenauswahl für Inkrement/Negieren (pure_variable)
+- **Modus 'pure_variable':** Beim Inkrementieren oder Negieren von Variablen (z. B. `increment` oder `negate` Aktionen) soll der `VariablePickerDialog` zwingend im Modus `'pure_variable'` geöffnet werden (durch Übergabe als zweiten Parameter an `VariablePickerDialog.show()`). Dies stellt sicher, dass:
+  1. Keine Subeigenschaften (wie `.value`, `.min`, `.max`) zur Auswahl angeboten werden, was die reaktive Proxy-Pipeline der Runtime umgehen würde.
+  2. Der nackte Variablenname ohne `${}`-Wrapper zurückgegeben wird (z. B. `ScoreCounterRight` statt `${ScoreCounterRight}`), da dies als JSON-Key für die Zuweisungen (`changes`) benötigt wird.
+- **Deaktivierung von Subeigenschaften für Variablenkomponenten:** Klassen wie `TVariable`, `TThresholdVariable`, `TRangeVariable` etc. dürfen im `VariablePickerDialog` niemals Subeigenschaften (Subfields) exponieren. `getSubFields()` muss für diese Klassen ein leeres Array zurückgeben.
+
 

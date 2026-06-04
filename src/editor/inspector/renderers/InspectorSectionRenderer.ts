@@ -460,7 +460,8 @@ export class InspectorSectionRenderer {
                     changeKeyBtn.style.cssText = 'padding:2px 4px;background:#8e44ad;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;font-weight:bold;flex-shrink:0;margin-left:2px;';
                     changeKeyBtn.onclick = async () => {
                         const { VariablePickerDialog } = await import('../VariablePickerDialog');
-                        const chosen = await VariablePickerDialog.show();
+                        const pickerMode = (obj && (obj.type === 'increment' || obj.type === 'negate')) ? 'pure_variable' : 'all';
+                        const chosen = await VariablePickerDialog.show(undefined, pickerMode);
                         if (chosen) {
                             const newChanges: Record<string, any> = {};
                             for (const [k, v] of Object.entries(changes)) {

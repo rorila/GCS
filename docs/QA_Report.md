@@ -1,8 +1,8 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 26.5.2026, 11:30:35
+**Generiert am**: 31.5.2026, 19:42:37
 **Status**: ❌ FEHLER GEFUNDEN
-**Gesamtlauf**: 86.6s
+**Gesamtlauf**: 86.4s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
@@ -15,50 +15,50 @@ pie title Test-Status (Gesamt: 261)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 86370ms 🐌 | ✅ |
-| Code Quality & Security Guards | 139ms | ✅ |
-| Coordinate Binding | 8ms | ✅ |
+| Playwright E2E | 86222ms 🐌 | ✅ |
+| Code Quality & Security Guards | 138ms | ✅ |
 | AgentController | 8ms | ✅ |
-| Stage-Transition Regression | 4ms | ✅ |
+| Coordinate Binding | 8ms | ✅ |
 | Mathe-Quiz | 4ms | ✅ |
-| RefactoringManager | 4ms | ✅ |
+| Stage-Transition Regression | 4ms | ✅ |
+| RefactoringManager | 3ms | ✅ |
 | TaskExecutor | 3ms | ✅ |
-| Stage-Import | 2ms | ✅ |
 | ProjectStore | 2ms | ✅ |
+| Stage-Import | 2ms | ✅ |
 | SyncValidator | 2ms | ✅ |
 | Serialization | 2ms | ✅ |
+| SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
 | Export Integrity | 2ms | ✅ |
 | Project Integrity | 2ms | ✅ |
-| SyncRefactor P1: SchemaMigrator | 1ms | ✅ |
 | GameLoopManager Physics | 1ms | ✅ |
 | FlowDataAction Inspector | 1ms | ✅ |
 | Action Stage Routing & Duplicates | 1ms | ✅ |
 | Pascal Code Generator | 1ms | ✅ |
 | Action CRUD | 1ms | ✅ |
-| SpawnObject Variable Support | 1ms | ✅ |
 | Event Actions (bind/unbind) | 1ms | ✅ |
 | Raketen-Countdown | 1ms | ✅ |
-| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
+| SpawnObject Variable Support | 1ms | ✅ |
 | SnapshotManager | 1ms | ✅ |
-| TTimer Variable Resolution | 1ms | ✅ |
+| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
 | Action Registration | 1ms | ✅ |
 | Unification & Auto-Unwrap | 1ms | ✅ |
+| TTimer Variable Resolution | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
 | Virtual Gamepad | 1ms | ✅ |
 | SidePanel | 1ms | ✅ |
-| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
-| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
 | FlowSync | 1ms | ✅ |
-| Login-Logic | 1ms | ✅ |
-| Smart-Mapping & Discovery | 1ms | ✅ |
+| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
 | SyncRefactor P0: Inspector Writeback | 0ms | ✅ |
+| Login-Logic | 0ms | ✅ |
+| Smart-Mapping & Discovery | 0ms | ✅ |
 | Renaming Robustness | 0ms | ✅ |
 | Electron Security | 0ms | ✅ |
 | Component Events | 0ms | ✅ |
-| TTable Smart-Unwrap | 0ms | ✅ |
 | SELECT COUNT(*) | 0ms | ✅ |
+| TTable Smart-Unwrap | 0ms | ✅ |
 
-**Summe Suiten**: 86572ms
-**Gesamtlauf inkl. Setup/Report**: 86585ms
+**Summe Suiten**: 86424ms
+**Gesamtlauf inkl. Setup/Report**: 86438ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -139,8 +139,8 @@ pie title Test-Status (Gesamt: 261)
 | Hydrate: Prototype Pollution Regression<br><small>Object.prototype blieb unveraendert</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 70 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Keine unerlaubten console.* Aufrufe<br><small>Zu viele: src/components/TDebugLog.ts:382, src/components/TDebugLog.ts:384, src/components/TDebugLog.ts:443, src/components/TDebugLog.ts:446, src/components/TStageController.ts:186, src/editor/EditorViewManager.ts:273, src/editor/EditorViewManager.ts:274, src/editor/EditorViewManager.ts:275, src/editor/EditorViewManager.ts:3144, src/editor/EditorViewManager.ts:3151, src/editor/EditorViewManager.ts:3153, src/editor/inspector/InspectorContextBuilder.ts:257, src/editor/inspector/InspectorEventHandler.ts:111, src/editor/inspector/InspectorEventHandler.ts:134, src/editor/inspector/InspectorEventHandler.ts:136, src/editor/inspector/InspectorEventHandler.ts:163, src/editor/inspector/InspectorEventHandler.ts:171, src/editor/inspector/InspectorEventHandler.ts:174, src/editor/inspector/renderers/InspectorSectionRenderer.ts:662, src/editor/services/EditorInteractionManager.ts:99, src/editor/services/EditorInteractionManager.ts:106, src/editor/services/EditorInteractionManager.ts:123, src/editor/services/renderers/ComplexComponentRenderer.ts:401, src/editor/services/renderers/TextObjectRenderer.ts:124, src/editor/services/renderers/VirtualGamepadRenderer.ts:72, src/editor/services/StageInteractionManager.ts:180, src/editor/services/StageInteractionManager.ts:199, src/editor/services/StageInteractionManager.ts:521, src/editor/services/StageInteractionManager.ts:631, src/editor/services/StageInteractionManager.ts:632, src/editor/services/StageInteractionManager.ts:665, src/editor/services/StageInteractionManager.ts:719, src/editor/services/StageRenderer.ts:835, src/editor/services/StageRenderer.ts:841, src/export/GameExporter.ts:463, src/export/GameExporter.ts:467, src/export/GameExporter.ts:560, src/runtime/actions/handlers/NavigationActions.ts:31, src/runtime/actions/handlers/NavigationActions.ts:37, src/runtime/actions/handlers/NavigationActions.ts:49, src/runtime/actions/handlers/NavigationActions.ts:78, src/runtime/actions/handlers/ObjectPoolActions.ts:162, src/runtime/actions/handlers/ObjectPoolActions.ts:170, src/runtime/actions/handlers/ObjectPoolActions.ts:178, src/runtime/actions/handlers/ObjectPoolActions.ts:184, src/runtime/GameRuntime.ts:576, src/runtime/GameRuntime.ts:587, src/services/DebugLogService.ts:55, src/services/DebugLogService.ts:90, src/services/ProjectStore.ts:290, src/services/ProjectStore.ts:293, src/utils/TauriFSAdapter.ts:21, src/utils/TauriFSAdapter.ts:60</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/Editor.ts (1209), src/editor/EditorViewManager.ts (4009), src/editor/inspector/InspectorRenderer.ts (1266), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1064), src/editor/services/StageRenderer.ts (1165), src/runtime/GameRuntime.ts (1173), src/services/AgentController.ts (1390)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Keine unerlaubten console.* Aufrufe<br><small>Zu viele: src/components/TDebugLog.ts:382, src/components/TDebugLog.ts:384, src/components/TDebugLog.ts:443, src/components/TDebugLog.ts:446, src/components/TStageController.ts:186, src/editor/EditorViewManager.ts:273, src/editor/EditorViewManager.ts:274, src/editor/EditorViewManager.ts:275, src/editor/EditorViewManager.ts:3144, src/editor/EditorViewManager.ts:3151, src/editor/EditorViewManager.ts:3153, src/editor/inspector/InspectorContextBuilder.ts:257, src/editor/inspector/InspectorEventHandler.ts:111, src/editor/inspector/InspectorEventHandler.ts:134, src/editor/inspector/InspectorEventHandler.ts:136, src/editor/inspector/InspectorEventHandler.ts:163, src/editor/inspector/InspectorEventHandler.ts:171, src/editor/inspector/InspectorEventHandler.ts:174, src/editor/inspector/renderers/InspectorSectionRenderer.ts:663, src/editor/services/EditorInteractionManager.ts:99, src/editor/services/EditorInteractionManager.ts:106, src/editor/services/EditorInteractionManager.ts:123, src/editor/services/renderers/ComplexComponentRenderer.ts:401, src/editor/services/renderers/TextObjectRenderer.ts:124, src/editor/services/renderers/VirtualGamepadRenderer.ts:72, src/editor/services/StageInteractionManager.ts:180, src/editor/services/StageInteractionManager.ts:199, src/editor/services/StageInteractionManager.ts:521, src/editor/services/StageInteractionManager.ts:631, src/editor/services/StageInteractionManager.ts:632, src/editor/services/StageInteractionManager.ts:665, src/editor/services/StageInteractionManager.ts:719, src/editor/services/StageRenderer.ts:835, src/editor/services/StageRenderer.ts:841, src/export/GameExporter.ts:463, src/export/GameExporter.ts:467, src/export/GameExporter.ts:560, src/runtime/actions/handlers/NavigationActions.ts:31, src/runtime/actions/handlers/NavigationActions.ts:37, src/runtime/actions/handlers/NavigationActions.ts:49, src/runtime/actions/handlers/NavigationActions.ts:78, src/runtime/actions/handlers/ObjectPoolActions.ts:162, src/runtime/actions/handlers/ObjectPoolActions.ts:170, src/runtime/actions/handlers/ObjectPoolActions.ts:178, src/runtime/actions/handlers/ObjectPoolActions.ts:184, src/runtime/GameRuntime.ts:576, src/runtime/GameRuntime.ts:587, src/services/DebugLogService.ts:55, src/services/DebugLogService.ts:90, src/services/ProjectStore.ts:290, src/services/ProjectStore.ts:293, src/utils/TauriFSAdapter.ts:21, src/utils/TauriFSAdapter.ts:60</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/Editor.ts (1209), src/editor/EditorViewManager.ts (4009), src/editor/inspector/InspectorRenderer.ts (1266), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1065), src/editor/services/FlowContextMenuProvider.ts (1030), src/editor/services/StageRenderer.ts (1165), src/runtime/GameRuntime.ts (1173), src/services/AgentController.ts (1402)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -209,7 +209,7 @@ pie title Test-Status (Gesamt: 261)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1779787748703_ub (erwartet: stage_import_1779787748703_ub), BackToLobby.stageId=stage_import_1779787748703_em (erwartet: stage_import_1779787748703_em)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1780249270790_4s (erwartet: stage_import_1780249270790_4s), BackToLobby.stageId=stage_import_1780249270790_ze (erwartet: stage_import_1780249270790_ze)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |

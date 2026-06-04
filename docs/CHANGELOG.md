@@ -1,5 +1,10 @@
 # Changelog (v3.31.0 - Unreleased)
 
+## [2026-05-31] - Variable Chooser Improvement for Increment/Negate Actions
+### Fixed
+- **Variablenauswahl für Inkrement/Negieren:** Im `VariablePickerDialog` wird nun beim Bearbeiten von `changes` in `increment`- und `negate`-Aktionen der `pure_variable`-Modus erzwungen. Dadurch werden keine Subeigenschaften wie `.value` mehr zur Auswahl angeboten und der Variablenname wird sauber ohne `${}`-Wrapper zurückgegeben, um fehlerhafte Zuweisungen zu verhindern.
+- **Kompilierungsfehler:** Doppelte Deklaration der Variable `className` in [VariablePickerDialog.ts](file:///C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/inspector/VariablePickerDialog.ts) behoben.
+
 ## [2026-04-25] - UI Inspector & Editor Fixes
 ### Fixed
 - **Systemvariablen in FlowCondition:** Systemvariablen wie `hitside`, `score`, `lives`, `loopIndex` und `deltaTime` sind nun regulär über die Dropdowns (Links/Rechts) in der Condition-Konfiguration auswählbar.
