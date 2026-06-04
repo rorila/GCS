@@ -9,6 +9,7 @@ import { InspectorSection } from '../inspector/types';
 
 import { Logger } from '../../utils/Logger';
 import { SchemaMigrator } from '../../services/SchemaMigrator';
+import { MethodRegistry, MethodReturnMap } from '../MethodRegistry';
 
 const logger = Logger.get('FlowAction');
 
@@ -556,7 +557,18 @@ export class FlowAction extends FlowElement {
             // Registry-basierte Action-Typen (http, service, navigate_stage, etc.)
             const meta = actionRegistry.getMetadata(effectiveType);
             if (meta?.parameters) {
+                const methodName = this.getActionDefinition()?.method || '';
                 meta.parameters.forEach((param: any) => {
+                    // call_method: params nur anzeigen wenn Methode Parameter hat
+                    if (effectiveType === 'call_method' && param.name === 'params') {
+                        const knownMethod = methodName in MethodRegistry;
+                        const signature = knownMethod ? MethodRegistry[methodName] : null;
+                        if (!signature || signature.length === 0) return;
+                    }
+                    // call_method: resultVariable nur anzeigen wenn Methode Rückgabewert hat
+                    if (effectiveType === 'call_method' && param.name === 'resultVariable') {
+                        if (!MethodReturnMap[methodName]) return;
+                    }
                     const field: any = {
                         name: param.name, label: param.label,
                         type: this.mapParameterTypeToInspector(param.type),
