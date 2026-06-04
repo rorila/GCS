@@ -360,17 +360,35 @@ export class TextObjectRenderer {
                     const sel = window.getSelection();
                     const hasSelection = sel && sel.toString().trim().length > 0;
                     const url = prompt(hasSelection ? `URL für "${sel!.toString()}" eingeben:` : 'URL eingeben:', 'https://');
-                    if (url && url !== 'https://') exec('createLink', url);
+                    if (url && url !== 'https://') {
+                        exec('createLink', url);
+                        // target=_blank auf alle Links setzen damit Chrome im neuen Tab öffnet
+                        body.querySelectorAll('a').forEach((a: HTMLAnchorElement) => {
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                        });
+                        // HTML nach target-Korrektur erneut speichern
+                        obj.text = body.innerHTML;
+                        if (ctx.host.onEvent) ctx.host.onEvent(obj.id || obj.name, 'propertyChange', { path: 'text', value: body.innerHTML });
+                    }
                 };
 
-                // Links im Editor: Ctrl+Klick öffnet URL
+                // Links im Editor: Ctrl+Klick öffnet URL nativ (target=_blank)
+                // Normaler Klick: kein preventDefault → editierbar bleibt
                 body.addEventListener('click', (e) => {
                     const target = e.target as HTMLElement;
                     const anchor = target.closest('a') as HTMLAnchorElement | null;
-                    if (anchor && (e.ctrlKey || e.metaKey)) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        TextObjectRenderer.openUrl(anchor.href);
+                    if (anchor) {
+                        if (e.ctrlKey || e.metaKey) {
+                            // Nativ durchlassen – Chrome öffnet target=_blank im Vordergrund
+                            e.stopPropagation();
+                            // Sicherstellen dass target gesetzt ist
+                            anchor.target = '_blank';
+                            anchor.rel = 'noopener noreferrer';
+                        } else {
+                            // Normaler Klick im Editor: nicht navigieren
+                            e.preventDefault();
+                        }
                     }
                 });
 
@@ -400,7 +418,14 @@ export class TextObjectRenderer {
         // HTML-Inhalt nur setzen wenn nicht gerade aktiv bearbeitet wird
         const textValue = obj.text !== undefined ? String(obj.text) : '';
         if (body && document.activeElement !== body) {
-            if (body.innerHTML !== textValue) body.innerHTML = textValue;
+            if (body.innerHTML !== textValue) {
+                body.innerHTML = textValue;
+                // Sicherstellen dass alle gespeicherten Links target=_blank haben
+                body.querySelectorAll('a').forEach((a: HTMLAnchorElement) => {
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                });
+            }
         }
 
         // Placeholder via CSS-Trick (contenteditable hat kein natives placeholder)
