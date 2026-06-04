@@ -1236,7 +1236,8 @@ export class StageRenderer {
         }
 
         // Eigenschaften synchronisieren
-        const normalizedSrc = src.startsWith('/videos/') ? '.' + src : src;
+        // data:-URLs direkt verwenden (eingebetteter Export), sonst Pfad normalisieren
+        const normalizedSrc = src.startsWith('data:') ? src : (src.startsWith('/videos/') ? '.' + src : src);
         if (videoEl.getAttribute('src') !== normalizedSrc) {
             videoEl.src = normalizedSrc;
         }

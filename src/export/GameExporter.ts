@@ -576,8 +576,8 @@ ${projectJSON}
         const collectPaths = (obj: any) => {
             if (!obj || typeof obj !== 'object') return;
 
-            // Common media properties (includes TImage and TAudio)
-            const props = ['backgroundImage', 'src', 'icon'];
+            // Common media properties (includes TImage, TAudio, TVideo)
+            const props = ['backgroundImage', 'src', 'icon', 'videoSource'];
             props.forEach(p => {
                 const val = obj[p];
                 if (val && typeof val === 'string' && val.length > 0 && !val.startsWith('data:') && !val.startsWith('http')) {
@@ -629,7 +629,7 @@ ${projectJSON}
         const replacePaths = (obj: any) => {
             if (!obj || typeof obj !== 'object') return;
 
-            const props = ['backgroundImage', 'src', 'icon'];
+            const props = ['backgroundImage', 'src', 'icon', 'videoSource'];
             props.forEach(p => {
                 const val = obj[p];
                 if (val && typeof val === 'string' && mediaRefs.has(val)) {
