@@ -370,7 +370,7 @@ export class TextObjectRenderer {
                     if (anchor && (e.ctrlKey || e.metaKey)) {
                         e.preventDefault();
                         e.stopPropagation();
-                        window.open(anchor.href, '_blank', 'noopener,noreferrer');
+                        TextObjectRenderer.openUrl(anchor.href);
                     }
                 });
 
@@ -383,7 +383,7 @@ export class TextObjectRenderer {
                     const anchor = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null;
                     if (anchor) {
                         e.preventDefault();
-                        window.open(anchor.href, '_blank', 'noopener,noreferrer');
+                        TextObjectRenderer.openUrl(anchor.href);
                     }
                 });
             }
@@ -416,5 +416,21 @@ export class TextObjectRenderer {
 
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
         if (obj.style?.color) el.style.color = obj.style.color;
+    }
+
+    /**
+     * Öffnet eine URL in einem neuen Tab und bringt diesen in den Fokus.
+     * Verwendet ein temporäres <a>-Element statt window.open(),
+     * damit der Browser den neuen Tab sofort in den Vordergrund bringt.
+     */
+    public static openUrl(url: string): void {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 }

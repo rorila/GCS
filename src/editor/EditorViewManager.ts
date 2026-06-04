@@ -3757,12 +3757,19 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                         <div style="font-size:11px;color:#aaa;margin-bottom:6px;">${this.escapeHtml(subtitle)}</div>
                         <div class="sticky-note-text" style="font-size:12px;color:#ccc;white-space:pre-wrap;line-height:1.4;">${n.text}</div>
                     `;
-                    // Links im Text klickbar machen (öffnen neuen Tab)
+                    // Links im Text klickbar machen (öffnen neuen Tab im Vordergrund)
                     item.querySelectorAll('.sticky-note-text a').forEach((a: Element) => {
                         (a as HTMLElement).style.cssText = 'color:#4fc3f7;';
                         (a as HTMLElement).onclick = (e) => {
                             e.stopPropagation();
-                            window.open((a as HTMLAnchorElement).href, '_blank', 'noopener,noreferrer');
+                            const tmp = document.createElement('a');
+                            tmp.href = (a as HTMLAnchorElement).href;
+                            tmp.target = '_blank';
+                            tmp.rel = 'noopener noreferrer';
+                            tmp.style.display = 'none';
+                            document.body.appendChild(tmp);
+                            tmp.click();
+                            document.body.removeChild(tmp);
                         };
                     });
 
