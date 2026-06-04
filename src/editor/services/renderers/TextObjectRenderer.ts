@@ -373,21 +373,16 @@ export class TextObjectRenderer {
                     }
                 };
 
-                // Links im Editor: Ctrl+Klick öffnet URL nativ (target=_blank)
-                // Normaler Klick: kein preventDefault → editierbar bleibt
+                // Links im Editor: Ctrl+Klick öffnet URL im neuen Tab
                 body.addEventListener('click', (e) => {
                     const target = e.target as HTMLElement;
                     const anchor = target.closest('a') as HTMLAnchorElement | null;
                     if (anchor) {
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (e.ctrlKey || e.metaKey) {
-                            // Nativ durchlassen – Chrome öffnet target=_blank im Vordergrund
-                            e.stopPropagation();
-                            // Sicherstellen dass target gesetzt ist
-                            anchor.target = '_blank';
-                            anchor.rel = 'noopener noreferrer';
-                        } else {
-                            // Normaler Klick im Editor: nicht navigieren
-                            e.preventDefault();
+                            // window.open ohne 'noopener' → Chrome bringt Tab in den Vordergrund
+                            window.open(anchor.href, '_blank');
                         }
                     }
                 });
