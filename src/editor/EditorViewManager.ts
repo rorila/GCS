@@ -325,13 +325,6 @@ export class EditorViewManager {
         this.userStoriesViewManager.renderUserStoriesView(panel);
     }
 
-
-
-
-
-
-
-
     public renderUserStoriesList() {
         this.userStoriesViewManager.renderUserStoriesList(this._lastExtractedRef);
     }
@@ -368,26 +361,6 @@ export class EditorViewManager {
     public showInteractionDiagram(userStoryId: string, interactionId: string) {
         this.userStoryDetailManager['showInteractionDiagram'](userStoryId, interactionId);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private renderIFrameView(panel: HTMLElement) {
         panel.innerHTML = '';
@@ -460,10 +433,5 @@ export class EditorViewManager {
     private renderManagementView(panel: HTMLElement) {
         this.managementViewManager.renderManagementView(panel);
     }
-
-
-
-
-
 }
 
