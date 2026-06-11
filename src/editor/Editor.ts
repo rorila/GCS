@@ -86,6 +86,10 @@ export class Editor implements IViewHost {
     public get isProjectDirty() { return this.viewManager.isProjectDirty; }
     public set isProjectDirty(v: boolean) { this.viewManager.isProjectDirty = v; }
     public renderUserStoriesList(): void { this.viewManager.renderUserStoriesList(); }
+    public get selectedManager() { return this.viewManager.selectedManager; }
+    public set selectedManager(v: string) { this.viewManager.selectedManager = v; }
+    public get useStageIsolatedView() { return this.viewManager.useStageIsolatedView; }
+    public set useStageIsolatedView(v: boolean) { this.viewManager.useStageIsolatedView = v; }
 
     public get workingProjectData() { return this.viewManager.workingProjectData; }
     public set workingProjectData(v: any) { this.viewManager.workingProjectData = v; }
