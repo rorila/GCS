@@ -591,7 +591,6 @@ export class GameRuntime implements IVariableHost {
             try {
                 this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
             } catch (e) {
-                console.error('Error executing onEnter:', e);
                 logger.error(`Error executing onEnter for stage ${this.stage.id}:`, e);
             }
         }

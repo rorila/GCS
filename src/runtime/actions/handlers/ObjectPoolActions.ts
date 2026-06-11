@@ -159,7 +159,7 @@ export function registerObjectPoolActions() {
             availableVarKeys: context.vars ? Object.keys(context.vars) : [],
             availableObjectNames: (context.objects || []).map((o: any) => o?.name).filter(Boolean)
         };
-        console.info('[destroy_object] Diagnose:', diag);
+        runtimeLogger.debug('[destroy_object] Diagnose:', diag);
         DebugLogService.getInstance().log('Action',
             `destroy_object: target="${rawTarget}"${resolvedFromVar !== undefined ? ` -> "${resolvedFromVar}"` : ''}`,
             { data: diag }
@@ -167,7 +167,6 @@ export function registerObjectPoolActions() {
 
         if (!context.destroyObject) {
             const msg = 'destroy_object: kein destroyObject-Callback verfügbar';
-            console.warn(msg);
             runtimeLogger.warn(msg);
             DebugLogService.getInstance().log('Event', msg);
             return;
@@ -175,14 +174,12 @@ export function registerObjectPoolActions() {
         const target = resolveTarget(rawTarget, context.objects, context.vars, context.eventData);
         if (target) {
             const msg = `destroy_object: target="${rawTarget}" aufgeloest -> "${target.name || target.id}"`;
-            console.info(msg);
             runtimeLogger.info(msg);
             DebugLogService.getInstance().log('Action', msg);
             context.destroyObject(target.id || target.name);
         } else {
             const msg = `destroy_object: target="${rawTarget}" konnte NICHT aufgeloest werden. resolvedFromVar="${resolvedFromVar}". Wird mit Roh-String aufgerufen.`;
-            console.warn(msg, diag);
-            runtimeLogger.warn(msg);
+            runtimeLogger.warn(msg, diag);
             DebugLogService.getInstance().log('Event', msg, { data: diag });
             context.destroyObject(rawTarget);
         }

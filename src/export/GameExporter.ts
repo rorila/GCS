@@ -460,11 +460,11 @@ ${projectJSON}
                 window.PROJECT = JSON.parse(projectDataStr);
                 window.startStandalone(window.PROJECT);
             } catch (e) {
-                console.error('Failed to parse project data:', e);
+                logger.error('Failed to parse project data:', e);
                 document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Project initialization failed.</h2>';
             }
         } else {
-            console.error('Standalone Runtime not found! Check if runtime-standalone.js was bundled correctly.');
+            logger.error('Standalone Runtime not found! Check if runtime-standalone.js was bundled correctly.');
             document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';
         }
     });
@@ -557,7 +557,7 @@ ${projectJSON}
             // Runtime will detect PROJECT_DATA and decompress automatically
             window.startStandalone(null);
         } else {
-            console.error('Standalone Runtime not found!');
+            logger.error('Standalone Runtime not found!');
             document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';
         }
     });
