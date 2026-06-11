@@ -25,13 +25,24 @@
     "dev:electron:clean": "npm run clean:vite && npm run clean:electron && npm run dev:electron",
     "build:electron": "npm run build && electron-builder",
     "tauri:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && tauri dev\"",
-    "tauri:build": "npm run build && tauri build"
+    "tauri:build": "npm run build && tauri build",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@tauri-apps/cli": "^2.10.1",
+    "@eslint/js": "^9.15.0",
+    "@types/dompurify": "^3.0.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.0",
     "concurrently": "^8.2.2",
     "electron": "^28.2.0",
     "electron-builder": "^24.9.1",
@@ -44,14 +55,15 @@
     "wait-on": "^7.2.0"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-dialog": "^2.7.0",
+    "@tauri-apps/plugin-fs": "^2.5.0",
     "@types/express": "^5.0.6",
+    "dompurify": "^3.4.9",
     "express": "^5.2.1",
     "fflate": "^0.8.2",
     "jsep": "^1.4.0",
-    "mermaid": "^11.12.2",
-    "@tauri-apps/api": "^2.10.1",
-    "@tauri-apps/plugin-dialog": "^2.7.0",
-    "@tauri-apps/plugin-fs": "^2.5.0"
+    "mermaid": "^11.12.2"
   },
   "build": {
     "appId": "com.gamebuilder.app",

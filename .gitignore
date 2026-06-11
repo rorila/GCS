@@ -28,3 +28,23 @@ out_debug.txt
 playwright_out.txt
 pw_report.json
 test-results/
+
+# Test-Output-Artefakte (sollten nicht ins Repo)
+*output*.txt
+*results*.json
+report*.json
+test_*.txt
+tmp_*.txt
+
+# Logs
+debug-log.txt
+*_errors.log
+
+# Binaries
+*.exe
+
+# Ad-hoc Scripts (Archive)
+patch*.cjs
+fix_*.cjs
+scratch.ts
+scratch.js

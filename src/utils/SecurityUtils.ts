@@ -1,53 +1,26 @@
+import DOMPurify from 'dompurify';
+
 /**
  * SecurityUtils - Zentrale Schutzmechanismen gegen XSS und Injection Attacks.
  */
 export class SecurityUtils {
     
     /**
-     * Einfache Bereinigung von potenziell gefährlichen Tags und Attributen,
-     * um Cross-Site Scripting (XSS) in innerHTML Zuweisungen zu verhindern.
+     * Bereinigt HTML mit DOMPurify für sichere innerHTML-Zuweisungen.
+     * Erlaubt grundlegende Formatierung (b, i, u, strong, em, a, br, p, span)
+     * aber blockiert alle Scripts, Event-Handler und gefährlichen URLs.
      */
     public static sanitizeHTML(html: string): string {
         if (!html) return '';
         
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        const removeDangerousNodes = (node: Node) => {
-            const el = node as HTMLElement;
-            
-            if (el.tagName) {
-                const tag = el.tagName.toLowerCase();
-                // Gefährliche Tags komplett entfernen
-                if (['script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'base'].includes(tag)) {
-                    el.remove();
-                    return;
-                }
-
-                // Gefährliche Attribute (wie onload, onerror) entfernen
-                if (el.attributes) {
-                    for (let i = el.attributes.length - 1; i >= 0; i--) {
-                        const attr = el.attributes[i];
-                        if (attr.name.toLowerCase().startsWith('on')) {
-                            el.removeAttribute(attr.name);
-                        }
-                        if (attr.name.toLowerCase() === 'href' || attr.name.toLowerCase() === 'src') {
-                            if (attr.value.toLowerCase().trim().startsWith('javascript:')) {
-                                el.removeAttribute(attr.name);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Schleife Rückwärts, weil remove() die Länge children verändert
-            for (let i = node.childNodes.length - 1; i >= 0; i--) {
-                removeDangerousNodes(node.childNodes[i]);
-            }
-        };
-
-        removeDangerousNodes(doc.body);
-        return doc.body.innerHTML;
+        return DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ['b', 'i', 'u', 'strong', 'em', 'a', 'br', 'p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre'],
+            ALLOWED_ATTR: ['href', 'target', 'title', 'class', 'style', 'data-*'],
+            ALLOW_DATA_ATTR: true,
+            SANITIZE_DOM: true,
+            // Links nur mit http/https/ftp/mailto - kein javascript:
+            ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+        });
     }
 
     /**

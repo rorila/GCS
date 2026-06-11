@@ -1,0 +1,536 @@
+{
+  "meta": {
+    "name": "VideoTutorials",
+    "version": "1.0.0",
+    "author": "RoRiLa",
+    "description": "Ausgangsstage für die Anzeige von Tutorials",
+    "_sourcePath": "projects/VideoTutorials.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        },
+        {
+          "className": "TButton",
+          "id": "8a14285c-bfe2-4f2f-ab5d-1070ff3d6e0f",
+          "name": "Btn_GoToBackToDirectory",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ShowStageDirectory"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 37,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#777777",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "<-- zurück zum Inhaltsverzeichnis",
+          "icon": ""
+        },
+        {
+          "className": "TVideo",
+          "id": "obj_1780594318211_ylmf5euf7",
+          "name": "Video_7",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 7,
+          "width": 40,
+          "height": 19,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#000000",
+            "borderColor": "transparent",
+            "borderWidth": 2,
+            "borderRadius": 25
+          },
+          "videoSource": "./videos/Video Project.mp4",
+          "objectFit": "contain",
+          "imageOpacity": 1,
+          "autoplay": false,
+          "loop": false,
+          "muted": false,
+          "playbackRate": 1
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780593620929",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "Act_SwitchToTheDirectoryStage",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "reset": false,
+          "stageId": "main"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "13a56c96-7694-4f81-9a73-a0c30a38696a",
+          "name": "ShowStageDirectory",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SwitchToTheDirectoryStage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowStageDirectory": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SwitchToTheDirectoryStage": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "main",
+      "name": "Inhaltsverzeichins",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "input_controller",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TVirtualGamepad",
+          "id": "virtual_gamepad",
+          "name": "VirtualGamepad",
+          "scope": "stage",
+          "isService": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 53,
+          "y": 35,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#00ffcc",
+            "borderWidth": 1,
+            "opacity": 0.8
+          },
+          "layoutStyle": "split",
+          "splitVerticalAlignment": "bottom",
+          "autoHideOnDesktop": true,
+          "scale": 1
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1780590768822_i0a9j33c5",
+          "name": "Pnl_Inhaltsverzeichnis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 9,
+          "y": 2,
+          "width": 41,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "fontSize": 48,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "glowBlur": 10,
+            "glowSpread": 10
+          },
+          "caption": "Inhaltsverzeichnis",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TButton",
+          "id": "44e42a89-a3c0-4181-87a0-b3219e7a67d4",
+          "name": "Btn_GoToBackToDirectory",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ShowStageReactiveSystem"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 7,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#777777",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Reactives System",
+          "icon": ""
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1780593872867",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "Act_SwitchToTheReactiveSystem",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "reset": false,
+          "stageId": "stage_766aebc4-2113-4d9d-a6d4-da432b4ffe8e"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "36747167-a4a2-414b-b1db-b33d4edefc56",
+          "name": "ShowStageReactiveSystem",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SwitchToTheReactiveSystem",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowStageReactiveSystem": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SwitchToTheReactiveSystem": {
+              "x": 340,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": false,
+        "backgroundColor": "#2a2a2a"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ],
+      "excludedBlueprintIds": [
+        "81ac7a81-4972-4f36-ab0a-f95d60c9fe46",
+        "8a14285c-bfe2-4f2f-ab5d-1070ff3d6e0f",
+        "obj_1780594318211_ylmf5euf7"
+      ]
+    },
+    {
+      "id": "stage_766aebc4-2113-4d9d-a6d4-da432b4ffe8e",
+      "name": "ReactiveSystem",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_import_1780591252966_pc8f",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TVirtualGamepad",
+          "id": "obj_import_1780591252966_hh3m",
+          "name": "VirtualGamepad",
+          "scope": "stage",
+          "isService": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 53,
+          "y": 35,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#00ffcc",
+            "borderWidth": 1,
+            "opacity": 0.8
+          },
+          "layoutStyle": "split",
+          "splitVerticalAlignment": "bottom",
+          "autoHideOnDesktop": true,
+          "scale": 1
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_import_1780591252966_5pcs",
+          "name": "Pnl_Inhaltsverzeichnis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 9,
+          "y": 2,
+          "width": 45,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "fontSize": 48,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "Reaktives System",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": false,
+        "backgroundColor": "#2a2a2a"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    }
+  ],
+  "activeStageId": "stage_766aebc4-2113-4d9d-a6d4-da432b4ffe8e",
+  "schemaVersion": "4.0.0"
+}

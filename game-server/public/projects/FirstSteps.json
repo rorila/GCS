@@ -440,8 +440,8 @@
           "visible": true,
           "x": 15,
           "y": 2,
-          "width": 24,
-          "height": 13,
+          "width": 23,
+          "height": 17,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
@@ -452,7 +452,7 @@
             "borderWidth": 0,
             "opacity": 1
           },
-          "text": "Wenn Du das Kästchen anklickst siehst du im Inspecter (rechts) die Eingenschaften des Elements:\nIn der Sektion: IDENTITÄT kannst du den Namen des Elements ändern, Da wir ein Tennisspiel bauen wollen, ändere bitte den Namen auf: PaddleRight.\nIm 1. Schritt möchte ich dir zeigen, wie man dieses Element (es handelt sich um ein Sprite) in Bewegung bringt. Das ist ganz einfach, man muss nur die Geschwindigkeit des Sprite anpassen (konfigurieren). \nIm Inspector gibt es eine Section: MOTION. Gebe doch bitte hier im Feld: VelocityY den Wert 0.3 ein.\nUm zu sehen, ob sich das Sprite auf der Y-Achse nach unten bewegt musst du in den Reiter (Tab) 'Run' gehen. (Dieser befindet sich oberhalb der Stage) \nKlicke auf den Button: Spiel starten, - das Sprite sollte sich nach unten bwegen."
+          "text": "Wenn Du das Kästchen anklickst siehst du im Inspecter (rechts) die Eingenschaften des Elements:\nIn der Sektion: IDENTITÄT kannst du den Namen des Elements ändern, Da wir ein Tennisspiel bauen wollen, ändere bitte den Namen auf: PaddleRight.\nIm 1. Schritt möchte ich dir zeigen, wie man dieses Element (es handelt sich um ein Sprite) in Bewegung bringt. Das ist ganz einfach, man muss nur die Geschwindigkeit des Sprite anpassen (konfigurieren). \nIm Inspector gibt es eine Section: MOTION. Gebe doch bitte hier im Feld: VelocityY den Wert 0.3 ein.\nUm zu sehen, ob sich das Sprite auf der Y-Achse nach unten bewegt musst du in den Reiter (Tab) 'Run' gehen. (Dieser befindet sich oberhalb der Stage) \nKlicke auf den Button: Spiel starten, - das Sprite sollte sich nach unten bwegen.<div><a href=\"https://rorila.de/GameBuilder/Tutorials/Test/VideoTest.html\" target=\"_blank\" rel=\"noopener noreferrer\">Videotest</a></div>"
         }
       ],
       "actions": [],
@@ -5429,6 +5429,6 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "stage_e2d8bcca-0e4a-4a7b-a35e-61dfbfb451ff",
+  "activeStageId": "main",
   "schemaVersion": "4.0.0"
 }

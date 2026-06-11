@@ -33,7 +33,7 @@ export class TextObjectRenderer {
         const textValue = obj.caption || (ctx.host.runMode ? '' : obj.name);
         if (el.innerText !== textValue) el.innerText = textValue;
 
-        const color = obj.style?.color || (!ctx.host.runMode ? '#777' : '');
+        const color = obj.style?.color || '#777';
         if (color) el.style.color = color;
         const fSize = obj.style?.fontSize || 14;
         el.style.fontSize = ctx.scaleFontSize(fSize);
@@ -373,9 +373,9 @@ export class TextObjectRenderer {
                         e.preventDefault();
                         e.stopPropagation();
                         if (e.ctrlKey || e.metaKey) {
-                            const helpOverlay = (window as any).helpOverlay;
-                            if (helpOverlay) {
-                                helpOverlay.show(anchor.href);
+                            // Nutze typisiertes window.helpOverlay (deklariert in vite-env.d.ts)
+                            if (window.helpOverlay) {
+                                window.helpOverlay.show(anchor.href);
                             } else {
                                 window.open(anchor.href, '_blank');
                             }
@@ -407,10 +407,12 @@ export class TextObjectRenderer {
         }
 
         // HTML-Inhalt nur setzen wenn nicht gerade aktiv bearbeitet wird
-        const textValue = obj.text !== undefined ? String(obj.text) : '';
+        // WICHTIG: DOMPurify-Sanitizing verhindert XSS durch bösartige Projektinhalte
+        const rawText = obj.text !== undefined ? String(obj.text) : '';
+        const safeHTML = SecurityUtils.sanitizeHTML(rawText);
         if (body && document.activeElement !== body) {
-            if (body.innerHTML !== textValue) {
-                body.innerHTML = textValue;
+            if (body.innerHTML !== safeHTML) {
+                body.innerHTML = safeHTML;
             }
         }
 
