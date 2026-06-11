@@ -51,7 +51,7 @@ export class EditorViewManager {
     public workingProjectData: any = null;
     /**
      * isProjectDirty delegiert auf die Blueprint-Variable 'isProjectChangeAvailable'.
-     * Diese Variable ist JSON-persistent und �berlebt Browser-Reloads.
+     * Diese Variable ist JSON-persistent und überlebt Browser-Reloads.
      */
     public get isProjectDirty(): boolean {
         const changeVar = this.findChangeVar();
@@ -249,8 +249,8 @@ export class EditorViewManager {
                 h.flowEditor.setProject(h.project);
                 if (h.inspector) {
                     h.inspector.setFlowContext(h.flowEditor.getNodes());
-                    // Inspector leeren � keine Stage-Daten aus dem Edit-Mode anzeigen.
-                    // Erst bei Klick auf einen Flow-Node wird der Inspector bef�llt.
+                    // Inspector leeren – keine Stage-Daten aus dem Edit-Mode anzeigen.
+                    // Erst bei Klick auf einen Flow-Node wird der Inspector befüllt.
                     h.inspector.update(null);
                 }
             }
@@ -273,7 +273,7 @@ export class EditorViewManager {
                 userstoriesPanel.style.display = 'block';
                 userstoriesPanel.style.height = '100%';
                 userstoriesPanel.style.overflowY = 'auto';
-                console.log('[UserStories] Panel-H�he gesetzt:', userstoriesPanel.style.height);
+                console.log('[UserStories] Panel-Höhe gesetzt:', userstoriesPanel.style.height);
                 console.log('[UserStories] Panel-Overflow gesetzt:', userstoriesPanel.style.overflowY);
                 console.log('[UserStories] Panel-Display gesetzt:', userstoriesPanel.style.display);
                 this.renderUserStoriesView(userstoriesPanel);
@@ -424,7 +424,7 @@ export class EditorViewManager {
             return;
         }
 
-        // Neue User Story f�r extrahierte Interaktionen erstellen
+        // Neue User Story für extrahierte Interaktionen erstellen
         const userStory = {
             id: `userstory_${Date.now()}`,
             projectId: this.host.project.meta.name,
@@ -514,8 +514,8 @@ export class EditorViewManager {
                     ${projInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${projInfo}</span>` : ''}
                 </div>
                 <div style="display:flex;gap:6px;">
-                    <button onclick="window.configureProject()" style="padding: 4px 12px; background-color: #7b1fa2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">?? Projekt konfigurieren</button>
-                    <button onclick="window.addStage()" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">+ Stage hinzuf�gen</button>
+                    <button onclick="window.configureProject()" style="padding: 4px 12px; background-color: #7b1fa2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">🧙 Projekt konfigurieren</button>
+                    <button onclick="window.addStage()" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">+ Stage hinzufügen</button>
                     <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
                 </div>
             </div>
@@ -535,12 +535,12 @@ export class EditorViewManager {
             });
         });
 
-        // Alle Interaktionen aller relevanten Stages (f�r Filter-Dropdowns)
+        // Alle Interaktionen aller relevanten Stages (für Filter-Dropdowns)
         const allExtracted = stagesToShow.flatMap(stage =>
             UserStoryExtractor.extractInteractionsFromStage(project, stage)
         );
 
-        // Eindeutige Werte f�r Dropdowns (aus allen Stages, nicht nur gefilterten)
+        // Eindeutige Werte für Dropdowns (aus allen Stages, nicht nur gefilterten)
         const allExtractedFull = allStages.flatMap(stage =>
             UserStoryExtractor.extractInteractionsFromStage(project, stage)
         );
@@ -549,14 +549,14 @@ export class EditorViewManager {
         const allStageOptions = ['all', ...allStages.map(s => s.id)];
 
         const componentOptions = allComponents.map(c =>
-            `<option value="${c}" ${filterComponent === c ? 'selected' : ''}>${c === 'all' ? '� Alle Komponenten �' : c}</option>`
+            `<option value="${c}" ${filterComponent === c ? 'selected' : ''}>${c === 'all' ? '— Alle Komponenten —' : c}</option>`
         ).join('');
         const eventOptions = allEvents.map(e =>
-            `<option value="${e}" ${filterEvent === e ? 'selected' : ''}>${e === 'all' ? '� Alle Events �' : e}</option>`
+            `<option value="${e}" ${filterEvent === e ? 'selected' : ''}>${e === 'all' ? '— Alle Events —' : e}</option>`
         ).join('');
         const stageOptions = allStageOptions.map(sid =>
             sid === 'all'
-                ? `<option value="all" ${filterStage === 'all' ? 'selected' : ''}>� Alle Stages �</option>`
+                ? `<option value="all" ${filterStage === 'all' ? 'selected' : ''}>— Alle Stages —</option>`
                 : `<option value="${sid}" ${filterStage === sid ? 'selected' : ''}>${allStages.find(s => s.id === sid)?.name || sid}</option>`
         ).join('');
 
@@ -582,22 +582,22 @@ export class EditorViewManager {
                 </select>
                 <select id="userstories-filter-status"
                     style="padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
-                    <option value="all" ${filterStatus === 'all' ? 'selected' : ''}>� Alle Status �</option>
-                    <option value="completed" ${filterStatus === 'completed' ? 'selected' : ''}>? Abgeschlossen</option>
-                    <option value="in_progress" ${filterStatus === 'in_progress' ? 'selected' : ''}>? In Arbeit</option>
-                    <option value="idea" ${filterStatus === 'idea' ? 'selected' : ''}>?? Idee</option>
-                    <option value="blocked" ${filterStatus === 'blocked' ? 'selected' : ''}>? Blockiert</option>
+                    <option value="all" ${filterStatus === 'all' ? 'selected' : ''}>— Alle Status —</option>
+                    <option value="completed" ${filterStatus === 'completed' ? 'selected' : ''}>✓ Abgeschlossen</option>
+                    <option value="in_progress" ${filterStatus === 'in_progress' ? 'selected' : ''}>⟳ In Arbeit</option>
+                    <option value="idea" ${filterStatus === 'idea' ? 'selected' : ''}>💡 Idee</option>
+                    <option value="blocked" ${filterStatus === 'blocked' ? 'selected' : ''}>✗ Blockiert</option>
                 </select>
                 <select id="userstories-filter-priority"
                     style="padding: 6px 10px; background-color: #1a1a3a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; font-size: 13px;">
-                    <option value="all" ${filterPriority === 'all' ? 'selected' : ''}>� Alle Priorit�ten �</option>
-                    <option value="high" ${filterPriority === 'high' ? 'selected' : ''}>?? Hoch</option>
-                    <option value="medium" ${filterPriority === 'medium' ? 'selected' : ''}>?? Mittel</option>
-                    <option value="low" ${filterPriority === 'low' ? 'selected' : ''}>?? Niedrig</option>
+                    <option value="all" ${filterPriority === 'all' ? 'selected' : ''}>— Alle Prioritäten —</option>
+                    <option value="high" ${filterPriority === 'high' ? 'selected' : ''}>🔴 Hoch</option>
+                    <option value="medium" ${filterPriority === 'medium' ? 'selected' : ''}>🟡 Mittel</option>
+                    <option value="low" ${filterPriority === 'low' ? 'selected' : ''}>🟢 Niedrig</option>
                 </select>
                 <button id="userstories-reset-filter"
                     style="padding: 6px 12px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 13px;">
-                    ? Zur�cksetzen
+                    ✕ Zurücksetzen
                 </button>
             </div>
         `;
@@ -621,7 +621,7 @@ export class EditorViewManager {
                         ${sInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${sInfo}</span>` : ''}
                     </div>
                     <div style="display:flex;gap:6px;">
-                        <button onclick="window.addUseCase('${stage.id}')" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">+ UseCase hinzuf�gen</button>
+                        <button onclick="window.addUseCase('${stage.id}')" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">+ UseCase hinzufügen</button>
                         <button onclick="window.editStageDescription('${stage.id}')" style="padding: 4px 12px; background-color: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
                     </div>
                 </div>
@@ -659,15 +659,15 @@ export class EditorViewManager {
                     const ucStatus = manual ? (manual.userStory?.status || 'idea') : 'completed';
                     const ucPriority = manual ? (manual.userStory?.priority || 'medium') : 'medium';
                     const statusCfg: Record<string, {label: string, color: string}> = {
-                        completed: { label: '? Abgeschlossen', color: '#2e7d32' },
-                        in_progress: { label: '? In Arbeit',    color: '#1565c0' },
-                        idea:        { label: '?? Idee',         color: '#555577' },
-                        blocked:     { label: '? Blockiert',    color: '#b71c1c' }
+                        completed: { label: '✓ Abgeschlossen', color: '#2e7d32' },
+                        in_progress: { label: '⟳ In Arbeit',    color: '#1565c0' },
+                        idea:        { label: '💡 Idee',         color: '#555577' },
+                        blocked:     { label: '✗ Blockiert',    color: '#b71c1c' }
                     };
                     const priorityCfg: Record<string, {label: string, color: string}> = {
-                        high:   { label: '?? Hoch',    color: '#b71c1c' },
-                        medium: { label: '?? Mittel',  color: '#e65100' },
-                        low:    { label: '?? Niedrig', color: '#2e7d32' }
+                        high:   { label: '🔴 Hoch',    color: '#b71c1c' },
+                        medium: { label: '🟡 Mittel',  color: '#e65100' },
+                        low:    { label: '🟢 Niedrig', color: '#2e7d32' }
                     };
                     const sBadge = statusCfg[ucStatus]   || statusCfg['idea'];
                     const pBadge = priorityCfg[ucPriority] || priorityCfg['medium'];
@@ -679,14 +679,14 @@ export class EditorViewManager {
                                 <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${displayTitle}</span>
                                 <span style="${badgeStyle(sBadge.color)}">${sBadge.label}</span>
                                 <span style="${badgeStyle(pBadge.color)}">${pBadge.label}</span>
-                                ${taskName ? `<span style="${badgeStyle('#1a6b8a')}">? ${taskName}</span>` : ''}
+                                ${taskName ? `<span style="${badgeStyle('#1a6b8a')}">⚡ ${taskName}</span>` : ''}
                                 ${displayDesc ? `<div style="${descStyle}">${displayDesc}</div>` : ''}
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                                ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Flow-Editor �ffnen</button>` : ''}
+                                ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Flow-Editor öffnen</button>` : ''}
                                 <button onclick="window.showInteractionDiagram('', '${interaction.id}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Diagramm anzeigen</button>
                                 <button onclick="window.editUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
-                                ${hasManual ? `<button onclick="window.deleteUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">L�schen</button>` : ''}
+                                ${hasManual ? `<button onclick="window.deleteUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -702,7 +702,7 @@ export class EditorViewManager {
         (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
         (window as any).configureProject = () => this.showConfigureProjectDialog();
         (window as any).addStage = () => {
-            EditorViewManager.logger.info('[Wizard] window.addStage() ausgel�st');
+            EditorViewManager.logger.info('[Wizard] window.addStage() ausgelöst');
             const editor: any = this.host;
             if (typeof editor.createStageFromWizard === 'function') {
                 editor.createStageFromWizard().then(() => this.renderUserStoriesList());
@@ -846,16 +846,16 @@ export class EditorViewManager {
                     <div style="display:flex;gap:12px;margin-bottom:16px;">
                         <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">Status</label>
                             <select id="uc-status" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;">
-                                <option value="completed" ${(existingStory?.status || 'completed') === 'completed' ? 'selected' : ''}>? Abgeschlossen</option>
-                                <option value="in_progress" ${existingStory?.status === 'in_progress' ? 'selected' : ''}>? In Arbeit</option>
-                                <option value="idea" ${existingStory?.status === 'idea' ? 'selected' : ''}>?? Idee</option>
-                                <option value="blocked" ${existingStory?.status === 'blocked' ? 'selected' : ''}>? Blockiert</option>
+                                <option value="completed" ${(existingStory?.status || 'completed') === 'completed' ? 'selected' : ''}>✓ Abgeschlossen</option>
+                                <option value="in_progress" ${existingStory?.status === 'in_progress' ? 'selected' : ''}>⟳ In Arbeit</option>
+                                <option value="idea" ${existingStory?.status === 'idea' ? 'selected' : ''}>💡 Idee</option>
+                                <option value="blocked" ${existingStory?.status === 'blocked' ? 'selected' : ''}>✗ Blockiert</option>
                             </select></div>
-                        <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">Priorit�t</label>
+                        <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">Priorität</label>
                             <select id="uc-priority" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;">
-                                <option value="high" ${existingStory?.priority === 'high' ? 'selected' : ''}>?? Hoch</option>
-                                <option value="medium" ${(existingStory?.priority || 'medium') === 'medium' ? 'selected' : ''}>?? Mittel</option>
-                                <option value="low" ${existingStory?.priority === 'low' ? 'selected' : ''}>?? Niedrig</option>
+                                <option value="high" ${existingStory?.priority === 'high' ? 'selected' : ''}>🔴 Hoch</option>
+                                <option value="medium" ${(existingStory?.priority || 'medium') === 'medium' ? 'selected' : ''}>🟡 Mittel</option>
+                                <option value="low" ${existingStory?.priority === 'low' ? 'selected' : ''}>🟢 Niedrig</option>
                             </select></div>
                     </div>
                     <div style="display:flex;gap:8px;justify-content:flex-end;">
@@ -910,7 +910,7 @@ export class EditorViewManager {
 
     /**
      * Stellt sicher, dass das Modal-Element existiert. Falls nicht (z.B. aktueller Tab ist nicht "UserStories"),
-     * wird es dynamisch in <body> eingeh�ngt. So funktionieren Wizards auch au�erhalb des UserStories-Tabs.
+     * wird es dynamisch in <body> eingehängt. So funktionieren Wizards auch außerhalb des UserStories-Tabs.
      */
     private ensureModal(): HTMLElement {
         let modal = document.getElementById('userstories-edit-modal');
@@ -923,6 +923,7 @@ export class EditorViewManager {
         }
         return modal;
     }
+
     public showAddStageDialog(onComplete?: (data: any) => void) {
         this.stageDialogs.showAddStageDialog(onComplete);
     }
@@ -938,7 +939,6 @@ export class EditorViewManager {
     public showEditProjectPropertiesDialog() {
         this.stageDialogs.showEditProjectPropertiesDialog();
     }
-
 
     public showAddUseCaseDialog(stageId: string, prefilled?: { className?: string, name?: string }) {
         EditorViewManager.logger.info('[Wizard] showAddUseCaseDialog aufgerufen, stageId=' + stageId + ', prefilled=' + JSON.stringify(prefilled));
@@ -972,39 +972,39 @@ export class EditorViewManager {
             taskName: '', actions: [], condition: null, agentHints: '',
             otherTriggerDesc: '', otherActionDesc: ''
         };
-        // Wenn Komponente per Kontextmen� vorausgew�hlt wurde, Schritt "Objekt" als erledigt markieren
+        // Wenn Komponente per Kontextmenü vorausgewählt wurde, Schritt "Objekt" als erledigt markieren
         const componentStepPrefilled = !!(prefilled?.className && prefilled?.name);
 
         // Trigger-Kacheln
         const TRIGGERS = [
-            { id: 'collision',  icon: '??', label: 'Zwei Objekte\nsto�en zusammen', compType: 'TSprite',          event: 'onCollision' },
-            { id: 'key',        icon: '??', label: 'Eine Taste\nwird gedr�ckt',      compType: 'TInputController', event: 'onKeyDown' },
-            { id: 'sprite',     icon: '??', label: 'Ein Spieler-Objekt\nwird angeklickt', compType: 'TSprite',    event: 'onClick' },
-            { id: 'timer',      icon: '??', label: 'Ein Timer\nl�uft ab',             compType: 'TIntervalTimer', event: 'onIntervall' },
-            { id: 'button',     icon: '???', label: 'Ein Button\nwird gedr�ckt',       compType: 'TButton',        event: 'onClick' },
-            { id: 'loop',       icon: '??', label: 'Jeder Spiel-\nDurchlauf',          compType: 'TGameLoop',      event: 'onLoop' },
-            { id: 'boundary',   icon: '??', label: 'Objekt trifft\nden Rand',          compType: 'TSprite',        event: 'onBoundaryHit' },
-            { id: 'other',      icon: '?', label: 'Etwas\nanderes',                   compType: 'Sonstige',       event: '' },
+            { id: 'collision',  icon: '💥', label: 'Zwei Objekte\nstoßen zusammen', compType: 'TSprite',          event: 'onCollision' },
+            { id: 'key',        icon: '⌨️', label: 'Eine Taste\nwird gedrückt',      compType: 'TInputController', event: 'onKeyDown' },
+            { id: 'sprite',     icon: '🏃', label: 'Ein Spieler-Objekt\nwird angeklickt', compType: 'TSprite',    event: 'onClick' },
+            { id: 'timer',      icon: '⏱️', label: 'Ein Timer\nläuft ab',             compType: 'TIntervalTimer', event: 'onIntervall' },
+            { id: 'button',     icon: '🖱️', label: 'Ein Button\nwird gedrückt',       compType: 'TButton',        event: 'onClick' },
+            { id: 'loop',       icon: '🔄', label: 'Jeder Spiel-\nDurchlauf',          compType: 'TGameLoop',      event: 'onLoop' },
+            { id: 'boundary',   icon: '🚧', label: 'Objekt trifft\nden Rand',          compType: 'TSprite',        event: 'onBoundaryHit' },
+            { id: 'other',      icon: '❓', label: 'Etwas\nanderes',                   compType: 'Sonstige',       event: '' },
         ];
 
         // Action-Kacheln
         const ACTION_TILES = [
-            { type: 'spawn_object',   icon: '?', label: 'Objekt erscheinen\nlassen' },
-            { type: 'destroy_object', icon: '??', label: 'Objekt\nentfernen' },
-            { type: 'set_variable',   icon: '??', label: 'Zahl/Wert\n�ndern' },
-            { type: 'navigate_stage', icon: '??', label: 'Zur n�chsten\nStage' },
-            { type: 'play_audio',     icon: '??', label: 'Ton\nabspielen' },
-            { type: 'set_velocity',   icon: '??', label: 'Geschwindigkeit\nsetzen' },
-            { type: 'set_position',   icon: '??', label: 'Position\nsetzen' },
-            { type: 'set_property',   icon: '??', label: 'Eigenschaft\n�ndern' },
-            { type: 'call_task',      icon: '??', label: 'Andere Aufgabe\nausl�sen' },
-            { type: 'show_object',    icon: '???', label: 'Objekt\nanzeigen' },
-            { type: 'hide_object',    icon: '??', label: 'Objekt\nverstecken' },
-            { type: 'increment',      icon: '?', label: 'Zahl\nerh�hen' },
-            { type: 'stop_audio',     icon: '??', label: 'Ton\nstoppen' },
-            { type: 'restart_game',   icon: '??', label: 'Spiel neu\nstarten' },
-            { type: 'show_toast',     icon: '??', label: 'Nachricht\nanzeigen' },
-            { type: 'other_action',   icon: '?', label: 'Etwas\nanderes' },
+            { type: 'spawn_object',   icon: '✨', label: 'Objekt erscheinen\nlassen' },
+            { type: 'destroy_object', icon: '💣', label: 'Objekt\nentfernen' },
+            { type: 'set_variable',   icon: '🔢', label: 'Zahl/Wert\nändern' },
+            { type: 'navigate_stage', icon: '🚪', label: 'Zur nächsten\nStage' },
+            { type: 'play_audio',     icon: '🔊', label: 'Ton\nabspielen' },
+            { type: 'set_velocity',   icon: '💨', label: 'Geschwindigkeit\nsetzen' },
+            { type: 'set_position',   icon: '📍', label: 'Position\nsetzen' },
+            { type: 'set_property',   icon: '⚙️', label: 'Eigenschaft\nändern' },
+            { type: 'call_task',      icon: '📋', label: 'Andere Aufgabe\nauslösen' },
+            { type: 'show_object',    icon: '👁️', label: 'Objekt\nanzeigen' },
+            { type: 'hide_object',    icon: '🙈', label: 'Objekt\nverstecken' },
+            { type: 'increment',      icon: '➕', label: 'Zahl\nerhöhen' },
+            { type: 'stop_audio',     icon: '🔇', label: 'Ton\nstoppen' },
+            { type: 'restart_game',   icon: '🔁', label: 'Spiel neu\nstarten' },
+            { type: 'show_toast',     icon: '💬', label: 'Nachricht\nanzeigen' },
+            { type: 'other_action',   icon: '❓', label: 'Etwas\nanderes' },
         ];
 
         const allObjects: any[] = [];
@@ -1017,17 +1017,17 @@ export class EditorViewManager {
         // Schritt-Fortschrittsbalken generieren
         const renderProgress = () => {
             if (wizardMode !== 'guided') return '';
-            const steps = ['Idee', 'Ausl�ser', 'Objekt', 'Aktionen', 'Bedingung', 'Fertig'];
+            const steps = ['Idee', 'Auslöser', 'Objekt', 'Aktionen', 'Bedingung', 'Fertig'];
             return `<div style="display:flex;gap:0;margin-bottom:20px;border-radius:6px;overflow:hidden;">
                 ${steps.map((s, i) => {
                     const num = i + 1;
                     const active = num === wizardStep;
-                    // Schritt 3 ('Objekt') vorausgef�llt-gr�n markieren, wenn per Kontextmen� gestartet
+                    // Schritt 3 ('Objekt') vorausgefüllt-grün markieren, wenn per Kontextmenü gestartet
                     const done = num < wizardStep || (componentStepPrefilled && num === 3);
                     const bg = done ? '#2e7d32' : active ? '#1565c0' : '#1a1a3a';
                     const color = (done || active) ? '#fff' : '#606080';
                     return `<div style="flex:1;padding:7px 4px;background:${bg};text-align:center;font-size:11px;font-weight:bold;color:${color};border-right:1px solid #0a0a20;">
-                        <div style="font-size:13px;">${done ? '?' : num}</div>
+                        <div style="font-size:13px;">${done ? '✓' : num}</div>
                         <div style="margin-top:2px;font-size:10px;">${s}</div>
                     </div>`;
                 }).join('')}
@@ -1038,22 +1038,22 @@ export class EditorViewManager {
         const renderStep = (): string => {
             if (wizardStep === 1) return `
                 <div style="${sectionStyle}">
-                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">?? Was soll in deinem Spiel passieren?</div>
+                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">💡 Was soll in deinem Spiel passieren?</div>
                     <div style="color:#9090c0;font-size:13px;margin-bottom:16px;">Beschreibe deine Idee. Du kannst einfach drauflosschreiben!</div>
                     <div style="margin-bottom:12px;">
                         <label style="${labelStyle}">Gib deiner Idee einen Namen:</label>
-                        <input id="w-title" type="text" placeholder="z.B. Spieler schie�t eine Kugel" value="${wData.title}"
+                        <input id="w-title" type="text" placeholder="z.B. Spieler schießt eine Kugel" value="${wData.title}"
                             style="${inputStyle}">
                     </div>
                     <div>
-                        <label style="${labelStyle}">Erkl�re es genauer (wenn du m�chtest):</label>
-                        <textarea id="w-desc" rows="3" placeholder="z.B. Wenn der Spieler die Leertaste dr�ckt, soll eine Kugel nach oben fliegen."
+                        <label style="${labelStyle}">Erkläre es genauer (wenn du möchtest):</label>
+                        <textarea id="w-desc" rows="3" placeholder="z.B. Wenn der Spieler die Leertaste drückt, soll eine Kugel nach oben fliegen."
                             style="${inputStyle}resize:vertical;">${wData.description}</textarea>
                     </div>
                     <div style="margin-top:12px;">
                         <label style="${labelStyle}">Wie wichtig ist das?</label>
                         <div style="display:flex;gap:8px;">
-                            ${[['high','??','Sehr wichtig'],['medium','??','Normal'],['low','??','Kann warten']].map(([v,ic,lbl]) =>
+                            ${[['high','🔴','Sehr wichtig'],['medium','🟡','Normal'],['low','🟢','Kann warten']].map(([v,ic,lbl]) =>
                                 `<div onclick="window._wSetPriority('${v}')" style="flex:1;padding:8px;border:2px solid ${wData.priority===v?'#1976d2':'#2a2a5a'};border-radius:6px;background:${wData.priority===v?'#0d2a4a':'#12122a'};cursor:pointer;text-align:center;">
                                     <div style="font-size:18px;">${ic}</div>
                                     <div style="font-size:12px;color:#c0c8e0;margin-top:3px;">${lbl}</div>
@@ -1065,7 +1065,7 @@ export class EditorViewManager {
 
             if (wizardStep === 2) return `
                 <div style="${sectionStyle}">
-                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">?? Wie wird das ausgel�st?</div>
+                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">🎮 Wie wird das ausgelöst?</div>
                     <div style="color:#9090c0;font-size:13px;margin-bottom:16px;">Was muss passieren, damit deine Idee startet?</div>
                     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
                         ${TRIGGERS.map(t => `
@@ -1077,7 +1077,7 @@ export class EditorViewManager {
                     </div>
                     ${wData.triggerType === 'other' ? `
                     <div style="margin-top:14px;background:#0f1830;border:1px solid #3a3a6a;border-radius:6px;padding:14px;">
-                        <label style="${labelStyle}">?? Beschreibe in eigenen Worten, was das ausl�sen soll:</label>
+                        <label style="${labelStyle}">✏️ Beschreibe in eigenen Worten, was das auslösen soll:</label>
                         <textarea id="w-other-trigger-desc" rows="3"
                             placeholder="z.B. Der Spieler betritt ein bestimmtes Feld, ein Gegenstand wird eingesammelt ..."
                             style="${inputStyle}resize:vertical;">${wData.otherTriggerDesc}</textarea>
@@ -1091,9 +1091,9 @@ export class EditorViewManager {
                     .map(k => `<option value="${k}" ${wData.eventParam===k?'selected':''}>${k}</option>`).join('');
                 return `
                 <div style="${sectionStyle}">
-                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">?? Welches Objekt macht das?</div>
+                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">🔍 Welches Objekt macht das?</div>
                     <div style="color:#9090c0;font-size:13px;margin-bottom:16px;">
-                        ${trigger ? `Du hast gew�hlt: <strong style="color:#60a0ff;">${trigger.icon} ${trigger.label.replace('\n',' ')}</strong>` : ''}
+                        ${trigger ? `Du hast gewählt: <strong style="color:#60a0ff;">${trigger.icon} ${trigger.label.replace('\n',' ')}</strong>` : ''}
                     </div>
                     <div style="margin-bottom:12px;">
                         <label style="${labelStyle}">Name des Objekts:</label>
@@ -1122,15 +1122,15 @@ export class EditorViewManager {
                     <div>
                         <label style="${labelStyle}">Welchen Namen soll die Aufgabe (Task) haben?</label>
                         <input id="w-task" type="text" placeholder="z.B. SpielerSchiesst" value="${wData.taskName}" style="${inputStyle}">
-                        <div style="color:#6060a0;font-size:11px;margin-top:4px;">?? Tipp: Kein Leerzeichen, fang mit Gro�buchstaben an</div>
+                        <div style="color:#6060a0;font-size:11px;margin-top:4px;">💡 Tipp: Kein Leerzeichen, fang mit Großbuchstaben an</div>
                     </div>
                 </div>`;
             }
 
             if (wizardStep === 4) return `
                 <div style="${sectionStyle}">
-                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">? Was soll dann passieren?</div>
-                    <div style="color:#9090c0;font-size:13px;margin-bottom:14px;">W�hle aus, was dein Spiel tun soll. Du kannst mehrere ausw�hlen!</div>
+                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">⚡ Was soll dann passieren?</div>
+                    <div style="color:#9090c0;font-size:13px;margin-bottom:14px;">Wähle aus, was dein Spiel tun soll. Du kannst mehrere auswählen!</div>
                     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
                         ${ACTION_TILES.map(a => {
                             const sel = wData.actions.some((x: any) => x.type === a.type && !x._detail);
@@ -1145,13 +1145,13 @@ export class EditorViewManager {
                         ${wData.actions.map((a: any, i: number) => `
                             <div style="display:flex;flex-direction:column;gap:6px;background:#0f1830;border:1px solid #2a3a6a;border-radius:6px;padding:8px;">
                                 <div style="display:flex;gap:6px;align-items:center;">
-                                    <span style="font-size:18px;">${ACTION_TILES.find(t=>t.type===a.type)?.icon||'??'}</span>
+                                    <span style="font-size:18px;">${ACTION_TILES.find(t=>t.type===a.type)?.icon||'⚙️'}</span>
                                     <input type="text" value="${a.name}" placeholder="Name der Aktion" data-idx="${i}" class="w-action-name"
                                         style="flex:1;padding:6px;background:#0a1020;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;font-size:13px;">
                                     <span style="color:#6080c0;font-size:12px;min-width:90px;">${a.type}</span>
-                                    <button onclick="window._wMoveAction(${i},-1)" style="padding:3px 7px;background:#1a2a4a;color:#c0c8e0;border:none;border-radius:3px;cursor:pointer;">?</button>
-                                    <button onclick="window._wMoveAction(${i},1)" style="padding:3px 7px;background:#1a2a4a;color:#c0c8e0;border:none;border-radius:3px;cursor:pointer;">?</button>
-                                    <button onclick="window._wRemoveAction(${i})" style="padding:3px 8px;background:#b71c1c;color:white;border:none;border-radius:3px;cursor:pointer;">?</button>
+                                    <button onclick="window._wMoveAction(${i},-1)" style="padding:3px 7px;background:#1a2a4a;color:#c0c8e0;border:none;border-radius:3px;cursor:pointer;">▲</button>
+                                    <button onclick="window._wMoveAction(${i},1)" style="padding:3px 7px;background:#1a2a4a;color:#c0c8e0;border:none;border-radius:3px;cursor:pointer;">▼</button>
+                                    <button onclick="window._wRemoveAction(${i})" style="padding:3px 8px;background:#b71c1c;color:white;border:none;border-radius:3px;cursor:pointer;">✕</button>
                                 </div>
                                 ${a.type === 'other_action' ? `
                                 <textarea data-other-idx="${i}" class="w-other-action-desc" rows="2"
@@ -1163,23 +1163,23 @@ export class EditorViewManager {
 
             if (wizardStep === 5) return `
                 <div style="${sectionStyle}">
-                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">?? Gibt es eine Bedingung?</div>
+                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;">🤔 Gibt es eine Bedingung?</div>
                     <div style="color:#9090c0;font-size:13px;margin-bottom:16px;">Soll die Aktion nur passieren, wenn etwas Bestimmtes gilt?</div>
                     <div style="display:flex;gap:10px;margin-bottom:16px;">
                         <div onclick="window._wSetCondition(false)"
                             style="flex:1;padding:14px;border:2px solid ${!wData.condition?'#1976d2':'#2a2a5a'};border-radius:8px;background:${!wData.condition?'#0d2a4a':'#12122a'};cursor:pointer;text-align:center;">
-                            <div style="font-size:24px;">?</div>
-                            <div style="font-size:13px;color:#c0c8e0;margin-top:6px;">Nein, immer ausf�hren</div>
+                            <div style="font-size:24px;">✅</div>
+                            <div style="font-size:13px;color:#c0c8e0;margin-top:6px;">Nein, immer ausführen</div>
                         </div>
                         <div onclick="window._wSetCondition(true)"
                             style="flex:1;padding:14px;border:2px solid ${wData.condition?'#1976d2':'#2a2a5a'};border-radius:8px;background:${wData.condition?'#0d2a4a':'#12122a'};cursor:pointer;text-align:center;">
-                            <div style="font-size:24px;">?</div>
+                            <div style="font-size:24px;">❓</div>
                             <div style="font-size:13px;color:#c0c8e0;margin-top:6px;">Ja, nur wenn ...</div>
                         </div>
                     </div>
                     ${wData.condition ? `
                     <div style="background:#0f1830;border:1px solid #3a3a6a;border-radius:6px;padding:14px;">
-                        <div style="color:#b0b0d0;font-size:13px;margin-bottom:10px;">Nur ausf�hren, wenn diese Variable ...</div>
+                        <div style="color:#b0b0d0;font-size:13px;margin-bottom:10px;">Nur ausführen, wenn diese Variable ...</div>
                         <div style="display:flex;gap:8px;align-items:center;">
                             <input id="w-cond-left" type="text" placeholder="Variable (z.B. \${punkte})"
                                 value="${wData.condition?.leftValue||''}" style="flex:2;padding:7px;background:#0a1020;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;font-size:13px;">
@@ -1195,7 +1195,7 @@ export class EditorViewManager {
                         </div>
                     </div>` : ''}
                     <div style="margin-top:14px;">
-                        <label style="${labelStyle}">Noch weitere Hinweise f�r den AgentController?</label>
+                        <label style="${labelStyle}">Noch weitere Hinweise für den AgentController?</label>
                         <textarea id="w-hints" rows="2" placeholder="z.B. Die Kugel soll nach oben fliegen, Vorlage: BulletTemplate"
                             style="${inputStyle}resize:vertical;">${wData.agentHints}</textarea>
                     </div>
@@ -1208,7 +1208,7 @@ export class EditorViewManager {
                 const actionsCode = wData.actions.map((a: any) => {
                     const actionName = a.name || a.type;
                     if (a.type === 'other_action') {
-                        return `// ? Etwas anderes: ${a.otherDesc || '(keine Beschreibung)'}\n// agentController.addAction('${wData.taskName}', '<type>', '${actionName}', { /* params */ });`;
+                        return `// ❓ Etwas anderes: ${a.otherDesc || '(keine Beschreibung)'}\n// agentController.addAction('${wData.taskName}', '<type>', '${actionName}', { /* params */ });`;
                     }
                     const paramMap: Record<string, string> = {
                         spawn_object:   `target: 'TemplateName', x: 0, y: 0`,
@@ -1244,12 +1244,12 @@ export class EditorViewManager {
                     ? `agentController.addTaskParam('${wData.taskName}', 'key', 'string', '${wData.eventParam}');`
                     : '';
 
-                // Trigger-Hinweis f�r "other"
+                // Trigger-Hinweis für "other"
                 const otherTriggerNote = wData.triggerType === 'other' && wData.otherTriggerDesc
-                    ? `// ? Eigener Ausl�ser: ${wData.otherTriggerDesc}\n// Passe compType und eventName manuell an!\n`
+                    ? `// ❓ Eigener Auslöser: ${wData.otherTriggerDesc}\n// Passe compType und eventName manuell an!\n`
                     : '';
 
-                const prompt = `${otherTriggerNote}// -- 1. UseCase speichern ----------------------
+                const prompt = `${otherTriggerNote}// ── 1. UseCase speichern ──────────────────────
 agentController.addUseCase('${stageId}', {
   title: '${(wData.title||'').replace(/'/g,"\\'")}',
   description: '${(wData.description||'').replace(/'/g,"\\'")}',
@@ -1260,24 +1260,24 @@ agentController.addUseCase('${stageId}', {
   agentHints: '${(wData.agentHints||'').replace(/'/g,"\\'")}',
 });
 
-// -- 2. Task erstellen --------------------------
+// ── 2. Task erstellen ──────────────────────────
 agentController.createTask('${stageId}', '${wData.taskName}', '${(wData.title||'').replace(/'/g,"\\'")}');
 ${eventParamCode ? eventParamCode + '\n' : ''}
-// -- 3. Actions hinzuf�gen ---------------------
+// ── 3. Actions hinzufügen ─────────────────────
 ${actionsCode || '// (keine Actions definiert)'}
-${condCode ? '\n// -- 3b. Bedingung ----------------------------\n' + condCode : ''}
+${condCode ? '\n// ── 3b. Bedingung ────────────────────────────\n' + condCode : ''}
 
-// -- 4. Event verkn�pfen -----------------------
+// ── 4. Event verknüpfen ───────────────────────
 agentController.connectEvent('${stageId}', '${wData.compName}', '${wData.eventName}', '${wData.taskName}');
 
-// -- 5. Flow generieren ------------------------
+// ── 5. Flow generieren ────────────────────────
 agentController.generateTaskFlow('${wData.taskName}');
 
-// -- 6. Status auf "in_progress" setzen -------
+// ── 6. Status auf "in_progress" setzen ───────
 // agentController.updateUseCaseStatus('<id>', 'in_progress');
 ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 // Diagramm
-                const arrow = `<div style="text-align:center;color:#607d8b;font-size:18px;">?</div>`;
+                const arrow = `<div style="text-align:center;color:#607d8b;font-size:18px;">↓</div>`;
                 const box = (bg: string, lbl: string, val: string) =>
                     `<div style="background:${bg};border-radius:6px;padding:7px 14px;display:inline-block;min-width:200px;margin:1px 0;">
                         <div style="font-size:10px;text-transform:uppercase;color:rgba(255,255,255,0.6);">${lbl}</div>
@@ -1290,19 +1290,19 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 if (wData.actions.length > 0) {
                     diag += arrow + `<div style="border-left:3px solid #4caf50;margin-left:20px;padding-left:10px;display:flex;flex-direction:column;gap:3px;">`;
                     wData.actions.forEach((a: any, i: number) => {
-                        diag += box('#6a1b9a', `Action ${i+1} � ${a.type}`, a.name||a.type);
+                        diag += box('#6a1b9a', `Action ${i+1} · ${a.type}`, a.name||a.type);
                         if (i < wData.actions.length-1) diag += arrow;
                     });
                     diag += `</div>`;
                 }
                 if (wData.condition) {
-                    diag += arrow + box('#e65100', '? Bedingung', `${wData.condition.leftValue} ${wData.condition.op} ${wData.condition.rightValue}`);
+                    diag += arrow + box('#e65100', '⬡ Bedingung', `${wData.condition.leftValue} ${wData.condition.op} ${wData.condition.rightValue}`);
                 }
                 diag += arrow + box('#455a64','','Ende') + `</div>`;
 
                 return `
                 <div style="${sectionStyle}">
-                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:14px;">?? Super! Das hast du geplant:</div>
+                    <div style="font-size:18px;font-weight:bold;color:#fff;margin-bottom:14px;">🎉 Super! Das hast du geplant:</div>
                     <div style="display:flex;gap:14px;">
                         <div style="flex:1;">
                             <div style="background:#f8f8ff;border-radius:6px;padding:12px;">${diag}</div>
@@ -1310,7 +1310,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                         <div style="flex:1;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                                 <span style="color:#c080ff;font-size:11px;font-weight:bold;text-transform:uppercase;">AgentController-Prompt</span>
-                                <button id="w-copy-prompt" style="padding:3px 10px;background:#7b1fa2;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">?? Kopieren</button>
+                                <button id="w-copy-prompt" style="padding:3px 10px;background:#7b1fa2;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">📋 Kopieren</button>
                             </div>
                             <pre id="w-prompt-text" style="background:#0a0a1a;border:1px solid #4a3a7a;border-radius:6px;padding:12px;color:#d0d0ff;font-size:11px;white-space:pre-wrap;margin:0;line-height:1.5;max-height:280px;overflow-y:auto;">${prompt}</pre>
                         </div>
@@ -1329,12 +1329,12 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 <div style="background:#1a1a2e;border:1px solid #3a3a6a;border-radius:10px;padding:28px;width:720px;color:#e0e0e0;margin:auto;">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
                         <div>
-                            <h3 style="margin:0 0 4px 0;color:#fff;font-size:17px;">UseCase hinzuf�gen</h3>
+                            <h3 style="margin:0 0 4px 0;color:#fff;font-size:17px;">UseCase hinzufügen</h3>
                             <div style="color:#60a0e0;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Stage: ${stageName}</div>
                         </div>
                         <div style="display:flex;gap:6px;">
-                            <button id="w-mode-guided" style="padding:5px 14px;border:2px solid ${isGuided?'#1976d2':'#2a2a5a'};background:${isGuided?'#0d2a4a':'#12122a'};color:${isGuided?'#60a0ff':'#6060a0'};border-radius:4px;cursor:pointer;font-size:12px;font-weight:bold;">?? Gef�hrt</button>
-                            <button id="w-mode-expert" style="padding:5px 14px;border:2px solid ${!isGuided?'#1976d2':'#2a2a5a'};background:${!isGuided?'#0d2a4a':'#12122a'};color:${!isGuided?'#60a0ff':'#6060a0'};border-radius:4px;cursor:pointer;font-size:12px;font-weight:bold;">?? Experte</button>
+                            <button id="w-mode-guided" style="padding:5px 14px;border:2px solid ${isGuided?'#1976d2':'#2a2a5a'};background:${isGuided?'#0d2a4a':'#12122a'};color:${isGuided?'#60a0ff':'#6060a0'};border-radius:4px;cursor:pointer;font-size:12px;font-weight:bold;">🧙 Geführt</button>
+                            <button id="w-mode-expert" style="padding:5px 14px;border:2px solid ${!isGuided?'#1976d2':'#2a2a5a'};background:${!isGuided?'#0d2a4a':'#12122a'};color:${!isGuided?'#60a0ff':'#6060a0'};border-radius:4px;cursor:pointer;font-size:12px;font-weight:bold;">⚙️ Experte</button>
                         </div>
                     </div>
 
@@ -1347,10 +1347,10 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                     <div style="display:flex;justify-content:space-between;margin-top:16px;">
                         <button id="w-cancel" style="padding:7px 18px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Abbrechen</button>
                         <div style="display:flex;gap:8px;">
-                            ${isGuided && wizardStep > 1 ? `<button id="w-back" style="padding:7px 18px;background:#1a2a4a;color:#c0c8e0;border:1px solid #3a3a6a;border-radius:4px;cursor:pointer;font-size:13px;">? Zur�ck</button>` : ''}
+                            ${isGuided && wizardStep > 1 ? `<button id="w-back" style="padding:7px 18px;background:#1a2a4a;color:#c0c8e0;border:1px solid #3a3a6a;border-radius:4px;cursor:pointer;font-size:13px;">◀ Zurück</button>` : ''}
                             ${isGuided && wizardStep < WIZARD_STEPS
-                                ? `<button id="w-next" style="padding:7px 20px;background:#1565c0;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">Weiter ?</button>`
-                                : `<button id="w-save" style="padding:7px 20px;background:#388e3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">? Speichern</button>`}
+                                ? `<button id="w-next" style="padding:7px 20px;background:#1565c0;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">Weiter ▶</button>`
+                                : `<button id="w-save" style="padding:7px 20px;background:#388e3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">✓ Speichern</button>`}
                         </div>
                     </div>
                 </div>
@@ -1367,22 +1367,22 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             const objNames = [...new Set(allObjects.filter(o => o.className === wData.compType).map((o:any)=>o.name))];
             return `
             <div style="${sectionStyle}">
-                <div style="color:#a0c0ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">? Idee</div>
+                <div style="color:#a0c0ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">① Idee</div>
                 <div style="display:flex;gap:10px;margin-bottom:10px;">
                     <div style="flex:2;"><label style="${labelStyle}">Titel</label>
-                        <input id="e-title" type="text" value="${wData.title}" placeholder="z.B. Spieler schie�t Kugel" style="${inputStyle}"></div>
-                    <div style="flex:1;"><label style="${labelStyle}">Priorit�t</label>
+                        <input id="e-title" type="text" value="${wData.title}" placeholder="z.B. Spieler schießt Kugel" style="${inputStyle}"></div>
+                    <div style="flex:1;"><label style="${labelStyle}">Priorität</label>
                         <select id="e-priority" style="${inputStyle}">
-                            <option value="high" ${wData.priority==='high'?'selected':''}>?? Hoch</option>
-                            <option value="medium" ${wData.priority!=='high'&&wData.priority!=='low'?'selected':''}>?? Mittel</option>
-                            <option value="low" ${wData.priority==='low'?'selected':''}>?? Niedrig</option>
+                            <option value="high" ${wData.priority==='high'?'selected':''}>🔴 Hoch</option>
+                            <option value="medium" ${wData.priority!=='high'&&wData.priority!=='low'?'selected':''}>🟡 Mittel</option>
+                            <option value="low" ${wData.priority==='low'?'selected':''}>🟢 Niedrig</option>
                         </select></div>
                 </div>
                 <div><label style="${labelStyle}">Beschreibung</label>
                     <textarea id="e-desc" rows="2" style="${inputStyle}resize:vertical;">${wData.description}</textarea></div>
             </div>
             <div style="${sectionStyle}">
-                <div style="color:#a0c0ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">? Technische Spezifikation</div>
+                <div style="color:#a0c0ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">② Technische Spezifikation</div>
                 <div style="display:flex;gap:10px;margin-bottom:10px;">
                     <div style="flex:1;"><label style="${labelStyle}">Komponenten-Art</label>
                         <select id="e-comp-type" style="${inputStyle}">
@@ -1411,7 +1411,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                             <select class="e-action-type" style="flex:1;padding:5px;background:#0f1830;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;font-size:12px;">
                                 ${ACTION_TYPES.map(t=>`<option value="${t}" ${a.type===t?'selected':''}>${t}</option>`).join('')}
                             </select>
-                            <button class="e-remove-action" style="padding:4px 8px;background:#b71c1c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">?</button>
+                            <button class="e-remove-action" style="padding:4px 8px;background:#b71c1c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕</button>
                         </div>`).join('')}
                         ${wData.actions.length===0?`<div class="e-action-row" style="display:flex;gap:6px;align-items:center;">
                             <input type="text" placeholder="Action-Name" class="e-action-name"
@@ -1419,13 +1419,13 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                             <select class="e-action-type" style="flex:1;padding:5px;background:#0f1830;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;font-size:12px;">
                                 ${ACTION_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}
                             </select>
-                            <button class="e-remove-action" style="padding:4px 8px;background:#b71c1c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">?</button>
+                            <button class="e-remove-action" style="padding:4px 8px;background:#b71c1c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕</button>
                         </div>`:''}
                     </div>
                 </div>
             </div>
             <div style="${sectionStyle}">
-                <div style="color:#a0c0ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">? Hinweise f�r AgentController</div>
+                <div style="color:#a0c0ff;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">③ Hinweise für AgentController</div>
                 <textarea id="e-hints" rows="2" placeholder="z.B. Kugel fliegt nach oben, Template: BulletTemplate"
                     style="${inputStyle}resize:vertical;">${wData.agentHints}</textarea>
             </div>`;
@@ -1490,7 +1490,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             document.getElementById('w-back')?.addEventListener('click', () => { saveWizardData(); wizardStep--; renderDialog(); });
             document.getElementById('w-next')?.addEventListener('click', () => { saveWizardData(); wizardStep++; renderDialog(); });
 
-            // Wizard-Kacheln (Priorit�t)
+            // Wizard-Kacheln (Priorität)
             (window as any)._wSetPriority = (v: string) => { saveWizardData(); wData.priority=v; renderDialog(); };
 
             // Wizard-Kacheln (Trigger)
@@ -1525,7 +1525,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 renderDialog();
             };
 
-            // Experten-Modus: Komponenten-Art �ndert Events
+            // Experten-Modus: Komponenten-Art ändert Events
             document.getElementById('e-comp-type')?.addEventListener('change', (e) => {
                 const t = (e.target as HTMLSelectElement).value;
                 const evSel = document.getElementById('e-event') as HTMLSelectElement;
@@ -1548,7 +1548,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 const text = (document.getElementById('w-prompt-text') as HTMLElement)?.textContent||'';
                 navigator.clipboard.writeText(text).then(()=>{
                     const btn=document.getElementById('w-copy-prompt');
-                    if(btn){btn.textContent='? Kopiert!';setTimeout(()=>{btn.textContent='?? Kopieren';},2000);}
+                    if(btn){btn.textContent='✓ Kopiert!';setTimeout(()=>{btn.textContent='📋 Kopieren';},2000);}
                 });
             });
 
@@ -1598,7 +1598,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             <div style="border: 1px solid #ccc; border-radius: 4px; padding: 16px; margin-bottom: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h4 style="margin: 0;">User Story Details</h4>
-                    <button id="close-user-story-details" style="padding: 4px 8px; background-color: #999; color: white; border: none; border-radius: 4px; cursor: pointer;">Schlie�en</button>
+                    <button id="close-user-story-details" style="padding: 4px 8px; background-color: #999; color: white; border: none; border-radius: 4px; cursor: pointer;">Schließen</button>
                 </div>
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; margin-bottom: 4px; font-weight: bold;">Titel</label>
@@ -1613,7 +1613,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                     <textarea id="edit-user-story-acceptance-criteria" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">${userStory.acceptanceCriteria ? userStory.acceptanceCriteria.join('\n') : ''}</textarea>
                 </div>
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; margin-bottom: 4px; font-weight: bold;">Priorit�t</label>
+                    <label style="display: block; margin-bottom: 4px; font-weight: bold;">Priorität</label>
                     <select id="edit-user-story-priority" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                         <option value="high" ${userStory.priority === 'high' ? 'selected' : ''}>Hoch</option>
                         <option value="medium" ${userStory.priority === 'medium' ? 'selected' : ''}>Mittel</option>
@@ -1636,14 +1636,14 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 <div style="margin-bottom: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <h5 style="margin: 0;">Interaktionen</h5>
-                        <button id="add-interaction" style="padding: 4px 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Interaktion hinzuf�gen</button>
+                        <button id="add-interaction" style="padding: 4px 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Interaktion hinzufügen</button>
                     </div>
                     <div id="interactions-list"></div>
                 </div>
             </div>
         `;
 
-        // Event-Listener f�r Schlie�en
+        // Event-Listener für Schließen
         const closeButton = document.getElementById('close-user-story-details');
         if (closeButton) {
             closeButton.addEventListener('click', () => {
@@ -1651,7 +1651,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             });
         }
 
-        // Event-Listener f�r Speichern
+        // Event-Listener für Speichern
         const saveButton = document.getElementById('save-user-story-details');
         if (saveButton) {
             saveButton.addEventListener('click', () => {
@@ -1659,7 +1659,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             });
         }
 
-        // Event-Listener f�r Hinzuf�gen
+        // Event-Listener für Hinzufügen
         const addInteractionButton = document.getElementById('add-interaction');
         if (addInteractionButton) {
             addInteractionButton.addEventListener('click', () => {
@@ -1766,17 +1766,17 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <strong>${interaction.title}</strong>
                     <div>
-                        ${interaction.task && interaction.task.flowChartId ? `<button onclick="window.navigateToFlowChart('${interaction.task.flowChartId}')" style="padding: 4px 8px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">Flow-Editor �ffnen</button>` : ''}
+                        ${interaction.task && interaction.task.flowChartId ? `<button onclick="window.navigateToFlowChart('${interaction.task.flowChartId}')" style="padding: 4px 8px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">Flow-Editor öffnen</button>` : ''}
                         <button onclick="window.showInteractionDiagram('${userStoryId}', '${interaction.id}')" style="padding: 4px 8px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">Diagramm anzeigen</button>
                         <button onclick="window.editInteraction('${userStoryId}', '${interaction.id}')" style="padding: 4px 8px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">Bearbeiten</button>
-                        <button onclick="window.deleteInteraction('${userStoryId}', '${interaction.id}')" style="padding: 4px 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">L�schen</button>
+                        <button onclick="window.deleteInteraction('${userStoryId}', '${interaction.id}')" style="padding: 4px 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Löschen</button>
                     </div>
                 </div>
                 <p style="margin: 0; color: #666; font-size: 14px;">${interaction.description || 'Keine Beschreibung'}</p>
             </div>
         `).join('');
 
-        // Event-Listener f�r Bearbeiten und L�schen
+        // Event-Listener für Bearbeiten und Löschen
         (window as any).editInteraction = (storyId: string, interactionId: string) => {
             this.editInteraction(storyId, interactionId);
         };
@@ -1820,7 +1820,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
         if (!interaction) return;
 
-        // Modal f�r Diagramm anzeigen
+        // Modal für Diagramm anzeigen
         const modal = document.createElement('div');
         modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 2000;';
         
@@ -1832,7 +1832,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         content.innerHTML = `
             <h2 style="margin-top: 0;">Interaktions-Diagramm: ${interaction.title}</h2>
             <div style="background-color: #fff; padding: 16px; border-radius: 4px; overflow-x: auto;">${diagram}</div>
-            <button id="close-diagram-modal" style="padding: 8px 16px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 16px;">Schlie�en</button>
+            <button id="close-diagram-modal" style="padding: 8px 16px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 16px;">Schließen</button>
         `;
         
         modal.appendChild(content);
@@ -1849,9 +1849,9 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
     private generateInteractionDiagram(interaction: any): string {
         const project = this.host.project;
 
-        // -- Hilfsfunktionen ------------------------------------------
+        // ── Hilfsfunktionen ──────────────────────────────────────────
 
-        const arrow = () => `<div style="text-align:center;color:#607d8b;font-size:20px;line-height:1.2;">?</div>`;
+        const arrow = () => `<div style="text-align:center;color:#607d8b;font-size:20px;line-height:1.2;">↓</div>`;
 
         const renderAction = (name: string, typeLbl?: string): string =>
             `<div style="background:#f3e5f5;border:2px solid #9c27b0;border-radius:6px;padding:7px 14px;margin:2px 0;">
@@ -1912,20 +1912,20 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                     const hasElse = item.elseBody && item.elseBody.length > 0;
                     return `
                         <div style="border:2px solid #ff9800;border-radius:6px;padding:8px 12px;margin:2px 0;background:#fff8e1;">
-                            <div style="color:#e65100;font-size:11px;font-weight:bold;text-transform:uppercase;margin-bottom:4px;">? Condition</div>
+                            <div style="color:#e65100;font-size:11px;font-weight:bold;text-transform:uppercase;margin-bottom:4px;">⬡ Condition</div>
                             <div style="color:#bf360c;font-size:12px;font-family:monospace;margin-bottom:8px;">${condLabel}</div>
                             <div style="display:flex;gap:12px;align-items:flex-start;">
                                 <div style="flex:1;border:1px solid #4caf50;border-radius:4px;padding:8px;background:#f1f8e9;">
-                                    <div style="color:#2e7d32;font-size:11px;font-weight:bold;margin-bottom:6px;">? DANN</div>
+                                    <div style="color:#2e7d32;font-size:11px;font-weight:bold;margin-bottom:6px;">✓ DANN</div>
                                     ${bodyHtml || '<div style="color:#999;font-size:12px;font-style:italic;">leer</div>'}
                                 </div>
                                 ${hasElse ? `
                                 <div style="flex:1;border:1px solid #ef5350;border-radius:4px;padding:8px;background:#ffebee;">
-                                    <div style="color:#c62828;font-size:11px;font-weight:bold;margin-bottom:6px;">? SONST</div>
+                                    <div style="color:#c62828;font-size:11px;font-weight:bold;margin-bottom:6px;">✗ SONST</div>
                                     ${elseHtml}
                                 </div>` : `
                                 <div style="flex:1;border:1px dashed #ccc;border-radius:4px;padding:8px;background:#fafafa;">
-                                    <div style="color:#aaa;font-size:11px;font-weight:bold;margin-bottom:6px;">? SONST</div>
+                                    <div style="color:#aaa;font-size:11px;font-weight:bold;margin-bottom:6px;">✗ SONST</div>
                                     <div style="color:#bbb;font-size:12px;font-style:italic;">leer</div>
                                 </div>`}
                             </div>
@@ -1936,7 +1936,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             }).join('');
         };
 
-        // -- Diagramm aufbauen ----------------------------------------
+        // ── Diagramm aufbauen ────────────────────────────────────────
 
         // Header-Infos
         let diagram = `<div style="font-family:sans-serif;max-width:720px;">`;
@@ -1945,12 +1945,12 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         diagram += `<div style="display:flex;gap:8px;margin-bottom:8px;">
             <div style="flex:1;background:#e3f2fd;border:2px solid #2196f3;border-radius:6px;padding:8px 12px;">
                 <div style="color:#1565c0;font-size:11px;font-weight:bold;text-transform:uppercase;">Trigger-Komponente</div>
-                <div style="color:#0d47a1;font-size:13px;font-weight:bold;">${interaction.triggerComponent?.componentName || '�'}</div>
+                <div style="color:#0d47a1;font-size:13px;font-weight:bold;">${interaction.triggerComponent?.componentName || '—'}</div>
                 <div style="color:#555;font-size:12px;">${interaction.triggerComponent?.componentType || ''}</div>
             </div>
             <div style="flex:1;background:#fff3e0;border:2px solid #ff9800;border-radius:6px;padding:8px 12px;">
                 <div style="color:#e65100;font-size:11px;font-weight:bold;text-transform:uppercase;">Event</div>
-                <div style="color:#bf360c;font-size:13px;font-weight:bold;">${interaction.event?.eventName || '�'}</div>
+                <div style="color:#bf360c;font-size:13px;font-weight:bold;">${interaction.event?.eventName || '—'}</div>
                 ${interaction.event?.parameters?.key ? `<div style="color:#555;font-size:12px;">Key: ${interaction.event.parameters.key}</div>` : ''}
             </div>
         </div>`;
@@ -1963,7 +1963,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
         diagram += `<div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:6px;padding:8px 12px;margin:2px 0;">
             <div style="color:#2e7d32;font-size:11px;font-weight:bold;text-transform:uppercase;">Haupt-Task</div>
-            <div style="color:#1b5e20;font-size:13px;font-weight:bold;">${mainTaskName || '�'}</div>
+            <div style="color:#1b5e20;font-size:13px;font-weight:bold;">${mainTaskName || '—'}</div>
             ${mainTask?.description ? `<div style="color:#555;font-size:12px;">${mainTask.description}</div>` : ''}
         </div>`;
 
@@ -1999,7 +1999,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             <div style="border: 1px solid #ddd; border-radius: 4px; padding: 16px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h4 style="margin: 0;">Interaktion bearbeiten</h4>
-                    <button id="close-interaction-edit" style="padding: 4px 8px; background-color: #999; color: white; border: none; border-radius: 4px; cursor: pointer;">Schlie�en</button>
+                    <button id="close-interaction-edit" style="padding: 4px 8px; background-color: #999; color: white; border: none; border-radius: 4px; cursor: pointer;">Schließen</button>
                 </div>
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; margin-bottom: 4px; font-weight: bold;">Titel</label>
@@ -2028,21 +2028,21 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 <div style="margin-bottom: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <h5 style="margin: 0;">Pre-Conditions</h5>
-                        <button id="add-pre-condition" style="padding: 4px 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Condition hinzuf�gen</button>
+                        <button id="add-pre-condition" style="padding: 4px 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Condition hinzufügen</button>
                     </div>
                     <div id="pre-conditions-list"></div>
                 </div>
                 <div style="margin-bottom: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <h5 style="margin: 0;">Post-Conditions</h5>
-                        <button id="add-post-condition" style="padding: 4px 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Condition hinzuf�gen</button>
+                        <button id="add-post-condition" style="padding: 4px 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Condition hinzufügen</button>
                     </div>
                     <div id="post-conditions-list"></div>
                 </div>
             </div>
         `;
 
-        // Event-Listener f�r Schlie�en
+        // Event-Listener für Schließen
         const closeButton = document.getElementById('close-interaction-edit');
         if (closeButton) {
             closeButton.addEventListener('click', () => {
@@ -2050,7 +2050,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             });
         }
 
-        // Event-Listener f�r Speichern
+        // Event-Listener für Speichern
         const saveButton = document.getElementById('save-interaction-edit');
         if (saveButton) {
             saveButton.addEventListener('click', () => {
@@ -2058,7 +2058,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             });
         }
 
-        // Event-Listener f�r Hinzuf�gen von Conditions
+        // Event-Listener für Hinzufügen von Conditions
         const addPreConditionButton = document.getElementById('add-pre-condition');
         if (addPreConditionButton) {
             addPreConditionButton.addEventListener('click', () => {
@@ -2163,14 +2163,14 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             <div style="border: 1px solid #ddd; border-radius: 4px; padding: 8px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <strong>Condition ${index + 1}</strong>
-                    <button onclick="window.deleteCondition('${userStoryId}', '${interactionId}', '${type}', '${condition.conditionId}')" style="padding: 4px 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">L�schen</button>
+                    <button onclick="window.deleteCondition('${userStoryId}', '${interactionId}', '${type}', '${condition.conditionId}')" style="padding: 4px 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>
                 </div>
                 <input type="text" value="${condition.description}" onchange="window.updateConditionDescription('${userStoryId}', '${interactionId}', '${type}', '${condition.conditionId}', this.value)" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 4px;" placeholder="Beschreibung">
                 <input type="text" value="${condition.expression}" onchange="window.updateConditionExpression('${userStoryId}', '${interactionId}', '${type}', '${condition.conditionId}', this.value)" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 4px;" placeholder="Expression">
             </div>
         `).join('');
 
-        // Event-Listener f�r Condition-Operationen
+        // Event-Listener für Condition-Operationen
         (window as any).deleteCondition = (storyId: string, iId: string, cType: string, cId: string) => {
             this.deleteCondition(storyId, iId, cType as 'pre' | 'post', cId);
         };
@@ -2237,7 +2237,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
     }
 
     private deleteInteraction(userStoryId: string, interactionId: string) {
-        if (!confirm('Interaktion wirklich l�schen?')) return;
+        if (!confirm('Interaktion wirklich löschen?')) return;
 
         const userStory = this.host.project.userStories?.userStories?.find((us: any) => us.id === userStoryId);
         if (!userStory) return;
@@ -2250,7 +2250,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
     // @ts-ignore
     private deleteUserStory(id: string) {
-        if (!confirm('User Story wirklich l�schen?')) return;
+        if (!confirm('User Story wirklich löschen?')) return;
 
         this.host.project.userStories = this.host.project.userStories || {};
         if (this.host.project.userStories.userStories) {
@@ -2315,7 +2315,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
         const exporter = new GameExporter();
         
-        // -- WICHTIGER FIX: Verwende projectStore statt this.host.project,
+        // ── WICHTIGER FIX: Verwende projectStore statt this.host.project,
         // da this.host.project oft eine veraltete Referenz ist (Unidirectional Data Flow!)
         const latestProject = projectStore.getProject() || this.host.project;
         
@@ -2325,7 +2325,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
         const cleanProjectData = exporter.getCleanProject(latestProject);
 
-        // DEBUG: Pr�fen ob das Gamepad HIER �berhaupt vorhanden ist!
+        // DEBUG: Prüfen ob das Gamepad HIER überhaupt vorhanden ist!
         const mainStage = cleanProjectData.stages?.find((s: any) => s.id === cleanProjectData.activeStageId) || cleanProjectData.stages?.[0];
         const hasGamepad = mainStage?.objects?.some((o: any) => o.className === 'TVirtualGamepad');
         logger.debug(`Sende CLEAN Projekt an IFrame. Objekte: ${mainStage?.objects?.length}, Beinhaltet Gamepad? ${hasGamepad}`);
@@ -2333,7 +2333,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             logger.warn(`ALARM! Das Gamepad fehlt schon BEVOR es an den IFrame gesendet wird! CLEAN Objects:`, mainStage?.objects);
         }
 
-        // Synchrone Daten�bergabe
+        // Synchrone Datenübergabe
         (iframe as any)._injectedProject = cleanProjectData;
 
         const messageHandler = (e: MessageEvent) => {
@@ -2520,7 +2520,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         // "Alle Tasks" Option
         const allOpt = document.createElement('option');
         allOpt.value = '__all__';
-        allOpt.textContent = '?? Alle Tasks';
+        allOpt.textContent = '📋 Alle Tasks';
         allOpt.selected = this.selectedPascalTask === null;
         select.appendChild(allOpt);
 
@@ -2552,7 +2552,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         Array.from(taskNames).sort().forEach(name => {
             const opt = document.createElement('option');
             opt.value = name;
-            opt.textContent = `? ${name}`;
+            opt.textContent = `⚡ ${name}`;
             opt.selected = this.selectedPascalTask === name;
             select.appendChild(opt);
         });
@@ -2648,14 +2648,14 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         sidebar.className = 'management-sidebar';
 
         const managers = [
-            { id: 'VisualObjects', label: 'Visuelle Objekte', emoji: '???' },
-            { id: 'Tasks', label: 'Tasks', emoji: '?' },
-            { id: 'Actions', label: 'Aktionen', emoji: '??' },
-            { id: 'Variables', label: 'Variablen', emoji: '??' },
-            { id: 'FlowCharts', label: 'Ablaufdiagramme', emoji: '???' },
-            { id: 'Stages', label: 'Stages', emoji: '??' },
-            { id: 'StickyNotes', label: 'Notizen', emoji: '??' },
-            { id: 'Import', label: 'Import', emoji: '??' }
+            { id: 'VisualObjects', label: 'Visuelle Objekte', emoji: '🖼️' },
+            { id: 'Tasks', label: 'Tasks', emoji: '⚡' },
+            { id: 'Actions', label: 'Aktionen', emoji: '🎬' },
+            { id: 'Variables', label: 'Variablen', emoji: '📊' },
+            { id: 'FlowCharts', label: 'Ablaufdiagramme', emoji: '🗺️' },
+            { id: 'Stages', label: 'Stages', emoji: '🎬' },
+            { id: 'StickyNotes', label: 'Notizen', emoji: '📝' },
+            { id: 'Import', label: 'Import', emoji: '📥' }
         ];
 
         managers.forEach(m => {
@@ -2681,7 +2681,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             this.renderStickyNotesView(content);
         } else {
             // Robuster Fallback: Wenn activeStageId null ist (z.B. nach globalem Flow-Kontext),
-            // verwende Blueprint-Stage oder erste verf�gbare Stage.
+            // verwende Blueprint-Stage oder erste verfügbare Stage.
             const stage = this.host.getActiveStage()
                 || this.host.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint')
                 || this.host.project.stages?.[0];
@@ -2725,7 +2725,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                     const listContainer = document.createElement('div');
                     listContainer.style.flex = '1';
                     listContainer.style.position = 'relative';
-                    listContainer.style.overflowY = 'auto'; // Scrolling f�r die Cards
+                    listContainer.style.overflowY = 'auto'; // Scrolling für die Cards
                     content.appendChild(listContainer);
 
                     const listWrap = document.createElement('div');
@@ -2737,7 +2737,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
                     if (dataList.length === 0) {
                         const empty = document.createElement('div');
-                        empty.textContent = 'Keine Eintr�ge gefunden.';
+                        empty.textContent = 'Keine Einträge gefunden.';
                         empty.style.cssText = 'color:#888; font-style:italic; padding: 16px; background: #2a2a3e; border-radius: 6px;';
                         listWrap.appendChild(empty);
                     }
@@ -2765,7 +2765,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                         else if (row.uiScope === 'library') locationText = 'System-Bibliothek';
                         
                         if (locationText) {
-                            html += `<div style="font-size:11px;color:#99aab5;margin-bottom:6px;">?? ${this.escapeHtml(locationText)}</div>`;
+                            html += `<div style="font-size:11px;color:#99aab5;margin-bottom:6px;">📍 ${this.escapeHtml(locationText)}</div>`;
                         }
                         
                         if (activeManager.columns && activeManager.columns.length > 1) {
@@ -2799,7 +2799,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         wrapper.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding:16px;height:100%;box-sizing:border-box;overflow-y:auto;';
 
         const title = document.createElement('h2');
-        title.textContent = '?? Projekt Notizen-�bersicht';
+        title.textContent = '📝 Projekt Notizen-Übersicht';
         title.style.cssText = 'margin:0;color:#fff;font-size:16px;';
         wrapper.appendChild(title);
 
@@ -2882,7 +2882,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
         const colorMap: Record<string, { label: string, hex: string }> = {
             'yellow': { label: 'Information (Gelb)', hex: '#fff9c4' },
-            'green': { label: 'Erfolg/Positiv (Gr�n)', hex: '#c8e6c9' },
+            'green': { label: 'Erfolg/Positiv (Grün)', hex: '#c8e6c9' },
             'blue': { label: 'Struktur/Neutral (Blau)', hex: '#bbdefb' },
             'red': { label: 'Achtung/Todo (Rot)', hex: '#ffcdd2' }
         };
@@ -2935,7 +2935,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                         <div style="font-size:11px;color:#aaa;margin-bottom:6px;">${this.escapeHtml(subtitle)}</div>
                         <div class="sticky-note-text" style="font-size:12px;color:#ccc;white-space:pre-wrap;line-height:1.4;">${n.text}</div>
                     `;
-                    // Links im Text klickbar machen (�ffnen neuen Tab im Vordergrund)
+                    // Links im Text klickbar machen (öffnen neuen Tab im Vordergrund)
                     item.querySelectorAll('.sticky-note-text a').forEach((a: Element) => {
                         (a as HTMLElement).style.cssText = 'color:#4fc3f7;';
                         (a as HTMLElement).onclick = (e) => {
@@ -2960,7 +2960,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                                 if (this.host.flowEditor) {
                                     this.host.flowEditor.show();
                                     this.host.flowEditor.switchActionFlow(n.contextKey, true, false);
-                                    // Kurze Verz�gerung bis das Flow gerendert wurde
+                                    // Kurze Verzögerung bis das Flow gerendert wurde
                                     setTimeout(() => {
                                         this.host.flowEditor?.selectNodeById(n.id);
                                     }, 100);
@@ -2988,8 +2988,8 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             empty.style.cssText = 'color:#888; font-style:italic; padding: 16px; background: #2a2a3e; border-radius: 6px;';
             wrapper.appendChild(empty);
         } else {
-            renderGroup('?? Notizen im Visual Editor', stageNotes, false);
-            renderGroup('??? Notizen in Flow-Diagrammen', flowNotes, true);
+            renderGroup('📌 Notizen im Visual Editor', stageNotes, false);
+            renderGroup('🗺️ Notizen in Flow-Diagrammen', flowNotes, true);
         }
 
         parent.appendChild(wrapper);
@@ -3010,18 +3010,18 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
         // Header
         const title = document.createElement('h2');
-        title.textContent = '?? Projekt importieren';
+        title.textContent = '📥 Projekt importieren';
         title.style.cssText = 'margin:0;color:#fff;font-size:16px;';
         wrapper.appendChild(title);
 
         const hint = document.createElement('div');
-        hint.textContent = 'F�ge ein Projekt-JSON per Ctrl+V in das Textfeld ein, um es zu laden.';
+        hint.textContent = 'Füge ein Projekt-JSON per Ctrl+V in das Textfeld ein, um es zu laden.';
         hint.style.cssText = 'font-size:12px;color:#888;margin-bottom:4px;';
         wrapper.appendChild(hint);
 
         // Textarea
         const textarea = document.createElement('textarea');
-        textarea.placeholder = 'Projekt-JSON hier einf�gen (Ctrl+V)...\n\n{\n  "name": "MeinProjekt",\n  "stages": [...]\n}';
+        textarea.placeholder = 'Projekt-JSON hier einfügen (Ctrl+V)...\n\n{\n  "name": "MeinProjekt",\n  "stages": [...]\n}';
         textarea.style.cssText = 'flex:1;min-height:200px;background:#1a1a2e;color:#e0e0e0;border:1px solid #444;border-radius:8px;padding:12px;font-family:Consolas,Monaco,monospace;font-size:12px;resize:none;outline:none;transition:border-color 0.2s;';
         textarea.onfocus = () => { textarea.style.borderColor = '#89b4fa'; };
         textarea.onblur = () => { textarea.style.borderColor = '#444'; };
@@ -3037,16 +3037,16 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         const btnRow = document.createElement('div');
         btnRow.style.cssText = 'display:flex;gap:10px;';
 
-        // ?? Laden-Button
+        // 📥 Laden-Button
         const loadBtn = document.createElement('button');
-        loadBtn.textContent = '?? Projekt laden';
+        loadBtn.textContent = '📥 Projekt laden';
         loadBtn.disabled = true;
         loadBtn.style.cssText = 'flex:1;padding:10px 16px;background:#1e3a5f;color:#4fc3f7;border:1px solid #2a5a8f;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;transition:all 0.2s;opacity:0.5;';
         btnRow.appendChild(loadBtn);
 
-        // ?? Kopieren-Button
+        // 📋 Kopieren-Button
         const copyBtn = document.createElement('button');
-        copyBtn.textContent = '?? Aktuelles Projekt kopieren';
+        copyBtn.textContent = '📋 Aktuelles Projekt kopieren';
         copyBtn.style.cssText = 'flex:1;padding:10px 16px;background:#2a2a3e;color:#ccc;border:1px solid #444;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s;';
         copyBtn.onmouseenter = () => { copyBtn.style.borderColor = '#89b4fa'; copyBtn.style.background = '#3a3a4e'; };
         copyBtn.onmouseleave = () => { copyBtn.style.borderColor = '#444'; copyBtn.style.background = '#2a2a3e'; };
@@ -3055,7 +3055,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 const projectJson = JSON.stringify(this.host.project, null, 2);
                 await navigator.clipboard.writeText(projectJson);
                 const origText = copyBtn.textContent;
-                copyBtn.textContent = '? Kopiert!';
+                copyBtn.textContent = '✅ Kopiert!';
                 copyBtn.style.borderColor = '#a6e3a1';
                 setTimeout(() => {
                     copyBtn.textContent = origText;
@@ -3089,9 +3089,9 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 try {
                     const parsed = JSON.parse(text);
 
-                    // Pr�fe ob es ein GCS-Projekt ist
+                    // Prüfe ob es ein GCS-Projekt ist
                     if (!parsed.stages || !Array.isArray(parsed.stages)) {
-                        this.updateImportStatus(statusBar, 'error', 'Kein g�ltiges GCS-Projekt: "stages" Array fehlt.');
+                        this.updateImportStatus(statusBar, 'error', 'Kein gültiges GCS-Projekt: "stages" Array fehlt.');
                         loadBtn.disabled = true;
                         loadBtn.style.opacity = '0.5';
                         parsedProject = null;
@@ -3110,7 +3110,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
 
                     parsedProject = parsed;
                     this.updateImportStatus(statusBar, 'valid',
-                        `G�ltiges Projekt: "${name}" (${stageCount} Stage${stageCount !== 1 ? 's' : ''}, ${componentCount} Komponenten, ${taskCount} Tasks)`
+                        `Gültiges Projekt: "${name}" (${stageCount} Stage${stageCount !== 1 ? 's' : ''}, ${componentCount} Komponenten, ${taskCount} Tasks)`
                     );
                     loadBtn.disabled = false;
                     loadBtn.style.opacity = '1';
@@ -3152,25 +3152,25 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 el.style.background = 'rgba(255,255,255,0.03)';
                 el.style.border = '1px solid #333';
                 el.style.color = '#666';
-                el.innerHTML = '? Warte auf Eingabe...';
+                el.innerHTML = '⏳ Warte auf Eingabe...';
                 break;
             case 'valid':
                 el.style.background = 'rgba(166,227,161,0.1)';
                 el.style.border = '1px solid rgba(166,227,161,0.4)';
                 el.style.color = '#a6e3a1';
-                el.innerHTML = `? ${message}`;
+                el.innerHTML = `✅ ${message}`;
                 break;
             case 'error':
                 el.style.background = 'rgba(243,139,168,0.1)';
                 el.style.border = '1px solid rgba(243,139,168,0.4)';
                 el.style.color = '#f38ba8';
-                el.innerHTML = `? ${message}`;
+                el.innerHTML = `❌ ${message}`;
                 break;
             case 'loaded':
                 el.style.background = 'rgba(137,180,250,0.1)';
                 el.style.border = '1px solid rgba(137,180,250,0.4)';
                 el.style.color = '#89b4fa';
-                el.innerHTML = `?? ${message}`;
+                el.innerHTML = `🎉 ${message}`;
                 break;
         }
     }
