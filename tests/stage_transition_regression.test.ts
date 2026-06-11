@@ -105,7 +105,9 @@ export async function runStageTransitionRegressionTests(): Promise<TestResult[]>
     // REGRESSION: Ohne glm.init() frieren Physik, Sprites und Animationen nach Stage-Wechsel ein
     try {
         const handleStageChangeBody = extractMethodBody(runtimeSource, 'handleStageChange');
-        const hasGlmInit = handleStageChangeBody.includes('glm.init(');
+        const initMainGameBody = extractMethodBody(runtimeSource, 'initMainGame');
+        const hasGlmInit = handleStageChangeBody.includes('glm.init(') ||
+            (handleStageChangeBody.includes('this.initMainGame(') && initMainGameBody.includes('glm.init('));
         addResult(
             'A1: handleStageChange enthält glm.init()',
             hasGlmInit,

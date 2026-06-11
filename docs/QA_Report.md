@@ -1,64 +1,64 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 31.5.2026, 19:42:37
+**Generiert am**: 11.6.2026, 16:18:04
 **Status**: ❌ FEHLER GEFUNDEN
-**Gesamtlauf**: 86.4s
+**Gesamtlauf**: 88.0s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
 pie title Test-Status (Gesamt: 261)
-    "Bestanden ✅" : 259
-    "Fehlgeschlagen ❌" : 2
+    "Bestanden ✅" : 258
+    "Fehlgeschlagen ❌" : 3
 ```
 
 ## ⏱ Timing-Übersicht (sortiert nach Dauer)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 86222ms 🐌 | ✅ |
-| Code Quality & Security Guards | 138ms | ✅ |
+| Playwright E2E | 87739ms 🐌 | ✅ |
+| Code Quality & Security Guards | 168ms | ✅ |
+| Coordinate Binding | 9ms | ✅ |
 | AgentController | 8ms | ✅ |
-| Coordinate Binding | 8ms | ✅ |
 | Mathe-Quiz | 4ms | ✅ |
 | Stage-Transition Regression | 4ms | ✅ |
 | RefactoringManager | 3ms | ✅ |
 | TaskExecutor | 3ms | ✅ |
-| ProjectStore | 2ms | ✅ |
 | Stage-Import | 2ms | ✅ |
+| ProjectStore | 2ms | ✅ |
 | SyncValidator | 2ms | ✅ |
 | Serialization | 2ms | ✅ |
 | SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
 | Export Integrity | 2ms | ✅ |
-| Project Integrity | 2ms | ✅ |
+| Project Integrity | 1ms | ✅ |
 | GameLoopManager Physics | 1ms | ✅ |
-| FlowDataAction Inspector | 1ms | ✅ |
 | Action Stage Routing & Duplicates | 1ms | ✅ |
-| Pascal Code Generator | 1ms | ✅ |
+| FlowDataAction Inspector | 1ms | ✅ |
 | Action CRUD | 1ms | ✅ |
+| Pascal Code Generator | 1ms | ✅ |
 | Event Actions (bind/unbind) | 1ms | ✅ |
 | Raketen-Countdown | 1ms | ✅ |
 | SpawnObject Variable Support | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
 | SnapshotManager | 1ms | ✅ |
-| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
 | Action Registration | 1ms | ✅ |
 | Unification & Auto-Unwrap | 1ms | ✅ |
-| TTimer Variable Resolution | 1ms | ✅ |
-| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
+| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
 | Virtual Gamepad | 1ms | ✅ |
 | SidePanel | 1ms | ✅ |
-| FlowSync | 1ms | ✅ |
+| TTimer Variable Resolution | 1ms | ✅ |
 | SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
+| FlowSync | 1ms | ✅ |
 | SyncRefactor P0: Inspector Writeback | 0ms | ✅ |
-| Login-Logic | 0ms | ✅ |
 | Smart-Mapping & Discovery | 0ms | ✅ |
+| Login-Logic | 0ms | ✅ |
 | Renaming Robustness | 0ms | ✅ |
 | Electron Security | 0ms | ✅ |
 | Component Events | 0ms | ✅ |
 | SELECT COUNT(*) | 0ms | ✅ |
 | TTable Smart-Unwrap | 0ms | ✅ |
 
-**Summe Suiten**: 86424ms
-**Gesamtlauf inkl. Setup/Report**: 86438ms
+**Summe Suiten**: 87970ms
+**Gesamtlauf inkl. Setup/Report**: 87984ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -137,10 +137,10 @@ pie title Test-Status (Gesamt: 261)
 | Hydrate: Style-Merge<br><small>bgColor=#333, borderRadius=8px</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: TSprite ImageList<br><small>imageListId=imglist_hero, imageIndex=2</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: Prototype Pollution Regression<br><small>Object.prototype blieb unveraendert</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 70 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Component Registrierung (Barrel + Registry)<br><small>Fehlt im Barrel (components/index.ts): TLink</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Keine unerlaubten console.* Aufrufe<br><small>Zu viele: src/components/TDebugLog.ts:382, src/components/TDebugLog.ts:384, src/components/TDebugLog.ts:443, src/components/TDebugLog.ts:446, src/components/TStageController.ts:186, src/editor/EditorViewManager.ts:273, src/editor/EditorViewManager.ts:274, src/editor/EditorViewManager.ts:275, src/editor/EditorViewManager.ts:3144, src/editor/EditorViewManager.ts:3151, src/editor/EditorViewManager.ts:3153, src/editor/inspector/InspectorContextBuilder.ts:257, src/editor/inspector/InspectorEventHandler.ts:111, src/editor/inspector/InspectorEventHandler.ts:134, src/editor/inspector/InspectorEventHandler.ts:136, src/editor/inspector/InspectorEventHandler.ts:163, src/editor/inspector/InspectorEventHandler.ts:171, src/editor/inspector/InspectorEventHandler.ts:174, src/editor/inspector/renderers/InspectorSectionRenderer.ts:663, src/editor/services/EditorInteractionManager.ts:99, src/editor/services/EditorInteractionManager.ts:106, src/editor/services/EditorInteractionManager.ts:123, src/editor/services/renderers/ComplexComponentRenderer.ts:401, src/editor/services/renderers/TextObjectRenderer.ts:124, src/editor/services/renderers/VirtualGamepadRenderer.ts:72, src/editor/services/StageInteractionManager.ts:180, src/editor/services/StageInteractionManager.ts:199, src/editor/services/StageInteractionManager.ts:521, src/editor/services/StageInteractionManager.ts:631, src/editor/services/StageInteractionManager.ts:632, src/editor/services/StageInteractionManager.ts:665, src/editor/services/StageInteractionManager.ts:719, src/editor/services/StageRenderer.ts:835, src/editor/services/StageRenderer.ts:841, src/export/GameExporter.ts:463, src/export/GameExporter.ts:467, src/export/GameExporter.ts:560, src/runtime/actions/handlers/NavigationActions.ts:31, src/runtime/actions/handlers/NavigationActions.ts:37, src/runtime/actions/handlers/NavigationActions.ts:49, src/runtime/actions/handlers/NavigationActions.ts:78, src/runtime/actions/handlers/ObjectPoolActions.ts:162, src/runtime/actions/handlers/ObjectPoolActions.ts:170, src/runtime/actions/handlers/ObjectPoolActions.ts:178, src/runtime/actions/handlers/ObjectPoolActions.ts:184, src/runtime/GameRuntime.ts:576, src/runtime/GameRuntime.ts:587, src/services/DebugLogService.ts:55, src/services/DebugLogService.ts:90, src/services/ProjectStore.ts:290, src/services/ProjectStore.ts:293, src/utils/TauriFSAdapter.ts:21, src/utils/TauriFSAdapter.ts:60</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/editor/Editor.ts (1209), src/editor/EditorViewManager.ts (4009), src/editor/inspector/InspectorRenderer.ts (1266), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1065), src/editor/services/FlowContextMenuProvider.ts (1030), src/editor/services/StageRenderer.ts (1165), src/runtime/GameRuntime.ts (1173), src/services/AgentController.ts (1402)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 0</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/components/TDebugLog.ts (1003), src/editor/Editor.ts (1223), src/editor/inspector/InspectorRenderer.ts (1273), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1068), src/editor/services/FlowContextMenuProvider.ts (1030), src/editor/services/StageRenderer.ts (1264), src/runtime/GameRuntime.ts (1179), src/services/AgentController.ts (1402)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -209,13 +209,13 @@ pie title Test-Status (Gesamt: 261)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1780249270790_4s (erwartet: stage_import_1780249270790_4s), BackToLobby.stageId=stage_import_1780249270790_ze (erwartet: stage_import_1780249270790_ze)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1781187396254_3c (erwartet: stage_import_1781187396254_3c), BackToLobby.stageId=stage_import_1781187396254_wc (erwartet: stage_import_1781187396254_wc)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Temp Directory Access | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Dynamic Whitelist (Dialog File Selection) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| A1: handleStageChange enthält glm.init()<br><small>GameLoopManager wird bei Stage-Wechsel korrekt re-initialisiert.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| A1: handleStageChange enthält glm.init()<br><small>REGRESSION! glm.init() fehlt in handleStageChange → Physik/Sprites frieren ein!</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | A2: slide-up nutzt cellSize-Division<br><small>slide-up Offset wird korrekt durch cellSize geteilt (Grid-Zellen statt Pixel).</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | A3: handleStageChange KEIN eigener triggerStartAnimation<br><small>Korrekt: Animation wird nur über start() → initMainGame() ausgelöst.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | A4: updateSpritePositions dedupliziert via Map<br><small>Map-basierte Deduplizierung vorhanden → kein Rubber-Banding.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

@@ -5,6 +5,9 @@ import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { mediatorService } from '../../../services/MediatorService';
 import { NotificationToast } from '../../ui/NotificationToast';
 import { MediaPickerDialog } from '../MediaPickerDialog';
+import { Logger } from '../../../utils/Logger';
+
+const logger = Logger.get('InspectorSectionRenderer');
 
 export class InspectorSectionRenderer {
     private static notify(context: IInspectorContext, propName: string, newVal: any, oldVal: any, obj: any, event?: any) {
@@ -660,7 +663,7 @@ export class InspectorSectionRenderer {
                                     currentParent = editor.findParentContainer(currentParent.id);
                                 }
                             }
-                        } catch (e) { console.error('Fehler beim Aufl�sen der Repeater-Bindings:', e); }
+                        } catch (e) { logger.error('Fehler beim Auflösen der Repeater-Bindings:', e); }
 
                         const { VariablePickerDialog } = await import('../VariablePickerDialog');
                         const chosen = await VariablePickerDialog.show({

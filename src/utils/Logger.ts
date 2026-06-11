@@ -98,6 +98,7 @@ export class Logger {
         // Header ausgeben, wenn UseCase-Wechsel stattfindet
         if (this.useCase && level < LogLevel.ERROR && this.useCase !== Logger.lastUseCaseId) {
             const label = Logger.useCaseLabelProvider(this.useCase);
+            // eslint-disable-next-line no-console
             console.log(
                 `%c\n--- UseCase: '${label}' ---`,
                 'color: #673ab7; font-weight: bold; border-top: 1px solid #ddd; padding-top: 8px; margin-top: 8px;'
@@ -126,6 +127,7 @@ export class Logger {
             Logger.logHandler(level, this.prefix, args.map(safeStringify).join(' '), this.useCase);
         }
 
+        /* eslint-disable no-console -- Logger-interne Ausgabe */
         switch (level) {
             case LogLevel.DEBUG:
                 console.debug(prefix, ...args);
@@ -140,5 +142,6 @@ export class Logger {
                 console.error(prefix, ...args);
                 break;
         }
+        /* eslint-enable no-console */
     }
 }

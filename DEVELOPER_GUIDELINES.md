@@ -329,6 +329,7 @@
 ### 13.12 Build & Runtime-Infrastruktur
 
 - **`player-standalone.ts` nicht in Vite `rollupOptions.input`**: Führe `src/player-standalone.ts` NIEMALS in der `vite.config.ts` über `rollupOptions.input` mit auf. Vite baut standardmäßig ES-Module, woraufhin das `runtime-standalone.js` IIFE-Bundle im Ordner `dist` mit einem ES-Modul überschrieben wird. Da die Electron-App den IFrame lokal über `file://` lädt, greifen strikte CORS/MIME-Restriktionen, die das Skript blockieren (`Cannot use import statement outside a module` / `Error: Runtime-Standalone fehlt!`). Nutze für die Standalone-Runtime immer ein IIFE-Bundle (via `npm run bundle:runtime`).
+- **Export-Integritäts-Hashes bei Änderungen**: Wenn Dateien geändert werden, die in der Export-Integritätsprüfung (`GameRuntime.ts`, `GameExporter.ts` etc.) enthalten sind, müssen die MD5-Hashes in `tests/export_integrity.test.ts` aktualisiert werden. Führe dazu `npx tsx tests/export_integrity.test.ts --update` aus, damit die Tests nicht fehlschlagen.
 - **Vite Dev Server Proxy**:
   - DO: Stelle sicher, dass die Proxy-Konfiguration in `vite.config.ts` für den Game-Server (z. B. `/api` auf `http://localhost:8080`) korrekt gesetzt ist, falls lokales Speichern via Dev-Server nicht erreichbar ist.
   - DON'T: Entferne nicht blindlings `proxy` Server-Konfigurationen aus Vite, wenn nicht-native Backends (wie der `game-server`) im Einsatz sind.

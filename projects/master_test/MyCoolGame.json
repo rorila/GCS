@@ -122,71 +122,19 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1780249296493_vcrbsobmz",
-          "name": "Button_3",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Button_3",
-          "icon": ""
-        },
-        {
-          "className": "TButton",
-          "id": "obj_1780249296843_f9cmpddhi",
-          "name": "Button_4",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Button_4",
-          "icon": ""
-        }
-      ],
+      "objects": [],
       "actions": [
         {
-          "id": "node-1780249283811",
+          "id": "node-1781187552923",
           "details": "",
-          "type": "navigate_stage",
+          "type": "property",
           "name": "ShowTheHighscoreStage_Unique",
           "showDetails": false,
           "target": "",
-          "changes": {},
-          "reset": false
+          "changes": {}
         },
         {
-          "id": "node-1780249286811",
+          "id": "node-1781187555939",
           "details": "",
           "type": "property",
           "name": "Action1",
@@ -197,7 +145,7 @@
       ],
       "tasks": [
         {
-          "id": "1c8b6b37-0b7f-49b8-988c-f61c2c50fd01",
+          "id": "263faf0c-80e7-497f-a3ae-b95114481341",
           "name": "SwitchToTheHighscoreStage",
           "description": "",
           "actionSequence": [
@@ -220,7 +168,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1780249286811",
+              "id": "node-1781187555939",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -233,7 +181,7 @@
               },
               "data": {
                 "name": "ShowTheHighscoreStage_Unique",
-                "type": "navigate_stage",
+                "type": "property",
                 "isLinked": true
               }
             }

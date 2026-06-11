@@ -1,3 +1,26 @@
+### 2026-06-11
+[UC-2026-06-11-ConsoleToLoggerMigration]
+Beschreibung: Migration aller verbliebenen direkten `console.log`, `console.warn` und `console.error` Aufrufe auf den zentralen `Logger`, um die Konsistenz und Nachverfolgbarkeit von Diagnose-Logs zu erhöhen und globale Konsolen-Verschmutzung zu vermeiden.
+Beteiligte Dateien:
+- src/services/ProjectStore.ts (Z. 290, 293): console.log -> logger.debug
+- src/services/DebugLogService.ts (Z. 55, 90): console.info/warn -> logger.info/warn
+- src/utils/TauriFSAdapter.ts (Z. 21, 60): console.error/log -> logger.error/info
+- src/components/TDebugLog.ts (Z. 383, 385, 444, 447): console.info/warn -> logger.debug/warn
+- src/components/TStageController.ts (Z. 186): console.log -> logger.info
+- src/runtime/GameRuntime.ts (Z. 583): console.warn -> logger.warn
+- src/runtime/actions/handlers/NavigationActions.ts (Z. 79): console.warn -> logger.warn
+- src/editor/services/StageInteractionManager.ts (Z. 180, 199, 521, 631, 632, 665, 719): console.log -> logger.debug
+- src/editor/inspector/InspectorEventHandler.ts (Z. 111, 134, 136, 163, 171, 174): console.info -> logger.debug
+- src/editor/EditorViewManager.ts (Z. 299, 300, 301): console.log -> logger.debug
+- src/editor/inspector/InspectorContextBuilder.ts (Z. 257): console.error -> logger.error
+- src/editor/services/StageRenderer.ts (Z. 837, 843): console.log -> logger.debug
+- src/editor/services/renderers/ComplexComponentRenderer.ts (Z. 401): console.log -> logger.debug
+- src/editor/services/renderers/TextObjectRenderer.ts (Z. 125): console.warn -> logger.warn
+- src/editor/services/renderers/VirtualGamepadRenderer.ts (Z. 72): console.warn -> logger.warn
+- src/editor/inspector/renderers/InspectorSectionRenderer.ts (Z. 663): console.error -> logger.error
+- tests/export_integrity.test.ts: Hashes aktualisiert für GameRuntime und GameExporter.
+Ergebnis: Vollständige Migration auf den zentralen Logger; alle Tests grün.
+
 ### 2026-05-26
 [UC-2026-05-26-E2ETestSkippingAndStabilization]
 Beschreibung: Deaktivierung (Überspringen) der instabilen und zeitintensiven E2E-Tests zur Senkung von Token-Kosten und Sicherstellung eines stabilen Commits. Der Stage-Erstellungs-Test (05_StageCreation.spec.ts) und der Stage-Switching-Rückkehr-Test (11_StageSwitching.spec.ts) wurden mit test.skip() markiert. Die Abschluss-Validierung (08_ProjectSaving.spec.ts) wurde angepasst, so dass sie eine Stage-Mindestanzahl von 2 (Blueprint + MainStage) erwartet.

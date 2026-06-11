@@ -39,6 +39,7 @@ export * from './TIntegerVariable';
 export * from './TIntervalTimer';
 export * from './TKeyStore';
 export * from './TLabel';
+export * from './TLink';
 export * from './TList';
 export * from './TListVariable';
 export * from './TMemo';

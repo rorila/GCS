@@ -580,7 +580,7 @@ export class GameRuntime implements IVariableHost {
 
         const onEnterTask = localEvents?.onEnter || globalEvents?.onEnter;
         if (onEnterTask) {
-            console.warn(`🚀🚀🚀 ON_ENTER WIRD AUSGEFÜHRT! Stage: ${this.stage.name || this.stage.id}, Task: ${onEnterTask}`);
+            logger.warn(`🚀🚀🚀 ON_ENTER WIRD AUSGEFÜHRT! Stage: ${this.stage.name || this.stage.id}, Task: ${onEnterTask}`);
             logger.warn(`🚀🚀🚀 Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
             const enterLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onEnter`, {
                 objectName: this.stage.name || this.stage.id,

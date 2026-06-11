@@ -296,9 +296,9 @@ export class EditorViewManager {
                 userstoriesPanel.style.display = 'block';
                 userstoriesPanel.style.height = '100%';
                 userstoriesPanel.style.overflowY = 'auto';
-                console.log('[UserStories] Panel-Höhe gesetzt:', userstoriesPanel.style.height);
-                console.log('[UserStories] Panel-Overflow gesetzt:', userstoriesPanel.style.overflowY);
-                console.log('[UserStories] Panel-Display gesetzt:', userstoriesPanel.style.display);
+                EditorViewManager.logger.debug('[UserStories] Panel-Höhe gesetzt:', userstoriesPanel.style.height);
+                EditorViewManager.logger.debug('[UserStories] Panel-Overflow gesetzt:', userstoriesPanel.style.overflowY);
+                EditorViewManager.logger.debug('[UserStories] Panel-Display gesetzt:', userstoriesPanel.style.display);
                 this.renderUserStoriesView(userstoriesPanel);
             }
         } else if (view === 'iframe') {

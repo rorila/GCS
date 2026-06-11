@@ -1,4 +1,4 @@
-﻿import { TWindow } from './TWindow';
+import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { StageDefinition } from '../model/types';
 import { Logger } from '../utils/Logger';
@@ -183,7 +183,7 @@ export class TStageController extends TWindow {
         const oldStageId = this._currentStageId;
         this._currentStageId = stageId;
 
-        console.log(`[TStageController] Switching from ${oldStageId} to ${stageId} (reset=${reset})`);
+        TStageController.logger.info(`Switching from ${oldStageId} to ${stageId} (reset=${reset})`);
 
         // Callback mit neuen Objekten und Reset-Flag aufrufen
         if (this._onStageChangeCallback) {

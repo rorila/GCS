@@ -2,6 +2,9 @@
 import { readTextFile, writeTextFile, readDir } from '@tauri-apps/plugin-fs';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { resourceDir } from '@tauri-apps/api/path';
+import { Logger } from './Logger';
+
+const logger = Logger.get('TauriFSAdapter');
 
 export function installTauriFSAdapter() {
     if (!(window as any).__TAURI_INTERNALS__) return; // Prüfe, ob in Tauri Umgebung
@@ -18,7 +21,7 @@ export function installTauriFSAdapter() {
                 return ext ? entries.filter(e => e.name?.endsWith(ext)).map(e => e.name!) 
                            : entries.map(e => e.name!);
             } catch(e) {
-                console.error("TauriFSAdapter listFiles error:", e);
+                logger.error("listFiles error:", e);
                 return [];
             }
         },
@@ -57,5 +60,5 @@ export function installTauriFSAdapter() {
             }
         }
     };
-    console.log("Tauri FS Adapter successfully installed.");
+    logger.info("Tauri FS Adapter successfully installed.");
 }

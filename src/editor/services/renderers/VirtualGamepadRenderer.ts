@@ -1,4 +1,7 @@
 import { IRenderContext } from './IRenderContext';
+import { Logger } from '../../../utils/Logger';
+
+const logger = Logger.get('VirtualGamepadRenderer');
 
 export class VirtualGamepadRenderer {
     public static render(ctx: IRenderContext, el: HTMLElement, obj: any, _className: string): void {
@@ -69,7 +72,7 @@ export class VirtualGamepadRenderer {
         }
 
         if (!simulatedKeys || simulatedKeys.length === 0) {
-            console.warn(`[VirtualGamepadRenderer] Abgebrochen: Keine simulatedKeys vorhanden und kein TInputController gefunden!`);
+            logger.warn('Abgebrochen: Keine simulatedKeys vorhanden und kein TInputController gefunden!');
             el.style.display = 'none'; // Keine Tasten gebunden -> Nichts anzeigen
             return;
         }

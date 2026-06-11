@@ -380,9 +380,9 @@ export class TDebugLog {
 
     private updateServiceRecordingFilter() {
         const activeTypes = Array.from(this.typeFilters);
-        console.info('[DEBUG-LOG-FILTER] active types:', activeTypes);
+        TDebugLog.logger.debug('[DEBUG-LOG-FILTER] active types:', activeTypes);
         if (activeTypes.length === 0) {
-            console.warn('[DEBUG-LOG-FILTER] typeFilters ist LEER — alle Eintraege wuerden verworfen.');
+            TDebugLog.logger.warn('[DEBUG-LOG-FILTER] typeFilters ist LEER — alle Eintraege wuerden verworfen.');
         }
         this.service.setFilterPredicate((type: string, _objectName?: string, _eventName?: string) => {
             // Recording Filter wendet NUR die Type-Filter an, damit
@@ -441,10 +441,10 @@ export class TDebugLog {
                     const validTypes: LogType[] = ['Event', 'Task', 'Action', 'Variable', 'Condition', 'System'];
                     const filtered = Array.from(this.typeFilters).filter(t => validTypes.includes(t as LogType));
                     if (filtered.length === 0) {
-                        console.warn('[TDebugLog] Gespeicherte typeFilters waren leer oder ungueltig. Setze auf Default zurueck. Geladen:', filters.types);
+                        TDebugLog.logger.warn('[TDebugLog] Gespeicherte typeFilters waren leer oder ungueltig. Setze auf Default zurueck. Geladen:', filters.types);
                         this.typeFilters = new Set(validTypes);
                     } else if (filtered.length !== this.typeFilters.size) {
-                        console.warn('[TDebugLog] Gespeicherte typeFilters enthielten ungueltige Werte. Bereinige.', filters.types);
+                        TDebugLog.logger.warn('[TDebugLog] Gespeicherte typeFilters enthielten ungueltige Werte. Bereinige.', filters.types);
                         this.typeFilters = new Set(filtered as LogType[]);
                     }
                 }

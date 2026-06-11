@@ -834,13 +834,13 @@ export class StageRenderer {
         if (!this.host.runMode && (!isVisible || obj.isHiddenInRun || obj.isService || obj.isBlueprintOnly)) {
             el.style.display = 'flex';
             el.classList.add('invisible-object-in-editor');
-            if (className === 'TInfoWindow') console.log(`[VISIBILITY-DEBUG] StageRenderer.updateSingleObject (TInfoWindow ${obj.id}) - DESIGN MODE -> display: flex (invisible-object)`);
+            if (className === 'TInfoWindow') logger.debug(`[VISIBILITY-DEBUG] StageRenderer.updateSingleObject (TInfoWindow ${obj.id}) - DESIGN MODE -> display: flex (invisible-object)`);
         } else {
             let finalDisplay = isVisible ? 'flex' : 'none';
             if (this.host.runMode && (className === 'TDialogRoot' || className === 'TSidePanel')) {
                 finalDisplay = 'flex'; // Niemals none, sonst bricht die Slide-Animation!
             }
-            if (className === 'TInfoWindow') console.log(`[VISIBILITY-DEBUG] StageRenderer.updateSingleObject (TInfoWindow ${obj.id}) - RUN MODE -> isVisible=${isVisible}, setting finalDisplay=${finalDisplay}`);
+            if (className === 'TInfoWindow') logger.debug(`[VISIBILITY-DEBUG] StageRenderer.updateSingleObject (TInfoWindow ${obj.id}) - RUN MODE -> isVisible=${isVisible}, setting finalDisplay=${finalDisplay}`);
             el.style.display = finalDisplay;
             el.classList.remove('invisible-object-in-editor');
         }

@@ -1,3 +1,8 @@
+## [3.32.7] - 2026-06-11
+### Hinzugefügt
+- **Console-zu-Logger Migration:** Alle verbleibenden direkten `console.log`, `console.warn` und `console.error` Aufrufe wurden durch den zentralen `Logger` ersetzt. Dies betrifft 16 Dateien aus Services, Adaptern, Komponenten, Runtime, Editor und Renderern. Dies verbessert die Diagnosemöglichkeiten im Debug-Log-Viewer und verhindert Konsolen-Pollution.
+- **Export-Integritäts-Hashes:** Die Hashes der Export-Integritätstests wurden aktualisiert, da sich der Code-Output durch die Logger-Migration geändert hat.
+
 ### [3.32.6] - 2026-05-31
 ### Behoben
 - **Threshold- & Range-Variablen Events:** Ein kritischer Fehler wurde behoben, bei dem die Events von Schwellenwert-Variablen (`TThresholdVariable`) und Bereichs-Variablen (`TRangeVariable`) nicht ausgelöst wurden. Der `RuntimeVariableManager` kopiert nun beim Laden von Stage-Komponenten (`importVariablesFromObjects`) alle relevanten Konfigurationsfelder (wie `threshold`, `comparison`, `min`, `max`, `triggerValue`, `isRandom` und `Tasks`/`events`) in die interne Variablen-Definition.

@@ -4,6 +4,7 @@ import { projectVariableRegistry } from '../../services/registry/VariableRegistr
 import { coreStore } from '../../services/registry/CoreStore';
 import { dataService } from '../../services/DataService';
 import { UseCaseManager, USE_CASES } from '../../utils/UseCaseManager';
+import { Logger } from '../../utils/Logger';
 
 /**
  * InspectorContextBuilder - Erzeugt den Datenkontext für Inspector-Templates.
@@ -12,6 +13,7 @@ import { UseCaseManager, USE_CASES } from '../../utils/UseCaseManager';
  * die in JSON-Templates via ${variable} genutzt werden können.
  */
 export class InspectorContextBuilder {
+    private static logger = Logger.get('InspectorContextBuilder');
 
     public static build(selectedObject: any): any {
         try {
@@ -254,7 +256,7 @@ export class InspectorContextBuilder {
 
         return context;
         } catch (error: any) {
-            console.error('[CRITICAL] InspectorContextBuilder.build threw an error:', error);
+            InspectorContextBuilder.logger.error('[CRITICAL] InspectorContextBuilder.build threw an error:', error);
             return { 
                 availableTasks: [{ value: '', label: `ERROR: ${error?.message || error}` }], 
                 availableDataStores: [], 

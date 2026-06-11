@@ -219,7 +219,7 @@ export default [
       ...tsPlugin.configs.recommended.rules,
       // Graduell anzugehen:
       '@typescript-eslint/no-explicit-any': 'off',
-      'no-console': 'off',
+      'no-console': 'error',
       '@typescript-eslint/no-unused-vars': 'warn',
       // Stilistische/syntaktische Warnungen:
       'no-case-declarations': 'warn',
@@ -237,6 +237,14 @@ export default [
       'no-implied-eval': 'error',
       'no-new-func': 'error',
       'no-script-url': 'error',
+    },
+  },
+
+  // Test-Dateien: console.* erlaubt (Test-Reporting)
+  {
+    files: ['src/**/*.test.ts', 'tests/**/*.ts'],
+    rules: {
+      'no-console': 'off',
     },
   },
 

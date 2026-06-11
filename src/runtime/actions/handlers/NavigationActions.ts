@@ -3,6 +3,8 @@ import { PropertyHelper } from '../../PropertyHelper';
 import { DebugLogService } from '../../../services/DebugLogService';
 import { Logger } from '../../../utils/Logger';
 
+const logger = Logger.get('NavigationActions');
+
 export function registerNavigationActions() {
     // 6. Navigation
     actionRegistry.register('navigate', (action, context) => {
@@ -76,7 +78,7 @@ export function registerNavigationActions() {
             // bevor der komplette Teardown+Neuaufbau beginnt.
             setTimeout(() => context.onRestartGame!(), 0);
         } else {
-            console.warn('[restart_game] Kein onRestartGame-Callback verfügbar. Neustart nicht möglich.');
+            logger.warn('[restart_game] Kein onRestartGame-Callback verfügbar. Neustart nicht möglich.');
         }
     }, {
         type: 'restart_game',

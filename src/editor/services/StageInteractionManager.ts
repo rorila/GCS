@@ -177,7 +177,7 @@ export class StageInteractionManager {
 
                 gridX = Math.max(0, relX);
                 gridY = Math.max(0, relY);
-                console.log('[TGroupPanel Drop] Toolbox-Drop auf Panel ' + dropPanelId + ' erkannt. Relative Pos: (' + gridX + ', ' + gridY + ')');
+                logger.debug('[TGroupPanel Drop] Toolbox-Drop auf Panel ' + dropPanelId + ' erkannt. Relative Pos: (' + gridX + ', ' + gridY + ')');
             }
             
             // Erstelle das Objekt auf Top-Level
@@ -196,7 +196,7 @@ export class StageInteractionManager {
                                Math.abs((o.y || 0) - relY) < 0.5;
                     });
                     if (newObj && (newObj.id || newObj.name)) {
-                        console.log('[TGroupPanel Drop] Reparenting ' + (newObj.id || newObj.name) + ' -> Panel ' + panelId);
+                        logger.debug('[TGroupPanel Drop] Reparenting ' + (newObj.id || newObj.name) + ' -> Panel ' + panelId);
                         this.host.onObjectMove!(newObj.id || newObj.name, relX, relY, panelId);
                     }
                 }, 50);
@@ -518,7 +518,7 @@ export class StageInteractionManager {
                 const hoveredPanel = hoverEls.find(he => he.classList.contains('inherited-object') || he.classList.contains('game-object'));
                 if (hoveredPanel) {
                     const id = hoveredPanel.getAttribute('data-id');
-                    console.log(`[DND-LIVE-DRAG] RawMaus:(${e.clientX}, ${e.clientY}) | dx=${dx}, dy=${dy} | Hover-Element: ${id || 'unknown'} (isInherited: ${hoveredPanel.classList.contains('inherited-object')})`);
+                    logger.debug(`[DND-LIVE-DRAG] RawMaus:(${e.clientX}, ${e.clientY}) | dx=${dx}, dy=${dy} | Hover-Element: ${id || 'unknown'} (isInherited: ${hoveredPanel.classList.contains('inherited-object')})`);
                 }
             }
         }
@@ -628,8 +628,8 @@ export class StageInteractionManager {
                                 
                                 // DIAGNOSE: Was ist alles in lastRenderedObjects?
                                 const allClassNames = this.host.lastRenderedObjects.map(o => `${o.id?.substring(0,12)}:${o.className||o.constructor?.name||'?'}`);
-                                console.log(`[TGroupPanel DIAG] lastRenderedObjects (${this.host.lastRenderedObjects.length}):`, allClassNames.join(', '));
-                                console.log(`[TGroupPanel DIAG] Dragged obj absPos: (${absObjX}, ${absObjY}), width=${obj.width}, height=${obj.height}`);
+                                logger.debug(`[TGroupPanel DIAG] lastRenderedObjects (${this.host.lastRenderedObjects.length}):`, allClassNames.join(', '));
+                                logger.debug(`[TGroupPanel DIAG] Dragged obj absPos: (${absObjX}, ${absObjY}), width=${obj.width}, height=${obj.height}`);
                                 
                                 const droppingPanels = this.host.lastRenderedObjects.filter(o => {
                                     const clsName = o.className || o.constructor?.name || '';
@@ -662,7 +662,7 @@ export class StageInteractionManager {
                                     const matchX = objMidX >= pAbs.x && objMidX <= pAbs.x + pWidth;
                                     const matchY = objMidY >= pAbs.y && objMidY <= pAbs.y + pHeight;
 
-                                    console.log(`[TGroupPanel DIAG] Panel ${o.id?.substring(0,12)}: pAbs(${pAbs.x.toFixed(2)}, ${pAbs.y.toFixed(2)}), w=${pWidth.toFixed(2)}, h=${pHeight.toFixed(2)}, objMid(${objMidX.toFixed(2)}, ${objMidY.toFixed(2)}), matchX=${matchX}, matchY=${matchY}`);
+                                    logger.debug(`[TGroupPanel DIAG] Panel ${o.id?.substring(0,12)}: pAbs(${pAbs.x.toFixed(2)}, ${pAbs.y.toFixed(2)}), w=${pWidth.toFixed(2)}, h=${pHeight.toFixed(2)}, objMid(${objMidX.toFixed(2)}, ${objMidY.toFixed(2)}), matchX=${matchX}, matchY=${matchY}`);
                                     
                                     return matchX && matchY;
                                 });
@@ -716,7 +716,7 @@ export class StageInteractionManager {
                                 gY = relY;
 
                                 if (gX !== iG.x || gY !== iG.y || dropParentId !== currentParentId) {
-                                    console.log(`[DND-FLOW 1] Drag Ended for ID=${id}. Computed Grid Pos: (${gX}, ${gY}). Initiating onObjectMove.`);
+                                    logger.debug(`[DND-FLOW 1] Drag Ended for ID=${id}. Computed Grid Pos: (${gX}, ${gY}). Initiating onObjectMove.`);
                                     changeRecorder.record({ type: 'drag', description: `${obj.name || id} verschoben`, objectId: id, objectType: 'object', startPosition: { x: iG.x, y: iG.y }, endPosition: { x: gX, y: gY }, dragPath: [...this.currentDragPath] });
                                     // parentId NUR übergeben wenn sich der Parent tatsächlich ändert
                                     if (dropParentId !== currentParentId) {

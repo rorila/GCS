@@ -1,5 +1,8 @@
 import { IRenderContext } from './IRenderContext';
 import { SecurityUtils } from '../../../utils/SecurityUtils';
+import { Logger } from '../../../utils/Logger';
+
+const logger = Logger.get('TextObjectRenderer');
 
 export class TextObjectRenderer {
     
@@ -122,7 +125,7 @@ export class TextObjectRenderer {
                         if (ctx.host.onEvent) {
                             ctx.host.onEvent('system', '__SYSTEM_NAVIGATE__', { target: `stage:${stageId}` });
                         } else {
-                            console.warn('[TextObjectRenderer] ctx.host.onEvent nicht vorhanden. Stage-Wechsel fehlgeschlagen.');
+                            logger.warn('ctx.host.onEvent nicht vorhanden. Stage-Wechsel fehlgeschlagen.');
                         }
                     }
                 }

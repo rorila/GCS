@@ -1,4 +1,7 @@
 import { IRenderContext } from './IRenderContext';
+import { Logger } from '../../../utils/Logger';
+
+const logger = Logger.get('ComplexComponentRenderer');
 
 export class ComplexComponentRenderer {
     
@@ -398,7 +401,7 @@ export class ComplexComponentRenderer {
                         startObjX = currentObj.x || 0;
                         startObjY = currentObj.y || 0;
                         
-                        console.log('[DIALOG-DEBUG] Drag START: x:', startObjX, 'y:', startObjY);
+                        logger.debug('[DIALOG-DEBUG] Drag START: x:', startObjX, 'y:', startObjY);
                         titleBar.setPointerCapture(e.pointerId);
                     };
                     titleBar.onpointermove = (e) => {

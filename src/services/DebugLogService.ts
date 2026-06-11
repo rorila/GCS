@@ -52,7 +52,6 @@ export class DebugLogService {
 
     public setEnabled(enabled: boolean) {
         DebugLogService.logger.info(`setEnabled(${enabled})`);
-        console.info(`[DebugLogService] setEnabled(${enabled})`);
         this.enabled = enabled;
     }
 
@@ -87,7 +86,7 @@ export class DebugLogService {
             if (!this.enabled) {
                 this._droppedDueToDisabled++;
                 if (this._droppedDueToDisabled === 1 || this._droppedDueToDisabled % 50 === 0) {
-                    console.warn(`[DebugLogService] LOG VERWORFEN (enabled=false). count=${this._droppedDueToDisabled}, type=${type}, msg="${message}"`);
+                    DebugLogService.logger.warn(`LOG VERWORFEN (enabled=false). count=${this._droppedDueToDisabled}, type=${type}, msg="${message}"`);
                 }
             }
             return '';
