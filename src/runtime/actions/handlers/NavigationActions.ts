@@ -1,6 +1,7 @@
 import { actionRegistry } from '../../ActionRegistry';
 import { PropertyHelper } from '../../PropertyHelper';
 import { DebugLogService } from '../../../services/DebugLogService';
+import { Logger } from '../../../utils/Logger';
 
 export function registerNavigationActions() {
     // 6. Navigation
@@ -28,13 +29,13 @@ export function registerNavigationActions() {
 
         const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, context.objects);
 
-        console.log(`[navigate_stage] Stage wechseln zu: ${resolved} (reset=${reset})`);
+        Logger.get('NavigationActions').debug(`Stage wechseln zu: ${resolved} (reset=${reset})`);
 
         const stageController = context.objects.find(
             (o: any) => o.className === 'TStageController' || o.constructor?.name === 'TStageController'
         );
         if (stageController && typeof (stageController as any).goToStage === 'function') {
-            console.log(`[navigate_stage] Via TStageController → ${resolved} (reset=${reset})`);
+            Logger.get('NavigationActions').debug(`Via TStageController → ${resolved} (reset=${reset})`);
 
             DebugLogService.getInstance().log('Action', `Stage wechselt zu: ${resolved}${reset ? ' (Reset)' : ''}`, {
                 objectName: 'TStageController',
@@ -46,7 +47,7 @@ export function registerNavigationActions() {
         }
 
         if (context.onNavigate) {
-            console.log(`[navigate_stage] Via onNavigate fallback → stage:${resolved} (reset=${reset})`);
+            Logger.get('NavigationActions').debug(`Via onNavigate fallback → stage:${resolved} (reset=${reset})`);
 
             DebugLogService.getInstance().log('Action', `Navigation zu Stage: ${resolved}${reset ? ' (Reset)' : ''}`, {
                 data: { stageId: resolved, reset }

@@ -19,6 +19,10 @@ declare global {
       exists: (path: string) => Promise<boolean>;
       mkdir: (path: string) => Promise<void>;
       readdir: (path: string) => Promise<string[]>;
+      getAppPath?: () => Promise<string>;
+      showSaveDialog?: (options: { defaultPath: string; filters: { name: string; extensions: string[] }[] }) => Promise<string | undefined>;
+      showOpenDialog?: (options: { properties: string[]; filters: { name: string; extensions: string[] }[] }) => Promise<string | undefined>;
+      listFiles?: (dir: string, ext: string) => Promise<string[]>;
     };
     /** Tauri FS API (nur in Tauri-Builds) */
     tauriFS?: {

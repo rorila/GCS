@@ -104,5 +104,5 @@ import { registerStandardActions } from './runtime/actions/StandardActions';
 registerStandardActions();
 
 const editor = new Editor();
-(window as any).editor = editor;
+window.editor = editor;
 

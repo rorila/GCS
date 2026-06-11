@@ -3143,16 +3143,16 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
         
         // LOGGE URSPRUNG!
         const origStage = latestProject.stages?.find((s: any) => s.id === latestProject.activeStageId) || latestProject.stages?.[0];
-        console.log(`[EditorViewManager] ORIGINAL project store. Objects: ${origStage?.objects?.length}`, origStage?.objects);
+        logger.debug(`ORIGINAL project store. Objects: ${origStage?.objects?.length}`, origStage?.objects);
 
         const cleanProjectData = exporter.getCleanProject(latestProject);
 
         // DEBUG: Prüfen ob das Gamepad HIER überhaupt vorhanden ist!
         const mainStage = cleanProjectData.stages?.find((s: any) => s.id === cleanProjectData.activeStageId) || cleanProjectData.stages?.[0];
         const hasGamepad = mainStage?.objects?.some((o: any) => o.className === 'TVirtualGamepad');
-        console.log(`[EditorViewManager] Sende CLEAN Projekt an IFrame. Objekte: ${mainStage?.objects?.length}, Beinhaltet Gamepad? ${hasGamepad}`);
+        logger.debug(`Sende CLEAN Projekt an IFrame. Objekte: ${mainStage?.objects?.length}, Beinhaltet Gamepad? ${hasGamepad}`);
         if (!hasGamepad) {
-            console.warn(`[EditorViewManager] ALARM! Das Gamepad fehlt schon BEVOR es an den IFrame gesendet wird! CLEAN Objects:`, mainStage?.objects);
+            logger.warn(`ALARM! Das Gamepad fehlt schon BEVOR es an den IFrame gesendet wird! CLEAN Objects:`, mainStage?.objects);
         }
 
         // Synchrone Datenübergabe

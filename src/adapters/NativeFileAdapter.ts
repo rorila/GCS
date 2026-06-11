@@ -34,7 +34,7 @@ export class NativeFileAdapter implements IStorageAdapter {
         // Browser: FileSystem Access API verfügbar?
         if ('showSaveFilePicker' in window) return true;
         // Electron: IPC-Bridge verfügbar?
-        if ((window as any).electronFS) return true;
+        if (window.electronFS) return true;
         return false;
     }
 
@@ -43,17 +43,17 @@ export class NativeFileAdapter implements IStorageAdapter {
         const defaultName = filename || this.generateFilename(project);
 
         // Electron-Modus
-        if ((window as any).electronFS) {
+        if (window.electronFS) {
             let targetPath = this.currentPath;
             if (!targetPath) {
-                targetPath = await (window as any).electronFS.showSaveDialog({
+                targetPath = await window.electronFS.showSaveDialog?.({
                     defaultPath: defaultName,
                     filters: [{ name: 'JSON Project File', extensions: ['json'] }]
-                });
+                }) ?? null;
             }
             if (!targetPath) return;
             
-            await (window as any).electronFS.writeFile(targetPath, json);
+            await window.electronFS.writeFile(targetPath, json);
             this.currentPath = targetPath;
             NativeFileAdapter.logger.info(`Electron: Gespeichert als ${targetPath}`);
             return;
@@ -90,17 +90,17 @@ export class NativeFileAdapter implements IStorageAdapter {
 
     async load(_filename?: string): Promise<GameProject | null> {
         // Electron-Modus
-        if ((window as any).electronFS) {
+        if (window.electronFS) {
             let targetPath = _filename;
             if (!targetPath) {
-                targetPath = await (window as any).electronFS.showOpenDialog({
+                targetPath = await window.electronFS.showOpenDialog?.({
                     properties: ['openFile'],
                     filters: [{ name: 'JSON Project File', extensions: ['json'] }]
                 });
             }
             if (!targetPath) return null;
             
-            const content = await (window as any).electronFS.readFile(targetPath);
+            const content = await window.electronFS.readFile(targetPath);
             this.currentPath = targetPath;
             return JSON.parse(content);
         }
@@ -120,8 +120,8 @@ export class NativeFileAdapter implements IStorageAdapter {
 
     async list(): Promise<string[]> {
         // Electron-Modus
-        if ((window as any).electronFS) {
-            return (window as any).electronFS.listFiles('.', '.json');
+        if (window.electronFS) {
+            return window.electronFS.listFiles?.('.', '.json') ?? [];
         }
 
         // Browser hat kein Verzeichnis-Listing
@@ -154,9 +154,9 @@ export class NativeFileAdapter implements IStorageAdapter {
         const json = JSON.stringify(project, null, 2);
 
         // Electron-Modus
-        if ((window as any).electronFS && this.currentPath) {
+        if (window.electronFS && this.currentPath) {
             try {
-                await (window as any).electronFS.writeFile(this.currentPath, json);
+                await window.electronFS.writeFile(this.currentPath, json);
                 NativeFileAdapter.logger.info(`[AutoSave] Electron: Gespeichert in ${this.currentPath}`);
                 return true;
             } catch (err) {

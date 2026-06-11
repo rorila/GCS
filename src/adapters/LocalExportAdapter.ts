@@ -13,12 +13,12 @@ export class HtmlExportAdapter implements IExportAdapter {
         await (exporter as any).embedMedia(cleaned);
 
         let runtimeCode = '';
-        if ((window as any).electronFS) {
-            const appPath = await (window as any).electronFS.getAppPath();
+        if (window.electronFS) {
+            const appPath = await window.electronFS.getAppPath?.() ?? '';
             try {
-                runtimeCode = await (window as any).electronFS.readFile(`${appPath}/dist/runtime-standalone.js`);
+                runtimeCode = await window.electronFS.readFile(`${appPath}/dist/runtime-standalone.js`);
             } catch {
-                runtimeCode = await (window as any).electronFS.readFile(`${appPath}/public/runtime-standalone.js`);
+                runtimeCode = await window.electronFS.readFile(`${appPath}/public/runtime-standalone.js`);
             }
         } else {
             const resp = await fetch('runtime-standalone.js');
