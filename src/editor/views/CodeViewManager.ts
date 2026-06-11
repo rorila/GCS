@@ -1,7 +1,8 @@
-import { IViewHost } from '../EditorViewTypes';
+import type { IViewHost } from '../EditorViewManager';
 import { Logger } from '../../utils/Logger';
 import { PascalGenerator } from '../PascalGenerator';
 import { PascalHighlighter } from '../PascalHighlighter';
+import { mediatorService } from '../../services/MediatorService';
 
 const logger = Logger.get('CodeViewManager');
 
@@ -15,73 +16,48 @@ const logger = Logger.get('CodeViewManager');
  */
 export class CodeViewManager {
     private host: IViewHost;
-    private pascalEditorMode: boolean = false;
-    private useStageIsolatedView: boolean = true;
-    private selectedPascalTask: string | null = null;
+    public pascalEditorMode: boolean = false;
+    public useStageIsolatedView: boolean = true;
+    public selectedPascalTask: string | null = null;
 
     constructor(host: IViewHost) {
         this.host = host;
     }
 
-    /**
-     * Rendert die Code-Ansicht
-     */
-    public renderCodeView(container: HTMLElement): void {
-        container.innerHTML = '';
+    public renderCodeView(codePanel: HTMLElement | null) {
+        if (!codePanel) return;
 
-        // Toolbar
-        const toolbar = this.createCodeToolbar();
-        container.appendChild(toolbar);
+        codePanel.style.display = 'flex';
+        codePanel.style.flexDirection = 'column';
+        codePanel.style.padding = '0';
+        codePanel.style.height = '100%';
+        codePanel.style.minHeight = '300px';
 
-        // Content
-        const content = document.createElement('div');
-        content.id = 'code-content-area';
-        content.style.cssText = 'flex: 1; overflow: auto; padding: 16px; background: #1e1e1e;';
-        container.appendChild(content);
+        let toolbar = document.getElementById('code-viewer-toolbar');
+        if (!toolbar) {
+            toolbar = this.createCodeToolbar();
+            codePanel.appendChild(toolbar);
+        } else {
+            this.updateCodeToolbar(toolbar);
+        }
 
         try {
-            let pascalCode: string;
-
-            // Nur aktive Stage oder gesamtes Projekt
-            if (this.useStageIsolatedView) {
-                const stage = this.host.getActiveStage();
-                pascalCode = stage ? PascalGenerator.generateFullProgram(this.host.project, false, stage) : '{ Keine Stage ausgewählt }';
-            } else {
-                pascalCode = PascalGenerator.generateFullProgram(this.host.project, false);
-            }
-
-            // Task-Filter anwenden
-            if (this.selectedPascalTask) {
-                pascalCode = this.filterPascalByTask(pascalCode, this.selectedPascalTask);
-            }
-
             if (this.pascalEditorMode) {
-                // Editor-Modus
-                const textarea = document.createElement('textarea');
-                textarea.id = 'pascal-editor';
-                textarea.value = pascalCode;
-                textarea.style.cssText = 'width: 100%; height: 100%; background: #1e1e1e; color: #d4d4d4; border: none; padding: 16px; font-family: "Fira Code", monospace; font-size: 13px; resize: none; outline: none;';
-                textarea.spellcheck = false;
-                content.appendChild(textarea);
+                this.renderPascalEditor(codePanel);
             } else {
-                // Viewer-Modus mit Syntax-Highlighting
-                this.renderPascalStaticView(content, pascalCode);
+                this.renderPascalStaticView(codePanel);
             }
         } catch (err) {
-            logger.error('Fehler bei Pascal-Generierung:', err);
-            content.innerHTML = `<pre style="color: #ff6b6b; padding: 1rem;">Fehler: ${err}</pre>`;
+            logger.error('[CodeViewManager] Error generating Pascal code:', err);
+            codePanel.innerHTML += `<pre style="color: red; padding: 1rem; margin: 0;" translate="no">Error generating Pascal code: ${err}</pre>`;
         }
     }
 
-    /**
-     * Erstellt die Code Toolbar
-     */
     private createCodeToolbar(): HTMLElement {
         const toolbar = document.createElement('div');
         toolbar.id = 'code-viewer-toolbar';
         toolbar.style.cssText = 'padding: 8px 16px; background-color: #2d2d2d; border-bottom: 1px solid #3c3c3c; display: flex; align-items: center; gap: 12px;';
 
-        // Editor-Modus Toggle
         const label = document.createElement('label');
         label.style.cssText = 'display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 12px;';
         const checkbox = document.createElement('input');
@@ -89,118 +65,168 @@ export class CodeViewManager {
         checkbox.checked = this.pascalEditorMode;
         checkbox.onchange = (e) => {
             this.pascalEditorMode = (e.target as HTMLInputElement).checked;
-            this.refreshView();
+            this.host.switchView('code');
         };
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode('Editor-Modus'));
         toolbar.appendChild(label);
 
-        // Scope Select
-        const scopeSelect = document.createElement('select');
-        scopeSelect.id = 'pascal-scope-select';
-        scopeSelect.style.cssText = 'background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; font-size: 12px;';
-        this.updateScopeOptions(scopeSelect);
-        scopeSelect.onchange = () => {
-            this.useStageIsolatedView = scopeSelect.value === 'stage';
-            this.refreshView();
+        const sourceSelect = document.createElement('select');
+        sourceSelect.id = 'pascal-scope-select';
+        sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
+        this.updateScopeSelectOptions(sourceSelect);
+        sourceSelect.onchange = () => {
+            this.useStageIsolatedView = sourceSelect.value === 'stage';
+            this.host.switchView('code');
         };
-        toolbar.appendChild(scopeSelect);
+        toolbar.appendChild(sourceSelect);
 
-        // Copy Button
-        const copyBtn = document.createElement('button');
-        copyBtn.textContent = 'Kopieren';
-        copyBtn.style.cssText = 'background: #3c3c3c; color: #ccc; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: auto;';
-        copyBtn.onclick = () => this.copyPascalCode();
-        toolbar.appendChild(copyBtn);
+        const taskSelect = document.createElement('select');
+        taskSelect.id = 'pascal-task-select';
+        taskSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer;`;
+        this.updateTaskSelectOptions(taskSelect);
+        taskSelect.onchange = () => {
+            this.selectedPascalTask = taskSelect.value === '__all__' ? null : taskSelect.value;
+            this.host.switchView('code');
+        };
+        toolbar.appendChild(taskSelect);
 
         return toolbar;
     }
 
-    /**
-     * Rendert Pascal mit statischem Syntax-Highlighting
-     */
-    private renderPascalStaticView(container: HTMLElement, code: string): void {
-        const highlighted = PascalHighlighter.highlight(code);
-        const pre = document.createElement('pre');
-        pre.style.cssText = 'margin: 0; font-family: "Fira Code", monospace; font-size: 13px; line-height: 1.6;';
-        pre.innerHTML = highlighted;
-        container.appendChild(pre);
-    }
+    public updateCodeToolbar(toolbar: HTMLElement) {
+        const checkbox = toolbar.querySelector('input');
+        if (checkbox) checkbox.checked = this.pascalEditorMode;
 
-    /**
-     * Filtert Pascal-Code nach Task
-     */
-    private filterPascalByTask(code: string, taskName: string): string {
-        const lines = code.split('\n');
-        const result: string[] = [];
-        let inTargetTask = false;
-        let braceCount = 0;
-
-        for (const line of lines) {
-            const taskMatch = line.match(/procedure\s+(\w+)/);
-            if (taskMatch) {
-                inTargetTask = taskMatch[1] === taskName;
-                if (inTargetTask) braceCount = 0;
-            }
-
-            if (inTargetTask) {
-                result.push(line);
-                braceCount += (line.match(/{/g) || []).length;
-                braceCount -= (line.match(/}/g) || []).length;
-                if (braceCount === 0 && line.trim() === 'end;') {
-                    inTargetTask = false;
-                }
+        const sourceSelect = toolbar.querySelector('#pascal-scope-select') as HTMLSelectElement;
+        if (sourceSelect) {
+            const aStage = this.host.getActiveStage();
+            const sName = aStage ? aStage.name : 'Unknown';
+            if (sourceSelect.options.length > 0) {
+                sourceSelect.options[0].text = `Stage: ${sName}`;
+                sourceSelect.value = this.useStageIsolatedView ? 'stage' : 'project';
             }
         }
 
-        return result.length > 0 ? result.join('\n') : `{ Task "${taskName}" nicht gefunden }`;
+        const taskSelect = toolbar.querySelector('#pascal-task-select') as HTMLSelectElement;
+        if (taskSelect) { this.updateTaskSelectOptions(taskSelect); }
     }
 
-    /**
-     * Aktualisiert Scope-Optionen
-     */
-    private updateScopeOptions(select: HTMLSelectElement): void {
-        select.innerHTML = `
-            <option value="project" ${!this.useStageIsolatedView ? 'selected' : ''}>Gesamtes Projekt</option>
-            <option value="stage" ${this.useStageIsolatedView ? 'selected' : ''}>Aktive Stage</option>
-        `;
-    }
-
-    /**
-     * Kopiert Pascal-Code in Zwischenablage
-     */
-    private copyPascalCode(): void {
-        const code = this.useStageIsolatedView
-            ? PascalGenerator.generateFullProgram(this.host.project, false, this.host.getActiveStage()!)
-            : PascalGenerator.generateFullProgram(this.host.project, false);
-
-        navigator.clipboard.writeText(code).then(() => {
-            logger.info('Pascal-Code kopiert');
-        }).catch(err => {
-            logger.error('Kopieren fehlgeschlagen:', err);
+    private updateScopeSelectOptions(select: HTMLSelectElement) {
+        select.innerHTML = '';
+        const aStage = this.host.getActiveStage();
+        const sName = aStage ? aStage.name : 'Unknown';
+        const opts = [
+            { id: 'stage', label: `Stage: ${sName}` },
+            { id: 'project', label: 'Gesamtes Projekt' }
+        ];
+        opts.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.label;
+            opt.selected = (s.id === 'stage' && this.useStageIsolatedView) || (s.id === 'project' && !this.useStageIsolatedView);
+            select.appendChild(opt);
         });
     }
 
-    /**
-     * Triggert View-Refresh
-     */
-    private refreshView(): void {
-        // Delegiert an Host - switchView('code') ohne Änderung
-        const event = new CustomEvent('refreshcodeview');
-        window.dispatchEvent(event);
+    private updateTaskSelectOptions(select: HTMLSelectElement) {
+        select.innerHTML = '';
+        const h = this.host;
+        const allOpt = document.createElement('option');
+        allOpt.value = '__all__';
+        allOpt.textContent = '📋 Alle Tasks';
+        allOpt.selected = this.selectedPascalTask === null;
+        select.appendChild(allOpt);
+
+        const taskNames = new Set<string>();
+        const activeStage = h.getActiveStage();
+        const blueprint = h.project.stages?.find(s => s.type === 'blueprint');
+        if (blueprint?.tasks) { blueprint.tasks.forEach((t: any) => { if (t.name) taskNames.add(t.name); }); }
+        if (activeStage?.tasks) { activeStage.tasks.forEach((t: any) => { if (t.name) taskNames.add(t.name); }); }
+        if (h.project.tasks) { h.project.tasks.forEach((t: any) => { if (t.name) taskNames.add(t.name); }); }
+        if (activeStage && (activeStage as any).flowCharts) {
+            Object.keys((activeStage as any).flowCharts).forEach(key => taskNames.add(key));
+        }
+
+        Array.from(taskNames).sort().forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = `⚡ ${name}`;
+            opt.selected = this.selectedPascalTask === name;
+            select.appendChild(opt);
+        });
     }
 
-    /**
-     * Setzt Editor-Modus
-     */
-    public setEditorMode(enabled: boolean): void {
-        this.pascalEditorMode = enabled;
+    public renderPascalEditor(codePanel: HTMLElement) {
+        const h = this.host;
+        const activeStage = h.getActiveStage();
+        const stageToUse = (this.useStageIsolatedView && activeStage) ? activeStage : undefined;
+        const plainCode = this.selectedPascalTask
+            ? PascalGenerator.generateForTask(h.project, this.selectedPascalTask, false, stageToUse)
+            : PascalGenerator.generateFullProgram(h.project, false, stageToUse);
+
+        document.getElementById('pascal-editor-container')?.remove();
+        document.getElementById('code-viewer-content')?.remove();
+
+        const container = document.createElement('div');
+        container.id = 'pascal-editor-container';
+        container.style.cssText = 'flex: 1; position: relative; font-family: \'Fira Code\', monospace; font-size: 14px; line-height: 1.5; background-color: #1e1e1e; overflow: hidden;';
+
+        const highlightLayer = document.createElement('div');
+        highlightLayer.id = 'pascal-editor-highlight';
+        highlightLayer.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 1rem; color: #d4d4d4; pointer-events: none; overflow: auto; white-space: pre; box-sizing: border-box;';
+        highlightLayer.innerHTML = PascalHighlighter.highlight(plainCode);
+
+        const textarea = document.createElement('textarea');
+        textarea.id = 'pascal-editor-textarea';
+        textarea.value = plainCode;
+        textarea.spellcheck = false;
+        textarea.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 1rem; background: transparent; color: transparent; border: none; outline: none; resize: none; font-family: inherit; font-size: inherit; line-height: inherit; overflow: auto; white-space: pre; box-sizing: border-box; caret-color: #d4d4d4;';
+
+        textarea.oninput = () => {
+            highlightLayer.innerHTML = PascalHighlighter.highlight(textarea.value);
+            try {
+                PascalGenerator.parse(h.project, textarea.value, stageToUse);
+                mediatorService.notifyDataChanged(h.project, 'pascal-editor');
+                if (h.flowEditor) { h.flowEditor.syncActionsFromProject(); }
+                if (h.inspector) {
+                    const obj = h.currentSelectedId ? h.findObjectById(h.currentSelectedId) : null;
+                    h.inspector.update(obj || h.project);
+                }
+                h.autoSaveToLocalStorage();
+            } catch (err) {
+                logger.error('[CodeViewManager] Error parsing Pascal code:', err);
+            }
+        };
+
+        textarea.onscroll = () => {
+            highlightLayer.scrollTop = textarea.scrollTop;
+            highlightLayer.scrollLeft = textarea.scrollLeft;
+        };
+
+        container.appendChild(highlightLayer);
+        container.appendChild(textarea);
+        codePanel.appendChild(container);
     }
 
-    /**
-     * Gibt aktuellen Editor-Modus zurück
-     */
-    public getEditorMode(): boolean {
-        return this.pascalEditorMode;
+    public renderPascalStaticView(codePanel: HTMLElement) {
+        const h = this.host;
+        document.getElementById('pascal-editor-container')?.remove();
+
+        let content = document.getElementById('code-viewer-content');
+        if (!content) {
+            content = document.createElement('div');
+            content.id = 'code-viewer-content';
+            content.style.cssText = 'flex: 1; overflow: auto; padding: 1rem; background-color: #1e1e1e;';
+            codePanel.appendChild(content);
+        }
+
+        const activeStage = h.getActiveStage();
+        const stageToUse = (this.useStageIsolatedView && activeStage) ? activeStage : undefined;
+        const plainCode = this.selectedPascalTask
+            ? PascalGenerator.generateForTask(h.project, this.selectedPascalTask, false, stageToUse)
+            : PascalGenerator.generateFullProgram(h.project, false, stageToUse);
+        const highlightedCode = PascalHighlighter.highlight(plainCode);
+        content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
     }
 }

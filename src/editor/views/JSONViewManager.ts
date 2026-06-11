@@ -1,8 +1,5 @@
-import { IViewHost } from '../EditorViewTypes';
-import { Logger } from '../../utils/Logger';
+import type { IViewHost } from '../EditorViewManager';
 import { JSONTreeViewer } from '../JSONTreeViewer';
-
-const logger = Logger.get('JSONViewManager');
 
 /**
  * JSONViewManager - Verwaltet die JSON Viewer/Editor Ansicht.
@@ -24,6 +21,14 @@ export class JSONViewManager {
     /**
      * Rendert die JSON-Ansicht
      */
+    public renderJSONTree(data: any, container: HTMLElement) {
+        JSONTreeViewer.render(data, container, this.jsonMode === 'editor', (updatedData) => {
+            this.host.workingProjectData = updatedData;
+            this.host.isProjectDirty = true;
+            this.host.refreshJSONView();
+        });
+    }
+
     public renderJSONView(container: HTMLElement, workingData: any): void {
         container.innerHTML = '';
 
@@ -59,39 +64,45 @@ export class JSONViewManager {
         toolbar.id = 'json-viewer-toolbar';
         toolbar.style.cssText = 'padding: 8px 16px; background-color: #2d2d2d; border-bottom: 1px solid #3c3c3c; display: flex; align-items: center; gap: 12px;';
 
-        // Modus-Button
-        const modeButton = document.createElement('button');
-        modeButton.id = 'json-mode-toggle';
-        modeButton.textContent = this.jsonMode === 'viewer' ? 'Zu Editor' : 'Zu Viewer';
-        modeButton.style.cssText = 'background: #0e639c; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;';
-        modeButton.onclick = () => {
-            this.toggleMode();
+        const label = document.createElement('div');
+        label.style.cssText = 'color: #ccc; font-size: 12px; font-weight: bold;';
+        label.textContent = 'JSON-Ansicht';
+        toolbar.appendChild(label);
+
+        const sourceSelect = document.createElement('select');
+        sourceSelect.id = 'json-scope-select';
+        sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
+        this.updateScopeSelectOptions(sourceSelect);
+        sourceSelect.onchange = () => {
+            this.host.useStageIsolatedView = sourceSelect.value === 'stage';
+            this.host.refreshJSONView();
         };
-        toolbar.appendChild(modeButton);
-
-        // Search box (nur im Viewer)
-        if (this.jsonMode === 'viewer') {
-            const searchBox = document.createElement('input');
-            searchBox.type = 'text';
-            searchBox.placeholder = 'Suchen...';
-            searchBox.style.cssText = 'background: #3c3c3c; color: #ccc; border: 1px solid #555; padding: 4px 8px; border-radius: 4px; font-size: 12px;';
-            searchBox.oninput = (e) => {
-                const query = (e.target as HTMLInputElement).value;
-                if (this.contentElement) {
-                    JSONTreeViewer.search?.(query);
-                }
-            };
-            toolbar.appendChild(searchBox);
-        }
-
-        // Copy Button
-        const copyBtn = document.createElement('button');
-        copyBtn.textContent = 'Kopieren';
-        copyBtn.style.cssText = 'background: #3c3c3c; color: #ccc; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: auto;';
-        copyBtn.onclick = () => this.copyToClipboard();
-        toolbar.appendChild(copyBtn);
+        toolbar.appendChild(sourceSelect);
 
         return toolbar;
+    }
+
+    public updateJSONToolbar(toolbar: HTMLElement) {
+        toolbar.style.display = 'flex';
+        const sourceSelect = toolbar.querySelector('#json-scope-select') as HTMLSelectElement;
+        if (sourceSelect) { this.updateScopeSelectOptions(sourceSelect); }
+    }
+
+    private updateScopeSelectOptions(select: HTMLSelectElement) {
+        select.innerHTML = '';
+        const aStage = this.host.getActiveStage();
+        const sName = aStage ? aStage.name : 'Unknown';
+        const opts = [
+            { id: 'stage', label: `Stage: ${sName}` },
+            { id: 'project', label: 'Gesamtes Projekt' }
+        ];
+        opts.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.label;
+            opt.selected = (s.id === 'stage' && this.host.useStageIsolatedView) || (s.id === 'project' && !this.host.useStageIsolatedView);
+            select.appendChild(opt);
+        });
     }
 
     /**
@@ -101,19 +112,6 @@ export class JSONViewManager {
         this.jsonMode = this.jsonMode === 'viewer' ? 'editor' : 'viewer';
         // Trigger re-render via host
         this.host.refreshJSONView();
-    }
-
-    /**
-     * Kopiert JSON in die Zwischenablage
-     */
-    private copyToClipboard(): void {
-        const project = this.host.project;
-        const json = JSON.stringify(project, null, 2);
-        navigator.clipboard.writeText(json).then(() => {
-            logger.info('JSON in Zwischenablage kopiert');
-        }).catch(err => {
-            logger.error('Fehler beim Kopieren:', err);
-        });
     }
 
     /**

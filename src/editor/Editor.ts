@@ -93,6 +93,11 @@ export class Editor implements IViewHost {
 
     public get workingProjectData() { return this.viewManager.workingProjectData; }
     public set workingProjectData(v: any) { this.viewManager.workingProjectData = v; }
+    public showAddStageDialog(onComplete?: (data: any) => void) { this.viewManager.showAddStageDialog(onComplete); }
+    public showConfigureProjectDialog(onComplete?: (data: any) => void) { this.viewManager.showConfigureProjectDialog(onComplete); }
+    public showAddUseCaseDialog(stageId: string, prefilled?: { className?: string, name?: string }) { this.viewManager.showAddUseCaseDialog(stageId, prefilled); }
+    public navigateToFlowChart(flowChartId: string) { this.viewManager.navigateToFlowChart(flowChartId); }
+    public showInteractionDiagram(userStoryId: string, interactionId: string) { this.viewManager.showInteractionDiagram(userStoryId, interactionId); }
 
     constructor() {
         this.designRuntime = new ReactiveRuntime();
