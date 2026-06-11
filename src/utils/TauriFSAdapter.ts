@@ -52,7 +52,7 @@ export function installTauriFSAdapter() {
         getAppPath: async () => {
             try {
                 return await resourceDir(); 
-            } catch(e) {
+            } catch(_e) {
                 return "/";
             }
         }

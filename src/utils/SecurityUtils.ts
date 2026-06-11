@@ -19,7 +19,7 @@ export class SecurityUtils {
             ALLOW_DATA_ATTR: true,
             SANITIZE_DOM: true,
             // Links nur mit http/https/ftp/mailto - kein javascript:
-            ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+            ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
         });
     }
 

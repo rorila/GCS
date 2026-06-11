@@ -75,7 +75,7 @@ export function registerAnimationActions() {
                             if (effect === 'shake') param2 = Number(action.intensity) || 5;
                             if (effect === 'pulse') param2 = Number(action.scale) || 1.15;
                             if (effect === 'bounce') param2 = Number(action.height) || 20;
-                            if (effect === 'fade') param2 = Number(action.targetOpacity) !== undefined && !isNaN(Number(action.targetOpacity)) ? Number(action.targetOpacity) : 0;
+                            if (effect === 'fade') param2 = action.targetOpacity !== undefined && !isNaN(Number(action.targetOpacity)) ? Number(action.targetOpacity) : 0;
 
                             if (param2 !== undefined) {
                                 (animManager as any)[effect](targetObj, param2, duration);

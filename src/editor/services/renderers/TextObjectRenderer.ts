@@ -102,7 +102,8 @@ export class TextObjectRenderer {
                 const href = a.getAttribute('href');
                 if (href && href.startsWith('stage:')) {
                     a.setAttribute('data-stage', href);
-                    a.setAttribute('href', 'javascript:void(0)');
+                    a.setAttribute('href', '#');
+                    a.addEventListener('click', (e) => e.preventDefault());
                 }
             });
 

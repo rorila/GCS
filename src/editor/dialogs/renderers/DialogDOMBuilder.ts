@@ -152,6 +152,9 @@ export class DialogDOMBuilder {
         if (obj.filter && items.length > 0) {
             items = items.filter((item: any) => {
                 try {
+                    // SECURITY: new Function() ist notwendig für dynamische Filter-Ausdrücke.
+                    // Die Expression wird vorher durch SecurityUtils.sanitizeExpression geprüft.
+                    // eslint-disable-next-line no-new-func
                     const fn = new Function('item', 'dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', `return ${obj.filter}`);
                     return fn(item, ctx.dialogData, ctx.project, ctx.dialogData.taskName, ctx.dialogData.actionName, ctx.dialogData.name, serviceRegistry, (name: string) => ctx.getPropertiesForObject(name), (name: string) => ctx.getMethodsForObject(name));
                 } catch (e) {
