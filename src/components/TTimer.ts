@@ -8,7 +8,7 @@ const logger = Logger.get('TTimer');
 export class TTimer extends TWindow implements IRuntimeComponent {
     public className: string = 'TTimer';
     public interval: number = 1000; // in milliseconds
-    public enabled: boolean = true;
+    private _enabled: boolean = false;
     public maxInterval: number | string = 0; // 0 = infinite, >0 = max number of intervals
     public currentInterval: number = 0; // current interval count
 
@@ -16,10 +16,27 @@ export class TTimer extends TWindow implements IRuntimeComponent {
     private onTimerCallback: (() => void) | null = null;
     public onEvent: ((eventName: string) => void) | null = null;
     private runtimeContextVars: Record<string, any> | null = null;
+    private isRunning: boolean = false;
+
+    public get enabled(): boolean {
+        return this._enabled;
+    }
+
+    public set enabled(value: boolean) {
+        const old = this._enabled;
+        this._enabled = value;
+        if (value) {
+            if (this.isRunning && (old !== value || this.timerId === null)) {
+                const self = (this as any).__proxy__ || this;
+                self.start(() => {});
+            }
+        } else {
+            this.stop();
+        }
+    }
 
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 4, 2);
-        this.isVariable = true;
         this.style.backgroundColor = '#4caf50';
         this.style.borderColor = '#2e7d32';
         this.style.borderWidth = 2;
@@ -57,6 +74,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
     }
 
     public onRuntimeStart(): void {
+        this.isRunning = true;
         // Resolve maxInterval if it's a string expression
         if (typeof this.maxInterval === 'string' && this.runtimeContextVars) {
             try {
@@ -69,13 +87,15 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         }
 
         if (this.enabled) {
-            this.start(() => {
+            const self = (this as any).__proxy__ || this;
+            self.start(() => {
                 // Der Callback wird nun über onEvent (gesetzt in initRuntime) gesteuert
             });
         }
     }
 
     public onRuntimeStop(): void {
+        this.isRunning = false;
         this.stop();
     }
 
@@ -107,7 +127,8 @@ export class TTimer extends TWindow implements IRuntimeComponent {
                     return;
                 }
 
-                this.currentInterval++;
+                const proxy = (this as any).__proxy__ || this;
+                proxy.currentInterval++;
 
                 // Fire onTimer event via callback (legacy)
                 if (this.onTimerCallback) {
@@ -150,13 +171,6 @@ export class TTimer extends TWindow implements IRuntimeComponent {
     public timerStart(): void {
         logger.info(`[TTimer] ${this.name}: timerStart() called`);
         this.enabled = true;
-        if (this.onEvent) {
-            // Re-use internal start with a wrapper that fires onEvent
-            this.start(() => { }); // onEvent is already called inside start()
-        } else {
-            // No event callback registered, just start with empty callback
-            this.start(() => { });
-        }
     }
 
     /**
@@ -165,7 +179,6 @@ export class TTimer extends TWindow implements IRuntimeComponent {
     public timerStop(): void {
         logger.info(`[TTimer] ${this.name}: timerStop() called`);
         this.enabled = false;
-        this.stop();
     }
 
     /**
