@@ -18,6 +18,7 @@
 - [§2 Headless Skripte & CLI Runner](#2-headless-skripte--cli-runner)
 - [§3 Die 7-Schritte-Methodik](#3-die-7-schritte-methodik)
 - [§4 API-Referenz (alle Methoden)](#4-api-referenz)
+- [§3.13 AgentScript Import/Export](#313-agentscript-importexport)
 - [§5 ActionType-Katalog (24 Typen)](#5-actiontype-katalog)
 - [§6 Komponenten-Steckbriefe](#6-komponenten-steckbriefe)
 - [§7 Workflow-Rezepte (End-to-End)](#7-workflow-rezepte)
@@ -1496,6 +1497,92 @@ const results = agent.executeBatch([
 - **Primäre Oberfläche für LLMs** — ein Prompt → ein Batch → alles-oder-nichts
 - Komplexe Workflows, die als Einheit Sinn machen
 - Transaktionale Garantie bei fehlerhaften Inputs
+
+---
+
+### 3.13 AgentScript Import/Export
+
+AgentScripte sind JSON-basierte, deklarative Listen von AgentController-Operationen. Sie ergänzen den vollständigen Projekt-JSON-Export durch kleine, wiederverwendbare Logik-Bausteine (Snippets).
+
+#### `exportScript(options)`
+
+Exportiert einen Bereich des Projekts als AgentScript.
+
+**Signatur:**
+```typescript
+exportScript(options: ExportOptions): AgentScript
+```
+
+**Export-Scopes:**
+
+| Scope | Beschreibung |
+|---|---|
+| `task` | Einzelner Task inklusive seiner Actions |
+| `stage` | Stage inklusive Objekte, Variablen, Tasks und Actions |
+| `project` | Gesamtes Projekt |
+| `selection` | Noch nicht implementiert |
+
+**Beispiel:**
+```typescript
+const script = agent.exportScript({ scope: 'task', targetId: 'Tick' });
+// → { version: '1.0', name: 'Export_task_Tick', operations: [...], assetPaths: [...] }
+```
+
+---
+
+#### `importScript(script, options?)`
+
+Importiert ein AgentScript in das aktuelle Projekt. Führt vorab eine Konflikt-Analyse durch und wendet die Operationen transaktional via `executeBatch()` an.
+
+**Signatur:**
+```typescript
+importScript(script: AgentScript, options?: ImportOptions): ImportResult
+```
+
+**Optionen:**
+
+| Option | Default | Beschreibung |
+|---|---|---|
+| `targetStageId` | — | Stage, in die importiert wird (ersetzt `${STAGE}`) |
+| `conflictStrategy` | `'error'` | `error`, `rename`, `overwrite`, `skip` |
+| `autoRenameSuffix` | `'_import'` | Suffix bei `rename` |
+| `dryRun` | `false` | Nur analysieren, nicht anwenden |
+| `projectRoot` | — | Wurzelpfad für Asset-Existenzprüfung |
+
+**Beispiel:**
+```typescript
+const result = agent.importScript(script, {
+  targetStageId: 'stage_main',
+  conflictStrategy: 'rename',
+  dryRun: false
+});
+
+console.log(result.success);           // true
+console.log(result.appliedOperations); // 7
+console.log(result.renamedItems);      // { Ball: 'Ball_import' }
+console.log(result.warnings);          // ['Asset assets/ball.png nicht gefunden.']
+```
+
+**Import-Result:**
+```typescript
+{
+  success: boolean;
+  phase: 'analysis' | 'applied' | 'cancelled';
+  plannedOperations: number;
+  appliedOperations: number;
+  conflicts: ImportConflict[];
+  warnings: string[];
+  errors: string[];
+  renamedItems: Record<string, string>;
+  skippedItems: string[];
+  canUndo: boolean;
+}
+```
+
+**Sicherheit:**
+- Skripte sind reine JSON-Operation-Listen — kein JavaScript-Code wird ausgeführt.
+- Nur public Methoden aus einer expliziten Allowlist dürfen aufgerufen werden.
+- `executeBatch()` stellt sicher, dass bei einem Fehler ein Rollback erfolgt.
 
 ---
 
