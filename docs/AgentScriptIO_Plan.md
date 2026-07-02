@@ -524,7 +524,28 @@ console.log(result.renamedItems);
 
 ---
 
-## 10. Empfohlener Start
+## 10. Umsetzungsstand
+
+| Schritt | Status | Dateien |
+|---|---|---|
+| 1. Interfaces & Datenmodell | ✅ Erledigt | `src/services/agent/AgentScriptTypes.ts` |
+| 2. Validator | ✅ Erledigt | `src/services/agent/AgentScriptValidator.ts` |
+| 3. Repository | ✅ Erledigt | `src/services/agent/AgentScriptRepository.ts` |
+| 4. AgentScriptIO (Export/Import) | ✅ Grundgerüst erledigt | `src/services/agent/AgentScriptIO.ts` |
+| 5. AgentController-Integration | ✅ Erledigt | `src/services/AgentController.ts` |
+| 6. UI-Integration | ✅ Minimaler Dialog erledigt | `src/editor/dialogs/AgentScriptDialog.ts` |
+| 7. Tests | ✅ Grundlegend erledigt | `tests/agent_script_io.test.ts` |
+| 8. Dokumentation | ✅ Erledigt | `docs/AGENT_API_REFERENCE.md` |
+
+**Noch offen / Ausbau:**
+- Export-Scope `selection`
+- Interaktiver Vorschau-Dialog mit Konflikt-Auflösung pro Item
+- Snippet-Bibliothek im Editor
+- Asset-Pfad-Remapping während Import
+- Platzhalter-UI (Schema → Eingabefelder)
+- Verdrahtung in Menüleiste / Toolbar
+
+## 11. Empfohlener Start
 
 1. Mit **Schritt 1–3** beginnen (Interfaces, Validator, Repository). Rückenrat hohes Fundament.
 2. Dann **Schritt 4** implementieren, zuerst nur Export-Scope `task` und Import-Mode `error`.
