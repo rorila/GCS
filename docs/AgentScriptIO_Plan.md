@@ -538,7 +538,6 @@ console.log(result.renamedItems);
 | 8. Dokumentation | ✅ Erledigt | `docs/AGENT_API_REFERENCE.md` |
 
 **Noch offen / Ausbau:**
-- Interaktiver Vorschau-Dialog mit Konflikt-Auflösung pro Item
 - Verdrahtung in Menüleiste / Toolbar
 
 ## 11. Empfohlener Start

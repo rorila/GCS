@@ -1,6 +1,7 @@
 import { Logger } from '../../utils/Logger';
 import { AgentController } from '../../services/AgentController';
 import { AgentScript, ExportOptions } from '../../services/agent/AgentScriptTypes';
+import type { ImportResult, ConflictStrategy } from '../../services/agent/AgentScriptTypes';
 
 const logger = Logger.get('AgentScriptDialog');
 
@@ -180,8 +181,60 @@ export class AgentScriptDialog {
             }
         };
 
+        const conflictContainer = document.createElement('div');
+        conflictContainer.style.cssText = 'display:flex; flex-direction:column; gap:8px;';
+
+        let conflictSelects: Record<string, HTMLSelectElement> = {};
+
+        const renderConflicts = (result: ImportResult) => {
+            conflictContainer.innerHTML = '';
+            conflictSelects = {};
+
+            const conflictItems = result.conflicts.filter(c => c.type === 'task' || c.type === 'variable' || c.type === 'object' || c.type === 'stage');
+            if (conflictItems.length === 0) return;
+
+            const title = document.createElement('div');
+            title.innerText = 'Konflikte (pro Item wählen)';
+            title.style.cssText = 'font-size:11px; color:#888; text-transform:uppercase;';
+            conflictContainer.appendChild(title);
+
+            for (const c of conflictItems) {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px; background:#0f0f1a; border:1px solid #333; border-radius:6px;';
+
+                const label = document.createElement('span');
+                label.innerText = `[${c.type}] ${c.name}`;
+                label.style.cssText = 'font-size:12px; color:#aaa;';
+                label.title = c.message;
+
+                const select = document.createElement('select');
+                select.style.cssText = 'padding:6px; background:#16162a; color:#fff; border:1px solid #333; border-radius:6px; font-size:12px;';
+                const strategies: ConflictStrategy[] = ['rename', 'overwrite', 'skip'];
+                for (const s of strategies) {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.text = s;
+                    select.appendChild(opt);
+                }
+                select.value = (c.action === 'rename' || c.action === 'overwrite' || c.action === 'skip') ? c.action : 'rename';
+
+                conflictSelects[c.name] = select;
+                row.appendChild(label);
+                row.appendChild(select);
+                conflictContainer.appendChild(row);
+            }
+        };
+
+        const collectConflictOverrides = (): Record<string, ConflictStrategy> => {
+            const overrides: Record<string, ConflictStrategy> = {};
+            for (const key of Object.keys(conflictSelects)) {
+                overrides[key] = conflictSelects[key].value as ConflictStrategy;
+            }
+            return overrides;
+        };
+
         const preview = document.createElement('pre');
-        preview.style.cssText = 'max-height:200px; overflow:auto; background:#0f0f1a; padding:8px; border-radius:6px; font-size:11px; color:#aaa;';
+        preview.style.cssText = 'max-height:160px; overflow:auto; background:#0f0f1a; padding:8px; border-radius:6px; font-size:11px; color:#aaa;';
         preview.innerText = 'Vorschau erscheint hier nach Datei-Auswahl...';
 
         let currentScript: AgentScript | null = null;
@@ -195,21 +248,24 @@ export class AgentScriptDialog {
             return values;
         };
 
-        const updatePreview = () => {
-            if (!currentScript) return;
+        const updatePreview = (): ImportResult | null => {
+            if (!currentScript) return null;
             const result = agent.importScript(currentScript, {
                 targetStageId: targetInput.value || undefined,
                 conflictStrategy: strategySelect.value as any,
                 placeholderValues: collectPlaceholderValues(),
+                conflictOverrides: collectConflictOverrides(),
                 dryRun: true
             });
             let text = `Geplante Operationen: ${result.plannedOperations}\n`;
             text += `Fehler: ${result.errors.join('\n') || '-'}\n`;
             text += `Warnungen: ${result.warnings.join('\n') || '-'}\n`;
-            if (result.conflicts.length > 0) {
-                text += 'Konflikte:\n' + result.conflicts.map(c => `- [${c.type}] ${c.name}: ${c.action} - ${c.message}`).join('\n');
+            if (result.conflicts.length === 0) {
+                text += 'Keine Konflikte.';
             }
             preview.innerText = text;
+            renderConflicts(result);
+            return result;
         };
 
         fileInput.onchange = () => {
@@ -225,6 +281,7 @@ export class AgentScriptDialog {
                     preview.innerText = 'Fehler beim Parsen: ' + e.message;
                     currentScript = null;
                     renderPlaceholders({ placeholderSchema: [] } as any);
+                    renderConflicts({ conflicts: [] } as any);
                 }
             };
             reader.readAsText(file);
@@ -246,6 +303,7 @@ export class AgentScriptDialog {
                     targetStageId: targetInput.value || undefined,
                     conflictStrategy: strategySelect.value as any,
                     placeholderValues: collectPlaceholderValues(),
+                    conflictOverrides: collectConflictOverrides(),
                 });
                 if (result.success) {
                     alert(`Import erfolgreich: ${result.appliedOperations} Operationen angewendet.`);
@@ -265,6 +323,7 @@ export class AgentScriptDialog {
         body.appendChild(strategyLabel);
         body.appendChild(strategySelect);
         body.appendChild(placeholderContainer);
+        body.appendChild(conflictContainer);
         body.appendChild(preview);
         body.appendChild(importBtn);
         dialog.appendChild(body);

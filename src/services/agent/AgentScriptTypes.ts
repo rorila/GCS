@@ -40,6 +40,7 @@ export type ConflictStrategy = 'error' | 'rename' | 'overwrite' | 'skip';
 export interface ImportOptions {
     targetStageId?: string;       // Stage, in die importiert wird
     conflictStrategy?: ConflictStrategy; // default: 'error'
+    conflictOverrides?: Record<string, ConflictStrategy>; // Pro-Item Konfliktstrategie
     autoRenameSuffix?: string;    // default: "_import"
     dryRun?: boolean;             // default: false
     placeholderValues?: Record<string, any>;

@@ -1545,6 +1545,7 @@ importScript(script: AgentScript, options?: ImportOptions): ImportResult
 |---|---|---|
 | `targetStageId` | — | Stage, in die importiert wird (ersetzt `${STAGE}`) |
 | `conflictStrategy` | `'error'` | `error`, `rename`, `overwrite`, `skip` |
+| `conflictOverrides` | — | `{ 'Ball': 'rename', 'Score': 'skip' }` pro-Item |
 | `autoRenameSuffix` | `'_import'` | Suffix bei `rename` |
 | `dryRun` | `false` | Nur analysieren, nicht anwenden |
 | `projectRoot` | — | Wurzelpfad für Asset-Existenzprüfung |

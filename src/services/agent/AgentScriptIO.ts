@@ -269,9 +269,9 @@ export class AgentScriptIO {
             operations = this.remapAssetPaths(operations, options.assetRemap);
         }
 
-        // 6. Konflikte transformieren (rename/skip)
+        // 6. Konflikte transformieren (rename/skip/overwrite)
         if (options.conflictStrategy && options.conflictStrategy !== 'error') {
-            const transform = this.transformOperationsForConflicts(operations, options.conflictStrategy, options.autoRenameSuffix || '_import');
+            const transform = this.transformOperationsForConflicts(operations, options.conflictStrategy, options.autoRenameSuffix || '_import', options.conflictOverrides);
             operations = transform.operations;
             result.renamedItems = transform.renamedItems;
             result.skippedItems = transform.skippedItems;
@@ -356,13 +356,18 @@ export class AgentScriptIO {
     private transformOperationsForConflicts(
         operations: AgentScriptOperation[],
         strategy: string,
-        suffix: string
+        suffix: string,
+        overrides?: Record<string, string>
     ): { operations: AgentScriptOperation[]; renamedItems: Record<string, string>; skippedItems: string[]; warnings: string[] } {
         const renamedItems: Record<string, string> = {};
         const skippedItems: string[] = [];
         const warnings: string[] = [];
 
-        if (strategy !== 'rename' && strategy !== 'skip') {
+        const effectiveStrategy = (name: string): string => {
+            return overrides?.[name] ?? strategy;
+        };
+
+        if (strategy !== 'rename' && strategy !== 'skip' && !overrides) {
             return { operations, renamedItems, skippedItems, warnings };
         }
 
@@ -408,13 +413,16 @@ export class AgentScriptIO {
             if (type && paramIndex >= 0) {
                 const name = op.params[paramIndex];
                 if (typeof name === 'string' && needsRename(type, name)) {
-                    if (strategy === 'rename') {
+                    const itemStrategy = effectiveStrategy(name);
+                    if (itemStrategy === 'rename') {
                         const newName = getNewName(name);
                         renamedItems[name] = newName;
                         warnings.push(`${type === 'task' ? 'Task' : type === 'variable' ? 'Variable' : 'Objekt'} '${name}' existiert bereits und wird zu '${newName}' umbenannt.`);
-                    } else if (strategy === 'skip') {
+                    } else if (itemStrategy === 'skip') {
                         skippedItems.push(name);
                         warnings.push(`${type === 'task' ? 'Task' : type === 'variable' ? 'Variable' : 'Objekt'} '${name}' übersprungen (existiert bereits).`);
+                    } else if (itemStrategy === 'overwrite') {
+                        warnings.push(`${type === 'task' ? 'Task' : type === 'variable' ? 'Variable' : 'Objekt'} '${name}' wird überschrieben (overwrite).`);
                     }
                 }
             }

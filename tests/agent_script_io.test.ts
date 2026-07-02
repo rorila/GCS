@@ -178,6 +178,27 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Asset Remap', false, e.message);
     }
 
+    // --- Pro-Item Konflikt-Override ---
+    try {
+        agent.setProject(createTestProject());
+        agent.addVariable('score', 'integer', 0, 'global');
+        const script: AgentScript = {
+            version: AGENT_SCRIPT_VERSION,
+            name: 'OverrideTest',
+            operations: [
+                { method: 'addVariable', params: ['score', 'integer', 0, 'global'] }
+            ]
+        };
+        const result = agent.importScript(script, {
+            conflictStrategy: 'rename',
+            conflictOverrides: { score: 'skip' }
+        });
+        const ok = result.success && result.skippedItems.includes('score') && !agent.listVariables().some(v => v.name === 'score_import');
+        addResult('Konflikt Override', ok, ok ? undefined : JSON.stringify(result));
+    } catch (e: any) {
+        addResult('Konflikt Override', false, e.message);
+    }
+
     // --- Selection-Export ---
     try {
         agent.setProject(createTestProject());
