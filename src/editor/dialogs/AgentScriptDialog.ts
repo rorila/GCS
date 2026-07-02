@@ -147,11 +147,64 @@ export class AgentScriptDialog {
             strategySelect.appendChild(opt);
         });
 
+        const placeholderContainer = document.createElement('div');
+        placeholderContainer.style.cssText = 'display:flex; flex-direction:column; gap:8px;';
+
+        let placeholderInputs: Record<string, HTMLInputElement> = {};
+
+        const renderPlaceholders = (script: AgentScript) => {
+            placeholderContainer.innerHTML = '';
+            placeholderInputs = {};
+            if (!script.placeholderSchema || script.placeholderSchema.length === 0) return;
+
+            const title = document.createElement('div');
+            title.innerText = 'Platzhalter';
+            title.style.cssText = 'font-size:11px; color:#888; text-transform:uppercase;';
+            placeholderContainer.appendChild(title);
+
+            for (const ph of script.placeholderSchema) {
+                const label = document.createElement('label');
+                label.innerText = `${ph.name}${ph.required ? ' *' : ''}`;
+                label.style.cssText = 'font-size:11px; color:#aaa;';
+
+                const input = document.createElement('input');
+                input.type = ph.type === 'number' ? 'number' : ph.type === 'boolean' ? 'checkbox' : 'text';
+                input.placeholder = ph.description || ph.default || '';
+                if (ph.default !== undefined && input.type !== 'checkbox') input.value = String(ph.default);
+                if (ph.default !== undefined && input.type === 'checkbox') input.checked = Boolean(ph.default);
+                input.style.cssText = 'padding:8px; background:#16162a; color:#fff; border:1px solid #333; border-radius:6px;';
+
+                placeholderInputs[ph.name] = input;
+                placeholderContainer.appendChild(label);
+                placeholderContainer.appendChild(input);
+            }
+        };
+
         const preview = document.createElement('pre');
         preview.style.cssText = 'max-height:200px; overflow:auto; background:#0f0f1a; padding:8px; border-radius:6px; font-size:11px; color:#aaa;';
         preview.innerText = 'Vorschau erscheint hier nach Datei-Auswahl...';
 
         let currentScript: AgentScript | null = null;
+
+        const collectPlaceholderValues = (): Record<string, any> => {
+            const values: Record<string, any> = {};
+            for (const key of Object.keys(placeholderInputs)) {
+                const input = placeholderInputs[key];
+                values[key] = input.type === 'checkbox' ? input.checked : input.value;
+            }
+            return values;
+        };
+
+        const updatePreview = () => {
+            if (!currentScript) return;
+            const result = agent.importScript(currentScript, {
+                targetStageId: targetInput.value || undefined,
+                conflictStrategy: strategySelect.value as any,
+                placeholderValues: collectPlaceholderValues(),
+                dryRun: true
+            });
+            preview.innerText = `Geplante Operationen: ${result.plannedOperations}\nFehler: ${result.errors.join('\n') || '-'}\nWarnungen: ${result.warnings.join('\n') || '-'}`;
+        };
 
         fileInput.onchange = () => {
             const file = fileInput.files?.[0];
@@ -160,19 +213,19 @@ export class AgentScriptDialog {
             reader.onload = () => {
                 try {
                     currentScript = JSON.parse(reader.result as string) as AgentScript;
-                    const result = agent.importScript(currentScript, {
-                        targetStageId: targetInput.value || undefined,
-                        conflictStrategy: strategySelect.value as any,
-                        dryRun: true
-                    });
-                    preview.innerText = `Geplante Operationen: ${result.plannedOperations}\nFehler: ${result.errors.join('\n') || '-'}\nWarnungen: ${result.warnings.join('\n') || '-'}`;
+                    renderPlaceholders(currentScript);
+                    updatePreview();
                 } catch (e: any) {
                     preview.innerText = 'Fehler beim Parsen: ' + e.message;
                     currentScript = null;
+                    renderPlaceholders({ placeholderSchema: [] } as any);
                 }
             };
             reader.readAsText(file);
         };
+
+        targetInput.onchange = updatePreview;
+        strategySelect.onchange = updatePreview;
 
         const importBtn = document.createElement('button');
         importBtn.innerText = 'Importieren';
@@ -186,6 +239,7 @@ export class AgentScriptDialog {
                 const result = agent.importScript(currentScript, {
                     targetStageId: targetInput.value || undefined,
                     conflictStrategy: strategySelect.value as any,
+                    placeholderValues: collectPlaceholderValues(),
                 });
                 if (result.success) {
                     alert(`Import erfolgreich: ${result.appliedOperations} Operationen angewendet.`);
@@ -204,6 +258,7 @@ export class AgentScriptDialog {
         body.appendChild(targetInput);
         body.appendChild(strategyLabel);
         body.appendChild(strategySelect);
+        body.appendChild(placeholderContainer);
         body.appendChild(preview);
         body.appendChild(importBtn);
         dialog.appendChild(body);

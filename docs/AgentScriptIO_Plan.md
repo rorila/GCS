@@ -540,7 +540,6 @@ console.log(result.renamedItems);
 **Noch offen / Ausbau:**
 - Interaktiver Vorschau-Dialog mit Konflikt-Auflösung pro Item
 - Snippet-Bibliothek im Editor
-- Platzhalter-UI (Schema → Eingabefelder)
 - Verdrahtung in Menüleiste / Toolbar
 
 ## 11. Empfohlener Start
