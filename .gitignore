@@ -12,6 +12,9 @@ release/
 # OS
 .DS_Store
 Thumbs.db
+~$*.rtf
+~$*.docx
+~$*.doc
 
 # Logs
 *.log

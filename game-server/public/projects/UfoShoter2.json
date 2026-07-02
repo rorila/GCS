@@ -2034,11 +2034,11 @@
               "y": 140
             },
             "UpdateCannonCounter": {
-              "x": 1220,
+              "x": 660,
               "y": 140
             },
             "SetANewCannon": {
-              "x": 1600,
+              "x": 920,
               "y": 140
             }
           }
@@ -3042,7 +3042,7 @@
       }
     }
   ],
-  "activeStageId": "blueprint",
+  "activeStageId": "stage_fc0d59d8-6d35-471f-95cb-db41b1b33dc0",
   "objects": [],
   "actions": [],
   "tasks": [],

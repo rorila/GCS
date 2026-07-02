@@ -1,0 +1,145 @@
+{\rtf1\ansi\ansicpg1252\deff0
+{\fonttbl{\f0\fswiss Calibri;}{\f1\fmodern Consolas;}}
+{\colortbl;\red0\green0\blue0;\red31\green78\blue121;\red89\green89\blue89;\red0\green112\blue60;\red192\green0\blue0;}
+\margl1134\margr1134\margt1134\margb1134
+\pard\qc\sb200\sa100\f0\fs48\b\cf2 MVP-Prototyp\line User Story \u8594? AgentController-\'dcbersetzer\b0\cf1\par
+\pard\qc\sa240\f0\fs24\cf3 Technische Konzept- und Implementierungsdokumentation\line Version 0.1 \'96 Entwurf\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Dieses Dokument beschreibt einen Minimal Viable Prototype (MVP), der eine in nat\'fcrlicher Sprache formulierte User Story entgegennimmt und daraus eine lauff\'e4hige L\'f6sung im Sinne des bestehenden \i AgentController\i0  erzeugt. Ziel ist ein funktionierender Prototyp ohne eigenes Modelltraining, der gleichzeitig die Datenbasis f\'fcr ein sp\'e4teres, fein-getuntes Modell schafft.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 1. Zusammenfassung\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Der Prototyp \'fcbersetzt eine User Story in ein \i Builder-Skript\i0 , also eine Kette von Aufrufen der bestehenden, wohldefinierten \i AgentController\i0 -API. Der entscheidende Vorteil: Der Ausgabe-Raum ist eng begrenzt (nur bekannte API-Aufrufe) und jede Ausgabe ist \i automatisch verifizierbar\i0 , weil der AgentController bei jedem Regelverstoss eine Exception wirft. Dadurch ist bereits ohne eigenes Modell ein belastbarer Prototyp erreichbar, und die erfolgreich validierten Paare bilden sp\'e4ter einen selbst-verifizierten Trainingsdatensatz.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 2. Ziel und Vision\b0\cf1\par
+\pard\sb160\sa80\f0\fs26\b\cf1 2.1 Kurzfristiges Ziel (MVP)\b0\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab Eingabe: eine User Story in freiem Text (z.\'a0B. "Als Spieler m\'f6chte ich M\'fcnzen sammeln und ab 10 M\'fcnzen gewinnen").\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab Ausgabe: ein lauff\'e4higes Builder-Skript, das \'fcber den CLI-Runner ein g\'fcltiges Projekt erzeugt.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab Garantie: nur valider, vom AgentController akzeptierter Code verl\'e4sst die Pipeline.\par
+\pard\sb160\sa80\f0\fs26\b\cf1 2.2 Langfristige Vision\b0\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Ein kleines, lokal betreibbares Modell (3\'96 8 Mrd. Parameter), das User Stories zuverl\'e4ssig in AgentController-DSL \'fcbersetzt \'96 trainiert auf Daten, die der MVP selbst erzeugt hat. Ein vollst\'e4ndig eigenst\'e4ndiges Training "von Grund auf" ist ausdr\'fccklich \i nicht\i0  das Ziel (unrealistischer Kosten- und Datenaufwand).\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 3. Ausgangslage: Der AgentController als DSL\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Der bestehende \i AgentController\i0  ist die zentrale, atomare API zur Manipulation eines Projekts. Er erzwingt Architektur-Invarianten und validiert jede Mutation. Die wichtigsten Bausteine:\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b createStage(id, name, type)\b0  \'96 legt eine Stage an (standard / blueprint).\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b addObject(stageId, objectData)\b0  \'96 f\'fcgt ein Objekt (TSprite, TLabel, \'85) hinzu.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b addVariable(name, type, initialValue, scope)\b0  \'96 registriert eine Variable.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b createTask(stageId, name)\b0  \'96 erstellt einen Task.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b addAction(taskName, actionType, actionName, params)\b0  \'96 h\'e4ngt eine Action an einen Task.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b addBranch(taskName, variable, operator, value, then, else)\b0  \'96 f\'fcgt eine Verzweigung ein.\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Jede Methode folgt einem 6-Schritt-Protokoll: Projekt pr\'fcfen, Ziel finden, Invarianten pr\'fcfen, Datenmodell mutieren, Flow invalidieren, \'c4nderung melden. Verst\'f6sse (z.\'a0B. Referenz auf eine nicht global definierte Action, unbekannter Trigger-Modus, ung\'fcltiger Index) f\'fchren zu einer aussagekr\'e4ftigen Exception. Genau diese Exceptions sind das kostenlose Korrektheitssignal des Prototyps.\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 F\'fcr headless erzeugte Skripte gilt: Nicht \i AgentController.getInstance()\i0  verwenden, sondern eine Default-Funktion exportieren, in die ein \i ProjectBuilder\i0  injiziert wird (siehe AGENT_API_REFERENCE.md).\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 4. Kernidee und Architekturprinzip\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Das Problem ist \i keine\i0  freie Textgenerierung, sondern eine \i eng begrenzte \'dcbersetzung\i0  von nat\'fcrlicher Sprache in eine bekannte DSL. Drei Eigenschaften der Architektur machen dies ungew\'f6hnlich gut l\'f6sbar:\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Begrenzter Output-Raum\b0  \'96 nur eine endliche Menge bekannter API-Aufrufe ist zul\'e4ssig.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Automatischer Verifizierer\b0  \'96 der AgentController akzeptiert oder verwirft jedes Skript deterministisch.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Ausf\'fchrbare Ground Truth\b0  \'96 ein Skript l\'e4uft entweder fehlerfrei durch oder nicht.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 5. Systemarchitektur des MVP\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Der MVP besteht aus f\'fcnf Komponenten, die als lose gekoppelte Pipeline arbeiten:\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Story-Eingang\b0  \'96 nimmt die User Story entgegen (CLI, kleines Web-Formular oder Editor-Panel).\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Kontext-Assembler\b0  \'96 baut den Prompt aus API-Referenz, Few-Shot-Beispielen und der Story.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b LLM-Adapter\b0  \'96 kapselt das gew\'e4hlte Sprachmodell (Cloud oder lokal) hinter einer einheitlichen Schnittstelle.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Validator/Runner\b0  \'96 f\'fchrt das erzeugte Builder-Skript \'fcber den CLI-Runner und den AgentController aus.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Repair-Loop\b0  \'96 f\'fcttert Fehlermeldungen zur\'fcck ins Modell und fordert eine Korrektur an.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 6. Datenfluss (Pipeline Schritt f\'fcr Schritt)\b0\cf1\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 1.\tab User Story wird eingegeben.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 2.\tab Kontext-Assembler h\'e4ngt API-Referenz + Few-Shot-Beispiele an die Story an.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 3.\tab LLM-Adapter erzeugt ein Builder-Skript (Default-Funktion \i build(agent)\i0 ).\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 4.\tab Validator/Runner f\'fchrt das Skript in einer Sandbox gegen ein leeres Testprojekt aus.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 5.\tab Erfolg \u8594? Skript + resultierendes Projekt werden zur\'fcckgegeben und als valides Paar gespeichert.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 6.\tab Fehler \u8594? Fehlermeldung geht in den Repair-Loop (Schritt 3), maximal N Iterationen.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 7. Der Self-Repair-Loop\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Der Repair-Loop ist der wichtigste Qualit\'e4ts-Hebel. Weil der AgentController pr\'e4zise Fehlermeldungen liefert (z.\'a0B. "Action 'X' is referenced in branch but not globally defined"), kann selbst ein mittelm\'e4ssiges Modell durch iterative Korrektur brauchbaren Code erzeugen. Ablauf:\par
+\pard\li360\sa120\f1\fs20\cf3 versuch = 0\line
+solange versuch < MAX_VERSUCHE:\line
+\tab skript = llm.generiere(prompt)\line
+\tab ergebnis = runner.fuehreAus(skript)\line
+\tab wenn ergebnis.ok: gib skript zurueck\line
+\tab sonst: prompt += "\\nFehler: " + ergebnis.fehler + "\\nBitte korrigiere."\line
+\tab versuch += 1\line
+gib fehlschlag zurueck (menschliche Pruefung noetig)\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 8. Prompt-Design\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Der Prompt besteht aus vier klar getrennten Bl\'f6cken:\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b System-Instruktion\b0  \'96 Rolle, Ausgabeformat (nur ein Builder-Skript, keine Erkl\'e4rungen), harte Regeln.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b API-Referenz (gek\'fcrzt)\b0  \'96 die zul\'e4ssigen Methoden mit Signaturen und Invarianten.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Few-Shot-Beispiele\b0  \'96 5\'96 10 kuratierte Paare (Story \u8594? Skript), die typische Muster abdecken.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Aktuelle Aufgabe\b0  \'96 die konkrete User Story sowie ggf. R\'fcckmeldungen aus dem Repair-Loop.\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Wichtige Regeln in der System-Instruktion: keine Inline-Actions (nur Referenzen), alle referenzierten Actions vorher definieren, reservierte Variablennamen meiden, ausschliesslich bekannte ActionTypes verwenden.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 9. Beispiel: Story \u8594? Builder-Skript\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 \b Eingabe:\b0  "Als Spieler m\'f6chte ich M\'fcnzen sammeln; bei 10 M\'fcnzen gewinne ich."\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 \b Erwartete Ausgabe (vereinfacht):\b0\par
+\pard\li360\sa120\f1\fs20\cf3 export default function build(agent) \{\line
+\tab agent.setMeta('coin_collector', 'Coin Collector', 'Sammle Muenzen');\line
+\tab agent.createStage('stage_blueprint', 'Blueprint', 'blueprint');\line
+\tab agent.createStage('stage_main', 'Spielfeld', 'standard');\line
+\line
+\tab agent.addVariable('score', 'number', 0, 'global');\line
+\line
+\tab agent.createTask('stage_main', 'OnCoinCollected');\line
+\tab agent.addAction('OnCoinCollected', 'property', 'IncScore', \{\line
+\tab\tab target: 'score', properties: \{ value: '$\{score + 1\}' \}\line
+\tab \});\line
+\line
+\tab agent.addBranch('OnCoinCollected', 'score', '>=', 10,\line
+\tab\tab (then) => then.addNewAction('navigate', 'GoToWin', \{ stageId: 'stage_win' \})\line
+\tab );\line
+\}\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Dieses Skript wird vom Runner ausgef\'fchrt; l\'e4uft es fehlerfrei durch, gilt die Story als gel\'f6st.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 10. Daten-Schwungrad f\'fcr sp\'e4teres Fine-Tuning\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Jedes erfolgreich validierte Paar (Story, Skript) wird persistiert. Daraus entsteht ohne zus\'e4tzlichen Aufwand ein sauberer, selbst-verifizierter Datensatz:\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 1.\tab Gro\'dfes LLM erzeugt viele Kandidaten-Paare.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 2.\tab Der Runner filtert alle nicht lauff\'e4higen Skripte automatisch heraus.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 3.\tab \'dcbrig bleiben ausschliesslich korrekte Beispiele.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 4.\tab Mit diesen Daten wird sp\'e4ter ein kleines Modell via LoRA/QLoRA fein-getunt.\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Der AgentController wirkt hier als automatischer Daten-Filter \'96 der entscheidende Vorteil gegen\'fcber Projekten ohne Verifizierer.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 11. Verifizierung und Guardrails\b0\cf1\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Ausf\'fchrungs-Sandbox\b0  \'96 Skripte laufen isoliert gegen ein Wegwerf-Testprojekt, nie gegen Produktionsdaten.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Grammar-Constrained Decoding\b0  \'96 (optional) Generierung auf eine Grammatik zwingen, sodass nur syntaktisch g\'fcltige Aufrufe entstehen.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Statische Vorpr\'fcfung\b0  \'96 einfache Lint-Checks vor der Ausf\'fchrung (bekannte Methoden, Anzahl Argumente).\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Iterationslimit\b0  \'96 der Repair-Loop bricht nach N Versuchen ab und meldet zur menschlichen Pr\'fcfung.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 12. Technologie-Stack\b0\cf1\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Runner/Pipeline\b0  \'96 TypeScript/Node (nutzt den vorhandenen agent-run.ts CLI-Runner).\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b LLM (Phase 1)\b0  \'96 bestehendes Cloud- oder lokales Modell \'fcber den LLM-Adapter.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b LLM (Phase 2)\b0  \'96 kleines Open-Source-Modell (z.\'a0B. Qwen2.5-Coder 7B, Llama 3.1 8B) mit LoRA/QLoRA.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Datenspeicher\b0  \'96 einfache JSONL-Datei f\'fcr validierte (Story, Skript)-Paare.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 13. Implementierungsplan (Meilensteine)\b0\cf1\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b M1 \'96 Grundger\'fcst:\b0  LLM-Adapter + Kontext-Assembler + Anbindung an den CLI-Runner.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b M2 \'96 Few-Shot-Set:\b0  8\'96 10 handkuratierte (Story \u8594? Skript)-Beispiele erstellen und testen.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b M3 \'96 Repair-Loop:\b0  Fehler-R\'fcckf\'fchrung mit Iterationslimit implementieren.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b M4 \'96 Datensammlung:\b0  validierte Paare in JSONL persistieren.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b M5 \'96 Evaluierung:\b0  Testset aus Stories, Erfolgsquote messen.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b M6 \'96 (optional) Fine-Tuning:\b0  kleines Modell auf gesammelten Daten trainieren.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 14. Risiken und Gegenma\'dfnahmen\b0\cf1\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Halluzinierte API-Aufrufe\b0  \u8594? statische Vorpr\'fcfung + Repair-Loop + optional Grammar-Constrained Decoding.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Mehrdeutige User Stories\b0  \u8594? R\'fcckfrage-Mechanismus oder Annahmen explizit im Skript-Kommentar dokumentieren.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Skript l\'e4uft, aber Spiel ist falsch\b0  \u8594? sp\'e4ter Verhaltens-Tests (nicht nur "l\'e4uft durch") erg\'e4nzen.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Zu wenig Trainingsdaten\b0  \u8594? Daten-Schwungrad + gezielte Story-Vorlagen zur Abdeckung.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 15. Erfolgskriterien (KPIs)\b0\cf1\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Erst-Erfolgsquote\b0  \'96 Anteil Stories, deren Skript ohne Repair l\'e4uft.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Erfolgsquote nach Repair\b0  \'96 Anteil nach maximal N Iterationen.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Durchschnittliche Iterationszahl\b0  \'96 Effizienz des Repair-Loops.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Gr\'f6\'dfe des validierten Datensatzes\b0  \'96 Fortschritt Richtung Fine-Tuning.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 16. Ausblick\b0\cf1\par
+\pard\sa120\sl276\slmult1\f0\fs22\cf1 Sobald der validierte Datensatz gross genug ist, wird ein kleines Modell fein-getunt und hinter denselben LLM-Adapter gesteckt \'96 der Rest der Pipeline bleibt unver\'e4ndert. Mittelfristig ist ein hybrider Ansatz sinnvoll: Intent-Klassifikation \u8594? bekannte Muster \'fcber AgentShortcuts (schnell, deterministisch); f\'e4llt eine Story durch \u8594? Modell erzeugt DSL; immer danach Validierung durch den AgentController.\par
+
+\pard\sb240\sa120\f0\fs32\b\cf2 17. Glossar\b0\cf1\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b AgentController\b0  \'96 atomare API zur validierten Projekt-Manipulation.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Builder-Skript\b0  \'96 Default-Funktion build(agent), die ein Projekt aufbaut.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b DSL\b0  \'96 dom\'e4nenspezifische Sprache; hier die Menge der AgentController-Aufrufe.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Repair-Loop\b0  \'96 iterative Selbstkorrektur anhand von Fehlermeldungen.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b LoRA/QLoRA\b0  \'96 ressourcenschonende Fine-Tuning-Verfahren f\'fcr kleine Modelle.\par
+\pard\fi-360\li720\sa60\f0\fs22\cf1 \'b7\tab \b Daten-Schwungrad\b0  \'96 selbstverst\'e4rkender Kreislauf aus Generierung, Validierung und Sammlung.\par
+\pard\sa240\f0\fs22\cf1\par
+\pard\qc\sa120\f0\fs18\cf3 Ende des Dokuments \'96 MVP-Prototyp: User Story \u8594? AgentController-\'dcbersetzer, Version 0.1\par
+}
