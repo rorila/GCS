@@ -69,7 +69,39 @@ export class AgentScriptIO {
             name: `Export_${options.scope}_${options.targetId || Date.now()}`,
             description: `Exportiert aus ${options.scope}${options.targetId ? ` '${options.targetId}'` : ''}`,
             operations: ops,
+            assetPaths: this.collectAssetPaths(ops),
         };
+    }
+
+    private collectAssetPaths(operations: AgentScriptOperation[]): string[] {
+        const paths = new Set<string>();
+        const assetKeys = ['backgroundImage', 'videoSource', 'audioSource', 'src', 'image', 'sound', 'texture', 'icon'];
+
+        const scan = (value: any) => {
+            if (typeof value === 'string') {
+                if (value.match(/\.(png|jpg|jpeg|gif|webp|mp3|wav|ogg|mp4|webm|svg|json)$/i)) {
+                    paths.add(value);
+                }
+            } else if (Array.isArray(value)) {
+                value.forEach(scan);
+            } else if (value && typeof value === 'object') {
+                for (const key of Object.keys(value)) {
+                    if (assetKeys.includes(key) && typeof value[key] === 'string') {
+                        paths.add(value[key]);
+                    } else {
+                        scan(value[key]);
+                    }
+                }
+            }
+        };
+
+        for (const op of operations) {
+            for (const param of op.params) {
+                scan(param);
+            }
+        }
+
+        return Array.from(paths);
     }
 
     private exportTask(taskName: string | undefined, stageId: string | undefined, ops: AgentScriptOperation[]): void {
@@ -180,14 +212,24 @@ export class AgentScriptIO {
             return result;
         }
 
-        // 2. Phase: Analyse
+        // 2. Asset-Prüfung
+        if (script.assetPaths && script.assetPaths.length > 0) {
+            for (const asset of script.assetPaths) {
+                if (!this.assetExists(asset, options.projectRoot)) {
+                    result.warnings.push(`Asset '${asset}' nicht gefunden. Es wird trotzdem importiert.`);
+                    result.conflicts.push({ type: 'asset', name: asset, action: 'skip', message: `Asset '${asset}' nicht gefunden.` });
+                }
+            }
+        }
+
+        // 3. Phase: Analyse
         const analysisOptions = { ...options, dryRun: true };
         const analysisConflicts = AgentScriptValidator.validate(script, this.controller, analysisOptions);
         for (const err of analysisConflicts.errors) {
             result.conflicts.push({ type: 'reference', name: '', action: 'error', message: err });
         }
 
-        // 3. Platzhalter auflösen
+        // 4. Platzhalter auflösen
         let operations = this.resolvePlaceholders(script.operations, options.placeholderValues || {}, options.targetStageId);
 
         // 4. Konflikte transformieren (rename/skip)
@@ -388,6 +430,21 @@ export class AgentScriptIO {
             } catch (e: any) {
                 this.logger.warn(`FlowChart für '${taskName}' konnte nicht neu generiert werden: ${e.message}`);
             }
+        }
+    }
+
+    private assetExists(assetPath: string, projectRoot?: string): boolean {
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            if (fs.existsSync(assetPath)) return true;
+            if (projectRoot) {
+                const resolved = path.join(projectRoot, assetPath);
+                if (fs.existsSync(resolved)) return true;
+            }
+            return false;
+        } catch {
+            return false;
         }
     }
 }

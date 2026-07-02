@@ -44,6 +44,7 @@ export interface ImportOptions {
     dryRun?: boolean;             // default: false
     placeholderValues?: Record<string, any>;
     autoApply?: boolean;          // default: false, bei UI true nach Bestätigung
+    projectRoot?: string;         // Für Asset-Existenzprüfung
 }
 
 export interface ImportConflict {
