@@ -203,7 +203,13 @@ export class AgentScriptDialog {
                 placeholderValues: collectPlaceholderValues(),
                 dryRun: true
             });
-            preview.innerText = `Geplante Operationen: ${result.plannedOperations}\nFehler: ${result.errors.join('\n') || '-'}\nWarnungen: ${result.warnings.join('\n') || '-'}`;
+            let text = `Geplante Operationen: ${result.plannedOperations}\n`;
+            text += `Fehler: ${result.errors.join('\n') || '-'}\n`;
+            text += `Warnungen: ${result.warnings.join('\n') || '-'}\n`;
+            if (result.conflicts.length > 0) {
+                text += 'Konflikte:\n' + result.conflicts.map(c => `- [${c.type}] ${c.name}: ${c.action} - ${c.message}`).join('\n');
+            }
+            preview.innerText = text;
         };
 
         fileInput.onchange = () => {
