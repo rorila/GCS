@@ -85,12 +85,40 @@ export interface GameObject {
 // ─────────────────────────────────────────────
 // Action: Atomic operation on a component
 // ─────────────────────────────────────────────
-export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'play_audio' | 'stop_audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method' | 'set_variable' | 'broadcast' | 'data_action' | 'http' | 'spawn_object' | 'destroy_object'
+export type ActionType =
+    // Property / Daten setzen
+    | 'property' | 'action' | 'set_child_property'
+    | 'increment' | 'negate'
+    // Variablen
+    | 'variable' | 'set_variable'
+    // Berechnung & Methoden
+    | 'calculate' | 'call_method'
+    // Navigation & Ablauf
+    | 'navigate' | 'navigate_stage' | 'restart_game'
+    // Audio
+    | 'play_audio' | 'stop_audio'
+    // Objekte
+    | 'spawn_object' | 'destroy_object' | 'move_to'
+    // Animation
+    | 'animate' | 'sprite_animate'
+    // Dialog & UI
+    | 'toggle_dialog' | 'show_toast'
+    // Events
+    | 'bind_event' | 'unbind_event'
     // Collection-Actions (Feature B):
     | 'list_push' | 'list_pop' | 'list_get' | 'list_set'
     | 'list_remove' | 'list_clear' | 'list_shuffle'
     | 'list_contains' | 'list_length'
-    | 'map_get' | 'map_set' | 'map_delete' | 'map_has' | 'map_keys';
+    | 'map_get' | 'map_set' | 'map_delete' | 'map_has' | 'map_keys'
+    // HTTP / API
+    | 'http' | 'respond_http' | 'execute_login_request'
+    | 'data_action' | 'handle_api_request'
+    // Daten & Themes
+    | 'load_theme_map' | 'store_token'
+    // Multiplayer
+    | 'create_room' | 'join_room'
+    // Service
+    | 'service';
 
 // For type: 'calculate' - expression building
 export type CalcOperator = '+' | '-' | '*' | '/' | '%';
@@ -113,6 +141,7 @@ export interface BaseAction {
     description?: string;
     sync?: boolean;               // Synchronisation über Netzwerk
     scope?: VariableScope;         // Visibility: global (Project) or local (Stage)
+    [key: string]: any;           // Action-spezifische Parameter (z.B. `changes`, `formula`, `target`)
 }
 
 /**
@@ -183,15 +212,6 @@ export interface NavigateAction extends BaseAction {
     stageId: string;
 }
 
-/**
- * BroadcastAction - Sendet ein globales Event
- */
-export interface BroadcastAction extends BaseAction {
-    type: 'broadcast';
-    event: string;
-    params?: Record<string, any>;
-}
-
 export interface HttpAction extends BaseAction {
     type: 'data_action' | 'http'; // Compat
     url: string;
@@ -207,7 +227,7 @@ export interface HttpAction extends BaseAction {
 }
 
 // Union Type für alle Aktionen
-export type GameAction = PropertyAction | VariableAction | ServiceAction | CalculateAction | MethodAction | NavigateAction | BroadcastAction | HttpAction | AudioAction;
+export type GameAction = BaseAction;
 
 // ─────────────────────────────────────────────
 // Task: Sequence of actions and task calls
@@ -329,6 +349,7 @@ export interface ProjectVariable {
 
     // Reactive Properties
     threshold?: number;
+    comparison?: string;         // z.B. '>=', '<=', '>', '<', '==', '!='
     triggerValue?: any;
     duration?: number;
     currentTime?: number;
@@ -341,6 +362,9 @@ export interface ProjectVariable {
     isInteger?: boolean;
     searchValue?: string;
     searchProperty?: string;
+
+    // Event-Task-Mapping (wird vom RuntimeVariableManager verwendet)
+    Tasks?: Record<string, string>;
 
     // Event Handlers (Task Names)
     onValueChanged?: string;

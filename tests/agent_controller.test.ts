@@ -538,5 +538,161 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Integration: Spiel mit Shortcuts', false, `Fehler: ${e.message}`);
     }
 
+    // ══════════════════════════════════════════════
+    // Phase 3: Neue Features (Variablen, Timer, Actions)
+    // ══════════════════════════════════════════════
+
+    // --- addVariable — Threshold-Variable mit Tasks ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        coreStore.setProject(project);
+
+        agent.createTask('stage_main', 'OnThreshold');
+        agent.addVariable('scoreThreshold', 'threshold', 0, 'global', {
+            threshold: 100,
+            comparison: '>=',
+            onThresholdReached: 'OnThreshold'
+        });
+
+        const variable = project.variables!.find(v => v.name === 'scoreThreshold');
+        const ok = variable
+            && variable.type === 'threshold'
+            && variable.className === 'TThresholdVariable'
+            && variable.threshold === 100
+            && variable.comparison === '>='
+            && variable.Tasks?.onThresholdReached === 'OnThreshold';
+        addResult('addVariable — Threshold mit Tasks', !!ok, ok ? 'Threshold-Variable korrekt mit Tasks erstellt.' : `Variable: ${JSON.stringify(variable)}`);
+    } catch (e: any) {
+        addResult('addVariable — Threshold mit Tasks', false, `Fehler: ${e.message}`);
+    }
+
+    // --- connectVariableEvent — Gutfall ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        coreStore.setProject(project);
+
+        agent.addVariable('myVar', 'integer', 0);
+        agent.createTask('stage_main', 'OnValueChanged');
+        agent.connectVariableEvent('myVar', 'onValueChanged', 'OnValueChanged');
+
+        const variable = project.variables!.find(v => v.name === 'myVar');
+        const ok = variable?.Tasks?.onValueChanged === 'OnValueChanged';
+        addResult('connectVariableEvent — Gutfall', !!ok, ok ? 'Variable-Event korrekt verbunden.' : `Tasks: ${JSON.stringify(variable?.Tasks)}`);
+    } catch (e: any) {
+        addResult('connectVariableEvent — Gutfall', false, `Fehler: ${e.message}`);
+    }
+
+    // --- connectVariableEvent — Schlechtfall (Task nicht gefunden) ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        coreStore.setProject(project);
+
+        agent.addVariable('myVar2', 'integer', 0);
+        agent.connectVariableEvent('myVar2', 'onValueChanged', 'MissingTask');
+        addResult('connectVariableEvent — Schlechtfall', false, 'Hätte Fehler werfen müssen.');
+    } catch (e: any) {
+        const ok = e.message.includes('not found');
+        addResult('connectVariableEvent — Schlechtfall', ok, ok ? 'Fehler korrekt geworfen.' : `Falscher Fehler: ${e.message}`);
+    }
+
+    // --- createTimer / createIntervalTimer ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        coreStore.setProject(project);
+
+        agent.createTimer('stage_main', 'MyTimer', 10, 10, { interval: 500, enabled: true });
+        agent.createIntervalTimer('stage_main', 'MyIntervalTimer', 20, 20, { duration: 1000, count: 5 });
+
+        const stage = project.stages![1];
+        const timer = stage.objects!.find((o: any) => o.name === 'MyTimer');
+        const intervalTimer = stage.objects!.find((o: any) => o.name === 'MyIntervalTimer');
+        const ok = timer?.className === 'TTimer' && timer.interval === 500 && timer.enabled === true
+            && intervalTimer?.className === 'TIntervalTimer' && intervalTimer.duration === 1000 && intervalTimer.count === 5;
+        addResult('createTimer / createIntervalTimer', !!ok, ok ? 'Timer korrekt erstellt.' : `timer=${JSON.stringify(timer)}, intervalTimer=${JSON.stringify(intervalTimer)}`);
+    } catch (e: any) {
+        addResult('createTimer / createIntervalTimer', false, `Fehler: ${e.message}`);
+    }
+
+    // --- createThresholdVariable ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        coreStore.setProject(project);
+
+        agent.createTask('stage_main', 'OnThresholdStage');
+        agent.createThresholdVariable('stage_main', 'StageThreshold', 5, 5, {
+            value: 0,
+            threshold: 50,
+            comparison: '>=',
+            onThresholdReached: 'OnThresholdStage'
+        });
+
+        const stage = project.stages![1];
+        const threshold = stage.objects!.find((o: any) => o.name === 'StageThreshold');
+        const ok = threshold?.className === 'TThresholdVariable'
+            && threshold.threshold === 50
+            && threshold.events?.onThresholdReached === 'OnThresholdStage';
+        addResult('createThresholdVariable', !!ok, ok ? 'Stage-Threshold-Variable korrekt erstellt.' : `threshold: ${JSON.stringify(threshold)}`);
+    } catch (e: any) {
+        addResult('createThresholdVariable', false, `Fehler: ${e.message}`);
+    }
+
+    // --- addAction — Neue Action-Typen ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        coreStore.setProject(project);
+
+        agent.createTask('stage_main', 'ToastTask');
+        agent.addAction('ToastTask', 'show_toast', 'ShowToast', { message: 'Hello!', toastType: 'info' });
+
+        agent.createTask('stage_main', 'BindEventTask');
+        agent.addAction('BindEventTask', 'bind_event', 'BindEvent', { target: 'SomeObj', event: 'onClick', task: 'ToastTask' });
+
+        agent.createTask('stage_main', 'NavigateTask');
+        agent.addAction('NavigateTask', 'navigate_stage', 'NavigateStage', { stageId: 'stage_main', reset: false });
+
+        const blueprint = project.stages![0];
+        const toastAction = blueprint.actions?.find((a: any) => a.name === 'ShowToast');
+        const bindAction = blueprint.actions?.find((a: any) => a.name === 'BindEvent');
+        const navAction = blueprint.actions?.find((a: any) => a.name === 'NavigateStage');
+
+        const ok = toastAction?.type === 'show_toast'
+            && bindAction?.type === 'bind_event'
+            && navAction?.type === 'navigate_stage';
+        addResult('addAction — Neue Action-Typen', !!ok, ok ? 'Neue Action-Typen korrekt erstellt.' : `Actions: ${JSON.stringify({toastAction, bindAction, navAction})}`);
+    } catch (e: any) {
+        addResult('addAction — Neue Action-Typen', false, `Fehler: ${e.message}`);
+    }
+
+    // --- validate — keine fehlenden Referenzen ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        coreStore.setProject(project);
+
+        agent.addObject('stage_main', { name: 'Obj1', className: 'TSprite', x: 10, y: 10, width: 2, height: 2 });
+        agent.createTask('stage_main', 'MainTask');
+        agent.addAction('MainTask', 'property', 'Action1', { target: 'Obj1', changes: { x: 1 } });
+        agent.connectEvent('stage_main', 'Obj1', 'onClick', 'MainTask');
+
+        const issues = agent.validate();
+        const noErrors = issues.filter(i => i.level === 'error').length === 0;
+        addResult('validate — keine fehlenden Referenzen', noErrors, noErrors ? 'Validierung ohne Fehler.' : `Fehler: ${issues.map(i => i.message).join(', ')}`);
+    } catch (e: any) {
+        addResult('validate — keine fehlenden Referenzen', false, `Fehler: ${e.message}`);
+    }
+
     return results;
 }

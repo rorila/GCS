@@ -325,7 +325,7 @@ agent.addVariable(name, type, initialValue, scope);
 
 **Frage:** Was kann passieren? (Atomare Operationen)
 
-24 Action-Typen stehen zur Verfügung (Details in [§4](#4-actiontype-katalog)). Die wichtigsten:
+47 Action-Typen stehen zur Verfügung (Details in [§4](#4-actiontype-katalog)). Die wichtigsten:
 
 | Typ | Zweck | Minimal-Params |
 |:---|:---|:---|
@@ -1108,6 +1108,33 @@ agent.connectEvent('stage_main', 'stage', 'onRuntimeStart', 'InitLevel');
 
 ---
 
+#### `connectVariableEvent(variableName, eventName, taskName)`
+
+Verbindet ein Event einer **Variable** (Projekt- oder Stage-Scope) mit einem Task.
+
+**Signatur:**
+```typescript
+connectVariableEvent(variableName: string, eventName: string, taskName: string): void
+```
+
+**Verhalten:**
+- Prüft, dass Task existiert (Exception sonst)
+- Sucht Variable in `project.variables[]` oder `stage.variables[]`
+- Schreibt `variable.Tasks[eventName] = taskName` — das erwartet der `RuntimeVariableManager`
+
+**Beispiele:**
+```typescript
+agent.addVariable('score', 'integer', 0);
+agent.createTask('stage_main', 'OnScoreChanged');
+agent.connectVariableEvent('score', 'onValueChanged', 'OnScoreChanged');
+
+agent.addVariable('score', 'threshold', 0, 'global', { threshold: 100, comparison: '>=' });
+agent.createTask('stage_main', 'OnHighScore');
+agent.connectVariableEvent('score', 'onThresholdReached', 'OnHighScore');
+```
+
+---
+
 ### 3.9 Komponenten-Shortcuts
 
 Diese Methoden wrappen `addObject()` mit sinnvollen Defaults und sind der **bevorzugte** Weg für häufige Komponenten.
@@ -1176,6 +1203,133 @@ agent.createDialog('stage_main', 'GameOverDialog', 10, 10, 20, 10, {
   closable: true,
   draggable: false,
   visible: false      // Wird per property-Action eingeblendet
+});
+```
+
+---
+
+#### `createTimer(stageId, name, x, y, opts?)`
+
+Erstellt einen `TTimer` mit Wiederholungsintervall.
+
+```typescript
+agent.createTimer('stage_blueprint', 'CountdownTimer', 0, 0, {
+  interval: 1000,
+  maxInterval: 60,
+  enabled: false
+});
+```
+
+---
+
+#### `createIntervalTimer(stageId, name, x, y, opts?)`
+
+Erstellt einen `TIntervalTimer`, der `onIntervall` und `onTimeout` feuert.
+
+```typescript
+agent.createIntervalTimer('stage_main', 'TickTimer', 0, 0, {
+  duration: 1000,
+  count: 10,
+  enabled: false
+});
+```
+
+---
+
+#### `createThresholdVariable(stageId, name, x, y, opts?)`
+
+Erstellt eine `TThresholdVariable` als Stage-Objekt. Events werden in `obj.events` gespeichert.
+
+```typescript
+agent.createThresholdVariable('stage_main', 'ScoreThreshold', 0, 0, {
+  value: 0,
+  threshold: 100,
+  comparison: '>=',
+  onThresholdReached: 'OnHighScore'
+});
+```
+
+---
+
+#### `createInputController(stageId, name, x, y, opts?)`
+
+Erstellt einen `TInputController` mit Tasten-Bindings.
+
+```typescript
+agent.createInputController('stage_blueprint', 'PlayerController', 0, 0, {
+  keyBindings: {
+    ArrowUp: { target: 'Paddle', action: 'moveUp', speed: 2 },
+    ArrowDown: { target: 'Paddle', action: 'moveDown', speed: 2 }
+  }
+});
+```
+
+---
+
+#### `createButton(stageId, name, x, y, caption, opts?)`
+
+```typescript
+agent.createButton('stage_main', 'StartBtn', 28, 18, 'Start', {
+  width: 12, height: 3,
+  fontSize: 18,
+  backgroundColor: '#4CAF50',
+  borderRadius: '8px'
+});
+```
+
+---
+
+#### `createVideo(stageId, name, x, y, width, height, videoSource, opts?)`
+
+Erstellt eine `TVideo`-Komponente.
+
+```typescript
+agent.createVideo('stage_main', 'IntroVideo', 10, 10, 20, 12, 'assets/intro.mp4', {
+  autoplay: true,
+  loop: false,
+  muted: true
+});
+```
+
+---
+
+#### `createLink(stageId, name, x, y, url, opts?)`
+
+Erstellt eine `TLink`-Komponente.
+
+```typescript
+agent.createLink('stage_main', 'HomeLink', 2, 2, 'https://example.com', {
+  text: 'Zur Website',
+  color: '#4fc3f7',
+  underline: true
+});
+```
+
+---
+
+#### `createProgressBar(stageId, name, x, y, width, height, opts?)`
+
+Erstellt eine `TProgressBar`-Komponente.
+
+```typescript
+agent.createProgressBar('stage_main', 'HPBar', 2, 2, 20, 2, {
+  value: 75,
+  maxValue: 100,
+  barColor: '#4caf50',
+  showText: true
+});
+```
+
+---
+
+#### `createStickyNote(stageId, name, x, y, text, opts?)`
+
+Erstellt eine `TStickyNote` (nur im Editor sichtbar).
+
+```typescript
+agent.createStickyNote('stage_blueprint', 'DesignNote', 5, 5, 'Hier später Boss-Logik', {
+  title: 'TODO',
+  noteColor: 'yellow'
 });
 ```
 
@@ -1350,56 +1504,82 @@ const results = agent.executeBatch([
 ## §4 ActionType-Katalog
 
 > [!IMPORTANT]
-> **Quelle der Wahrheit:** `src/model/types.ts:88` (`export type ActionType = ...`) definiert exakt **24 legale Strings** für das Feld `action.type`. Jeder andere Wert wird vom Validator als Fehler markiert und vom Runtime-`ActionRegistry` als "unbekannt" übersprungen.
+> **Quelle der Wahrheit:** `src/model/types.ts:88` (`export type ActionType = ...`) definiert exakt **47 legale Strings** für das Feld `action.type`. Jeder andere Wert wird vom Validator als Fehler markiert und vom Runtime-`ActionRegistry` als "unbekannt" übersprungen.
 >
-> **Registrierung:** Die Runtime-Handler leben in `src/runtime/actions/handlers/*.ts` und werden via `actionRegistry.register('<type>', handler, metadata)` eingehängt. Einige `ActionType`-Strings sind im Union deklariert, aber **nicht** unter diesem Namen registriert — sie sind *Reserved / Engine-intern* und werden unten explizit markiert.
+> **Registrierung:** Die Runtime-Handler leben in `src/runtime/actions/handlers/*.ts` und werden via `actionRegistry.register('<type>', handler, metadata)` eingehängt. Alle hier aufgeführten Typen sind tatsächlich registriert; es gibt keine Engine-internen Reserved-Typen mehr.
 
-### §4.0 Die 24 ActionTypes auf einen Blick
+### §4.0 Die 47 ActionTypes auf einen Blick
 
 | # | ActionType | Kategorie | Pflicht-Parameter | Handler-Datei | Status |
 |:--:|:---|:---|:---|:---|:---|
 | 1 | `property` | A. Property & Math | `target`, `changes` | `PropertyActions.ts` | ✅ Aktiv |
-| 2 | `variable` | A. Property & Math | `variableName` (+ `source`\|`value`) | `VariableActions.ts` | ✅ Aktiv |
-| 3 | `set_variable` | A. Property & Math | `variableName` (+ `source`\|`value`) | `VariableActions.ts` | ⚠️ Legacy-Alias für `variable` |
-| 4 | `increment` | A. Property & Math | `target`, `changes` | `PropertyActions.ts` (Teil von `property`) | ⚠️ Alias / Prop-Arithmetik |
+| 2 | `action` | A. Property & Math | `target`, `changes` | `PropertyActions.ts` | ✅ Alias für `property` |
+| 3 | `set_child_property` | A. Property & Math | `target`, `changes` | `PropertyActions.ts` | ✅ Aktiv |
+| 4 | `increment` | A. Property & Math | `target`, `changes` | `PropertyActions.ts` | ⚠️ Alias / Prop-Arithmetik |
 | 5 | `negate` | A. Property & Math | `target`, `changes` | `CalculateActions.ts` | ✅ Aktiv |
-| 6 | `calculate` | A. Property & Math | `resultVariable`, `calcSteps`\|`formula` | `CalculateActions.ts` | ✅ Aktiv |
-| 7 | `call_method` | B. Method & Service | `target`, `method` | `MiscActions.ts` | ✅ Aktiv |
-| 8 | `service` | B. Method & Service | `service`, `method` | `MiscActions.ts` | ✅ Aktiv |
-| 9 | `navigate` | C. Flow & Navigation | `target` (Projekt-Name) | `NavigationActions.ts` | ⚠️ Hidden / Legacy |
-| 10 | `navigate_stage` | C. Flow & Navigation | `stageId` | `NavigationActions.ts` | ✅ Aktiv |
-| 11 | `broadcast` | C. Flow & Navigation | `event` | *(keine Registry; `triggerMode='broadcast'` auf Task)* | 🔒 Reserved |
-| 12 | `animate` | D. Animation & Audio | `target`, `effect` | `AnimationActions.ts` | ✅ Aktiv |
-| 13 | `audio` | D. Animation & Audio | `target` | *(Legacy-Alias)* | ⚠️ Alias → `play_audio` |
+| 6 | `variable` | A. Property & Math | `variableName` (+ `source`\|`value`) | `VariableActions.ts` | ✅ Aktiv |
+| 7 | `set_variable` | A. Property & Math | `variableName` (+ `source`\|`value`) | `VariableActions.ts` | ⚠️ Legacy-Alias für `variable` |
+| 8 | `calculate` | A. Property & Math | `resultVariable`, `formula`\|`calcSteps` | `CalculateActions.ts` | ✅ Aktiv |
+| 9 | `call_method` | B. Method & Service | `target`, `method` | `MiscActions.ts` | ✅ Aktiv |
+| 10 | `service` | B. Method & Service | `service`, `method` | `MiscActions.ts` | ✅ Aktiv |
+| 11 | `navigate` | C. Flow & Navigation | `target` (Projekt-Name) | `NavigationActions.ts` | ⚠️ Hidden / Legacy |
+| 12 | `navigate_stage` | C. Flow & Navigation | `stageId` | `NavigationActions.ts` | ✅ Aktiv |
+| 13 | `restart_game` | C. Flow & Navigation | — | `NavigationActions.ts` | ✅ Aktiv |
 | 14 | `play_audio` | D. Animation & Audio | `target` | `MiscActions.ts` | ✅ Aktiv |
 | 15 | `stop_audio` | D. Animation & Audio | `target` | `MiscActions.ts` | ✅ Aktiv |
-| 16 | `http` | E. Network / HTTP | `url`, `method` | `HttpActions.ts` | ✅ Aktiv |
-| 17 | `data_action` | E. Network / HTTP | `resource`, `method` | `HttpActions.ts` | ✅ Aktiv (High-Level) |
-| 18 | `smooth_sync` | F. Multiplayer / Sync | — | *(Engine-intern, `FlowTick`)* | 🔒 Reserved |
-| 19 | `send_multiplayer_sync` | F. Multiplayer / Sync | — | *(Engine-intern)* | 🔒 Reserved |
-| 20 | `server_connect` | F. Multiplayer / Sync | — | *(`MultiplayerManager`)* | 🔒 Reserved |
-| 21 | `server_create_room` | F. Multiplayer / Sync | `game` | `MiscActions.ts` (als `create_room`) | 🔒 Name-Mismatch |
-| 22 | `server_join_room` | F. Multiplayer / Sync | `params.code` | `MiscActions.ts` (als `join_room`) | 🔒 Name-Mismatch |
-| 23 | `server_ready` | F. Multiplayer / Sync | — | *(Engine-intern)* | 🔒 Reserved |
-| 24 | `engine_control` | G. Engine Control | — | *(Engine-intern)* | 🔒 Reserved |
+| 16 | `animate` | D. Animation & Audio | `target`, `effect` | `AnimationActions.ts` | ✅ Aktiv |
+| 17 | `move_to` | D. Animation & Audio | `target`, `x`, `y` | `AnimationActions.ts` | ✅ Aktiv |
+| 18 | `sprite_animate` | D. Animation & Audio | `target`, `effect` | `AnimationActions.ts` | ✅ Aktiv |
+| 19 | `toggle_dialog` | E. Dialog & UI | `target` | `DialogActions.ts` | ✅ Aktiv |
+| 20 | `show_toast` | E. Dialog & UI | `message`, `toastType` | `MiscActions.ts` | ✅ Aktiv |
+| 21 | `bind_event` | F. Events | `target`, `event`, `task` | `EventActions.ts` | ✅ Aktiv |
+| 22 | `unbind_event` | F. Events | `target`, `event`, `task` | `EventActions.ts` | ✅ Aktiv |
+| 23 | `spawn_object` | G. Objekte | `target`, `className` | `ObjectPoolActions.ts` | ✅ Aktiv |
+| 24 | `destroy_object` | G. Objekte | `target` | `ObjectPoolActions.ts` | ✅ Aktiv |
+| 25 | `list_push` | H. Collections | `target`, `value` | `CalculateActions.ts` | ✅ Aktiv |
+| 26 | `list_pop` | H. Collections | `target` | `CalculateActions.ts` | ✅ Aktiv |
+| 27 | `list_get` | H. Collections | `target`, `index` | `CalculateActions.ts` | ✅ Aktiv |
+| 28 | `list_set` | H. Collections | `target`, `index`, `value` | `CalculateActions.ts` | ✅ Aktiv |
+| 29 | `list_remove` | H. Collections | `target`, `value` | `CalculateActions.ts` | ✅ Aktiv |
+| 30 | `list_clear` | H. Collections | `target` | `CalculateActions.ts` | ✅ Aktiv |
+| 31 | `list_shuffle` | H. Collections | `target` | `CalculateActions.ts` | ✅ Aktiv |
+| 32 | `list_contains` | H. Collections | `target`, `value` | `CalculateActions.ts` | ✅ Aktiv |
+| 33 | `list_length` | H. Collections | `target` | `CalculateActions.ts` | ✅ Aktiv |
+| 34 | `map_get` | H. Collections | `target`, `key` | `CalculateActions.ts` | ✅ Aktiv |
+| 35 | `map_set` | H. Collections | `target`, `key`, `value` | `CalculateActions.ts` | ✅ Aktiv |
+| 36 | `map_delete` | H. Collections | `target`, `key` | `CalculateActions.ts` | ✅ Aktiv |
+| 37 | `map_has` | H. Collections | `target`, `key` | `CalculateActions.ts` | ✅ Aktiv |
+| 38 | `map_keys` | H. Collections | `target` | `CalculateActions.ts` | ✅ Aktiv |
+| 39 | `http` | I. Network / HTTP | `url`, `method` | `HttpActions.ts` | ✅ Aktiv |
+| 40 | `data_action` | I. Network / HTTP | `resource`, `method` | `HttpActions.ts` | ✅ Aktiv |
+| 41 | `respond_http` | I. Network / HTTP | `response` | `HttpActions.ts` | ✅ Aktiv |
+| 42 | `execute_login_request` | I. Network / HTTP | `provider` | `HttpActions.ts` | ✅ Aktiv |
+| 43 | `handle_api_request` | I. Network / HTTP | `endpoint` | `HttpActions.ts` | ✅ Aktiv |
+| 44 | `load_theme_map` | J. Daten & Themes | `themeId` | `MiscActions.ts` | ✅ Aktiv |
+| 45 | `store_token` | J. Daten & Themes | `token`, `key` | `MiscActions.ts` | ✅ Aktiv |
+| 46 | `create_room` | K. Multiplayer | `game` | `MiscActions.ts` | ✅ Aktiv |
+| 47 | `join_room` | K. Multiplayer | `code` | `MiscActions.ts` | ✅ Aktiv |
 
 **Legende:**
 - ✅ **Aktiv** — Handler unter diesem Namen registriert, volle Unterstützung in `addAction()`
 - ⚠️ **Legacy / Alias** — Funktioniert, aber in Inspector `hidden: true` oder nur aus Abwärtskompatibilität
-- 🔒 **Reserved / Engine-intern** — Im `ActionType`-Union deklariert, aber nicht als normale Action ausführbar; vom Agent **nicht zu erzeugen**
 
-### §4.1 Taxonomie — 7 Kategorien
+### §4.1 Taxonomie — 11 Kategorien
 
 ```
-A. Property & Math       → Werte mutieren, lesen, berechnen            (6 Typen)
+A. Property & Math       → Werte mutieren, lesen, berechnen            (8 Typen)
 B. Method & Service      → Funktionen/Services aufrufen                (2 Typen)
-C. Flow & Navigation     → Stage-Wechsel, globale Events               (3 Typen)
-D. Animation & Audio     → Visuelle Effekte und Ton                    (4 Typen)
-E. Network / HTTP        → REST-Aufrufe, Datenquellen                  (2 Typen)
-F. Multiplayer / Sync    → Room-Management, Netzwerk-Sync              (6 Typen, meist Reserved)
-G. Engine Control        → Runtime-interne Operationen                 (1 Typ,   Reserved)
+C. Flow & Navigation     → Stage-Wechsel, Spiel-Neustart               (3 Typen)
+D. Animation & Audio     → Visuelle Effekte, Bewegung und Ton          (5 Typen)
+E. Dialog & UI           → Dialoge, Toasts                             (2 Typen)
+F. Events                → Event-Binding / Unbinding                    (2 Typen)
+G. Objekte               → Object-Pool (Spawn/Destroy)                  (2 Typen)
+H. Collections           → Listen & Maps                               (16 Typen)
+I. Network / HTTP        → REST-Aufrufe, API-Requests                  (5 Typen)
+J. Daten & Themes        → Token, Themes                                (2 Typen)
+K. Multiplayer           → Room-Management                             (2 Typen)
 ────────────────────────────────────────────────────────────────────────────────
-Σ                                                                      24 Typen
+Σ                                                                      47 Typen
 ```
 
 ### §4.2 Konventionen für alle Steckbriefe
@@ -4319,6 +4499,51 @@ agent.executeBatch([
 
 ---
 
+### §6.17 Rezept: Threshold-Variable + Timer
+
+**Use-Case:** Ein Timer erhöht alle Sekunden eine Threshold-Variable. Wenn der Wert 100 erreicht, wird ein Toast angezeigt.
+
+**Erwartetes Ergebnis:**
+- Eine globale Threshold-Variable `score` startet bei 0.
+- Ein `TIntervalTimer` `ScoreTimer` tickt jede Sekunde.
+- Bei jedem Tick wird `score` um 1 erhöht.
+- Sobald `score >= 100` ist, feuert `onThresholdReached` und zeigt einen Toast.
+
+**Script:**
+```typescript
+const result = agent.executeBatch([
+  // 1. Threshold-Variable als Score
+  { method: 'addVariable', params: ['score', 'threshold', 0, 'global', { threshold: 100, comparison: '>=' }] },
+
+  // 2. Timer
+  { method: 'createIntervalTimer', params: ['stage_blueprint', 'ScoreTimer', 0, 0, { duration: 1000, count: 0, enabled: false }] },
+
+  // 3. Task: Score erhöhen
+  { method: 'createTask', params: ['stage_blueprint', 'IncrementScore', 'Score +1'] },
+  { method: 'addAction', params: ['IncrementScore', 'calculate', 'AddScore', { formula: 'score + 1', resultVariable: 'score' }] },
+
+  // 4. Task: Highscore erreicht
+  { method: 'createTask', params: ['stage_main', 'OnHighScore', 'Highscore Toast'] },
+  { method: 'addAction', params: ['OnHighScore', 'show_toast', 'ShowHighScore', { message: 'Highscore erreicht!', toastType: 'success' }] },
+
+  // 5. Event-Bindings
+  { method: 'connectEvent', params: ['stage_blueprint', 'ScoreTimer', 'onIntervall', 'IncrementScore'] },
+  { method: 'connectVariableEvent', params: ['score', 'onThresholdReached', 'OnHighScore'] }
+]);
+```
+
+**Wichtig:**
+- `score` ist vom Typ `threshold` und enthält `threshold` + `comparison`.
+- `connectVariableEvent` speichert das Mapping in `variable.Tasks` — das erwartet der `RuntimeVariableManager`.
+- Der Timer ist initial `enabled: false`; er wird typischerweise durch einen Button-Klick gestartet.
+
+**Variationen:**
+- **Auto-Start:** `enabled: true` beim Timer.
+- **Reset:** Zusätzlicher Task, der `score` auf 0 setzt und den Timer stoppt.
+- **Multiplayer:** `score` als `stage`-Scope-Variable pro Spieler.
+
+---
+
 ## §7 Anti-Pattern-Katalog
 
 > [!IMPORTANT]
@@ -5168,7 +5393,7 @@ Alle unter `docs/schemas/` (bereits referenziert in §5):
 | Begriff | Bedeutung |
 |:---|:---|
 | **Action** | Eine elementare Operation (`property`, `calculate`, ...). Registriert per `addAction()`. |
-| **ActionType** | Der Typ-String einer Action (z.B. `'property'`, `'calculate'`). 24 valide Types. |
+| **ActionType** | Der Typ-String einer Action (z.B. `'property'`, `'calculate'`). 47 valide Types. |
 | **AgentController** | Die Fassade-Klasse mit der Haupt-API für Agenten. |
 | **Binding** | Automatisches Variable-Interpolate via `${name}` in Properties. |
 | **Blueprint** | Die spezielle Stage `stage_blueprint` für globale Services. |

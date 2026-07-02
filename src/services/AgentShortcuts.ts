@@ -137,6 +137,50 @@ export class AgentShortcuts {
         AgentShortcuts.logger.info(`Button '${name}' created: "${caption}"`);
     }
 
+    // ─────────────────────────────────────────────
+    // Komponenten-Shortcuts (delegieren an AgentController)
+    // ─────────────────────────────────────────────
+
+    public createTimer(stageId: string, name: string, x: number = 0, y: number = 0, opts: Record<string, any> = {}): void {
+        this.agent.createTimer(stageId, name, x, y, opts);
+        AgentShortcuts.logger.info(`Timer '${name}' created via shortcut.`);
+    }
+
+    public createIntervalTimer(stageId: string, name: string, x: number = 0, y: number = 0, opts: Record<string, any> = {}): void {
+        this.agent.createIntervalTimer(stageId, name, x, y, opts);
+        AgentShortcuts.logger.info(`IntervalTimer '${name}' created via shortcut.`);
+    }
+
+    public createThresholdVariable(stageId: string, name: string, x: number = 0, y: number = 0, opts: Record<string, any> = {}): void {
+        this.agent.createThresholdVariable(stageId, name, x, y, opts);
+        AgentShortcuts.logger.info(`ThresholdVariable '${name}' created via shortcut.`);
+    }
+
+    public createInputController(stageId: string, name: string, x: number = 0, y: number = 0, opts: Record<string, any> = {}): void {
+        this.agent.createInputController(stageId, name, x, y, opts);
+        AgentShortcuts.logger.info(`InputController '${name}' created via shortcut.`);
+    }
+
+    public createVideo(stageId: string, name: string, x: number, y: number, width: number, height: number, videoSource: string, opts: Record<string, any> = {}): void {
+        this.agent.createVideo(stageId, name, x, y, width, height, videoSource, opts);
+        AgentShortcuts.logger.info(`Video '${name}' created via shortcut.`);
+    }
+
+    public createLink(stageId: string, name: string, x: number, y: number, url: string, opts: Record<string, any> = {}): void {
+        this.agent.createLink(stageId, name, x, y, url, opts);
+        AgentShortcuts.logger.info(`Link '${name}' created via shortcut.`);
+    }
+
+    public createProgressBar(stageId: string, name: string, x: number, y: number, width: number, height: number, opts: Record<string, any> = {}): void {
+        this.agent.createProgressBar(stageId, name, x, y, width, height, opts);
+        AgentShortcuts.logger.info(`ProgressBar '${name}' created via shortcut.`);
+    }
+
+    public createStickyNote(stageId: string, name: string, x: number, y: number, text: string = 'Neue Notiz...', opts: Record<string, any> = {}): void {
+        this.agent.createStickyNote(stageId, name, x, y, text, opts);
+        AgentShortcuts.logger.info(`StickyNote '${name}' created via shortcut.`);
+    }
+
     /**
      * Setzt Collision-Eigenschaften auf einem Sprite.
      */
@@ -252,7 +296,7 @@ export class AgentShortcuts {
         incrementAmount: number = 1
     ): void {
         // 1. Variable anlegen
-        this.agent.addVariable(variableName, 'number', 0, 'global');
+        this.agent.addVariable(variableName, 'integer', 0, 'global');
 
         // 2. Label an Variable binden
         this.agent.bindVariable(stageId, labelName, 'caption', variableName);
@@ -286,11 +330,9 @@ export class AgentShortcuts {
     ): void {
         const controllerName = `${paddleName}Controller`;
 
-        this.agent.addObject('stage_blueprint', {
-            name: controllerName,
-            className: 'TInputController',
-            x: 0, y: 0, width: 1, height: 1,
-            visible: false,
+        this.agent.createInputController('stage_blueprint', controllerName, 0, 0, {
+            width: 1,
+            height: 1,
             keyBindings: {
                 [keys.up]: { target: paddleName, action: 'moveUp', speed },
                 [keys.down]: { target: paddleName, action: 'moveDown', speed }
@@ -298,6 +340,93 @@ export class AgentShortcuts {
         });
 
         AgentShortcuts.logger.info(`Paddle controls created for '${paddleName}' (${keys.up}/${keys.down}, speed: ${speed})`);
+    }
+
+    /**
+     * Erzeugt einen Countdown:
+     * - Integer-Variable `name` mit Startwert `seconds`
+     * - TIntervalTimer `${name}Timer`, der jede Sekunde tickt
+     * - Task `${name}Timer` dekrementiert die Variable
+     * - Optional: `onTimeout` mit `onFinishedTask` verbinden
+     */
+    public createCountdownTimer(
+        name: string,
+        stageId: string = 'stage_main',
+        seconds: number = 10,
+        onFinishedTask?: string
+    ): void {
+        const timerName = `${name}Timer`;
+        const decrementTask = `Decrement${name}`;
+
+        this.agent.addVariable(name, 'integer', seconds, 'stage');
+        this.agent.createIntervalTimer(stageId, timerName, 0, 0, {
+            duration: 1000,
+            count: seconds,
+            enabled: false
+        });
+
+        this.agent.createTask(stageId, decrementTask, `Countdown ${name} dekrementieren`);
+        this.agent.addAction(decrementTask, 'calculate', decrementTask, {
+            formula: `${name} - 1`,
+            resultVariable: name
+        });
+
+        this.agent.connectEvent(stageId, timerName, 'onIntervall', decrementTask);
+
+        if (onFinishedTask) {
+            this.agent.connectEvent(stageId, timerName, 'onTimeout', onFinishedTask);
+        }
+
+        AgentShortcuts.logger.info(`Countdown '${name}' created (${seconds}s)${onFinishedTask ? ` -> ${onFinishedTask}` : ''}`);
+    }
+
+    /**
+     * Erzeugt eine Threshold-Variable, die bei Erreichen von `threshold` einen Task auslöst.
+     */
+    public createThresholdTrigger(
+        name: string,
+        threshold: number = 10,
+        taskName: string,
+        stageId: string = 'stage_main'
+    ): void {
+        this.agent.createThresholdVariable(stageId, name, 0, 0, {
+            value: 0,
+            threshold,
+            comparison: '>='
+        });
+        this.agent.connectEvent(stageId, name, 'onThresholdReached', taskName);
+
+        AgentShortcuts.logger.info(`ThresholdTrigger '${name}' created: >= ${threshold} -> ${taskName}`);
+    }
+
+    /**
+     * Erzeugt ein Score-System, das sich automatisch alle `intervalMs` erhöht.
+     */
+    public createTimerBasedScoreSystem(
+        scoreVarName: string = 'score',
+        stageId: string = 'stage_main',
+        incrementAmount: number = 1,
+        intervalMs: number = 1000
+    ): void {
+        const timerName = `${scoreVarName}Timer`;
+        const incrementTask = `Increment${scoreVarName}`;
+
+        this.agent.addVariable(scoreVarName, 'integer', 0, 'global');
+        this.agent.createIntervalTimer(stageId, timerName, 0, 0, {
+            duration: intervalMs,
+            count: 0,
+            enabled: false
+        });
+
+        this.agent.createTask(stageId, incrementTask, `Score ${scoreVarName} inkrementieren`);
+        this.agent.addAction(incrementTask, 'calculate', incrementTask, {
+            formula: `${scoreVarName} + ${incrementAmount}`,
+            resultVariable: scoreVarName
+        });
+
+        this.agent.connectEvent(stageId, timerName, 'onIntervall', incrementTask);
+
+        AgentShortcuts.logger.info(`Timer-based score system '${scoreVarName}' created (+${incrementAmount} every ${intervalMs}ms)`);
     }
 }
 

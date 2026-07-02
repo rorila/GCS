@@ -1,7 +1,7 @@
 import { coreStore } from './registry/CoreStore';
 import { projectActionRegistry } from './registry/ActionRegistry';
 import { projectTaskRegistry } from './registry/TaskRegistry';
-import { GameProject, BaseAction, GameTask, ActionType, SequenceItem, ConditionOperator } from '../model/types';
+import { GameProject, BaseAction, GameTask, ActionType, SequenceItem, ConditionOperator, VariableType, VariableScope, ProjectVariable } from '../model/types';
 
 import { mediatorService } from './MediatorService';
 import { serviceRegistry } from './ServiceRegistry';
@@ -9,6 +9,7 @@ import { Logger } from '../utils/Logger';
 import { RESERVED_VARIABLE_NAMES } from '../runtime/EventContext';
 import { SchemaMigrator } from './SchemaMigrator';
 import { actionRegistry } from '../runtime/ActionRegistry';
+import { ThresholdComparison } from '../components/TThresholdVariable';
 
 /**
  * BranchBuilder
@@ -49,6 +50,59 @@ export class BranchBuilder {
     getItems(): SequenceItem[] {
         return this.items;
     }
+}
+
+export interface VariableOptions {
+    id?: string;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    style?: any;
+    description?: string;
+    isPublic?: boolean;
+    objectModel?: string;
+
+    // Typ-spezifische Eigenschaften
+    threshold?: number;
+    comparison?: ThresholdComparison;
+    triggerValue?: any;
+    duration?: number;
+    min?: number;
+    max?: number;
+    isRandom?: boolean;
+    isInteger?: boolean;
+    searchValue?: string;
+    searchProperty?: string;
+
+    // Event-Handler (Task-Namen)
+    onValueChanged?: string;
+    onValueEmpty?: string;
+    onThresholdReached?: string;
+    onThresholdLeft?: string;
+    onThresholdExceeded?: string;
+    onTriggerEnter?: string;
+    onTriggerExit?: string;
+    onFinished?: string;
+    onTick?: string;
+    onHour?: string;
+    onMinute?: string;
+    onSecond?: string;
+    onMinReached?: string;
+    onMaxReached?: string;
+    onInside?: string;
+    onOutside?: string;
+    onItemAdded?: string;
+    onItemRemoved?: string;
+    onContains?: string;
+    onNotContains?: string;
+    onCleared?: string;
+    onGenerated?: string;
+    onItemCreated?: string;
+    onItemUpdated?: string;
+    onItemDeleted?: string;
+    onItemRead?: string;
+    onNotFound?: string;
 }
 
 /**
@@ -128,7 +182,13 @@ export class AgentController {
     }
 
     /** Registriert eine globale Variable im Projekt. */
-    public addVariable(name: string, type: any, initialValue: any, scope: string = 'global'): void {
+    public addVariable(
+        name: string,
+        type: VariableType | 'number' | 'boolean' | 'string' | 'object' | 'trigger',
+        initialValue: any,
+        scope: VariableScope = 'global',
+        options?: VariableOptions
+    ): void {
         this.validateProjectLoaded();
 
         // Feature A: Reservierte Magic-Variablen-Namen blockieren
@@ -140,33 +200,73 @@ export class AgentController {
 
         const classNameMap: Record<string, string> = {
             'number': 'TIntegerVariable',
+            'integer': 'TIntegerVariable',
+            'real': 'TRealVariable',
             'boolean': 'TBooleanVariable',
             'string': 'TStringVariable',
             'object': 'TObjectVariable',
-            'trigger': 'TTriggerVariable'
+            'object_list': 'TObjectList',
+            'list': 'TListVariable',
+            'trigger': 'TTriggerVariable',
+            'threshold': 'TThresholdVariable',
+            'timer': 'TTimer',
+            'random': 'TRandomVariable',
+            'range': 'TRangeVariable',
+            'keystore': 'TKeyStore',
+            'any': 'TVariable',
+            'json': 'TVariable'
         };
         const className = classNameMap[type] || 'TVariable';
 
-        const existing = this.project!.variables.find(v => v.name === name);
-        if (existing) {
-            existing.type = type;
-            existing.className = className;
-            existing.initialValue = initialValue;
-            existing.defaultValue = initialValue; // Sync
-            existing.scope = scope;
-        } else {
-            this.project!.variables.push({
-                name,
-                type,
-                className,
-                initialValue,
-                defaultValue: initialValue,
-                scope
-            } as any);
+        const base: Partial<ProjectVariable> = {
+            name,
+            type: type as VariableType,
+            isVariable: true,
+            className,
+            initialValue,
+            defaultValue: initialValue,
+            scope
+        };
+
+        if (options) {
+            Object.assign(base, options);
+            const tasks = this.buildVariableTasks(options);
+            if (tasks) base.Tasks = tasks;
         }
 
-        AgentController.logger.info(`Variable '${name}' added/updated.`);
+        const existing = this.project!.variables.find(v => v.name === name);
+        if (existing) {
+            Object.assign(existing, base);
+            AgentController.logger.info(`Variable '${name}' updated.`);
+        } else {
+            this.project!.variables.push(base as ProjectVariable);
+            AgentController.logger.info(`Variable '${name}' added.`);
+        }
+
         this.notifyChange();
+    }
+
+    /**
+     * Baut aus den Event-Handler-Optionen einer Variable ein Tasks-Mapping.
+     * Der RuntimeVariableManager erwartet Events in `varDef.Tasks`.
+     */
+    private buildVariableTasks(options: VariableOptions): Record<string, string> | undefined {
+        const tasks: Record<string, string> = {};
+        const eventNames = [
+            'onValueChanged', 'onValueEmpty',
+            'onThresholdReached', 'onThresholdLeft', 'onThresholdExceeded',
+            'onTriggerEnter', 'onTriggerExit',
+            'onFinished', 'onTick', 'onHour', 'onMinute', 'onSecond',
+            'onMinReached', 'onMaxReached', 'onInside', 'onOutside',
+            'onItemAdded', 'onItemRemoved', 'onContains', 'onNotContains', 'onCleared',
+            'onGenerated',
+            'onItemCreated', 'onItemUpdated', 'onItemDeleted', 'onItemRead', 'onNotFound'
+        ];
+        eventNames.forEach(eventName => {
+            const taskName = (options as any)[eventName];
+            if (taskName) tasks[eventName] = taskName;
+        });
+        return Object.keys(tasks).length > 0 ? tasks : undefined;
     }
 
     // ─────────────────────────────────────────────
@@ -963,6 +1063,40 @@ export class AgentController {
         this.notifyChange();
     }
 
+    /**
+     * Verbindet ein Event einer Variable (Projekt- oder Stage-Variable) mit einem Task.
+     * Der RuntimeVariableManager erwartet die Mapping in `variable.Tasks`.
+     */
+    public connectVariableEvent(variableName: string, eventName: string, taskName: string): void {
+        this.validateProjectLoaded();
+        if (!this.getTaskByName(taskName)) {
+            throw new Error(`Task '${taskName}' not found. Create it first with createTask().`);
+        }
+
+        const variable = this.findVariable(variableName);
+        if (!variable) {
+            throw new Error(`Variable '${variableName}' not found.`);
+        }
+
+        if (!variable.Tasks) variable.Tasks = {};
+        variable.Tasks[eventName] = taskName;
+
+        AgentController.logger.info(`Connected ${variableName}.${eventName} → Task '${taskName}'`);
+        this.notifyChange();
+    }
+
+    /** Findet eine Variable anhand des Namens (Projekt- oder Stage-Scope). */
+    private findVariable(name: string): any | undefined {
+        let variable = this.project!.variables?.find(v => v.name === name);
+        if (variable) return variable;
+
+        const stageWithVar = this.project!.stages?.find(s => s.variables?.some((v: any) => v.name === name));
+        if (stageWithVar) {
+            return stageWithVar.variables?.find((v: any) => v.name === name);
+        }
+        return undefined;
+    }
+
     // ─────────────────────────────────────────────
     // 8. Workflow
     // ─────────────────────────────────────────────
@@ -1126,6 +1260,203 @@ export class AgentController {
         this.setProperty(stageId, spriteName, 'velocityX', velocityX);
         this.setProperty(stageId, spriteName, 'velocityY', velocityY);
         AgentController.logger.info(`Velocity for '${spriteName}': vx=${velocityX}, vy=${velocityY}`);
+    }
+
+    // ─────────────────────────────────────────────
+    // 8c. Komponenten-Shortcuts für neuere Komponenten
+    // ─────────────────────────────────────────────
+
+    /**
+     * Erstellt einen TTimer (Wiederholungs-Timer mit currentInterval).
+     * @param opts - Optionale Properties: interval, enabled, maxInterval, currentInterval, width, height, style
+     */
+    public createTimer(stageId: string, name: string, x: number = 0, y: number = 0, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TTimer',
+            name,
+            x, y,
+            width: opts.width ?? 4,
+            height: opts.height ?? 2,
+            interval: opts.interval ?? 1000,
+            enabled: opts.enabled ?? false,
+            maxInterval: opts.maxInterval ?? 0,
+            currentInterval: opts.currentInterval ?? 0,
+            style: { ...(opts.style || {}) }
+        });
+        AgentController.logger.info(`Timer '${name}' created in '${stageId}'`);
+    }
+
+    /**
+     * Erstellt einen TIntervalTimer (feuert onIntervall / onTimeout).
+     * @param opts - Optionale Properties: duration, count, enabled, width, height, style
+     */
+    public createIntervalTimer(stageId: string, name: string, x: number = 0, y: number = 0, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TIntervalTimer',
+            name,
+            x, y,
+            width: opts.width ?? 4,
+            height: opts.height ?? 2,
+            duration: opts.duration ?? 1000,
+            count: opts.count ?? 0,
+            enabled: opts.enabled ?? false,
+            style: { ...(opts.style || {}) }
+        });
+        AgentController.logger.info(`IntervalTimer '${name}' created in '${stageId}'`);
+    }
+
+    /**
+     * Erstellt eine TThresholdVariable als Stage-Objekt.
+     * @param opts - Optionale Properties: value, threshold, comparison, onThresholdReached, onThresholdLeft, onThresholdExceeded, width, height, style
+     */
+    public createThresholdVariable(stageId: string, name: string, x: number = 0, y: number = 0, opts: Record<string, any> = {}): void {
+        const events: Record<string, string> = {};
+        if (opts.onThresholdReached) events.onThresholdReached = opts.onThresholdReached;
+        if (opts.onThresholdLeft) events.onThresholdLeft = opts.onThresholdLeft;
+        if (opts.onThresholdExceeded) events.onThresholdExceeded = opts.onThresholdExceeded;
+
+        const data: any = {
+            className: 'TThresholdVariable',
+            name,
+            x, y,
+            width: opts.width ?? 4,
+            height: opts.height ?? 2,
+            value: opts.value ?? 0,
+            threshold: opts.threshold ?? 100,
+            comparison: opts.comparison ?? '>=',
+            isVariable: true,
+            style: { ...(opts.style || {}) }
+        };
+        if (Object.keys(events).length > 0) data.events = events;
+        this.addObject(stageId, data);
+        AgentController.logger.info(`ThresholdVariable '${name}' created in '${stageId}'`);
+    }
+
+    /**
+     * Erstellt einen TInputController.
+     * @param opts - Optionale Properties: keyBindings, enabled, width, height, style
+     */
+    public createInputController(stageId: string, name: string, x: number = 0, y: number = 0, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TInputController',
+            name,
+            x, y,
+            width: opts.width ?? 4,
+            height: opts.height ?? 2,
+            enabled: opts.enabled ?? true,
+            keyBindings: opts.keyBindings ?? {},
+            visible: opts.visible ?? false,
+            style: { ...(opts.style || {}) }
+        });
+        AgentController.logger.info(`InputController '${name}' created in '${stageId}'`);
+    }
+
+    /**
+     * Erstellt einen TButton.
+     * @param opts - Optionale Properties: width, height, fontSize, color, backgroundColor, borderRadius, icon, style
+     */
+    public createButton(stageId: string, name: string, x: number, y: number, caption: string, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TButton',
+            name,
+            x, y,
+            width: opts.width ?? 12,
+            height: opts.height ?? 3,
+            caption,
+            fontSize: opts.fontSize ?? 16,
+            color: opts.color ?? '#ffffff',
+            backgroundColor: opts.backgroundColor ?? '#4CAF50',
+            borderRadius: opts.borderRadius ?? '8px',
+            icon: opts.icon ?? '',
+            visible: opts.visible ?? true,
+            style: { ...(opts.style || {}) }
+        });
+        AgentController.logger.info(`Button '${name}' created in '${stageId}': "${caption}"`);
+    }
+
+    /**
+     * Erstellt eine TVideo-Komponente.
+     * @param opts - Optionale Properties: autoplay, loop, muted, objectFit, imageOpacity, playbackRate, visible, style
+     */
+    public createVideo(stageId: string, name: string, x: number, y: number, width: number, height: number, videoSource: string, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TVideo',
+            name,
+            x, y, width, height,
+            videoSource,
+            autoplay: opts.autoplay ?? false,
+            loop: opts.loop ?? false,
+            muted: opts.muted ?? false,
+            objectFit: opts.objectFit ?? 'contain',
+            imageOpacity: opts.imageOpacity ?? 1,
+            playbackRate: opts.playbackRate ?? 1,
+            visible: opts.visible ?? true,
+            style: { ...(opts.style || {}) }
+        });
+        AgentController.logger.info(`Video '${name}' created in '${stageId}'`);
+    }
+
+    /**
+     * Erstellt eine TLink-Komponente.
+     * @param opts - Optionale Properties: width, height, text, underline, color, visible, style
+     */
+    public createLink(stageId: string, name: string, x: number, y: number, url: string, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TLink',
+            name,
+            x, y,
+            width: opts.width ?? 8,
+            height: opts.height ?? 2,
+            text: opts.text ?? name,
+            url,
+            underline: opts.underline ?? true,
+            color: opts.color ?? '#4fc3f7',
+            visible: opts.visible ?? true,
+            style: { ...(opts.style || {}) }
+        });
+        AgentController.logger.info(`Link '${name}' created in '${stageId}' → ${url}`);
+    }
+
+    /**
+     * Erstellt eine TProgressBar-Komponente.
+     * @param opts - Optionale Properties: value, maxValue, barColor, barBackgroundColor, showText, textTemplate, animateChanges, visible, style
+     */
+    public createProgressBar(stageId: string, name: string, x: number, y: number, width: number, height: number, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TProgressBar',
+            name,
+            x, y, width, height,
+            value: opts.value ?? 75,
+            maxValue: opts.maxValue ?? 100,
+            barColor: opts.barColor ?? '#4caf50',
+            barBackgroundColor: opts.barBackgroundColor ?? '#333333',
+            showText: opts.showText ?? true,
+            textTemplate: opts.textTemplate ?? '${value} / ${maxValue}',
+            animateChanges: opts.animateChanges ?? true,
+            visible: opts.visible ?? true,
+            style: { ...(opts.style || {}) }
+        });
+        AgentController.logger.info(`ProgressBar '${name}' created in '${stageId}'`);
+    }
+
+    /**
+     * Erstellt eine TStickyNote (nur im Editor sichtbar).
+     * @param opts - Optionale Properties: title, noteColor, width, height, visible, style
+     */
+    public createStickyNote(stageId: string, name: string, x: number, y: number, text: string = 'Neue Notiz...', opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TStickyNote',
+            name,
+            x, y,
+            width: opts.width ?? 6,
+            height: opts.height ?? 4,
+            title: opts.title ?? 'Notiz',
+            text,
+            noteColor: opts.noteColor ?? 'yellow',
+            visible: opts.visible ?? true,
+            style: { ...(opts.style || {}) }
+        });
+        AgentController.logger.info(`StickyNote '${name}' created in '${stageId}'`);
     }
 
     /**
