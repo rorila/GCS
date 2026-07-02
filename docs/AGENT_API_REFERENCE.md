@@ -1548,6 +1548,7 @@ importScript(script: AgentScript, options?: ImportOptions): ImportResult
 | `autoRenameSuffix` | `'_import'` | Suffix bei `rename` |
 | `dryRun` | `false` | Nur analysieren, nicht anwenden |
 | `projectRoot` | — | Wurzelpfad für Asset-Existenzprüfung |
+| `assetRemap` | — | `{ 'alter/Pfad.png': 'neuer/Pfad.png' }` |
 
 **Beispiel:**
 ```typescript

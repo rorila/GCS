@@ -45,6 +45,7 @@ export interface ImportOptions {
     placeholderValues?: Record<string, any>;
     autoApply?: boolean;          // default: false, bei UI true nach Bestätigung
     projectRoot?: string;         // Für Asset-Existenzprüfung
+    assetRemap?: Record<string, string>; // originaler Asset-Pfad → neuer Pfad
 }
 
 export interface ImportConflict {

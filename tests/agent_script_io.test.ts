@@ -157,6 +157,27 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Validator Methode', false, e.message);
     }
 
+    // --- Asset-Remap beim Import ---
+    try {
+        agent.setProject(createTestProject());
+        const script: AgentScript = {
+            version: AGENT_SCRIPT_VERSION,
+            name: 'RemapTest',
+            operations: [
+                { method: 'addObject', params: ['stage_main', { name: 'Ball', className: 'TSprite', backgroundImage: 'old/assets/ball.png' }] }
+            ]
+        };
+        const result = agent.importScript(script, {
+            assetRemap: { 'old/assets/ball.png': 'new/assets/ball.png' }
+        });
+        const project = (agent as any).project;
+        const obj = project?.stages?.[0]?.objects?.find((o: any) => o.name === 'Ball');
+        const remapped = obj?.backgroundImage === 'new/assets/ball.png';
+        addResult('Asset Remap', remapped && result.success, remapped ? undefined : JSON.stringify(obj));
+    } catch (e: any) {
+        addResult('Asset Remap', false, e.message);
+    }
+
     // --- Selection-Export ---
     try {
         agent.setProject(createTestProject());

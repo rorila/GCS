@@ -264,7 +264,12 @@ export class AgentScriptIO {
         // 4. Platzhalter auflösen
         let operations = this.resolvePlaceholders(script.operations, options.placeholderValues || {}, options.targetStageId);
 
-        // 4. Konflikte transformieren (rename/skip)
+        // 5. Asset-Pfade remappen
+        if (options.assetRemap && Object.keys(options.assetRemap).length > 0) {
+            operations = this.remapAssetPaths(operations, options.assetRemap);
+        }
+
+        // 6. Konflikte transformieren (rename/skip)
         if (options.conflictStrategy && options.conflictStrategy !== 'error') {
             const transform = this.transformOperationsForConflicts(operations, options.conflictStrategy, options.autoRenameSuffix || '_import');
             operations = transform.operations;
@@ -273,18 +278,18 @@ export class AgentScriptIO {
             result.warnings.push(...transform.warnings);
         }
 
-        // 5. Bei dryRun: hier zurückgeben
+        // 6. Bei dryRun: hier zurückgeben
         if (options.dryRun) {
             result.phase = 'analysis';
             result.success = true;
             return result;
         }
 
-        // 6. Snapshot für Undo
+        // 7. Snapshot für Undo
         const snapshot = JSON.stringify(this.controller['project']);
         result.canUndo = true;
 
-        // 7. Anwenden via executeBatch
+        // 8. Anwenden via executeBatch
         try {
             const batchResults = this.controller.executeBatch(operations);
             result.appliedOperations = batchResults.filter(r => r.success).length;
@@ -300,7 +305,7 @@ export class AgentScriptIO {
                 return result;
             }
 
-            // 8. FlowCharts neu generieren
+            // 9. FlowCharts neu generieren
             this.regenerateFlowCharts(operations);
 
             result.phase = 'applied';
@@ -463,6 +468,30 @@ export class AgentScriptIO {
                 this.logger.warn(`FlowChart für '${taskName}' konnte nicht neu generiert werden: ${e.message}`);
             }
         }
+    }
+
+    private remapAssetPaths(operations: AgentScriptOperation[], remap: Record<string, string>): AgentScriptOperation[] {
+        const remapValue = (value: any): any => {
+            if (typeof value === 'string' && remap[value]) {
+                return remap[value];
+            }
+            if (Array.isArray(value)) {
+                return value.map(remapValue);
+            }
+            if (value && typeof value === 'object') {
+                const out: Record<string, any> = {};
+                for (const key of Object.keys(value)) {
+                    out[key] = remapValue(value[key]);
+                }
+                return out;
+            }
+            return value;
+        };
+
+        return operations.map(op => ({
+            method: op.method,
+            params: op.params.map(remapValue)
+        }));
     }
 
     private assetExists(assetPath: string, projectRoot?: string): boolean {
