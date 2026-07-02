@@ -72,9 +72,16 @@ export interface ImportResult {
 
 export type ExportScope = 'project' | 'stage' | 'task' | 'selection';
 
+export interface ExportSelection {
+    tasks?: string[];             // Task-Namen
+    objects?: string[];           // Objekt-Namen
+    variables?: string[];         // Variablen-Namen
+}
+
 export interface ExportOptions {
     scope: ExportScope;
     targetId?: string;            // Stage- oder Task-Name
+    selection?: ExportSelection;  // Nur für scope: 'selection'
     includeOnly?: string[];       // Filter nach Methoden
     exclude?: string[];           // Auszuschließende Methoden
     withPlaceholders?: boolean;   // Konkrete Namen durch ${PLACEHOLDER} ersetzen

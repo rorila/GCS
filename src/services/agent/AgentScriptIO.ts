@@ -8,6 +8,7 @@ import {
     ImportOptions,
     ImportResult,
     ExportOptions,
+    ExportSelection,
 } from './AgentScriptTypes';
 
 /**
@@ -42,7 +43,9 @@ export class AgentScriptIO {
                 this.exportProject(ops);
                 break;
             case 'selection':
-                throw new Error('Export-Scope "selection" noch nicht implementiert.');
+                if (!options.selection) throw new Error('Für scope "selection" muss options.selection angegeben werden.');
+                this.exportSelection(options.selection, ops);
+                break;
             default:
                 throw new Error(`Unbekannter Export-Scope: ${(options as any).scope}`);
         }
@@ -163,6 +166,35 @@ export class AgentScriptIO {
         }
         for (const stage of stages) {
             if (stage.id) this.exportStage(stage.id, ops);
+        }
+    }
+
+    private exportSelection(selection: ExportSelection, ops: AgentScriptOperation[]): void {
+        if (!selection) throw new Error('Für Selection-Export muss options.selection angegeben werden.');
+        const project = this.controller['project'];
+
+        for (const taskName of selection.tasks || []) {
+            this.exportTask(taskName, undefined, ops);
+        }
+
+        for (const stage of project?.stages || []) {
+            for (const obj of stage.objects || []) {
+                if (selection.objects?.includes(obj.name)) {
+                    const { name, className, ...rest } = obj;
+                    ops.push({ method: 'addObject', params: [stage.id || '${STAGE}', { name, className, ...rest }] });
+                }
+            }
+            for (const v of stage.variables || []) {
+                if (selection.variables?.includes(v.name)) {
+                    ops.push({ method: 'addVariable', params: [v.name, v.type, v.initialValue ?? v.defaultValue, stage.id || '${STAGE}'] });
+                }
+            }
+        }
+
+        for (const v of project?.variables || []) {
+            if (selection.variables?.includes(v.name)) {
+                ops.push({ method: 'addVariable', params: [v.name, v.type, v.initialValue ?? v.defaultValue, 'global'] });
+            }
         }
     }
 

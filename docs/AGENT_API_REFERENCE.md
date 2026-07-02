@@ -1520,7 +1520,7 @@ exportScript(options: ExportOptions): AgentScript
 | `task` | Einzelner Task inklusive seiner Actions |
 | `stage` | Stage inklusive Objekte, Variablen, Tasks und Actions |
 | `project` | Gesamtes Projekt |
-| `selection` | Noch nicht implementiert |
+| `selection` | Ausgewählte Tasks/Objekte/Variablen via `options.selection` |
 
 **Beispiel:**
 ```typescript
