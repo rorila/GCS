@@ -42,7 +42,7 @@ export class AgentScriptDialog {
     /**
      * Export-Dialog. Der User wählt Scope und erhält eine .agent.json-Datei zum Download.
      */
-    public static showExport(): void {
+    public static showExport(onSuccess?: () => void): void {
         const agent = AgentController.getInstance();
         const overlay = AgentScriptDialog.createOverlay();
         const dialog = AgentScriptDialog.createDialog();
@@ -92,6 +92,7 @@ export class AgentScriptDialog {
                 a.click();
                 URL.revokeObjectURL(url);
                 close();
+                onSuccess?.();
             } catch (e: any) {
                 logger.error('Export fehlgeschlagen:', e);
                 alert('Export fehlgeschlagen: ' + e.message);
@@ -111,7 +112,7 @@ export class AgentScriptDialog {
     /**
      * Import-Dialog. Der User lädt eine .agent.json-Datei hoch und sieht eine Vorschau.
      */
-    public static showImport(): void {
+    public static showImport(onSuccess?: () => void): void {
         const agent = AgentController.getInstance();
         const overlay = AgentScriptDialog.createOverlay();
         const dialog = AgentScriptDialog.createDialog('520px');
@@ -308,6 +309,7 @@ export class AgentScriptDialog {
                 if (result.success) {
                     alert(`Import erfolgreich: ${result.appliedOperations} Operationen angewendet.`);
                     close();
+                    onSuccess?.();
                 } else {
                     alert('Import fehlgeschlagen:\n' + result.errors.join('\n'));
                 }

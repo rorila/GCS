@@ -40,7 +40,7 @@ export class AgentScriptLibrary {
         return header;
     }
 
-    public static async show(): Promise<void> {
+    public static async show(onSuccess?: () => void): Promise<void> {
         const agent = AgentController.getInstance();
         const repo = new AgentScriptRepository('./snippets');
         const overlay = AgentScriptLibrary.createOverlay();
@@ -95,6 +95,7 @@ export class AgentScriptLibrary {
                         if (result.success) {
                             alert(`Import erfolgreich: ${result.appliedOperations} Operationen.`);
                             close();
+                            onSuccess?.();
                         } else {
                             alert('Import fehlgeschlagen:\n' + result.errors.join('\n'));
                         }
@@ -109,7 +110,7 @@ export class AgentScriptLibrary {
                 previewBtn.style.cssText = 'padding:6px 12px; background:#6c63ff; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px;';
                 previewBtn.onclick = () => {
                     close();
-                    AgentScriptDialog.showImport();
+                    AgentScriptDialog.showImport(onSuccess);
                 };
 
                 actions.appendChild(importBtn);
@@ -127,7 +128,7 @@ export class AgentScriptLibrary {
         openImportBtn.style.cssText = 'padding:10px; background:#4caf50; color:#fff; border:none; border-radius:6px; cursor:pointer;';
         openImportBtn.onclick = () => {
             close();
-            AgentScriptDialog.showImport();
+            AgentScriptDialog.showImport(onSuccess);
         };
         body.appendChild(openImportBtn);
 

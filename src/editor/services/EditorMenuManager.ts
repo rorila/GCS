@@ -4,6 +4,8 @@ import { ViewType } from '../EditorViewManager';
 import { changeRecorder } from '../../services/ChangeRecorder';
 import { playbackEngine } from '../../services/PlaybackEngine';
 import { dataService } from '../../services/DataService';
+import { projectStore } from '../../services/ProjectStore';
+import { mediatorService } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PromptDialog } from '../ui/PromptDialog';
@@ -40,6 +42,10 @@ export interface EditorMenuHost {
     startMultiplayer(): void;
     handleRewind(): void;
     handleForward(): void;
+    render(): void;
+    updateStagesMenu(): void;
+    updateStageLabel(): void;
+    autoSaveToLocalStorage(): void;
 }
 
 export class EditorMenuManager {
@@ -103,9 +109,9 @@ export class EditorMenuManager {
             case 'export-json': this.host.exportJSON(); break;
             case 'export-json-gzip': this.host.exportJSONCompressed(); break;
             case 'export-theme': this.host.exportTheme(); break;
-            case 'export-agent-script': AgentScriptDialog.showExport(); break;
-            case 'import-agent-script': AgentScriptDialog.showImport(); break;
-            case 'agent-script-library': AgentScriptLibrary.show(); break;
+            case 'export-agent-script': AgentScriptDialog.showExport(() => this.refreshAfterAgentScriptImport()); break;
+            case 'import-agent-script': AgentScriptDialog.showImport(() => this.refreshAfterAgentScriptImport()); break;
+            case 'agent-script-library': AgentScriptLibrary.show(() => this.refreshAfterAgentScriptImport()); break;
             case 'export-exe': NotificationToast.show('Exe-Export ist für eine zukünftige Version geplant.', 'info'); break;
             case 'multiplayer':
                 const lobby = document.getElementById('multiplayer-lobby');
@@ -187,6 +193,15 @@ export class EditorMenuManager {
                     this.handleRecordingAction(action);
                 }
         }
+    }
+
+    private refreshAfterAgentScriptImport(): void {
+        this.host.render();
+        this.host.updateStagesMenu();
+        this.host.updateStageLabel();
+        this.host.autoSaveToLocalStorage();
+        projectStore.setProject(this.host.project);
+        mediatorService.notifyDataChanged(this.host.project, 'agent-script-import');
     }
 
     public handleRecordingAction(action: string): void {
