@@ -538,7 +538,6 @@ console.log(result.renamedItems);
 | 8. Dokumentation | ✅ Erledigt | `docs/AGENT_API_REFERENCE.md` |
 
 **Noch offen / Ausbau:**
-- Export-Scope `selection`
 - Interaktiver Vorschau-Dialog mit Konflikt-Auflösung pro Item
 - Snippet-Bibliothek im Editor
 - Asset-Pfad-Remapping während Import

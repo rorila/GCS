@@ -157,6 +157,23 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Validator Methode', false, e.message);
     }
 
+    // --- Selection-Export ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createSprite('stage_main', 'Ball', 10, 10, 2, 2);
+        agent.addVariable('score', 'integer', 0, 'global');
+        const script = agent.exportScript({
+            scope: 'selection',
+            selection: { objects: ['Ball'], variables: ['score'] }
+        });
+        const hasObject = script.operations.some(o => o.method === 'addObject' && o.params[1]?.name === 'Ball');
+        const hasVariable = script.operations.some(o => o.method === 'addVariable' && o.params[0] === 'score');
+        const ok = hasObject && hasVariable;
+        addResult('Selection Export', ok, ok ? undefined : JSON.stringify(script.operations));
+    } catch (e: any) {
+        addResult('Selection Export', false, e.message);
+    }
+
     // --- Repository Speichern/Laden ---
     try {
         const repo = new AgentScriptRepository('./tmp-snippets');
