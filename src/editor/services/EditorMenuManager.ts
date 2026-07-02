@@ -8,6 +8,8 @@ import { Logger } from '../../utils/Logger';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PromptDialog } from '../ui/PromptDialog';
 import { NotificationToast } from '../ui/NotificationToast';
+import { AgentScriptDialog } from '../dialogs/AgentScriptDialog';
+import { AgentScriptLibrary } from '../dialogs/AgentScriptLibrary';
 
 export interface EditorMenuHost {
     project: GameProject;
@@ -101,6 +103,9 @@ export class EditorMenuManager {
             case 'export-json': this.host.exportJSON(); break;
             case 'export-json-gzip': this.host.exportJSONCompressed(); break;
             case 'export-theme': this.host.exportTheme(); break;
+            case 'export-agent-script': AgentScriptDialog.showExport(); break;
+            case 'import-agent-script': AgentScriptDialog.showImport(); break;
+            case 'agent-script-library': AgentScriptLibrary.show(); break;
             case 'export-exe': NotificationToast.show('Exe-Export ist für eine zukünftige Version geplant.', 'info'); break;
             case 'multiplayer':
                 const lobby = document.getElementById('multiplayer-lobby');

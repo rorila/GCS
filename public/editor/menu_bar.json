@@ -49,6 +49,28 @@
                     "label": "Theme aus Stage exportieren",
                     "action": "export-theme",
                     "icon": "🎨"
+                },
+                {
+                    "id": "separator-agent-script",
+                    "type": "separator"
+                },
+                {
+                    "id": "export-agent-script",
+                    "label": "AgentScript exportieren...",
+                    "action": "export-agent-script",
+                    "icon": "📤"
+                },
+                {
+                    "id": "import-agent-script",
+                    "label": "AgentScript importieren...",
+                    "action": "import-agent-script",
+                    "icon": "📥"
+                },
+                {
+                    "id": "agent-script-library",
+                    "label": "AgentScript Bibliothek...",
+                    "action": "agent-script-library",
+                    "icon": "📚"
                 }
             ]
         },

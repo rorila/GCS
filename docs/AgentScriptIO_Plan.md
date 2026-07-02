@@ -538,7 +538,7 @@ console.log(result.renamedItems);
 | 8. Dokumentation | ✅ Erledigt | `docs/AGENT_API_REFERENCE.md` |
 
 **Noch offen / Ausbau:**
-- Verdrahtung in Menüleiste / Toolbar
+- Keine — Grundimplementierung abgeschlossen.
 
 ## 11. Empfohlener Start
 
