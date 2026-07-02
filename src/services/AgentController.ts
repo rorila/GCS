@@ -11,6 +11,8 @@ import { SchemaMigrator } from './SchemaMigrator';
 import { actionRegistry } from '../runtime/ActionRegistry';
 import { ThresholdComparison } from '../components/TThresholdVariable';
 import { AgentShortcutModule } from './agent/AgentShortcutModule';
+import { AgentScriptIO } from './agent/AgentScriptIO';
+import { AgentScript, ImportOptions, ImportResult, ExportOptions } from './agent/AgentScriptTypes';
 
 /**
  * BranchBuilder
@@ -117,9 +119,11 @@ export class AgentController {
     private static instance: AgentController;
     private project: GameProject | null = null;
     private shortcutModule: AgentShortcutModule;
+    private scriptIO: AgentScriptIO;
 
     private constructor() {
         this.shortcutModule = new AgentShortcutModule(this);
+        this.scriptIO = new AgentScriptIO(this);
     }
 
     public static getInstance(): AgentController {
@@ -1182,6 +1186,24 @@ export class AgentController {
     }
     public createStickyNote(stageId: string, name: string, x: number, y: number, text?: string, opts?: Record<string, any>): void {
         this.shortcutModule.createStickyNote(stageId, name, x, y, text, opts);
+    }
+
+    // ─────────────────────────────────────────────
+    // 8c. AgentScript Import/Export
+    // ─────────────────────────────────────────────
+
+    /**
+     * Exportiert einen Bereich des Projekts als AgentScript.
+     */
+    public exportScript(options: ExportOptions): AgentScript {
+        return this.scriptIO.exportScript(options);
+    }
+
+    /**
+     * Importiert ein AgentScript in das aktuelle Projekt.
+     */
+    public importScript(script: AgentScript, options?: ImportOptions): ImportResult {
+        return this.scriptIO.importScript(script, options);
     }
 
     /**

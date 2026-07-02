@@ -33,7 +33,7 @@ export class AgentScriptIO {
 
         switch (options.scope) {
             case 'task':
-                this.exportTask(options.targetId, ops);
+                this.exportTask(options.targetId, undefined, ops);
                 break;
             case 'stage':
                 this.exportStage(options.targetId, ops);
@@ -72,13 +72,13 @@ export class AgentScriptIO {
         };
     }
 
-    private exportTask(taskName: string | undefined, ops: AgentScriptOperation[]): void {
+    private exportTask(taskName: string | undefined, stageId: string | undefined, ops: AgentScriptOperation[]): void {
         if (!taskName) throw new Error('Für Task-Export muss targetId (Task-Name) angegeben werden.');
         const details = this.controller.getTaskDetails(taskName);
         if (!details) throw new Error(`Task '${taskName}' nicht gefunden.`);
 
-        // Wir können die Stage aus dem Projekt nicht direkt ableiten; daher setzen wir einen Platzhalter.
-        ops.push({ method: 'createTask', params: ['${STAGE}', details.name, details.description] });
+        const stageParam = stageId || '${STAGE}';
+        ops.push({ method: 'createTask', params: [stageParam, details.name, details.description] });
 
         for (const item of details.sequence) {
             if (item.type === 'action' && item.name) {
@@ -97,9 +97,28 @@ export class AgentScriptIO {
         const stage = stages.find(s => s.id === stageId || s.name === stageId);
         if (!stage) throw new Error(`Stage '${stageId}' nicht gefunden.`);
 
+        const project = this.controller['project'];
+        const fullStage = project?.stages?.find((s: any) => s.id === stageId || s.name === stageId);
+
+        // Objekte exportieren
+        if (fullStage?.objects) {
+            for (const obj of fullStage.objects) {
+                const { name, className, ...rest } = obj;
+                ops.push({ method: 'addObject', params: [stageId, { name, className, ...rest }] });
+            }
+        }
+
+        // Stage-Variablen exportieren
+        if (fullStage?.variables) {
+            for (const v of fullStage.variables) {
+                ops.push({ method: 'addVariable', params: [v.name, v.type, v.initialValue ?? v.defaultValue, stageId] });
+            }
+        }
+
+        // Tasks exportieren
         const taskDetails = this.controller.listTasks(stageId);
         for (const task of taskDetails) {
-            this.exportTask(task.name, ops);
+            this.exportTask(task.name, stageId, ops);
         }
     }
 
