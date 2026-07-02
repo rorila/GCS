@@ -122,19 +122,46 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [],
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_1782411462015_ch8nu2cmu",
+          "name": "Button_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_3",
+          "icon": ""
+        }
+      ],
       "actions": [
         {
-          "id": "node-1781187552923",
+          "id": "node-1782411449050",
           "details": "",
-          "type": "property",
+          "type": "navigate_stage",
           "name": "ShowTheHighscoreStage_Unique",
           "showDetails": false,
           "target": "",
-          "changes": {}
+          "changes": {},
+          "reset": false
         },
         {
-          "id": "node-1781187555939",
+          "id": "node-1782411452033",
           "details": "",
           "type": "property",
           "name": "Action1",
@@ -145,7 +172,7 @@
       ],
       "tasks": [
         {
-          "id": "263faf0c-80e7-497f-a3ae-b95114481341",
+          "id": "dabb4d6d-ba6e-4293-a368-1cd63363dc51",
           "name": "SwitchToTheHighscoreStage",
           "description": "",
           "actionSequence": [
@@ -168,7 +195,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1781187555939",
+              "id": "node-1782411452033",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -181,7 +208,7 @@
               },
               "data": {
                 "name": "ShowTheHighscoreStage_Unique",
-                "type": "property",
+                "type": "navigate_stage",
                 "isLinked": true
               }
             }

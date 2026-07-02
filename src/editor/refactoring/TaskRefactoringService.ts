@@ -258,9 +258,11 @@ export class TaskRefactoringService {
         };
 
         scanAndCleanupObjects(project.objects || []);
+        scanAndCleanupObjects(project.variables || []);
         if (project.stages) {
             project.stages.forEach(stage => {
                 scanAndCleanupObjects(stage.objects || []);
+                scanAndCleanupObjects(stage.variables || []);
             });
         }
 

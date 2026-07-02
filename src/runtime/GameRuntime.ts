@@ -128,6 +128,7 @@ export class GameRuntime implements IVariableHost {
                 this.spritePool.init(template, this.objects, this.contextVars);
             });
 
+            logger.warn(`[REACTIVE-DEBUG] makeReactive=${!!options.makeReactive}, objects=${this.objects.length}, stage=${this.stage?.id}`);
             if (options.makeReactive) {
                 this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
                 if (this.stage) {
@@ -1006,9 +1007,16 @@ export class GameRuntime implements IVariableHost {
      * Traverses all objects and registers reactive bindings for properties containing ${...}
      */
     private initializeReactiveBindings(): void {
+        logger.info('[BIND-DEBUG] initializeReactiveBindings() started. Total objects:', this.objects.length);
+        logger.info('[BIND-DEBUG] Stage Objects in Runtime:', this.objects.map(o => `${o.name || o.id} (${o.className})`));
+
         const process = (objs: any[]) => {
             objs.forEach(obj => {
-                this.bindObjectProperties(obj);
+                const targetObj = this.reactiveRuntime.getObject(obj.id || obj.name) || obj;
+                if (targetObj.className === 'TLabel' || targetObj.className === 'TTextControl') {
+                    logger.warn(`[LABEL-SCAN] "${targetObj.name}" text="${targetObj.text}"`);
+                }
+                this.bindObjectProperties(targetObj);
                 if (obj.children && obj.children.length > 0) {
                     process(obj.children);
                 }
@@ -1019,7 +1027,8 @@ export class GameRuntime implements IVariableHost {
         
         // Stage-Objekt selbst binden, da der Hintergrund z.B. in this.stage.grid gespeichert ist
         if (this.stage) {
-            this.bindObjectProperties(this.stage);
+            const targetStage = this.reactiveRuntime.getObject(this.stage.id || this.stage.name) || this.stage;
+            this.bindObjectProperties(targetStage);
         }
 
         // SYNC POINT: Give ReactiveRuntime access to ALL global variables
@@ -1067,6 +1076,9 @@ export class GameRuntime implements IVariableHost {
                 }
             }
         });
+
+        // Debug-Logs für alle aktiven Bindings sofort zu Runtime-Beginn ausgeben
+        this.reactiveRuntime.debug();
     }
 
     private bindObjectProperties(obj: any): void {

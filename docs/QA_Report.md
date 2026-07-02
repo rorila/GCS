@@ -1,54 +1,55 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 11.6.2026, 16:18:04
-**Status**: ❌ FEHLER GEFUNDEN
-**Gesamtlauf**: 88.0s
+**Generiert am**: 25.6.2026, 20:18:42
+**Status**: ✅ ALLE TESTS BESTANDEN
+**Gesamtlauf**: 86.8s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 261)
-    "Bestanden ✅" : 258
-    "Fehlgeschlagen ❌" : 3
+pie title Test-Status (Gesamt: 270)
+    "Bestanden ✅" : 270
+    "Fehlgeschlagen ❌" : 0
 ```
 
 ## ⏱ Timing-Übersicht (sortiert nach Dauer)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 87739ms 🐌 | ✅ |
-| Code Quality & Security Guards | 168ms | ✅ |
-| Coordinate Binding | 9ms | ✅ |
+| Playwright E2E | 86560ms 🐌 | ✅ |
+| Code Quality & Security Guards | 150ms | ✅ |
+| Coordinate Binding | 12ms | ✅ |
 | AgentController | 8ms | ✅ |
-| Mathe-Quiz | 4ms | ✅ |
-| Stage-Transition Regression | 4ms | ✅ |
-| RefactoringManager | 3ms | ✅ |
+| Mathe-Quiz | 6ms | ✅ |
+| Stage-Transition Regression | 5ms | ✅ |
+| RefactoringManager | 4ms | ✅ |
+| TTimer/TIntervalTimer Reactive Properties | 4ms | ✅ |
+| Serialization | 3ms | ✅ |
 | TaskExecutor | 3ms | ✅ |
-| Stage-Import | 2ms | ✅ |
 | ProjectStore | 2ms | ✅ |
+| Stage-Import | 2ms | ✅ |
 | SyncValidator | 2ms | ✅ |
-| Serialization | 2ms | ✅ |
 | SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
 | Export Integrity | 2ms | ✅ |
-| Project Integrity | 1ms | ✅ |
+| Project Integrity | 2ms | ✅ |
 | GameLoopManager Physics | 1ms | ✅ |
-| Action Stage Routing & Duplicates | 1ms | ✅ |
 | FlowDataAction Inspector | 1ms | ✅ |
-| Action CRUD | 1ms | ✅ |
+| Action Stage Routing & Duplicates | 1ms | ✅ |
 | Pascal Code Generator | 1ms | ✅ |
 | Event Actions (bind/unbind) | 1ms | ✅ |
+| Action CRUD | 1ms | ✅ |
 | Raketen-Countdown | 1ms | ✅ |
-| SpawnObject Variable Support | 1ms | ✅ |
-| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
-| SnapshotManager | 1ms | ✅ |
-| Action Registration | 1ms | ✅ |
-| Unification & Auto-Unwrap | 1ms | ✅ |
-| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
 | Virtual Gamepad | 1ms | ✅ |
-| SidePanel | 1ms | ✅ |
-| TTimer Variable Resolution | 1ms | ✅ |
+| SpawnObject Variable Support | 1ms | ✅ |
+| SnapshotManager | 1ms | ✅ |
+| Unification & Auto-Unwrap | 1ms | ✅ |
 | SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
+| SidePanel | 1ms | ✅ |
+| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
+| Action Registration | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
 | FlowSync | 1ms | ✅ |
-| SyncRefactor P0: Inspector Writeback | 0ms | ✅ |
+| SyncRefactor P0: Inspector Writeback | 1ms | ✅ |
+| TTimer Variable Resolution | 1ms | ✅ |
 | Smart-Mapping & Discovery | 0ms | ✅ |
 | Login-Logic | 0ms | ✅ |
 | Renaming Robustness | 0ms | ✅ |
@@ -57,8 +58,8 @@ pie title Test-Status (Gesamt: 261)
 | SELECT COUNT(*) | 0ms | ✅ |
 | TTable Smart-Unwrap | 0ms | ✅ |
 
-**Summe Suiten**: 87970ms
-**Gesamtlauf inkl. Setup/Report**: 87984ms
+**Summe Suiten**: 86788ms
+**Gesamtlauf inkl. Setup/Report**: 86804ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -137,10 +138,10 @@ pie title Test-Status (Gesamt: 261)
 | Hydrate: Style-Merge<br><small>bgColor=#333, borderRadius=8px</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: TSprite ImageList<br><small>imageListId=imglist_hero, imageIndex=2</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: Prototype Pollution Regression<br><small>Object.prototype blieb unveraendert</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Component Registrierung (Barrel + Registry)<br><small>Fehlt im Barrel (components/index.ts): TLink</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 71 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 0</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/components/TDebugLog.ts (1003), src/editor/Editor.ts (1223), src/editor/inspector/InspectorRenderer.ts (1273), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1068), src/editor/services/FlowContextMenuProvider.ts (1030), src/editor/services/StageRenderer.ts (1264), src/runtime/GameRuntime.ts (1179), src/services/AgentController.ts (1402)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Baseline 8 eingehalten, Aktuell: 8</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -152,6 +153,7 @@ pie title Test-Status (Gesamt: 261)
 | Delete Variable: pin<br><small>VariableGone=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Usage Report: AttemptLogin<br><small>Referenzen=2, Orte=2</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Sanitize: Root-Duplikate entfernt<br><small>Root-Tasks nach Sanitize=0</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Delete Task: Bereinigt Variablen-Events<br><small>varEventCleared=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Execute: Stage-Task → 1 Action<br><small>Ausgeführt: [StageAction]</small> | TaskExecutor | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Execute: Blueprint-Lookup (Hierarchie)<br><small>Ausgeführt: [GlobalAction1, GlobalAction2]</small> | TaskExecutor | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Execute: Unbekannter Task (kein Crash)<br><small>Ausgeführt: 0 (erwartet: 0)</small> | TaskExecutor | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -209,13 +211,13 @@ pie title Test-Status (Gesamt: 261)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1781187396254_3c (erwartet: stage_import_1781187396254_3c), BackToLobby.stageId=stage_import_1781187396254_wc (erwartet: stage_import_1781187396254_wc)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1782411435526_uq (erwartet: stage_import_1782411435526_uq), BackToLobby.stageId=stage_import_1782411435525_cv (erwartet: stage_import_1782411435525_cv)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Temp Directory Access | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Dynamic Whitelist (Dialog File Selection) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| A1: handleStageChange enthält glm.init()<br><small>REGRESSION! glm.init() fehlt in handleStageChange → Physik/Sprites frieren ein!</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| A1: handleStageChange enthält glm.init()<br><small>GameLoopManager wird bei Stage-Wechsel korrekt re-initialisiert.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | A2: slide-up nutzt cellSize-Division<br><small>slide-up Offset wird korrekt durch cellSize geteilt (Grid-Zellen statt Pixel).</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | A3: handleStageChange KEIN eigener triggerStartAnimation<br><small>Korrekt: Animation wird nur über start() → initMainGame() ausgelöst.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | A4: updateSpritePositions dedupliziert via Map<br><small>Map-basierte Deduplizierung vorhanden → kein Rubber-Banding.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -298,6 +300,14 @@ pie title Test-Status (Gesamt: 261)
 | spawn_object: Resolve templateId from variable<br><small>Expected bullet_id/50/60, got bullet_id/50/60</small> | undefined | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | spawn_object: Resolve referenceObject from variable<br><small>Expected bullet_id/110/220, got bullet_id/110/220</small> | undefined | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | spawn_object: Metadata check<br><small>templateId type: string, refObj type: string</small> | undefined | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
+| TTimer: Standardmäßig nicht aktiviert (enabled=false)<br><small>enabled: false</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TIntervalTimer: Standardmäßig nicht aktiviert (enabled=false)<br><small>enabled: false</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TTimer: Reaktives Starten bei enabled = true zur Laufzeit<br><small>Vorher Intervalle: 0, Nachher: 1</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TTimer: Reaktives Stoppen bei enabled = false zur Laufzeit<br><small>Gestartet: true, Nach enabled=false Intervalle: 0</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TIntervalTimer: Reaktives Starten bei enabled = true zur Laufzeit<br><small>Vorher Timeouts: 0, Nachher: 1</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TIntervalTimer: Reaktives Stoppen bei enabled = false zur Laufzeit<br><small>Gestartet: true, Nach enabled=false Timeouts: 0</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TTimer: currentInterval Tick-Updates lösen reaktiv Watcher aus<br><small>Intervals: 2 (erwartet: 2), Watcher-Triggers: 2 (erwartet: 2)</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TTimer: TLabel Binding an StageTimer.currentInterval wird reaktiv aktualisiert<br><small>Initial: "2" (erwartet: 0), Tick 1: "2" (erwartet: 1), Tick 2: "2" (erwartet: 2)</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

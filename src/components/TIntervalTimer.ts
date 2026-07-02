@@ -1,4 +1,4 @@
-﻿import { TWindow } from './TWindow';
+import { TWindow } from './TWindow';
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 
 /**
@@ -26,12 +26,30 @@ export class TIntervalTimer extends TWindow implements IRuntimeComponent {
     public count: number = 0;
 
     /** Ob der Timer aktiv ist */
-    public enabled: boolean = true;
+    private _enabled: boolean = false;
 
     // Interner Zustand
     private timerId: number | null = null;
     private currentCount: number = 0;
     private onEventCallback: ((id: string, event: string, data?: any) => void) | null = null;
+    private isRunning: boolean = false;
+
+    public get enabled(): boolean {
+        return this._enabled;
+    }
+
+    public set enabled(value: boolean) {
+        const old = this._enabled;
+        this._enabled = value;
+        if (value) {
+            if (this.isRunning && (old !== value || this.timerId === null)) {
+                const self = (this as any).__proxy__ || this;
+                self.start();
+            }
+        } else {
+            this.stop();
+        }
+    }
 
     constructor(name: string, x: number = 0, y: number = 0) {
         super(name, x, y, 4, 2);
@@ -79,12 +97,15 @@ export class TIntervalTimer extends TWindow implements IRuntimeComponent {
     }
 
     public onRuntimeStart(): void {
+        this.isRunning = true;
         if (this.enabled) {
-            this.start();
+            const self = (this as any).__proxy__ || this;
+            self.start();
         }
     }
 
     public onRuntimeStop(): void {
+        this.isRunning = false;
         this.stop();
     }
 

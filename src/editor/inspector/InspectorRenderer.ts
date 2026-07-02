@@ -1137,7 +1137,10 @@ export class InspectorRenderer {
         if (!prop.source) return [];
 
         if (prop.source === 'tasks') {
-            return projectTaskRegistry.getTasks('all').map(t => ({ value: t.name, label: t.name }));
+            return [
+                { value: '', label: '- Task auswählen... -' },
+                ...projectTaskRegistry.getTasks('all').map(t => ({ value: t.name, label: t.name }))
+            ];
         }
         if (prop.source === 'actions') {
             return projectActionRegistry.getActions('all').map(a => ({ value: a.name, label: a.name }));

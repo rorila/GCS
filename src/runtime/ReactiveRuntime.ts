@@ -32,12 +32,19 @@ export class ReactiveRuntime {
      * @param makeReactiveFlag Whether to wrap in Proxy (default: true)
      */
     registerObject(name: string, obj: any, makeReactiveFlag: boolean = true): any {
+        logger.info(`[BIND-DEBUG] Registering object "${name}" (ID: ${obj?.id}, Type: ${obj?.className || obj?.constructor?.name}, makeReactive: ${makeReactiveFlag})`);
         // CRITICAL: Exclude certain components from Proxy wrapping
         // These components use arrow functions with internal state that breaks when proxied
         const excludeFromProxy = ['TGameLoop', 'TGameState', 'TInputController'];
         const shouldProxy = makeReactiveFlag && !excludeFromProxy.includes(obj.className || obj.constructor?.name);
 
         const reactiveObj = shouldProxy ? makeReactive(obj, this.watcher) : obj;
+        
+        // Zuweisung des Proxys an das rohe Objekt zur Kontext-Erhaltung bei internen Aktionen
+        if (shouldProxy && obj && typeof obj === 'object') {
+            obj.__proxy__ = reactiveObj;
+        }
+
         const id = obj.id || name;
         this.objectsById.set(id, reactiveObj);
         this.objectsByName.set(name, reactiveObj);
@@ -99,6 +106,9 @@ export class ReactiveRuntime {
         // Extract dependencies from expression
         const deps = ExpressionParser.findExpressions(expression);
 
+
+        logger.info(`[BIND-DEBUG] Binding property "${targetProp}" on target "${targetObj.name || targetObj.id}" (Type: ${targetObj.className || 'Unknown'}) to expression: "${expression}". Dependencies: ${JSON.stringify(deps)}`);
+
         // Create binding
         const binding: ReactiveBinding = {
             id: bindingId,
@@ -114,6 +124,8 @@ export class ReactiveRuntime {
                 const context = this.getContext();
                 const newValue = ExpressionParser.interpolate(expression, context);
                 
+                logger.info(`[BIND-DEBUG] Evaluating "${expression}" on "${targetObj.name || targetObj.id}.${targetProp}". Result: "${newValue}". StageTimer in Context: ${context['StageTimer'] !== undefined} (Value: ${context['StageTimer'] ? JSON.stringify({ className: context['StageTimer'].className, currentInterval: context['StageTimer'].currentInterval }) : 'none'})`);
+
                 // [GCS-TRACE] Log für StringMap-Auswertung in Bindings
                 if (expression.includes('StringMap_BluePrintStage') || expression.includes('MainThemes')) {
                     const ctxMap = context['StringMap_BluePrintStage'] || context['MainThemes'];
@@ -163,9 +175,10 @@ export class ReactiveRuntime {
 
                     if (targetType === 'number' || numericProps.includes(propName) || germanNumericProps.includes(propName)) {
                         finalValue = Number(finalValue);
-                        logger.debug(`[TYPE-COERCION] Binding "${expression}" für ${targetProp} wurde von String ("${newValue}") zu Number (${finalValue}) konvertiert.`);
                     }
                 }
+
+                logger.error(`[BIND-UPDATE] Evaluating "${expression}" on "${targetObj.name || targetObj.id}.${targetProp}". Result: "${finalValue}"`);
 
                 // Update target property
                 if (targetProp.includes('.')) {
@@ -193,7 +206,9 @@ export class ReactiveRuntime {
             if (sourceObj) {
                 // Initial watch
                 const watchPath = propPath || objName;
+                logger.info(`[BIND-DEBUG] Setting up dependency watcher for "${dep}" (Source object: "${objName}", property path: "${watchPath}") on target "${targetObj.name || targetObj.id}.${targetProp}"`);
                 this.watcher.watch(sourceObj, watchPath, () => {
+                    logger.info(`[BIND-DEBUG] Dependency "${dep}" triggered update for "${targetObj.name || targetObj.id}.${targetProp}"`);
                     binding.update();
                 });
 
@@ -208,7 +223,7 @@ export class ReactiveRuntime {
                     }
                 }
             } else {
-                logger.warn(`[REACTIVE-RUNTIME] Dependency source missing: "${objName}" for expression "${expression}" (Binding ${targetObj.name || targetObj.id}.${targetProp})`);
+                logger.warn(`[REACTIVE-RUNTIME] Dependency source missing: "${objName}" for expression "${expression}" (Binding ${targetObj.name || targetObj.id}.${targetProp}). Known objects: [${Array.from(this.objectsByName.keys()).join(',')}]`);
             }
         });
 
@@ -297,7 +312,15 @@ export class ReactiveRuntime {
                 // Priority 1: Registered Object (Proxy/Component)
                 const obj = self.objectsByName.get(prop);
                 if (obj !== undefined) {
-                    if (obj.isVariable === true || obj.className?.includes('Variable')) {
+                    // CRITICAL FIX: TTimer und TIntervalTimer sind Service-Komponenten,
+                    // KEINE Datenvariablen! Auch wenn isVariable=true gesetzt ist (Legacy),
+                    // muss immer die echte Proxy-Instanz zurückgegeben werden, damit
+                    // Bindings wie ${StageTimer.currentInterval} korrekt aufgelöst werden.
+                    const TIMER_CLASSES = new Set(['TTimer', 'TIntervalTimer']);
+                    const isRealVariable = (obj.isVariable === true || obj.className?.includes('Variable'))
+                        && !TIMER_CLASSES.has(obj.className);
+
+                    if (isRealVariable) {
                         const varValue = self.variables.get(prop);
                         // IMMER den echten Component-Wert für TStringMap nutzen (dies umgeht den Empty-Proxy-Bug völlig!)
                         if (obj.className === 'TStringMap' && obj.value !== undefined) {
@@ -373,20 +396,20 @@ export class ReactiveRuntime {
      * Debug: Shows all active bindings
      */
     debug(): void {
-        logger.info('Active Bindings:');
-        this.bindings.forEach((bindingList, id) => {
+        if (this.bindings.size === 0) {
+            logger.error('Keine BindVariablen gefunden');
+            return;
+        }
+
+        logger.error('=== BIND-DUMP: Active Bindings ===');
+        this.bindings.forEach(bindingList => {
             bindingList.forEach(binding => {
                 const targetName = binding.targetObj.name || 'Unknown';
-                logger.info(`  ${id}: ${targetName}.${binding.targetProp} ← ${binding.expression}`);
-                logger.info(`    Dependencies:`, binding.dependencies);
+                logger.error(`  Binding: ${targetName}.${binding.targetProp} ← ${binding.expression}`);
+                logger.error(`    Dependencies: ${JSON.stringify(binding.dependencies)}`);
             });
         });
-
-        logger.info('Registered Objects (Names):', Array.from(this.objectsByName.keys()));
-        logger.info('Registered Objects (IDs):', Array.from(this.objectsById.keys()));
-        logger.info('Variables:', Array.from(this.variables.keys()));
-
-        this.watcher.debug();
+        logger.error('==================================');
     }
 
     /**

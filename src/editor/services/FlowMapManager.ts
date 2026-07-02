@@ -492,7 +492,7 @@ export class FlowMapManager {
         let unusedTaskCount = 0;
         let unusedVariableCount = 0;
 
-        console.group(`[FlowEditor] Action-Check Result`);
+        logger.info('[FlowEditor] Action-Check Result');
 
         this.host.nodes.forEach(node => {
             const nodeType = node.getType();
@@ -541,10 +541,9 @@ export class FlowMapManager {
 
         logger.info(`Found ${unusedActionCount} Actions, ${unusedTaskCount} Tasks, ${unusedVariableCount} Variables unused.`);
         if (unusedDetails.length > 0) {
-            console.table(unusedDetails);
+            logger.info('Unused elements:', JSON.stringify(unusedDetails, null, 2));
         } else {
             logger.info("Alles super! Keine ungenutzten Elemente gefunden.");
         }
-        console.groupEnd();
     }
 }

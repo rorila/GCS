@@ -22,8 +22,10 @@ export class PropertyHelper {
 
             // Resolve target for this step (Transparency vs Metadata)
             let target = current;
-            const isVarLike = current.isVariable === true || 
-                             (current.className && (current.className.includes('Variable') || current.className === 'TStringMap'));
+            // CRITICAL FIX: TTimer/TIntervalTimer sind Service-Komponenten, KEINE Datenvariablen.
+            const isVarLike = (current.isVariable === true || 
+                             (current.className && (current.className.includes('Variable') || current.className === 'TStringMap')))
+                             && current.className !== 'TTimer' && current.className !== 'TIntervalTimer';
                              
             if (isVarLike) {
                 target = this.resolveValue(current);
@@ -83,8 +85,10 @@ export class PropertyHelper {
      */
     static resolveValue(val: any): any {
         if (val && typeof val === 'object') {
-            const isVarLike = val.isVariable === true || 
-                             (val.className && (val.className.includes('Variable') || val.className === 'TStringMap'));
+            // CRITICAL FIX: TTimer/TIntervalTimer sind Service-Komponenten, KEINE Datenvariablen.
+            const isVarLike = (val.isVariable === true || 
+                             (val.className && (val.className.includes('Variable') || val.className === 'TStringMap')))
+                             && val.className !== 'TTimer' && val.className !== 'TIntervalTimer';
                              
             if (isVarLike) {
                 // Priority 1: Collection Data (for TObjectList, TTable, TList)

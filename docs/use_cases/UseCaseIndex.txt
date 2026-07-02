@@ -1,3 +1,11 @@
+### 2026-06-25
+[UC-2026-06-25-TimerReactiveBindingFix]
+Beschreibung: Bugfix — Behebung des reaktiven Bindings für Timer-Eigenschaften (und andere Nicht-Variablen) im Run-Mode. Zuvor wurden in `GameRuntime.initializeReactiveBindings` Eigenschaften auf den rohen Objekten statt auf den reaktiven Proxies gebunden, wodurch Eigenschaftsänderungen (z. B. `currentInterval++`) an UI-Elementen wie `TLabel` nicht den Set-Trap des Proxys auslösten und somit kein Re-Render getriggert wurde.
+Beteiligte Dateien:
+- src/runtime/GameRuntime.ts (Z. 1015-1020, 1029-1031, 1079): Ersetze `bindObjectProperties` Aufrufe durch deren reaktive Proxies (via `reactiveRuntime.getObject`) und logge alle aktiven Bindings beim Start.
+- tests/export_integrity.test.ts: Hashes für GameRuntime aktualisiert.
+Ergebnis: Timer-Werte (z.B. `${MeinTimer.currentInterval}`) werden im Run-Mode nun korrekt reaktiv in TLabel-Elementen angezeigt. Alle Tests sind grün.
+
 ### 2026-06-11
 [UC-2026-06-11-ConsoleToLoggerMigration]
 Beschreibung: Migration aller verbliebenen direkten `console.log`, `console.warn` und `console.error` Aufrufe auf den zentralen `Logger`, um die Konsistenz und Nachverfolgbarkeit von Diagnose-Logs zu erhöhen und globale Konsolen-Verschmutzung zu vermeiden.
@@ -1465,8 +1473,27 @@ Globale Kollisions-Steuerung & Panel Push-Out Fix
 - Methoden: updateServiceRecordingFilter (Zeile ~375), createToggleButton (Zeile 105, 127), createUI (Zeile 332), loadFilters (Zeile 448)
 - Beschreibung: Behebung von TS6133-Fehlern (ungenutzte Variablen objectName und eventName) sowie Ersetzung nicht erlaubter console.* Aufrufe durch den internen Logger (TDebugLog.logger) zur Erfuellung der System-Guards.
 
+---
+## UseCase: Timer Enabled Default & Reactive Startup
+- Dateien: src/components/TTimer.ts (Z. 11, 21-36, 77-96, 98-101, 171-174, 179-182), src/components/TIntervalTimer.ts (Z. 29, 36-52, 99-103, 106-109), src/runtime/ReactiveRuntime.ts (Z. 42-45), src/runtime/ReactiveProperty.ts (Z. 66), tests/timer_reactive.test.ts (Z. 1-228), scripts/test_runner.ts
+- Methoden: ReactiveRuntime.registerObject, TTimer (enabled Getter/Setter, onRuntimeStart, timerStart, timerStop), TIntervalTimer (enabled Getter/Setter, onRuntimeStart), ReactiveProperty.makeReactive
+- Beschreibung: Setzt den Standardwert für enabled in TTimer und TIntervalTimer auf false. Implementiert einen reaktiven enabled Getter/Setter zur Steuerung der Timer. Ermöglicht reaktive UI-Aktualisierungen von `${StageTimer.currentInterval}` (z. B. in Labels) bei asynchronen Timer-Ticks, indem die rohen Objekte via __proxy__-Referenz ihren Loop-Kontext (setInterval/setTimeout) im Proxy-Kontext der ReactiveRuntime ausführen. Hinzufügen einer neuen Test-Suite tests/timer_reactive.test.ts zur Absicherung des reaktiven Timer-Verhaltens.
+
+## UseCase: Timer isVariable Conflict & Label Binding Update
+- Dateien: src/components/TTimer.ts (Z. 45-47), src/runtime/ReactiveRuntime.ts (Z. 102-231), tests/timer_reactive.test.ts (Z. 213-260), public/runtime-standalone.js (durch bundle:runtime)
+- Methoden: TTimer.constructor, ReactiveRuntime.bind, runTimerReactiveTests (Test 8)
+- Beschreibung: Behebt das Problem, dass `${StageTimer.currentInterval}` in Labels nicht aktualisiert wurde. Da `TTimer` fälschlicherweise `isVariable = true` setzte, wurde er vom RuntimeVariableManager als Variable behandelt, was im reaktiven Lookup den echten TTimer-Proxy überschrieb. Durch Entfernen dieser Zuweisung wird der TTimer-Proxy korrekt aufgelöst und reaktive Label-Updates funktionieren wie erwartet. Das standalone Runtime-Bundle wurde ebenfalls neu gebaut. Zudem wurden detaillierte [BIND-DEBUG] Logeinträge in ReactiveRuntime.ts hinzugefügt, um die Fehlersuche bei Bindungs-Updates zu erleichtern.
 
 
+## UseCase: Event Unmapping & Variable Task Deletion Cleanup
+- Dateien: src/editor/inspector/InspectorRenderer.ts (Z. 1139-1142), src/editor/refactoring/TaskRefactoringService.ts (Z. 259-266), tests/refactoring_manager.test.ts (Z. 275-292)
+- Methoden: InspectorRenderer.getOptionsFromSource, TaskRefactoringService.deleteTask, runRefactoringTests (Test 10)
+- Beschreibung: Behebt das Problem, dass Event-Verknüpfungen von Timern/Variablen (über inspector_variable_events.json) nicht entkoppelt werden konnten, da bei 'tasks'-Quellen der leere Wert nicht zur Verfügung stand. getOptionsFromSource liefert nun standardmäßig eine leere Option als ersten Eintrag. Zudem wurde deleteTask so erweitert, dass auch Variablen-Events beim Löschen eines Tasks bereinigt werden. Test 10 sichert diese Bereinigung ab.
+
+## UseCase: StageTimer.currentInterval Detaillierte Fehleranalyse-Logs
+- Dateien: src/runtime/ReactiveRuntime.ts (Z. 34, 308), src/runtime/GameRuntime.ts (Z. 1008), src/runtime/ExpressionParser.ts (Z. 170, 374), public/runtime-standalone.js (durch bundle:runtime)
+- Methoden: ReactiveRuntime.registerObject, ReactiveRuntime.getContext (get Trap), GameRuntime.initializeReactiveBindings, ExpressionParser.evaluate, ExpressionParser.getNestedProperty
+- Beschreibung: Fügt detaillierte [BIND-DEBUG] Log-Einträge in die Runtime hinzu, um die Ursache der Diskrepanz bei `${StageTimer.currentInterval}` zwischen Editor und Runtime im Standalone-Modus präzise im Browser zu analysieren. Geloggt werden nun Objekt-Registrierungen, Initialisierungen von Bindings sowie die detaillierte Evaluierung von StageTimer-bezogenen Pfaden. Die Standalone-Runtime wurde neu gebaut.
 
 
 

@@ -23,6 +23,10 @@ export class UserStoryDetailManager {
         this.host = host;
     }
 
+    public setExtracted(list: any[]): void {
+        this._lastExtracted = list || [];
+    }
+
     // ═══════════════════════════════════════════════════════════
     // USER STORY DETAIL
     // ═══════════════════════════════════════════════════════════

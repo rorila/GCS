@@ -63,7 +63,7 @@ export function makeReactive<T extends object>(
                 // Do not recursively weave Proxies over structural properties that point BACKWARDS
                 // or parallel in the tree, because Chromium DevTools parses scoping trees and
                 // these cyclic properties cause infinite '__cachedProxy' path expansion crash.
-                if (property === 'parent' || property === 'stage' || property === 'children' || property === 'objects') {
+                if (property === 'parent' || property === 'stage' || property === 'children' || property === 'objects' || property === 'timerId') {
                     return value;
                 }
 
@@ -99,6 +99,10 @@ export function makeReactive<T extends object>(
                 return true;
             }
 
+            if (property === 'currentInterval' || property === '__proxy__') {
+                logger.warn(`[PROXY-SET-TRAP] property="${String(property)}" newValue=${typeof newValue === 'object' ? '[object]' : newValue} target.name="${target.name}" path="${path}" actualRoot.name="${actualRoot.name}"`);
+            }
+
             const oldValue = target[property];
 
             // Only notify if value actually changed
@@ -108,6 +112,10 @@ export function makeReactive<T extends object>(
                 const propertyPath = path ? `${path}.${property}` : property;
                 const objName = actualRoot.name || actualRoot.id || 'Unknown';
                 logger.info(`Set ${objName}.${propertyPath} = ${newValue}`);
+
+                if (property === 'currentInterval') {
+                    logger.warn(`[TIMER-DEBUG] Proxy.set FIRED: objName="${objName}" path="${propertyPath}" newValue=${newValue} old=${oldValue} actualRoot.name="${actualRoot.name}" actualRoot.id="${actualRoot.id}"`);
+                }
 
                 watcher.notify(actualRoot, propertyPath, newValue, oldValue);
             } else {

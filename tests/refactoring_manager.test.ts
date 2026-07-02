@@ -273,6 +273,23 @@ export async function runRefactoringTests(): Promise<TestResult[]> {
         addResult('Sanitize: Root-Duplikate entfernt', false, `Exception: ${e.message}`);
     }
 
+    // --- Test 10: Delete Task removes variable event bindings ---
+    try {
+        const project = createTestProject();
+        const loginStage = project.stages!.find(s => s.id === 'stage_login')!;
+        loginStage.variables = [
+            { id: 'var_test', name: 'testVar', type: 'string', events: { onValueChanged: 'AttemptLogin' } }
+        ] as any;
+
+        RefactoringManager.deleteTask(project, 'AttemptLogin');
+
+        const varEventCleared = loginStage.variables[0].events?.onValueChanged === "";
+        addResult('Delete Task: Bereinigt Variablen-Events', varEventCleared,
+            `varEventCleared=${varEventCleared}`);
+    } catch (e: any) {
+        addResult('Delete Task: Bereinigt Variablen-Events', false, `Exception: ${e.message}`);
+    }
+
     return results;
 }
 

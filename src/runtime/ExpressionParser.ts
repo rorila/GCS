@@ -169,13 +169,21 @@ export class ExpressionParser {
 
         // Handle simple property access (e.g., "playerName", "player.score")
         if (/^[a-zA-Z_$][\w.]*$/.test(trimmed)) {
-            return this.getNestedProperty(trimmed, context);
+            const res = this.getNestedProperty(trimmed, context);
+            if (trimmed.includes('StageTimer') || trimmed.includes('currentInterval')) {
+                logger.info(`[BIND-DEBUG] evaluate simple property: "${trimmed}". Result:`, res);
+            }
+            return res;
         }
 
         // Handle arithmetic and comparisons via JSEP AST Evaluator
         try {
             const ast = jsep(trimmed);
             const result = this.evaluateAST(ast, context, allowedCalls);
+
+            if (trimmed.includes('StageTimer') || trimmed.includes('currentInterval')) {
+                logger.info(`[BIND-DEBUG] evaluate AST for: "${trimmed}". Result:`, result);
+            }
 
             // Console Tracing for debugging
             if (result === undefined || (result !== result && typeof result === 'number')) {
@@ -372,7 +380,11 @@ export class ExpressionParser {
      * @returns Property value or undefined
      */
     static getNestedProperty(path: string, context: Record<string, any>): any {
-        return PropertyHelper.getPropertyValue(context, path);
+        const res = PropertyHelper.getPropertyValue(context, path);
+        if (path.includes('StageTimer') || path.includes('currentInterval')) {
+            logger.info(`[BIND-DEBUG] getNestedProperty for path: "${path}". Result:`, res);
+        }
+        return res;
     }
 
     /**

@@ -127,8 +127,19 @@ export class TTimer extends TWindow implements IRuntimeComponent {
                     return;
                 }
 
-                const proxy = (this as any).__proxy__ || this;
-                proxy.currentInterval++;
+                // Direkt auf this schreiben — falls this selbst im Proxy registriert ist,
+                // feuert der set-Trap korrekt. Falls __proxy__ auf ein anderes Objekt zeigt
+                // (sameTarget=false), schreiben wir zusätzlich über den Proxy um den
+                // richtigen Watcher zu notifizieren.
+                const proxy = (this as any).__proxy__;
+                if (proxy && (proxy as any).__target__ === this) {
+                    // Proxy referenziert this korrekt — normaler Pfad
+                    proxy.currentInterval++;
+                } else {
+                    // Fallback: Direkt schreiben + Proxy des clone aktuell halten
+                    this.currentInterval++;
+                    if (proxy) proxy.currentInterval = this.currentInterval;
+                }
 
                 // Fire onTimer event via callback (legacy)
                 if (this.onTimerCallback) {

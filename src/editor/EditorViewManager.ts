@@ -359,6 +359,7 @@ export class EditorViewManager {
     }
 
     public showInteractionDiagram(userStoryId: string, interactionId: string) {
+        this.userStoryDetailManager.setExtracted(this._lastExtractedRef.value);
         this.userStoryDetailManager['showInteractionDiagram'](userStoryId, interactionId);
     }
 

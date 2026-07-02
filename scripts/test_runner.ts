@@ -45,6 +45,7 @@ import { runInspectorWritebackTests } from '../tests/sync/inspector_writeback.te
 import { runSchemaMigratorTests } from '../tests/sync/schema_migrator.test.js';
 import { runTimerVariableTests } from '../tests/timer_variable.test.js';
 import { runSpawnObjectVariableTests } from '../tests/spawn_object_variable.test.js';
+import { runTimerReactiveTests } from '../tests/timer_reactive.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -378,6 +379,10 @@ async function main() {
 
         await timer.measure('SpawnObject Variable Support', async () => {
             allResults.push(...await runSpawnObjectVariableTests());
+        });
+
+        await timer.measure('TTimer/TIntervalTimer Reactive Properties', async () => {
+            allResults.push(...await runTimerReactiveTests());
         });
 
         // 🌐 Browser E2E Tests (Playwright)

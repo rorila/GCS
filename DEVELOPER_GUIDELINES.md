@@ -1,4 +1,4 @@
-# Developer Guidelines
+﻿# Developer Guidelines
 
 > [!CAUTION]
 > **PFLICHT-REGEL FÜR KI-AGENTEN**: Jede Code-Änderung MUSS mit `npm run test` (oder `run_tests.bat`) validiert werden. Der `docs/QA_Report.md` ist Teil der „Definition of Done". Tests VOR der Nutzer-Benachrichtigung ausführen.
@@ -518,4 +518,9 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mssen zwingen
   2. Der nackte Variablenname ohne `${}`-Wrapper zurückgegeben wird (z. B. `ScoreCounterRight` statt `${ScoreCounterRight}`), da dies als JSON-Key für die Zuweisungen (`changes`) benötigt wird.
 - **Deaktivierung von Subeigenschaften für Variablenkomponenten:** Klassen wie `TVariable`, `TThresholdVariable`, `TRangeVariable` etc. dürfen im `VariablePickerDialog` niemals Subeigenschaften (Subfields) exponieren. `getSubFields()` muss für diese Klassen ein leeres Array zurückgeben.
 
+### 27. Reaktive Timer-Komponenten & JS-Proxy-Kontext
+- **Problem:** Die `ReactiveRuntime` verpackt Komponenten in JavaScript-Proxies, um Eigenschaftsänderungen abzufangen. Der Timer-Loop (in `setInterval` / `setTimeout`) wird jedoch auf dem rohen Objekt ausgeführt, da `onRuntimeStart()` und der `enabled`-Setter auf der rohen Instanz ausgeführt werden. Dadurch umgehen Zuweisungen wie `this.currentInterval++` den Proxy, und der `PropertyWatcher` wird nicht benachrichtigt.
+- **Lösung:** Beim Registrieren eines Objekts in `registerObject` wird dem rohen Objekt eine Referenz auf seinen Proxy zugewiesen: `obj.__proxy__ = reactiveObj`. Der Timer-Loop wird dann über den Proxy gestartet (`self.start()`), sodass `this` innerhalb des Loops der Proxy ist.
+- **DO NOT:** Führe asynchrone Callbacks (wie `setInterval` im Timer), die reaktive Properties mutieren, direkt auf dem rohen Objekt aus. Verwende immer die `__proxy__`-Referenz, falls diese existiert.
+- **DO NOT:** Proxy-Wrapping auf Timeout/Interval ID-Objekten in Node.js ausführen. In Node.js gibt `setInterval` ein komplexes Timeout-Objekt zurück. Wenn dieses Objekt vom Proxy-Get-Trap reaktiv verpackt wird, schlägt der Vergleich `this.timerId !== currentId` (Geister-Tick-Schutz) fehl, da ein Proxy mit dem rohen Objekt verglichen wird. Schließe `timerId` vom Proxy-Wrapping aus.
 

@@ -75,8 +75,14 @@ export class RuntimeVariableManager {
      * This is critical for projects where variables are stored as stage components.
      */
     public importVariablesFromObjects(objects: any[]) {
+        // CRITICAL FIX: TTimer und TIntervalTimer sind Service-Komponenten, KEINE Datenvariablen!
+        // Obwohl sie im JSON mit isVariable=true markiert sein können (Legacy/User-Fehler),
+        // dürfen sie NICHT als Variable importiert werden, da sonst contextVars[name]=0
+        // die echte Proxy-Referenz überschreibt und Bindings wie ${Timer.currentInterval} brechen.
+        const EXCLUDED_TIMER_CLASSES = new Set(['TTimer', 'TIntervalTimer']);
         const variableObjects = objects.filter(o => 
             o && (o.isVariable || o.className === 'TVariable' || o.className === 'TStringMap' || o.className === 'TIntegerVariable' || o.className === 'TObjectList')
+            && !EXCLUDED_TIMER_CLASSES.has(o.className)
         );
 
         variableObjects.forEach(v => {
@@ -344,15 +350,42 @@ export class RuntimeVariableManager {
         }
 
         // c) Thresholds
-        if (typeof value === 'number' && typeof oldValue === 'number' && typeof varDef.threshold === 'number') {
-            const t = varDef.threshold;
-            if (oldValue < t && value >= t) {
+        const rawThreshold = varDef.threshold;
+        let resolvedThreshold: number | undefined;
+        if (typeof rawThreshold === 'number') {
+            resolvedThreshold = rawThreshold;
+        } else if (typeof rawThreshold === 'string' && rawThreshold.trim() !== '') {
+            const token = rawThreshold.replace(/^\$\{|\}$/g, '').trim();
+            const fromCtx = this.contextVars[token];
+            resolvedThreshold = fromCtx !== undefined ? Number(fromCtx) : Number(rawThreshold);
+        }
+
+        if (typeof value === 'number' && typeof oldValue === 'number' && resolvedThreshold !== undefined && !isNaN(resolvedThreshold)) {
+            const t = resolvedThreshold;
+            const cmp = varDef.comparison || '>=';
+
+            const compare = (v: number): boolean => {
+                switch (cmp) {
+                    case '>=': return v >= t;
+                    case '<=': return v <= t;
+                    case '>':  return v > t;
+                    case '<':  return v < t;
+                    case '==': return v === t;
+                    case '!=': return v !== t;
+                    default:   return v >= t;
+                }
+            };
+
+            const nowMet = compare(value);
+            const wasMet = compare(oldValue);
+
+            if (nowMet) {
                 await this.executeVariableEvent(varDef, 'onThresholdReached');
             }
-            if (oldValue >= t && value < t) {
+            if (!nowMet && wasMet) {
                 await this.executeVariableEvent(varDef, 'onThresholdLeft');
             }
-            if (oldValue <= t && value > t) {
+            if ((cmp === '>=' || cmp === '>') && oldValue <= t && value > t) {
                 await this.executeVariableEvent(varDef, 'onThresholdExceeded');
             }
         }
