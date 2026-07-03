@@ -24,7 +24,8 @@ function createTestProject(): GameProject {
         stages: [
             {
                 id: 'stage_main', name: 'Main Stage', type: 'standard',
-                objects: [], tasks: [], actions: [], variables: [], flowCharts: {}
+                objects: [], tasks: [], actions: [], variables: [], flowCharts: {},
+                grid: { cols: 64, rows: 40, cellSize: 18, visible: true, snapToGrid: true, backgroundColor: '#1e1e2e' }
             }
         ],
         activeStageId: 'stage_main'
@@ -80,6 +81,22 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Export Scope', ok, ok ? undefined : JSON.stringify({ task: taskScript.scope, project: projectScript.scope }));
     } catch (e: any) {
         addResult('Export Scope', false, e.message);
+    }
+
+    // --- Export Stage Config (backgroundColor + grid) ---
+    try {
+        agent.setProject(createTestProject());
+        const bg = '#10102d';
+        const grid = { cols: 80, rows: 50, cellSize: 10, snapToGrid: false, visible: true, backgroundColor: '#1a1a1a' };
+        (agent as any).project.stages[1].backgroundColor = bg;
+        (agent as any).project.stages[1].grid = grid;
+        const script = agent.exportScript({ scope: 'project' });
+        const createOp = script.operations.find(o => o.method === 'createStage' && o.params[0] === 'stage_main');
+        const exportedConfig = createOp?.params[3] as any;
+        const ok = !!createOp && exportedConfig?.backgroundColor === bg && exportedConfig?.grid?.cols === 80;
+        addResult('Export Stage Config', ok, ok ? undefined : JSON.stringify(createOp));
+    } catch (e: any) {
+        addResult('Export Stage Config', false, e.message);
     }
 
     // --- Import einfaches Skript ---

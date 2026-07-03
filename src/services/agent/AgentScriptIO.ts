@@ -163,10 +163,18 @@ export class AgentScriptIO {
 
     private exportProject(ops: AgentScriptOperation[]): void {
         const stages = this.controller.listStages();
+        const project = this.controller['project'];
         for (const stage of stages) {
-            if (stage.id) {
-                ops.push({ method: 'createStage', params: [stage.id, stage.name, stage.type || 'standard'] });
-            }
+            if (!stage.id) continue;
+            const fullStage = project?.stages?.find((s: any) => s.id === stage.id || s.name === stage.name);
+            const config: any = {};
+            if (fullStage?.backgroundColor) config.backgroundColor = fullStage.backgroundColor;
+            if (fullStage?.gameName) config.gameName = fullStage.gameName;
+            if (fullStage?.grid) config.grid = fullStage.grid;
+            const params = Object.keys(config).length > 0
+                ? [stage.id, stage.name, stage.type || 'standard', config]
+                : [stage.id, stage.name, stage.type || 'standard'];
+            ops.push({ method: 'createStage', params });
         }
         for (const stage of stages) {
             if (stage.id) this.exportStage(stage.id, ops);

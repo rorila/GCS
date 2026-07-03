@@ -451,6 +451,8 @@ export interface StageDefinition {
     // Nur bei type: 'splash'
     duration?: number;        // Anzeigedauer in ms
     autoHide?: boolean;       // Automatisch zur nächsten Stage wechseln
+    // Stage-Hintergrundfarbe (optional, verwendet statt globalem Projekt-Hintergrund)
+    backgroundColor?: string;
     // Raster-Einstellungen (Optional, falls nicht gesetzt wird globales Projekt-Grid verwendet)
     grid?: GridConfig;
 

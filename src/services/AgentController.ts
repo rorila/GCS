@@ -142,7 +142,12 @@ export class AgentController {
     // ─────────────────────────────────────────────
 
     /** Erstellt eine neue Stage. */
-    public createStage(id: string, name: string, type: 'standard' | 'blueprint' = 'standard'): void {
+    public createStage(
+        id: string,
+        name: string,
+        type: 'standard' | 'blueprint' = 'standard',
+        config?: { backgroundColor?: string; gameName?: string; grid?: any }
+    ): void {
         this.validateProjectLoaded();
         if (!this.project!.stages) this.project!.stages = [];
 
@@ -151,7 +156,7 @@ export class AgentController {
             return;
         }
 
-        this.project!.stages.push({
+        const newStage: any = {
             id, name, type,
             objects: [],
             tasks: [],
@@ -159,7 +164,12 @@ export class AgentController {
             variables: [],
             flowCharts: {},
             events: {}
-        } as any);
+        };
+        if (config?.backgroundColor) newStage.backgroundColor = config.backgroundColor;
+        if (config?.gameName) newStage.gameName = config.gameName;
+        if (config?.grid) newStage.grid = config.grid;
+
+        this.project!.stages.push(newStage);
 
         AgentController.logger.info(`Stage '${name}' (${id}) created.`);
         this.notifyChange();
