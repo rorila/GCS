@@ -79,6 +79,7 @@ export default [
         screen: 'readonly',
         Image: 'readonly',
         Audio: 'readonly',
+        alert: 'readonly',
         confirm: 'readonly',
         prompt: 'readonly',
         // Jest/Test globals
