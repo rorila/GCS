@@ -15,6 +15,7 @@ import { PromptDialog } from '../ui/PromptDialog';
 import { NotificationToast } from '../ui/NotificationToast';
 import { SchemaMigrator } from '../../services/SchemaMigrator';
 import { actionRegistry } from '../../runtime/ActionRegistry';
+import { AgentController } from '../../services/AgentController';
 
 export interface EditorDataHost {
     project: GameProject;
@@ -565,6 +566,10 @@ export class EditorDataManager {
             if ((this.host as any).inspector?.setProject) (this.host as any).inspector.setProject(data);
             if (this.host.flowEditor?.setProject) this.host.flowEditor.setProject(data);
         }
+
+        // 3b. AGENT SYNC: AgentController-Singleton auf das aktuelle Projekt setzen,
+        // damit Export/Agent-Operationen immer das geladene Projekt verwenden.
+        AgentController.getInstance().setProject(this.host.project);
 
         // 4. MIGRATIONS (Acts on the new project reference)
         if (!this.host.project.stages || this.host.project.stages.length === 0) {
