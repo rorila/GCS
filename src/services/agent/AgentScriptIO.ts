@@ -12,6 +12,16 @@ import {
 } from './AgentScriptTypes';
 
 /**
+ * Single Source of Truth: Stage-Felder, die NICHT als generische Config
+ * exportiert/übernommen werden. Positionsargumente von createStage sowie
+ * Kind-Sammlungen (werden separat über eigene Operationen exportiert).
+ */
+export const STAGE_CONFIG_EXCLUDE = new Set<string>([
+    'id', 'name', 'type',
+    'objects', 'tasks', 'actions', 'variables', 'flowCharts',
+]);
+
+/**
  * AgentScriptIO
  *
  * Exportiert und importiert AgentController-Operationen als wiederverwendbare
@@ -37,7 +47,7 @@ export class AgentScriptIO {
                 this.exportTask(options.targetId, undefined, ops);
                 break;
             case 'stage':
-                this.exportStage(options.targetId, ops);
+                this.exportStage(options.targetId, ops, true);
                 break;
             case 'project':
                 this.exportProject(ops);
@@ -130,20 +140,96 @@ export class AgentScriptIO {
         const stageParam = stageId || '${STAGE}';
         ops.push({ method: 'createTask', params: [stageParam, details.name, details.description] });
 
-        for (const item of details.sequence) {
+        // Bereits als global definiert exportierte Actions (Dedup für ensureActionDefined)
+        const definedActions = new Set<string>();
+
+        for (const item of details.sequence as any[]) {
             if ((item.type === 'action' || item.type === 'data_action') && item.name) {
                 const action = this.controller['getActionByName']?.(item.name);
                 if (action) {
                     const { name, type, ...params } = action;
                     ops.push({ method: 'addAction', params: [details.name, type, name, params] });
+                    definedActions.add(name);
                 } else {
                     this.logger.warn(`exportTask: Action '${item.name}' nicht gefunden, wird übersprungen.`);
                 }
+            } else if (item.type === 'task' && item.name) {
+                ops.push({ method: 'addTaskCall', params: [details.name, item.name] });
+            } else if (item.type === 'condition' && item.condition) {
+                // 1. Alle referenzierten Actions global definieren (Shortcut- UND Array-Form)
+                this.emitConditionActionDefs(item, ops, definedActions);
+                // 2. Vollständiges Condition-Item unverändert übernehmen
+                //    (bewahrt thenAction/elseAction/thenTask/elseTask und then/else)
+                ops.push({ method: 'addConditionItem', params: [details.name, item] });
             }
         }
     }
 
-    private exportStage(stageId: string | undefined, ops: AgentScriptOperation[]): void {
+    /**
+     * Gibt ensureActionDefined-Operationen für alle in einer Condition referenzierten
+     * Actions aus (Shortcut-Felder thenAction/elseAction sowie then/else-Arrays, rekursiv),
+     * damit sie beim Import global existieren, ohne an die Task-Top-Level-Sequenz zu hängen.
+     */
+    private emitConditionActionDefs(conditionItem: any, ops: AgentScriptOperation[], defined: Set<string>): void {
+        const defineByName = (name?: string) => {
+            if (!name || defined.has(name)) return;
+            const action = this.controller['getActionByName']?.(name);
+            if (action) {
+                const { name: actionName, type, ...params } = action;
+                ops.push({ method: 'ensureActionDefined', params: [type, actionName, params] });
+                defined.add(actionName);
+            } else {
+                this.logger.warn(`exportTask: Condition-Action '${name}' nicht gefunden, wird übersprungen.`);
+            }
+        };
+
+        const walk = (item: any) => {
+            if (!item) return;
+            defineByName(item.thenAction);
+            defineByName(item.elseAction);
+            const branches = [
+                item.then, item.else,
+                item.body, item.elseBody,
+                item.successBody, item.errorBody,
+            ];
+            for (const branch of branches) {
+                if (!Array.isArray(branch)) continue;
+                for (const it of branch) {
+                    if (!it) continue;
+                    if (it.type === 'action' || it.type === 'data_action') defineByName(it.name);
+                    walk(it); // rekursiv für verschachtelte Conditions/Loops
+                }
+            }
+        };
+        walk(conditionItem);
+    }
+
+    /**
+     * Baut die generische Stage-Config (Ansatz C): alle Skalar-/Config-Felder
+     * außer den Kind-Sammlungen und Positionsargumenten. Private Backing-Felder
+     * (`_`-Präfix) und Funktionen werden ausgeschlossen.
+     */
+    private buildStageConfig(fullStage: any): Record<string, any> {
+        const config: Record<string, any> = {};
+        if (!fullStage) return config;
+        for (const key of Object.keys(fullStage)) {
+            if (STAGE_CONFIG_EXCLUDE.has(key)) continue;
+            if (key.startsWith('_')) continue;
+            const val = fullStage[key];
+            if (val === undefined || typeof val === 'function') continue;
+            config[key] = val;
+        }
+        return config;
+    }
+
+    private buildCreateStageParams(stage: { id?: string; name: string; type?: string }, fullStage: any): any[] {
+        const config = this.buildStageConfig(fullStage);
+        return Object.keys(config).length > 0
+            ? [stage.id, stage.name, stage.type || 'standard', config]
+            : [stage.id, stage.name, stage.type || 'standard'];
+    }
+
+    private exportStage(stageId: string | undefined, ops: AgentScriptOperation[], emitCreateStage = false): void {
         if (!stageId) throw new Error('Für Stage-Export muss targetId (Stage-ID) angegeben werden.');
         const stages = this.controller.listStages();
         const stage = stages.find(s => s.id === stageId || s.name === stageId);
@@ -151,6 +237,11 @@ export class AgentScriptIO {
 
         const project = this.controller['project'];
         const fullStage = project?.stages?.find((s: any) => s.id === stageId || s.name === stageId);
+
+        // Stage selbst anlegen (nur bei eigenständigem Stage-Export, nicht im Projekt-Export)
+        if (emitCreateStage) {
+            ops.push({ method: 'createStage', params: this.buildCreateStageParams(stage, fullStage) });
+        }
 
         // Objekte exportieren
         if (fullStage?.objects) {
@@ -163,7 +254,7 @@ export class AgentScriptIO {
         // Stage-Variablen exportieren
         if (fullStage?.variables) {
             for (const v of fullStage.variables) {
-                ops.push({ method: 'addVariable', params: [v.name, v.type, v.initialValue ?? v.defaultValue, stageId] });
+                ops.push({ method: 'addVariable', params: [v.name, v.type, v.initialValue ?? v.defaultValue, v.scope || stageId] });
             }
         }
 
@@ -180,14 +271,7 @@ export class AgentScriptIO {
         for (const stage of stages) {
             if (!stage.id) continue;
             const fullStage = project?.stages?.find((s: any) => s.id === stage.id || s.name === stage.name);
-            const config: any = {};
-            if (fullStage?.backgroundColor) config.backgroundColor = fullStage.backgroundColor;
-            if (fullStage?.gameName) config.gameName = fullStage.gameName;
-            if (fullStage?.grid) config.grid = fullStage.grid;
-            const params = Object.keys(config).length > 0
-                ? [stage.id, stage.name, stage.type || 'standard', config]
-                : [stage.id, stage.name, stage.type || 'standard'];
-            ops.push({ method: 'createStage', params });
+            ops.push({ method: 'createStage', params: this.buildCreateStageParams(stage, fullStage) });
         }
         for (const stage of stages) {
             if (stage.id) this.exportStage(stage.id, ops);
@@ -286,8 +370,10 @@ export class AgentScriptIO {
             result.conflicts.push({ type: 'reference', name: '', action: 'error', message: err });
         }
 
-        // 4. Platzhalter auflösen
-        let operations = this.resolvePlaceholders(script.operations, options.placeholderValues || {}, options.targetStageId);
+        // 4. Platzhalter auflösen (Ziel-Stage zentral bestimmen → behebt ID-Mismatch)
+        const target = this.resolveTargetStageId(options.targetStageId);
+        if (target.warning) result.warnings.push(target.warning);
+        let operations = this.resolvePlaceholders(script.operations, options.placeholderValues || {}, target.id);
 
         // 5. Asset-Pfade remappen
         if (options.assetRemap && Object.keys(options.assetRemap).length > 0) {
@@ -342,6 +428,26 @@ export class AgentScriptIO {
         }
 
         return result;
+    }
+
+    /**
+     * Bestimmt die effektive Ziel-Stage-ID für die ${STAGE}-Auflösung.
+     * Existiert die angeforderte ID nicht (häufig: hartkodiertes 'stage_main'),
+     * wird auf die aktive Stage bzw. die erste main/standard-Stage zurückgefallen.
+     */
+    private resolveTargetStageId(requested?: string): { id?: string; warning?: string } {
+        const project = this.controller['project'];
+        const stages: any[] = project?.stages || [];
+        if (requested && stages.some(s => s.id === requested)) {
+            return { id: requested };
+        }
+        const fallback = project?.activeStageId
+            ?? stages.find(s => s.type === 'main' || s.type === 'standard')?.id
+            ?? stages[0]?.id;
+        const warning = requested && fallback
+            ? `Ziel-Stage '${requested}' existiert nicht. Verwende stattdessen '${fallback}'.`
+            : undefined;
+        return { id: fallback, warning };
     }
 
     private resolvePlaceholders(

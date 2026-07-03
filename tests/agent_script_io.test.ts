@@ -149,6 +149,179 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Import Stage Config', false, e.message);
     }
 
+    // --- Generischer Stage-Config-Roundtrip (Ansatz C) ---
+    try {
+        agent.setProject(createTestProject());
+        const src = (agent as any).project.stages.find((s: any) => s.id === 'stage_main');
+        src.backgroundImage = 'data:image/png;base64,BBBB';
+        src.backgroundImageMode = 'tile';
+        src.startAnimation = 'fadeIn';
+        src.startAnimationDuration = 500;
+        src.events = { onRuntimeStart: 'Boot' };
+        src.input = { keyboard: true };
+        const script = agent.exportScript({ scope: 'project' });
+
+        // In frisches Projekt importieren (createStage aktualisiert bestehende Stage generisch)
+        agent.setProject(createTestProject());
+        const result = agent.importScript(script, { conflictStrategy: 'rename' });
+        const dst = (agent as any).project.stages.find((s: any) => s.id === 'stage_main');
+        const ok = result.success
+            && dst?.backgroundImage === 'data:image/png;base64,BBBB'
+            && dst?.backgroundImageMode === 'tile'
+            && dst?.startAnimation === 'fadeIn'
+            && dst?.startAnimationDuration === 500
+            && dst?.events?.onRuntimeStart === 'Boot'
+            && dst?.input?.keyboard === true;
+        addResult('Stage-Config Roundtrip (generisch)', ok, ok ? undefined : JSON.stringify(dst));
+    } catch (e: any) {
+        addResult('Stage-Config Roundtrip (generisch)', false, e.message);
+    }
+
+    // --- ID-Mismatch: Fallback auf aktive Stage ---
+    try {
+        agent.setProject(createTestProject()); // activeStageId = 'stage_main'
+        const script: AgentScript = {
+            version: AGENT_SCRIPT_VERSION,
+            name: 'StagePlaceholder',
+            operations: [{ method: 'addVariable', params: ['hp', 'integer', 100, '${STAGE}'] }]
+        };
+        // Nicht existierende Ziel-Stage → sollte auf 'stage_main' zurückfallen + Warnung.
+        // ${STAGE} wird als 4. Param (scope) aufgelöst; addVariable legt in project.variables ab.
+        const result = agent.importScript(script, { targetStageId: 'does_not_exist', conflictStrategy: 'error' });
+        const hp = (agent as any).project.variables.find((v: any) => v.name === 'hp');
+        const ok = result.success
+            && hp?.scope === 'stage_main'
+            && result.warnings.some(w => w.includes('does_not_exist'));
+        addResult('ID-Mismatch Fallback', ok, ok ? undefined : JSON.stringify({ warnings: result.warnings, errors: result.errors }));
+    } catch (e: any) {
+        addResult('ID-Mismatch Fallback', false, e.message);
+    }
+
+    // --- Condition (FlowCondition) Roundtrip ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createTask('stage_main', 'CheckScore', 'Prüft Score');
+        agent.ensureActionDefined('calculate', 'IncWin', { formula: 'score + 10', resultVariable: 'score' });
+        agent.ensureActionDefined('calculate', 'IncLose', { formula: 'score - 5', resultVariable: 'score' });
+        agent.addBranch('CheckScore', 'score', '>', 100,
+            (b) => b.addAction('IncWin'),
+            (b) => b.addAction('IncLose'));
+
+        const script = agent.exportScript({ scope: 'task', targetId: 'CheckScore' });
+        const hasBranch = script.operations.some(o => o.method === 'addConditionItem');
+        const defCount = script.operations.filter(o => o.method === 'ensureActionDefined').length;
+
+        // In frisches Projekt importieren
+        agent.setProject(createTestProject());
+        const result = agent.importScript(script, { targetStageId: 'stage_main', conflictStrategy: 'error' });
+        const task = (agent as any).project.stages.flatMap((s: any) => s.tasks || []).find((t: any) => t.name === 'CheckScore');
+        const cond = task?.actionSequence?.find((i: any) => i.type === 'condition');
+        const ok = hasBranch && defCount === 2 && result.success
+            && cond?.condition?.variable === 'score'
+            && cond?.condition?.operator === '>'
+            && cond?.condition?.value === 100
+            && cond?.then?.[0]?.name === 'IncWin'
+            && cond?.else?.[0]?.name === 'IncLose';
+        addResult('Condition Roundtrip (Array-Form)', ok, ok ? undefined : JSON.stringify({ hasBranch, defCount, result: result.errors, cond }));
+    } catch (e: any) {
+        addResult('Condition Roundtrip (Array-Form)', false, e.message);
+    }
+
+    // --- Condition Roundtrip (Shortcut-Form: thenAction/elseAction) ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createTask('stage_main', 'ShortcutCond', '');
+        agent.ensureActionDefined('calculate', 'DoThen', { formula: 'score + 1', resultVariable: 'score' });
+        agent.ensureActionDefined('calculate', 'DoElse', { formula: 'score - 1', resultVariable: 'score' });
+        // Condition-Item in Shortcut-Form direkt anlegen (simuliert FlowEditor-Ausgabe)
+        const task0 = (agent as any).project.stages.flatMap((s: any) => s.tasks || []).find((t: any) => t.name === 'ShortcutCond');
+        task0.actionSequence.push({
+            type: 'condition',
+            name: 'Shortcut',
+            condition: { variable: 'score', operator: '==', value: 5 },
+            thenAction: 'DoThen',
+            elseAction: 'DoElse'
+        });
+
+        const script = agent.exportScript({ scope: 'task', targetId: 'ShortcutCond' });
+        const defCount = script.operations.filter(o => o.method === 'ensureActionDefined').length;
+
+        agent.setProject(createTestProject());
+        const result = agent.importScript(script, { targetStageId: 'stage_main', conflictStrategy: 'error' });
+        const task = (agent as any).project.stages.flatMap((s: any) => s.tasks || []).find((t: any) => t.name === 'ShortcutCond');
+        const cond = task?.actionSequence?.find((i: any) => i.type === 'condition');
+        const ok = defCount === 2 && result.success
+            && cond?.thenAction === 'DoThen'
+            && cond?.elseAction === 'DoElse'
+            && agent.listActions().some((a: any) => a.name === 'DoThen')
+            && agent.listActions().some((a: any) => a.name === 'DoElse');
+        addResult('Condition Roundtrip (Shortcut-Form)', ok, ok ? undefined : JSON.stringify({ defCount, result: result.errors, cond }));
+    } catch (e: any) {
+        addResult('Condition Roundtrip (Shortcut-Form)', false, e.message);
+    }
+
+    // --- Condition Roundtrip (body/elseBody-Form: FlowEditor-Format) ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createTask('stage_main', 'BodyCond', '');
+        agent.ensureActionDefined('calculate', 'DecCannons', { formula: '${CurrCannonCount}-1', resultVariable: '${CurrCannonCount}' });
+        agent.ensureActionDefined('calculate', 'LoseGame', { formula: 'score - 100', resultVariable: 'score' });
+        // Condition-Item in body/elseBody-Form (so speichert der FlowSequenceBuilder Conditions)
+        const task0 = (agent as any).project.stages.flatMap((s: any) => s.tasks || []).find((t: any) => t.name === 'BodyCond');
+        task0.actionSequence.push({
+            type: 'condition',
+            name: 'Body',
+            condition: { leftValue: '${CurrCannonCount}', rightValue: 0, operator: '>' },
+            body: [{ type: 'action', name: 'DecCannons' }],
+            elseBody: [{ type: 'action', name: 'LoseGame' }]
+        });
+
+        const script = agent.exportScript({ scope: 'task', targetId: 'BodyCond' });
+        const defCount = script.operations.filter(o => o.method === 'ensureActionDefined').length;
+
+        // In frisches Projekt importieren
+        agent.setProject(createTestProject());
+        const result = agent.importScript(script, { targetStageId: 'stage_main', conflictStrategy: 'error' });
+        const task = (agent as any).project.stages.flatMap((s: any) => s.tasks || []).find((t: any) => t.name === 'BodyCond');
+        const cond = task?.actionSequence?.find((i: any) => i.type === 'condition');
+        // Prüfen: Body-Action-Definition inkl. Formel wurde importiert
+        const decDef = (agent as any).project.stages
+            .flatMap((s: any) => s.actions || [])
+            .concat((agent as any).project.actions || [])
+            .find((a: any) => a.name === 'DecCannons');
+        const ok = defCount === 2 && result.success
+            && cond?.body?.[0]?.name === 'DecCannons'
+            && cond?.elseBody?.[0]?.name === 'LoseGame'
+            && decDef?.formula === '${CurrCannonCount}-1';
+        addResult('Condition Roundtrip (body/elseBody-Form)', ok, ok ? undefined : JSON.stringify({ defCount, result: result.errors, cond, decDef }));
+    } catch (e: any) {
+        addResult('Condition Roundtrip (body/elseBody-Form)', false, e.message);
+    }
+
+    // --- Variablen-Scope bleibt beim Export/Import erhalten (global bleibt global) ---
+    try {
+        const proj = createTestProject();
+        // Globale Variable, die in einer Stage abgelegt ist (wie 'score' in Blueprint)
+        (proj.stages![0] as any).variables.push({
+            name: 'score', type: 'number', className: 'TIntegerVariable',
+            scope: 'global', defaultValue: 0, value: 0
+        });
+        agent.setProject(proj);
+
+        const script = agent.exportScript({ scope: 'stage', targetId: 'stage_main' });
+        const addVarOp = script.operations.find(o => o.method === 'addVariable' && o.params[0] === 'score');
+        // 4. Param = scope; muss 'global' sein, NICHT die Stage-ID
+        const scopeExported = addVarOp?.params[3];
+
+        agent.setProject(createTestProject());
+        const result = agent.importScript(script, { targetStageId: 'stage_main', conflictStrategy: 'error' });
+        const scoreVar = (agent as any).project.variables.find((v: any) => v.name === 'score');
+        const ok = scopeExported === 'global' && result.success && scoreVar?.scope === 'global';
+        addResult('Variablen-Scope Roundtrip (global bleibt global)', ok, ok ? undefined : JSON.stringify({ scopeExported, scoreVar, errors: result.errors }));
+    } catch (e: any) {
+        addResult('Variablen-Scope Roundtrip (global bleibt global)', false, e.message);
+    }
+
     // --- Import einfaches Skript ---
     try {
         agent.setProject(createTestProject());

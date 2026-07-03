@@ -22,6 +22,9 @@ export class AgentScriptValidator {
         'createTask',
         'addAction',
         'addBranch',
+        'addConditionItem',
+        'ensureActionDefined',
+        'addTaskCall',
         'moveActionInSequence',
         'duplicateTask',
 

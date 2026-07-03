@@ -11,7 +11,7 @@ import { SchemaMigrator } from './SchemaMigrator';
 import { actionRegistry } from '../runtime/ActionRegistry';
 import { ThresholdComparison } from '../components/TThresholdVariable';
 import { AgentShortcutModule } from './agent/AgentShortcutModule';
-import { AgentScriptIO } from './agent/AgentScriptIO';
+import { AgentScriptIO, STAGE_CONFIG_EXCLUDE } from './agent/AgentScriptIO';
 import { AgentScript, ImportOptions, ImportResult, ExportOptions } from './agent/AgentScriptTypes';
 
 /**
@@ -141,21 +141,33 @@ export class AgentController {
     // 0. Project Structure
     // ─────────────────────────────────────────────
 
+    /**
+     * Wendet die generische Stage-Config auf ein Stage-Objekt an.
+     * Kind-Sammlungen und Positionsargumente (STAGE_CONFIG_EXCLUDE) werden
+     * übersprungen, damit config niemals objects/tasks/... überschreibt.
+     */
+    private applyStageConfig(stage: any, config?: Record<string, any>): void {
+        if (!config) return;
+        for (const key of Object.keys(config)) {
+            if (STAGE_CONFIG_EXCLUDE.has(key)) continue;
+            if (config[key] === undefined) continue;
+            stage[key] = config[key];
+        }
+    }
+
     /** Erstellt eine neue Stage. */
     public createStage(
         id: string,
         name: string,
         type: 'standard' | 'blueprint' = 'standard',
-        config?: { backgroundColor?: string; gameName?: string; grid?: any }
+        config?: Record<string, any>
     ): void {
         this.validateProjectLoaded();
         if (!this.project!.stages) this.project!.stages = [];
 
         const existingStage = this.project!.stages.find(s => s.id === id);
         if (existingStage) {
-            if (config?.backgroundColor) existingStage.backgroundColor = config.backgroundColor;
-            if (config?.gameName) existingStage.gameName = config.gameName;
-            if (config?.grid) existingStage.grid = config.grid;
+            this.applyStageConfig(existingStage, config);
             AgentController.logger.info(`Stage '${id}' updated from import config.`);
             this.notifyChange();
             return;
@@ -170,9 +182,7 @@ export class AgentController {
             flowCharts: {},
             events: {}
         };
-        if (config?.backgroundColor) newStage.backgroundColor = config.backgroundColor;
-        if (config?.gameName) newStage.gameName = config.gameName;
-        if (config?.grid) newStage.grid = config.grid;
+        this.applyStageConfig(newStage, config);
 
         this.project!.stages.push(newStage);
 
@@ -248,6 +258,7 @@ export class AgentController {
             className,
             initialValue,
             defaultValue: initialValue,
+            value: initialValue,
             scope
         };
 
@@ -618,6 +629,38 @@ export class AgentController {
         this.invalidateTaskFlow(taskName);
 
         // 7. Notify
+        this.notifyChange();
+    }
+
+    /**
+     * Serialisierbare Condition-Operation für AgentScripts.
+     * Übernimmt ein vollständiges Condition-SequenceItem unverändert (inkl. beider
+     * Branch-Darstellungen: Einzel-Shortcuts thenAction/elseAction/thenTask/elseTask
+     * UND Multi-Step-Arrays then/else). So gehen die an der Condition hängenden
+     * Aktionen beim Export/Import nicht verloren.
+     * Referenzierte Actions müssen zuvor global definiert sein (ensureActionDefined/addAction).
+     */
+    public addConditionItem(taskName: string, item: SequenceItem): void {
+        this.validateProjectLoaded();
+
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+
+        // Referenzierte Actions prüfen (Array-Form rekursiv + Shortcut-Form)
+        if (item.then) this.ensureActionsExistGlobally(item.then);
+        if (item.else) this.ensureActionsExistGlobally(item.else);
+        for (const actionName of [item.thenAction, item.elseAction]) {
+            if (actionName && !this.getActionByName(actionName)) {
+                throw new Error(
+                    `[AgentController] Action '${actionName}' is referenced in condition but not globally defined. ` +
+                    `Use addAction()/ensureActionDefined() first.`
+                );
+            }
+        }
+
+        task.actionSequence.push({ ...item, type: 'condition' });
+
+        this.invalidateTaskFlow(taskName);
         this.notifyChange();
     }
 
