@@ -151,8 +151,13 @@ export class AgentController {
         this.validateProjectLoaded();
         if (!this.project!.stages) this.project!.stages = [];
 
-        if (this.project!.stages.find(s => s.id === id)) {
-            AgentController.logger.warn(`Stage with id '${id}' already exists.`);
+        const existingStage = this.project!.stages.find(s => s.id === id);
+        if (existingStage) {
+            if (config?.backgroundColor) existingStage.backgroundColor = config.backgroundColor;
+            if (config?.gameName) existingStage.gameName = config.gameName;
+            if (config?.grid) existingStage.grid = config.grid;
+            AgentController.logger.info(`Stage '${id}' updated from import config.`);
+            this.notifyChange();
             return;
         }
 

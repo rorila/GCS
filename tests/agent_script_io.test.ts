@@ -99,6 +99,27 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Export Stage Config', false, e.message);
     }
 
+    // --- Import Stage Config (createStage mit config) ---
+    try {
+        agent.setProject(createTestProject());
+        const bg = '#10102d';
+        const gridCols = 80;
+        const script: AgentScript = {
+            version: AGENT_SCRIPT_VERSION,
+            name: 'StageConfigImport',
+            operations: [{
+                method: 'createStage',
+                params: ['stage_main', 'Main Stage', 'standard', { backgroundColor: bg, grid: { cols: gridCols, rows: 50, cellSize: 10, snapToGrid: false, visible: true, backgroundColor: '#1a1a1a' } }]
+            }]
+        };
+        const result = agent.importScript(script, { conflictStrategy: 'error' });
+        const importedStage = (agent as any).project.stages.find((s: any) => s.id === 'stage_main');
+        const ok = result.success && importedStage?.backgroundColor === bg && importedStage?.grid?.cols === gridCols;
+        addResult('Import Stage Config', ok, ok ? undefined : JSON.stringify({ result, stage: importedStage }));
+    } catch (e: any) {
+        addResult('Import Stage Config', false, e.message);
+    }
+
     // --- Import einfaches Skript ---
     try {
         agent.setProject(createTestProject());
