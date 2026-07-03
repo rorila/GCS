@@ -1,7 +1,7 @@
 import { Logger } from '../../utils/Logger';
 import { AgentController } from '../../services/AgentController';
 import { AgentScript, ExportOptions } from '../../services/agent/AgentScriptTypes';
-import type { ImportResult, ConflictStrategy } from '../../services/agent/AgentScriptTypes';
+import type { ImportResult, ConflictStrategy, ImportOptions } from '../../services/agent/AgentScriptTypes';
 
 const logger = Logger.get('AgentScriptDialog');
 
@@ -112,7 +112,10 @@ export class AgentScriptDialog {
     /**
      * Import-Dialog. Der User lädt eine .agent.json-Datei hoch und sieht eine Vorschau.
      */
-    public static showImport(onSuccess?: () => void): void {
+    public static showImport(
+        onSuccess?: () => void,
+        onReplaceProject?: (script: AgentScript, options: ImportOptions) => Promise<boolean>
+    ): void {
         const agent = AgentController.getInstance();
         const overlay = AgentScriptDialog.createOverlay();
         const dialog = AgentScriptDialog.createDialog('520px');
@@ -148,6 +151,20 @@ export class AgentScriptDialog {
             opt.text = s;
             strategySelect.appendChild(opt);
         });
+
+        const replaceContainer = document.createElement('div');
+        replaceContainer.style.cssText = 'display:none; flex-direction:column; gap:8px; padding:8px; background:#1a0f0f; border:1px solid #533; border-radius:6px;';
+        const replaceLabel = document.createElement('label');
+        replaceLabel.style.cssText = 'display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; color:#ff8a8a;';
+        const replaceCheckbox = document.createElement('input');
+        replaceCheckbox.type = 'checkbox';
+        replaceCheckbox.checked = true;
+        replaceCheckbox.style.cssText = 'width:14px; height:14px; accent-color:#e53935;';
+        const replaceText = document.createElement('span');
+        replaceText.innerText = 'Bestehendes Projekt komplett ersetzen';
+        replaceLabel.appendChild(replaceCheckbox);
+        replaceLabel.appendChild(replaceText);
+        replaceContainer.appendChild(replaceLabel);
 
         const placeholderContainer = document.createElement('div');
         placeholderContainer.style.cssText = 'display:flex; flex-direction:column; gap:8px;';
@@ -251,6 +268,8 @@ export class AgentScriptDialog {
 
         const updatePreview = (): ImportResult | null => {
             if (!currentScript) return null;
+            replaceContainer.style.display = currentScript.scope === 'project' ? 'flex' : 'none';
+            if (currentScript.scope !== 'project') replaceCheckbox.checked = false;
             const result = agent.importScript(currentScript, {
                 targetStageId: targetInput.value || undefined,
                 conflictStrategy: strategySelect.value as any,
@@ -294,18 +313,31 @@ export class AgentScriptDialog {
         const importBtn = document.createElement('button');
         importBtn.innerText = 'Importieren';
         importBtn.style.cssText = 'padding:10px; background:#2196f3; color:#fff; border:none; border-radius:6px; cursor:pointer;';
-        importBtn.onclick = () => {
+        importBtn.onclick = async () => {
             if (!currentScript) {
                 alert('Bitte zuerst eine Datei auswählen.');
                 return;
             }
+            const options: ImportOptions = {
+                targetStageId: targetInput.value || undefined,
+                conflictStrategy: strategySelect.value as any,
+                placeholderValues: collectPlaceholderValues(),
+                conflictOverrides: collectConflictOverrides(),
+            };
+            if (currentScript.scope === 'project' && replaceCheckbox.checked) {
+                if (!onReplaceProject) {
+                    alert('Projekt-Ersetzen wird in diesem Kontext nicht unterstützt.');
+                    return;
+                }
+                const ok = await onReplaceProject(currentScript, options);
+                if (ok) {
+                    close();
+                    onSuccess?.();
+                }
+                return;
+            }
             try {
-                const result = agent.importScript(currentScript, {
-                    targetStageId: targetInput.value || undefined,
-                    conflictStrategy: strategySelect.value as any,
-                    placeholderValues: collectPlaceholderValues(),
-                    conflictOverrides: collectConflictOverrides(),
-                });
+                const result = agent.importScript(currentScript, options);
                 if (result.success) {
                     alert(`Import erfolgreich: ${result.appliedOperations} Operationen angewendet.`);
                     close();
@@ -324,6 +356,7 @@ export class AgentScriptDialog {
         body.appendChild(targetInput);
         body.appendChild(strategyLabel);
         body.appendChild(strategySelect);
+        body.appendChild(replaceContainer);
         body.appendChild(placeholderContainer);
         body.appendChild(conflictContainer);
         body.appendChild(preview);

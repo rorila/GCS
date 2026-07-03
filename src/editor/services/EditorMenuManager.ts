@@ -12,6 +12,8 @@ import { PromptDialog } from '../ui/PromptDialog';
 import { NotificationToast } from '../ui/NotificationToast';
 import { AgentScriptDialog } from '../dialogs/AgentScriptDialog';
 import { AgentScriptLibrary } from '../dialogs/AgentScriptLibrary';
+import { AgentScript, ImportOptions } from '../../services/agent/AgentScriptTypes';
+import { AgentController } from '../../services/AgentController';
 
 export interface EditorMenuHost {
     project: GameProject;
@@ -46,6 +48,8 @@ export interface EditorMenuHost {
     updateStagesMenu(): void;
     updateStageLabel(): void;
     autoSaveToLocalStorage(): void;
+    createDefaultProject(): GameProject;
+    setProject(project: GameProject): void;
 }
 
 export class EditorMenuManager {
@@ -110,8 +114,14 @@ export class EditorMenuManager {
             case 'export-json-gzip': this.host.exportJSONCompressed(); break;
             case 'export-theme': this.host.exportTheme(); break;
             case 'export-agent-script': AgentScriptDialog.showExport(() => this.refreshAfterAgentScriptImport()); break;
-            case 'import-agent-script': AgentScriptDialog.showImport(() => this.refreshAfterAgentScriptImport()); break;
-            case 'agent-script-library': AgentScriptLibrary.show(() => this.refreshAfterAgentScriptImport()); break;
+            case 'import-agent-script': AgentScriptDialog.showImport(
+                () => this.refreshAfterAgentScriptImport(),
+                (script, options) => this.replaceProjectWithAgentScript(script, options)
+            ); break;
+            case 'agent-script-library': AgentScriptLibrary.show(
+                () => this.refreshAfterAgentScriptImport(),
+                (script, options) => this.replaceProjectWithAgentScript(script, options)
+            ); break;
             case 'export-exe': NotificationToast.show('Exe-Export ist für eine zukünftige Version geplant.', 'info'); break;
             case 'multiplayer':
                 const lobby = document.getElementById('multiplayer-lobby');
@@ -202,6 +212,35 @@ export class EditorMenuManager {
         this.host.autoSaveToLocalStorage();
         projectStore.setProject(this.host.project);
         mediatorService.notifyDataChanged(this.host.project, 'agent-script-import');
+    }
+
+    private async replaceProjectWithAgentScript(script: AgentScript, options: ImportOptions): Promise<boolean> {
+        const confirmed = await ConfirmDialog.show(
+            'Das aktuelle Projekt wird komplett ersetzt. Ungespeicherte Änderungen gehen verloren. Fortfahren?',
+            'Projekt ersetzen',
+            'Ersetzen',
+            'Abbrechen'
+        );
+        if (!confirmed) return false;
+
+        const previousProject = this.host.project;
+        const newProject = this.host.createDefaultProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(newProject);
+
+        const result = agent.importScript(script, options);
+        if (result.success) {
+            this.host.setProject(newProject);
+            this.host.autoSaveToLocalStorage();
+            projectStore.setProject(newProject);
+            mediatorService.notifyDataChanged(newProject, 'agent-script-import');
+            NotificationToast.show(`Projekt "${script.name || 'Import'}" erfolgreich ersetzt.`, 'success');
+            return true;
+        } else {
+            agent.setProject(previousProject);
+            alert('Projekt-Ersetzen fehlgeschlagen:\n' + result.errors.join('\n'));
+            return false;
+        }
     }
 
     public handleRecordingAction(action: string): void {

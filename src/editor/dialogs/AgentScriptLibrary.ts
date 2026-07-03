@@ -2,6 +2,7 @@ import { Logger } from '../../utils/Logger';
 import { AgentController } from '../../services/AgentController';
 import { AgentScriptRepository } from '../../services/agent/AgentScriptRepository';
 import { AgentScriptDialog } from './AgentScriptDialog';
+import type { AgentScript, ImportOptions } from '../../services/agent/AgentScriptTypes';
 
 const logger = Logger.get('AgentScriptLibrary');
 
@@ -40,7 +41,10 @@ export class AgentScriptLibrary {
         return header;
     }
 
-    public static async show(onSuccess?: () => void): Promise<void> {
+    public static async show(
+        onSuccess?: () => void,
+        onReplaceProject?: (script: AgentScript, options: ImportOptions) => Promise<boolean>
+    ): Promise<void> {
         const agent = AgentController.getInstance();
         const repo = new AgentScriptRepository('./snippets');
         const overlay = AgentScriptLibrary.createOverlay();
@@ -88,9 +92,17 @@ export class AgentScriptLibrary {
                 const importBtn = document.createElement('button');
                 importBtn.innerText = 'Importieren';
                 importBtn.style.cssText = 'padding:6px 12px; background:#2196f3; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px;';
-                importBtn.onclick = () => {
+                importBtn.onclick = async () => {
                     try {
                         const script = repo.load(entry.path);
+                        if (script.scope === 'project' && onReplaceProject) {
+                            const ok = await onReplaceProject(script, { conflictStrategy: 'rename' });
+                            if (ok) {
+                                close();
+                                onSuccess?.();
+                            }
+                            return;
+                        }
                         const result = agent.importScript(script, { targetStageId: 'stage_main', conflictStrategy: 'rename' });
                         if (result.success) {
                             alert(`Import erfolgreich: ${result.appliedOperations} Operationen.`);
@@ -110,7 +122,7 @@ export class AgentScriptLibrary {
                 previewBtn.style.cssText = 'padding:6px 12px; background:#6c63ff; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px;';
                 previewBtn.onclick = () => {
                     close();
-                    AgentScriptDialog.showImport(onSuccess);
+                    AgentScriptDialog.showImport(onSuccess, onReplaceProject);
                 };
 
                 actions.appendChild(importBtn);
@@ -128,7 +140,7 @@ export class AgentScriptLibrary {
         openImportBtn.style.cssText = 'padding:10px; background:#4caf50; color:#fff; border:none; border-radius:6px; cursor:pointer;';
         openImportBtn.onclick = () => {
             close();
-            AgentScriptDialog.showImport(onSuccess);
+            AgentScriptDialog.showImport(onSuccess, onReplaceProject);
         };
         body.appendChild(openImportBtn);
 

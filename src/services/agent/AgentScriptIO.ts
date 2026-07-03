@@ -71,6 +71,7 @@ export class AgentScriptIO {
             version: AGENT_SCRIPT_VERSION,
             name: `Export_${options.scope}_${options.targetId || Date.now()}`,
             description: `Exportiert aus ${options.scope}${options.targetId ? ` '${options.targetId}'` : ''}`,
+            scope: options.scope,
             operations: ops,
             assetPaths: this.collectAssetPaths(ops),
         };

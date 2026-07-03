@@ -187,7 +187,7 @@ export class Editor implements IViewHost {
         }
     }
 
-    private createDefaultProject(): GameProject {
+    public createDefaultProject(): GameProject {
         const blueprintStage: StageDefinition = {
             id: 'blueprint',
             name: 'Blueprint (Global)',

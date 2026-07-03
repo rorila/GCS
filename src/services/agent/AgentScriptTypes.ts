@@ -13,6 +13,7 @@ export interface AgentScript {
     description?: string;
     author?: string;
     tags?: string[];              // z.B. ["timer", "score", "ui"]
+    scope?: ExportScope;          // Export-Scope (project/stage/task/selection)
     requiredVariables?: string[]; // Variablen, die im Zielprojekt existieren müssen
     requiredStages?: string[];    // Stages, die im Zielprojekt existieren müssen
     placeholderSchema?: PlaceholderSchema[];
