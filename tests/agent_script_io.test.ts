@@ -40,6 +40,35 @@ export async function runTests(): Promise<TestResult[]> {
 
     const agent = AgentController.getInstance();
 
+    // --- Export Objekt: Getter-Properties (backgroundImage) ---
+    try {
+        agent.setProject(createTestProject());
+        // Simuliert eine Live-Instanz mit privatem Backing-Field + toDTO()-Getter-Serialisierung
+        const spriteInstance: any = {
+            className: 'TSprite',
+            name: 'ImageSprite',
+            x: 0, y: 0, width: 4, height: 4,
+            _backgroundImage: 'data:image/png;base64,AAAA',
+            toDTO() {
+                return {
+                    className: this.className,
+                    name: this.name,
+                    x: this.x, y: this.y, width: this.width, height: this.height,
+                    backgroundImage: this._backgroundImage
+                };
+            }
+        };
+        const mainStage = (agent as any).project.stages.find((s: any) => s.id === 'stage_main');
+        mainStage.objects.push(spriteInstance);
+        const script = agent.exportScript({ scope: 'project' });
+        const addOp = script.operations.find(o => o.method === 'addObject' && o.params[1]?.name === 'ImageSprite');
+        const params = addOp?.params[1] as any;
+        const ok = !!addOp && params.backgroundImage === 'data:image/png;base64,AAAA' && params._backgroundImage === undefined;
+        addResult('Export Objekt (backgroundImage)', ok, ok ? undefined : JSON.stringify(params));
+    } catch (e: any) {
+        addResult('Export Objekt (backgroundImage)', false, e.message);
+    }
+
     // --- Export eines Tasks ---
     try {
         agent.setProject(createTestProject());

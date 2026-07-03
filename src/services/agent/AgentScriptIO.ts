@@ -109,6 +109,19 @@ export class AgentScriptIO {
         return Array.from(paths);
     }
 
+    /**
+     * Serialisiert ein Stage-Objekt für den Export.
+     * Nutzt toDTO() falls verfügbar (Live-Instanz), damit Getter-Properties
+     * wie `backgroundImage` korrekt als öffentliche Felder exportiert werden
+     * (statt der privaten `_backgroundImage`-Backing-Felder).
+     */
+    private serializeObject(obj: any): any {
+        if (obj && typeof obj.toDTO === 'function') {
+            return obj.toDTO();
+        }
+        return obj;
+    }
+
     private exportTask(taskName: string | undefined, stageId: string | undefined, ops: AgentScriptOperation[]): void {
         if (!taskName) throw new Error('Für Task-Export muss targetId (Task-Name) angegeben werden.');
         const details = this.controller.getTaskDetails(taskName);
@@ -142,7 +155,7 @@ export class AgentScriptIO {
         // Objekte exportieren
         if (fullStage?.objects) {
             for (const obj of fullStage.objects) {
-                const { name, className, ...rest } = obj;
+                const { name, className, ...rest } = this.serializeObject(obj);
                 ops.push({ method: 'addObject', params: [stageId, { name, className, ...rest }] });
             }
         }
@@ -192,7 +205,7 @@ export class AgentScriptIO {
         for (const stage of project?.stages || []) {
             for (const obj of stage.objects || []) {
                 if (selection.objects?.includes(obj.name)) {
-                    const { name, className, ...rest } = obj;
+                    const { name, className, ...rest } = this.serializeObject(obj);
                     ops.push({ method: 'addObject', params: [stage.id || '${STAGE}', { name, className, ...rest }] });
                 }
             }
