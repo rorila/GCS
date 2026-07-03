@@ -53,6 +53,17 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Export Task', false, e.message);
     }
 
+    // --- Export enthält Scope ---
+    try {
+        agent.setProject(createTestProject());
+        const taskScript = agent.exportScript({ scope: 'task', targetId: 'Tick' });
+        const projectScript = agent.exportScript({ scope: 'project' });
+        const ok = taskScript.scope === 'task' && projectScript.scope === 'project';
+        addResult('Export Scope', ok, ok ? undefined : JSON.stringify({ task: taskScript.scope, project: projectScript.scope }));
+    } catch (e: any) {
+        addResult('Export Scope', false, e.message);
+    }
+
     // --- Import einfaches Skript ---
     try {
         agent.setProject(createTestProject());

@@ -238,7 +238,7 @@ export class EditorMenuManager {
             return true;
         } else {
             agent.setProject(previousProject);
-            alert('Projekt-Ersetzen fehlgeschlagen:\n' + result.errors.join('\n'));
+            NotificationToast.show('Projekt-Ersetzen fehlgeschlagen:\n' + result.errors.join('\n'), 'error');
             return false;
         }
     }

@@ -533,12 +533,13 @@ console.log(result.renamedItems);
 | 3. Repository | ✅ Erledigt | `src/services/agent/AgentScriptRepository.ts` |
 | 4. AgentScriptIO (Export/Import) | ✅ Grundgerüst erledigt | `src/services/agent/AgentScriptIO.ts` |
 | 5. AgentController-Integration | ✅ Erledigt | `src/services/AgentController.ts` |
-| 6. UI-Integration | ✅ Minimaler Dialog erledigt | `src/editor/dialogs/AgentScriptDialog.ts` |
-| 7. Tests | ✅ Grundlegend erledigt | `tests/agent_script_io.test.ts` |
+| 6. UI-Integration | ✅ Erledigt inkl. Projekt-Ersetzen | `src/editor/dialogs/AgentScriptDialog.ts` |
+| 7. Tests | ✅ Erledigt | `tests/agent_script_io.test.ts` |
 | 8. Dokumentation | ✅ Erledigt | `docs/AGENT_API_REFERENCE.md` |
 
 **Noch offen / Ausbau:**
 - Keine — Grundimplementierung abgeschlossen.
+- **Hinweis:** Projekt-Scope-Importe bieten im UI-Dialog eine Checkbox, das aktuelle Projekt komplett zu ersetzen (neues Default-Projekt + Import).
 
 ## 11. Empfohlener Start
 

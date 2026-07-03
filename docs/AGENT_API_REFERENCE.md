@@ -1525,8 +1525,10 @@ exportScript(options: ExportOptions): AgentScript
 **Beispiel:**
 ```typescript
 const script = agent.exportScript({ scope: 'task', targetId: 'Tick' });
-// → { version: '1.0', name: 'Export_task_Tick', operations: [...], assetPaths: [...] }
+// → { version: '1.0', name: 'Export_task_Tick', scope: 'task', operations: [...], assetPaths: [...] }
 ```
+
+**Hinweis:** Das exportierte AgentScript enthält das Feld `scope` (`task`, `stage`, `project` oder `selection`). Der Editor nutzt dieses Feld, um beim Import von `scope: 'project'` eine "Projekt ersetzen"-Option anzubieten.
 
 ---
 
