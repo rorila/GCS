@@ -67,13 +67,14 @@ export class AgentScriptIO {
             this.replaceWithPlaceholders(ops, options.defaultStagePlaceholder || 'STAGE');
         }
 
+        const assetPaths = this.collectAssetPaths(ops).filter(p => p.trim() !== '');
         return {
             version: AGENT_SCRIPT_VERSION,
             name: `Export_${options.scope}_${options.targetId || Date.now()}`,
             description: `Exportiert aus ${options.scope}${options.targetId ? ` '${options.targetId}'` : ''}`,
             scope: options.scope,
             operations: ops,
-            assetPaths: this.collectAssetPaths(ops),
+            assetPaths: assetPaths.length > 0 ? assetPaths : undefined,
         };
     }
 
@@ -117,11 +118,13 @@ export class AgentScriptIO {
         ops.push({ method: 'createTask', params: [stageParam, details.name, details.description] });
 
         for (const item of details.sequence) {
-            if (item.type === 'action' && item.name) {
+            if ((item.type === 'action' || item.type === 'data_action') && item.name) {
                 const action = this.controller['getActionByName']?.(item.name);
                 if (action) {
                     const { name, type, ...params } = action;
                     ops.push({ method: 'addAction', params: [details.name, type, name, params] });
+                } else {
+                    this.logger.warn(`exportTask: Action '${item.name}' nicht gefunden, wird übersprungen.`);
                 }
             }
         }

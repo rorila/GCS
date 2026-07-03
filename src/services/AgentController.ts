@@ -717,6 +717,15 @@ export class AgentController {
             if (action) return action;
         }
 
+        // Search all other Stages
+        for (const stage of this.project!.stages || []) {
+            if (stage.type === 'blueprint') continue;
+            if (stage.actions) {
+                action = stage.actions.find(a => a.name === name);
+                if (action) return action;
+            }
+        }
+
         return undefined;
     }
 

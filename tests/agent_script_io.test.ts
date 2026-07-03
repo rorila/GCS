@@ -53,6 +53,24 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Export Task', false, e.message);
     }
 
+    // --- Export Task: Action in stage.actions (nicht blueprint) ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createTask('stage_main', 'StageActionTask', '');
+        // Action direkt in stage.actions schreiben (simuliert FlowEditor-Verhalten)
+        const mainStage = (agent as any).project.stages.find((s: any) => s.id === 'stage_main');
+        if (!mainStage.actions) mainStage.actions = [];
+        const stageAction = { id: 'sa1', name: 'StageAction', type: 'property', target: 'Ball', changes: { visible: true } };
+        mainStage.actions.push(stageAction);
+        const task = (agent as any).project.stages.flatMap((s: any) => s.tasks || []).find((t: any) => t.name === 'StageActionTask');
+        if (task) task.actionSequence.push({ type: 'action', name: 'StageAction' });
+        const script = agent.exportScript({ scope: 'task', targetId: 'StageActionTask' });
+        const ok = script.operations.some(o => o.method === 'addAction' && o.params[2] === 'StageAction');
+        addResult('Export Task (Stage-Action)', ok, ok ? undefined : JSON.stringify(script.operations));
+    } catch (e: any) {
+        addResult('Export Task (Stage-Action)', false, e.message);
+    }
+
     // --- Export enthält Scope ---
     try {
         agent.setProject(createTestProject());
