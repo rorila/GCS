@@ -38,7 +38,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#fff",
             "backgroundColor": "#2196f3",
@@ -64,7 +66,9 @@
           "width": 32,
           "height": 10,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#f7c948",
             "backgroundColor": "#1a1a2e",
@@ -104,7 +108,9 @@
           "width": 4,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#fff",
             "backgroundColor": "#4caf50",
@@ -123,11 +129,29 @@
           "className": "TBooleanVariable",
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
-          "isGlobal": true,
-          "description": "System internal flag to track unsaved changes"
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
         }
       ],
       "flowCharts": {}
@@ -158,7 +182,9 @@
           "width": 24,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#f7c948",
             "fontSize": 36,
@@ -186,7 +212,9 @@
           "width": 24,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#b9b9d4",
             "fontSize": 18,
@@ -214,7 +242,9 @@
           "width": 24,
           "height": 24,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
@@ -283,7 +313,8 @@
               "x": 40,
               "y": 540
             }
-          }
+          },
+          "id": "fd5c18d8-6bab-471b-9183-9d695f47cfc5"
         },
         {
           "name": "ResetFlippedCards",
@@ -344,7 +375,8 @@
               "x": 40,
               "y": 640
             }
-          }
+          },
+          "id": "5f656577-bf51-4d93-9852-79747cb85655"
         },
         {
           "name": "HandleMatch",
@@ -397,7 +429,8 @@
               "x": 40,
               "y": 540
             }
-          }
+          },
+          "id": "1c94a5ee-7393-4149-881d-76a847e48011"
         },
         {
           "name": "ProcessSecondCard",
@@ -462,7 +495,8 @@
               "x": 40,
               "y": 540
             }
-          }
+          },
+          "id": "9a108300-731e-4ce3-8668-b225a26d17dd"
         },
         {
           "name": "ProcessCardClick",
@@ -516,7 +550,8 @@
               "x": 40,
               "y": 340
             }
-          }
+          },
+          "id": "a7aae416-726a-4217-8b72-4addd05287e9"
         },
         {
           "name": "CheckWin",
@@ -549,7 +584,8 @@
               "x": 40,
               "y": 140
             }
-          }
+          },
+          "id": "20cf8f96-d887-44b8-aa88-1f967e42f5c5"
         },
         {
           "name": "OnCardClick",
@@ -650,7 +686,8 @@
               "x": 40,
               "y": 740
             }
-          }
+          },
+          "id": "b685c52c-99b4-42e4-bc30-257eb64c7ce9"
         }
       ],
       "actions": [
@@ -700,10 +737,9 @@
           "id": "act_7_hidefirstflip",
           "name": "HideFirstFlip",
           "type": "property",
-          "target": "tempCard",
           "changes": {
-            "face": false,
-            "displayText": "?"
+            "tempCard.face": false,
+            "tempCard.displayText": "?"
           }
         },
         {
@@ -718,10 +754,9 @@
           "id": "act_9_hidesecondflip",
           "name": "HideSecondFlip",
           "type": "property",
-          "target": "tempCard",
           "changes": {
-            "face": false,
-            "displayText": "?"
+            "tempCard.face": false,
+            "tempCard.displayText": "?"
           }
         },
         {
@@ -742,18 +777,16 @@
           "id": "act_12_matchfirst",
           "name": "MatchFirst",
           "type": "property",
-          "target": "firstCard",
           "changes": {
-            "matched": true
+            "firstCard.matched": true
           }
         },
         {
           "id": "act_13_matchsecond",
           "name": "MatchSecond",
           "type": "property",
-          "target": "tempCard",
           "changes": {
-            "matched": true
+            "tempCard.matched": true
           }
         },
         {
@@ -810,10 +843,9 @@
           "id": "act_21_flipup",
           "name": "FlipUp",
           "type": "property",
-          "target": "tempCard",
           "changes": {
-            "face": true,
-            "displayText": "${tempCard.value}"
+            "tempCard.face": true,
+            "tempCard.displayText": "${tempCard.value}"
           }
         },
         {
@@ -884,7 +916,9 @@
           "width": 4,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#fff",
             "backgroundColor": "#1e1e2e",
@@ -1022,7 +1056,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1050,7 +1086,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1078,7 +1116,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1106,7 +1146,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1134,7 +1176,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1162,7 +1206,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1190,7 +1236,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1218,7 +1266,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1246,7 +1296,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1274,7 +1326,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1302,7 +1356,9 @@
           "width": 3,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -1330,5 +1386,6 @@
     "elements": [],
     "connections": []
   },
-  "activeStageId": "stage_main"
+  "activeStageId": "stage_main",
+  "schemaVersion": "4.0.0"
 }

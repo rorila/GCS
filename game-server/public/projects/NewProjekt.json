@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "MyCoolGame",
+    "name": "MovingStartButton",
     "version": "1.0.0",
-    "author": "GCS-Team",
-    "description": "Das ist mein cooles Spiel",
-    "_sourcePath": "projects/Neues_Spiel.json"
+    "author": "RolloRie",
+    "description": "",
+    "_sourcePath": "projects/NewProjekt.json"
   },
   "stage": {
     "grid": {
@@ -17,6 +17,14 @@
     }
   },
   "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
     "elements": [],
     "connections": []
   },
@@ -103,8 +111,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -120,111 +128,20 @@
     },
     {
       "id": "main",
-      "name": "MainStage",
+      "name": "Haupt-Level",
       "type": "main",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1783076939765_gkbykv5it",
-          "name": "Button_3",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Button_3",
-          "icon": ""
-        }
-      ],
-      "actions": [
-        {
-          "id": "node-1783076926565",
-          "details": "",
-          "type": "navigate_stage",
-          "name": "ShowTheHighscoreStage_Unique",
-          "showDetails": false,
-          "target": "",
-          "changes": {},
-          "reset": false
-        },
-        {
-          "id": "node-1783076929582",
-          "details": "",
-          "type": "property",
-          "name": "Action1",
-          "showDetails": false,
-          "target": "",
-          "changes": {}
-        }
-      ],
-      "tasks": [
-        {
-          "id": "00d59ed4-181c-4308-9159-2c01bf6f42c3",
-          "name": "SwitchToTheHighscoreStage",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "ShowTheHighscoreStage_Unique",
-              "type": "action"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "SwitchToTheHighscoreStage": {
-              "x": 40,
-              "y": 40
-            },
-            "ShowTheHighscoreStage_Unique": {
-              "x": 300,
-              "y": 300
-            }
-          },
-          "standaloneNodes": [
-            {
-              "id": "node-1783076929582",
-              "type": "action",
-              "x": 300,
-              "y": 300,
-              "width": 300,
-              "height": 60,
-              "properties": {
-                "name": "ShowTheHighscoreStage_Unique",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "ShowTheHighscoreStage_Unique",
-                "type": "navigate_stage",
-                "isLinked": true
-              }
-            }
-          ]
-        }
-      ],
+      "objects": [],
+      "actions": [],
+      "tasks": [],
       "variables": [],
       "grid": {
-        "cols": 60,
-        "rows": 38,
-        "cellSize": 22,
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
         "snapToGrid": true,
         "visible": true,
-        "backgroundColor": "#16da36"
-      },
-      "flowCharts": {}
+        "backgroundColor": "#ffffff"
+      }
     }
   ],
   "activeStageId": "main",

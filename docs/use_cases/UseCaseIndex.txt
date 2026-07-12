@@ -1495,5 +1495,18 @@ Globale Kollisions-Steuerung & Panel Push-Out Fix
 - Methoden: ReactiveRuntime.registerObject, ReactiveRuntime.getContext (get Trap), GameRuntime.initializeReactiveBindings, ExpressionParser.evaluate, ExpressionParser.getNestedProperty
 - Beschreibung: Fügt detaillierte [BIND-DEBUG] Log-Einträge in die Runtime hinzu, um die Ursache der Diskrepanz bei `${StageTimer.currentInterval}` zwischen Editor und Runtime im Standalone-Modus präzise im Browser zu analysieren. Geloggt werden nun Objekt-Registrierungen, Initialisierungen von Bindings sowie die detaillierte Evaluierung von StageTimer-bezogenen Pfaden. Die Standalone-Runtime wurde neu gebaut.
 
+---
+## UseCase: ESLint Git Push Blocker Fix
+- Dateien: eslint.config.js (Z. 82-84)
+- Methoden: n/a
+- Beschreibung: 'alert' als readonly Global zu eslint.config.js hinzugefügt. Behebt 9 'no-undef' Lint-Fehler, die den Git-Push wegen CI-Fehlern blockiert haben.
+
+---
+## UseCase: Audit AgentController Export/Import
+- Dateien: audit_agent_controller_io.md (Neuer Artifact-Bericht)
+- Methoden: n/a
+- Beschreibung: Durchführung eines Audits des Export/Import-Subsystems (AgentScript) des AgentControllers, das gravierende Datenverluste bei Variablen-Optionen, Task-TriggerModes und Layouts aufzeigt und Handlungsempfehlungen gibt.
+
+
 
 

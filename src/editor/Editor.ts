@@ -98,6 +98,7 @@ export class Editor implements IViewHost {
     public showAddUseCaseDialog(stageId: string, prefilled?: { className?: string, name?: string }) { this.viewManager.showAddUseCaseDialog(stageId, prefilled); }
     public navigateToFlowChart(flowChartId: string) { this.viewManager.navigateToFlowChart(flowChartId); }
     public showInteractionDiagram(userStoryId: string, interactionId: string) { this.viewManager.showInteractionDiagram(userStoryId, interactionId); }
+    public showKIGenerateDialog(): void { this.viewManager.showKIGenerateDialog(); }
 
     constructor() {
         this.designRuntime = new ReactiveRuntime();
@@ -244,7 +245,8 @@ export class Editor implements IViewHost {
             input: { player1Controls: 'arrows', player1Target: '', player1Speed: 0.2, player2Controls: 'wasd', player2Target: '', player2Speed: 0.2 },
             objects: [], splashObjects: [], splashDuration: 3000, splashAutoHide: true, actions: [], tasks: [], variables: [],
             stages: [blueprintStage, mainStage],
-            activeStageId: 'main'
+            activeStageId: 'main',
+            userStories: { userStories: [] }
         };
     }
 
@@ -576,6 +578,27 @@ export class Editor implements IViewHost {
         const freshProject = this.createProjectFromWizardData(projectData, stageData);
         this.loadProject(freshProject);
         Editor.logger.info('[NewProject] Neues Projekt mit Wizard-Konfiguration initialisiert');
+    }
+
+    public async newProjectDirect(): Promise<void> {
+        Editor.logger.info('[NewProjectDirect] newProjectDirect() aufgerufen, isProjectDirty=' + this.isProjectDirty);
+        if (this.isProjectDirty) {
+            if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich ein neues Projekt starten?')) {
+                Editor.logger.info('[NewProjectDirect] Abgebrochen durch Bestätigungsdialog');
+                return;
+            }
+        }
+        localStorage.clear();
+        const freshProject = this.createDefaultProject();
+        freshProject.meta.name = 'NewProjekt';
+        this.loadProject(freshProject);
+        Editor.logger.info('[NewProjectDirect] Leeres Projekt geladen, starte Speichervorgang...');
+        const result = await this.saveProjectToFile(true);
+        if (result.success) {
+            Editor.logger.info('[NewProjectDirect] Projekt erfolgreich gespeichert');
+        } else {
+            Editor.logger.warn('[NewProjectDirect] Speichern fehlgeschlagen: ' + result.message);
+        }
     }
 
     private createProjectFromWizardData(projectData: any, stageData: any): GameProject {

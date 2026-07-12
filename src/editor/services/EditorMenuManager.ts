@@ -22,6 +22,7 @@ export interface EditorMenuHost {
     inspector: any;
 
     newProject(): void;
+    newProjectDirect(): void;
     saveProject(): void;
     saveProjectToFile(overwriteConfirmed?: boolean): Promise<{ success: boolean; message: string }>;
     saveProjectAs(): Promise<{ success: boolean; message: string }>;
@@ -94,6 +95,7 @@ export class EditorMenuManager {
     public handleMenuAction(action: string) {
         switch (action) {
             case 'new-project': this.host.newProject(); break;
+            case 'new-project-direct': this.host.newProjectDirect(); break;
             case 'project-properties':
                 const editorVM = (this.host as any).viewManager;
                 if (editorVM && typeof editorVM.showEditProjectPropertiesDialog === 'function') {
@@ -225,11 +227,22 @@ export class EditorMenuManager {
 
         const previousProject = this.host.project;
         const newProject = this.host.createDefaultProject();
+        // Voll-Ersetzung: Default-Stages ('Haupt-Level'/Blueprint) entfernen,
+        // damit ausschließlich die Stages aus dem Script entstehen.
+        const defaultStages = newProject.stages;
+        newProject.stages = [];
+        (newProject as any).activeStageId = undefined;
+
         const agent = AgentController.getInstance();
         agent.setProject(newProject);
 
         const result = agent.importScript(script, options);
         if (result.success) {
+            // Fallback: Liefert das Script keine Stage, Default-Stages wiederherstellen
+            if (!newProject.stages || newProject.stages.length === 0) {
+                newProject.stages = defaultStages;
+            }
+            (newProject as any).activeStageId = newProject.stages?.[0]?.id;
             this.host.setProject(newProject);
             this.host.autoSaveToLocalStorage();
             projectStore.setProject(newProject);

@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "FirstSteps",
+    "name": "StepForStepTennisGame",
     "version": "1.0.0",
     "author": "RoRiLa",
     "description": "UserAction 1: erzeuge einen 2. Schläger",
-    "_sourcePath": "projects/FirstSteps.json"
+    "_sourcePath": "projects/StepForStepTennisGame.json"
   },
   "stage": {
     "grid": {
@@ -465,7 +465,8 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#ffffff"
-      }
+      },
+      "flowCharts": {}
     },
     {
       "id": "stage_842ecbf5-a640-4a22-b970-5a19b12cf97f",
@@ -5429,6 +5430,6 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "main",
+  "activeStageId": "stage_df5b1a09-9a1e-4545-b127-49daaf5fdd47",
   "schemaVersion": "4.0.0"
 }

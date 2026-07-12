@@ -1,0 +1,97 @@
+{
+  "version": "3.9.1",
+  "meta": {
+    "id": "demo_planned_userstories",
+    "name": "PlannedUserStories",
+    "version": "1.0.0",
+    "author": "GCS User",
+    "description": "Projekt mit geplanten und implementierten User Stories zum Testen des Editor-Workflows."
+  },
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": { "cols": 64, "rows": 40, "cellSize": 20, "visible": true, "backgroundColor": "#1e1e2e" },
+      "objects": [],
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_main",
+      "name": "MainStage",
+      "type": "standard",
+      "grid": { "cols": 64, "rows": 40, "cellSize": 20, "visible": true, "backgroundColor": "#0f0c29" },
+      "objects": [],
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "gameName": "MainStage",
+      "backgroundColor": "#0f0c29"
+    }
+  ],
+  "tasks": [],
+  "actions": [],
+  "objects": [],
+  "flow": { "elements": [], "connections": [] },
+  "activeStageId": "stage_main",
+  "userStories": {
+    "projectDescription": {
+      "title": "Planned User Stories Demo",
+      "description": "Demonstration geplanter Use Cases im Editor-Workflow.",
+      "genre": "Demo",
+      "targetAudience": "Entwickler",
+      "createdAt": "2026-07-11T00:00:00.000Z",
+      "updatedAt": "2026-07-11T00:00:00.000Z"
+    },
+    "userStories": [
+      {
+        "id": "userstory_planned_001",
+        "projectId": "demo_planned_userstories",
+        "title": "Button bewegt sich bei Maus-Eintritt",
+        "description": "Ein Button soll bei jedem onMouseEnter-Event an eine zufällige Position auf der Stage springen.",
+        "acceptanceCriteria": [
+          "Button reagiert auf onMouseEnter",
+          "Neue Position liegt innerhalb der Stage",
+          "Button behält Größe und Sichtbarkeit"
+        ],
+        "priority": "medium",
+        "status": "idea",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "relatedStages": ["stage_main"],
+        "interactions": [],
+        "plannedComponent": {
+          "type": "TButton",
+          "name": "MovingButton"
+        },
+        "plannedEvent": "onMouseEnter",
+        "plannedEventParam": "",
+        "plannedTask": "MoveButtonTask",
+        "plannedActions": [
+          {
+            "type": "set_property",
+            "name": "MoveButton",
+            "params": {
+              "target": "MovingButton",
+              "changes": {
+                "left": "random",
+                "top": "random"
+              }
+            }
+          }
+        ],
+        "agentControllerScript": "// -- 1. UseCase speichern ----------------------\nagentController.addUseCase('stage_main', {\n  title: 'Button bewegt sich bei Maus-Eintritt',\n  description: 'Ein Button soll bei jedem onMouseEnter-Event an eine zufaellige Position auf der Stage springen.',\n  priority: 'medium',\n  compType: 'TButton', compName: 'MovingButton',\n  eventName: 'onMouseEnter',\n  taskName: 'MoveButtonTask',\n  agentHints: 'Nutze Math.random() im Bereich [0, stage.width - button.width].',\n});\n\n// -- 2. Task erstellen --------------------------\nagentController.createTask('stage_main', 'MoveButtonTask', 'Button bewegt sich bei Maus-Eintritt');\n\n// -- 3. Actions hinzufuegen ---------------------\nagentController.addAction('MoveButtonTask', 'set_property', 'MoveButton', {\n  target: 'MovingButton',\n  changes: {\n    left: 'random',\n    top: 'random'\n  }\n});\n\n// -- 4. Event verknuepfen -----------------------\nagentController.connectEvent('stage_main', 'MovingButton', 'onMouseEnter', 'MoveButtonTask');\n\n// -- 5. Flow generieren -------------------------\nagentController.generateTaskFlow('MoveButtonTask');\n\n// -- 6. Status auf 'in_progress' setzen ----------\n// agentController.updateUseCaseStatus('<id>', 'in_progress');\n\n// Hinweise: Nutze Math.random() im Bereich [0, stage.width - button.width].",
+        "plannedCondition": "Button darf die Stage-Grenzen nicht verlassen",
+        "agentHints": "Nutze Math.random() im Bereich [0, stage.width - button.width].",
+        "tags": ["movement", "button", "mouse"],
+        "createdAt": "2026-07-11T00:00:00.000Z",
+        "updatedAt": "2026-07-11T00:00:00.000Z"
+      }
+    ]
+  }
+}

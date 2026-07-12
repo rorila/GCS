@@ -1,0 +1,626 @@
+{
+  "meta": {
+    "name": "MovingSprites",
+    "version": "1.0.0",
+    "author": "",
+    "description": "",
+    "_sourcePath": "projects/MovingSprites.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_import_1783684036149_nc",
+      "name": "Stage_MovingSprites (Import)",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "obj_import_1783684036149_l5u1",
+          "name": "LabelUeberschrift",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 23.95,
+          "y": 1.45,
+          "width": 26,
+          "height": 3,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#4ec9b0",
+            "fontSize": 28,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Sprite Collision und Boundary Test"
+        },
+        {
+          "className": "TToast",
+          "id": "obj_import_1783684036149_3jyv",
+          "name": "ToastTest",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 37,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "animation": "slide-left",
+          "position": "bottom-left",
+          "duration": 3000,
+          "maxVisible": 3,
+          "infoColor": "#2196F3",
+          "successColor": "#4CAF50",
+          "warningColor": "#FF9800",
+          "errorColor": "#F44336",
+          "textColor": "#ffffff",
+          "fontSize": 14,
+          "borderRadius": 8,
+          "padding": 12
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1783684036149_3xw7",
+          "name": "GroupPanelBlue",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18.375,
+          "y": 5.3,
+          "width": 35,
+          "height": 22,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TPanel",
+              "id": "obj_import_1783684036149_uo4g",
+              "name": "Panel_46",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 17.525,
+              "y": 4.6000000000000005,
+              "width": 5,
+              "height": 9,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": true,
+              "style": {
+                "backgroundColor": "#f0f0f0",
+                "borderColor": "#999999",
+                "borderWidth": 1
+              },
+              "caption": "",
+              "showGrid": false,
+              "gridColor": "#000000",
+              "gridStyle": "lines"
+            },
+            {
+              "className": "TSprite",
+              "id": "obj_import_1783684036149_s2mb",
+              "name": "StageSprite_2",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onBoundaryHit": "CheckStageSpriteBoundary",
+                "onCollision": "CheckStageSpriteCollision"
+              },
+              "visible": true,
+              "x": 28.159399999999998,
+              "y": 5.1000000000000005,
+              "width": 5,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": true,
+              "style": {
+                "backgroundColor": "#6bff9c",
+                "borderColor": "#333333",
+                "borderWidth": 1
+              },
+              "velocityX": 0.2,
+              "velocityY": 0,
+              "lerpSpeed": 0.1,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "backgroundImage": "",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            },
+            {
+              "className": "TSprite",
+              "id": "obj_import_1783684036149_g0nr",
+              "name": "StageSprite",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onBoundaryHit": "CheckStageSpriteBoundary",
+                "onCollision": "CheckStageSpriteCollision"
+              },
+              "visible": true,
+              "x": 1.8000000000000007,
+              "y": 4.000000000000001,
+              "width": 5,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": true,
+              "style": {
+                "backgroundColor": "#6bff9c",
+                "borderColor": "#333333",
+                "borderWidth": 1
+              },
+              "velocityX": 0.2,
+              "velocityY": 0,
+              "lerpSpeed": 0.1,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "backgroundImage": "",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            },
+            {
+              "className": "TSprite",
+              "id": "obj_import_1783684036149_cixl",
+              "name": "StageSprite_1",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onBoundaryHit": "CheckStageSpriteBoundary",
+                "onCollision": "CheckStageSpriteCollision"
+              },
+              "visible": true,
+              "x": 7.8094,
+              "y": 15.849999999999998,
+              "width": 5,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": true,
+              "style": {
+                "backgroundColor": "#6bff9c",
+                "borderColor": "#333333",
+                "borderWidth": 1
+              },
+              "velocityX": 0.2,
+              "velocityY": 0,
+              "lerpSpeed": 0.1,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "backgroundImage": "",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            }
+          ]
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_import_1783684036149_6j1f",
+          "name": "Panel_49",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 5.4094,
+          "y": 19.05,
+          "width": 9.75,
+          "height": 8.75,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1783684036149_zqb0",
+          "name": "StageSprite_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": ""
+          },
+          "visible": true,
+          "x": 1,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.2,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1783684036149_x07t",
+          "name": "StageSprite_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": ""
+          },
+          "visible": true,
+          "x": 5,
+          "y": 6,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.2,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1783684036149_uz06",
+          "name": "StageSprite_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckStageSpriteBoundary",
+            "onCollision": "CheckStageSpriteCollision"
+          },
+          "visible": true,
+          "x": 54.625,
+          "y": 4,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0.2,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_import_1783684036150_p1uw",
+          "details": "",
+          "name": "Act_ChangeStageSpriteXDirection",
+          "showDetails": false,
+          "changes": {
+            "self.velocityX": true
+          },
+          "type": "negate"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "CheckStageSpriteBoundary",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ChangeStageSpriteXDirection",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckStageSpriteBoundary": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ChangeStageSpriteXDirection": {
+              "x": 40,
+              "y": 140
+            }
+          },
+          "id": "5d62f716-4d49-4fea-9d26-0bf779363f0e"
+        },
+        {
+          "name": "CheckStageSpriteCollision",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ChangeStageSpriteXDirection",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckStageSpriteCollision": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ChangeStageSpriteXDirection": {
+              "x": 40,
+              "y": 140
+            }
+          },
+          "id": "f0ca9bb2-39bc-4773-ba71-62884ae47bcc"
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#173464"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    }
+  ],
+  "activeStageId": "stage_import_1783684036149_nc",
+  "schemaVersion": "4.0.0"
+}

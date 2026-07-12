@@ -48,6 +48,7 @@ export interface IViewHost {
     showAddUseCaseDialog(stageId: string, prefilled?: { className?: string, name?: string }): void;
     navigateToFlowChart(flowChartId: string): void;
     showInteractionDiagram(userStoryId: string, interactionId: string): void;
+    showKIGenerateDialog(): void;
 }
 
 export type ViewType = 'stage' | 'json' | 'run' | 'flow' | 'code' | 'management' | 'iframe' | 'userstories';
@@ -361,6 +362,39 @@ export class EditorViewManager {
     public showInteractionDiagram(userStoryId: string, interactionId: string) {
         this.userStoryDetailManager.setExtracted(this._lastExtractedRef.value);
         this.userStoryDetailManager['showInteractionDiagram'](userStoryId, interactionId);
+    }
+
+    public showKIGenerateDialog(): void {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;';
+
+        const dialog = document.createElement('div');
+        dialog.style.cssText = 'background:#1a1a2e;border:1px solid #3a3a6a;border-radius:8px;padding:24px;width:80%;height:80%;max-width:900px;display:flex;flex-direction:column;';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;';
+
+        const title = document.createElement('h2');
+        title.textContent = '🤖 KI-Projekt-Generierung';
+        title.style.cssText = 'margin:0;color:#fff;font-size:18px;';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style.cssText = 'padding:4px 12px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;font-size:13px;';
+        closeBtn.onclick = () => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
+
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+        dialog.appendChild(header);
+
+        const content = document.createElement('div');
+        content.style.cssText = 'flex:1;overflow:hidden;position:relative;';
+        dialog.appendChild(content);
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        this.managementViewManager.renderKIGenerateView(content);
     }
 
     private renderIFrameView(panel: HTMLElement) {

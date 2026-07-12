@@ -1,0 +1,1923 @@
+{
+  "meta": {
+    "name": "Test",
+    "version": "1.0.0",
+    "author": "Test",
+    "description": "",
+    "_sourcePath": "projects/Test.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        },
+        {
+          "className": "TGameLoop",
+          "id": "game_loop",
+          "name": "GameLoop",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 7,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "boundaryMode": "clamp",
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
+        },
+        {
+          "className": "TStringMap",
+          "id": "obj_1778078189689_ku2xm95ca",
+          "name": "ImageBase64List",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 10,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#00897b",
+            "borderColor": "#00695c",
+            "borderWidth": 2
+          },
+          "entries": {}
+        },
+        {
+          "className": "TVariable",
+          "id": "44ea9704-9133-443e-9ae5-da01e9608a58",
+          "name": "KanonenTemplateBreite",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 13,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "35ad891e-fc1f-4ec0-bbf2-7578c6dbb044",
+          "name": "KanonenTemplateHoehe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 16,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1778166396523_i3n2poccb",
+          "name": "KanonenBasisXPos",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 19,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1778166423969_ch4resxyp",
+          "name": "KanonenBasisYPos",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 22,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1778177527680_5hv5tgzi8",
+          "name": "UfoTemplateXOffset",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 25,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1778509803973_dpofxet4k",
+          "name": "CurrSpriteName",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 28,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "value": "Kanone",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1778509970925_oe2ytsndx",
+          "name": "CurrCannonCount",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 31,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "value": "${MaxCannons}",
+          "objectModel": ""
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1778602644962_ta3gauggs",
+          "name": "StickyNote_39",
+          "scope": "global",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Kanonen-Variablen",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 8,
+          "y": 13,
+          "width": 11,
+          "height": 25,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "KanonenTemplateBreite: Breite,\n\nKanonenTemplateHoehe: Höhe,\n\nKanonenBasisXPos: x-Position,\n\nKanonenBasisYPos:y-Position,\n\nUfoTemplateXOffset: \nx-Offset (wird berechnet), Der Abstand zwischen Basis und Kanone\n\nCurrSpriteName: \nAktueller Name der Kanone,\n(z.B. \"KanonenTemplate_pool_\"+3),\n\nCurrCannonCount:\nAktuelle Anzahl der Kanonen,\n(diese Zahl wird für den Zusammenbau des Namens genötigt)\n\nMaxCannons:\nMaximale Anzahl der Kanonen\n\nNull:\nWann soll das Spiel beendet sein. Ist eine Hilfsvariable, weil die Action nicht auf literal funktioniert."
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1778603167028_djwvhh3uv",
+          "name": "MaxCannons",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 34,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "value": 3,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1778603514991_vdou2ahnb",
+          "name": "MaxUfos",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 21,
+          "y": 13,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "value": 10,
+          "objectModel": ""
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1778603643792_vfj7hu6ho",
+          "name": "StickyNote_38",
+          "scope": "global",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Ufo-Variablen",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 28,
+          "y": 13,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Maximal Anzahl der Ufos"
+        },
+        {
+          "className": "TTimer",
+          "id": "fd84a0fb-7812-478c-b535-02d79dce4bdc",
+          "name": "CreateSpritesTimer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "UfoTimerSendetNeuesUfo"
+          },
+          "visible": true,
+          "x": 21,
+          "y": 0,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 1000,
+          "enabled": false,
+          "maxInterval": "${MaxUfos}",
+          "currentInterval": 0
+        },
+        {
+          "className": "TTimer",
+          "id": "58868dab-b5ee-4c1f-865c-cd7c5e4bb9f7",
+          "name": "SchussTimer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "UfoSchiesst"
+          },
+          "visible": true,
+          "x": 21,
+          "y": 3,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 1000,
+          "enabled": false,
+          "maxInterval": 0,
+          "currentInterval": 0
+        },
+        {
+          "className": "TTimer",
+          "id": "a0f3a428-b323-4f66-836f-b66a0a1301e4",
+          "name": "KanonenTemplateTimer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "ZeigeRestKanonenAn"
+          },
+          "visible": true,
+          "x": 21,
+          "y": 6,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 500,
+          "enabled": false,
+          "maxInterval": "${MaxCannons}",
+          "currentInterval": 0
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1778603871946_04iaaj1c3",
+          "name": "StickyNote_39",
+          "scope": "global",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Timer",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 27,
+          "y": 0,
+          "width": 11,
+          "height": 8,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Ufo Erzeugung\n\nSchuss Erzeugung\n\nKanonen Erzeugung"
+        },
+        {
+          "className": "TAudio",
+          "id": "534a3b84-3890-4b74-be96-04c87d095b48",
+          "name": "aud_schuss",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 50,
+          "y": 0,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "/audio/pingpong-hit.wav",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        },
+        {
+          "className": "TAudio",
+          "id": "f7cccb75-47f9-4b00-8ee9-4d264fb0eec7",
+          "name": "aud_Treffer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 50,
+          "y": 3,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "/audio/ball_lost.wav",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1778604047159_mas65sk2p",
+          "name": "StickyNote_39",
+          "scope": "global",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Audios",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 56,
+          "y": 0,
+          "width": 7,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "opacity": 1
+          },
+          "text": "Schuss,\n\nTreffer"
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1778608102757_utr42rhgp",
+          "name": "Null",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 37,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "value": 0,
+          "objectModel": ""
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "score",
+          "scope": "blueprint",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "number",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "main",
+      "name": "Haupt-Level",
+      "type": "main",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    },
+    {
+      "id": "stage_fc0d59d8-6d35-471f-95cb-db41b1b33dc0",
+      "name": "Level2",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TSpriteTemplate",
+          "id": "obj_import_1778766554175_vx6n",
+          "name": "BulletTemplate",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "KanonenKugelTrifftZiel",
+            "onBoundaryHit": "KanonenKugelTrifftRand"
+          },
+          "visible": true,
+          "x": 30,
+          "y": 34,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": -1,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "cannonBulletGroup",
+          "pushOutOnCollision": false,
+          "shape": "circle",
+          "spriteColor": "#ffff00",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0,
+          "poolSize": 20,
+          "autoRecycle": true,
+          "lifetime": 5
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1778766554175_vzrm",
+          "name": "Kanone",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "KanoneTrifftRand",
+            "onCollision": "KanoneWirdGetroffen"
+          },
+          "visible": true,
+          "x": 31,
+          "y": 33,
+          "width": 4,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "fontFamily": "Arial",
+            "textAlign": "left",
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#00ccff",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1778766554175_ru83",
+          "name": "ScoreLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 1,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#e9e2e2",
+            "fontSize": 24,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Score: ${score}"
+        },
+        {
+          "className": "TInputController",
+          "id": "obj_import_1778766554175_cp36",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowLeft": "KanoneBewegtSichNachLinks",
+            "onKeyDown_ArrowRight": "KanoneBewegtSichNachRechts",
+            "onKeyUp_ArrowLeft": "KanoneTrifftRand",
+            "onKeyUp_ArrowRight": "KanoneTrifftRand",
+            "onKeyDown_Space": "KanoneSchiesst"
+          },
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TVirtualGamepad",
+          "id": "obj_import_1778766554175_p3nq",
+          "name": "VirtualGamepad_11",
+          "scope": "stage",
+          "isService": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 50,
+          "y": 31,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#00ffcc",
+            "borderWidth": 1,
+            "opacity": 0.8
+          },
+          "layoutStyle": "split",
+          "splitVerticalAlignment": "bottom",
+          "autoHideOnDesktop": true,
+          "scale": 1
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_import_1778766554175_39nn",
+          "name": "UfoBasis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 57,
+          "y": 5,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TSpriteTemplate",
+          "id": "obj_import_1778766554175_2qlw",
+          "name": "UfoTemplate",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "UfoWirdGetroffen",
+            "onBoundaryHit": "UfoTriffRand",
+            "onCollisionBottom": ""
+          },
+          "visible": true,
+          "x": 51,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": -0.3,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "UfoCollisionGroup",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "rect",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 3,
+          "hitboxHeight": 2,
+          "poolSize": "${MaxUfos}",
+          "autoRecycle": true,
+          "lifetime": 0
+        },
+        {
+          "className": "TSpriteTemplate",
+          "id": "obj_import_1778766554175_qa97",
+          "name": "UfoBulletTemplate",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "",
+            "onBoundaryHit": ""
+          },
+          "visible": true,
+          "x": 52,
+          "y": 4,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0.3,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "circle",
+          "spriteColor": "#ffff00",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0,
+          "poolSize": 20,
+          "autoRecycle": true,
+          "lifetime": 5
+        },
+        {
+          "className": "TSpriteTemplate",
+          "id": "obj_import_1778766554175_14zs",
+          "name": "KanonenTemplate",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "KanoneTrifftRand"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 35,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": true,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 1,
+          "hitboxOffsetY": 1,
+          "hitboxWidth": 2,
+          "hitboxHeight": 2,
+          "poolSize": "${MaxCannons}",
+          "autoRecycle": false,
+          "lifetime": 0
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_import_1778766554175_lc6u",
+          "name": "KanonenBasis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 38,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1778766554175_s5xb",
+          "name": "currPoolSizeLbl",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 1,
+          "width": 34,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#e9e2e2",
+            "fontSize": 24,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Aktuelle Kanonenanzahl:  ${CurrCannonCount}"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1778767040203_gja64wuz8",
+          "name": "Button_44",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "TestLooserStage"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 36,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_44",
+          "icon": ""
+        }
+      ],
+      "tasks": [
+        {
+          "name": "KanonenKugelTrifftZiel",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanonenKugelTrifftZiel": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "KanoneBewegtSichNachRechts",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneBewegtSichNachRechts": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "KanoneBewegtSichNachLinks",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneBewegtSichNachLinks": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "KanoneTrifftRand",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneTrifftRand": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "KanoneSchiesst",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneSchiesst": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "KanonenKugelTrifftRand",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanonenKugelTrifftRand": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "UfoTriffRand",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoTriffRand": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "UfoTimerSendetNeuesUfo",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoTimerSendetNeuesUfo": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "UfoSchiesst",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoSchiesst": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "UfoWirdGetroffen",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoWirdGetroffen": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "ZeigeRestKanonenAn",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ZeigeRestKanonenAn": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "UfoKugelTrifftKanone",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoKugelTrifftKanone": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "KanoneWirdGetroffen",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "KanoneWirdGetroffen": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "StringTest",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StringTest": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "ShowANewCannon",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowANewCannon": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "SetANewCannon",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetANewCannon": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "SchalteTimerEin",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SchalteTimerEin": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "StarteUfos",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StarteUfos": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "StarteSchuesse",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StarteSchuesse": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "StarteKannonen",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StarteKannonen": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "NegateTest",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "NegateTest": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "TestLooserStage",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "TestLooserStage": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        }
+      ],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    },
+    {
+      "id": "stage-1777881916084",
+      "name": "Stage 2",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TSprite",
+          "id": "obj_1777881927301_0g5fffbrq",
+          "name": "Ufo",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 25,
+          "y": 3,
+          "width": 16,
+          "height": 8,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777881952035_gj1e61v2y",
+          "name": "Btn_Explore",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "LetUfoExplore"
+          },
+          "visible": true,
+          "x": 29,
+          "y": 29,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#15e5b1",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "explodieren",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1777882528084_pa5any6pd",
+          "name": "Btn_Shake",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "LetUfoShake"
+          },
+          "visible": true,
+          "x": 29,
+          "y": 26,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#15e5b1",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "schütteln",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "abc7645a-0018-489b-8a41-d73f5bb6f4e6",
+          "name": "Btn_Grow",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "LetUfoGrow"
+          },
+          "visible": true,
+          "x": 29,
+          "y": 23,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#15e5b1",
+            "fontFamily": "Arial",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "vergrößern",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "569db27d-0172-400a-b7d3-cc615eff12cd",
+          "name": "Btn_Shrink",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "LetTheUfoShrink"
+          },
+          "visible": true,
+          "x": 29,
+          "y": 20,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "color": "#15e5b1",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "verkleinern",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1778085255998_pbdmvrfct",
+          "name": "Btn_MoveLeft",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "LetUfoMoveLeft"
+          },
+          "visible": true,
+          "x": 41,
+          "y": 20,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "bewegen",
+          "icon": ""
+        }
+      ],
+      "tasks": [
+        {
+          "name": "LetUfoExplore",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LetUfoExplore": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "LetUfoShake",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LetUfoShake": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "LetUfoGrow",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LetUfoGrow": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "LetTheUfoShrink",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LetTheUfoShrink": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        },
+        {
+          "name": "LetUfoMoveLeft",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "LetUfoMoveLeft": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        }
+      ],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    },
+    {
+      "id": "stage-1778766620478",
+      "name": "LooserStage",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "obj_1778766681665_zopymj03k",
+          "name": "Label_43",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 13,
+          "width": 39,
+          "height": 14,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#d42121",
+            "fontSize": 128,
+            "fontWeight": "bold",
+            "fontStyle": "italic",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Verloren!!!"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1778769112756_g89jjm2jb",
+          "name": "Button_45",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "StartANewGame"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 6,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Spiel neu starten",
+          "icon": ""
+        }
+      ],
+      "tasks": [
+        {
+          "name": "StartANewGame",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StartANewGame": {
+              "x": 400,
+              "y": 50
+            }
+          }
+        }
+      ],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    },
+    {
+      "id": "stage-1779032565270",
+      "name": "Stage 4",
+      "type": "standard",
+      "objects": [],
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    }
+  ],
+  "activeStageId": "stage-1777881916084",
+  "schemaVersion": "4.0.0"
+}

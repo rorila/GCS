@@ -103,7 +103,7 @@ export class AgentScriptLibrary {
                             }
                             return;
                         }
-                        const result = agent.importScript(script, { targetStageId: 'stage_main', conflictStrategy: 'rename' });
+                        const result = agent.importScript(script, { conflictStrategy: 'rename' });
                         if (result.success) {
                             alert(`Import erfolgreich: ${result.appliedOperations} Operationen.`);
                             close();

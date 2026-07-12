@@ -453,6 +453,9 @@ export class EditorDataManager {
     public loadProject(data: any, sourcePath?: string) {
         if (!data) return;
 
+        // UserStories-Container normalisieren (Initialisierung, Migration, Sicherheitsnetz)
+        SchemaMigrator.ensureUserStories(data);
+
         // Lade-Zeitpunkt merken: autoSaveToLocalStorage ignoriert die ersten 2s danach
         this._loadedAt = Date.now();
         

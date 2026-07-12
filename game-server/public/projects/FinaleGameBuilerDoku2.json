@@ -59,6 +59,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#9c27b0",
@@ -90,6 +91,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#2196f3",
@@ -123,6 +125,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#00897b",
@@ -154,6 +157,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#00897b",
@@ -182,6 +186,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -211,6 +216,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#00897b",
@@ -253,6 +259,7 @@
           "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -286,6 +293,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -310,6 +318,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -339,6 +348,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 12,
@@ -361,7 +371,8 @@
           "name": "Act_SwitchToHelloWorldStage",
           "showDetails": false,
           "type": "navigate_stage",
-          "stageId": "stage_8854790a-7e7d-4ad4-b26f-5eabb4d1d252"
+          "stageId": "stage_8854790a-7e7d-4ad4-b26f-5eabb4d1d252",
+          "reset": false
         }
       ],
       "tasks": [
@@ -386,7 +397,8 @@
               "x": 280,
               "y": 40
             }
-          }
+          },
+          "id": "b6b5cb91-7d59-4ad9-9252-0737fba9115f"
         }
       ],
       "variables": [],
@@ -422,6 +434,7 @@
           "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -455,6 +468,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontWeight": "normal",
@@ -500,6 +514,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -533,6 +548,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
@@ -568,6 +584,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -592,6 +609,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -624,6 +642,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -648,6 +667,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -680,6 +700,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -704,6 +725,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -736,6 +758,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -760,6 +783,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -819,6 +843,7 @@
           "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -855,6 +880,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -888,6 +914,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
@@ -917,7 +944,8 @@
           "target": "Btn_Start",
           "x": 50,
           "y": 20,
-          "easing": "easeInOut"
+          "easing": "easeInOut",
+          "duration": 500
         },
         {
           "id": "node-1777017918638",
@@ -931,7 +959,8 @@
           "name": "Act_ShowOnMouseLeaveToast",
           "showDetails": false,
           "type": "show_toast",
-          "message": "Event: OnMouseLeave"
+          "message": "Event: OnMouseLeave",
+          "toastType": "info"
         }
       ],
       "tasks": [
@@ -956,7 +985,8 @@
               "x": 280,
               "y": 40
             }
-          }
+          },
+          "id": "58002196-506d-486e-9e02-d5aa36b51335"
         },
         {
           "name": "ShowOnClick",
@@ -979,7 +1009,8 @@
               "x": 240,
               "y": 40
             }
-          }
+          },
+          "id": "d25f66c5-a940-4f23-a170-6554e9a1d948"
         },
         {
           "name": "ShowOnMouseLeave",
@@ -1002,7 +1033,8 @@
               "x": 280,
               "y": 40
             }
-          }
+          },
+          "id": "063392f4-20dd-4b0f-a7a2-f05849e91014"
         }
       ],
       "variables": [],
@@ -1049,6 +1081,7 @@
           "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -1080,6 +1113,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
@@ -1108,13 +1142,14 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 18.75,
+          "x": 18.375,
           "y": 5.3,
           "width": 35,
           "height": 22,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -1132,13 +1167,14 @@
               "droppable": false,
               "dragMode": "move",
               "visible": true,
-              "x": 22,
-              "y": 5,
+              "x": 17.525,
+              "y": 4.6000000000000005,
               "width": 5,
               "height": 9,
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": true,
               "style": {
                 "backgroundColor": "#f0f0f0",
                 "borderColor": "#999999",
@@ -1169,6 +1205,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": true,
               "style": {
                 "backgroundColor": "#6bff9c",
                 "borderColor": "#333333",
@@ -1177,8 +1214,8 @@
               "velocityX": 0.2,
               "velocityY": 0,
               "lerpSpeed": 0.1,
-              "collisionEnabled": true,
               "collisionGroup": "default",
+              "pushOutOnCollision": false,
               "shape": "rect",
               "spriteColor": "#ff6b6b",
               "backgroundImage": "",
@@ -1212,6 +1249,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": true,
               "style": {
                 "backgroundColor": "#6bff9c",
                 "borderColor": "#333333",
@@ -1220,8 +1258,8 @@
               "velocityX": 0.2,
               "velocityY": 0,
               "lerpSpeed": 0.1,
-              "collisionEnabled": true,
               "collisionGroup": "default",
+              "pushOutOnCollision": false,
               "shape": "rect",
               "spriteColor": "#ff6b6b",
               "backgroundImage": "",
@@ -1255,6 +1293,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": true,
               "style": {
                 "backgroundColor": "#6bff9c",
                 "borderColor": "#333333",
@@ -1263,8 +1302,8 @@
               "velocityX": 0.2,
               "velocityY": 0,
               "lerpSpeed": 0.1,
-              "collisionEnabled": true,
               "collisionGroup": "default",
+              "pushOutOnCollision": false,
               "shape": "rect",
               "spriteColor": "#ff6b6b",
               "backgroundImage": "",
@@ -1296,6 +1335,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
@@ -1307,30 +1347,6 @@
           "gridStyle": "lines"
         },
         {
-          "className": "TButton",
-          "id": "obj_1777394295533_1i5uix1yz",
-          "name": "Button_50",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 6.2094000000000005,
-          "y": 13.7,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Button_50",
-          "icon": ""
-        },
-        {
           "className": "TSprite",
           "id": "5158190c-125c-44f9-9a47-cb477717d0e2",
           "name": "StageSprite_3",
@@ -1340,16 +1356,17 @@
           "dragMode": "move",
           "events": {
             "onBoundaryHit": "CheckStageSpriteBoundary",
-            "onCollision": "CheckStageSpriteCollision"
+            "onCollision": ""
           },
           "visible": true,
-          "x": 2.309375,
+          "x": 1.934375,
           "y": 1.8,
           "width": 5,
           "height": 2,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "backgroundColor": "#ff6b6b",
             "borderColor": "#333333",
@@ -1358,8 +1375,8 @@
           "velocityX": 0.2,
           "velocityY": 0,
           "lerpSpeed": 0.1,
-          "collisionEnabled": true,
           "collisionGroup": "default",
+          "pushOutOnCollision": false,
           "shape": "rect",
           "spriteColor": "#ff6b6b",
           "backgroundImage": "",
@@ -1383,16 +1400,17 @@
           "dragMode": "move",
           "events": {
             "onBoundaryHit": "CheckStageSpriteBoundary",
-            "onCollision": "CheckStageSpriteCollision"
+            "onCollision": ""
           },
           "visible": true,
-          "x": 5.168775,
+          "x": 5.1688,
           "y": 9.35,
           "width": 5,
           "height": 2,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "backgroundColor": "#ff6b6b",
             "borderColor": "#333333",
@@ -1401,8 +1419,8 @@
           "velocityX": 0.2,
           "velocityY": 0,
           "lerpSpeed": 0.1,
-          "collisionEnabled": true,
           "collisionGroup": "default",
+          "pushOutOnCollision": false,
           "shape": "rect",
           "spriteColor": "#ff6b6b",
           "backgroundImage": "",
@@ -1429,13 +1447,14 @@
             "onCollision": "CheckStageSpriteCollision"
           },
           "visible": true,
-          "x": 56.86877500000001,
+          "x": 55.74400000000001,
           "y": 7.35,
           "width": 5,
           "height": 2,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "backgroundColor": "#ff6b6b",
             "borderColor": "#333333",
@@ -1444,8 +1463,8 @@
           "velocityX": 0.2,
           "velocityY": 0,
           "lerpSpeed": 0.1,
-          "collisionEnabled": true,
           "collisionGroup": "default",
+          "pushOutOnCollision": false,
           "shape": "rect",
           "spriteColor": "#ff6b6b",
           "backgroundImage": "",
@@ -1458,49 +1477,6 @@
           "hitboxOffsetY": 0,
           "hitboxWidth": 0,
           "hitboxHeight": 0
-        },
-        {
-          "className": "TSpriteTemplate",
-          "id": "obj_1777734043497_upyocnj0y",
-          "name": "SpriteTemplate_54",
-          "scope": "stage",
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 4.7,
-          "y": 5.75,
-          "width": 5.95,
-          "height": 2.2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "#ff6b6b",
-            "borderColor": "#333333",
-            "borderWidth": 1
-          },
-          "velocityX": 0,
-          "velocityY": 0,
-          "lerpSpeed": 0.1,
-          "collisionEnabled": true,
-          "collisionGroup": "default",
-          "shape": "rect",
-          "spriteColor": "#ff6b6b",
-          "backgroundImage": "",
-          "objectFit": "contain",
-          "imageListId": "",
-          "imageIndex": 0,
-          "customHitbox": false,
-          "hitboxShape": "auto",
-          "hitboxOffsetX": 0,
-          "hitboxOffsetY": 0,
-          "hitboxWidth": 0,
-          "hitboxHeight": 0,
-          "poolSize": 10,
-          "autoRecycle": true,
-          "lifetime": 0
         }
       ],
       "actions": [
@@ -1513,7 +1489,8 @@
           "target": "Btn_Start",
           "x": 50,
           "y": 20,
-          "easing": "easeInOut"
+          "easing": "easeInOut",
+          "duration": 500
         },
         {
           "id": "node-1777017918638",
@@ -1527,17 +1504,8 @@
           "name": "Act_ShowOnMouseLeaveToast",
           "showDetails": false,
           "type": "show_toast",
-          "message": "Event: OnMouseLeave"
-        },
-        {
-          "id": "node-1777312550434",
-          "details": "",
-          "name": "Act_ChangePanelSpriteXDirection",
-          "showDetails": false,
-          "type": "negate",
-          "changes": {
-            "PanelSprite.velocityX": ""
-          }
+          "message": "Event: OnMouseLeave",
+          "toastType": "info"
         },
         {
           "id": "node-1777312703616",
@@ -1548,65 +1516,6 @@
             "self.velocityX": true
           },
           "type": "negate"
-        },
-        {
-          "id": "node-1777473181114",
-          "details": "",
-          "name": "Act_GetStageSpriteYPosition",
-          "showDetails": false,
-          "type": "variable",
-          "variableName": "${CurrentYPositionStageSprite.value}",
-          "source": "self",
-          "sourceProperty": "y"
-        },
-        {
-          "id": "node-1777473508202",
-          "details": "",
-          "name": "Act_CalculateNewStageSpriteYPosition",
-          "showDetails": false,
-          "type": "calculate",
-          "resultVariable": "${NextYPositionStageSprite.value}",
-          "formula": "${CurrentYPositionStageSprite.value} +${StageSpriteSprungWeite.value}"
-        },
-        {
-          "id": "node-1777482270650",
-          "details": "",
-          "name": "Act_GetStageSpriteXPosition",
-          "showDetails": false,
-          "type": "variable",
-          "target": "PanelSprite",
-          "variableName": "${XPositionStageSprite.value}",
-          "source": "self",
-          "sourceProperty": "x"
-        },
-        {
-          "id": "node-1777484607193",
-          "details": "",
-          "name": "MoveTheSprite",
-          "showDetails": false,
-          "type": "move_to",
-          "target": "self",
-          "x": "${currentXPos}",
-          "y": "${newYPos}"
-        },
-        {
-          "id": "node-1777646755979",
-          "details": "",
-          "name": "CalcNextYPos",
-          "showDetails": false,
-          "type": "calculate",
-          "resultVariable": "${newYPos}",
-          "formula": "${self.y} +2"
-        },
-        {
-          "id": "node-1777648034483",
-          "details": "",
-          "name": "GetXPos",
-          "showDetails": false,
-          "type": "variable",
-          "variableName": "${currentXPos}",
-          "sourceProperty": "${self.x}",
-          "value": "${self.x}"
         }
       ],
       "tasks": [
@@ -1631,7 +1540,8 @@
               "x": 280,
               "y": 40
             }
-          }
+          },
+          "id": "8aa808de-318c-4dd2-bca2-d81b8d84d182"
         },
         {
           "name": "ShowOnClick",
@@ -1654,7 +1564,8 @@
               "x": 240,
               "y": 40
             }
-          }
+          },
+          "id": "10204226-36ee-48c2-afc1-854795906b12"
         },
         {
           "name": "ShowOnMouseLeave",
@@ -1677,15 +1588,16 @@
               "x": 280,
               "y": 40
             }
-          }
+          },
+          "id": "0956bc37-0baa-4795-bfcf-ee704d2c67aa"
         },
         {
           "name": "CheckStageSpriteBoundary",
           "description": "",
           "actionSequence": [
             {
-              "type": "task",
-              "name": "CheckStageSpriteCollision"
+              "name": "Act_ChangeStageSpriteXDirection",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -1695,11 +1607,12 @@
               "x": 40,
               "y": 40
             },
-            "CheckStageSpriteCollision": {
+            "Act_ChangeStageSpriteXDirection": {
               "x": 40,
               "y": 140
             }
-          }
+          },
+          "id": "5d62f716-4d49-4fea-9d26-0bf779363f0e"
         },
         {
           "name": "CheckStageSpriteCollision",
@@ -1707,18 +1620,6 @@
           "actionSequence": [
             {
               "name": "Act_ChangeStageSpriteXDirection",
-              "type": "action"
-            },
-            {
-              "name": "GetXPos",
-              "type": "action"
-            },
-            {
-              "name": "CalcNextYPos",
-              "type": "action"
-            },
-            {
-              "name": "MoveTheSprite",
               "type": "action"
             }
           ],
@@ -1732,147 +1633,9 @@
             "Act_ChangeStageSpriteXDirection": {
               "x": 40,
               "y": 140
-            },
-            "GetXPos": {
-              "x": 40,
-              "y": 260
-            },
-            "CalcNextYPos": {
-              "x": 40,
-              "y": 380
-            },
-            "MoveTheSprite": {
-              "x": 40,
-              "y": 500
-            },
-            "currentYPos": {
-              "x": 560,
-              "y": 200
-            },
-            "currentXPos": {
-              "x": 560,
-              "y": 100
-            },
-            "newYPos": {
-              "x": 560,
-              "y": 300
             }
           },
-          "standaloneNodes": [
-            {
-              "id": "node-1777644346614",
-              "type": "VariableDecl",
-              "x": 560,
-              "y": 200,
-              "width": 240,
-              "height": 60,
-              "properties": {
-                "name": "currentYPos",
-                "details": "",
-                "description": "",
-                "text": "🔒 currentYPos: string [lokal]"
-              },
-              "data": {
-                "variable": {
-                  "name": "currentYPos",
-                  "type": "string",
-                  "scope": "local",
-                  "value": "${self.y}",
-                  "isVariable": true
-                }
-              }
-            },
-            {
-              "id": "node-1777645527148",
-              "type": "VariableDecl",
-              "x": 560,
-              "y": 100,
-              "width": 240,
-              "height": 60,
-              "properties": {
-                "name": "currentXPos",
-                "details": "",
-                "description": "",
-                "text": "🔒 currentXPos: integer [lokal]"
-              },
-              "data": {
-                "variable": {
-                  "name": "currentXPos",
-                  "type": "integer",
-                  "scope": "local",
-                  "value": "${self.x}",
-                  "defaultValue": "",
-                  "isVariable": true
-                }
-              }
-            },
-            {
-              "id": "node-1777647264967",
-              "type": "VariableDecl",
-              "x": 560,
-              "y": 300,
-              "width": 240,
-              "height": 60,
-              "properties": {
-                "name": "newYPos",
-                "details": "",
-                "description": "",
-                "text": "🔒 newYPos: integer [lokal]"
-              },
-              "data": {
-                "variable": {
-                  "name": "newYPos",
-                  "type": "integer",
-                  "scope": "local",
-                  "isVariable": true
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "CheckPanelSpriteBoundary",
-          "description": "",
-          "actionSequence": [
-            {
-              "type": "task",
-              "name": "CheckStageSpriteCollision"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "CheckPanelSpriteBoundary": {
-              "x": 40,
-              "y": 40
-            },
-            "CheckStageSpriteCollision": {
-              "x": 40,
-              "y": 140
-            }
-          }
-        },
-        {
-          "name": "CheckPanelSpriteCollision",
-          "description": "",
-          "actionSequence": [
-            {
-              "type": "task",
-              "name": "CheckStageSpriteCollision"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "CheckPanelSpriteCollision": {
-              "x": 40,
-              "y": 40
-            },
-            "CheckStageSpriteCollision": {
-              "x": 40,
-              "y": 140
-            }
-          }
+          "id": "f0ca9bb2-39bc-4773-ba71-62884ae47bcc"
         }
       ],
       "variables": [],
@@ -1919,6 +1682,7 @@
           "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -1955,6 +1719,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -1988,6 +1753,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
@@ -2023,6 +1789,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -2050,6 +1817,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": true,
               "style": {
                 "backgroundColor": "#ff6b6b",
                 "borderColor": "#333333",
@@ -2058,8 +1826,8 @@
               "velocityX": 0.3,
               "velocityY": 0,
               "lerpSpeed": 0.1,
-              "collisionEnabled": true,
               "collisionGroup": "default",
+              "pushOutOnCollision": false,
               "shape": "rect",
               "spriteColor": "#ff6b6b",
               "backgroundImage": "",
@@ -2098,6 +1866,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -2124,7 +1893,8 @@
           "target": "Btn_Start",
           "x": 50,
           "y": 20,
-          "easing": "easeInOut"
+          "easing": "easeInOut",
+          "duration": 500
         },
         {
           "id": "node-1777017918638",
@@ -2138,7 +1908,8 @@
           "name": "Act_ShowOnMouseLeaveToast",
           "showDetails": false,
           "type": "show_toast",
-          "message": "Event: OnMouseLeave"
+          "message": "Event: OnMouseLeave",
+          "toastType": "info"
         },
         {
           "id": "node-1777308917453",
@@ -2183,7 +1954,8 @@
               "x": 280,
               "y": 40
             }
-          }
+          },
+          "id": "016e54cb-0eb2-4cc7-99da-b20e477f0da0"
         },
         {
           "name": "ShowOnClick",
@@ -2206,7 +1978,8 @@
               "x": 240,
               "y": 40
             }
-          }
+          },
+          "id": "1566687d-60eb-4f7a-8f43-20cfae4c2db1"
         },
         {
           "name": "ShowOnMouseLeave",
@@ -2229,7 +2002,8 @@
               "x": 280,
               "y": 40
             }
-          }
+          },
+          "id": "1bd03640-6769-40fc-a9a5-42ad6006b24b"
         },
         {
           "name": "CheckStageSpriteBoundary",
@@ -2252,7 +2026,8 @@
               "x": 300,
               "y": 40
             }
-          }
+          },
+          "id": "d7870d97-c149-40f7-a58b-64a5e60da9fb"
         }
       ],
       "variables": [],
@@ -2299,6 +2074,7 @@
           "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -2328,6 +2104,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -2357,6 +2134,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
             "borderColor": "#e91e63",
@@ -2384,6 +2162,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -2415,6 +2194,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -2442,6 +2222,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -2471,6 +2252,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(76,175,80,0.15)",
             "borderColor": "#4caf50",
@@ -2498,6 +2280,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -2527,6 +2310,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
             "borderColor": "#ff9800",
@@ -2554,6 +2338,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -2583,6 +2368,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#dcdcaa",
             "fontSize": 20,
@@ -2612,6 +2398,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -2661,6 +2448,7 @@
           "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -2691,6 +2479,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -2715,6 +2504,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -2764,6 +2554,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "${BluePanelConfig.Hintergrundfarbe}",
             "borderColor": "${BluePanelConfig.Rahmenfarbe}",
@@ -2791,6 +2582,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
             "borderColor": "#e91e63",
@@ -2818,6 +2610,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -2847,6 +2640,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(76,175,80,0.15)",
             "borderColor": "#4caf50",
@@ -2874,6 +2668,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
             "borderColor": "#ff9800",
@@ -2901,6 +2696,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -2931,6 +2727,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -2955,6 +2752,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -2985,6 +2783,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
             "borderColor": "#e91e63",
@@ -3010,6 +2809,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "rgba(76,175,80,0.15)",
             "backgroundColor": "rgba(76,175,80,0.15)",
@@ -3036,6 +2836,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
             "borderColor": "#ff9800",
@@ -3060,6 +2861,7 @@
           "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -3089,6 +2891,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -3119,6 +2922,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -3143,6 +2947,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -3175,6 +2980,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
             "borderColor": "#e91e63",
@@ -3199,6 +3005,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -3231,6 +3038,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "rgba(76,175,80,0.15)",
             "backgroundColor": "rgba(76,175,80,0.15)",
@@ -3256,6 +3064,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -3288,6 +3097,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
             "borderColor": "#ff9800",
@@ -3312,6 +3122,7 @@
               "zIndex": 0,
               "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#d4d4d4",
                 "fontSize": 15,
@@ -3343,6 +3154,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -3374,6 +3186,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -3403,6 +3216,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -3434,6 +3248,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -3465,6 +3280,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -3496,6 +3312,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "rgba(33,150,243,0.15)",
@@ -3535,6 +3352,7 @@
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -3576,5 +3394,6 @@
     "onTouchStart",
     "onTouchMove",
     "onTouchEnd"
-  ]
+  ],
+  "schemaVersion": "4.0.0"
 }

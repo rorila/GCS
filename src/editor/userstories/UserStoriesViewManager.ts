@@ -1,5 +1,6 @@
 import type { IViewHost } from '../EditorViewManager';
 import { UserStoryExtractor } from './UserStoryExtractor';
+import type { UserStory } from './UserStoryTypes';
 
 export class UserStoriesViewManager {
     private host: IViewHost;
@@ -39,9 +40,9 @@ export class UserStoriesViewManager {
         const filterPriority = (document.getElementById('userstories-filter-priority') as HTMLSelectElement)?.value || 'all';
         const project = this.host.project;
         const activeStage = this.host.getActiveStage();
-        const projectDesc = (project as any).projectDescription || {};
+        const projectDesc = (project.userStories?.projectDescription || {}) as any;
 
-        const projTitle = projectDesc.title || (project as any).title || '(Kein Titel)';
+        const projTitle = projectDesc.title || project.meta?.name || '(Kein Titel)';
         const projGenre = projectDesc.genre ? `Genre: ${projectDesc.genre}` : '';
         const projAudience = projectDesc.targetAudience ? `Zielgruppe: ${projectDesc.targetAudience}` : '';
         const projInfo = [projGenre, projAudience].filter(Boolean).join(' | ');
@@ -56,6 +57,7 @@ export class UserStoriesViewManager {
                     <button onclick="window.configureProject()" style="padding: 4px 12px; background-color: #7b1fa2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">🧙 Projekt konfigurieren</button>
                     <button onclick="window.addStage()" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">+ Stage hinzufügen</button>
                     <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
+                    <button onclick="window.generateWithAI()" style="padding: 4px 12px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">🤖 KI generieren</button>
                 </div>
             </div>
         `;
@@ -75,8 +77,16 @@ export class UserStoriesViewManager {
             UserStoryExtractor.extractInteractionsFromStage(project, stage)
         );
 
-        const allComponents = ['all', ...Array.from(new Set(allExtractedFull.map(i => i.triggerComponent?.componentName || '').filter(Boolean))).sort()];
-        const allEvents = ['all', ...Array.from(new Set(allExtractedFull.map(i => i.event?.eventName || '').filter(Boolean))).sort()];
+        const plannedStories = project.userStories?.userStories || [];
+
+        const allComponents = ['all', ...Array.from(new Set([
+            ...allExtractedFull.map(i => i.triggerComponent?.componentName || ''),
+            ...plannedStories.map((us: any) => us.plannedComponent?.name || us.plannedComponent?.type || '')
+        ].filter(Boolean))).sort()];
+        const allEvents = ['all', ...Array.from(new Set([
+            ...allExtractedFull.map(i => i.event?.eventName || ''),
+            ...plannedStories.map((us: any) => us.plannedEvent || '')
+        ].filter(Boolean))).sort()];
         const allStageOptions = ['all', ...allStages.map(s => s.id)];
 
         const componentOptions = allComponents.map(c =>
@@ -209,8 +219,79 @@ export class UserStoriesViewManager {
             return stageRow + useCaseRows;
         }).join('');
 
+        const plannedBlock = (() => {
+            const statusCfg: Record<string, {label: string, color: string}> = {
+                completed: { label: '✓ Abgeschlossen', color: '#2e7d32' },
+                in_progress: { label: '⟳ In Arbeit', color: '#1565c0' },
+                idea: { label: '💡 Idee', color: '#555577' },
+                blocked: { label: '✗ Blockiert', color: '#b71c1c' }
+            };
+            const priorityCfg: Record<string, {label: string, color: string}> = {
+                high: { label: '🔴 Hoch', color: '#b71c1c' },
+                medium: { label: '🟡 Mittel', color: '#e65100' },
+                low: { label: '🟢 Niedrig', color: '#2e7d32' }
+            };
+            const badgeStyle = (bg: string) => `display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff;background:${bg};margin-left:6px;`;
+
+            const filteredPlanned = (plannedStories as any[]).filter((us: any) => {
+                const matchStage = filterStage === 'all' || (us.relatedStages || []).includes(filterStage);
+                const matchComponent = filterComponent === 'all' ||
+                    (us.plannedComponent?.name === filterComponent) ||
+                    (us.plannedComponent?.type === filterComponent);
+                const matchEvent = filterEvent === 'all' || (us.plannedEvent || '') === filterEvent;
+                const matchStatus = filterStatus === 'all' || us.status === filterStatus;
+                const matchPriority = filterPriority === 'all' || us.priority === filterPriority;
+                return matchStage && matchComponent && matchEvent && matchStatus && matchPriority;
+            });
+
+            filteredPlanned.sort((a, b) => {
+                const compA = (a.plannedComponent?.name || a.plannedComponent?.type || '') as string;
+                const compB = (b.plannedComponent?.name || b.plannedComponent?.type || '') as string;
+                const eventA = (a.plannedEvent || '') as string;
+                const eventB = (b.plannedEvent || '') as string;
+                if (sortOption === 'event-type') {
+                    const cmp = eventA.localeCompare(eventB);
+                    return cmp !== 0 ? cmp : compA.localeCompare(compB);
+                }
+                const cmpC = compA.localeCompare(compB);
+                return cmpC !== 0 ? cmpC : eventA.localeCompare(eventB);
+            });
+
+            const plannedRows = filteredPlanned.length === 0
+                ? `<div style="padding: 8px 16px; color: #9090b0; font-size: 13px; font-style: italic;">Keine geplanten Use Cases gefunden.</div>`
+                : filteredPlanned.map((us: any) => {
+                    const sBadge = statusCfg[us.status || 'idea'] || statusCfg['idea'];
+                    const pBadge = priorityCfg[us.priority || 'medium'] || priorityCfg['medium'];
+                    const componentLabel = us.plannedComponent?.name || us.plannedComponent?.type || '(keine Komponente)';
+                    const eventLabel = us.plannedEvent ? `🎯 ${us.plannedEvent}` : '';
+                    const taskLabel = us.plannedTask ? `⚙️ ${us.plannedTask}` : '';
+                    return `
+                        <div style="${rowStyle}">
+                            <div>
+                                <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${us.title || '(kein Titel)'}</span>
+                                <span style="${badgeStyle(sBadge.color)}">${sBadge.label}</span>
+                                <span style="${badgeStyle(pBadge.color)}">${pBadge.label}</span>
+                                ${taskLabel ? `<span style="${badgeStyle('#1a6b8a')}">${taskLabel}</span>` : ''}
+                                <div style="color: #9090c0; font-size: 12px; margin-top: 2px;">${componentLabel} ${eventLabel}</div>
+                                ${us.description ? `<div style="${descStyle}">${us.description}</div>` : ''}
+                                ${us.agentHints ? `<div style="${descStyle}">💡 Agent-Hinweis: ${us.agentHints}</div>` : ''}
+                            </div>
+                            <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                                <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
+                                <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            const header = `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #1a2744; border: 1px solid #2a3a6a; border-radius: 6px; margin-bottom: 4px; margin-top: 12px;">
+                                <div><span style="font-size: 11px; font-weight: bold; color: #60a0e0; text-transform: uppercase; letter-spacing: 1px; margin-right: 10px;">Geplant</span><span style="font-weight: bold; font-size: 14px; color: #d0e0ff;">Geplante Use Cases</span></div>
+                            </div>`;
+            return header + plannedRows;
+        })();
+
         lastExtractedRef.value = allExtracted;
-        listElement.innerHTML = projectRow + filterBar + stageBlocks;
+        listElement.innerHTML = projectRow + filterBar + stageBlocks + plannedBlock;
 
         (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
         (window as any).configureProject = () => this.host.showConfigureProjectDialog();
@@ -226,8 +307,11 @@ export class UserStoriesViewManager {
         (window as any).editStageDescription = (stageId: string) => this.showStageDescriptionEditor(stageId);
         (window as any).navigateToFlowChart = (flowChartId: string) => this.host.navigateToFlowChart(flowChartId);
         (window as any).showInteractionDiagram = (storyId: string, interactionId: string) => this.host.showInteractionDiagram(storyId, interactionId);
+        (window as any).generateWithAI = () => this.host.showKIGenerateDialog();
         (window as any).editUseCaseManual = (interactionId: string) => this.editUseCaseManual(interactionId, allExtracted);
         (window as any).deleteUseCaseManual = (interactionId: string) => this.deleteUseCaseManual(interactionId);
+        (window as any).editUserStory = (userStoryId: string) => this.editUserStory(userStoryId);
+        (window as any).deleteUserStory = (userStoryId: string) => this.deleteUserStory(userStoryId);
 
         this.bindFilterBarListeners();
     }
@@ -299,7 +383,8 @@ export class UserStoriesViewManager {
         const modal = document.getElementById('userstories-edit-modal');
         if (!modal) return;
         const project = this.host.project;
-        const pd = (project as any).projectDescription || {};
+        if (!project.userStories) (project as any).userStories = { userStories: [] };
+        const pd = (project.userStories as any).projectDescription || {};
 
         modal.style.display = 'block';
         modal.innerHTML = `
@@ -307,7 +392,7 @@ export class UserStoriesViewManager {
                 <div style="background: #1a1a2e; border: 1px solid #3a3a6a; border-radius: 8px; padding: 24px; width: 500px; color: #e0e0e0;">
                     <h3 style="margin: 0 0 16px 0; color: #fff;">Projektbeschreibung bearbeiten</h3>
                     <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Titel</label>
-                        <input id="pd-title" type="text" value="${pd.title || (project as any).title || ''}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
+                        <input id="pd-title" type="text" value="${pd.title || project.meta?.name || ''}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
                     <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Beschreibung</label>
                         <textarea id="pd-description" rows="3" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">${pd.description || ''}</textarea></div>
                     <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Genre</label>
@@ -323,12 +408,15 @@ export class UserStoriesViewManager {
         `;
         document.getElementById('pd-cancel')?.addEventListener('click', () => { modal.style.display = 'none'; modal.innerHTML = ''; });
         document.getElementById('pd-save')?.addEventListener('click', () => {
-            if (!(project as any).projectDescription) (project as any).projectDescription = {};
-            const projDesc = (project as any).projectDescription;
+            if (!(project.userStories as any).projectDescription) (project.userStories as any).projectDescription = {};
+            const projDesc = (project.userStories as any).projectDescription;
             projDesc.title = (document.getElementById('pd-title') as HTMLInputElement).value;
             projDesc.description = (document.getElementById('pd-description') as HTMLTextAreaElement).value;
             projDesc.genre = (document.getElementById('pd-genre') as HTMLInputElement).value;
             projDesc.targetAudience = (document.getElementById('pd-audience') as HTMLInputElement).value;
+            if (!projDesc.id) projDesc.id = project.meta?.id || project.meta?.name || `pd_${Date.now()}`;
+            if (!projDesc.createdAt) projDesc.createdAt = new Date().toISOString();
+            projDesc.updatedAt = new Date().toISOString();
             this.host.isProjectDirty = true;
             modal.style.display = 'none';
             modal.innerHTML = '';
@@ -397,12 +485,19 @@ export class UserStoriesViewManager {
                 existingStory.description = description;
                 existingStory.status = status;
                 existingStory.priority = priority;
+                existingStory.updatedAt = new Date();
             } else {
                 project.userStories!.userStories!.push({
                     id: `us_${Date.now()}`,
+                    projectId: project.meta?.id || project.meta?.name || '',
                     title, description,
+                    acceptanceCriteria: [],
+                    relatedComponents: [],
+                    relatedVariables: [],
+                    relatedStages: [],
                     interactions: [{ id: interactionId }],
-                    priority, status,
+                    priority: priority as UserStory['priority'],
+                    status: status as UserStory['status'],
                     createdAt: new Date(), updatedAt: new Date()
                 });
             }
@@ -419,6 +514,67 @@ export class UserStoriesViewManager {
         project.userStories.userStories = project.userStories.userStories.filter((us: any) =>
             !(us.interactions || []).some((i: any) => i.id === interactionId)
         );
+        this.host.isProjectDirty = true;
+        this.host.renderUserStoriesList();
+    }
+
+    public editUserStory(userStoryId: string) {
+        const modal = document.getElementById('userstories-edit-modal');
+        if (!modal) return;
+        const project = this.host.project;
+        const userStory = (project.userStories?.userStories || []).find((us: any) => us.id === userStoryId);
+        if (!userStory) return;
+
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+                <div style="background: #1a1a2e; border: 1px solid #3a3a6a; border-radius: 8px; padding: 24px; width: 500px; color: #e0e0e0;">
+                    <h3 style="margin: 0 0 16px 0; color: #fff;">Geplanten Use Case bearbeiten</h3>
+                    <div style="margin-bottom: 4px; color: #9090c0; font-size: 12px;">${userStory.title || ''}</div>
+                    <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Titel</label>
+                        <input id="us-title" type="text" value="${userStory.title || ''}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
+                    <div style="margin-bottom: 12px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Beschreibung</label>
+                        <textarea id="us-description" rows="3" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">${userStory.description || ''}</textarea></div>
+                    <div style="display:flex;gap:12px;margin-bottom:16px;">
+                        <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">Status</label>
+                            <select id="us-status" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;">
+                                <option value="completed" ${userStory.status === 'completed' ? 'selected' : ''}>✓ Abgeschlossen</option>
+                                <option value="in_progress" ${userStory.status === 'in_progress' ? 'selected' : ''}>⟳ In Arbeit</option>
+                                <option value="idea" ${userStory.status === 'idea' ? 'selected' : ''}>💡 Idee</option>
+                                <option value="blocked" ${userStory.status === 'blocked' ? 'selected' : ''}>✗ Blockiert</option>
+                            </select></div>
+                        <div style="flex:1;"><label style="display:block;margin-bottom:4px;font-size:13px;">Priorität</label>
+                            <select id="us-priority" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;">
+                                <option value="high" ${userStory.priority === 'high' ? 'selected' : ''}>🔴 Hoch</option>
+                                <option value="medium" ${userStory.priority === 'medium' ? 'selected' : ''}>🟡 Mittel</option>
+                                <option value="low" ${userStory.priority === 'low' ? 'selected' : ''}>🟢 Niedrig</option>
+                            </select></div>
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button id="us-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
+                        <button id="us-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('us-cancel')?.addEventListener('click', () => { modal.style.display = 'none'; modal.innerHTML = ''; });
+        document.getElementById('us-save')?.addEventListener('click', () => {
+            userStory.title = (document.getElementById('us-title') as HTMLInputElement).value;
+            userStory.description = (document.getElementById('us-description') as HTMLTextAreaElement).value;
+            userStory.status = (document.getElementById('us-status') as HTMLSelectElement).value as UserStory['status'];
+            userStory.priority = (document.getElementById('us-priority') as HTMLSelectElement).value as UserStory['priority'];
+            userStory.updatedAt = new Date();
+            this.host.isProjectDirty = true;
+            modal.style.display = 'none';
+            modal.innerHTML = '';
+            this.host.renderUserStoriesList();
+        });
+    }
+
+    public deleteUserStory(userStoryId: string) {
+        const project = this.host.project;
+        if (!project.userStories?.userStories) return;
+        project.userStories.userStories = project.userStories.userStories.filter((us: any) => us.id !== userStoryId);
         this.host.isProjectDirty = true;
         this.host.renderUserStoriesList();
     }

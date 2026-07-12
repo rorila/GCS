@@ -1,5 +1,11 @@
 # Changelog (v3.31.0 - Unreleased)
 
+## [2026-07-03] - ESLint CI Fix & AgentController Export/Import Audit
+### Fixed
+- **ESLint CI Pipeline:** `'alert'` als Readonly-Global in [eslint.config.js](file:///C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/eslint.config.js) registriert. Behebt 9 `no-undef` CI-Fehler, die den Git-Push blockiert haben.
+### Added
+- **Audit AgentController Import/Export:** Detaillierten Audit-Bericht für das AgentScript-Subsystem erstellt (`audit_agent_controller_io.md`). Der Bericht dokumentiert kritische Datenverluste bei Variablen-Optionen, Task-TriggerModes und Layouts auf Export/Import-Ebene und liefert Lösungsansätze.
+
 ## [2026-05-31] - Variable Chooser Improvement for Increment/Negate Actions
 ### Fixed
 - **Variablenauswahl für Inkrement/Negieren:** Im `VariablePickerDialog` wird nun beim Bearbeiten von `changes` in `increment`- und `negate`-Aktionen der `pure_variable`-Modus erzwungen. Dadurch werden keine Subeigenschaften wie `.value` mehr zur Auswahl angeboten und der Variablenname wird sauber ohne `${}`-Wrapper zurückgegeben, um fehlerhafte Zuweisungen zu verhindern.

@@ -6,9 +6,15 @@
             "items": [
                 {
                     "id": "new-project",
-                    "label": "Neues Projekt",
+                    "label": "Neues Projekt (angeleitet)",
                     "action": "new-project",
                     "icon": "📄"
+                },
+                {
+                    "id": "new-project-direct",
+                    "label": "Neues Projekt...",
+                    "action": "new-project-direct",
+                    "icon": "🆕"
                 },
                 {
                     "id": "load",

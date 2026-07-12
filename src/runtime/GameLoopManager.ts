@@ -633,8 +633,10 @@ export class GameLoopManager {
                 if (parentPanel.style?.borderWidth) {
                     bw = parseInt(String(parentPanel.style.borderWidth), 10) || 0;
                 }
-                bWidth = parentPanel.width - (bw * 2);
-                bHeight = parentPanel.height - (bw * 2);
+                const cellSize = (this.gridConfig as any)?.cellSize ?? (this.gridConfig as any)?.grid?.cellSize ?? 20;
+                const bwCells = bw / cellSize;
+                bWidth = parentPanel.width - (bwCells * 2);
+                bHeight = parentPanel.height - (bwCells * 2);
                 bOffTop = 0; // Ignore global offsets when inside a panel
                 bOffBottom = 0;
             }
@@ -743,8 +745,10 @@ export class GameLoopManager {
                 if (parentPanel.style?.borderWidth) {
                     bw = parseInt(String(parentPanel.style.borderWidth), 10) || 0;
                 }
-                bWidth = parentPanel.width - (bw * 2);
-                bHeight = parentPanel.height - (bw * 2);
+                const cellSize = (this.gridConfig as any)?.cellSize ?? (this.gridConfig as any)?.grid?.cellSize ?? 20;
+                const bwCells = bw / cellSize;
+                bWidth = parentPanel.width - (bwCells * 2);
+                bHeight = parentPanel.height - (bwCells * 2);
                 bOffTop = 0;
                 bOffBottom = 0;
             }

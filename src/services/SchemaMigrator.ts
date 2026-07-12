@@ -228,6 +228,54 @@ export class SchemaMigrator {
     }
 
     /**
+     * Stellt sicher, dass project.userStories im UserStoryContainer-Format vorliegt.
+     * Migriert alte Array-Formate und initialisiert fehlende Pflichtfelder.
+     */
+    public static ensureUserStories(project: any): number {
+        if (!project) return 0;
+        let migratedCount = 0;
+
+        if (!project.userStories) {
+            project.userStories = { userStories: [] };
+            migratedCount++;
+        } else if (Array.isArray(project.userStories)) {
+            project.userStories = { userStories: project.userStories };
+            migratedCount++;
+        }
+
+        if (!project.userStories.userStories || !Array.isArray(project.userStories.userStories)) {
+            project.userStories.userStories = [];
+            migratedCount++;
+        }
+
+        for (const us of project.userStories.userStories) {
+            if (us && typeof us === 'object') {
+                if (!us.id) { us.id = `us_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; migratedCount++; }
+                if (us.projectId === undefined) { us.projectId = project.meta?.id || project.meta?.name || ''; migratedCount++; }
+                if (us.title === undefined) { us.title = '(kein Titel)'; migratedCount++; }
+                if (us.description === undefined) { us.description = ''; migratedCount++; }
+                if (!Array.isArray(us.acceptanceCriteria)) { us.acceptanceCriteria = []; migratedCount++; }
+                if (!Array.isArray(us.relatedComponents)) { us.relatedComponents = []; migratedCount++; }
+                if (!Array.isArray(us.relatedVariables)) { us.relatedVariables = []; migratedCount++; }
+                if (!Array.isArray(us.relatedStages)) { us.relatedStages = []; migratedCount++; }
+                if (!Array.isArray(us.interactions)) { us.interactions = []; migratedCount++; }
+                if (!us.priority) { us.priority = 'medium'; migratedCount++; }
+                if (!us.status) { us.status = 'idea'; migratedCount++; }
+                if (!Array.isArray(us.plannedActions)) { us.plannedActions = []; migratedCount++; }
+                if (us.agentControllerScript !== undefined && typeof us.agentControllerScript !== 'string') { us.agentControllerScript = ''; migratedCount++; }
+                if (!us.createdAt) { us.createdAt = new Date().toISOString(); migratedCount++; }
+                if (!us.updatedAt) { us.updatedAt = new Date().toISOString(); migratedCount++; }
+            }
+        }
+
+        if (migratedCount > 0) {
+            logger.info(`[Migration] UserStories: ${migratedCount} Felder normalisiert.`);
+        }
+
+        return migratedCount;
+    }
+
+    /**
      * Gibt die aktuelle Ziel-Schema-Version zurück.
      */
     public static getTargetVersion(): string {

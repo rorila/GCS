@@ -13,6 +13,90 @@ export class UseCaseDialog {
 
     private static readonly LOGGER = Logger.get('UseCaseDialog', 'Editor_Diagnostics');
 
+    /** Default-Parameter fuer eine Action anhand des Action-Typs erzeugen. */
+    private static getDefaultActionParams(actionType: string, compName: string): Record<string, any> {
+        const target = compName || 'Objekt';
+        const map: Record<string, Record<string, any>> = {
+            spawn_object: { target: 'TemplateName', x: 0, y: 0 },
+            destroy_object: { target: compName || 'ObjektName' },
+            set_variable: { variableName: 'MeineVariable', value: '0' },
+            navigate_stage: { stageId: 'stage_ziel' },
+            play_audio: { target: 'AudioObjekt' },
+            stop_audio: { target: 'AudioObjekt' },
+            set_velocity: { target, changes: { velocityX: 0, velocityY: -5 } },
+            set_position: { target, changes: { x: 10, y: 10 } },
+            set_property: { target, changes: { visible: true } },
+            show_object: { target, changes: { visible: true } },
+            hide_object: { target, changes: { visible: false } },
+            increment: { target: 'MeineVariable', formula: 'MeineVariable + 1' },
+            decrement: { target: 'MeineVariable', formula: 'MeineVariable - 1' },
+            restart_game: {},
+            show_toast: { message: 'Deine Nachricht', toastType: 'info' },
+            call_task: {},
+            other_action: {}
+        };
+        return map[actionType] || {};
+    }
+
+    /** Params-Objekt in JS-Objekt-Literal-String umwandeln (valid fuer AgentController-Code). */
+    private static paramsToCode(params: Record<string, any>): string {
+        return JSON.stringify(params || {}, null, 2);
+    }
+
+    /** Ermittelt, ob fuer einen Action-Typ ein AgentController-Code sinnvoll ist. */
+    private static generateActionCode(a: any, taskName: string, compName: string): string {
+        const actionName = a.name || a.type;
+        if (a.type === 'other_action') {
+            return `// Etwas anderes: ${a.otherDesc || '(keine Beschreibung)'}\n// agentController.addAction('${taskName}', '<type>', '${actionName}', { /* params */ });`;
+        }
+        if (a.type === 'call_task') {
+            return `agentController.addTaskCall('${taskName}', '${actionName}');`;
+        }
+        const params = a.params || UseCaseDialog.getDefaultActionParams(a.type, compName);
+        return `agentController.addAction('${taskName}', '${a.type}', '${actionName}', ${UseCaseDialog.paramsToCode(params)});`;
+    }
+
+    /** Komplettes AgentController-Skript aus den Wizard-Daten generieren. */
+    private static generateAgentControllerScript(wData: any, stageId: string): string {
+        const otherTriggerNote = wData.triggerType === 'other' && wData.otherTriggerDesc
+            ? `// Eigener Auslöser: ${wData.otherTriggerDesc}\n// Passe compType und eventName manuell an!\n`
+            : '';
+        const actionsCode = (wData.actions || []).map((a: any) => UseCaseDialog.generateActionCode(a, wData.taskName, wData.compName)).join('\n');
+        const condCode = wData.condition
+            ? `agentController.addBranch('${wData.taskName}',\n  '${wData.condition.leftValue}', '${wData.condition.op}', '${wData.condition.rightValue}',\n  (then) => { then.addAction('...'); },\n  (els) => { els.addAction('...'); }\n);`
+            : '';
+        const eventParamCode = wData.eventParam
+            ? `agentController.addTaskParam('${wData.taskName}', 'key', 'string', '${wData.eventParam}');`
+            : '';
+        return `${otherTriggerNote}// -- 1. UseCase speichern ----------------------
+agentController.addUseCase('${stageId}', {
+  title: '${(wData.title||'').replace(/'/g,"\\'")}',
+  description: '${(wData.description||'').replace(/'/g,"\\'")}',
+  priority: '${wData.priority}',
+  compType: '${wData.compType}', compName: '${wData.compName}',
+  eventName: '${wData.eventName}',${wData.eventParam ? `\n  eventParam: '${wData.eventParam}',` : ''}
+  taskName: '${wData.taskName}',
+  agentHints: '${(wData.agentHints||'').replace(/'/g,"\\'")}',
+});
+
+// -- 2. Task erstellen --------------------------
+agentController.createTask('${stageId}', '${wData.taskName}', '${(wData.title||'').replace(/'/g,"\\'")}');
+${eventParamCode ? eventParamCode + '\n' : ''}
+// -- 3. Actions hinzufügen ---------------------
+${actionsCode || '// (keine Actions definiert)'}
+${condCode ? '\n// -- 3b. Bedingung ----------------------------\n' + condCode : ''}
+
+// -- 4. Event verknüpfen -----------------------
+agentController.connectEvent('${stageId}', '${wData.compName}', '${wData.eventName}', '${wData.taskName}');
+
+// -- 5. Flow generieren ────────────────────────
+agentController.generateTaskFlow('${wData.taskName}');
+
+// -- 6. Status auf "in_progress" setzen ───────
+// agentController.updateUseCaseStatus('<id>', 'in_progress');
+${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
+    }
+
     constructor(host: IViewHost) {
         this.host = host;
     }
@@ -301,78 +385,8 @@ export class UseCaseDialog {
             if (wizardStep === 6) {
                 const trigger = TRIGGERS.find(t => t.id === wData.triggerType);
 
-                // Aktions-Code generieren
-                const actionsCode = wData.actions.map((a: any) => {
-                    const actionName = a.name || a.type;
-                    if (a.type === 'other_action') {
-                        return `// ❓ Etwas anderes: ${a.otherDesc || '(keine Beschreibung)'}\n// agentController.addAction('${wData.taskName}', '<type>', '${actionName}', { /* params */ });`;
-                    }
-                    const paramMap: Record<string, string> = {
-                        spawn_object:   `target: 'TemplateName', x: 0, y: 0`,
-                        destroy_object: `target: '${wData.compName || 'ObjektName'}'`,
-                        set_variable:   `variableName: 'MeineVariable', value: '0'`,
-                        navigate_stage: `stageId: 'stage_ziel'`,
-                        play_audio:     `target: 'AudioObjekt'`,
-                        stop_audio:     `target: 'AudioObjekt'`,
-                        set_velocity:   `target: '${wData.compName || 'Objekt'}', changes: { velocityX: 0, velocityY: -5 }`,
-                        set_position:   `target: '${wData.compName || 'Objekt'}', changes: { x: 10, y: 10 }`,
-                        set_property:   `target: '${wData.compName || 'Objekt'}', changes: { visible: true }`,
-                        call_task:      `/* addTaskCall statt addAction */`,
-                        show_object:    `target: '${wData.compName || 'Objekt'}', changes: { visible: true }`,
-                        hide_object:    `target: '${wData.compName || 'Objekt'}', changes: { visible: false }`,
-                        increment:      `target: 'MeineVariable', formula: 'MeineVariable + 1'`,
-                        restart_game:   ``,
-                        show_toast:     `message: 'Deine Nachricht', toastType: 'info'`,
-                    };
-                    const params = paramMap[a.type] || '';
-                    if (a.type === 'call_task') {
-                        return `agentController.addTaskCall('${wData.taskName}', '${actionName}');`;
-                    }
-                    return `agentController.addAction('${wData.taskName}', '${a.type}', '${actionName}', { ${params} });`;
-                }).join('\n');
-
-                // Bedingung
-                const condCode = wData.condition
-                    ? `agentController.addBranch('${wData.taskName}',\n  '${wData.condition.leftValue}', '${wData.condition.op}', '${wData.condition.rightValue}',\n  (then) => { then.addAction('...'); },\n  (els) => { els.addAction('...'); }\n);`
-                    : '';
-
-                // Event-Param
-                const eventParamCode = wData.eventParam
-                    ? `agentController.addTaskParam('${wData.taskName}', 'key', 'string', '${wData.eventParam}');`
-                    : '';
-
-                // Trigger-Hinweis für "other"
-                const otherTriggerNote = wData.triggerType === 'other' && wData.otherTriggerDesc
-                    ? `// ❓ Eigener Auslöser: ${wData.otherTriggerDesc}\n// Passe compType und eventName manuell an!\n`
-                    : '';
-
-                const prompt = `${otherTriggerNote}// -- 1. UseCase speichern ----------------------
-agentController.addUseCase('${stageId}', {
-  title: '${(wData.title||'').replace(/'/g,"\\'")}',
-  description: '${(wData.description||'').replace(/'/g,"\\'")}',
-  priority: '${wData.priority}',
-  compType: '${wData.compType}', compName: '${wData.compName}',
-  eventName: '${wData.eventName}',${wData.eventParam ? `\n  eventParam: '${wData.eventParam}',` : ''}
-  taskName: '${wData.taskName}',
-  agentHints: '${(wData.agentHints||'').replace(/'/g,"\\'")}',
-});
-
-// -- 2. Task erstellen --------------------------
-agentController.createTask('${stageId}', '${wData.taskName}', '${(wData.title||'').replace(/'/g,"\\'")}');
-${eventParamCode ? eventParamCode + '\n' : ''}
-// -- 3. Actions hinzufügen ---------------------
-${actionsCode || '// (keine Actions definiert)'}
-${condCode ? '\n// -- 3b. Bedingung ----------------------------\n' + condCode : ''}
-
-// -- 4. Event verknüpfen -----------------------
-agentController.connectEvent('${stageId}', '${wData.compName}', '${wData.eventName}', '${wData.taskName}');
-
-// -- 5. Flow generieren ────────────────────────
-agentController.generateTaskFlow('${wData.taskName}');
-
-// -- 6. Status auf "in_progress" setzen ───────
-// agentController.updateUseCaseStatus('<id>', 'in_progress');
-${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
+                // AgentController-Skript generieren
+                const prompt = UseCaseDialog.generateAgentControllerScript(wData, stageId);
                 // Diagramm
                 const arrow = `<div style="text-align:center;color:#607d8b;font-size:18px;">↓</div>`;
                 const box = (bg: string, lbl: string, val: string) =>
@@ -541,6 +555,11 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                     wData.compName  = (document.getElementById('w-comp-name') as HTMLInputElement)?.value || '';
                     wData.taskName  = (document.getElementById('w-task') as HTMLInputElement)?.value || '';
                     wData.eventParam = (document.getElementById('w-event-param') as HTMLSelectElement)?.value || '';
+                    wData.actions.forEach((a: any) => {
+                        if (a && a.type) {
+                            a.params = UseCaseDialog.getDefaultActionParams(a.type, wData.compName || '');
+                        }
+                    });
                 }
                 if (wizardStep === 4) {
                     document.querySelectorAll('.w-action-name').forEach((el, i) => {
@@ -549,6 +568,11 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                     document.querySelectorAll('.w-other-action-desc').forEach((el) => {
                         const idx = parseInt((el as HTMLElement).dataset.otherIdx || '0');
                         if (wData.actions[idx]) wData.actions[idx].otherDesc = (el as HTMLTextAreaElement).value;
+                    });
+                    wData.actions.forEach((a: any) => {
+                        if (a && a.type) {
+                            a.params = UseCaseDialog.getDefaultActionParams(a.type, wData.compName || '');
+                        }
                     });
                 }
                 if (wizardStep === 5) {
@@ -572,7 +596,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 document.querySelectorAll('.e-action-row').forEach(row => {
                     const name = (row.querySelector('.e-action-name') as HTMLInputElement).value;
                     const type = (row.querySelector('.e-action-type') as HTMLSelectElement).value;
-                    if (name) wData.actions.push({ name, type });
+                    if (name) wData.actions.push({ name, type, params: UseCaseDialog.getDefaultActionParams(type, wData.compName || '') });
                 });
             }
         };
@@ -604,7 +628,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 saveWizardData();
                 const idx = wData.actions.findIndex((a: any) => a.type===type);
                 if (idx>=0) wData.actions.splice(idx,1);
-                else wData.actions.push({ name: '', type });
+                else wData.actions.push({ name: '', type, params: UseCaseDialog.getDefaultActionParams(type, wData.compName || '') });
                 renderDialog();
             };
             (window as any)._wMoveAction = (i: number, dir: number) => {
@@ -633,7 +657,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
             });
             document.getElementById('e-add-action')?.addEventListener('click', () => {
                 saveWizardData();
-                wData.actions.push({ name:'', type:'spawn_object' });
+                wData.actions.push({ name:'', type:'spawn_object', params: UseCaseDialog.getDefaultActionParams('spawn_object', wData.compName || '') });
                 renderDialog();
             });
             document.querySelectorAll('.e-remove-action').forEach(btn => {
@@ -656,19 +680,24 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                 if (!project.userStories!.userStories) project.userStories!.userStories=[];
                 project.userStories!.userStories!.push({
                     id: `us_${Date.now()}`,
+                    projectId: project.meta?.id || project.meta?.name || '',
                     title: wData.title||'(kein Titel)',
                     description: wData.description,
                     status: 'idea',
                     priority: wData.priority,
-                    stageId,
+                    acceptanceCriteria: [],
+                    relatedComponents: [],
+                    relatedVariables: [],
+                    relatedStages: [stageId],
+                    interactions: [],
                     plannedComponent: { type: wData.compType, name: wData.compName },
                     plannedEvent: wData.eventName,
                     plannedEventParam: wData.eventParam,
                     plannedTask: wData.taskName,
                     plannedActions: wData.actions,
+                    agentControllerScript: UseCaseDialog.generateAgentControllerScript(wData, stageId),
                     plannedCondition: wData.condition,
                     agentHints: wData.agentHints,
-                    interactions: [],
                     createdAt: new Date(),
                     updatedAt: new Date()
                 });

@@ -561,6 +561,63 @@ export class StageRenderer {
                 }
             }
 
+            // ─── Drag & Drop Events ───
+            if (this.host.runMode) {
+                const hasDragStart = obj.events?.onDragStart || obj.Tasks?.onDragStart;
+                const hasDragEnd   = obj.events?.onDragEnd   || obj.Tasks?.onDragEnd;
+                const hasDrop      = obj.events?.onDrop      || obj.Tasks?.onDrop;
+
+                const getDragData = (e: DragEvent) => {
+                    const rect = this.host.element.getBoundingClientRect();
+                    const cellSize = this.host.grid.cellSize;
+                    return {
+                        x: Math.round((e.clientX - rect.left) / cellSize * 10) / 10,
+                        y: Math.round((e.clientY - rect.top) / cellSize * 10) / 10
+                    };
+                };
+
+                if (hasDragStart || hasDragEnd) {
+                    el.draggable = true;
+                    if (hasDragStart) {
+                        el.ondragstart = (e: DragEvent) => {
+                            e.stopPropagation();
+                            e.dataTransfer?.setData('text/plain', obj.id || obj.name || '');
+                            if (this.host.onEvent) this.host.onEvent(obj.id, 'onDragStart', getDragData(e));
+                        };
+                    } else if (isNew) {
+                        el.ondragstart = null;
+                    }
+                    if (hasDragEnd) {
+                        el.ondragend = (e: DragEvent) => {
+                            e.stopPropagation();
+                            if (this.host.onEvent) this.host.onEvent(obj.id, 'onDragEnd', getDragData(e));
+                        };
+                    } else if (isNew) {
+                        el.ondragend = null;
+                    }
+                } else if (isNew) {
+                    el.draggable = false;
+                    el.ondragstart = null;
+                    el.ondragend = null;
+                }
+
+                if (hasDrop) {
+                    el.ondragover = (e: DragEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    };
+                    el.ondrop = (e: DragEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const sourceId = e.dataTransfer?.getData('text/plain');
+                        if (this.host.onEvent) this.host.onEvent(obj.id, 'onDrop', { sourceId, ...getDragData(e) });
+                    };
+                } else if (isNew) {
+                    el.ondrop = null;
+                    el.ondragover = null;
+                }
+            }
+
 
             // ─── Touch/Pointer Events (Tablet & Mobile Support) ───
             // Nutzt die Pointer Events API (vereint Maus, Touch, Stift).
@@ -797,6 +854,95 @@ export class StageRenderer {
      * Targeted Rendering: Aktualisiert nur Eigenschaften eines spezifischen Nodes 
      * (wie Texte, Sichtbarkeit, Farben), ohne den DOM-Tree Layout-Thrashing zuzumuten!
      */
+    private updateObjectPosition(el: HTMLElement, obj: any, className: string, isVisible: boolean): void {
+        const grid = this.host.grid;
+        if (!grid) return;
+        const objects = this.host.lastRenderedObjects || [];
+        const cellSize = grid.cellSize;
+        const isPixelBased = className === 'TStatusBar';
+
+        let absX = 0;
+        let absY = 0;
+
+        if (obj.align && obj.align !== 'NONE') {
+            // For aligned/docked objects, x/y are already absolute stage coordinates (renderObjects writes them back)
+            absX = obj.x || 0;
+            absY = obj.y || 0;
+        } else {
+            // For non-aligned objects, sum parent chain offsets
+            absX = obj.x || 0;
+            absY = obj.y || 0;
+            let parentId = obj.parentId;
+            let depth = 0;
+            while (parentId && depth < 100) {
+                const p = objects.find((o: any) => (o.id || o.name) === parentId);
+                if (!p) break;
+                absX += p.x || 0;
+                absY += p.y || 0;
+                parentId = p.parentId;
+                depth++;
+            }
+        }
+
+        const finalX = isPixelBased ? absX : absX * cellSize;
+        const finalY = isPixelBased ? absY : absY * cellSize;
+        const finalW = isPixelBased ? (obj.width || 0) : ((obj.width || 0) * cellSize);
+        const finalH = isPixelBased ? (obj.height || 0) : ((obj.height || 0) * cellSize);
+
+        // Determine if this object is a dialog or child of a dialog
+        let parentDialog: any = null;
+        if (className === 'TDialogRoot' || className === 'TSidePanel') {
+            parentDialog = obj;
+        } else if (obj.parentId) {
+            let currId = obj.parentId;
+            let sanity = 0;
+            while (currId && sanity++ < 20) {
+                const p = objects.find((o: any) => (o.id || o.name) === currId);
+                if (p && (p.className === 'TDialogRoot' || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot')) {
+                    parentDialog = p;
+                    break;
+                }
+                currId = p?.parentId;
+            }
+        }
+
+        const isDialogVisible = parentDialog
+            ? this.checkVisible(parentDialog.visible) && this.checkVisible(parentDialog.style?.visible)
+            : isVisible;
+
+        if (this.host.runMode) {
+            el.style.left = '0px';
+            el.style.top = '0px';
+            el.style.width = `${finalW}px`;
+            el.style.height = `${finalH}px`;
+
+            if (className === 'TVirtualGamepad') {
+                (el.style as any).translate = 'none';
+            } else if (parentDialog) {
+                el.style.transition = 'translate 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease';
+                if (isDialogVisible) {
+                    (el.style as any).translate = `${finalX}px ${finalY}px`;
+                    el.style.pointerEvents = 'auto';
+                } else {
+                    const isLeft = parentDialog.className === 'TSidePanel'
+                        ? parentDialog.side === 'left'
+                        : parentDialog.slideDirection === 'left';
+                    const outOfBounds = isLeft ? -1500 : 1500;
+                    (el.style as any).translate = `${finalX + outOfBounds}px ${finalY}px`;
+                    el.style.pointerEvents = 'none';
+                }
+            } else {
+                el.style.transition = '';
+                (el.style as any).translate = `${finalX}px ${finalY}px`;
+            }
+        } else {
+            el.style.left = `${finalX}px`;
+            el.style.top = `${finalY}px`;
+            el.style.width = `${finalW}px`;
+            el.style.height = `${finalH}px`;
+        }
+    }
+
     public updateSingleObject(obj: any): void {
         if (!this.host || !this.host.element || !obj || !obj.id) return;
         
@@ -845,7 +991,10 @@ export class StageRenderer {
             el.classList.remove('invisible-object-in-editor');
         }
 
-        // 2. Basiseigenschaften
+        // 2. Position & Groesse syncen
+        this.updateObjectPosition(el, obj, className, isVisible);
+
+        // 3. Basiseigenschaften
         this.applyBackground(el, obj, className, obj.id);
 
         if (obj.style) {

@@ -1,0 +1,330 @@
+﻿
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\adapters\IndexedDBAdapter.ts
+   61:38  warning  '_filename' is defined but never used  @typescript-eslint/no-unused-vars
+   90:16  warning  '_filename' is defined but never used  @typescript-eslint/no-unused-vars
+  117:33  warning  'e' is defined but never used          @typescript-eslint/no-unused-vars
+  117:36  warning  Empty block statement                  no-empty
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\adapters\LocalStorageAdapter.ts
+  31:38  warning  '_filename' is defined but never used  @typescript-eslint/no-unused-vars
+  38:16  warning  '_filename' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\adapters\ServerStorageAdapter.ts
+  21:38  warning  '_filename' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\ExpertDialog.ts
+  137:103  warning  '_stageId' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\PlaybackOverlay.ts
+  79:20  warning  '_currentTime' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TAPIServer.ts
+  58:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TAudio.ts
+  61:24  warning  '_callbacks' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TComponent.ts
+  180:46  warning  '_newValue' is defined but never used            @typescript-eslint/no-unused-vars
+  180:62  warning  '_oldValue' is defined but never used            @typescript-eslint/no-unused-vars
+  306:13  warning  Unexpected aliasing of 'this' to local variable  @typescript-eslint/no-this-alias
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TDataList.ts
+  166:28  warning  '_deltaTime' is defined but never used  @typescript-eslint/no-unused-vars
+  263:18  warning  'e' is defined but never used           @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TDebugLog.ts
+  387:56  warning  '_objectName' is defined but never used  @typescript-eslint/no-unused-vars
+  387:78  warning  '_eventName' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TDialogRoot.ts
+  52:44  warning  '_v' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TForEach.ts
+  108:28  warning  '_deltaTime' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TKeyStore.ts
+   41:24  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+   78:25  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+   97:35  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  112:25  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  160:27  warning  Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TStage.ts
+  242:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  243:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  256:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  257:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TSystemInfo.ts
+  85:71  warning  Unnecessary escape character: \/  no-useless-escape
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TToast.ts
+  436:33  warning  '_container' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TVirtualGamepad.ts
+  47:61  warning  '_oldValue' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\components\TWindow.ts
+  90:35  warning  '_v' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\ActionParamRenderer.ts
+   77:38  warning  'e' is defined but never used   @typescript-eslint/no-unused-vars
+  100:42  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+  166:42  warning  'e' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\FlowEditor.ts
+  146:33  warning  '_project' is defined but never used             @typescript-eslint/no-unused-vars
+  286:15  warning  Unexpected aliasing of 'this' to local variable  @typescript-eslint/no-this-alias
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\PascalHighlighter.ts
+  21:71  warning  Unnecessary escape character: \.  no-useless-escape
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\Stage.ts
+  263:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\dialogs\AgentScriptDialog.ts
+   98:17  error  'alert' is not defined  no-undef
+  318:17  error  'alert' is not defined  no-undef
+  329:21  error  'alert' is not defined  no-undef
+  342:21  error  'alert' is not defined  no-undef
+  346:21  error  'alert' is not defined  no-undef
+  350:17  error  'alert' is not defined  no-undef
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\dialogs\AgentScriptLibrary.ts
+  108:29  error  'alert' is not defined  no-undef
+  112:29  error  'alert' is not defined  no-undef
+  116:25  error  'alert' is not defined  no-undef
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\dialogs\handlers\DialogActionHandler.ts
+  57:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\dialogs\renderers\DialogDOMBuilder.ts
+  122:60  warning  '_obj' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\flow\FlowAction.ts
+  624:61  warning  '_oldValue' is defined but never used  @typescript-eslint/no-unused-vars
+  909:22  warning  'e' is defined but never used          @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\flow\FlowCondition.ts
+  349:61  warning  '_oldValue' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\flow\FlowDataAction.ts
+  310:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\flow\FlowElement.ts
+  227:42  warning  '_project' is defined but never used   @typescript-eslint/no-unused-vars
+  593:61  warning  '_oldValue' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\flow\FlowTask.ts
+  171:61  warning  '_oldValue' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\inspector\InspectorHost.ts
+  254:27  warning  '_nodes' is defined but never used    @typescript-eslint/no-unused-vars
+  258:35  warning  '_actions' is defined but never used  @typescript-eslint/no-unused-vars
+  262:22  warning  '_editor' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\inspector\InspectorRenderer.ts
+   842:50  warning  '_isMerging' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  1177:26  warning  '_e' is defined but never used                   @typescript-eslint/no-unused-vars
+  1200:30  warning  '_e' is defined but never used                   @typescript-eslint/no-unused-vars
+  1236:41  warning  A `require()` style import is forbidden          @typescript-eslint/no-require-imports
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\inspector\handlers\FlowConditionHandler.ts
+  20:26  warning  '_obj' is defined but never used      @typescript-eslint/no-unused-vars
+  25:54  warning  '_project' is defined but never used  @typescript-eslint/no-unused-vars
+  25:77  warning  '_runtime' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\inspector\handlers\FlowNodeHandler.ts
+   39:76  warning  '_runtime' is defined but never used  @typescript-eslint/no-unused-vars
+  149:48  warning  '_project' is defined but never used  @typescript-eslint/no-unused-vars
+  169:46  warning  '_project' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\inspector\handlers\GameObjectHandler.ts
+  14:54  warning  '_project' is defined but never used                @typescript-eslint/no-unused-vars
+  14:77  warning  '_runtime' is defined but never used                @typescript-eslint/no-unused-vars
+  15:31  warning  '_propertyName' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  15:56  warning  '_newValue' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  15:77  warning  '_oldValue' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  15:96  warning  '_object' is assigned a value but never used        @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\inspector\handlers\StageHandler.ts
+   15:26  warning  '_obj' is defined but never used      @typescript-eslint/no-unused-vars
+   20:23  warning  '_obj' is defined but never used      @typescript-eslint/no-unused-vars
+  112:77  warning  '_runtime' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\inspector\handlers\VariableHandler.ts
+  16:26  warning  '_obj' is defined but never used      @typescript-eslint/no-unused-vars
+  20:23  warning  '_obj' is defined but never used      @typescript-eslint/no-unused-vars
+  24:54  warning  '_project' is defined but never used  @typescript-eslint/no-unused-vars
+  24:77  warning  '_runtime' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\inspector\renderers\InspectorEventsRenderer.ts
+  34:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\refactoring\RefactoringUtils.ts
+  61:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+  86:22  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\refactoring\TaskRefactoringService.ts
+  172:47  warning  Unnecessary escape character: \{  no-useless-escape
+  172:61  warning  Unnecessary escape character: \}  no-useless-escape
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\refactoring\VariableRefactoringService.ts
+  130:47  warning  Unnecessary escape character: \{  no-useless-escape
+  130:60  warning  Unnecessary escape character: \}  no-useless-escape
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\EditorDataManager.ts
+  354:63  warning  Unnecessary escape character: \/  no-useless-escape
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\EditorMenuManager.ts
+   98:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  127:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  132:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  198:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  265:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  276:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  291:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+  304:38  warning  'err' is defined but never used               @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\EditorRunManager.ts
+  113:46  warning  '_params' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\FlowContextMenuProvider.ts
+  135:45  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\FlowGraphManager.ts
+  345:106  warning  '_force' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\FlowNavigationManager.ts
+  48:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  48:25  warning  Empty block statement          no-empty
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\flow\FlowRegistrySync.ts
+  33:52  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\renderers\ComplexComponentRenderer.ts
+  119:84  warning  '_isNew' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\renderers\TextObjectRenderer.ts
+  228:80  warning  '_isNew' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\services\renderers\VirtualGamepadRenderer.ts
+    7:74  warning  '_className' is defined but never used  @typescript-eslint/no-unused-vars
+  249:61  warning  '_keys' is defined but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\utils\DnDHelper.ts
+  29:26  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\editor\views\UserStoriesViewManager.ts
+  75:21  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\export\GameExporter.ts
+  377:40  warning  Unnecessary escape character: \/        no-useless-escape
+  378:33  warning  Unnecessary escape character: \!        no-useless-escape
+  604:27  warning  '_' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\multiplayer\JSONMultiplayerLobby.ts
+  362:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\player-standalone.ts
+  115:18  warning  'e' is defined but never used         @typescript-eslint/no-unused-vars
+  306:29  warning  '_stageId' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\runtime\AudioManager.ts
+  72:26  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  72:29  warning  Empty block statement          no-empty
+  84:26  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  84:29  warning  Empty block statement          no-empty
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\runtime\ExpressionParser.ts
+  140:18  warning  'e' is defined but never used                                                                                            @typescript-eslint/no-unused-vars
+  228:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  235:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  247:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  255:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  259:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  260:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  261:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  261:33  warning  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type  @typescript-eslint/no-unsafe-function-type
+  262:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  292:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  299:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  305:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  320:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  324:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  329:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  348:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  354:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+  368:17  warning  Unexpected lexical declaration in case block                                                                             no-case-declarations
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\runtime\MultiplayerManager.ts
+  258:17  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\runtime\PropertyHelper.ts
+  231:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\runtime\ReactiveRuntime.ts
+  272:15  warning  Unexpected aliasing of 'this' to local variable  @typescript-eslint/no-this-alias
+  354:40  warning  '_target' is defined but never used              @typescript-eslint/no-unused-vars
+  354:49  warning  '_unused' is defined but never used              @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\runtime\RuntimeVariableManager.ts
+  267:54  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  270:34  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+  514:18  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\runtime\actions\handlers\CollectionActions.ts
+  337:13  warning  Unused eslint-disable directive (no problems were reported from 'eqeqeq')
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\runtime\actions\handlers\HttpActions.ts
+  60:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\services\AgentShortcuts.ts
+  248:73  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+  312:72  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\services\DataService.ts
+  113:25  warning  Unexpected lexical declaration in case block  no-case-declarations
+  176:18  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+  229:18  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+  245:22  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+  258:22  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+  281:26  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+  281:29  warning  Empty block statement                         no-empty
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\services\MediatorService.ts
+  35:41  warning  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type  @typescript-eslint/no-unsafe-function-type
+  76:40  warning  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type  @typescript-eslint/no-unsafe-function-type
+  86:41  warning  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type  @typescript-eslint/no-unsafe-function-type
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\services\RemoteGameManager.ts
+  108:35  warning  '_msg' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\services\SchemaLoader.ts
+   89:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   90:22  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  109:22  warning  '_' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\services\agent\AgentScriptIO.ts
+  638:24  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  639:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\services\agent\AgentScriptRepository.ts
+  13:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  14:22  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  27:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  36:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  37:22  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  50:26  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\src\utils\TauriFSAdapter.ts
+  58:21  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+Ô£û 176 problems (9 errors, 167 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

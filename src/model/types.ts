@@ -1,4 +1,5 @@
 import { ComponentStyle } from '../components/TWindow';
+import { UserStoryContainer } from '../editor/userstories/UserStoryTypes';
 
 // ─────────────────────────────────────────────
 // ComponentData: Reine Daten-Repräsentation einer Komponente
@@ -63,6 +64,7 @@ export interface UsageReport {
 }
 
 export interface ProjectMetadata {
+    id?: string;
     name: string;
     version: string;
     author: string;
@@ -512,8 +514,5 @@ export interface GameProject {
     variables: ProjectVariable[]; // Project-level variables
 
     // User Stories (neu)
-    userStories?: {
-        projectDescription?: any;
-        userStories?: any[];
-    };
+    userStories?: UserStoryContainer;
 }

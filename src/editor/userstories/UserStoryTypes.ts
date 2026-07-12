@@ -5,7 +5,7 @@
  */
 
 export interface ProjectDescription {
-    id: string;
+    id?: string;
     title: string;
     description: string;
     genre?: string; // z.B. "Shooter", "Platformer", "RPG"
@@ -16,8 +16,30 @@ export interface ProjectDescription {
     technicalRequirements?: string[]; // z.B. ["WebGL", "Web Audio API", "LocalStorage"]
     narrative?: string; // Story/Narrative (falls vorhanden)
     references?: string[]; // Referenzen/Inspirationen
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+}
+
+export interface PlannedComponent {
+    type: string;
+    name: string;
+    description?: string;
+}
+
+export interface PlannedAction {
+    type: string;
+    name: string;
+    params?: Record<string, any>;
+    otherDesc?: string;
+}
+
+export interface UserStoryContainer {
+    projectDescription?: ProjectDescription;
+    userStories?: UserStory[];
+}
+
+export interface UserStoryInteraction extends Partial<Interaction> {
+    id: string;
 }
 
 export interface UserStory {
@@ -31,12 +53,21 @@ export interface UserStory {
     relatedComponents: string[]; // IDs der zugehörigen Komponenten
     relatedVariables: string[]; // IDs der zugehörigen Variablen
     relatedStages: string[]; // IDs der zugehörigen Stages
-    interactions: Interaction[];
+    interactions: UserStoryInteraction[];
     tags?: string[]; // Tags für Kategorisierung
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: Date | string;
+    updatedAt: Date | string;
     createdBy?: string; // User, der die Story erstellt hat
     assignee?: string; // User, der die Story bearbeitet
+    // Geplante, noch nicht implementierte Details (nur Editor-Workflow)
+    plannedComponent?: PlannedComponent;
+    plannedEvent?: string;
+    plannedEventParam?: string;
+    plannedTask?: string;
+    plannedActions?: PlannedAction[];
+    agentControllerScript?: string;
+    plannedCondition?: string;
+    agentHints?: string;
 }
 
 export interface Interaction {

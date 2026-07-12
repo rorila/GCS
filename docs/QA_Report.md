@@ -1,65 +1,65 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 2.7.2026, 11:44:39
-**Status**: ❌ FEHLER GEFUNDEN
-**Gesamtlauf**: 87.7s
+**Generiert am**: 3.7.2026, 13:10:01
+**Status**: ✅ ALLE TESTS BESTANDEN
+**Gesamtlauf**: 92.1s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
 pie title Test-Status (Gesamt: 277)
-    "Bestanden ✅" : 275
-    "Fehlgeschlagen ❌" : 2
+    "Bestanden ✅" : 277
+    "Fehlgeschlagen ❌" : 0
 ```
 
 ## ⏱ Timing-Übersicht (sortiert nach Dauer)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 87424ms 🐌 | ✅ |
-| Code Quality & Security Guards | 146ms | ✅ |
-| Coordinate Binding | 16ms | ✅ |
+| Playwright E2E | 91455ms 🐌 | ✅ |
+| Code Quality & Security Guards | 517ms | ✅ |
+| Coordinate Binding | 14ms | ✅ |
 | AgentController | 13ms | ✅ |
-| Stage-Transition Regression | 6ms | ✅ |
-| Mathe-Quiz | 6ms | ✅ |
-| RefactoringManager | 4ms | ✅ |
+| Stage-Transition Regression | 8ms | ✅ |
+| Export Integrity | 7ms | ✅ |
+| Mathe-Quiz | 7ms | ✅ |
 | TTimer/TIntervalTimer Reactive Properties | 4ms | ✅ |
-| TaskExecutor | 3ms | ✅ |
-| SyncRefactor P1: SchemaMigrator | 3ms | ✅ |
+| RefactoringManager | 4ms | ✅ |
 | Stage-Import | 3ms | ✅ |
-| ProjectStore | 2ms | ✅ |
-| SyncValidator | 2ms | ✅ |
-| Serialization | 2ms | ✅ |
-| Export Integrity | 2ms | ✅ |
-| Project Integrity | 2ms | ✅ |
-| GameLoopManager Physics | 1ms | ✅ |
-| FlowDataAction Inspector | 1ms | ✅ |
-| Action Stage Routing & Duplicates | 1ms | ✅ |
-| Raketen-Countdown | 1ms | ✅ |
+| Project Integrity | 3ms | ✅ |
+| Serialization | 3ms | ✅ |
+| ProjectStore | 3ms | ✅ |
+| TaskExecutor | 3ms | ✅ |
+| SyncValidator | 3ms | ✅ |
+| SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
+| FlowDataAction Inspector | 2ms | ✅ |
+| Action Stage Routing & Duplicates | 2ms | ✅ |
 | Pascal Code Generator | 1ms | ✅ |
-| SpawnObject Variable Support | 1ms | ✅ |
-| Action CRUD | 1ms | ✅ |
 | Event Actions (bind/unbind) | 1ms | ✅ |
-| Action Registration | 1ms | ✅ |
 | Virtual Gamepad | 1ms | ✅ |
-| SnapshotManager | 1ms | ✅ |
+| SpawnObject Variable Support | 1ms | ✅ |
+| GameLoopManager Physics | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
+| Raketen-Countdown | 1ms | ✅ |
+| Action CRUD | 1ms | ✅ |
 | SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
-| FlowSync | 1ms | ✅ |
 | SidePanel | 1ms | ✅ |
 | Unification & Auto-Unwrap | 1ms | ✅ |
-| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
-| TTimer Variable Resolution | 1ms | ✅ |
-| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
-| Renaming Robustness | 1ms | ✅ |
-| Electron Security | 1ms | ✅ |
+| SnapshotManager | 1ms | ✅ |
 | Login-Logic | 1ms | ✅ |
-| SyncRefactor P0: Inspector Writeback | 1ms | ✅ |
+| TTimer Variable Resolution | 1ms | ✅ |
+| Action Registration | 1ms | ✅ |
+| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
 | Smart-Mapping & Discovery | 1ms | ✅ |
-| Component Events | 0ms | ✅ |
-| TTable Smart-Unwrap | 0ms | ✅ |
+| FlowSync | 1ms | ✅ |
+| Renaming Robustness | 1ms | ✅ |
+| Component Events | 1ms | ✅ |
+| Electron Security | 1ms | ✅ |
+| SyncRefactor P0: Inspector Writeback | 1ms | ✅ |
 | SELECT COUNT(*) | 0ms | ✅ |
+| TTable Smart-Unwrap | 0ms | ✅ |
 
-**Summe Suiten**: 87662ms
-**Gesamtlauf inkl. Setup/Report**: 87679ms
+**Summe Suiten**: 92075ms
+**Gesamtlauf inkl. Setup/Report**: 92102ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -119,7 +119,7 @@ pie title Test-Status (Gesamt: 277)
 | connectVariableEvent — Schlechtfall<br><small>Fehler korrekt geworfen.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | createTimer / createIntervalTimer<br><small>Timer korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | createThresholdVariable<br><small>Stage-Threshold-Variable korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| addAction — Neue Action-Typen<br><small>Actions: {"toastAction":{"type":"action","name":"ShowToast"},"bindAction":{"type":"action","name":"BindEvent"},"navAction":{"type":"action","name":"NavigateStage"}}</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| addAction — Neue Action-Typen<br><small>Neue Action-Typen korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | validate — keine fehlenden Referenzen<br><small>Validierung ohne Fehler.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Integration: Raketen-Countdown via Batch<br><small>Vollständiges Raketen-Demo: 20 Batch-Ops, 4 Objekte, 2 Blueprint-Objekte (GameLoop+GameState), 3 Tasks, 6 Actions, 1 Variable, 3 Events, Binding OK. Validierung: 3 Warnungen, 0 Fehler.</small> | RaketenCountdown | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Struktur: Sprite + Task + Action<br><small>Sprite mit velocityY=0, Task mit set_property Action korrekt erstellt.</small> | RaketenCountdown | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -149,7 +149,7 @@ pie title Test-Status (Gesamt: 277)
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 0</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Dateigroesse < 1000 Zeilen<br><small>Baseline 8 eingehalten, Aktuell: 8</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: bundle:runtime Freshness<br><small>Bundle 212s veraltet (juengste Quelle: src/runtime/RuntimeVariableManager.ts). Bitte "npm run bundle:runtime" ausfuehren!</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Action: ValidatePin → CheckPinCode<br><small>Action=true, Sequence=true, Flow=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -218,7 +218,7 @@ pie title Test-Status (Gesamt: 277)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1782985391629_1i (erwartet: stage_import_1782985391629_1i), BackToLobby.stageId=stage_import_1782985391629_cn (erwartet: stage_import_1782985391629_cn)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1783076910338_d4 (erwartet: stage_import_1783076910338_d4), BackToLobby.stageId=stage_import_1783076910338_7x (erwartet: stage_import_1783076910338_7x)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
