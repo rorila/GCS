@@ -1465,7 +1465,7 @@ export class AgentController {
                 linkedTaskName: data.taskName || '',
                 createdAt: new Date(),
                 updatedAt: new Date()
-            });
+            } as any);
             AgentController.logger.info(`UseCase '${data.title}' (${id}) created for stage '${stageId}'.`);
         }
         this.notifyChange();
@@ -1495,7 +1495,7 @@ export class AgentController {
         const uc = (this.project!.userStories?.userStories || []).find((u: any) => u.id === useCaseId);
         if (!uc) throw new Error(`UseCase '${useCaseId}' not found.`);
         if (!this.getTaskByName(taskName)) throw new Error(`Task '${taskName}' not found.`);
-        uc.linkedTaskName = taskName;
+        (uc as any).linkedTaskName = taskName;
         uc.updatedAt = new Date();
         AgentController.logger.info(`UseCase '${useCaseId}' linked to Task '${taskName}'.`);
         this.notifyChange();
@@ -1507,7 +1507,7 @@ export class AgentController {
     public listUseCases(stageId?: string): any[] {
         this.validateProjectLoaded();
         const all = this.project!.userStories?.userStories || [];
-        return stageId ? all.filter((uc: any) => uc.stageId === stageId) : all;
+        return stageId ? all.filter((uc: any) => (uc as any).stageId === stageId) : all;
     }
 
     // ─────────────────────────────────────────────

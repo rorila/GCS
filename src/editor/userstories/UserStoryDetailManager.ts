@@ -115,8 +115,8 @@ export class UserStoryDetailManager {
         userStory.title = title;
         userStory.description = description;
         userStory.acceptanceCriteria = acceptanceCriteriaText ? acceptanceCriteriaText.split('\n').filter((c: string) => c.trim()) : [];
-        userStory.priority = priority;
-        userStory.status = status;
+        userStory.priority = priority as 'high' | 'medium' | 'low';
+        userStory.status = status as 'idea' | 'in_progress' | 'completed' | 'blocked';
         userStory.updatedAt = new Date();
         this.host.isProjectDirty = true;
 
@@ -149,7 +149,7 @@ export class UserStoryDetailManager {
             variableChanges: [],
             audioVisualEffects: [],
             alternativePaths: [],
-            testing: null,
+            testing: undefined,
             createdAt: new Date(),
             updatedAt: new Date()
         };
@@ -393,15 +393,15 @@ export class UserStoryDetailManager {
                 </div>
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; margin-bottom: 4px; font-weight: bold;">Trigger Component</label>
-                    <input type="text" id="edit-interaction-trigger-component" value="${interaction.triggerComponent.componentName}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Component Name">
+                    <input type="text" id="edit-interaction-trigger-component" value="${interaction.triggerComponent?.componentName || ''}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Component Name">
                 </div>
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; margin-bottom: 4px; font-weight: bold;">Event Name</label>
-                    <input type="text" id="edit-interaction-event-name" value="${interaction.event.eventName}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Event Name">
+                    <input type="text" id="edit-interaction-event-name" value="${interaction.event?.eventName || ''}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Event Name">
                 </div>
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; margin-bottom: 4px; font-weight: bold;">Task Name</label>
-                    <input type="text" id="edit-interaction-task-name" value="${interaction.task.taskName}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Task Name">
+                    <input type="text" id="edit-interaction-task-name" value="${interaction.task?.taskName || ''}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Task Name">
                 </div>
                 <div style="margin-bottom: 16px;">
                     <button id="save-interaction-edit" style="padding: 8px 16px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">Speichern</button>
@@ -453,6 +453,9 @@ export class UserStoryDetailManager {
 
         interaction.title = (document.getElementById('edit-interaction-title') as HTMLInputElement)?.value || '';
         interaction.description = (document.getElementById('edit-interaction-description') as HTMLTextAreaElement)?.value || '';
+        interaction.triggerComponent = interaction.triggerComponent || { componentId: '', componentName: '', componentType: '', triggerType: '', description: '' };
+        interaction.event = interaction.event || { eventId: '', eventName: '', description: '' };
+        interaction.task = interaction.task || { taskId: '', taskName: '', taskType: '', description: '' };
         interaction.triggerComponent.componentName = (document.getElementById('edit-interaction-trigger-component') as HTMLInputElement)?.value || '';
         interaction.event.eventName = (document.getElementById('edit-interaction-event-name') as HTMLInputElement)?.value || '';
         interaction.task.taskName = (document.getElementById('edit-interaction-task-name') as HTMLInputElement)?.value || '';

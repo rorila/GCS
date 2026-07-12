@@ -2,6 +2,7 @@ import type { IViewHost } from '../EditorViewManager';
 import { mediatorService } from '../../services/MediatorService';
 import { NotificationToast } from '../ui/NotificationToast';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { AIGenerationDialog } from '../dialogs/AIGenerationDialog';
 
 /**
  * ManagementViewManager - Rendert die Management-Ansicht des Editors.
@@ -15,26 +16,6 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
  * - handleManagerRowClick()
  * - escapeHtml()
  */
-const KI_GENERATION_PROMPT_FALLBACK = `Du bist ein GCS-Generator. Erzeuge ein vollständiges GCS-Projekt aus dem beigefügten leeren Projekt-JSON und dessen User Stories.
-
-Regeln:
-- Verwende den Projektnamen aus meta.name.
-- Nutze die Stage-Struktur aus dem leeren Projekt (Blueprint + MainStage).
-- Verwende nur Actions und Components aus der AGENT_API_REFERENCE.md.
-- Verwende PascalCase für Task- und Action-Namen.
-- Nutze \${var}-Syntax für Variableninterpolation.
-- Keine Inline-Actions.
-- Platziere UI-Elemente und Sprites sinnvoll auf dem 64×40 Grid.
-- Das Spiel soll nach dem Laden sofort startbar sein.
-
-Workflow:
-1. Analysiere die User Stories und extrahiere Trigger, Events, Tasks, Actions und Variablen.
-2. Erstelle alle Objekte, Variablen, Tasks und Actions.
-3. Verbinde Events mit Tasks.
-4. Validiere das Ergebnis.
-
-Der vollständige Prompt ist in: demos/user-stories/prompt.md`;
-
 export class ManagementViewManager {
     private host: IViewHost;
 
@@ -537,76 +518,7 @@ export class ManagementViewManager {
     // ═══════════════════════════════════════════════════════════
 
     public renderKIGenerateView(parent: HTMLElement): void {
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding:16px;height:100%;box-sizing:border-box;overflow-y:auto;';
-
-        const title = document.createElement('h2');
-        title.textContent = '🤖 KI-Projekt-Generierung';
-        title.style.cssText = 'margin:0;color:#fff;font-size:16px;';
-        wrapper.appendChild(title);
-
-        const hint = document.createElement('div');
-        hint.innerHTML = 'Kopiere das aktuelle Projekt-JSON (inkl. User Stories) und den Prompt. Füge beides zusammen mit der <a href="/docs/AGENT_API_REFERENCE.md" target="_blank" rel="noopener noreferrer">AGENT_API_REFERENCE.md</a> in eine KI ein. Das Ergebnis kannst du unter Manager → Import laden.';
-        hint.style.cssText = 'font-size:12px;color:#888;margin-bottom:4px;';
-        wrapper.appendChild(hint);
-
-        const promptTitle = document.createElement('h3');
-        promptTitle.textContent = '📋 Prompt';
-        promptTitle.style.cssText = 'margin:0;color:#89b4fa;font-size:14px;';
-        wrapper.appendChild(promptTitle);
-
-        const pre = document.createElement('pre');
-        pre.style.cssText = 'flex:1;min-height:200px;background:#1a1a2e;color:#e0e0e0;border:1px solid #444;border-radius:8px;padding:12px;font-family:Consolas,Monaco,monospace;font-size:12px;white-space:pre-wrap;overflow:auto;';
-        pre.textContent = KI_GENERATION_PROMPT_FALLBACK;
-        wrapper.appendChild(pre);
-
-        const btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display:flex;gap:10px;';
-
-        const copyPromptBtn = document.createElement('button');
-        copyPromptBtn.textContent = '📋 Prompt kopieren';
-        copyPromptBtn.style.cssText = 'flex:1;padding:10px 16px;background:#1e3a5f;color:#4fc3f7;border:1px solid #2a5a8f;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;';
-        copyPromptBtn.onmouseenter = () => { copyPromptBtn.style.background = '#2a5a8f'; };
-        copyPromptBtn.onmouseleave = () => { copyPromptBtn.style.background = '#1e3a5f'; };
-        copyPromptBtn.onclick = async () => {
-            try {
-                await navigator.clipboard.writeText(pre.textContent || '');
-                const originalText = copyPromptBtn.textContent;
-                copyPromptBtn.textContent = '✅ Kopiert!';
-                setTimeout(() => copyPromptBtn.textContent = originalText, 2000);
-            } catch (e: any) {
-                NotificationToast.show('Fehler beim Kopieren: ' + e);
-            }
-        };
-        btnRow.appendChild(copyPromptBtn);
-
-        const copyProjectBtn = document.createElement('button');
-        copyProjectBtn.textContent = '📄 Projekt-JSON kopieren';
-        copyProjectBtn.style.cssText = 'flex:1;padding:10px 16px;background:#2a2a3e;color:#ccc;border:1px solid #444;border-radius:6px;cursor:pointer;font-size:13px;';
-        copyProjectBtn.onmouseenter = () => { copyProjectBtn.style.borderColor = '#89b4fa'; copyProjectBtn.style.background = '#3a3a4e'; };
-        copyProjectBtn.onmouseleave = () => { copyProjectBtn.style.borderColor = '#444'; copyProjectBtn.style.background = '#2a2a3e'; };
-        copyProjectBtn.onclick = async () => {
-            try {
-                const projectJson = JSON.stringify(this.host.project, null, 2);
-                await navigator.clipboard.writeText(projectJson);
-                const originalText = copyProjectBtn.textContent;
-                copyProjectBtn.textContent = '✅ Kopiert!';
-                setTimeout(() => copyProjectBtn.textContent = originalText, 2000);
-            } catch (e: any) {
-                NotificationToast.show('Fehler beim Kopieren: ' + e);
-            }
-        };
-        btnRow.appendChild(copyProjectBtn);
-
-        wrapper.appendChild(btnRow);
-        parent.appendChild(wrapper);
-
-        fetch('/demos/user-stories/prompt.md')
-            .then(res => res.ok ? res.text() : null)
-            .then(text => {
-                if (text) pre.textContent = text;
-            })
-            .catch(() => {});
+        AIGenerationDialog.render(parent, this.host);
     }
 
     // ═══════════════════════════════════════════════════════════
