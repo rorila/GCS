@@ -24,13 +24,13 @@ export interface AIConfig {
 }
 
 export const defaultAIConfig: AIConfig = {
-    provider: 'lmstudio',
-    endpoint: 'http://localhost:1234/v1',
-    chatModel: 'qwen-coder-local',
+    provider: 'ollama',
+    endpoint: 'http://localhost:11434',
+    chatModel: 'qwen2.5-coder:7b',
     embeddingModel: 'nomic-embed-text',
     temperature: 0.1,
     contextWindow: 8192,
-    topK: 5,
+    topK: 3,
     requestTimeoutMs: 120000,
 };
 
@@ -39,6 +39,14 @@ export const ollamaDefaultConfig: AIConfig = {
     provider: 'ollama',
     endpoint: 'http://localhost:11434',
     chatModel: 'qwen2.5-coder:7b',
+    embeddingModel: 'nomic-embed-text',
+};
+
+export const lmStudioDefaultConfig: AIConfig = {
+    ...defaultAIConfig,
+    provider: 'lmstudio',
+    endpoint: 'http://localhost:1234/v1',
+    chatModel: 'qwen-coder-local',
     embeddingModel: 'nomic-embed-text',
 };
 
@@ -75,7 +83,7 @@ export interface AIPlanStep {
     description?: string;
 }
 
-export interface AIRequiredEntities {
+export interface AIEntityGroup {
     stages?: string[];
     objects?: string[];
     tasks?: string[];
@@ -84,10 +92,12 @@ export interface AIRequiredEntities {
 
 export interface AIImplementationPlan {
     goal?: string;
-    requiredEntities?: AIRequiredEntities;
+    existingEntities?: AIEntityGroup;
+    entitiesToCreate?: AIEntityGroup;
     steps?: AIPlanStep[];
     assumptions?: string[];
     risks?: string[];
+    rawResponse?: string;
 }
 
 export interface AIValidationReport {
@@ -105,4 +115,5 @@ export interface AIGenerationResult {
     diff?: ProjectDiff;
     dryRunResult?: DryRunResult;
     rawResponse?: string;
+    sentPrompt?: { system: string; user: string };
 }

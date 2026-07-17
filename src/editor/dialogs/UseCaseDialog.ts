@@ -702,6 +702,7 @@ ${wData.agentHints ? `\n// Hinweise: ${wData.agentHints}` : ''}`;
                     updatedAt: new Date()
                 });
                 this.host.isProjectDirty = true;
+                this.host.autoSaveToLocalStorage();
                 modal.style.display='none';
                 modal.innerHTML='';
                 this.host.renderUserStoriesList();

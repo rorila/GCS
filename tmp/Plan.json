@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "name": "generated-feature",
+  "description": "KI-generierte Änderung",
+  "scope": "selection",
+  "operations": [
+    {
+      "method": "createTask",
+      "params": [
+        "main",
+        "ChangeSpriteColor",
+        "Ändert Farbe des Player-Sprites"
+      ]
+    },
+    {
+      "method": "addAction",
+      "params": [
+        "ChangeSpriteColor",
+        "property",
+        "SetBlueColor",
+        {
+          "target": "Player",
+          "changes": {
+            "spriteColor": "blue"
+          }
+        }
+      ]
+    },
+    {
+      "method": "connectEvent",
+      "params": [
+        "main",
+        "Player",
+        "onClick",
+        "ChangeSpriteColor"
+      ]
+    }
+  ]
+}

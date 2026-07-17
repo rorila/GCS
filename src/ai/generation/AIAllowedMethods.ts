@@ -14,6 +14,7 @@ export const AI_ALLOWED_METHODS = new Set<string>([
     'createTask',
     'addAction',
     'addTaskCall',
+    'addTaskParam',
     'connectEvent',
     'setProperty',
     'bindVariable',

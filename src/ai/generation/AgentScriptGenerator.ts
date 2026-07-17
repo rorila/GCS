@@ -9,6 +9,7 @@ import { AI_ALLOWED_METHODS } from './AIAllowedMethods';
 import { LLMResponseParser } from './LLMResponseParser';
 import { AIValidator, type AIValidationIssue } from '../validation/AIValidator';
 import { KnowledgeBase } from '../rag/KnowledgeBase';
+import { StepRagResolver } from '../rag/StepRagResolver';
 import { Planner } from '../planner/Planner';
 
 /**
@@ -27,18 +28,22 @@ export class AgentScriptGenerator {
         await knowledgeBase.loadFromUrl();
         const context = new ProjectContextBuilder(this.project).build(request);
 
-        // Embedding-basierte Suche (mit Keyword-Fallback), inkl. Plan-Zielen
-        const retrievalQuery = plan?.goal
-            ? `${request.instruction}\n${plan.goal}`
-            : request.instruction;
-        context.relevantApiDocs = await knowledgeBase.getRelevantChunksAsync(retrievalQuery, config, config.topK ?? 5);
-
+        // Planner zuerst – ohne API-Docs
         if (!plan) {
             plan = await new Planner(this.project).plan(request, config);
         }
 
+        // Step-wise RAG: gezielter Chunk-Abruf pro Planner-Step
+        const stepRagResolver = new StepRagResolver();
+        context.relevantApiDocs = await stepRagResolver.resolve(
+            plan.steps ?? [],
+            config,
+            2,
+        );
+
         const provider = this.createProvider(config);
         const messages = this.buildMessages(request, context, plan);
+        const sentPrompt = { system: messages[0].content, user: messages[1].content };
 
         const llmRequest: LLMCompletionRequest = {
             messages,
@@ -59,6 +64,7 @@ export class AgentScriptGenerator {
                     warnings: [],
                 },
                 rawResponse: err?.message || String(err),
+                sentPrompt,
             };
         }
 
@@ -74,6 +80,7 @@ export class AgentScriptGenerator {
                 explanation: parsed.explanation,
                 validation,
                 rawResponse,
+                sentPrompt,
             };
         } catch (err: any) {
             return {
@@ -84,6 +91,7 @@ export class AgentScriptGenerator {
                     warnings: [],
                 },
                 rawResponse,
+                sentPrompt,
             };
         }
     }
@@ -124,11 +132,25 @@ Regeln:
 3. Task-Sequenzen enthalten ausschließlich Referenzen auf Actions.
 4. Es darf höchstens eine Blueprint-Stage geben.
 5. Vorhandene Namen und IDs müssen aus dem Projektkontext übernommen werden.
-6. Erfinde keine AgentController-Methoden.
+   Das Feld configuredEvents zeigt nur bereits konfigurierte Events, keine vollständige Liste aller unterstützten Events.
+6. Erfinde keine AgentController-Methoden und keine Events.
 7. Erfinde keine ActionTypes.
+   Jede Property, die im Inspector eines Objekts sichtbar ist, kann per "property"-Action
+   in "changes" gesetzt werden - auch wenn sie nicht explizit in der API-Referenz dokumentiert ist.
+   Verwende den exakten Property-Namen (z.B. "spriteColor", "text", "style.backgroundColor", "visible",
+   "style.glowColor", "style.glowBlur", "style.glowSpread",
+   "style.shadowColor", "style.shadowOffsetX", "style.shadowOffsetY", "style.shadowBlur", "style.shadowSpread", "style.shadowInset").
 8. Antworte ausschließlich als gültiges JSON.
 9. Bei Unsicherheit keine riskanten Operationen erzeugen.
 10. Unsicherheiten im Feld plan.assumptions dokumentieren.
+11. Die API-Dokumentation ist nur eine Informationsquelle.
+    Verwende daraus erforderliche Methoden-, Event-, Property- und ActionType-Namen,
+    aber kopiere keine vollständigen Abschnitte, Beispiele oder Scripts.
+    Antworte immer im oben definierten Ausgabeformat.
+12. Jede operation.params muss ein Array sein, niemals ein Objekt.
+13. Für Event-Parameter in Tasks (z.B. 'key' bei onKeyDown) verwende addTaskParam, nicht addVariable.
+14. Für Positionsänderungen verwende setProperty oder addAction mit einem gültigen ActionType. Verwende keine erfundenen ActionTypes.
+15. Das explanation-Feld muss das tatsächlich verwendete Event (z.B. onKeyDown) nennen, nicht ein anderes.
 
 Erlaubte Methoden: ${allowedMethods}
 
@@ -136,9 +158,10 @@ ${planSection}Ausgabeformat:
 {
   "plan": {
     "goal": "Kurze Zielbeschreibung",
-    "requiredEntities": { "stages": [], "objects": [], "tasks": [], "actions": [] },
+    "existingEntities": { "stages": [], "objects": [], "tasks": [], "actions": [] },
+    "entitiesToCreate": { "stages": [], "objects": [], "tasks": [], "actions": [] },
     "steps": [
-      { "order": 1, "operationIntent": "createObject", "description": "Beschreibung" }
+      { "order": 1, "operationIntent": "createTask", "description": "Beschreibung" }
     ],
     "assumptions": [],
     "risks": []
@@ -151,14 +174,82 @@ ${planSection}Ausgabeformat:
     "operations": []
   },
   "explanation": "Kurze Beschreibung"
-}`;
+}
 
-        const userPrompt = `${request.instruction}
+Beispiel 1 – Tastatursteuerung:
+{
+  "agentScript": {
+    "operations": [
+      { "method": "createTask", "params": ["main", "MovePlayerToRight", "Bewegt Player nach rechts"] },
+      { "method": "addTaskParam", "params": ["MovePlayerToRight", "key", "string", ""] },
+      { "method": "addAction", "params": ["MovePlayerToRight", "increment", "MoveRight", { "target": "", "changes": { "Player.x": 10 } }] },
+      { "method": "connectEvent", "params": ["main", "Player", "onKeyDown", "MovePlayerToRight"] }
+    ]
+  }
+}
 
----
+Beispiel 2 – Farbänderung bei Mausklick:
+{
+  "agentScript": {
+    "operations": [
+      { "method": "createTask", "params": ["main", "ChangeSpriteColor", "Ändert Farbe des Player-Sprites"] },
+      { "method": "addAction", "params": ["ChangeSpriteColor", "property", "SetColorBlue", { "target": "", "changes": { "Player.spriteColor": "blue" } }] },
+      { "method": "connectEvent", "params": ["main", "Player", "onClick", "ChangeSpriteColor"] }
+    ]
+  }
+}
 
-Projektkontext:
-${JSON.stringify(context, null, 2)}`;
+Kritische Regeln für params:
+- connectEvent benötigt IMMER genau 4 Parameter: [stageId, objectName, eventName, taskName]
+- addAction benötigt IMMER genau 4 Parameter: [taskName, actionType, actionName, paramsObject]
+- Der actionName in addAction muss eindeutig sein und darf nicht bereits im Projekt existieren.
+- Bei ActionType "property": Setzt einen Wert direkt. target ist immer "" (leer), changes enthält "ObjektName.propertyName" als Key, z.B. { "target": "", "changes": { "Player.style.backgroundColor": "blue" } }
+- Bei ActionType "increment": Addiert einen numerischen Wert. NIEMALS "+=5" verwenden – stattdessen: { "target": "", "changes": { "Sprite.x": 5 } } (Zahl, kein String)
+- Für Bewegung/Position-Änderung IMMER "increment" verwenden, nicht "property" mit "+=" Syntax.
+- Hinweis: Eine reine Event-Verbindung reicht nicht. Jeder Task benötigt mindestens eine Action.`;
+
+        const apiDocs = context.relevantApiDocs ?? [];
+        const projectContext = { ...context };
+        delete projectContext.relevantApiDocs;
+
+        const existingActionNames: string[] = (context.globalInventory?.actions ?? []).map((a: any) => a.name).filter(Boolean);
+        const existingTaskNames: string[] = (context.globalInventory?.tasks ?? []).map((t: any) => t.name).filter(Boolean);
+        const reservedNamesBlock = (existingActionNames.length > 0 || existingTaskNames.length > 0)
+            ? `\nBEREITS VORHANDENE NAMEN (diese Namen NICHT als neue actionName oder taskName verwenden):\n- Actions: ${existingActionNames.join(', ') || 'keine'}\n- Tasks: ${existingTaskNames.join(', ') || 'keine'}\n`
+            : '';
+
+        const userPrompt = `PROJEKTKONTEXT
+
+<project-context>
+${JSON.stringify(projectContext, null, 2)}
+</project-context>
+${reservedNamesBlock}
+
+API-REFERENZ
+
+Die folgende API-Referenz ist nur eine Informationsquelle.
+Kopiere keinen Abschnitt daraus in die Antwort.
+
+<api-reference>
+${this.formatApiDocs(apiDocs)}
+</api-reference>
+
+AKTUELLE AUFGABE
+
+${request.instruction}
+
+AUSGABEREGELN
+
+- Antworte ausschließlich als JSON-Objekt im definierten Ausgabeformat.
+- Verwende nur erlaubte Methoden und ActionTypes.
+- Jede operation.params muss ein Array sein.
+- Fehlende Informationen gehören in plan.risks.
+- Verwende Namen und Fakten aus dem project-context, wenn sie für das AgentScript erforderlich sind.
+- Kopiere jedoch keine vollständigen Passagen, Beispiele, Scripts oder Dokumentationsabschnitte aus project-context oder api-reference.
+- Verwende konkrete Event-, Property- und ActionType-Namen nur dann,
+  wenn sie im project-context oder in der api-reference dokumentiert sind.
+  Andernfalls beschreibe nur die fachliche Absicht und trage die
+  fehlende Information unter plan.risks ein.`;
 
         return [
             { role: 'system', content: systemPrompt },
@@ -166,4 +257,18 @@ ${JSON.stringify(context, null, 2)}`;
         ];
     }
 
+    private formatApiDocs(docs: any[]): string {
+        if (!docs || docs.length === 0) {
+            return 'Keine relevanten API-Dokumentationen gefunden.';
+        }
+        return docs.map(doc => {
+            const title = doc.title ?? doc.id ?? 'Unbekannt';
+            const type = doc.chunkType ?? 'doc';
+            const content = typeof doc.content === 'string'
+                ? doc.content.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+                : JSON.stringify(doc.content);
+            const snippet = content.length > 300 ? content.substring(0, 300) + '...' : content;
+            return `- [${type}] ${title}: ${snippet}`;
+        }).join('\n');
+    }
 }

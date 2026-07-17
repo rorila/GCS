@@ -24,6 +24,12 @@ export interface ComponentStyle {
     glowColor?: string;
     glowBlur?: number;
     glowSpread?: number;
+    shadowColor?: string;
+    shadowOffsetX?: number;
+    shadowOffsetY?: number;
+    shadowBlur?: number;
+    shadowSpread?: number;
+    shadowInset?: boolean;
 }
 
 export class TWindow extends TComponent {
@@ -264,7 +270,13 @@ export class TWindow extends TComponent {
             { name: 'style.glowColor', label: 'Glow Farbe', type: 'color', group: 'GLOW-EFFEKT' },
             { name: 'style.glowBlur', label: 'Glow Unschärfe', type: 'number', group: 'GLOW-EFFEKT', min: 0, max: 100, step: 1 },
             { name: 'style.glowSpread', label: 'Glow Ausbreitung', type: 'number', group: 'GLOW-EFFEKT', min: 0, max: 50, step: 1 },
-            { name: 'style.boxShadow', label: 'Box-Shadow (CSS)', type: 'string', group: 'GLOW-EFFEKT' }
+            { name: 'style.shadowColor', label: 'Schatten Farbe', type: 'color', group: 'SCHATTEN' },
+            { name: 'style.shadowOffsetX', label: 'Offset X', type: 'number', group: 'SCHATTEN', min: -100, max: 100, step: 1, inline: true },
+            { name: 'style.shadowOffsetY', label: 'Offset Y', type: 'number', group: 'SCHATTEN', min: -100, max: 100, step: 1, inline: true },
+            { name: 'style.shadowBlur', label: 'Unschärfe', type: 'number', group: 'SCHATTEN', min: 0, max: 100, step: 1, inline: true },
+            { name: 'style.shadowSpread', label: 'Ausbreitung', type: 'number', group: 'SCHATTEN', min: -50, max: 50, step: 1, inline: true },
+            { name: 'style.shadowInset', label: 'Innen', type: 'boolean', group: 'SCHATTEN', inline: true },
+            { name: 'style.boxShadow', label: 'Box-Shadow (CSS)', type: 'string', group: 'SCHATTEN', hint: 'Überschreibt alle obigen Felder' }
         ];
     }
 }

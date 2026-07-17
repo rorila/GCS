@@ -261,6 +261,7 @@ export class TSprite extends TWindow {
         const events = super.getEvents();
         return [
             ...events,
+            'onEnter',
             'onCollision',
             'onCollisionLeft',
             'onCollisionRight',

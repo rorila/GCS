@@ -599,6 +599,36 @@ export class EditorDataManager {
         }
         RefactoringManager.sanitizeProject(this.host.project);
 
+        // Bereinige leere Event-Einträge (z.B. { onKeyDown: "", onEnter: "" })
+        const cleanEmptyEvents = (objs: any[]) => {
+            if (!objs) return;
+            for (const obj of objs) {
+                if (obj.events) {
+                    for (const key of Object.keys(obj.events)) {
+                        const val = obj.events[key];
+                        if (!val || (typeof val === 'string' && val.trim() === '')) {
+                            delete obj.events[key];
+                        }
+                    }
+                }
+                if (obj.Tasks) {
+                    for (const key of Object.keys(obj.Tasks)) {
+                        const val = obj.Tasks[key];
+                        if (!val || (typeof val === 'string' && val.trim() === '')) {
+                            delete obj.Tasks[key];
+                        }
+                    }
+                }
+                if (obj.children) cleanEmptyEvents(obj.children);
+            }
+        };
+        cleanEmptyEvents(this.host.project.objects || []);
+        cleanEmptyEvents(this.host.project.variables || []);
+        this.host.project.stages?.forEach((s: any) => {
+            cleanEmptyEvents(s.objects || []);
+            cleanEmptyEvents(s.variables || []);
+        });
+
         // 6. SYNC & PERSISTENCE
         this.autoSaveToLocalStorage();
 

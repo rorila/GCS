@@ -7,9 +7,8 @@ import { AIOrchestrator } from '../../ai/AIOrchestrator';
 import type { DryRunResult } from '../../ai/dryrun/DryRunResult';
 import type { ProjectDiff } from '../../ai/diff/DiffTypes';
 import { AuditLogger } from '../../ai/security/AuditLogger';
-import { OllamaProvider } from '../../ai/llm/OllamaProvider';
-import { LMStudioProvider } from '../../ai/llm/LMStudioProvider';
 import { NotificationToast } from '../ui/NotificationToast';
+import { AIModelConfigDialog } from './AIModelConfigDialog';
 
 /**
  * AIGenerationDialog
@@ -40,8 +39,8 @@ export class AIGenerationDialog {
         let generationResult: AIGenerationResult | null = null;
         let dryRunResult: DryRunResult | null = null;
         let diff: ProjectDiff | null = null;
-        let previewSeen = false;
         let plan: AIImplementationPlan | null = null;
+        let plannerMessages: any[] | null = null;
 
         const statusBar = document.createElement('div');
         statusBar.style.cssText = 'padding:8px 12px; border-radius:6px; background:#0f0f1a; border:1px solid #333; color:#888; font-size:12px;';
@@ -64,15 +63,6 @@ export class AIGenerationDialog {
             label.textContent = text;
             label.style.cssText = 'font-size:11px; color:#888; text-transform:uppercase;';
             return label;
-        };
-
-        const createInput = (value: string, type = 'text', placeholder = '') => {
-            const input = document.createElement('input');
-            input.type = type;
-            input.value = value;
-            input.placeholder = placeholder;
-            input.style.cssText = 'padding:8px; background:#0f0f1a; color:#fff; border:1px solid #333; border-radius:6px;';
-            return input;
         };
 
         const createTextarea = (value: string, placeholder = '') => {
@@ -108,8 +98,22 @@ export class AIGenerationDialog {
 
         const taskSection = createSection('Aufgabe');
 
+        const clearResults = () => {
+            generationResult = null;
+            dryRunResult = null;
+            diff = null;
+            plan = null;
+            plannerMessages = null;
+            updateUI();
+            regenerateBtn.disabled = true;
+            applyBtn.disabled = true;
+        };
+
         const instructionInput = createTextarea(instruction, 'Beschreibung, was die KI erzeugen soll...');
-        instructionInput.oninput = () => { instruction = instructionInput.value; };
+        instructionInput.oninput = () => {
+            instruction = instructionInput.value;
+            clearResults();
+        };
 
         const userStories = host.project.userStories?.userStories || [];
         const userStoryOptions = [{ value: '', label: 'Keine / Gesamtes Projekt' }];
@@ -124,6 +128,14 @@ export class AIGenerationDialog {
                 scope = 'selectedUserStory';
                 scopeSelect.value = scope;
             }
+            if (selectedUserStoryId) {
+                const story = userStories.find(s => s.id === selectedUserStoryId);
+                if (story) {
+                    instruction = [story.title, story.description].filter(Boolean).join('\n');
+                    instructionInput.value = instruction;
+                }
+            }
+            clearResults();
         };
 
         const scopeSelect = createSelect([
@@ -138,6 +150,7 @@ export class AIGenerationDialog {
                 selectedUserStoryId = '';
                 userStorySelect.value = '';
             }
+            clearResults();
         };
 
         const conflictSelect = createSelect([
@@ -159,57 +172,24 @@ export class AIGenerationDialog {
 
         const modelSection = createSection('Modell');
 
-        const providerSelect = createSelect([
-            { value: 'ollama', label: 'Ollama' },
-            { value: 'lmstudio', label: 'LM Studio' },
-        ], config.provider);
-        providerSelect.onchange = () => { config = { ...config, provider: providerSelect.value as any }; };
+        const modelSummary = document.createElement('div');
+        modelSummary.style.cssText = 'font-size:12px; color:#ccc;';
 
-        const endpointInput = createInput(config.endpoint, 'text', 'http://localhost:1234/v1');
-        endpointInput.onchange = () => { config = { ...config, endpoint: endpointInput.value }; };
+        const updateModelSummary = () => {
+            modelSummary.textContent = `${config.provider === 'ollama' ? 'Ollama' : 'LM Studio'} · ${config.endpoint} · ${config.chatModel}`;
+        };
+        updateModelSummary();
 
-        const chatModelInput = createInput(config.chatModel, 'text', 'Modellname');
-        chatModelInput.onchange = () => { config = { ...config, chatModel: chatModelInput.value }; };
-
-        const temperatureInput = createInput(String(config.temperature), 'number', '0.1');
-        temperatureInput.onchange = () => { config = { ...config, temperature: parseFloat(temperatureInput.value) || 0.1 }; };
-
-        const contextWindowInput = createInput(String(config.contextWindow), 'number', '8192');
-        contextWindowInput.onchange = () => { config = { ...config, contextWindow: parseInt(contextWindowInput.value, 10) || 8192 }; };
-
-        const timeoutInput = createInput(String(config.requestTimeoutMs), 'number', '120000');
-        timeoutInput.onchange = () => { config = { ...config, requestTimeoutMs: parseInt(timeoutInput.value, 10) || 120000 }; };
-
-        const testConnectionBtn = createButton('Verbindung testen', false);
-        testConnectionBtn.onclick = async () => {
-            saveConfig();
-            statusBar.textContent = 'Teste Verbindung...';
-            try {
-                const provider = config.provider === 'ollama'
-                    ? new OllamaProvider(config)
-                    : new LMStudioProvider(config);
-                const ok = await provider.healthCheck();
-                statusBar.textContent = ok ? `Verbindung zu ${config.provider} OK` : `Verbindung zu ${config.provider} fehlgeschlagen`;
-                statusBar.style.color = ok ? '#a6e3a1' : '#f38ba8';
-            } catch (e: any) {
-                statusBar.textContent = `Verbindungsfehler: ${e.message || e}`;
-                statusBar.style.color = '#f38ba8';
-            }
+        const configureModelBtn = createButton('⚙️ KI-Modell konfigurieren', false);
+        configureModelBtn.onclick = () => {
+            AIModelConfigDialog.open((newConfig) => {
+                config = newConfig;
+                updateModelSummary();
+            });
         };
 
-        modelSection.appendChild(createLabel('Provider'));
-        modelSection.appendChild(providerSelect);
-        modelSection.appendChild(createLabel('Endpoint'));
-        modelSection.appendChild(endpointInput);
-        modelSection.appendChild(createLabel('Chat-Modell'));
-        modelSection.appendChild(chatModelInput);
-        modelSection.appendChild(createLabel('Temperatur'));
-        modelSection.appendChild(temperatureInput);
-        modelSection.appendChild(createLabel('Context Window'));
-        modelSection.appendChild(contextWindowInput);
-        modelSection.appendChild(createLabel('Timeout (ms)'));
-        modelSection.appendChild(timeoutInput);
-        modelSection.appendChild(testConnectionBtn);
+        modelSection.appendChild(modelSummary);
+        modelSection.appendChild(configureModelBtn);
 
         const actionSection = document.createElement('div');
         actionSection.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap;';
@@ -236,7 +216,6 @@ export class AIGenerationDialog {
             if (!generationResult?.success) return false;
             if (!generationResult.agentScript) return false;
             if (dryRunResult && !dryRunResult.success) return false;
-            if (!previewSeen) return false;
             return true;
         };
 
@@ -285,7 +264,6 @@ export class AIGenerationDialog {
                 dryRunResult = result.dryRunResult || null;
                 diff = result.diff || null;
 
-                previewSeen = false;
                 updateUI();
 
                 if (result.success) {
@@ -336,7 +314,6 @@ export class AIGenerationDialog {
             generationResult = null;
             dryRunResult = null;
             diff = null;
-            previewSeen = false;
             plan = null;
             instruction = '';
             instructionInput.value = '';
@@ -367,37 +344,86 @@ export class AIGenerationDialog {
         tabContent.style.cssText = 'flex:1; background:#0f0f1a; border:1px solid #333; border-top:none; border-radius:0 0 8px 8px; padding:12px; overflow:auto; font-size:12px; color:#ccc;';
 
         const tabs = [
+            { id: 'input', label: 'Input' },
             { id: 'plan', label: 'Plan' },
             { id: 'script', label: 'AgentScript' },
             { id: 'validation', label: 'Validierung' },
             { id: 'preview', label: 'Vorschau' },
+            { id: 'prompt', label: 'Prompt' },
+            { id: 'raw', label: 'Rohantwort' },
         ];
 
-        let activeTab = 'plan';
+        let activeTab = 'input';
+
+        const loadPlannerMessages = async () => {
+            if (!instruction.trim()) {
+                plannerMessages = [];
+                return;
+            }
+            try {
+                saveConfig();
+                const request = buildRequest();
+                const planner = new Planner(host.project);
+                plannerMessages = await planner.buildMessages(request, config);
+            } catch (e: any) {
+                plannerMessages = [];
+                statusBar.textContent = `Fehler beim Laden des Prompts: ${e.message || e}`;
+                statusBar.style.color = '#f38ba8';
+            }
+        };
 
         const renderTab = () => {
             tabContent.innerHTML = '';
 
-            if (!generationResult && activeTab !== 'plan') {
+            if (!generationResult && activeTab !== 'input' && activeTab !== 'plan' && !(activeTab === 'raw' && plan)) {
                 tabContent.textContent = 'Noch kein Ergebnis. Klicke auf "AgentScript erzeugen".';
                 return;
             }
 
             switch (activeTab) {
-                case 'plan':
-                    if (plan && !generationResult) {
-                        tabContent.textContent = JSON.stringify(plan, null, 2);
-                    } else {
-                        tabContent.textContent = generationResult?.plan
+                case 'input': {
+                    if (!plannerMessages) {
+                        tabContent.textContent = 'Lade Prompt...';
+                        loadPlannerMessages().then(() => {
+                            if (activeTab === 'input') renderTab();
+                        });
+                        break;
+                    }
+                    const text = plannerMessages.length === 0
+                        ? 'Gib eine Aufgabenbeschreibung ein, um den Prompt zu sehen.'
+                        : `SYSTEM PROMPT:\n${plannerMessages[0].content}\n\n---\n\nUSER PROMPT:\n${plannerMessages[1].content}`;
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.readOnly = true;
+                    textarea.style.cssText = 'width:100%; height:100%; background:#0f0f1a; color:#ccc; border:1px solid #333; border-radius:6px; padding:8px; font-family:monospace; resize:none;';
+                    tabContent.innerHTML = '';
+                    tabContent.appendChild(textarea);
+                    break;
+                }
+                case 'plan': {
+                    const planJson = plan && !generationResult
+                        ? JSON.stringify(plan, null, 2)
+                        : generationResult?.plan
                             ? JSON.stringify(generationResult.plan, null, 2)
                             : generationResult?.explanation || 'Kein Plan verfügbar.';
-                    }
+                    const pre = document.createElement('pre');
+                    pre.style.cssText = 'margin:0; font-family:monospace; white-space:pre-wrap; word-break:break-word;';
+                    pre.textContent = planJson;
+                    tabContent.innerHTML = '';
+                    tabContent.appendChild(pre);
                     break;
-                case 'script':
-                    tabContent.textContent = generationResult?.agentScript
+                }
+                case 'script': {
+                    const scriptJson = generationResult?.agentScript
                         ? JSON.stringify(generationResult.agentScript, null, 2)
                         : 'Kein AgentScript verfügbar.';
+                    const pre = document.createElement('pre');
+                    pre.style.cssText = 'margin:0; font-family:monospace; white-space:pre-wrap; word-break:break-word;';
+                    pre.textContent = scriptJson;
+                    tabContent.innerHTML = '';
+                    tabContent.appendChild(pre);
                     break;
+                }
                 case 'validation':
                     if (dryRunResult && !dryRunResult.success) {
                         tabContent.textContent = 'Dry-Run-Fehler:\n' + dryRunResult.importResult.errors.join('\n');
@@ -410,13 +436,27 @@ export class AIGenerationDialog {
                     }
                     break;
                 case 'preview':
-                    previewSeen = true;
                     applyBtn.disabled = !canApply();
                     if (diff && diff.summary) {
                         tabContent.textContent = diff.summary.join('\n') || 'Keine Änderungen.';
                     } else {
                         tabContent.textContent = 'Keine Vorschau verfügbar.';
                     }
+                    break;
+                case 'prompt': {
+                    const prompt = generationResult?.sentPrompt;
+                    const text = prompt
+                        ? `SYSTEM:\n${prompt.system}\n\n---\n\nUSER:\n${prompt.user}`
+                        : 'Kein Prompt verfügbar.';
+                    const pre = document.createElement('pre');
+                    pre.style.cssText = 'margin:0; font-family:monospace; white-space:pre-wrap; word-break:break-word;';
+                    pre.textContent = text;
+                    tabContent.innerHTML = '';
+                    tabContent.appendChild(pre);
+                    break;
+                }
+                case 'raw':
+                    tabContent.textContent = generationResult?.rawResponse || plan?.rawResponse || 'Keine Rohantwort verfügbar.';
                     break;
             }
         };

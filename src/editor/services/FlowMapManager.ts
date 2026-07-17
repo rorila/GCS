@@ -69,7 +69,7 @@ export class FlowMapManager {
 
         const objectsWithTasks = this.host.getCurrentObjects().filter(obj => {
             const tasks = (obj as any).events || (obj as any).Tasks;
-            const hasTasks = tasks && Object.keys(tasks).length > 0;
+            const hasTasks = tasks && Object.values(tasks).some((v: any) => typeof v === 'string' && v.trim() !== '');
 
             let hasBindings = false;
             const checkBindings = (target: any) => {

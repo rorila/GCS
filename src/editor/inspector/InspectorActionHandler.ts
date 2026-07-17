@@ -428,11 +428,22 @@ export class InspectorActionHandler {
         const oldVal = targetObj.events ? targetObj.events[eventName] : undefined;
 
         if (oldVal !== value) {
-            projectStore.dispatch({ type: 'SET_PROPERTY', target: targetObj, path: `events.${eventName}`, value });
-            // Also sync the preview object so the Inspector UI stays consistent
-            if (obj !== targetObj) {
-                if (!obj.events) obj.events = {};
-                obj.events[eventName] = value;
+            if (!value || value.trim() === '') {
+                // Leerer Wert → Key komplett entfernen statt "" zu speichern
+                if (targetObj.events) {
+                    delete targetObj.events[eventName];
+                    projectStore.dispatch({ type: 'SET_PROPERTY', target: targetObj, path: 'events', value: { ...targetObj.events } });
+                }
+                if (obj !== targetObj && obj.events) {
+                    delete obj.events[eventName];
+                }
+            } else {
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: targetObj, path: `events.${eventName}`, value });
+                // Also sync the preview object so the Inspector UI stays consistent
+                if (obj !== targetObj) {
+                    if (!obj.events) obj.events = {};
+                    obj.events[eventName] = value;
+                }
             }
             this.host.update(obj);
         }

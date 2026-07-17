@@ -47,7 +47,7 @@ export interface AIObjectSummary {
     width?: number;
     height?: number;
     text?: string;
-    events?: Record<string, string>;
+    configuredEvents?: Record<string, string>;
     children?: AIObjectSummary[];
 }
 
@@ -57,19 +57,12 @@ export interface AIUserStorySummary {
     description?: string;
     priority: 'high' | 'medium' | 'low';
     status: string;
-    plannedComponent?: { compType: string; compName: string };
+    plannedComponentName?: string;
     plannedEvent?: string;
     plannedEventParam?: string;
     plannedTask?: string;
-    plannedActions?: Array<{
-        type: string;
-        name: string;
-        params?: Record<string, any>;
-        otherDesc?: string;
-    }>;
     plannedCondition?: string;
     agentHints?: string;
-    agentControllerScript?: string;
 }
 
 export interface AITaskSummary {
@@ -85,6 +78,9 @@ export interface AIVariableSummary {
     type: string;
     scope?: string;
     initialValue?: any;
+    min?: number;
+    max?: number;
+    isInteger?: boolean;
 }
 
 export class ProjectContextBuilder {
@@ -100,6 +96,21 @@ export class ProjectContextBuilder {
             activeStage: activeStageId ? this.summarizeActiveStage(activeStageId) : undefined,
             globalInventory: this.buildGlobalInventory(),
             relevantApiDocs: KnowledgeBase.getInstance().getRelevantChunks(request.instruction, 5),
+        };
+    }
+
+    /**
+     * Schlanker Kontext nur für den Planner:
+     * Kein globalInventory, keine API-Docs – nur Projekt-Meta, User Stories und Stage-Objekte.
+     */
+    public buildForPlanner(request: AIGenerationRequest): Partial<AIProjectContext> {
+        const activeStageId = this.getActiveStageId(request);
+        const selectedUserStories = this.selectUserStories(request, activeStageId);
+
+        return {
+            projectMeta: this.buildProjectMeta(),
+            selectedUserStories: selectedUserStories.map(s => this.summarizeUserStory(s)),
+            activeStage: activeStageId ? this.summarizeActiveStage(activeStageId) : undefined,
         };
     }
 
@@ -196,9 +207,21 @@ export class ProjectContextBuilder {
             y: obj.y,
             width: obj.width,
             height: obj.height,
-            text: obj.text,
-            events: obj.events,
         };
+
+        if (obj.text) {
+            summary.text = obj.text;
+        }
+
+        const rawEvents = obj.events as Record<string, string> | undefined;
+        if (rawEvents) {
+            const configuredEvents = Object.fromEntries(
+                Object.entries(rawEvents).filter(([, v]) => typeof v === 'string' && v.trim() !== '')
+            );
+            if (Object.keys(configuredEvents).length > 0) {
+                summary.configuredEvents = configuredEvents;
+            }
+        }
 
         if (obj.children && obj.children.length > 0) {
             summary.children = obj.children.map(child => this.summarizeObject(child));
@@ -218,35 +241,55 @@ export class ProjectContextBuilder {
     }
 
     private summarizeVariable(variable: ProjectVariable, stageId?: string): AIVariableSummary {
+        const v = variable as any;
         return {
             name: variable.name,
             type: variable.type,
             scope: variable.scope || stageId || 'global',
             initialValue: variable.initialValue ?? variable.defaultValue ?? variable.value,
+            min: v.min,
+            max: v.max,
+            isInteger: v.isInteger,
         };
     }
 
     private summarizeUserStory(userStory: UserStory): AIUserStorySummary {
-        return {
+        const summary: Record<string, unknown> = {
             id: userStory.id,
             title: userStory.title,
-            description: userStory.description,
             priority: userStory.priority,
             status: userStory.status,
-            plannedComponent: userStory.plannedComponent
-                ? {
-                      compType: userStory.plannedComponent.type,
-                      compName: userStory.plannedComponent.name,
-                  }
-                : undefined,
-            plannedEvent: userStory.plannedEvent,
-            plannedEventParam: userStory.plannedEventParam,
-            plannedTask: userStory.plannedTask,
-            plannedActions: userStory.plannedActions,
-            plannedCondition: userStory.plannedCondition,
-            agentHints: userStory.agentHints,
-            agentControllerScript: userStory.agentControllerScript,
         };
+
+        if (userStory.description) {
+            summary.description = userStory.description;
+        }
+
+        if (userStory.plannedComponent?.name) {
+            summary.plannedComponentName = userStory.plannedComponent.name;
+        }
+
+        if (userStory.plannedTask) {
+            summary.plannedTask = userStory.plannedTask;
+        }
+
+        if (userStory.plannedEvent) {
+            summary.plannedEvent = userStory.plannedEvent;
+        }
+
+        if (userStory.plannedEventParam) {
+            summary.plannedEventParam = userStory.plannedEventParam;
+        }
+
+        if (userStory.plannedCondition) {
+            summary.plannedCondition = userStory.plannedCondition;
+        }
+
+        if (userStory.agentHints) {
+            summary.agentHints = userStory.agentHints;
+        }
+
+        return summary as unknown as AIUserStorySummary;
     }
 
     private buildGlobalInventory(): AIProjectContext['globalInventory'] {

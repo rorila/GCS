@@ -19,6 +19,7 @@ export const METHOD_POLICIES: Record<string, MethodPolicy> = {
     createTask: { minParams: 2, maxParams: 3, mutating: true, destructive: false },
     addAction: { minParams: 3, maxParams: 4, mutating: true, destructive: false },
     addTaskCall: { minParams: 2, maxParams: 2, mutating: true, destructive: false },
+    addTaskParam: { minParams: 2, maxParams: 4, mutating: true, destructive: false },
     connectEvent: { minParams: 4, maxParams: 4, mutating: true, destructive: false },
     setProperty: { minParams: 4, maxParams: 4, mutating: true, destructive: false },
     bindVariable: { minParams: 4, maxParams: 4, mutating: true, destructive: false },

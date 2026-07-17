@@ -34,11 +34,10 @@
         {
           "className": "TStageController",
           "id": "stage_controller",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "StageController",
           "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -48,7 +47,9 @@
           "width": 8,
           "height": 4,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#9c27b0",
@@ -69,11 +70,10 @@
         {
           "className": "TVariable",
           "id": "var_project_change",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
           "name": "isProjectChangeAvailable",
           "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -83,7 +83,9 @@
           "width": 10,
           "height": 4,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -91,8 +93,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -103,7 +105,8 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#f5f5f5"
-      }
+      },
+      "flowCharts": {}
     },
     {
       "id": "main",
@@ -115,7 +118,9 @@
           "name": "ShowTheHighscoreStage",
           "details": "",
           "type": "navigate_stage",
-          "showDetails": false
+          "showDetails": false,
+          "id": "313f40d0-c068-4ec7-804c-544eb9b3b68d",
+          "reset": false
         }
       ],
       "tasks": [
@@ -139,7 +144,8 @@
               "x": 40,
               "y": 140
             }
-          }
+          },
+          "id": "11f9c352-f053-4284-913c-5012f724821e"
         }
       ],
       "variables": [],
@@ -173,5 +179,9 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "stage-1773685660117",
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0"
 }

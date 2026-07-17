@@ -155,7 +155,12 @@ export class GameRuntime implements IVariableHost {
 
                     this.reactiveRuntime.getWatcher().addGlobalListener(
                         (obj: any, prop: string) => {
-                            if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') return;
+                            if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') {
+                                if (prop === 'x' || prop === 'y') {
+                                    GameLoopManager.getInstance().requestRender();
+                                }
+                                return;
+                            }
 
                             if (prop && prop.startsWith('_')) return;
 
@@ -786,10 +791,15 @@ export class GameRuntime implements IVariableHost {
         // CRITICAL FIX: Unwrap proxy to ensure we bypass any Proxy limitations
         const rawObj = (obj as any).__isProxy__ ? (obj as any).__target__ : obj;
         
-        if (rawObj.events && eventName in rawObj.events) {
-            hasTaskMap = rawObj.events[eventName];
-        } else if ((rawObj as any).Tasks && eventName in (rawObj as any).Tasks) {
-            hasTaskMap = (rawObj as any).Tasks[eventName];
+        // onEnter ist ein Alias für onMouseEnter bei Sprites
+        const resolvedEventName = (eventName === 'onMouseEnter' && !rawObj.events?.onMouseEnter && !rawObj.Tasks?.onMouseEnter)
+            ? (rawObj.events?.onEnter || rawObj.Tasks?.onEnter ? 'onEnter' : eventName)
+            : eventName;
+
+        if (rawObj.events && resolvedEventName in rawObj.events) {
+            hasTaskMap = rawObj.events[resolvedEventName];
+        } else if ((rawObj as any).Tasks && resolvedEventName in (rawObj as any).Tasks) {
+            hasTaskMap = (rawObj as any).Tasks[resolvedEventName];
         }
         let eventLogId: string | undefined = undefined;
 

@@ -119,6 +119,7 @@ export class UserStoryDetailManager {
         userStory.status = status as 'idea' | 'in_progress' | 'completed' | 'blocked';
         userStory.updatedAt = new Date();
         this.host.isProjectDirty = true;
+        this.host.autoSaveToLocalStorage();
 
         const notification = document.createElement('div');
         notification.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #4caf50; color: white; padding: 12px 24px; border-radius: 4px; z-index: 1000;';
@@ -158,6 +159,7 @@ export class UserStoryDetailManager {
         userStory.interactions.push(interaction);
         userStory.updatedAt = new Date();
         this.host.isProjectDirty = true;
+        this.host.autoSaveToLocalStorage();
         this.renderInteractionsList(userStoryId);
     }
 
@@ -462,6 +464,7 @@ export class UserStoryDetailManager {
         interaction.updatedAt = new Date();
         userStory.updatedAt = new Date();
         this.host.isProjectDirty = true;
+        this.host.autoSaveToLocalStorage();
 
         const notification = document.createElement('div');
         notification.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #4caf50; color: white; padding: 12px 24px; border-radius: 4px; z-index: 1000;';
@@ -501,6 +504,7 @@ export class UserStoryDetailManager {
         interaction.updatedAt = new Date();
         userStory.updatedAt = new Date();
         this.host.isProjectDirty = true;
+        this.host.autoSaveToLocalStorage();
         this.renderConditionsList(userStoryId, interactionId, type);
     }
 
@@ -577,6 +581,7 @@ export class UserStoryDetailManager {
             interaction.updatedAt = new Date();
             userStory.updatedAt = new Date();
             this.host.isProjectDirty = true;
+            this.host.autoSaveToLocalStorage();
         }
     }
 
@@ -594,6 +599,7 @@ export class UserStoryDetailManager {
             interaction.updatedAt = new Date();
             userStory.updatedAt = new Date();
             this.host.isProjectDirty = true;
+            this.host.autoSaveToLocalStorage();
         }
     }
 
@@ -606,6 +612,7 @@ export class UserStoryDetailManager {
         userStory.interactions = userStory.interactions?.filter((i: any) => i.id !== interactionId) || [];
         userStory.updatedAt = new Date();
         this.host.isProjectDirty = true;
+        this.host.autoSaveToLocalStorage();
         this.renderInteractionsList(userStoryId);
     }
 
@@ -621,6 +628,7 @@ export class UserStoryDetailManager {
             this.host.project.userStories.userStories = this.host.project.userStories.userStories.filter((us: any) => us.id !== id);
         }
         this.host.isProjectDirty = true;
+        this.host.autoSaveToLocalStorage();
         this.host.renderUserStoriesList();
     }
 

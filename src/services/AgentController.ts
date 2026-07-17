@@ -437,14 +437,27 @@ export class AgentController {
                 ...params
             } as any;
 
-            const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
-            if (blueprintStage) {
-                if (!blueprintStage.actions) blueprintStage.actions = [];
-                blueprintStage.actions.push(actionDef as any);
-                AgentController.logger.info(`Action '${actionName}' created in Blueprint Stage.`);
+            // Stage des Tasks ermitteln – Action gehört in dieselbe Stage wie der Task
+            const taskContainer = projectTaskRegistry.getTaskContainer(taskName);
+            const targetStage = taskContainer.type === 'stage' && taskContainer.stageId
+                ? this.project!.stages?.find(s => s.id === taskContainer.stageId)
+                : undefined;
+
+            if (targetStage) {
+                if (!targetStage.actions) targetStage.actions = [];
+                targetStage.actions.push(actionDef as any);
+                AgentController.logger.info(`Action '${actionName}' created in Stage '${targetStage.name}'.`);
             } else {
-                if (!this.project!.actions) this.project!.actions = [];
-                this.project!.actions.push(actionDef as any);
+                // Fallback: Blueprint Stage (Legacy-Verhalten)
+                const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
+                if (blueprintStage) {
+                    if (!blueprintStage.actions) blueprintStage.actions = [];
+                    blueprintStage.actions.push(actionDef as any);
+                    AgentController.logger.info(`Action '${actionName}' created in Blueprint Stage (fallback).`);
+                } else {
+                    if (!this.project!.actions) this.project!.actions = [];
+                    this.project!.actions.push(actionDef as any);
+                }
             }
         }
 
@@ -1329,14 +1342,31 @@ export class AgentController {
 
         const allTasks = [...(this.project!.tasks || []), ...(this.project!.stages?.flatMap(s => s.tasks || []) || [])];
 
-        // Prüfe: Inline-Actions (verboten!)
+        // Prüfe und repariere: Inline-Actions (verboten – werden automatisch extrahiert)
         const checkInlineActions = (seq: SequenceItem[], taskName: string) => {
             for (const item of seq) {
                 if (item.type === 'action') {
-                    // Nur name und type erlaubt — alles andere ist inline
                     const keys = Object.keys(item).filter(k => !['type', 'name'].includes(k));
-                    if (keys.length > 0) {
-                        issues.push({ level: 'error', message: `Task '${taskName}': Inline-Action gefunden (${item.name}). Nur Referenzen erlaubt!` });
+                    if (keys.length > 0 && item.name) {
+                        // Auto-Reparatur: Action global definieren falls noch nicht vorhanden
+                        if (!actionNames.has(item.name)) {
+                            const { type: _t, name: _n, ...inlineParams } = item as any;
+                            const actionType = (inlineParams.actionType ?? inlineParams.type ?? 'property') as ActionType;
+                            delete inlineParams.actionType;
+                            const actionDef = { name: item.name, type: actionType, ...inlineParams } as any;
+                            const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
+                            if (blueprintStage) {
+                                if (!blueprintStage.actions) blueprintStage.actions = [];
+                                blueprintStage.actions.push(actionDef);
+                            } else {
+                                if (!this.project!.actions) this.project!.actions = [];
+                                this.project!.actions.push(actionDef);
+                            }
+                            actionNames.add(item.name);
+                            issues.push({ level: 'warning', message: `Task '${taskName}': Inline-Action '${item.name}' wurde automatisch als globale Action extrahiert.` });
+                        }
+                        // Item bereinigen – nur type und name behalten
+                        for (const k of keys) delete (item as any)[k];
                     }
                     if (item.name && !actionNames.has(item.name)) {
                         issues.push({ level: 'error', message: `Task '${taskName}': Action '${item.name}' ist referenziert aber nicht definiert.` });
@@ -1375,6 +1405,36 @@ export class AgentController {
             if (!hasFlow && t.actionSequence.length > 0) {
                 issues.push({ level: 'warning', message: `Task '${t.name}' hat ${t.actionSequence.length} Actions aber kein FlowChart.` });
             }
+        });
+
+        // Bereinige: Leere Event-Einträge aus allen Objekten entfernen
+        const cleanEmptyEvents = (objs: any[]) => {
+            if (!objs) return;
+            for (const obj of objs) {
+                if (obj.events) {
+                    for (const key of Object.keys(obj.events)) {
+                        const val = obj.events[key];
+                        if (!val || (typeof val === 'string' && val.trim() === '')) {
+                            delete obj.events[key];
+                        }
+                    }
+                }
+                if (obj.Tasks) {
+                    for (const key of Object.keys(obj.Tasks)) {
+                        const val = obj.Tasks[key];
+                        if (!val || (typeof val === 'string' && val.trim() === '')) {
+                            delete obj.Tasks[key];
+                        }
+                    }
+                }
+                if (obj.children) cleanEmptyEvents(obj.children);
+            }
+        };
+        cleanEmptyEvents(this.project!.objects || []);
+        cleanEmptyEvents(this.project!.variables || []);
+        this.project!.stages?.forEach(s => {
+            cleanEmptyEvents(s.objects || []);
+            cleanEmptyEvents(s.variables || []);
         });
 
         AgentController.logger.info(`Validation complete: ${issues.filter(i => i.level === 'error').length} errors, ${issues.filter(i => i.level === 'warning').length} warnings`);

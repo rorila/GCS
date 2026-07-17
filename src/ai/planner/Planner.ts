@@ -1,12 +1,11 @@
 import { GameProject } from '../../model/types';
 import { AIConfig, AIGenerationRequest, AIImplementationPlan } from '../config/AIConfig';
 import { ProjectContextBuilder } from '../context/ProjectContextBuilder';
-import { KnowledgeBase } from '../rag/KnowledgeBase';
 import { OllamaProvider } from '../llm/OllamaProvider';
 import { LMStudioProvider } from '../llm/LMStudioProvider';
 import { LLMProvider } from '../llm/LLMProvider';
 import { LLMCompletionRequest, LLMMessage } from '../llm/LLMTypes';
-import { AI_ALLOWED_METHODS } from '../generation/AIAllowedMethods';
+
 
 /**
  * Planner
@@ -18,14 +17,14 @@ import { AI_ALLOWED_METHODS } from '../generation/AIAllowedMethods';
 export class Planner {
     constructor(private project: GameProject) {}
 
-    public async plan(request: AIGenerationRequest, config: AIConfig): Promise<AIImplementationPlan> {
-        const knowledgeBase = KnowledgeBase.getInstance();
-        await knowledgeBase.loadFromUrl();
-        const context = new ProjectContextBuilder(this.project).build(request);
-        context.relevantApiDocs = await knowledgeBase.getRelevantChunksAsync(request.instruction, config, config.topK ?? 5);
+    public async buildMessages(request: AIGenerationRequest, _config: AIConfig): Promise<LLMMessage[]> {
+        const context = new ProjectContextBuilder(this.project).buildForPlanner(request);
+        return this.buildMessagesWithContext(request, context);
+    }
 
+    public async plan(request: AIGenerationRequest, config: AIConfig): Promise<AIImplementationPlan> {
         const provider = this.createProvider(config);
-        const messages = this.buildMessages(request, context);
+        const messages = await this.buildMessages(request, config);
 
         const llmRequest: LLMCompletionRequest = {
             messages,
@@ -33,14 +32,19 @@ export class Planner {
             responseFormat: 'json',
         };
 
+        let rawContent = '';
         try {
             const response = await provider.complete(llmRequest);
-            return this.parsePlan(response.content);
+            rawContent = response.content;
+            const parsed = this.parsePlan(rawContent);
+            parsed.rawResponse = rawContent;
+            return parsed;
         } catch (err: any) {
             return {
                 goal: request.instruction,
                 assumptions: [],
                 risks: [`Planungsfehler: ${err.message || err}`],
+                rawResponse: rawContent,
             };
         }
     }
@@ -52,49 +56,75 @@ export class Planner {
         return new LMStudioProvider(config);
     }
 
-    private buildMessages(request: AIGenerationRequest, context: any): LLMMessage[] {
-        const allowedMethods = Array.from(AI_ALLOWED_METHODS).join(', ');
-
+    private buildMessagesWithContext(request: AIGenerationRequest, context: any): LLMMessage[] {
         const systemPrompt = `Du bist ein GCS-Planner.
 
-Erzeuge einen Implementierungsplan, aber noch kein AgentScript.
+Erzeuge ausschließlich einen Implementierungsplan.
+Kein AgentScript. Keinen Code. Keine Erklärungen.
+
+Erlaubte operationIntent-Werte (nur diese, keine anderen):
+- createStage      → neue Stage anlegen
+- addObject        → neues Objekt in eine Stage einfügen
+- addVariable      → neue Variable anlegen
+- createTask       → neuen Task in einer Stage anlegen
+- addAction        → Wirkung/Effekt einem Task hinzufügen (z.B. Farbe ändern, Position setzen) – NICHT für Auslöser verwenden
+- addTaskCall      → einen bereits vorhandenen zweiten Task innerhalb eines Tasks aufrufen (nur wenn ein Subtask existiert)
+- addTaskParam     → Parameter für einen Task definieren (NUR wenn das Event einen konkreten Parameter liefert, z.B. gedrückte Taste bei onKeyDown – nicht für Farbänderungen oder Mausklicks verwenden)
+- connectEvent     → Event eines Objekts mit einem Task verbinden (nicht mit einer Action)
+- setProperty      → Property direkt und dauerhaft auf einem Objekt setzen (ohne Task, ohne Event)
+- bindVariable     → Variable an eine Objekt-Property binden
 
 Regeln:
-1. Analysiere die Aufgabenbeschreibung und den Projektkontext.
-2. Verwende nur die bekannten AgentController-Methoden.
-3. Wiederverwende bestehende Entitäten, wenn sie im Kontext vorkommen.
-4. Erfinde keine AgentController-Methoden und keine ActionTypes.
-5. Antworte ausschließlich als gültiges JSON.
-6. Dokumentiere Unsicherheiten in assumptions.
-7. Risiken (z.B. fehlende Entitäten, unklare Scope) in risks auflisten.
+- Wiederverwende vorhandene Entitäten aus dem Projektkontext.
+- Erfinde keine konkreten technischen Methoden-, Event-, Property- oder ActionType-Namen.
+- Fachliche Auslöser und Änderungen dürfen beschrieben werden,
+  zum Beispiel "Mausklick" oder "Farbe auf Blau ändern".
+- Plane technische Details nur fachlich. Die konkreten API-Namen werden später aufgelöst.
+- assumptions enthält für die Planung getroffene Annahmen.
+- risks enthält fehlende oder unklare Informationen, die die spätere Umsetzung beeinflussen können.
+- actions enthält benannte Actions, die innerhalb von Tasks verwendet oder neu angelegt werden.
+- steps muss mindestens einen Eintrag enthalten.
+- order beginnt bei 1 und steigt ohne Lücken an.
+- Antworte ausschließlich als JSON-Objekt ohne Markdown.
 
-Erlaubte Methoden: ${allowedMethods}
+Jeder steps-Eintrag besitzt genau:
+{ "order": Zahl, "operationIntent": erlaubter Wert, "description": fachliche Beschreibung }
 
-Ausgabeformat:
+Schema:
 {
-  "goal": "Kurze Zielbeschreibung",
-  "requiredEntities": {
-    "stages": ["stage_main"],
-    "objects": ["StartButton"],
-    "tasks": ["StartGame"],
-    "actions": ["HideStartButton"]
-  },
-  "steps": [
-    { "order": 1, "operationIntent": "createObject", "description": "Start-Button anlegen" },
-    { "order": 2, "operationIntent": "createTask", "description": "Task StartGame anlegen" },
-    { "order": 3, "operationIntent": "createAction", "description": "Button ausblenden" },
-    { "order": 4, "operationIntent": "connectEvent", "description": "onClick verbinden" }
-  ],
+  "goal": "string",
+  "existingEntities": { "stages": [], "objects": [], "tasks": [], "actions": [] },
+  "entitiesToCreate": { "stages": [], "objects": [], "tasks": [], "actions": [] },
+  "steps": [],
   "assumptions": [],
   "risks": []
+}
+
+Beispiel – Aufgabe: Objekt blinkt beim Mausklick:
+{
+  "goal": "Objekt 'Enemy' soll beim Mausklick blinken.",
+  "existingEntities": { "stages": ["main"], "objects": ["Enemy"], "tasks": [], "actions": [] },
+  "entitiesToCreate": { "stages": [], "objects": [], "tasks": ["BlinkEnemy"], "actions": [] },
+  "steps": [
+    { "order": 1, "operationIntent": "createTask", "description": "Task 'BlinkEnemy' in Stage 'main' anlegen." },
+    { "order": 2, "operationIntent": "addAction", "description": "Aktion zum Blinken des Objekts 'Enemy' dem Task hinzufügen." },
+    { "order": 3, "operationIntent": "connectEvent", "description": "Mausklick auf 'Enemy' mit Task 'BlinkEnemy' verbinden." }
+  ],
+  "assumptions": ["'Enemy' ist bereits in Stage 'main' vorhanden."],
+  "risks": ["Konkreter technischer Property-Name für Blinken muss später aufgelöst werden."]
 }`;
 
-        const userPrompt = `${request.instruction}
+        const taskBlock = this.buildTaskBlock(request, context);
+        const projectContext = { ...context };
+        delete (projectContext as any).selectedUserStories;
 
----
+        const userPrompt = `<project-context>
+${JSON.stringify(projectContext, null, 2)}
+</project-context>
 
-Projektkontext:
-${JSON.stringify(context, null, 2)}`;
+<task>
+${taskBlock}
+</task>`;
 
         return [
             { role: 'system', content: systemPrompt },
@@ -102,12 +132,36 @@ ${JSON.stringify(context, null, 2)}`;
         ];
     }
 
-    private parsePlan(raw: string): AIImplementationPlan {
+    private buildTaskBlock(request: AIGenerationRequest, context: any): string {
+        const stories: any[] = context.selectedUserStories ?? [];
+        const lines: string[] = [];
+
+        if (stories.length > 0) {
+            const story = stories[0];
+            if (story.title) lines.push(`Titel: ${story.title}`);
+            if (story.description) lines.push(`Beschreibung: ${story.description}`);
+            else lines.push(`Beschreibung: ${request.instruction}`);
+            if (story.plannedTask) lines.push(`Geplanter Taskname: ${story.plannedTask}`);
+            if (story.plannedComponentName) lines.push(`Vorhandenes Zielobjekt: ${story.plannedComponentName}`);
+            if (story.plannedEvent) lines.push(`Geplantes Event: ${story.plannedEvent}`);
+            if (story.agentHints) lines.push(`Hinweise: ${story.agentHints}`);
+        } else {
+            lines.push(`Beschreibung: ${request.instruction}`);
+        }
+
+        return lines.join('\n');
+    }
+
+    private parsePlan(raw: string): AIImplementationPlan { // eslint-disable-line
         const cleaned = raw
             .trim()
             .replace(/^```json\s*/i, '')
             .replace(/^```\s*/i, '')
             .replace(/\s*```$/, '');
+
+        if (cleaned.includes('"chunkType"') || cleaned.includes('"sectionPath"') || cleaned.includes('"contentHash"')) {
+            throw new Error('Das Modell hat einen Knowledge-Chunk zurückgegeben statt eines Plans.');
+        }
 
         const data = JSON.parse(cleaned);
 
@@ -121,6 +175,21 @@ ${JSON.stringify(context, null, 2)}`;
             throw new Error('Der Plan benötigt goal und steps.');
         }
 
+        this.normalizeEntityArrays(plan.existingEntities);
+        this.normalizeEntityArrays(plan.entitiesToCreate);
+
         return plan;
     }
+
+    private normalizeEntityArrays(group: any): void {
+        if (!group || typeof group !== 'object') return;
+        for (const key of ['stages', 'objects', 'tasks', 'actions']) {
+            if (Array.isArray(group[key])) {
+                group[key] = group[key].map((item: any) =>
+                    typeof item === 'string' ? item : (item.name ?? item.id ?? JSON.stringify(item))
+                );
+            }
+        }
+    }
+
 }

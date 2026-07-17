@@ -2916,10 +2916,20 @@ agent.addObject('stage_main', {
 | `collisionEnabled` | `boolean` | `true` | Kollisionserkennung aktiv |
 | `collisionGroup` | `string` | `"default"` | Gruppe (für Filter) |
 | `shape` | `select` | `"rect"` | `rect` \| `circle` |
-| `spriteColor` | `color` | `"#ff6b6b"` | Grundfarbe |
+| `spriteColor` | `color` | `"#ff6b6b"` | Grundfarbe des Sprites (Inspector). Für property-Actions stattdessen `style.backgroundColor` verwenden. |
 | `backgroundImage` | `string` | `""` | Sprite-Bild URL |
+| `style.backgroundColor` | `color` | — | CSS-Farbe des Sprites. Korrekter Pfad für property-Actions: `"ObjektName.style.backgroundColor"` als changes-Key, `target: ""`. |
 
-**Events:** `onCollision`, `onCollisionLeft`, `onCollisionRight`, `onCollisionTop`, `onCollisionBottom`, `onBoundaryHit`
+**Events:** `onClick`, `onCollision`, `onCollisionLeft`, `onCollisionRight`, `onCollisionTop`, `onCollisionBottom`, `onBoundaryHit`
+
+**Farbe ändern via Property-Action:**
+```typescript
+// Korrektes Format: target leer, ObjektName.style.backgroundColor als Key
+agent.addAction('ChangeSpriteColor', 'property', 'SetBlue', {
+  target: '',
+  changes: { 'Player.style.backgroundColor': '#0000ff' }
+});
+```
 
 **Beispiel:**
 ```typescript
@@ -3159,9 +3169,9 @@ agent.addVariable('stage_main', {
 
 ### §5.H.5 `TRandomVariable` — Zufallszahl-Generator
 
-**Properties:** `min`, `max`, `isInteger`, `value` (readonly)
+**Properties:** `min`, `max`, `isInteger`, `value` (readonly), `randomValue` (Getter – erzeugt beim Lesen einen neuen Wert und aktualisiert `value`)
 **Methoden:** `generate` (via `call_method`, Wert danach in `.value`)
-**Events:** `onGenerated`
+**Events:** `onGenerated`, `onValueChanged`
 
 ```typescript
 agent.addVariable('stage_main', {
@@ -3173,9 +3183,19 @@ agent.addVariable('stage_main', {
 agent.addAction('RollDice', 'call_method', 'DoRoll', {
   target: 'Wuerfel', method: 'generate'
 });
+
+// Oder per "Variable lesen/setzen"-Action auslesen (sourceProperty = randomValue):
+agent.addAction('MainTask', 'variable', 'ReadWuerfel', {
+  source: 'Wuerfel',
+  sourceProperty: 'randomValue',
+  variableName: 'Ergebnis'
+});
 ```
 
-**⚠️ Warning:** Methode heißt **`generate`**. Wert danach in `${Wuerfel}` verfügbar.
+**⚠️ Warning:**
+- Methode heißt **`generate`**.
+- **`randomValue`** ist ein Getter: Jeder Zugriff erzeugt einen neuen Wert und speichert ihn in `value`.
+- In Bindings und Variablen-Actions kann `${Wuerfel}` bzw. `randomValue` verwendet werden. Der Wert fließt über `contextVars`, damit `onValueChanged` feuert.
 
 ---
 

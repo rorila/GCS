@@ -1,5 +1,7 @@
 import { IRenderContext } from './IRenderContext';
 import { Logger } from '../../../utils/Logger';
+import { PropertyHelper } from '../../../runtime/PropertyHelper';
+import { NotificationToast } from '../../ui/NotificationToast';
 
 const logger = Logger.get('ComplexComponentRenderer');
 
@@ -229,15 +231,20 @@ export class ComplexComponentRenderer {
                 const stageH = ctx.host.element.clientHeight;
                 const stageWCells = stageW / cellSize;
                 const stageHCells = stageH / cellSize;
-                const objWCells = obj.width || 16;
-                const objHCells = obj.height || 9;
+                const vars = ctx.host.getVariableContext ? ctx.host.getVariableContext() : {};
+                const objWCells = Number(PropertyHelper.getResolvedPropertyValue(obj, 'width', vars)) || 16;
+                const objHCells = Number(PropertyHelper.getResolvedPropertyValue(obj, 'height', vars)) || 9;
                 const newX = Math.max(0, Math.floor((stageWCells - objWCells) / 2));
                 const newY = Math.max(0, Math.floor((stageHCells - objHCells) / 2));
-                obj.x = newX;
-                obj.y = newY;
-                (el.style as any).translate = `${newX * cellSize}px ${newY * cellSize}px`;
-                el.style.left = '0px';
-                el.style.top = '0px';
+                if (PropertyHelper.isBinding(obj.x) || PropertyHelper.isBinding(obj.y)) {
+                    // Binding controls position; do not overwrite it.
+                } else {
+                    obj.x = newX;
+                    obj.y = newY;
+                    (el.style as any).translate = `${newX * cellSize}px ${newY * cellSize}px`;
+                    el.style.left = '0px';
+                    el.style.top = '0px';
+                }
             } else if (!obj.visible) {
                 (el as any)._wasCentered = false;
             }
@@ -398,8 +405,9 @@ export class ComplexComponentRenderer {
                         isDragging = true;
                         startX = e.clientX;
                         startY = e.clientY;
-                        startObjX = currentObj.x || 0;
-                        startObjY = currentObj.y || 0;
+                        const vars = ctx.host.getVariableContext ? ctx.host.getVariableContext() : {};
+                        startObjX = Number(PropertyHelper.getResolvedPropertyValue(currentObj, 'x', vars)) || 0;
+                        startObjY = Number(PropertyHelper.getResolvedPropertyValue(currentObj, 'y', vars)) || 0;
                         
                         logger.debug('[DIALOG-DEBUG] Drag START: x:', startObjX, 'y:', startObjY);
                         titleBar.setPointerCapture(e.pointerId);
@@ -408,6 +416,14 @@ export class ComplexComponentRenderer {
                         if (!isDragging) return;
                         e.stopPropagation();
                         const currentObj = (titleBar as any)._dialogObj;
+                        if (!currentObj) return;
+                        if (PropertyHelper.isBinding(currentObj.x) || PropertyHelper.isBinding(currentObj.y)) {
+                            isDragging = false;
+                            titleBar.releasePointerCapture(e.pointerId);
+                            NotificationToast.show('Dialog-Position ist an eine Variable gebunden und kann nicht per Drag geändert werden.', 'info');
+                            return;
+                        }
+
                         const dx = e.clientX - startX;
                         const dy = e.clientY - startY;
                         

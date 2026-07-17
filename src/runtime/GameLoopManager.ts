@@ -241,6 +241,24 @@ export class GameLoopManager {
     }
 
     /**
+     * Erzwingt einen einmaligen Render-Frame für Sprites.
+     * Wird aufgerufen wenn x/y eines Sprites per Action direkt gesetzt wird
+     * (nicht durch Velocity im Loop) – für Gleichbehandlung mit TButton/TPanel.
+     */
+    public requestRender(): void {
+        if (this.state === 'sleeping') {
+            this.wakeUp();
+            return;
+        }
+        this.idleFrameCount = 0;
+        if (this.spriteRenderCallback) {
+            this.spriteRenderCallback(this.sprites);
+        } else if (this.renderCallback) {
+            this.renderCallback();
+        }
+    }
+
+    /**
      * Main game loop - NORMAL METHOD, not arrow function
      * OPTIMIZATION: Only renders when something has changed to avoid endless log spam
      */

@@ -196,7 +196,7 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 3,
+          "x": 2,
           "y": 0,
           "width": 41,
           "height": 22,
@@ -298,5 +298,8 @@
     }
   ],
   "activeStageId": "main",
-  "schemaVersion": "4.0.0"
+  "schemaVersion": "4.0.0",
+  "userStories": {
+    "userStories": []
+  }
 }

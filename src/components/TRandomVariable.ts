@@ -50,7 +50,7 @@ export class TRandomVariable extends TWindow {
     /**
      * Generates a new random value (callable via call_method)
      */
-    public generate(): void {
+    public generate(): number {
         if (this.isInteger) {
             this.value = Math.floor(Math.random() * (this.max - this.min + 1)) + this.min;
         } else {
@@ -58,6 +58,16 @@ export class TRandomVariable extends TWindow {
         }
         logger.info(`[TRandomVariable] ${this.name} generated: ${this.value}`);
         // In a real implementation, this would fire 'onGenerated' in the runtime.
+        return this.value;
+    }
+
+    /**
+     * Liefert einen neuen Zufallswert und aktualisiert gleichzeitig `value`.
+     * Kann in Bindings, Calculate-Formeln und Variable-Actions verwendet werden.
+     */
+    public get randomValue(): number {
+        this.generate();
+        return this.value;
     }
 }
 

@@ -244,6 +244,9 @@ export class AIValidator {
             case 'addAction':
                 this.validateAddAction(op, index, state, issues);
                 break;
+            case 'addTaskParam':
+                this.validateAddTaskParam(op, index, state, issues);
+                break;
             case 'addTaskCall':
                 this.validateAddTaskCall(op, index, state, issues);
                 break;
@@ -409,8 +412,8 @@ export class AIValidator {
             return;
         }
 
-        if (params && typeof params !== 'object') {
-            issues.push(this.issue('error', 'INVALID_ACTION_PARAMS', 'addAction params muss ein Objekt sein.', index, op.method));
+        if (params && (typeof params !== 'object' || Array.isArray(params))) {
+            issues.push(this.issue('error', 'INVALID_ACTION_PARAMS', 'addAction params (4. Parameter) muss ein Objekt sein, kein Array.', index, op.method));
         }
 
         const existingType = state.actions.get(actionName);
@@ -428,6 +431,27 @@ export class AIValidator {
             }
         } else {
             state.actions.set(actionName, actionType);
+        }
+    }
+
+    private validateAddTaskParam(op: AgentScriptOperation, index: number, state: VirtualState, issues: AIValidationIssue[]): void {
+        const [taskName, paramName, type = 'string'] = op.params;
+
+        if (!taskName || typeof taskName !== 'string') {
+            issues.push(this.issue('error', 'MISSING_TASK_REFERENCE', 'addTaskParam benötigt einen Task-Namen.', index, op.method));
+            return;
+        }
+
+        if (!state.tasks.has(taskName)) {
+            issues.push(this.issue('error', 'TASK_NOT_FOUND', `Task '${taskName}' existiert nicht. Erzeuge ihn zuerst mit createTask().`, index, op.method));
+        }
+
+        if (!paramName || typeof paramName !== 'string') {
+            issues.push(this.issue('error', 'MISSING_PARAM_NAME', 'addTaskParam benötigt einen Parameter-Namen.', index, op.method));
+        }
+
+        if (!VALID_VARIABLE_TYPES.has(type)) {
+            issues.push(this.issue('warning', 'UNKNOWN_PARAM_TYPE', `Parametertyp '${type}' ist nicht in der Liste bekannter Variablen-Typen.`, index, op.method));
         }
     }
 

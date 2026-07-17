@@ -1,5 +1,6 @@
 
 import { Logger } from '../utils/Logger';
+import { DESIGN_VALUES } from '../components/TComponent';
 
 const logger = Logger.get('PropertyHelper', 'Variable_Handling');
 
@@ -103,6 +104,78 @@ export class PropertyHelper {
             }
         }
         return val;
+    }
+
+    // -------------------------------------------------------------------------
+    // Binding persistence helpers
+    // -------------------------------------------------------------------------
+
+    private static readonly BINDING_REGEX = /\$\{[^}]+\}/;
+
+    /**
+     * Returns true if a value is a binding expression string (e.g., "${myVar}").
+     */
+    static isBinding(value: any): boolean {
+        return typeof value === 'string' && this.BINDING_REGEX.test(value);
+    }
+
+    /**
+     * Stores a binding expression as the design value for a property path.
+     */
+    static setDesignValue(obj: any, propPath: string, expression: string): void {
+        if (!obj || !propPath) return;
+        if (!obj[DESIGN_VALUES]) obj[DESIGN_VALUES] = {};
+        obj[DESIGN_VALUES][propPath] = expression;
+    }
+
+    /**
+     * Removes a stored design value / binding expression for a property path.
+     */
+    static clearDesignValue(obj: any, propPath: string): void {
+        if (!obj || !propPath) return;
+        const designValues = obj[DESIGN_VALUES];
+        if (designValues) {
+            delete designValues[propPath];
+            if (Object.keys(designValues).length === 0) {
+                delete obj[DESIGN_VALUES];
+            }
+        }
+    }
+
+    /**
+     * Returns the binding expression for a property path if one exists.
+     * Checks DESIGN_VALUES first, then the live property value.
+     */
+    static getDesignValue(obj: any, propPath: string): any {
+        if (!obj || !propPath) return undefined;
+        const designValues = obj[DESIGN_VALUES];
+        if (designValues && propPath in designValues) {
+            return designValues[propPath];
+        }
+        const raw = this.getPropertyValue(obj, propPath);
+        return this.isBinding(raw) ? raw : undefined;
+    }
+
+    /**
+     * Resolves a binding expression to a concrete value using the given context.
+     */
+    static resolveBinding(expression: string, context?: Record<string, any>, objects?: any[]): any {
+        if (!this.isBinding(expression)) return expression;
+        if (!context) return expression;
+        const interpolated = this.interpolate(expression, context, objects);
+        return this.autoConvert(interpolated);
+    }
+
+    /**
+     * Returns the resolved value for a property path, evaluating any binding expression.
+     */
+    static getResolvedPropertyValue(obj: any, propPath: string, context?: Record<string, any>, objects?: any[]): any {
+        if (!obj || !propPath) return undefined;
+        const raw = this.getPropertyValue(obj, propPath);
+        if (this.isBinding(raw)) {
+            return this.resolveBinding(raw, context, objects);
+        }
+        return raw;
     }
 
     /**

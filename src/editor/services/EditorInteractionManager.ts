@@ -3,6 +3,8 @@ import { mediatorService } from '../../services/MediatorService';
 import { componentRegistry } from '../../services/ComponentRegistry';
 import { projectStore, ProjectMutation } from '../../services/ProjectStore';
 import { Logger } from '../../utils/Logger';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { NotificationToast } from '../ui/NotificationToast';
 
 const logger = Logger.get('EditorInteractionManager');
 
@@ -98,16 +100,26 @@ export class EditorInteractionManager {
             const obj = this.host.findObjectById(id);
             logger.debug(`[DND-FLOW 3] findObjectById returned:`, obj ? obj.id : 'null');
             if (obj) {
-                mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'x', value: newX });
-                mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'y', value: newY });
+                const xBound = PropertyHelper.isBinding(obj.x);
+                const yBound = PropertyHelper.isBinding(obj.y);
+                if (xBound || yBound) {
+                    NotificationToast.show('Position ist an eine Variable gebunden und kann nicht per Drag geändert werden.', 'info');
+                }
+                if (!xBound) mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'x', value: newX });
+                if (!yBound) mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'y', value: newY });
             }
 
             const rawObj = this.getOriginalObject(id, obj?.name || id);
             logger.debug(`[DND-FLOW 4] getOriginalObject returned for ID=${id}:`, rawObj ? `${rawObj.id} (${rawObj.className || rawObj.type}) x=${rawObj.x} y=${rawObj.y}` : 'NULL');
 
             if (rawObj && rawObj !== obj) {
-                mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'x', value: newX });
-                mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'y', value: newY });
+                const rawXBound = PropertyHelper.isBinding(rawObj.x);
+                const rawYBound = PropertyHelper.isBinding(rawObj.y);
+                if (rawXBound || rawYBound) {
+                    NotificationToast.show('Position ist an eine Variable gebunden und kann nicht per Drag geändert werden.', 'info');
+                }
+                if (!rawXBound) mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'x', value: newX });
+                if (!rawYBound) mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'y', value: newY });
             }
 
             if (newParentId !== undefined) {
@@ -137,14 +149,24 @@ export class EditorInteractionManager {
             const mutations: ProjectMutation[] = [];
             const obj = this.host.findObjectById(id);
             if (obj) {
-                mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'width', value: newWidth });
-                mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'height', value: newHeight });
+                const widthBound = PropertyHelper.isBinding(obj.width);
+                const heightBound = PropertyHelper.isBinding(obj.height);
+                if (widthBound || heightBound) {
+                    NotificationToast.show('Größe ist an eine Variable gebunden und kann nicht per Resize geändert werden.', 'info');
+                }
+                if (!widthBound) mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'width', value: newWidth });
+                if (!heightBound) mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'height', value: newHeight });
             }
 
             const rawObj = this.getOriginalObject(id, obj?.name || id);
             if (rawObj && rawObj !== obj) {
-                mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'width', value: newWidth });
-                mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'height', value: newHeight });
+                const rawWidthBound = PropertyHelper.isBinding(rawObj.width);
+                const rawHeightBound = PropertyHelper.isBinding(rawObj.height);
+                if (rawWidthBound || rawHeightBound) {
+                    NotificationToast.show('Größe ist an eine Variable gebunden und kann nicht per Resize geändert werden.', 'info');
+                }
+                if (!rawWidthBound) mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'width', value: newWidth });
+                if (!rawHeightBound) mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'height', value: newHeight });
             }
 
             if (mutations.length > 0) {

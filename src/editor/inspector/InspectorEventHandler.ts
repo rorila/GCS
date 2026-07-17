@@ -141,7 +141,22 @@ export class InspectorEventHandler {
             InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Using default property update logic...`);
             if (oldValue !== newValue) {
                 // NEW: Use autoConvert to handle JSON, numbers, booleans from UI inputs
-                const convertedValue = PropertyHelper.autoConvert(newValue);
+                let convertedValue = PropertyHelper.autoConvert(newValue);
+
+                // Binding persistence: if the property was bound and the user is not entering
+                // a new binding, remove the binding and restore the actual resolved value.
+                const designExpr = PropertyHelper.getDesignValue(selectedObject, propertyPath);
+                const isNewBinding = PropertyHelper.isBinding(convertedValue);
+                if (designExpr && !isNewBinding) {
+                    if (convertedValue === '' || convertedValue == null) {
+                        const ctx = this.buildContext(selectedObject);
+                        convertedValue = PropertyHelper.resolveBinding(designExpr, ctx.vars, ctx.objects) ?? convertedValue;
+                    }
+                    PropertyHelper.clearDesignValue(selectedObject, propertyPath);
+                }
+                if (isNewBinding) {
+                    PropertyHelper.setDesignValue(selectedObject, propertyPath, convertedValue);
+                }
                 
                 // Single Source of Truth via Store dispatch
                 projectStore.dispatch({ type: 'SET_PROPERTY', target: selectedObject, path: propertyPath, value: convertedValue });
@@ -157,6 +172,8 @@ export class InspectorEventHandler {
                 }
 
                 if (originalObj && originalObj !== selectedObject) {
+                    if (designExpr && !isNewBinding) PropertyHelper.clearDesignValue(originalObj, propertyPath);
+                    if (isNewBinding) PropertyHelper.setDesignValue(originalObj, propertyPath, convertedValue);
                     projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: propertyPath, value: convertedValue });
                     InspectorEventHandler.logger.debug(`Synchronized update with original project JSON object.`);
                 }
@@ -214,5 +231,36 @@ export class InspectorEventHandler {
         if (original) return original;
 
         return null;
+    }
+
+    /**
+     * Builds a lightweight context for resolving binding expressions in the editor.
+     * Uses project variables and all objects (including the selected object) so that
+     * "${myVar}" can be evaluated when a binding is removed.
+     */
+    private buildContext(selectedObject?: any): { vars: Record<string, any>; objects: any[] } {
+        const vars: Record<string, any> = {};
+        const objects: any[] = [];
+        if (!this.project) return { vars, objects };
+
+        const addVars = (list: any[] | undefined) => {
+            if (!list) return;
+            for (const v of list) {
+                if (v.name) {
+                    vars[v.name] = v.value !== undefined ? v.value : v.defaultValue;
+                }
+            }
+        };
+
+        addVars(this.project.variables);
+        const activeStage = this.project.stages?.find((s: any) => s.id === (this.project as any).activeStageId);
+        if (activeStage) {
+            addVars(activeStage.variables);
+            if (activeStage.objects) objects.push(...activeStage.objects);
+        }
+        if (this.project.objects) objects.push(...this.project.objects);
+        if (selectedObject) objects.push(selectedObject);
+
+        return { vars, objects };
     }
 }

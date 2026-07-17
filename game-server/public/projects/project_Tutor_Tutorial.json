@@ -31,7 +31,9 @@
           "width": 2,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -59,7 +61,9 @@
           "width": 2,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -87,7 +91,9 @@
           "width": 2,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -115,7 +121,9 @@
           "width": 2,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -143,7 +151,9 @@
           "width": 2,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -171,7 +181,9 @@
           "width": 2,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -199,7 +211,9 @@
           "width": 2,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -227,7 +241,9 @@
           "width": 2,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -244,16 +260,32 @@
       "actions": [],
       "variables": [
         {
+          "className": "TBooleanVariable",
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
           "type": "boolean",
           "defaultValue": false,
           "value": false,
-          "isGlobal": true,
-          "description": "System internal flag to track unsaved changes",
-          "uiScope": "stage",
-          "uiEmoji": "🎭",
-          "usageCount": 0
+          "objectModel": ""
         }
       ],
       "flowCharts": {},
@@ -286,7 +318,9 @@
           "width": 17,
           "height": 16,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "#18181A",
             "borderColor": "#232325",
@@ -309,7 +343,9 @@
               "width": 0.2,
               "height": 16,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "backgroundColor": "#FFB300",
                 "borderColor": "transparent",
@@ -334,7 +370,9 @@
               "width": 0.6,
               "height": 0.6,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "backgroundColor": "#8a7fff",
                 "borderColor": "transparent",
@@ -363,7 +401,9 @@
               "width": 6,
               "height": 1,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#FFB300",
                 "fontSize": 13,
@@ -391,7 +431,9 @@
               "width": 1,
               "height": 1,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#666666",
                 "fontSize": 10,
@@ -419,7 +461,9 @@
               "width": 3,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -447,7 +491,9 @@
               "width": 2.8,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -480,7 +526,9 @@
               "width": 1.2,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -510,7 +558,9 @@
               "width": 2.5,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -538,7 +588,9 @@
               "width": 2.8,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -571,7 +623,9 @@
               "width": 1.2,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -601,7 +655,9 @@
               "width": 4,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -629,7 +685,9 @@
               "width": 10.3,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -662,7 +720,9 @@
               "width": 1.2,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -692,7 +752,9 @@
               "width": 4,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -720,7 +782,9 @@
               "width": 0.8,
               "height": 0.8,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#000000",
                 "fontSize": 14,
@@ -750,7 +814,9 @@
               "width": 4,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -778,7 +844,9 @@
               "width": 0.8,
               "height": 0.8,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#000000",
                 "fontSize": 14,
@@ -808,7 +876,9 @@
               "width": 4,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -836,7 +906,9 @@
               "width": 1.2,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "backgroundColor": "#000000",
                 "borderColor": "#333",
@@ -858,7 +930,9 @@
               "width": 8.9,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -889,7 +963,9 @@
               "width": 1.2,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -919,7 +995,9 @@
               "width": 4,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -947,7 +1025,9 @@
               "width": 1.2,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "backgroundColor": "#000000",
                 "borderColor": "#333",
@@ -969,7 +1049,9 @@
               "width": 8.9,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -1000,7 +1082,9 @@
               "width": 1.2,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -1030,7 +1114,9 @@
               "width": 4,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -1058,7 +1144,9 @@
               "width": 7.5,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -1089,7 +1177,9 @@
               "width": 1.4,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -1119,7 +1209,9 @@
               "width": 1.4,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "fontSize": 14,
@@ -1149,7 +1241,9 @@
               "width": 4,
               "height": 1.5,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#cccccc",
                 "fontSize": 12,
@@ -1177,7 +1271,9 @@
               "width": 10.7,
               "height": 1.3,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#fff",
                 "backgroundColor": "#1e1e1e",
@@ -1209,7 +1305,9 @@
           "width": 10,
           "height": 1.5,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 18,
@@ -1238,7 +1336,9 @@
           "width": 25,
           "height": 14,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "#f5f5f5",
             "borderColor": "#666",
@@ -1263,7 +1363,9 @@
           "width": 14.8,
           "height": 13.9,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#333333",
             "fontSize": 14,
@@ -1334,7 +1436,8 @@
                 "name": "Das ist eine neue Notiz"
               }
             }
-          ]
+          ],
+          "id": "689485d2-505c-41fd-9c9d-cb2acdccc452"
         }
       ],
       "actions": [
@@ -1364,5 +1467,9 @@
     "elements": [],
     "connections": []
   },
-  "activeStageId": "stage_raster"
+  "activeStageId": "stage_raster",
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0"
 }

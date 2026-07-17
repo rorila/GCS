@@ -2,6 +2,7 @@ import { GameProject } from '../../model/types';
 import { RecordedAction, changeRecorder } from '../../services/ChangeRecorder';
 import { componentRegistry } from '../../services/ComponentRegistry';
 import { Logger } from '../../utils/Logger';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
 
 const logger = Logger.get('EditorUndoManager');
 
@@ -81,11 +82,11 @@ export class EditorUndoManager {
         const obj = this.host.findObjectById(action.objectId);
         if (obj) {
             if (direction === 'rewind' && action.startPosition) {
-                obj.x = action.startPosition.x;
-                obj.y = action.startPosition.y;
+                if (!PropertyHelper.isBinding(obj.x)) obj.x = action.startPosition.x;
+                if (!PropertyHelper.isBinding(obj.y)) obj.y = action.startPosition.y;
             } else if (direction === 'forward' && action.endPosition) {
-                obj.x = action.endPosition.x;
-                obj.y = action.endPosition.y;
+                if (!PropertyHelper.isBinding(obj.x)) obj.x = action.endPosition.x;
+                if (!PropertyHelper.isBinding(obj.y)) obj.y = action.endPosition.y;
             }
         }
     }

@@ -50,9 +50,9 @@
       "type": "blueprint",
       "objects": [
         {
-          "name": "GameLoop",
           "className": "TGameLoop",
           "id": "game_loop",
+          "name": "GameLoop",
           "scope": "stage",
           "isService": true,
           "isHiddenInRun": true,
@@ -80,9 +80,9 @@
           "boundsOffsetBottom": 0
         },
         {
-          "name": "ImageBase64List",
           "className": "TStringMap",
           "id": "obj_1778078189689_ku2xm95ca",
+          "name": "ImageBase64List",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -104,15 +104,12 @@
             "borderColor": "#00695c",
             "borderWidth": 2
           },
-          "entries": {},
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 0
+          "entries": {}
         },
         {
-          "name": "KanonenTemplateBreite",
           "className": "TVariable",
           "id": "44ea9704-9133-443e-9ae5-da01e9608a58",
+          "name": "KanonenTemplateBreite",
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -135,15 +132,12 @@
             "borderWidth": 1
           },
           "type": "integer",
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 0
+          "objectModel": ""
         },
         {
-          "name": "KanonenTemplateHoehe",
           "className": "TVariable",
           "id": "35ad891e-fc1f-4ec0-bbf2-7578c6dbb044",
+          "name": "KanonenTemplateHoehe",
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -166,15 +160,12 @@
             "borderWidth": 1
           },
           "type": "integer",
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 0
+          "objectModel": ""
         },
         {
-          "name": "KanonenBasisXPos",
           "className": "TVariable",
           "id": "obj_1778166396523_i3n2poccb",
+          "name": "KanonenBasisXPos",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -197,15 +188,12 @@
             "borderWidth": 1
           },
           "type": "integer",
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 0
+          "objectModel": ""
         },
         {
-          "name": "KanonenBasisYPos",
           "className": "TVariable",
           "id": "obj_1778166423969_ch4resxyp",
+          "name": "KanonenBasisYPos",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -228,15 +216,12 @@
             "borderWidth": 1
           },
           "type": "integer",
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 0
+          "objectModel": ""
         },
         {
-          "name": "UfoTemplateXOffset",
           "className": "TVariable",
           "id": "obj_1778177527680_5hv5tgzi8",
+          "name": "UfoTemplateXOffset",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -260,15 +245,12 @@
           },
           "type": "integer",
           "value": 0,
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 0
+          "objectModel": ""
         },
         {
-          "name": "CurrSpriteName",
           "className": "TVariable",
           "id": "obj_1778509803973_dpofxet4k",
+          "name": "CurrSpriteName",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -292,15 +274,12 @@
           },
           "type": "string",
           "value": "Kanone",
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 0
+          "objectModel": ""
         },
         {
-          "name": "CurrCannonCount",
           "className": "TVariable",
           "id": "obj_1778509970925_oe2ytsndx",
+          "name": "CurrCannonCount",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -324,15 +303,12 @@
           },
           "type": "integer",
           "value": "${MaxCannons}",
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 2
+          "objectModel": ""
         },
         {
-          "name": "StickyNote_39",
           "className": "TStickyNote",
           "id": "obj_1778602644962_ta3gauggs",
+          "name": "StickyNote_39",
           "scope": "global",
           "isHiddenInRun": true,
           "draggable": false,
@@ -358,9 +334,9 @@
           "text": "KanonenTemplateBreite: Breite,\n\nKanonenTemplateHoehe: Höhe,\n\nKanonenBasisXPos: x-Position,\n\nKanonenBasisYPos:y-Position,\n\nUfoTemplateXOffset: \nx-Offset (wird berechnet), Der Abstand zwischen Basis und Kanone\n\nCurrSpriteName: \nAktueller Name der Kanone,\n(z.B. \"KanonenTemplate_pool_\"+3),\n\nCurrCannonCount:\nAktuelle Anzahl der Kanonen,\n(diese Zahl wird für den Zusammenbau des Namens genötigt)\n\nMaxCannons:\nMaximale Anzahl der Kanonen\n\nNull:\nWann soll das Spiel beendet sein. Ist eine Hilfsvariable, weil die Action nicht auf literal funktioniert."
         },
         {
-          "name": "MaxCannons",
           "className": "TVariable",
           "id": "obj_1778603167028_djwvhh3uv",
+          "name": "MaxCannons",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -384,15 +360,12 @@
           },
           "type": "integer",
           "value": 3,
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 3
+          "objectModel": ""
         },
         {
-          "name": "MaxUfos",
           "className": "TVariable",
           "id": "obj_1778603514991_vdou2ahnb",
+          "name": "MaxUfos",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -416,15 +389,12 @@
           },
           "type": "integer",
           "value": 10,
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 2
+          "objectModel": ""
         },
         {
-          "name": "StickyNote_38",
           "className": "TStickyNote",
           "id": "obj_1778603643792_vfj7hu6ho",
+          "name": "StickyNote_38",
           "scope": "global",
           "isHiddenInRun": true,
           "draggable": false,
@@ -450,9 +420,9 @@
           "text": "Maximal Anzahl der Ufos"
         },
         {
-          "name": "CreateSpritesTimer",
           "className": "TTimer",
           "id": "fd84a0fb-7812-478c-b535-02d79dce4bdc",
+          "name": "CreateSpritesTimer",
           "scope": "stage",
           "isVariable": true,
           "isService": true,
@@ -483,9 +453,9 @@
           "currentInterval": 0
         },
         {
-          "name": "SchussTimer",
           "className": "TTimer",
           "id": "58868dab-b5ee-4c1f-865c-cd7c5e4bb9f7",
+          "name": "SchussTimer",
           "scope": "stage",
           "isVariable": true,
           "isService": true,
@@ -516,9 +486,9 @@
           "currentInterval": 0
         },
         {
-          "name": "KanonenTemplateTimer",
           "className": "TTimer",
           "id": "a0f3a428-b323-4f66-836f-b66a0a1301e4",
+          "name": "KanonenTemplateTimer",
           "scope": "stage",
           "isVariable": true,
           "isService": true,
@@ -549,9 +519,9 @@
           "currentInterval": 0
         },
         {
-          "name": "StickyNote_39",
           "className": "TStickyNote",
           "id": "obj_1778603871946_04iaaj1c3",
+          "name": "StickyNote_39",
           "scope": "global",
           "isHiddenInRun": true,
           "draggable": false,
@@ -577,9 +547,9 @@
           "text": "Ufo Erzeugung\n\nSchuss Erzeugung\n\nKanonen Erzeugung"
         },
         {
-          "name": "aud_schuss",
           "className": "TAudio",
           "id": "534a3b84-3890-4b74-be96-04c87d095b48",
+          "name": "aud_schuss",
           "scope": "stage",
           "isVariable": true,
           "isService": true,
@@ -608,9 +578,9 @@
           "preload": true
         },
         {
-          "name": "aud_Treffer",
           "className": "TAudio",
           "id": "f7cccb75-47f9-4b00-8ee9-4d264fb0eec7",
+          "name": "aud_Treffer",
           "scope": "stage",
           "isVariable": true,
           "isService": true,
@@ -639,9 +609,9 @@
           "preload": true
         },
         {
-          "name": "StickyNote_39",
           "className": "TStickyNote",
           "id": "obj_1778604047159_mas65sk2p",
+          "name": "StickyNote_39",
           "scope": "global",
           "isHiddenInRun": true,
           "draggable": false,
@@ -667,9 +637,9 @@
           "text": "Schuss,\n\nTreffer"
         },
         {
-          "name": "Null",
           "className": "TVariable",
           "id": "obj_1778608102757_utr42rhgp",
+          "name": "Null",
           "scope": "global",
           "isVariable": true,
           "isHiddenInRun": true,
@@ -693,10 +663,7 @@
           },
           "type": "integer",
           "value": 0,
-          "objectModel": "",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 0
+          "objectModel": ""
         }
       ],
       "tasks": [],
@@ -1112,29 +1079,58 @@
       ],
       "variables": [
         {
-          "name": "score",
-          "type": "number",
-          "isVariable": true,
           "className": "TIntegerVariable",
-          "initialValue": 0,
+          "name": "score",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "number",
           "defaultValue": 0,
           "value": 0,
-          "scope": "global",
-          "uiScope": "global",
-          "uiEmoji": "🌎",
-          "usageCount": 1
+          "objectModel": ""
         },
         {
-          "name": "isProjectChangeAvailable",
-          "type": "boolean",
-          "isVariable": true,
           "className": "TBooleanVariable",
-          "initialValue": false,
-          "defaultValue": true,
-          "value": true,
+          "name": "isProjectChangeAvailable",
           "scope": "stage",
-          "uiScope": "stage",
-          "uiEmoji": "🎭"
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
         }
       ],
       "flowCharts": {},
@@ -1154,9 +1150,9 @@
       "type": "standard",
       "objects": [
         {
-          "name": "BulletTemplate",
           "className": "TSpriteTemplate",
           "id": "obj_import_1778766554175_vx6n",
+          "name": "BulletTemplate",
           "scope": "stage",
           "isHiddenInRun": true,
           "draggable": false,
@@ -1202,9 +1198,9 @@
           "lifetime": 5
         },
         {
-          "name": "Kanone",
           "className": "TSprite",
           "id": "obj_import_1778766554175_vzrm",
+          "name": "Kanone",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -1248,9 +1244,9 @@
           "hitboxHeight": 0
         },
         {
-          "name": "ScoreLabel",
           "className": "TLabel",
           "id": "obj_import_1778766554175_ru83",
+          "name": "ScoreLabel",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -1278,9 +1274,9 @@
           "text": "Score: ${score}"
         },
         {
-          "name": "InputController",
           "className": "TInputController",
           "id": "obj_import_1778766554175_cp36",
+          "name": "InputController",
           "scope": "stage",
           "isService": true,
           "isHiddenInRun": true,
@@ -1312,9 +1308,9 @@
           "enabled": true
         },
         {
-          "name": "VirtualGamepad_11",
           "className": "TVirtualGamepad",
           "id": "obj_import_1778766554175_p3nq",
+          "name": "VirtualGamepad_11",
           "scope": "stage",
           "isService": true,
           "draggable": false,
@@ -1341,9 +1337,9 @@
           "scale": 1
         },
         {
-          "name": "UfoBasis",
           "className": "TPanel",
           "id": "obj_import_1778766554175_39nn",
+          "name": "UfoBasis",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -1368,9 +1364,9 @@
           "gridStyle": "lines"
         },
         {
-          "name": "UfoTemplate",
           "className": "TSpriteTemplate",
           "id": "obj_import_1778766554175_2qlw",
+          "name": "UfoTemplate",
           "scope": "stage",
           "isHiddenInRun": true,
           "draggable": false,
@@ -1378,8 +1374,7 @@
           "dragMode": "move",
           "events": {
             "onCollision": "UfoWirdGetroffen",
-            "onBoundaryHit": "UfoTriffRand",
-            "onCollisionBottom": ""
+            "onBoundaryHit": "UfoTriffRand"
           },
           "visible": true,
           "x": 51,
@@ -1417,18 +1412,14 @@
           "lifetime": 0
         },
         {
-          "name": "UfoBulletTemplate",
           "className": "TSpriteTemplate",
           "id": "obj_import_1778766554175_qa97",
+          "name": "UfoBulletTemplate",
           "scope": "stage",
           "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
-          "events": {
-            "onCollision": "",
-            "onBoundaryHit": ""
-          },
           "visible": true,
           "x": 52,
           "y": 4,
@@ -1465,9 +1456,9 @@
           "lifetime": 5
         },
         {
-          "name": "KanonenTemplate",
           "className": "TSpriteTemplate",
           "id": "obj_import_1778766554175_14zs",
+          "name": "KanonenTemplate",
           "scope": "stage",
           "isHiddenInRun": true,
           "draggable": false,
@@ -1512,9 +1503,9 @@
           "lifetime": 0
         },
         {
-          "name": "KanonenBasis",
           "className": "TPanel",
           "id": "obj_import_1778766554175_lc6u",
+          "name": "KanonenBasis",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -1539,9 +1530,9 @@
           "gridStyle": "lines"
         },
         {
-          "name": "currPoolSizeLbl",
           "className": "TLabel",
           "id": "obj_import_1778766554175_s5xb",
+          "name": "currPoolSizeLbl",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -1569,9 +1560,9 @@
           "text": "Aktuelle Kanonenanzahl:  ${CurrCannonCount}"
         },
         {
-          "name": "Button_44",
           "className": "TButton",
           "id": "obj_1778767040203_gja64wuz8",
+          "name": "Button_44",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -1634,7 +1625,8 @@
               "x": 400,
               "y": 290
             }
-          }
+          },
+          "id": "0496c6e9-4ce3-4fbe-ab03-59726218d022"
         },
         {
           "name": "KanoneBewegtSichNachRechts",
@@ -1656,7 +1648,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "bb9c064f-961c-468b-988e-add6e299b8ae"
         },
         {
           "name": "KanoneBewegtSichNachLinks",
@@ -1678,7 +1671,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "520e59f4-2059-4574-a442-ac05febfc1de"
         },
         {
           "name": "KanoneTrifftRand",
@@ -1700,7 +1694,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "4abddc01-414c-4567-bc1e-49fe27fe04ab"
         },
         {
           "name": "KanoneSchiesst",
@@ -1730,7 +1725,8 @@
               "x": 400,
               "y": 210
             }
-          }
+          },
+          "id": "51d13001-df3a-4f0b-802e-cef53a1e93fa"
         },
         {
           "name": "KanonenKugelTrifftRand",
@@ -1752,7 +1748,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "bcb624cb-7e41-44a6-9012-34723d98ddc5"
         },
         {
           "name": "UfoTriffRand",
@@ -1774,7 +1771,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "9a2eecf6-3724-46e0-a76a-c91757fecb99"
         },
         {
           "name": "UfoTimerSendetNeuesUfo",
@@ -1804,7 +1802,8 @@
               "x": 400,
               "y": 210
             }
-          }
+          },
+          "id": "25570940-ab01-40d5-b4d2-6dfc671bc4c3"
         },
         {
           "name": "UfoSchiesst",
@@ -1826,7 +1825,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "c03db963-ba89-42c5-8b5e-840cf69c51bf"
         },
         {
           "name": "UfoWirdGetroffen",
@@ -1854,7 +1854,8 @@
               "x": 400,
               "y": 50
             }
-          }
+          },
+          "id": "b85e88b0-c43e-46a5-b396-3333638790db"
         },
         {
           "name": "ZeigeRestKanonenAn",
@@ -1924,7 +1925,8 @@
               "x": 400,
               "y": 610
             }
-          }
+          },
+          "id": "844ef46a-0dc9-47b5-89fc-06a1b44245a0"
         },
         {
           "name": "UfoKugelTrifftKanone",
@@ -1946,7 +1948,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "14ff9fb8-3957-46cb-9dcf-ac1160145434"
         },
         {
           "name": "KanoneWirdGetroffen",
@@ -1984,7 +1987,8 @@
               "x": 400,
               "y": 50
             }
-          }
+          },
+          "id": "d200baef-f712-459c-bcbb-dc66a2e3c1eb"
         },
         {
           "name": "StringTest",
@@ -2014,7 +2018,8 @@
               "x": 400,
               "y": 210
             }
-          }
+          },
+          "id": "f5d91315-9e7c-42c7-a7b6-d37aab586f21"
         },
         {
           "name": "ShowANewCannon",
@@ -2036,7 +2041,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "916898a1-5a05-4d07-9fa9-5aecba7747c2"
         },
         {
           "name": "SetANewCannon",
@@ -2083,7 +2089,8 @@
               "x": 400,
               "y": 50
             }
-          }
+          },
+          "id": "67850771-8d5d-4c4c-bf85-47fcdfb5949b"
         },
         {
           "name": "SchalteTimerEin",
@@ -2121,7 +2128,8 @@
               "x": 400,
               "y": 290
             }
-          }
+          },
+          "id": "6274d444-6a6e-49ca-8cf7-90c1d8f404bb"
         },
         {
           "name": "StarteUfos",
@@ -2143,7 +2151,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "80edd79a-5847-4a4e-bac6-70ba1e7dfa6e"
         },
         {
           "name": "StarteSchuesse",
@@ -2165,7 +2174,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "496da232-1ca1-4e54-a126-d2e3721a892b"
         },
         {
           "name": "StarteKannonen",
@@ -2187,7 +2197,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "aaffbdbe-5b4d-42da-b7a0-04e7e9da4a43"
         },
         {
           "name": "NegateTest",
@@ -2209,7 +2220,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "5d6ca7bc-5356-4256-9ffd-a41737bed280"
         },
         {
           "name": "TestLooserStage",
@@ -2231,7 +2243,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "f02722ff-ffca-4899-b415-abb081dc6eb7"
         }
       ],
       "actions": [],
@@ -2266,9 +2279,9 @@
       "type": "standard",
       "objects": [
         {
-          "name": "Label_43",
           "className": "TLabel",
           "id": "obj_1778766681665_zopymj03k",
+          "name": "Label_43",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -2294,9 +2307,9 @@
           "text": "Verloren!!!"
         },
         {
-          "name": "Button_45",
           "className": "TButton",
           "id": "obj_1778769112756_g89jjm2jb",
+          "name": "Button_45",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -2343,7 +2356,8 @@
               "x": 400,
               "y": 130
             }
-          }
+          },
+          "id": "5a6f484f-35a2-4bb0-9d41-51e12d0be6f0"
         }
       ],
       "actions": [],
@@ -2366,5 +2380,9 @@
       ]
     }
   ],
-  "activeStageId": "stage_fc0d59d8-6d35-471f-95cb-db41b1b33dc0"
+  "activeStageId": "stage_fc0d59d8-6d35-471f-95cb-db41b1b33dc0",
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0"
 }

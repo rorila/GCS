@@ -3,6 +3,8 @@ import { MarkdownChunker } from './MarkdownChunker';
 import { EmbeddingProvider } from './EmbeddingProvider';
 import { RagStore } from './RagStore';
 import { AIConfig } from '../config/AIConfig';
+import { RagQueryPlanner } from './RagQueryPlanner';
+import { AIProjectContext } from '../context/ProjectContextBuilder';
 
 /**
  * KnowledgeBase
@@ -136,12 +138,30 @@ export class KnowledgeBase {
      * Synchrone Suche (Keyword + Metadaten). Wird als Fallback und aus
      * synchronen Kontexten (z.B. ProjectContextBuilder) verwendet.
      */
-    public getRelevantChunks(query: string, topK = 5): KnowledgeChunk[] {
+    public getRelevantChunks(query: string, topK = 3, context?: AIProjectContext): KnowledgeChunk[] {
         if (!this.loaded || !query.trim()) {
             return [];
         }
 
-        return this.rankChunks(query, undefined, topK);
+        const planner = new RagQueryPlanner();
+        const { queries } = context
+            ? planner.plan(query, context)
+            : { queries: [query] };
+        const blocked = this.blockedChunkTypes();
+        const seen = new Set<string>();
+        const results: KnowledgeChunk[] = [];
+
+        for (const q of queries) {
+            if (results.length >= topK) break;
+            for (const chunk of this.rankChunks(q, undefined, 2, blocked)) {
+                if (!seen.has(chunk.id) && results.length < topK) {
+                    seen.add(chunk.id);
+                    results.push(chunk);
+                }
+            }
+        }
+
+        return results;
     }
 
     /**
@@ -149,27 +169,72 @@ export class KnowledgeBase {
      * finalScore = vectorScore * 0.65 + keywordScore * 0.25 + metadataScore * 0.10
      * Fällt bei fehlenden Embeddings auf die Keyword-Suche zurück.
      */
-    public async getRelevantChunksAsync(query: string, config: AIConfig, topK = 5): Promise<KnowledgeChunk[]> {
+    public async getRelevantChunksAsync(query: string, config: AIConfig, topK = 3, context?: AIProjectContext): Promise<KnowledgeChunk[]> {
         if (!this.loaded || !query.trim()) {
             return [];
         }
 
+        const planner = new RagQueryPlanner();
+        const { queries, reasoning } = context
+            ? planner.plan(query, context)
+            : { queries: [query], reasoning: [] };
+
+        if (reasoning.length > 0) {
+            console.debug('[RagQueryPlanner]', reasoning);
+        }
+        const blocked = this.blockedChunkTypes();
+
         const hasEmbeddings = await this.ensureEmbeddings(config);
-        if (!hasEmbeddings) {
-            return this.rankChunks(query, undefined, topK);
+
+        const seen = new Set<string>();
+        const results: KnowledgeChunk[] = [];
+
+        for (const q of queries) {
+            if (results.length >= topK) {
+                break;
+            }
+
+            let chunks: KnowledgeChunk[];
+
+            if (!hasEmbeddings) {
+                chunks = this.rankChunks(q, undefined, 2, blocked);
+            } else {
+                try {
+                    const queryEmbedding = await new EmbeddingProvider(config).embed(q);
+                    chunks = this.rankChunks(q, queryEmbedding, 2, blocked);
+                } catch (err) {
+                    console.warn('[KnowledgeBase] Query-Embedding fehlgeschlagen, Fallback auf Keyword-Suche:', err);
+                    chunks = this.rankChunks(q, undefined, 2, blocked);
+                }
+            }
+
+            for (const chunk of chunks) {
+                if (!seen.has(chunk.id) && results.length < topK) {
+                    seen.add(chunk.id);
+                    results.push(chunk);
+                }
+            }
         }
 
-        try {
-            const queryEmbedding = await new EmbeddingProvider(config).embed(query);
-            return this.rankChunks(query, queryEmbedding, topK);
-        } catch (err) {
-            console.warn('[KnowledgeBase] Query-Embedding fehlgeschlagen, Fallback auf Keyword-Suche:', err);
-            return this.rankChunks(query, undefined, topK);
-        }
+        return results;
     }
 
-    private rankChunks(query: string, queryEmbedding: number[] | undefined, topK: number): KnowledgeChunk[] {
-        const scored = this.chunks.map(chunk => {
+    /**
+     * Chunk-Typen, die generell nicht in den LLM-Kontext gesendet werden.
+     */
+    private blockedChunkTypes(): Set<KnowledgeChunk['chunkType']> {
+        return new Set<KnowledgeChunk['chunkType']>(['workflow', 'antiPattern']);
+    }
+
+    private rankChunks(
+        query: string,
+        queryEmbedding: number[] | undefined,
+        topK: number,
+        blocked: Set<KnowledgeChunk['chunkType']> = new Set(),
+    ): KnowledgeChunk[] {
+        const scored = this.chunks
+        .filter(chunk => !blocked.has(chunk.chunkType))
+        .map(chunk => {
             const vectorScore = queryEmbedding && chunk.embedding
                 ? this.cosineSimilarity(queryEmbedding, chunk.embedding)
                 : 0;

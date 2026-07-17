@@ -28,6 +28,14 @@ export function registerVariableActions() {
             // Falls Objekt gefunden, Eigenschaft lesen
             if (action.sourceProperty) {
                 val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
+
+                // TRandomVariable: randomValue erzeugt beim Lesen einen neuen Wert.
+                // Damit dieser auch als Bindvariable wirkt, den Wert in den globalen
+                // Variablenkontext schreiben, damit onValueChanged feuert.
+                if (srcObj.className === 'TRandomVariable' && action.sourceProperty === 'randomValue') {
+                    context.vars[sourceName] = val;
+                    context.contextVars[sourceName] = val;
+                }
             } else {
                 val = srcObj;
             }

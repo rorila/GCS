@@ -1,5 +1,6 @@
 import { GridConfig } from '../model/types';
 import { Logger } from '../utils/Logger';
+import { projectVariableRegistry } from '../services/registry/VariableRegistry';
 
 import { StageRenderer, StageHost } from './services/StageRenderer';
 import { StageInteractionManager, StageInteractionHost } from './services/StageInteractionManager';
@@ -108,6 +109,19 @@ export class Stage implements StageHost, StageInteractionHost {
 
     public render() {
         this.renderer.renderObjects(this.lastRenderedObjects);
+    }
+
+    /**
+     * Liefert Variablenwerte für die StageRenderer, damit Bindings wie ${myVar}
+     * im Editor anhand der aktuellen Projektvariablen aufgelöst werden können.
+     */
+    public getVariableContext(): Record<string, any> {
+        const ctx: Record<string, any> = {};
+        const vars = projectVariableRegistry.getVariables(undefined, true, 'all');
+        for (const v of vars) {
+            ctx[v.name] = v.value !== undefined ? v.value : v.defaultValue;
+        }
+        return ctx;
     }
 
     /**

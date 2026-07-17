@@ -1,5 +1,6 @@
 import { GridConfig } from '../../model/types';
 import { Logger } from '../../utils/Logger';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { EmojiPickerRenderer } from './renderers/EmojiPickerRenderer';
 import { TableRenderer } from './renderers/TableRenderer';
 
@@ -28,6 +29,8 @@ export interface StageHost {
     lastRenderedObjects: any[];
     /** Optionale Referenz auf die aktive GameRuntime (nur im RunMode gesetzt) */
     runtime?: { getRawObject(id: string): any | undefined } | any;
+    /** Liefert Variablenwerte für die Auflösung von ${...}-Bindings im Editor. */
+    getVariableContext?(): Record<string, any>;
 }
 
 // Referenz-CellSize für fontSize-Skalierung
@@ -53,11 +56,27 @@ export class StageRenderer {
         return `${Math.round(numSize * scale)}px`;
     }
 
+    /**
+     * Löst eine ggf. gebundene Eigenschaft (z.B. "${myVar}") in einen numerischen Wert auf.
+     * Wenn keine Auflösung möglich ist, wird 0 zurückgegeben, damit das Layout nicht mit NaN bricht.
+     */
+    private getResolvedNumber(obj: any, prop: string, objects?: any[]): number {
+        if (!obj) return 0;
+        const vars = this.host.getVariableContext ? this.host.getVariableContext() : {};
+        const val = PropertyHelper.getResolvedPropertyValue(obj, prop, vars, objects);
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+            const num = Number(val);
+            return isNaN(num) ? 0 : num;
+        }
+        return val ?? 0;
+    }
+
     public renderObjects(objects: any[]) {
         if (!this.host || !this.host.element) return;
         
         // Update object hash for internal bookkeeping
-        const objectHash = objects.map(o => `${o.id}@${Number(o.x || 0).toFixed(1)},${Number(o.y || 0).toFixed(1)}`).join('|');
+        const objectHash = objects.map(o => `${o.id}@${Number(this.getResolvedNumber(o, 'x', objects)).toFixed(1)},${Number(this.getResolvedNumber(o, 'y', objects)).toFixed(1)}`).join('|');
 
         if (this.host.runMode) {
             (this.host as any).lastObjectHash = objectHash;
@@ -104,16 +123,16 @@ export class StageRenderer {
             const objId = obj.id || obj.name; // Fallback to name
             if (!objId) return;
 
-            const objHeight = (obj.height || 0) * gridConfig.cellSize;
-            const objWidth = (obj.width || 0) * gridConfig.cellSize;
+            const objHeight = this.getResolvedNumber(obj, 'height', objects) * gridConfig.cellSize;
+            const objWidth = this.getResolvedNumber(obj, 'width', objects) * gridConfig.cellSize;
 
             // SPECIAL CASE: TStatusBar defines height in pixels (e.g. 28), not grid units
             let actualHeight = objHeight;
             let actualWidth = objWidth;
 
             if (obj.className === 'TStatusBar') {
-                actualHeight = (obj.height || 0); // Use pixels directly
-                actualWidth = (obj.width || 0);
+                actualHeight = this.getResolvedNumber(obj, 'height', objects); // Use pixels directly
+                actualWidth = this.getResolvedNumber(obj, 'width', objects);
             }
 
             const availableWidth = dockArea.right - dockArea.left;
@@ -163,15 +182,15 @@ export class StageRenderer {
             // TStatusBar verwendet Pixel direkt, keine Grid-Konvertierung
             const isPixelBased = obj.className === 'TStatusBar';
             if (isPixelBased) {
-                obj.x = dockPos.left;
-                obj.y = dockPos.top;
-                obj.width = dockPos.width;
-                obj.height = dockPos.height;
+                if (!PropertyHelper.isBinding(obj.x)) obj.x = dockPos.left;
+                if (!PropertyHelper.isBinding(obj.y)) obj.y = dockPos.top;
+                if (!PropertyHelper.isBinding(obj.width)) obj.width = dockPos.width;
+                if (!PropertyHelper.isBinding(obj.height)) obj.height = dockPos.height;
             } else {
-                obj.x = dockPos.left / gridConfig.cellSize;
-                obj.y = dockPos.top / gridConfig.cellSize;
-                obj.width = dockPos.width / gridConfig.cellSize;
-                obj.height = dockPos.height / gridConfig.cellSize;
+                if (!PropertyHelper.isBinding(obj.x)) obj.x = dockPos.left / gridConfig.cellSize;
+                if (!PropertyHelper.isBinding(obj.y)) obj.y = dockPos.top / gridConfig.cellSize;
+                if (!PropertyHelper.isBinding(obj.width)) obj.width = dockPos.width / gridConfig.cellSize;
+                if (!PropertyHelper.isBinding(obj.height)) obj.height = dockPos.height / gridConfig.cellSize;
             }
         });
 
@@ -257,15 +276,15 @@ export class StageRenderer {
                 finalW = dockPos.width;
                 finalH = dockPos.height;
             } else {
-                let absX = obj.x || 0;
-                let absY = obj.y || 0;
+                let absX = this.getResolvedNumber(obj, 'x', objects);
+                let absY = this.getResolvedNumber(obj, 'y', objects);
                 let curr = obj.parentId;
                 let depth = 0;
                 while (curr && depth < 100) {
                     const p = objects.find(o => (o.id || o.name) === curr);
                     if (p) {
-                        absX += p.x || 0;
-                        absY += p.y || 0;
+                        absX += this.getResolvedNumber(p, 'x', objects);
+                        absY += this.getResolvedNumber(p, 'y', objects);
                         curr = p.parentId;
                     } else {
                         break;
@@ -278,8 +297,8 @@ export class StageRenderer {
 
                 finalX = absX * gridConfig.cellSize;
                 finalY = absY * gridConfig.cellSize;
-                finalW = (obj.width || 0) * gridConfig.cellSize;
-                finalH = (obj.height || 0) * gridConfig.cellSize;
+                finalW = this.getResolvedNumber(obj, 'width', objects) * gridConfig.cellSize;
+                finalH = this.getResolvedNumber(obj, 'height', objects) * gridConfig.cellSize;
             }
 
             // Determine if this object is a dialog or child of a dialog
@@ -467,13 +486,20 @@ export class StageRenderer {
                     }
                     el.style.transform = transformStr.trim();
                 }
-                // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor + glowBlur + glowSpread
+                // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor + glowBlur + glowSpread, Prio 3 = strukturierte Shadow-Parameter
                 if (obj.style.boxShadow) {
                     el.style.boxShadow = obj.style.boxShadow;
                 } else if (obj.style.glowColor && (obj.style.glowBlur || obj.style.glowSpread)) {
                     const blur = obj.style.glowBlur || 20;
                     const spread = obj.style.glowSpread || 5;
                     el.style.boxShadow = `0 0 ${blur}px ${spread}px ${obj.style.glowColor}`;
+                } else if (obj.style.shadowColor) {
+                    const inset = obj.style.shadowInset ? 'inset ' : '';
+                    const offsetX = obj.style.shadowOffsetX ?? 4;
+                    const offsetY = obj.style.shadowOffsetY ?? 4;
+                    const blur = obj.style.shadowBlur ?? 10;
+                    const spread = obj.style.shadowSpread ?? 0;
+                    el.style.boxShadow = `${inset}${offsetX}px ${offsetY}px ${blur}px ${spread}px ${obj.style.shadowColor}`;
                 } else {
                     el.style.boxShadow = '';
                 }
@@ -529,7 +555,7 @@ export class StageRenderer {
             }
 
             if (this.host.runMode) {
-                const hasMouseEnter = obj.events?.onMouseEnter || obj.Tasks?.onMouseEnter;
+                const hasMouseEnter = obj.events?.onMouseEnter || obj.Tasks?.onMouseEnter || obj.events?.onEnter || obj.Tasks?.onEnter;
                 const hasMouseLeave = obj.events?.onMouseLeave || obj.Tasks?.onMouseLeave;
                 const hasDoubleClick = obj.events?.onDoubleClick || obj.Tasks?.onDoubleClick;
 
@@ -866,19 +892,19 @@ export class StageRenderer {
 
         if (obj.align && obj.align !== 'NONE') {
             // For aligned/docked objects, x/y are already absolute stage coordinates (renderObjects writes them back)
-            absX = obj.x || 0;
-            absY = obj.y || 0;
+            absX = this.getResolvedNumber(obj, 'x', objects);
+            absY = this.getResolvedNumber(obj, 'y', objects);
         } else {
             // For non-aligned objects, sum parent chain offsets
-            absX = obj.x || 0;
-            absY = obj.y || 0;
+            absX = this.getResolvedNumber(obj, 'x', objects);
+            absY = this.getResolvedNumber(obj, 'y', objects);
             let parentId = obj.parentId;
             let depth = 0;
             while (parentId && depth < 100) {
                 const p = objects.find((o: any) => (o.id || o.name) === parentId);
                 if (!p) break;
-                absX += p.x || 0;
-                absY += p.y || 0;
+                absX += this.getResolvedNumber(p, 'x', objects);
+                absY += this.getResolvedNumber(p, 'y', objects);
                 parentId = p.parentId;
                 depth++;
             }
@@ -886,8 +912,8 @@ export class StageRenderer {
 
         const finalX = isPixelBased ? absX : absX * cellSize;
         const finalY = isPixelBased ? absY : absY * cellSize;
-        const finalW = isPixelBased ? (obj.width || 0) : ((obj.width || 0) * cellSize);
-        const finalH = isPixelBased ? (obj.height || 0) : ((obj.height || 0) * cellSize);
+        const finalW = isPixelBased ? this.getResolvedNumber(obj, 'width', objects) : (this.getResolvedNumber(obj, 'width', objects) * cellSize);
+        const finalH = isPixelBased ? this.getResolvedNumber(obj, 'height', objects) : (this.getResolvedNumber(obj, 'height', objects) * cellSize);
 
         // Determine if this object is a dialog or child of a dialog
         let parentDialog: any = null;
@@ -1007,6 +1033,28 @@ export class StageRenderer {
             let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
             if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
             el.style.transform = tStr.trim();
+
+            // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor, Prio 3 = strukturierte Shadow-Parameter
+            if (obj.style.boxShadow) {
+                el.style.boxShadow = obj.style.boxShadow;
+            } else if (obj.style.glowColor && (obj.style.glowBlur || obj.style.glowSpread)) {
+                const blur = obj.style.glowBlur || 20;
+                const spread = obj.style.glowSpread || 5;
+                el.style.boxShadow = `0 0 ${blur}px ${spread}px ${obj.style.glowColor}`;
+            } else if (obj.style.shadowColor) {
+                const inset = obj.style.shadowInset ? 'inset ' : '';
+                const offsetX = obj.style.shadowOffsetX ?? 4;
+                const offsetY = obj.style.shadowOffsetY ?? 4;
+                const blur = obj.style.shadowBlur ?? 10;
+                const spread = obj.style.shadowSpread ?? 0;
+                el.style.boxShadow = `${inset}${offsetX}px ${offsetY}px ${blur}px ${spread}px ${obj.style.shadowColor}`;
+            } else if (obj.style.boxShadow === '' || (!obj.style.glowColor && !obj.style.shadowColor)) {
+                el.style.boxShadow = '';
+            }
+
+            if (obj.style.borderRadius !== undefined) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
+            if (obj.style.borderColor !== undefined) el.style.borderColor = obj.style.borderColor;
+            if (obj.style.borderWidth !== undefined) el.style.borderWidth = `${obj.style.borderWidth}px`;
         } else if (obj.opacity !== undefined) {
             el.style.opacity = String(obj.opacity);
         }
@@ -1205,15 +1253,15 @@ export class StageRenderer {
         // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain)
         // Muss die LATEST properties referenzieren
         const getAbsXYZ = (obj: any): {x: number, y: number} => {
-            let absX = obj.x || 0;
-            let absY = obj.y || 0;
+            let absX = this.getResolvedNumber(obj, 'x', mergedObjectsArray);
+            let absY = this.getResolvedNumber(obj, 'y', mergedObjectsArray);
             let curr = obj.parentId;
             let depth = 0;
             while (curr && depth < 100) {
                 const p = mergedObjectsArray.find(o => (o.id || o.name) === curr) || allObjects.find(o => (o.id || o.name) === curr);
                 if (p) {
-                    absX += p.x || 0;
-                    absY += p.y || 0;
+                    absX += this.getResolvedNumber(p, 'x', mergedObjectsArray);
+                    absY += this.getResolvedNumber(p, 'y', mergedObjectsArray);
                     curr = p.parentId;
                 } else {
                     break;
@@ -1297,10 +1345,10 @@ export class StageRenderer {
 
                 // Größen-Sync (für grow/shrink Animationen)
                 if (obj.width !== undefined) {
-                    el.style.width = `${obj.width * cellSize}px`;
+                    el.style.width = `${this.getResolvedNumber(obj, 'width', mergedObjectsArray) * cellSize}px`;
                 }
                 if (obj.height !== undefined) {
-                    el.style.height = `${obj.height * cellSize}px`;
+                    el.style.height = `${this.getResolvedNumber(obj, 'height', mergedObjectsArray) * cellSize}px`;
                 }
 
             } else {

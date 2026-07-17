@@ -57,7 +57,9 @@
           "width": 8,
           "height": 4,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#9c27b0",
@@ -88,7 +90,9 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -121,7 +125,9 @@
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "fontSize": 14,
@@ -148,10 +154,12 @@
           "visible": true,
           "x": 1,
           "y": 1,
-          "width": 59,
+          "width": 62,
           "height": 5,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "${MainThemes.PanelBackground}",
             "borderColor": "#999999",
@@ -180,7 +188,9 @@
               "width": 12,
               "height": 3,
               "zIndex": 1,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -213,7 +223,9 @@
               "width": 6,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -227,32 +239,6 @@
               },
               "text": "DialogRoot",
               "icon": ""
-            },
-            {
-              "className": "TImage",
-              "id": "obj_1776354588681_wyzxicz4d",
-              "name": "Image_23",
-              "scope": "global",
-              "draggable": false,
-              "droppable": false,
-              "dragMode": "move",
-              "visible": true,
-              "x": 49,
-              "y": 0,
-              "width": 14,
-              "height": 6,
-              "zIndex": 0,
-              "align": "NONE",
-              "style": {
-                "backgroundColor": "transparent",
-                "borderColor": "#999999",
-                "borderWidth": 0
-              },
-              "src": "./images/GameToolbox/Logo GameToolbox.png",
-              "objectFit": "contain",
-              "alt": "",
-              "imageOpacity": 1,
-              "fallbackColor": "#2a2a2a"
             },
             {
               "className": "TButton",
@@ -271,7 +257,9 @@
               "width": 6,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -285,6 +273,34 @@
               },
               "text": "Side-Panel",
               "icon": ""
+            },
+            {
+              "className": "TImage",
+              "id": "obj_1776354588681_wyzxicz4d",
+              "name": "Image_23",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 48,
+              "y": 0,
+              "width": 14,
+              "height": 6,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "#999999",
+                "borderWidth": 0
+              },
+              "src": "./images/GameToolbox/Logo GameToolbox.png",
+              "objectFit": "contain",
+              "alt": "",
+              "imageOpacity": 1,
+              "fallbackColor": "#2a2a2a"
             }
           ]
         },
@@ -302,7 +318,9 @@
           "width": 20,
           "height": 15,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(26, 26, 46, 0.98)",
             "borderColor": "#4fc3f7",
@@ -329,7 +347,9 @@
               "width": 6,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -358,7 +378,9 @@
               "width": 6,
               "height": 2,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -387,7 +409,9 @@
               "width": 18,
               "height": 7,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "backgroundColor": "#f0f0f0",
                 "borderColor": "#999999",
@@ -418,7 +442,9 @@
           "width": 15,
           "height": 40,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(20, 20, 35, 0.97)",
             "borderColor": "#4fc3f7",
@@ -445,7 +471,9 @@
               "width": 12,
               "height": 23,
               "zIndex": 0,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "backgroundColor": "#f0f0f0",
                 "borderColor": "#999999",
@@ -470,7 +498,9 @@
                   "width": 6,
                   "height": 2,
                   "zIndex": 0,
+                  "rotation": 0,
                   "align": "NONE",
+                  "collisionEnabled": false,
                   "style": {
                     "color": "#ffffff",
                     "fontSize": 14,
@@ -499,7 +529,9 @@
                   "width": 8,
                   "height": 2,
                   "zIndex": 0,
+                  "rotation": 0,
                   "align": "NONE",
+                  "collisionEnabled": false,
                   "style": {
                     "color": "#000000",
                     "fontSize": 14,
@@ -549,7 +581,8 @@
           "name": "SwitchToDirectory",
           "showDetails": false,
           "type": "navigate_stage",
-          "stageId": "main"
+          "stageId": "main",
+          "reset": false
         },
         {
           "id": "node-1776088508594",
@@ -578,7 +611,8 @@
           "name": "ToggleTheReferenceDlg",
           "showDetails": false,
           "type": "toggle_dialog",
-          "target": "GameProferences"
+          "target": "GameProferences",
+          "mode": "toggle"
         },
         {
           "id": "node-1776523072422",
@@ -586,7 +620,8 @@
           "name": "ToggleSidePanel",
           "showDetails": false,
           "type": "toggle_dialog",
-          "target": "SidePanel_23"
+          "target": "SidePanel_23",
+          "mode": "toggle"
         }
       ],
       "tasks": [
@@ -612,7 +647,8 @@
               "y": 40
             }
           },
-          "uiScope": "global"
+          "uiScope": "global",
+          "id": "64f9bf4b-f536-4234-aef0-4541db1f9b5b"
         },
         {
           "name": "ShowDarkTheme",
@@ -636,7 +672,8 @@
               "y": 40
             }
           },
-          "uiScope": "global"
+          "uiScope": "global",
+          "id": "8cd0fc55-e47d-45bb-9d00-97863fcdfd17"
         },
         {
           "name": "ShowDirectory",
@@ -661,7 +698,8 @@
             }
           },
           "Description": "Schaltet das Inhaltsverzeichnis ein",
-          "uiScope": "global"
+          "uiScope": "global",
+          "id": "5bd36d5d-e11b-4391-a479-5eefefa0120f"
         },
         {
           "name": "ShowPrevStage",
@@ -685,7 +723,8 @@
               "y": 40
             }
           },
-          "uiScope": "global"
+          "uiScope": "global",
+          "id": "3527f379-6bb4-46a8-8f1f-e92f6644242e"
         },
         {
           "name": "ShowNextPage",
@@ -710,7 +749,8 @@
             }
           },
           "Description": "Die nächste Stage wird angezeigt",
-          "uiScope": "global"
+          "uiScope": "global",
+          "id": "490b9971-d72a-48c2-b569-e2f87195598b"
         },
         {
           "name": "ShowReferenceDlg",
@@ -733,7 +773,8 @@
               "x": 320,
               "y": 40
             }
-          }
+          },
+          "id": "ea05bf51-a265-4ba2-ae59-bc6094195fd2"
         },
         {
           "name": "ShowSidePanel",
@@ -756,7 +797,8 @@
               "x": 240,
               "y": 40
             }
-          }
+          },
+          "id": "5f7ebb05-7ab2-4e88-9dfe-c7360c5905a2"
         }
       ],
       "variables": [
@@ -776,7 +818,9 @@
           "width": 9,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#00897b",
@@ -806,7 +850,9 @@
           "width": 9,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#00897b",
@@ -836,7 +882,9 @@
           "width": 10,
           "height": 4,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#000000",
             "backgroundColor": "#d1c4e9",
@@ -844,8 +892,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         },
         {
@@ -864,7 +912,9 @@
           "width": 9,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#00897b",
@@ -894,7 +944,9 @@
           "width": 7,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#00897b",
@@ -947,7 +999,9 @@
           "width": 18,
           "height": 18,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "${MainThemes.PanelBackground}",
             "borderColor": "transparent",
@@ -973,7 +1027,9 @@
               "width": 14,
               "height": 3,
               "zIndex": 1,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -1010,7 +1066,9 @@
               "width": 14,
               "height": 3,
               "zIndex": 1,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -1047,7 +1105,9 @@
               "width": 14,
               "height": 3,
               "zIndex": 1,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -1084,7 +1144,9 @@
               "width": 14,
               "height": 3,
               "zIndex": 1,
+              "rotation": 0,
               "align": "NONE",
+              "collisionEnabled": false,
               "style": {
                 "color": "#ffffff",
                 "fontSize": 14,
@@ -1120,7 +1182,9 @@
           "width": 17,
           "height": 3,
           "zIndex": 1,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "${MainThemes.HeadlineTextColor}",
             "fontSize": 36,
@@ -1142,7 +1206,8 @@
           "name": "SwitchToDescriptionStage",
           "showDetails": false,
           "type": "navigate_stage",
-          "stageId": "stage-1776084072545"
+          "stageId": "stage-1776084072545",
+          "reset": false
         },
         {
           "id": "node-1776166847939",
@@ -1150,7 +1215,8 @@
           "name": "SwitchToReactiveSystemPage",
           "showDetails": false,
           "type": "navigate_stage",
-          "stageId": "stage-1776084040446"
+          "stageId": "stage-1776084040446",
+          "reset": false
         },
         {
           "id": "node-1776167552741",
@@ -1158,7 +1224,8 @@
           "name": "SwitchToBlaBla",
           "showDetails": false,
           "type": "navigate_stage",
-          "stageId": "stage_7444093d-00f9-46a6-a25f-0a1473cb97f2"
+          "stageId": "stage_7444093d-00f9-46a6-a25f-0a1473cb97f2",
+          "reset": false
         },
         {
           "id": "node-1776167633800",
@@ -1166,7 +1233,8 @@
           "name": "MathildrAction",
           "showDetails": false,
           "type": "navigate_stage",
-          "stageId": "stage-1775809344944"
+          "stageId": "stage-1775809344944",
+          "reset": false
         }
       ],
       "tasks": [
@@ -1191,7 +1259,8 @@
               "x": 300,
               "y": 40
             }
-          }
+          },
+          "id": "199b45c9-cb6a-45a2-80b7-50f76a7c8bee"
         },
         {
           "name": "ShowReactivSystemStage",
@@ -1214,7 +1283,8 @@
               "x": 320,
               "y": 40
             }
-          }
+          },
+          "id": "f6e7d575-b464-48cf-8302-2aa5784e1a58"
         },
         {
           "name": "GoToBlaBla",
@@ -1237,7 +1307,8 @@
               "x": 220,
               "y": 40
             }
-          }
+          },
+          "id": "00332046-ab60-47d2-90a2-19892d3a653a"
         },
         {
           "name": "GoToMathildr",
@@ -1260,7 +1331,8 @@
               "x": 240,
               "y": 40
             }
-          }
+          },
+          "id": "5e47ec3f-d0d7-4d0f-9053-3acf047e4878"
         },
         {
           "name": "BlalBlub",
@@ -1283,7 +1355,8 @@
               "x": 220,
               "y": 40
             }
-          }
+          },
+          "id": "f5c721fe-b128-4923-88e3-42bab2787f4c"
         }
       ],
       "variables": [
@@ -1303,7 +1376,9 @@
           "width": 4,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#00897b",
@@ -1358,7 +1433,9 @@
           "width": 17,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "${MainThemes.HeadlineTextColor}",
             "fontSize": 36,
@@ -1420,7 +1497,9 @@
           "width": 17,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "${MainThemes.HeadlineTextColor}",
             "fontSize": 36,
@@ -1449,7 +1528,8 @@
       "excludedBlueprintIds": [
         "obj_1776087243769_fgbg3bi12"
       ],
-      "startAnimation": "BottomLeft"
+      "startAnimation": "BottomLeft",
+      "flowCharts": {}
     },
     {
       "id": "stage_7444093d-00f9-46a6-a25f-0a1473cb97f2",
@@ -1470,7 +1550,9 @@
           "width": 17,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "${MainThemes.HeadlineTextColor}",
             "fontSize": 36,
@@ -1539,7 +1621,9 @@
           "width": 21,
           "height": 23,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "#999999",
@@ -1566,7 +1650,9 @@
           "width": 20,
           "height": 21,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "#999999",
@@ -1592,7 +1678,9 @@
           "width": 15,
           "height": 33,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "#999999",
@@ -1628,7 +1716,7 @@
           "className": "TLabel",
           "id": "obj_import_1776332740117_g08a",
           "name": "K3Title",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1638,7 +1726,9 @@
           "width": 24,
           "height": 3,
           "zIndex": 1,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#4ec9b0",
             "fontSize": 28,
@@ -1656,7 +1746,7 @@
           "className": "TLabel",
           "id": "obj_import_1776332740117_w9ok",
           "name": "K3Intro",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1666,7 +1756,9 @@
           "width": 56,
           "height": 1,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -1684,7 +1776,7 @@
           "className": "TPanel",
           "id": "obj_import_1776332740117_vohj",
           "name": "K3L1",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1694,7 +1786,9 @@
           "width": 58,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(233,30,99,0.15)",
             "borderColor": "#e91e63",
@@ -1710,7 +1804,7 @@
           "className": "TLabel",
           "id": "obj_import_1776332740117_jxgq",
           "name": "K3T1",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1720,7 +1814,9 @@
           "width": 56,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -1738,7 +1834,7 @@
           "className": "TPanel",
           "id": "obj_import_1776332740117_vmb7",
           "name": "K3L2",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1748,7 +1844,9 @@
           "width": 54,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(33,150,243,0.15)",
             "borderColor": "#2196f3",
@@ -1764,7 +1862,7 @@
           "className": "TLabel",
           "id": "obj_import_1776332740117_060w",
           "name": "K3T2",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1774,7 +1872,9 @@
           "width": 52,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -1792,7 +1892,7 @@
           "className": "TPanel",
           "id": "obj_import_1776332740117_gkq0",
           "name": "K3L3",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1802,7 +1902,9 @@
           "width": 50,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(76,175,80,0.15)",
             "borderColor": "#4caf50",
@@ -1818,7 +1920,7 @@
           "className": "TLabel",
           "id": "obj_import_1776332740117_a5bj",
           "name": "K3T3",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1828,7 +1930,9 @@
           "width": 48,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -1846,7 +1950,7 @@
           "className": "TPanel",
           "id": "obj_import_1776332740117_eopr",
           "name": "K3L4",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1856,7 +1960,9 @@
           "width": 46,
           "height": 3,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "backgroundColor": "rgba(255,152,0,0.15)",
             "borderColor": "#ff9800",
@@ -1872,7 +1978,7 @@
           "className": "TLabel",
           "id": "obj_import_1776332740117_ryrx",
           "name": "K3T4",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1882,7 +1988,9 @@
           "width": 44,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -1900,7 +2008,7 @@
           "className": "TLabel",
           "id": "obj_import_1776332740117_10n5",
           "name": "K3BP",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1910,7 +2018,9 @@
           "width": 56,
           "height": 2,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#dcdcaa",
             "fontSize": 20,
@@ -1928,7 +2038,7 @@
           "className": "TLabel",
           "id": "obj_import_1776332740117_xgi5",
           "name": "K3BPT",
-          "scope": "global",
+          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1938,7 +2048,9 @@
           "width": 56,
           "height": 5,
           "zIndex": 0,
+          "rotation": 0,
           "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#d4d4d4",
             "fontSize": 15,
@@ -1968,5 +2080,9 @@
       "startAnimation": "BottomRight"
     }
   ],
-  "activeStageId": "blueprint"
+  "activeStageId": "stage-1775809344944",
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0"
 }
