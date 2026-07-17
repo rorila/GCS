@@ -22,6 +22,25 @@ export class InspectorSectionRenderer {
         }
     }
 
+    /**
+     * Zeigt für Binding-Ausdrücke (z.B. "${Var_XPos}") einen kleinen Hinweis
+     * mit dem aktuell aufgelösten Wert neben dem Input an.
+     */
+    private static renderBindingPreview(value: any, obj: any, context: IInspectorContext): HTMLElement | null {
+        if (typeof value !== 'string' || !value.includes('${')) return null;
+        try {
+            const resolved = context.resolveValue(value, obj);
+            if (resolved === value || resolved === undefined || resolved === null || resolved === '') return null;
+            const span = document.createElement('span');
+            span.textContent = `:= ${String(resolved)}`;
+            span.title = 'Aktuell aufgelöster Wert der Bindung';
+            span.style.cssText = 'font-size:10px;color:#e67e22;white-space:nowrap;flex-shrink:0;font-family:Consolas,monospace;';
+            return span;
+        } catch (e) {
+            return null;
+        }
+    }
+
     public static renderSections(obj: IInspectable, parent: HTMLElement, context: IInspectorContext): void {
         const groupColors = GROUP_COLORS;
         const sections = obj.getInspectorSections();
@@ -993,6 +1012,8 @@ export class InspectorSectionRenderer {
                 btnContainer.appendChild(btn);
                 
                 wrapper.appendChild(input);
+                const bindingPreview = InspectorSectionRenderer.renderBindingPreview(currentValue, obj, context);
+                if (bindingPreview) wrapper.appendChild(bindingPreview);
                 wrapper.appendChild(hintEl);
                 wrapper.appendChild(btnContainer);
                 container.appendChild(wrapper);
@@ -1020,7 +1041,9 @@ export class InspectorSectionRenderer {
                 };
 
                 wrapper.appendChild(input);
-                
+                const bindingPreview = InspectorSectionRenderer.renderBindingPreview(currentValue, obj, context);
+                if (bindingPreview) wrapper.appendChild(bindingPreview);
+
                 const lowerName = (propDef.name || '').toLowerCase();
                 const isImage = lowerName.includes('image') || propDef.name === 'src' || propDef.name === 'icon';
                 const isAudio = lowerName.includes('sound') || lowerName.includes('audio') || propDef.name === 'bgm' || propDef.name === 'sfx';
