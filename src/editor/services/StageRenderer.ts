@@ -38,9 +38,24 @@ const REFERENCE_CELL_SIZE = 20;
 
 export class StageRenderer {
     private host: StageHost;
+    private cachedVariableContext: Record<string, any> | undefined;
+    private variableContextCached = false;
 
     constructor(host: StageHost) {
         this.host = host;
+    }
+
+    private resetVariableContext(): void {
+        this.variableContextCached = false;
+        this.cachedVariableContext = undefined;
+    }
+
+    private getVariableContext(): Record<string, any> {
+        if (!this.variableContextCached) {
+            this.cachedVariableContext = this.host.getVariableContext ? this.host.getVariableContext() : {};
+            this.variableContextCached = true;
+        }
+        return this.cachedVariableContext ?? {};
     }
 
     /**
@@ -62,7 +77,7 @@ export class StageRenderer {
      */
     private getResolvedNumber(obj: any, prop: string, objects?: any[]): number {
         if (!obj) return 0;
-        const vars = this.host.getVariableContext ? this.host.getVariableContext() : {};
+        const vars = this.getVariableContext();
         const val = PropertyHelper.getResolvedPropertyValue(obj, prop, vars, objects);
         if (typeof val === 'number') return val;
         if (typeof val === 'string') {
@@ -74,6 +89,8 @@ export class StageRenderer {
 
     public renderObjects(objects: any[]) {
         if (!this.host || !this.host.element) return;
+
+        this.resetVariableContext();
         
         // Update object hash for internal bookkeeping
         const objectHash = objects.map(o => `${o.id}@${Number(this.getResolvedNumber(o, 'x', objects)).toFixed(1)},${Number(this.getResolvedNumber(o, 'y', objects)).toFixed(1)}`).join('|');
@@ -881,6 +898,7 @@ export class StageRenderer {
      * (wie Texte, Sichtbarkeit, Farben), ohne den DOM-Tree Layout-Thrashing zuzumuten!
      */
     private updateObjectPosition(el: HTMLElement, obj: any, className: string, isVisible: boolean): void {
+        this.resetVariableContext();
         const grid = this.host.grid;
         if (!grid) return;
         const objects = this.host.lastRenderedObjects || [];
@@ -1210,6 +1228,7 @@ export class StageRenderer {
     // Kein Dock-Recalc, kein Element-Create/Remove.
     // ─────────────────────────────────────────────────────────────────
     public updateSpritePositions(objects: any[]): void {
+        this.resetVariableContext();
         const cellSize = this.host.grid.cellSize;
         const allObjects = this.host.lastRenderedObjects || [];
         

@@ -117,7 +117,8 @@ export class Stage implements StageHost, StageInteractionHost {
      */
     public getVariableContext(): Record<string, any> {
         const ctx: Record<string, any> = {};
-        const vars = projectVariableRegistry.getVariables(undefined, true, 'all');
+        // Nur aktive Stage + Global, ohne Reference-Usage-Berechnung.
+        const vars = projectVariableRegistry.getVariables(undefined, false);
         for (const v of vars) {
             ctx[v.name] = v.value !== undefined ? v.value : v.defaultValue;
         }
