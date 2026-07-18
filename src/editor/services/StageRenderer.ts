@@ -572,7 +572,7 @@ export class StageRenderer {
             }
 
             if (this.host.runMode) {
-                const hasMouseEnter = obj.events?.onMouseEnter || obj.Tasks?.onMouseEnter || obj.events?.onEnter || obj.Tasks?.onEnter;
+                const hasMouseEnter = obj.events?.onMouseEnter || obj.Tasks?.onMouseEnter;
                 const hasMouseLeave = obj.events?.onMouseLeave || obj.Tasks?.onMouseLeave;
                 const hasDoubleClick = obj.events?.onDoubleClick || obj.Tasks?.onDoubleClick;
 

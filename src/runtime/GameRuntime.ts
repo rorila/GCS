@@ -791,10 +791,8 @@ export class GameRuntime implements IVariableHost {
         // CRITICAL FIX: Unwrap proxy to ensure we bypass any Proxy limitations
         const rawObj = (obj as any).__isProxy__ ? (obj as any).__target__ : obj;
         
-        // onEnter ist ein Alias für onMouseEnter bei Sprites
-        const resolvedEventName = (eventName === 'onMouseEnter' && !rawObj.events?.onMouseEnter && !rawObj.Tasks?.onMouseEnter)
-            ? (rawObj.events?.onEnter || rawObj.Tasks?.onEnter ? 'onEnter' : eventName)
-            : eventName;
+        // onEnter und onMouseEnter werden streng getrennt
+        const resolvedEventName = eventName;
 
         if (rawObj.events && resolvedEventName in rawObj.events) {
             hasTaskMap = rawObj.events[resolvedEventName];

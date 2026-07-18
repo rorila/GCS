@@ -115,8 +115,15 @@ export class InputRenderer {
                         obj.text = val;
                         input.value = val;
                     };
+                    input.onkeyup = (e: KeyboardEvent) => {
+                        if (e.key === 'Enter') {
+                            e.stopPropagation();
+                            obj.text = input.value;
+                            if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onEnter', input.value);
+                        }
+                    };
                 }
-                if (input.value !== (obj.text || '')) input.value = obj.text || '';
+                if (document.activeElement !== input && input.value !== (obj.text || '')) input.value = obj.text || '';
                 input.placeholder = obj.placeholder || '';
                 input.style.color = obj.style?.color || '#000000';
                 input.style.backgroundColor = obj.style?.backgroundColor || 'transparent';
