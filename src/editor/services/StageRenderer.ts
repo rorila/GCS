@@ -992,12 +992,18 @@ export class StageRenderer {
         
         // --- INJECT THEME STYLES ---
         const mergedStyle = themeRegistry.getMergedStyle(obj.className || 'TObject', obj.style);
-        const themedObj = Object.create(obj);
-        Object.defineProperty(themedObj, 'style', {
-            value: mergedStyle,
-            enumerable: true,
-            configurable: true,
-            writable: true
+        // Proxy statt Object.create: Style wird ueberlagert, SCHREIBENDE Zugriffe
+        // (z.B. Eingabe in TEdit) landen aber weiterhin auf dem Originalobjekt.
+        const themedObj = new Proxy(obj, {
+            get(target, prop: string | symbol, receiver) {
+                if (prop === 'style') return mergedStyle;
+                const value = Reflect.get(target, prop, receiver);
+                if (value && typeof value === 'object' && (value as any).__isProxy__) return value;
+                return value;
+            },
+            set(target, prop: string | symbol, value, receiver) {
+                return Reflect.set(target, prop, value, receiver);
+            }
         });
         obj = themedObj;
         // ---------------------------
