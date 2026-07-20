@@ -30,12 +30,8 @@ export class TColorPicker extends TWindow {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
-        return [
-            ...props,
-            { name: 'color', label: 'Color', type: 'color', group: 'Specifics' },
-            { name: 'style.borderColor', label: 'Border Color', type: 'color', group: 'Style' }
-        ];
+        // BackgroundColor/BorderColor sind bereits in der STIL-Section von TWindow enthalten.
+        return super.getInspectorProperties();
     }
 
     public override getEvents(): string[] {
