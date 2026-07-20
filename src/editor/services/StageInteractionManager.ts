@@ -759,7 +759,14 @@ export class StageInteractionManager {
             if (this.host.onSelectCallback) this.host.onSelectCallback(Array.from(this.host.selectedIds));
         }
         if (e.ctrlKey && e.key === 'c' && !isInputFocused && this.host.selectedIds.size > 0) { e.preventDefault(); this.copySelection(); }
-        if (e.ctrlKey && e.key === 'v' && !isInputFocused) { e.preventDefault(); this.pasteSelection(); }
+        if (e.ctrlKey && e.key === 'v') {
+            const globalClipboard = (window as any).__gcsClipboard;
+            if (globalClipboard && globalClipboard.length > 0) {
+                e.preventDefault();
+                logger.info('[StageInteractionManager] Ctrl+V triggered paste, clipboard size:', globalClipboard.length);
+                this.pasteSelection();
+            }
+        }
         if (e.key === 'Escape' && this.isPlacing) this.cancelPlacing();
         if (e.key === 'Delete' && this.host.selectedIds.size > 0 && !isInputFocused) {
             e.preventDefault();
