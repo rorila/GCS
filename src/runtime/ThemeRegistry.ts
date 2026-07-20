@@ -143,7 +143,13 @@ export class ThemeRegistry {
 
     public getMergedStyle(className: string, localStyle: any): any {
         const themeStyle = this.getComponentStyle(className);
-        return { ...themeStyle, ...(localStyle || {}) };
+        const local = localStyle || {};
+        // Eigene Glow/Shadow- bzw. boxShadow-Angaben des Objekts dürfen nicht
+        // vom Theme-boxShadow überschrieben/übergangen werden.
+        if (local.boxShadow !== undefined || local.glowColor !== undefined || local.shadowColor !== undefined) {
+            delete themeStyle.boxShadow;
+        }
+        return { ...themeStyle, ...local };
     }
 }
 
