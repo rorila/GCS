@@ -305,12 +305,25 @@ export class ComponentRegistry {
             // to prevent minification issues (like $t) from sticking to the instance.
             (instance as any).className = className;
 
+            // Kinder rekursiv instanziieren, damit Copy/Paste von Containern
+            // echte Instanzen für alle enthaltenen Komponenten erzeugt.
+            if (typeof data === 'object' && Array.isArray(data.children)) {
+                instance.children = [];
+                data.children.forEach((childData: any) => {
+                    const childInstance = this.createInstance(childData);
+                    if (childInstance) {
+                        (childInstance as any).parentId = (instance as any).id;
+                        instance.addChild(childInstance);
+                    }
+                });
+            }
+
             // Daten übernehmen
             if (typeof data === 'object') {
                 Object.keys(data).forEach(key => {
                     if (key === 'style' && typeof data.style === 'object') {
                         instance.style = { ...instance.style, ...data.style };
-                    } else if (key !== 'className' && key !== 'name' && key !== 'x' && key !== 'y') {
+                    } else if (key !== 'className' && key !== 'name' && key !== 'x' && key !== 'y' && key !== 'children') {
                         instance[key] = data[key];
                     }
                 });

@@ -223,7 +223,17 @@ export class EditorInteractionManager {
 
             const newObj = componentRegistry.createInstance(copyData);
             if (newObj) {
-                this.host.project.objects.push(newObj as any);
+                // Sicherstellen, dass Drag-Kopien in die gerade aktive Stage landen
+                const project = this.host.project;
+                let targetStage = this.host.getActiveStage ? this.host.getActiveStage() : null;
+                if (!targetStage && project.stages && project.activeStageId) {
+                    targetStage = project.stages.find((s: any) => s.id === project.activeStageId);
+                }
+                if (targetStage && targetStage.objects) {
+                    targetStage.objects.push(newObj as any);
+                } else {
+                    this.host.project.objects.push(newObj as any);
+                }
                 this.host.render();
                 this.host.selectObject(newObj.id);
                 this.host.autoSaveToLocalStorage();
