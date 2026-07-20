@@ -1,5 +1,4 @@
 import { projectReferenceTracker } from './registry/ReferenceTracker';
-import { projectObjectRegistry } from './registry/ObjectRegistry';
 import { projectActionRegistry } from './registry/ActionRegistry';
 import { projectTaskRegistry } from './registry/TaskRegistry';
 import { projectVariableRegistry } from './registry/VariableRegistry';
@@ -225,25 +224,71 @@ export class MediatorService {
      * Hilfsmethode: Liefert alle visuellen Objekte (Lokale + Globale) für eine Stage.
      */
     public getVisualObjects(stageId: string, isIsolated: boolean = true): (ComponentData & { uiScope: string })[] {
-        const objs = projectObjectRegistry.getObjects(isIsolated ? undefined : 'all');
         const project = coreStore.project;
-        const activeStage = project?.stages?.find((s: any) => s.id === stageId);
+        if (!project) return [];
+
+        const activeStage = project.stages?.find((s: any) => s.id === stageId);
         const activeStageName = activeStage?.name || stageId;
+        const actualBlueprintId = project.stages?.find((s: any) => s.type === 'blueprint')?.id;
 
-        return objs.map(obj => {
-            const anyObj = obj as any;
-            let uiScope = anyObj.uiScope;
+        const globalServiceClasses = [
+            'TStageController', 'TGameLoop', 'TGameState', 'TGameServer',
+            'TInputController', 'THandshake', 'THeartbeat', 'TToast', 'TStatusBar',
+            'TAPIServer', 'TDataStore'
+        ];
+        const isService = (obj: any) => (obj as any).isService === true || globalServiceClasses.includes((obj as any).className);
 
-            if (typeof uiScope === 'string' && (uiScope === 'global' || uiScope.startsWith('stage:'))) {
-                // Bereits korrekt gesetzt (z.B. von ObjectRegistry für andere Stages)
-            } else if (anyObj.isInherited || anyObj.scope === 'global' || project?.objects?.some((o: any) => o.id === anyObj.id)) {
-                uiScope = 'global';
-            } else {
-                uiScope = `stage: ${activeStageName}`;
+        const flatten = (arr: any[], scope: string): any[] => {
+            const res: any[] = [];
+            for (const o of arr) {
+                if (!o) continue;
+                res.push({ ...o, uiScope: scope });
+                if (o.children && Array.isArray(o.children)) {
+                    res.push(...flatten(o.children, scope));
+                }
             }
+            return res;
+        };
 
-            return { ...obj, uiScope } as any;
-        });
+        const result: any[] = [];
+        const seenIds = new Set<string>();
+        const add = (obj: any) => {
+            if (!obj || !obj.id || seenIds.has(obj.id)) return;
+            seenIds.add(obj.id);
+            result.push(obj);
+        };
+
+        const processStage = (stage: any, scope: string, filter?: (o: any) => boolean) => {
+            (stage.objects || []).forEach((o: any) => {
+                if (filter && !filter(o)) return;
+                flatten([o], scope).forEach(add);
+            });
+            (stage.variables || []).forEach((v: any) => {
+                if (filter && !filter(v)) return;
+                add({ ...v, uiScope: scope });
+            });
+        };
+
+        if (isIsolated) {
+            if (activeStage) {
+                processStage(activeStage, `stage: ${activeStageName}`);
+            }
+            project.stages?.forEach((stage: any) => {
+                if (stage.id === activeStage?.id) return;
+                const isStageBlueprint = stage.id === actualBlueprintId;
+                const scope = isStageBlueprint ? 'global' : `stage: ${stage.name || stage.id}`;
+                processStage(stage, scope, (o: any) => isStageBlueprint || (o as any).scope === 'global' || isService(o));
+            });
+        } else {
+            project.stages?.forEach((stage: any) => {
+                const isStageBlueprint = stage.id === actualBlueprintId;
+                const scope = isStageBlueprint ? 'global' : `stage: ${stage.name || stage.id}`;
+                processStage(stage, scope);
+            });
+            (project.objects || []).forEach((o: any) => add({ ...o, uiScope: 'global' }));
+        }
+
+        return result.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
     }
 
     /**
