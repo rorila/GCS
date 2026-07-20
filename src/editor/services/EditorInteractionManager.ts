@@ -20,6 +20,7 @@ export interface EditorInteractionHost {
     removeMultipleObjectsWithConfirm(ids: string[]): void | Promise<void>;
     selectObject(id: string | null): void;
     findObjectById(id: string): any;
+    getActiveStage(): any;
     render(): void;
     autoSaveToLocalStorage(): void;
     projectStore?: any;
@@ -238,8 +239,9 @@ export class EditorInteractionManager {
             copyData.y = y;
             
             const project = this.host.project;
-            let targetStage: any = null;
-            if (project.stages && project.activeStageId) {
+            // Sicherstellen, dass Paste in die gerade aktive/angezeigte Stage landet
+            let targetStage = this.host.getActiveStage ? this.host.getActiveStage() : null;
+            if (!targetStage && project.stages && project.activeStageId) {
                 targetStage = project.stages.find(s => s.id === project.activeStageId);
             }
             
