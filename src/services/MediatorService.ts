@@ -224,16 +224,25 @@ export class MediatorService {
     /**
      * Hilfsmethode: Liefert alle visuellen Objekte (Lokale + Globale) für eine Stage.
      */
-    public getVisualObjects(_stageId: string, isIsolated: boolean = true): (ComponentData & { uiScope: string })[] {
+    public getVisualObjects(stageId: string, isIsolated: boolean = true): (ComponentData & { uiScope: string })[] {
         const objs = projectObjectRegistry.getObjects(isIsolated ? undefined : 'all');
         const project = coreStore.project;
+        const activeStage = project?.stages?.find((s: any) => s.id === stageId);
+        const activeStageName = activeStage?.name || stageId;
 
         return objs.map(obj => {
-            const isGlobal = project?.objects?.some((o: any) => o.id === obj.id);
-            return {
-                ...obj,
-                uiScope: isGlobal ? 'global' : 'stage'
-            } as any;
+            const anyObj = obj as any;
+            let uiScope = anyObj.uiScope;
+
+            if (typeof uiScope === 'string' && (uiScope === 'global' || uiScope.startsWith('stage:'))) {
+                // Bereits korrekt gesetzt (z.B. von ObjectRegistry für andere Stages)
+            } else if (anyObj.isInherited || anyObj.scope === 'global' || project?.objects?.some((o: any) => o.id === anyObj.id)) {
+                uiScope = 'global';
+            } else {
+                uiScope = `stage: ${activeStageName}`;
+            }
+
+            return { ...obj, uiScope } as any;
         });
     }
 
