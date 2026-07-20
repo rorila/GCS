@@ -244,13 +244,18 @@ export class StageRenderer {
         sortedObjects.forEach((rawObj) => {
             // --- INJECT THEME STYLES ---
             const mergedStyle = themeRegistry.getMergedStyle(rawObj.className || 'TObject', rawObj.style);
-            // Use Object.create to preserve getters/setters from the class prototype (like backgroundImage)
-            const obj = Object.create(rawObj);
-            Object.defineProperty(obj, 'style', {
-                value: mergedStyle,
-                enumerable: true,
-                configurable: true,
-                writable: true
+            // Proxy statt Object.create: Style wird ueberlagert, SCHREIBENDE Zugriffe
+            // (Bindings, Eingaben, X/Y-Updates) landen weiterhin auf dem Originalobjekt.
+            const obj = new Proxy(rawObj, {
+                get(target, prop: string | symbol, receiver) {
+                    if (prop === 'style') return mergedStyle;
+                    const value = Reflect.get(target, prop, receiver);
+                    if (value && typeof value === 'object' && (value as any).__isProxy__) return value;
+                    return value;
+                },
+                set(target, prop: string | symbol, value, receiver) {
+                    return Reflect.set(target, prop, value, receiver);
+                }
             });
             // ---------------------------
             
