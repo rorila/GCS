@@ -122,6 +122,13 @@ export class InputRenderer {
                             if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onEnter', input.value);
                         }
                     };
+                    input.onblur = () => {
+                        obj.text = input.value;
+                        if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onBlur', input.value);
+                    };
+                    input.onfocus = () => {
+                        if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onFocus', input.value);
+                    };
                 }
                 if (document.activeElement !== input && input.value !== (obj.text || '')) input.value = obj.text || '';
                 input.placeholder = obj.placeholder || '';
