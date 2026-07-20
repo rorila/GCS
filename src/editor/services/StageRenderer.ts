@@ -508,12 +508,12 @@ export class StageRenderer {
                     }
                     el.style.transform = transformStr.trim();
                 }
-                // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor + glowBlur + glowSpread, Prio 3 = strukturierte Shadow-Parameter
+                // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor, Prio 3 = strukturierte Shadow-Parameter
                 if (obj.style.boxShadow) {
                     el.style.boxShadow = obj.style.boxShadow;
-                } else if (obj.style.glowColor && (obj.style.glowBlur || obj.style.glowSpread)) {
-                    const blur = obj.style.glowBlur || 20;
-                    const spread = obj.style.glowSpread || 5;
+                } else if (obj.style.glowColor) {
+                    const blur = obj.style.glowBlur ?? 20;
+                    const spread = obj.style.glowSpread ?? 5;
                     el.style.boxShadow = `0 0 ${blur}px ${spread}px ${obj.style.glowColor}`;
                 } else if (obj.style.shadowColor) {
                     const inset = obj.style.shadowInset ? 'inset ' : '';
@@ -1066,9 +1066,9 @@ export class StageRenderer {
             // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor, Prio 3 = strukturierte Shadow-Parameter
             if (obj.style.boxShadow) {
                 el.style.boxShadow = obj.style.boxShadow;
-            } else if (obj.style.glowColor && (obj.style.glowBlur || obj.style.glowSpread)) {
-                const blur = obj.style.glowBlur || 20;
-                const spread = obj.style.glowSpread || 5;
+            } else if (obj.style.glowColor) {
+                const blur = obj.style.glowBlur ?? 20;
+                const spread = obj.style.glowSpread ?? 5;
                 el.style.boxShadow = `0 0 ${blur}px ${spread}px ${obj.style.glowColor}`;
             } else if (obj.style.shadowColor) {
                 const inset = obj.style.shadowInset ? 'inset ' : '';
