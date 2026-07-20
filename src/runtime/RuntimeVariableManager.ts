@@ -91,6 +91,7 @@ export class RuntimeVariableManager {
                 id: v.id,
                 name: v.name,
                 scope: v.scope || 'stage',
+                value: v.value !== undefined ? v.value : (v.entries || v.items || v.data),
                 defaultValue: v.defaultValue !== undefined ? v.defaultValue : (v.value !== undefined ? v.value : (v.entries || v.items || v.data)),
                 isInteger: v.isInteger !== undefined ? v.isInteger : (v.className === 'TIntegerVariable' || v.className === 'TRandomVariable'),
                 threshold: v.threshold,
