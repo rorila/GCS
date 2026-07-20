@@ -1079,6 +1079,8 @@ export class StageRenderer {
             if (obj.style.borderRadius !== undefined) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
             if (obj.style.borderColor !== undefined) el.style.borderColor = obj.style.borderColor;
             if (obj.style.borderWidth !== undefined) el.style.borderWidth = `${obj.style.borderWidth}px`;
+            // zIndex muss auch bei Einzel-Updates (z.B. durch Bindvariable) am DOM gesetzt werden
+            if (obj.zIndex !== undefined) el.style.zIndex = String(obj.zIndex);
         } else if (obj.opacity !== undefined) {
             el.style.opacity = String(obj.opacity);
         }
