@@ -241,8 +241,13 @@ export class EditorInteractionManager {
             const project = this.host.project;
             // Sicherstellen, dass Paste in die gerade aktive/angezeigte Stage landet
             let targetStage = this.host.getActiveStage ? this.host.getActiveStage() : null;
+            logger.info('[EditorInteractionManager] getActiveStage result:', targetStage?.id, targetStage?.name, 'activeStageId=', project.activeStageId);
             if (!targetStage && project.stages && project.activeStageId) {
                 targetStage = project.stages.find(s => s.id === project.activeStageId);
+            }
+            if (!targetStage) {
+                logger.error('[EditorInteractionManager] onPasteCallback: no target stage found');
+                return null;
             }
             
             // Alle existierenden Namen sammeln (für Kollisionserkennung)
@@ -308,11 +313,13 @@ export class EditorInteractionManager {
                 logger.error('[EditorInteractionManager] createInstance returned null for', copyData.className);
                 return null;
             }
-            logger.info('[EditorInteractionManager] Created copy:', newObj.id, newObj.name);
+            logger.info('[EditorInteractionManager] Created copy:', newObj.id, newObj.name, 'className=', (newObj as any).className);
 
             if (targetStage && targetStage.objects) {
                 targetStage.objects.push(newObj as any);
+                logger.info('[EditorInteractionManager] Pushed copy to stage:', targetStage.id, 'stage now has', targetStage.objects.length, 'objects');
             } else {
+                logger.warn('[EditorInteractionManager] targetStage has no objects array, pushing to project.objects');
                 project.objects.push(newObj as any);
             }
 
