@@ -758,7 +758,15 @@ export class StageInteractionManager {
             });
             if (this.host.onSelectCallback) this.host.onSelectCallback(Array.from(this.host.selectedIds));
         }
-        if (e.ctrlKey && e.key === 'c' && !isInputFocused && this.host.selectedIds.size > 0) { e.preventDefault(); this.copySelection(); }
+        if (e.ctrlKey && e.key === 'c' && this.host.selectedIds.size > 0) {
+            // Eingabefeld mit markiertem Text soll weiterhin normal kopieren können
+            if (isInputFocused && typeof window.getSelection === 'function' && window.getSelection()!.toString().length > 0) {
+                return;
+            }
+            e.preventDefault();
+            logger.info('[StageInteractionManager] Ctrl+C triggered copy for', this.host.selectedIds.size, 'selected objects');
+            this.copySelection();
+        }
         if (e.ctrlKey && e.key === 'v') {
             const globalClipboard = (window as any).__gcsClipboard;
             if (globalClipboard && globalClipboard.length > 0) {
