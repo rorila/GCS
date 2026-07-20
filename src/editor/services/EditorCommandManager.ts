@@ -320,7 +320,7 @@ export class EditorCommandManager {
             } else if (obj.className === 'TAction' || type === 'action') {
                 RefactoringManager.renameAction(this.editor.project, oldName, newName);
             } else {
-                RefactoringManager.renameObject(this.editor.project, oldName, newName);
+                RefactoringManager.renameObject(this.editor.project, oldName, newName, undefined, obj.id);
             }
 
             // 3. Ensure the object instance itself carries the new name

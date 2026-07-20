@@ -4,20 +4,49 @@ import { ActionRefactoringService } from './ActionRefactoringService';
 
 export class ObjectRefactoringService {
     /**
-     * Renames an object – stage-bewusst.
-     * Wenn activeStageId gesetzt ist, werden nur die aktive Stage + Blueprint durchsucht.
-     * Bei Blueprint-Stage oder ohne activeStageId: projektweit (Rückwärtskompatibilität).
+     * Renames an object – stage- and ID-aware.
+     * Wenn eine objectId übergeben wird, wird nur das Objekt mit dieser ID umbenannt.
+     * Ansonsten Fallback auf den alten namensbasierten Modus (Rückwärtskompatibilität).
+     * activeStageId wird bei objectId automatisch auf die Stage des Objekts gesetzt.
      */
-    public static renameObject(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
+    public static renameObject(project: GameProject, oldName: string, newName: string, activeStageId?: string, objectId?: string): void {
         if (!oldName || !newName || oldName === newName) return;
+
+        const findById = (objects: any[], targetId: string): any | null => {
+            if (!objects) return null;
+            for (const o of objects) {
+                if (o.id === targetId) return o;
+                if (o.children) {
+                    const found = findById(o.children, targetId);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        // Wenn eine Objekt-ID vorliegt, die Stage des Objekts ermitteln,
+        // damit nur diese Stage (plus Blueprint) verarbeitet wird.
+        if (objectId && project.stages) {
+            for (const stage of project.stages) {
+                if (findById(stage.objects, objectId)) {
+                    activeStageId = stage.id;
+                    break;
+                }
+            }
+        }
 
         const stagesToProcess = RefactoringUtils.getStagesToProcess(project, activeStageId);
 
         // 1. Rename the object itself – nur in den relevanten Stages
         const renameInArray = (objects: any[]) => {
             if (!objects) return;
-            const obj = objects.find(o => o.name === oldName);
-            if (obj) obj.name = newName;
+            if (objectId) {
+                const obj = findById(objects, objectId);
+                if (obj) obj.name = newName;
+            } else {
+                const obj = objects.find(o => o.name === oldName);
+                if (obj) obj.name = newName;
+            }
             objects.forEach(parent => {
                 if (parent.children) renameInArray(parent.children);
             });

@@ -30,8 +30,8 @@ export class RefactoringManager {
     /**
      * Renames an object project-wide
      */
-    public static renameObject(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
-        ObjectRefactoringService.renameObject(project, oldName, newName, activeStageId);
+    public static renameObject(project: GameProject, oldName: string, newName: string, activeStageId?: string, objectId?: string): void {
+        ObjectRefactoringService.renameObject(project, oldName, newName, activeStageId, objectId);
     }
 
     /**
