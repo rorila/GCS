@@ -35,7 +35,7 @@ export class RuntimeVariableManager {
                             this.globalDefinitions.set(v.name, v);
                             if (v.id) this.globalDefinitions.set(v.id, v);
 
-                            let initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
+                            let initialValue = v.value !== undefined ? v.value : v.defaultValue;
                             if (initialValue === undefined) {
                                 if (v.entries !== undefined) initialValue = v.entries;
                                 else if (v.items !== undefined) initialValue = v.items;
@@ -130,9 +130,9 @@ export class RuntimeVariableManager {
         vars.forEach((v: any) => {
             const isGlobal = !v.scope || v.scope === 'global';
             // PRIORITIZATION: 
-            // At game start, we prefer 'defaultValue' (the design-time start state).
-            // 'value' is used as a fallback (legacy or stateful resume).
-            let initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
+            // At game start, we prefer 'value' (the current design-time value shown in the editor),
+            // so that Run-Mode matches Edit-Mode. 'defaultValue' is used as a fallback.
+            let initialValue = v.value !== undefined ? v.value : v.defaultValue;
             if (initialValue === undefined) {
                 if (v.entries !== undefined) initialValue = v.entries;
                 else if (v.items !== undefined) initialValue = v.items;

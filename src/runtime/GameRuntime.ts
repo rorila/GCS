@@ -214,12 +214,6 @@ export class GameRuntime implements IVariableHost {
 
             this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, this.spawnObject.bind(this), this.destroyObject.bind(this), options.onRestartGame);
             this.taskExecutor = new TaskExecutor(project, merged.actions, this.actionExecutor, merged.flowCharts, options.multiplayerManager, merged.tasks);
-
-            // STARTUP-SYNC: local-sync Tasks einmalig ausführen, damit Variablen
-            // (z.B. Var_XPos aus GeoXPos.text) vor dem ersten Render initialisiert werden.
-            if (options.makeReactive) {
-                this.syncLocalVariablesAtStartup();
-            }
         } else {
             this.objects = [];
             this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined, options.onRestartGame);
@@ -1154,73 +1148,6 @@ export class GameRuntime implements IVariableHost {
                 }
             }
         });
-    }
-
-    /**
-     * Führt local-sync Tasks einmalig zu Beginn der Runtime aus, damit Variablen,
-     * die im Editor aus Eingabefeldern gespeist werden (z. B. Var_XPos ← GeoXPos.text),
-     * vor dem ersten Render korrekt initialisiert sind.
-     * Nur Tasks mit dynamischen Bindings (${...}) werden ausgeführt, damit Konstant-Setzer
-     * (z. B. Var_XPos = 40) den Editor-Wert nicht überschreiben.
-     */
-    private syncLocalVariablesAtStartup(): void {
-        if (!this.taskExecutor || !this.stage) return;
-
-        // Aktions-Lookup über alle verfügbaren Quellen (Projekt, Stage, Blueprints)
-        const actionMap = new Map<string, any>();
-        const addActions = (list: any[]) => {
-            if (!list) return;
-            for (const a of list) {
-                if (a?.name) actionMap.set(a.name, a);
-            }
-        };
-        addActions(this.project.actions);
-        addActions(this.stage.actions);
-        if (this.project.stages) {
-            for (const s of this.project.stages) {
-                addActions(s.actions);
-            }
-        }
-
-        const hasBinding = (value: any): boolean =>
-            typeof value === 'string' && value.includes('${');
-
-        const actionHasBinding = (action: any): boolean => {
-            if (!action) return false;
-            if (action.changes && Object.values(action.changes).some(hasBinding)) return true;
-            if (action.body && Array.isArray(action.body) && action.body.some(actionHasBinding)) return true;
-            return false;
-        };
-
-        const taskHasBinding = (task: any): boolean => {
-            for (const item of task.actionSequence || []) {
-                const name = typeof item === 'string' ? item : item?.name;
-                if (actionHasBinding(actionMap.get(name))) return true;
-            }
-            return false;
-        };
-
-        const allTasks = [
-            ...(this.project.tasks || []),
-            ...(this.stage.tasks || [])
-        ];
-
-        for (const task of allTasks) {
-            if (task?.triggerMode === 'local-sync' && task.name && taskHasBinding(task)) {
-                try {
-                    logger.info(`[RUNTIME-STARTUP] Executing dynamic local-sync task "${task.name}" to initialize variables.`);
-                    this.taskExecutor.execute(
-                        task.name,
-                        this.contextVars,
-                        this.projectVariables,
-                        null,
-                        0
-                    );
-                } catch (e) {
-                    logger.warn(`[RUNTIME-STARTUP] Failed to execute local-sync task "${task.name}":`, e);
-                }
-            }
-        }
     }
 
     // ─────────────────────────────────────────────
