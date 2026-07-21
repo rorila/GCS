@@ -475,6 +475,7 @@ export class Editor implements IViewHost {
         }
         this.updateStageLabel();
         this.debugLog?.updateFilterDropdowns();
+        this.selectObject(null);
     }
     public updateStagesMenu() { this.menuManager.updateStagesMenu(); }
 

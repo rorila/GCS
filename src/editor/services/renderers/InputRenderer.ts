@@ -215,37 +215,52 @@ export class InputRenderer {
         const select = el.querySelector('select') as HTMLSelectElement;
         if (select) {
             const currentOptionsHtml = select.innerHTML;
-            
-            let optionsList: string[] = [];
+
+            let rawOptions: string[] = [];
             if (Array.isArray(obj.options)) {
-                optionsList = obj.options;
+                rawOptions = obj.options;
             } else if (typeof obj.options === 'string') {
-                optionsList = obj.options.split(',').map((s: string) => s.trim());
+                rawOptions = obj.options.split(',').map((s: string) => s.trim());
             } else {
-                optionsList = ['Option 1', 'Option 2', 'Option 3'];
+                rawOptions = ['Option 1', 'Option 2', 'Option 3'];
             }
 
+            // Support label:value pairs, e.g. "Zentriert:center"
+            const parsedOptions = rawOptions.map((opt: string) => {
+                const separatorIndex = opt.indexOf(':');
+                if (separatorIndex > 0) {
+                    return {
+                        label: opt.substring(0, separatorIndex).trim(),
+                        value: opt.substring(separatorIndex + 1).trim()
+                    };
+                }
+                return { label: opt, value: opt };
+            });
+
             let expectedHtml = '';
-            optionsList.forEach((opt, idx) => {
-                expectedHtml += `<option value="${idx}">${SecurityUtils.escapeHtml(opt)}</option>`;
+            parsedOptions.forEach((opt, idx) => {
+                expectedHtml += `<option value="${idx}">${SecurityUtils.escapeHtml(opt.label)}</option>`;
             });
 
             if (currentOptionsHtml !== expectedHtml) {
                 select.innerHTML = expectedHtml;
             }
 
-            const targetIndex = (obj.selectedIndex !== undefined && obj.selectedIndex >= 0 && obj.selectedIndex < optionsList.length) 
+            const targetIndex = (obj.selectedIndex !== undefined && obj.selectedIndex >= 0 && obj.selectedIndex < parsedOptions.length)
                                 ? obj.selectedIndex : 0;
             if (select.selectedIndex !== targetIndex) {
                 select.selectedIndex = targetIndex;
             }
 
+            // Always keep selectedValue in sync so bindings work before and after changes
+            obj.selectedValue = parsedOptions[targetIndex]?.value ?? '';
+
             if (ctx.host.runMode) {
                 select.onchange = (e) => {
                     e.stopPropagation();
                     const newIndex = select.selectedIndex;
-                    const newValue = optionsList[newIndex];
-                    
+                    const newValue = parsedOptions[newIndex]?.value ?? '';
+
                     obj.selectedIndex = newIndex;
                     obj.selectedValue = newValue;
 
