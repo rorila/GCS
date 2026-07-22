@@ -87,6 +87,143 @@ export class StageRenderer {
         return val ?? 0;
     }
 
+    private alignStateMap = new Map<string, { lastAlign?: string; original?: { x: any; y: any; width: any; height: any }; computed?: { x: number; y: number; width: number; height: number } | null }>();
+
+    private getAlignState(obj: any) {
+        const id = obj.id || obj.name;
+        if (!id) return {};
+        if (!this.alignStateMap.has(id)) {
+            this.alignStateMap.set(id, {});
+        }
+        return this.alignStateMap.get(id)!;
+    }
+
+    /**
+     * Returns the original width/height captured before alignment was applied.
+     * Preserves binding expressions by resolving them from the persistent source object.
+     */
+    private getDesignDimension(obj: any, prop: 'width' | 'height', objects?: any[]): number {
+        const alignState = this.getAlignState(obj);
+        const raw = alignState.original?.[prop];
+        if (raw !== undefined) {
+            if (typeof raw === 'number') return raw;
+            if (typeof raw === 'string' && PropertyHelper.isBinding(raw)) {
+                const sourceObj = obj.__rawSource || obj;
+                return this.getResolvedNumber(sourceObj, prop, objects);
+            }
+            const num = Number(raw);
+            return isNaN(num) ? 0 : num;
+        }
+        return this.getResolvedNumber(obj, prop, objects);
+    }
+
+    /**
+     * Returns the value to use for layout/positioning.
+     * For aligned objects the last computed layout values are preferred so that
+     * partial updates (updateSingleObject) keep the dock dimensions.
+     */
+    private getLayoutValue(obj: any, prop: 'x' | 'y' | 'width' | 'height', objects?: any[]): number {
+        const alignState = this.getAlignState(obj);
+        if (obj.align && obj.align !== 'NONE' && alignState.computed && alignState.computed[prop] !== undefined) {
+            return alignState.computed[prop];
+        }
+        return this.getResolvedNumber(obj, prop, objects);
+    }
+
+    /**
+     * Handles align transitions and computes geometry for a single object update
+     * (used by updateSingleObject, where renderObjects is not invoked).
+     */
+    private handleSingleObjectAlign(obj: any, gridConfig: any, objects?: any[]): void {
+        const newAlign = obj.align || 'NONE';
+        const objId = obj.id || obj.name;
+        if (!objId) return;
+        const alignState = this.getAlignState(obj);
+        const lastAlign = alignState.lastAlign;
+        const sourceObj = obj.__rawSource || obj;
+
+        if (newAlign === 'NONE' && !alignState.original) {
+            alignState.original = {
+                x: sourceObj.x,
+                y: sourceObj.y,
+                width: sourceObj.width,
+                height: sourceObj.height
+            };
+        }
+
+        if ((lastAlign === undefined || lastAlign === 'NONE') && newAlign !== 'NONE') {
+            if (!alignState.original) {
+                alignState.original = {
+                    x: sourceObj.x,
+                    y: sourceObj.y,
+                    width: sourceObj.width,
+                    height: sourceObj.height
+                };
+            }
+        } else if (lastAlign !== undefined && lastAlign !== 'NONE' && newAlign === 'NONE') {
+            const orig = alignState.original;
+            if (orig) {
+                const restore = (prop: string) => {
+                    const origValue = (orig as any)[prop];
+                    if (origValue === undefined) return;
+                    const currentValue = (sourceObj as any)[prop];
+                    if (typeof currentValue === 'string' && PropertyHelper.isBinding(currentValue)) return;
+                    (sourceObj as any)[prop] = origValue;
+                };
+                restore('x');
+                restore('y');
+                restore('width');
+                restore('height');
+            }
+            alignState.original = undefined;
+            alignState.computed = null;
+        }
+
+        alignState.lastAlign = newAlign;
+
+        if (newAlign === 'NONE') {
+            alignState.computed = null;
+            return;
+        }
+
+        const cellSize = gridConfig.cellSize;
+        const stageWidth = gridConfig.cols * cellSize;
+        const stageHeight = gridConfig.rows * cellSize;
+        const isPixelBased = obj.className === 'TStatusBar';
+
+        const origW = this.getDesignDimension(obj, 'width', objects);
+        const origH = this.getDesignDimension(obj, 'height', objects);
+
+        let actualW = isPixelBased ? origW : origW * cellSize;
+        let actualH = isPixelBased ? origH : origH * cellSize;
+
+        let left = 0;
+        let top = 0;
+        let width = 0;
+        let height = 0;
+
+        switch (newAlign) {
+            case 'TOP':
+                left = 0; top = 0; width = stageWidth; height = actualH; break;
+            case 'BOTTOM':
+                left = 0; top = stageHeight - actualH; width = stageWidth; height = actualH; break;
+            case 'LEFT':
+                left = 0; top = 0; width = actualW; height = stageHeight; break;
+            case 'RIGHT':
+                left = stageWidth - actualW; top = 0; width = actualW; height = stageHeight; break;
+            case 'CLIENT':
+                left = 0; top = 0; width = stageWidth; height = stageHeight; break;
+        }
+
+        alignState.computed = {
+            x: isPixelBased ? left : left / cellSize,
+            y: isPixelBased ? top : top / cellSize,
+            width: isPixelBased ? width : width / cellSize,
+            height: isPixelBased ? height : height / cellSize
+        };
+
+    }
+
     public renderObjects(objects: any[]) {
         if (!this.host || !this.host.element) return;
 
@@ -129,6 +266,56 @@ export class StageRenderer {
             logger.info(`[StageRenderer:Layout] Stage Size: ${stageWidth}x${stageHeight} (cols: ${gridConfig.cols}, nodes: ${objects.length})`);
         }
 
+        // 0. Detect align transitions and preserve/restore original geometry
+        objects.forEach(obj => {
+            const newAlign = obj.align || 'NONE';
+            const objId = obj.id || obj.name;
+            if (!objId) return;
+            const alignState = this.getAlignState(obj);
+            const lastAlign = alignState.lastAlign;
+            const sourceObj = obj.__rawSource || obj;
+
+            if (newAlign === 'NONE' && !alignState.original) {
+                alignState.original = {
+                    x: sourceObj.x,
+                    y: sourceObj.y,
+                    width: sourceObj.width,
+                    height: sourceObj.height
+                };
+            }
+
+            if ((lastAlign === undefined || lastAlign === 'NONE') && newAlign !== 'NONE') {
+                if (!alignState.original) {
+                    alignState.original = {
+                        x: sourceObj.x,
+                        y: sourceObj.y,
+                        width: sourceObj.width,
+                        height: sourceObj.height
+                    };
+                }
+            } else if (lastAlign !== undefined && lastAlign !== 'NONE' && newAlign === 'NONE') {
+                const orig = alignState.original;
+                if (orig) {
+                    const restore = (prop: string) => {
+                        const origValue = (orig as any)[prop];
+                        if (origValue === undefined) return;
+                        const currentValue = (sourceObj as any)[prop];
+                        if (typeof currentValue === 'string' && PropertyHelper.isBinding(currentValue)) return;
+                        (sourceObj as any)[prop] = origValue;
+                        (obj as any)[prop] = origValue;
+                    };
+                    restore('x');
+                    restore('y');
+                    restore('width');
+                    restore('height');
+                }
+                alignState.original = undefined;
+                alignState.computed = null;
+            }
+
+            alignState.lastAlign = newAlign;
+        });
+
         // 1. Calculate dock positions
         const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
         const dockPositions = new Map<string, { left: number, top: number, width: number, height: number }>();
@@ -140,8 +327,8 @@ export class StageRenderer {
             const objId = obj.id || obj.name; // Fallback to name
             if (!objId) return;
 
-            const objHeight = this.getResolvedNumber(obj, 'height', objects) * gridConfig.cellSize;
-            const objWidth = this.getResolvedNumber(obj, 'width', objects) * gridConfig.cellSize;
+            const objHeight = this.getDesignDimension(obj, 'height', objects) * gridConfig.cellSize;
+            const objWidth = this.getDesignDimension(obj, 'width', objects) * gridConfig.cellSize;
 
             // SPECIAL CASE: TStatusBar defines height in pixels (e.g. 28), not grid units
             let actualHeight = objHeight;
@@ -209,6 +396,14 @@ export class StageRenderer {
                 if (!PropertyHelper.isBinding(obj.width)) obj.width = dockPos.width / gridConfig.cellSize;
                 if (!PropertyHelper.isBinding(obj.height)) obj.height = dockPos.height / gridConfig.cellSize;
             }
+
+            const alignState = this.getAlignState(obj);
+            alignState.computed = {
+                x: isPixelBased ? dockPos.left : dockPos.left / gridConfig.cellSize,
+                y: isPixelBased ? dockPos.top : dockPos.top / gridConfig.cellSize,
+                width: isPixelBased ? dockPos.width : dockPos.width / gridConfig.cellSize,
+                height: isPixelBased ? dockPos.height : dockPos.height / gridConfig.cellSize
+            };
         });
 
         const currentIds = this.collectAllIds(objects);
@@ -910,17 +1105,11 @@ export class StageRenderer {
         const cellSize = grid.cellSize;
         const isPixelBased = className === 'TStatusBar';
 
-        let absX = 0;
-        let absY = 0;
+        let absX = this.getLayoutValue(obj, 'x', objects);
+        let absY = this.getLayoutValue(obj, 'y', objects);
 
-        if (obj.align && obj.align !== 'NONE') {
-            // For aligned/docked objects, x/y are already absolute stage coordinates (renderObjects writes them back)
-            absX = this.getResolvedNumber(obj, 'x', objects);
-            absY = this.getResolvedNumber(obj, 'y', objects);
-        } else {
+        if (!obj.align || obj.align === 'NONE') {
             // For non-aligned objects, sum parent chain offsets
-            absX = this.getResolvedNumber(obj, 'x', objects);
-            absY = this.getResolvedNumber(obj, 'y', objects);
             let parentId = obj.parentId;
             let depth = 0;
             while (parentId && depth < 100) {
@@ -933,10 +1122,13 @@ export class StageRenderer {
             }
         }
 
+        const layoutW = this.getLayoutValue(obj, 'width', objects);
+        const layoutH = this.getLayoutValue(obj, 'height', objects);
+
         const finalX = isPixelBased ? absX : absX * cellSize;
         const finalY = isPixelBased ? absY : absY * cellSize;
-        const finalW = isPixelBased ? this.getResolvedNumber(obj, 'width', objects) : (this.getResolvedNumber(obj, 'width', objects) * cellSize);
-        const finalH = isPixelBased ? this.getResolvedNumber(obj, 'height', objects) : (this.getResolvedNumber(obj, 'height', objects) * cellSize);
+        const finalW = isPixelBased ? layoutW : layoutW * cellSize;
+        const finalH = isPixelBased ? layoutH : layoutH * cellSize;
 
         // Determine if this object is a dialog or child of a dialog
         let parentDialog: any = null;
@@ -994,7 +1186,7 @@ export class StageRenderer {
 
     public updateSingleObject(obj: any): void {
         if (!this.host || !this.host.element || !obj || !obj.id) return;
-        
+
         // --- INJECT THEME STYLES ---
         const mergedStyle = themeRegistry.getMergedStyle(obj.className || 'TObject', obj.style);
         // Proxy statt Object.create: Style wird ueberlagert, SCHREIBENDE Zugriffe
@@ -1012,7 +1204,12 @@ export class StageRenderer {
         });
         obj = themedObj;
         // ---------------------------
-        
+
+        const grid = this.host.grid;
+        if (grid) {
+            this.handleSingleObjectAlign(obj, grid, this.host.lastRenderedObjects || []);
+        }
+
         // SONDERFALL: Wenn das Objekt die Stage selbst ist (z.B. Hintergrund/Grid wird reaktiv geändert)
         if (obj.className === 'TStage' || obj.type === 'main' || obj.type === 'splash' || obj.type === 'blueprint' || obj.grid) {
             if (typeof (this.host as any).updategrid === 'function') {
