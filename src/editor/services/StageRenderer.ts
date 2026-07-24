@@ -118,6 +118,22 @@ export class StageRenderer {
     }
 
     /**
+     * Löst einen Style-Wert (z. B. opacity) auf, falls er ein Binding wie "${myVar}" ist.
+     * Gibt ansonsten den Rohwert zurück.
+     */
+    private getResolvedStyleValue(obj: any, prop: string, objects?: any[]): any {
+        if (!obj || !obj.style) return undefined;
+        const raw = obj.style[prop];
+        if (raw === undefined || raw === null) return undefined;
+        if (typeof raw === 'string' && PropertyHelper.isBinding(raw)) {
+            const vars = this.getVariableContext();
+            const resolved = PropertyHelper.getResolvedPropertyValue(obj, `style.${prop}`, vars, objects);
+            return resolved !== undefined ? resolved : raw;
+        }
+        return raw;
+    }
+
+    /**
      * Returns the value to use for layout/positioning.
      * For aligned objects the last computed layout values are preferred so that
      * partial updates (updateSingleObject) keep the dock dimensions.
@@ -660,7 +676,9 @@ export class StageRenderer {
                 el.style.pointerEvents = 'auto';
             }
 
-            const opacity = (obj.style && obj.style.opacity !== undefined && obj.style.opacity !== null) ? obj.style.opacity : (obj.imageOpacity !== undefined ? obj.imageOpacity : undefined);
+            const opacity = (obj.style && obj.style.opacity !== undefined && obj.style.opacity !== null)
+                ? this.getResolvedStyleValue(obj, 'opacity', objects)
+                : (obj.imageOpacity !== undefined ? obj.imageOpacity : undefined);
             const needsPlaceholder = (!isVisible || obj.isHiddenInRun || isService || isBlueprintOnly) && !this.host.runMode;
 
             if (opacity !== undefined && opacity !== null) {
@@ -1251,8 +1269,9 @@ export class StageRenderer {
 
         if (obj.style) {
             if (obj.style.color !== undefined) el.style.color = obj.style.color;
-            if (obj.style.opacity !== undefined) {
-                el.style.opacity = String(obj.style.opacity);
+            const resolvedOpacity = this.getResolvedStyleValue(obj, 'opacity');
+            if (resolvedOpacity !== undefined) {
+                el.style.opacity = String(resolvedOpacity);
             }
             if (obj.style.fontFamily !== undefined) el.style.fontFamily = obj.style.fontFamily;
             if (obj.style.fontSize !== undefined) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
@@ -1567,7 +1586,10 @@ export class StageRenderer {
                 el.style.transform = transformStr.trim();
 
                 if (obj.style && obj.style.opacity !== undefined) {
-                    el.style.opacity = String(obj.style.opacity);
+                    const resolvedOpacity = this.getResolvedStyleValue(obj, 'opacity', mergedObjectsArray);
+                    if (resolvedOpacity !== undefined) {
+                        el.style.opacity = String(resolvedOpacity);
+                    }
                 } else if (obj.opacity !== undefined) {
                     el.style.opacity = String(obj.opacity);
                 }
@@ -1589,7 +1611,10 @@ export class StageRenderer {
                     let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
                     if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
                     if (tStr.trim()) el.style.transform = tStr.trim();
-                    if (obj.style.opacity !== undefined) el.style.opacity = String(obj.style.opacity);
+                    const resolvedOpacity = this.getResolvedStyleValue(obj, 'opacity', mergedObjectsArray);
+                    if (resolvedOpacity !== undefined) {
+                        el.style.opacity = String(resolvedOpacity);
+                    }
                 } else if (obj.opacity !== undefined) {
                     el.style.opacity = String(obj.opacity);
                 }

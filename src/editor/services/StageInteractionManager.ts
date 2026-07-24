@@ -69,6 +69,22 @@ export class StageInteractionManager {
         this.host = host;
     }
 
+    private isTextInputElement(el: EventTarget | Element | null | undefined): boolean {
+        if (!el || !(el instanceof HTMLElement)) return false;
+        const tag = el.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+        if (el.isContentEditable) return true;
+        return false;
+    }
+
+    private getDeepActiveElement(): Element | null {
+        let active = document.activeElement;
+        while (active?.shadowRoot?.activeElement) {
+            active = active.shadowRoot.activeElement;
+        }
+        return active;
+    }
+
     private snap(val: number, forceRound: boolean = false): number {
         const cellSize = this.host.grid.cellSize || 20;
         if (this.host.grid.snapToGrid || forceRound) {
@@ -279,6 +295,12 @@ export class StageInteractionManager {
                     }
                 }
             }
+            return;
+        }
+
+        // Klick auf ein Edit-/Input-Feld soll Objekt-Selektion/Drag nicht starten,
+        // damit das Feld fokussiert bleibt und Texte eingefügt werden können.
+        if (!this.host.runMode && this.isTextInputElement(target)) {
             return;
         }
 
@@ -744,11 +766,8 @@ export class StageInteractionManager {
     private handleKeyDown(e: KeyboardEvent) {
         if (this.host.runMode) return;
         // Guard: Ctrl-Shortcuts nicht abfangen wenn Input/Textarea/Select fokussiert ist
-        let activeEl = document.activeElement as HTMLElement | null;
-        if (activeEl?.shadowRoot?.activeElement) {
-            activeEl = activeEl.shadowRoot.activeElement as HTMLElement;
-        }
-        const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || activeEl.isContentEditable);
+        const deepActive = this.getDeepActiveElement();
+        const isInputFocused = this.isTextInputElement(deepActive) || this.isTextInputElement(e.target);
 
         if (e.ctrlKey && e.key === 'a' && !isInputFocused) {
             e.preventDefault();
@@ -769,6 +788,9 @@ export class StageInteractionManager {
         }
         if (e.ctrlKey && e.key === 'v') {
             const globalClipboard = (window as any).__gcsClipboard;
+            if (isInputFocused) {
+                return; // Eingabefeld fokussiert: Standard-Browser-Paste erlauben
+            }
             if (globalClipboard && globalClipboard.length > 0) {
                 e.preventDefault();
                 logger.info('[StageInteractionManager] Ctrl+V triggered paste, clipboard size:', globalClipboard.length);
