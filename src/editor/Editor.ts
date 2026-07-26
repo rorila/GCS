@@ -37,6 +37,7 @@ import { snapshotManager } from './services/SnapshotManager';
 import { EditorInteractionManager } from './services/EditorInteractionManager';
 import { ObjectStore } from './services/ObjectStore';
 import { ThemeStageService } from './services/ThemeStageService';
+import { themeRegistry } from '../runtime/ThemeRegistry';
 import { Logger } from '../utils/Logger';
 import { loadComponentSchemas } from '../services/SchemaLoader';
 import { HelpOverlay } from './HelpOverlay';
@@ -466,6 +467,7 @@ export class Editor implements IViewHost {
     public switchView(view: ViewType) { this.viewManager.switchView(view); }
     public createStage(type: StageType, name?: string) { return this.stageManager.createStage(type, name); }
     public openThemeEditor() { this.themeStageService.enterThemeEditor(); }
+    public editActiveTheme() { this.themeStageService.enterThemeEditor(themeRegistry.getActiveThemeId()); }
     public saveThemeFromEditor() { this.themeStageService.saveThemeAs(); }
     public exitThemeEditor() { this.themeStageService.exitThemeEditor(); }
     public switchStage(id: string, keepView?: boolean) {

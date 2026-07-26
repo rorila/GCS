@@ -34,6 +34,7 @@ export interface EditorMenuHost {
     exportJSONCompressed(): void;
     exportTheme(): void;
     openThemeEditor(): void;
+    editActiveTheme(): void;
     createStage(type: StageType): void;
     deleteCurrentStage(): void;
     createStageFromTemplate(): void;
@@ -128,6 +129,7 @@ export class EditorMenuManager {
             case 'export-json-gzip': this.host.exportJSONCompressed(); break;
             case 'export-theme': this.host.exportTheme(); break;
             case 'open-theme-editor': this.host.openThemeEditor(); break;
+            case 'edit-active-theme': this.host.editActiveTheme(); break;
             case 'export-agent-script': AgentScriptDialog.showExport(() => this.refreshAfterAgentScriptImport()); break;
             case 'import-agent-script': AgentScriptDialog.showImport(
                 () => this.refreshAfterAgentScriptImport(),
@@ -370,8 +372,12 @@ export class EditorMenuManager {
             active: t.id === activeThemeId
         }));
 
+        const activeTheme = themeRegistry.getAvailableThemes().find(t => t.id === activeThemeId);
+        const activeThemeName = activeTheme?.name || activeThemeId;
+
         this.host.menuBar.updateMenu('themes', [
             { id: 'open-theme-editor', label: '🎨 Theme-Editor öffnen', action: 'open-theme-editor', icon: '🎨' },
+            { id: 'edit-active-theme', label: `✏️ Aktives Theme bearbeiten (${activeThemeName})`, action: 'edit-active-theme', icon: '✏️' },
             ...themeItems
         ]);
     }
