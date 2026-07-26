@@ -161,6 +161,9 @@ export class ThemeStageService {
         this.sourceThemeId = id;
         this.renderBanner();
 
+        // Theme-Änderung persistieren, damit sie F5 / Seiten-Reload überlebt
+        this.host.autoSaveToLocalStorage();
+
         NotificationToast.show(`Theme "${name}" wurde gespeichert und aktiviert.`, 'success');
     }
 
