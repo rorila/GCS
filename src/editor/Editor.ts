@@ -117,6 +117,9 @@ export class Editor implements IViewHost {
 
         // 2. Initialize Managers
         this.stageManager = new EditorStageManager(this.project, this.stage, () => {
+            if (this.themeStageService?.isThemeEditorActive() && this.project.activeStageId !== '__theme_editor__') {
+                this.themeStageService.exitThemeEditor();
+            }
             this.render();
             this.menuManager.updateStagesMenu();
             this.dataManager.updateProjectJSON();
