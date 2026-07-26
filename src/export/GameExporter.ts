@@ -307,7 +307,7 @@ primary_region = "fra"
      */
     public getCleanProject(project: GameProject): any {
         // 1. Whitelist for top-level keys
-        const whitelist = ['meta', 'stages', 'activeStageId', 'variables', 'tasks', 'actions', 'stage', 'objects', 'flowCharts', 'splashAutoHide', 'splashDuration'];
+        const whitelist = ['meta', 'stages', 'activeStageId', 'variables', 'tasks', 'actions', 'stage', 'objects', 'flowCharts', 'splashAutoHide', 'splashDuration', 'themes', 'activeThemeId'];
 
         const clean: any = {};
         whitelist.forEach(key => {

@@ -29,7 +29,7 @@ export const defaultAIConfig: AIConfig = {
     chatModel: 'qwen2.5-coder:7b',
     embeddingModel: 'nomic-embed-text',
     temperature: 0.1,
-    contextWindow: 8192,
+    contextWindow: 32768,
     topK: 3,
     requestTimeoutMs: 120000,
 };

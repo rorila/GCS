@@ -163,7 +163,7 @@ export class StageInteractionManager {
             
             const candidatePanels = this.host.lastRenderedObjects.filter(o => {
                 const clsName = o.className || o.constructor?.name || '';
-                const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel', 'TSidePanel'].includes(clsName);
+                const isContainer = ['TGroupPanel', 'TDialogRoot', 'TThemeDialog', 'TSplashScreen', 'TPanel', 'TSidePanel'].includes(clsName);
                 if (!isContainer) return false;
                 // FIX: Geerbte Blueprint-Panels können keine neuen Kinder aufnehmen (Read-Only)
                 if (o.isInherited) return false;
@@ -270,7 +270,7 @@ export class StageInteractionManager {
                         // TDialogRoot hat seinen eigenen Drag-Handler (Titelleiste im ComplexComponentRenderer).
                         // Der Editor-interne Drag darf hier NICHT starten, da er den Dialog-eigenen Drag
                         // überlagert und auch den Close-Button blockiert.
-                        if (obj.className === 'TDialogRoot') return;
+                        if (obj.className === 'TDialogRoot' || obj.className === 'TThemeDialog') return;
 
                         this.dragStart = { x: e.clientX, y: e.clientY };
                         this.isDragging = true;
@@ -655,7 +655,7 @@ export class StageInteractionManager {
                                 
                                 const droppingPanels = this.host.lastRenderedObjects.filter(o => {
                                     const clsName = o.className || o.constructor?.name || '';
-                                    const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel', 'TSidePanel'].includes(clsName);
+                                    const isContainer = ['TGroupPanel', 'TDialogRoot', 'TThemeDialog', 'TSplashScreen', 'TPanel', 'TSidePanel'].includes(clsName);
                                     if (!isContainer) return false;
                                     if ((o.id || o.name) === id) return false; 
                                     // FIX: Verhindere Zuweisung in schreibgeschützte Blueprint-Panels!

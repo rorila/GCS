@@ -538,13 +538,13 @@ export class StageRenderer {
             // (Berechnung AUSSERHALB von runMode, damit z-index Logik weiter unten darauf zugreifen kann)
             let parentDialog: any = null;
             if (this.host.runMode) {
-                if (className === 'TDialogRoot' || className === 'TSidePanel') parentDialog = obj;
+                if ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel') parentDialog = obj;
                 else if (obj.parentId) {
                     let currId = obj.parentId;
                     let sanity = 0;
                     while (currId && sanity++ < 20) {
                         const p = objects.find(o => (o.id || o.name) === currId);
-                        if (p && (p.className === 'TDialogRoot' || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot')) {
+                        if (p && ((p.className === 'TDialogRoot' || p.className === 'TThemeDialog') || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot' || p.constructor?.name === 'TThemeDialog')) {
                             parentDialog = p;
                             break;
                         }
@@ -642,14 +642,14 @@ export class StageRenderer {
                 // der Browser den Wechsel von none -> flex im selben Frame nicht animiert.
                 if (this.host.runMode) {
                     let keepVisible = false;
-                    if (obj.className === 'TDialogRoot' || obj.className === 'TSidePanel') {
+                    if ((obj.className === 'TDialogRoot' || obj.className === 'TThemeDialog') || obj.className === 'TSidePanel') {
                         keepVisible = true;
                     } else if (obj.parentId) {
                         let currId = obj.parentId;
                         let sanity = 0;
                         while (currId && sanity++ < 20) {
                             const p = objects.find(o => (o.id || o.name) === currId);
-                            if (p && (p.className === 'TDialogRoot' || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot')) {
+                            if (p && ((p.className === 'TDialogRoot' || p.className === 'TThemeDialog') || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot' || p.constructor?.name === 'TThemeDialog')) {
                                 keepVisible = true;
                                 break;
                             }
@@ -711,6 +711,8 @@ export class StageRenderer {
                 }
                 if (obj.style.fontSize) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
                 if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
+                if (obj.style.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+                if (obj.style.textShadow) el.style.textShadow = obj.style.textShadow;
                 if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
                 // Transform wird jetzt zusammen mit der Positions-Zuweisung berechnet,
                 // damit das translate3d() (Basis-Positionierung) nicht zerstört wird.
@@ -749,7 +751,7 @@ export class StageRenderer {
                     //   Dialog-Root:   dialogZBase      (Background/Rahmen + Titelleiste als DOM-Kind)
                     //   Overlay:       dialogZBase - 1  (block background)
                     const dialogZBase = parentDialog.zIndex ? Number(parentDialog.zIndex) : 20000;
-                    if (className === 'TDialogRoot' || className === 'TSidePanel') {
+                    if ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel') {
                         el.style.zIndex = String(dialogZBase);
                     } else {
                         el.style.zIndex = String(dialogZBase + 1);
@@ -1100,7 +1102,7 @@ export class StageRenderer {
         else if (className === 'TSprite' || className === 'TSpriteTemplate') SpriteRenderer.render(ctx, el, obj);
         else if (className === 'TShape') ShapeRenderer.render(ctx, el, obj, isNew);
         else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
-        else if (className === 'TDialogRoot') ComplexComponentRenderer.renderDialogRoot(ctx, el, obj);
+        else if ((className === 'TDialogRoot' || className === 'TThemeDialog')) ComplexComponentRenderer.renderDialogRoot(ctx, el, obj);
         else if (className === 'TSidePanel') ComplexComponentRenderer.renderSidePanel(ctx, el, obj);
         else if (className === 'TInfoWindow') ComplexComponentRenderer.renderInfoWindow(ctx, el, obj, isNew);
         else if (className === 'TColorPicker') InputRenderer.renderColorPicker(ctx, el, obj, isNew);
@@ -1150,14 +1152,14 @@ export class StageRenderer {
 
         // Determine if this object is a dialog or child of a dialog
         let parentDialog: any = null;
-        if (className === 'TDialogRoot' || className === 'TSidePanel') {
+        if ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel') {
             parentDialog = obj;
         } else if (obj.parentId) {
             let currId = obj.parentId;
             let sanity = 0;
             while (currId && sanity++ < 20) {
                 const p = objects.find((o: any) => (o.id || o.name) === currId);
-                if (p && (p.className === 'TDialogRoot' || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot')) {
+                if (p && ((p.className === 'TDialogRoot' || p.className === 'TThemeDialog') || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot' || p.constructor?.name === 'TThemeDialog')) {
                     parentDialog = p;
                     break;
                 }
@@ -1253,7 +1255,7 @@ export class StageRenderer {
             if (className === 'TInfoWindow') logger.debug(`[VISIBILITY-DEBUG] StageRenderer.updateSingleObject (TInfoWindow ${obj.id}) - DESIGN MODE -> display: flex (invisible-object)`);
         } else {
             let finalDisplay = isVisible ? 'flex' : 'none';
-            if (this.host.runMode && (className === 'TDialogRoot' || className === 'TSidePanel')) {
+            if (this.host.runMode && ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel')) {
                 finalDisplay = 'flex'; // Niemals none, sonst bricht die Slide-Animation!
             }
             if (className === 'TInfoWindow') logger.debug(`[VISIBILITY-DEBUG] StageRenderer.updateSingleObject (TInfoWindow ${obj.id}) - RUN MODE -> isVisible=${isVisible}, setting finalDisplay=${finalDisplay}`);
@@ -1274,6 +1276,8 @@ export class StageRenderer {
                 el.style.opacity = String(resolvedOpacity);
             }
             if (obj.style.fontFamily !== undefined) el.style.fontFamily = obj.style.fontFamily;
+            if (obj.style.fontWeight !== undefined) el.style.fontWeight = obj.style.fontWeight;
+            if (obj.style.textShadow !== undefined) el.style.textShadow = obj.style.textShadow;
             if (obj.style.fontSize !== undefined) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
             let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
             if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
@@ -1540,14 +1544,14 @@ export class StageRenderer {
 
                 // Feststellen, ob es zum Dialog-Zweig gehört
                 let parentDialog: any = null;
-                if (obj.className === 'TDialogRoot' || obj.className === 'TSidePanel') {
+                if ((obj.className === 'TDialogRoot' || obj.className === 'TThemeDialog') || obj.className === 'TSidePanel') {
                     parentDialog = obj;
                 } else if (obj.parentId) {
                     let currId = obj.parentId;
                     let sanity = 0;
                     while (currId && sanity++ < 20) {
                         const p = allObjects.find((o: any) => (o.id || o.name) === currId) || mergedObjectsArray.find((o: any) => (o.id || o.name) === currId);
-                        if (p && (p.className === 'TDialogRoot' || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot')) {
+                        if (p && ((p.className === 'TDialogRoot' || p.className === 'TThemeDialog') || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot' || p.constructor?.name === 'TThemeDialog')) {
                             parentDialog = p;
                             break;
                         }

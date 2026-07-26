@@ -65,7 +65,7 @@ export class EditorCommandManager {
         // Child handling (Dialogs/Splash)
         const dialogContainers = this.editor.currentObjects.filter(o => {
             const cn = (o as any).className || o.constructor?.name;
-            return cn === 'TDialogRoot' || cn === 'TSplashScreen';
+            return cn === 'TDialogRoot' || cn === 'TThemeDialog' || cn === 'TSplashScreen';
         }) as any[];
 
         // Spezifische Logik für TDataList (Phase 22): 

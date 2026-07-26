@@ -1,0 +1,79 @@
+{
+  "id": "unicorn-glitter",
+  "name": "Unicorn Glitter",
+  "description": "Regenbogen-Pastell mit vielen Rundungen und einem sanften Glow.",
+  "components": {
+    "TButton": {
+      "backgroundColor": "#ea80fc",
+      "borderColor": "#e040fb",
+      "borderWidth": 2,
+      "color": "#ffffff",
+      "borderRadius": 22,
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "boxShadow": "0 0 10px #e040fb, 0 0 18px rgba(224, 64, 251, 0.35)"
+    },
+    "TPanel": {
+      "backgroundColor": "#f3e5f5",
+      "borderColor": "#ce93d8",
+      "borderWidth": 2,
+      "borderRadius": 26,
+      "boxShadow": "0 8px 24px rgba(206, 147, 216, 0.25)"
+    },
+    "TCard": {
+      "backgroundColor": "#e1bee7",
+      "borderColor": "#ba68c8",
+      "borderWidth": 2,
+      "borderRadius": 28,
+      "boxShadow": "0 10px 20px rgba(186, 104, 200, 0.25)"
+    },
+    "TLabel": {
+      "color": "#4a148c",
+      "fontSize": 14,
+      "fontFamily": "\"Comic Sans MS\", cursive, sans-serif",
+      "fontWeight": "bold"
+    },
+    "TNumberLabel": {
+      "color": "#4a148c",
+      "fontSize": 14,
+      "fontFamily": "\"Comic Sans MS\", cursive, sans-serif",
+      "fontWeight": "bold"
+    },
+    "TDialogRoot": {
+      "backgroundColor": "#f3e5f5",
+      "borderColor": "#e040fb",
+      "borderWidth": 2,
+      "borderRadius": 30,
+      "boxShadow": "0 20px 40px rgba(224, 64, 251, 0.3)"
+    },
+    "TSidePanel": {
+      "backgroundColor": "#f3e5f5",
+      "borderColor": "#ce93d8",
+      "borderWidth": 2,
+      "boxShadow": "10px 0 30px rgba(206, 147, 216, 0.25)"
+    },
+    "TEdit": {
+      "backgroundColor": "#f8bbd0",
+      "borderColor": "#e040fb",
+      "borderWidth": 2,
+      "color": "#4a148c",
+      "borderRadius": 16
+    },
+    "TTextInput": {
+      "backgroundColor": "#f8bbd0",
+      "borderColor": "#e040fb",
+      "borderWidth": 2,
+      "color": "#4a148c",
+      "borderRadius": 16
+    },
+    "TStickyNote": {
+      "backgroundColor": "#fff9c4",
+      "borderColor": "#fbc02d",
+      "borderWidth": 1,
+      "color": "#4a148c",
+      "borderRadius": 4,
+      "boxShadow": "2px 4px 8px rgba(0,0,0,0.2)",
+      "fontFamily": "\"Comic Sans MS\", cursive, sans-serif"
+    }
+  }
+}

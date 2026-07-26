@@ -2,6 +2,7 @@ import { IRenderContext } from './IRenderContext';
 import { Logger } from '../../../utils/Logger';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { NotificationToast } from '../../ui/NotificationToast';
+import { themeRegistry } from '../../../runtime/ThemeRegistry';
 
 const logger = Logger.get('ComplexComponentRenderer');
 
@@ -583,6 +584,59 @@ export class ComplexComponentRenderer {
                 ctx.updateSelectionState(childEl, child.id);
             });
         }
+
+        if (obj.className === 'TThemeDialog') {
+            this.renderThemeDialogContent(ctx, el, obj);
+        }
+    }
+
+    private static renderThemeDialogContent(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        let content = el.querySelector('.theme-dialog-content') as HTMLElement | null;
+        if (!content) {
+            content = document.createElement('div');
+            content.className = 'theme-dialog-content';
+            content.style.cssText = 'flex: 1; overflow: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px;';
+            el.appendChild(content);
+        }
+
+        if (!ctx.host.runMode) {
+            content.innerHTML = '<div style="color:#888;font-size:12px;text-align:center;padding-top:20px;">Theme-Auswahl (nur zur Laufzeit aktiv)</div>';
+            return;
+        }
+
+        const activeId = themeRegistry.getActiveThemeId();
+        const themes = themeRegistry.getAvailableThemes();
+        content.innerHTML = '';
+
+        themes.forEach(theme => {
+            const row = document.createElement('button');
+            row.textContent = (theme.id === activeId ? '✅ ' : '') + theme.name;
+            row.style.cssText = `
+                text-align: left;
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid rgba(128,128,128,0.3);
+                background: rgba(255,255,255,0.05);
+                color: inherit;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background 0.15s;
+            `;
+            row.onmouseenter = () => { row.style.background = 'rgba(255,255,255,0.15)'; };
+            row.onmouseleave = () => { row.style.background = 'rgba(255,255,255,0.05)'; };
+            row.onclick = () => {
+                themeRegistry.setActiveTheme(theme.id);
+                if (obj.savePreference !== false && typeof localStorage !== 'undefined') {
+                    localStorage.setItem('gcs-active-theme', theme.id);
+                }
+                if (obj.closeOnSelect !== false) {
+                    obj.visible = false;
+                } else {
+                    this.renderThemeDialogContent(ctx, el, obj);
+                }
+            };
+            content!.appendChild(row);
+        });
     }
 
     public static renderDataList(ctx: IRenderContext, el: HTMLElement, obj: any): void {

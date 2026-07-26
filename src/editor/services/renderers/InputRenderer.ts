@@ -13,6 +13,12 @@ export class InputRenderer {
             label.style.width = '100%';
             label.style.height = '100%';
             label.style.cursor = 'inherit';
+            // Im Editor-Designmodus sollen Klicks das Objekt selektieren,
+            // nicht die Checkbox bedienen.
+            if (!ctx.host.runMode) {
+                label.style.pointerEvents = 'none';
+                label.style.userSelect = 'none';
+            }
 
             const input = document.createElement('input');
             input.type = 'checkbox';
@@ -24,6 +30,12 @@ export class InputRenderer {
             label.appendChild(input);
             label.appendChild(textSpan);
             el.appendChild(label);
+        }
+
+        const label = el.querySelector('label') as HTMLElement;
+        if (label && !ctx.host.runMode) {
+            label.style.pointerEvents = 'none';
+            label.style.userSelect = 'none';
         }
 
         const input = el.querySelector('input') as HTMLInputElement;
@@ -62,10 +74,18 @@ export class InputRenderer {
             input.style.fontSize = 'inherit';
             input.style.outline = 'none';
             input.style.boxSizing = 'border-box';
+            if (!ctx.host.runMode) {
+                input.style.pointerEvents = 'none';
+                input.style.userSelect = 'none';
+            }
             el.appendChild(input);
         }
         const input = el.querySelector('input') as HTMLInputElement;
         if (input) {
+            if (!ctx.host.runMode) {
+                input.style.pointerEvents = 'none';
+                input.style.userSelect = 'none';
+            }
             if (ctx.host.runMode) {
                 input.oninput = () => {
                     obj.value = parseFloat(input.value);
@@ -104,10 +124,20 @@ export class InputRenderer {
                 input.style.fontSize = 'inherit';
                 input.style.outline = 'none';
                 input.style.boxSizing = 'border-box';
+                // Im Editor-Designmodus sollen Klicks das Objekt selektieren,
+                // nicht das Input-Feld fokussieren.
+                if (!ctx.host.runMode) {
+                    input.style.pointerEvents = 'none';
+                    input.style.userSelect = 'none';
+                }
                 el.appendChild(input);
             }
             const input = el.querySelector('input') as HTMLInputElement;
             if (input) {
+                if (!ctx.host.runMode) {
+                    input.style.pointerEvents = 'none';
+                    input.style.userSelect = 'none';
+                }
                 if (ctx.host.runMode) {
                     input.oninput = () => {
                         let val = input.value;
@@ -158,16 +188,24 @@ export class InputRenderer {
             input.style.padding = '0';
             input.style.margin = '0';
             input.style.cursor = 'pointer';
-            input.style.opacity = '0'; 
+            input.style.opacity = '0';
             input.style.position = 'absolute';
             input.style.top = '0';
             input.style.left = '0';
             input.className = 'color-picker-input';
+            if (!ctx.host.runMode) {
+                input.style.pointerEvents = 'none';
+                input.style.userSelect = 'none';
+            }
             el.appendChild(input);
         }
-        
+
         const input = el.querySelector('.color-picker-input') as HTMLInputElement;
         if (input) {
+            if (!ctx.host.runMode) {
+                input.style.pointerEvents = 'none';
+                input.style.userSelect = 'none';
+            }
             let validHex = obj.color || '#000000';
             if (!validHex.startsWith('#')) validHex = '#000000';
             if (validHex.length === 4) {
@@ -209,10 +247,18 @@ export class InputRenderer {
             select.style.background = 'transparent';
             select.style.outline = 'none';
             select.style.cursor = 'pointer';
+            if (!ctx.host.runMode) {
+                select.style.pointerEvents = 'none';
+                select.style.userSelect = 'none';
+            }
             el.appendChild(select);
         }
 
         const select = el.querySelector('select') as HTMLSelectElement;
+        if (select && !ctx.host.runMode) {
+            select.style.pointerEvents = 'none';
+            select.style.userSelect = 'none';
+        }
         if (select) {
             const currentOptionsHtml = select.innerHTML;
 

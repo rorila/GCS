@@ -6,6 +6,7 @@ import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
 import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
 
 import { serviceRegistry } from '../../services/ServiceRegistry';
+import { themeRegistry } from '../../runtime/ThemeRegistry';
 
 import { MethodRegistry, MethodReturnMap } from '../MethodRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
@@ -1166,6 +1167,16 @@ export class InspectorRenderer {
         }
         if (prop.source === 'services') {
             return serviceRegistry.listServices().map(s => ({ value: s, label: s }));
+        }
+        if (prop.source === 'themes') {
+            return themeRegistry.getAvailableThemes().map(t => ({ value: t.id, label: t.name }));
+        }
+        if (prop.source === 'theme_dialogs') {
+            const dialogs = projectObjectRegistry.getObjects()
+                .filter((o: any) => o.className === 'TThemeDialog' || o.type === 'ThemeDialog');
+            return dialogs.length > 0
+                ? dialogs.map((o: any) => ({ value: o.name, label: `${o.name} (Theme Dialog)` }))
+                : [{ value: '', label: '— Kein Theme Dialog vorhanden —' }];
         }
         if (prop.source === 'objects_and_services') {
             const allObjects = projectObjectRegistry.getObjects();

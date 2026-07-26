@@ -36,6 +36,7 @@ import { EditorKeyboardManager } from './services/EditorKeyboardManager';
 import { snapshotManager } from './services/SnapshotManager';
 import { EditorInteractionManager } from './services/EditorInteractionManager';
 import { ObjectStore } from './services/ObjectStore';
+import { ThemeStageService } from './services/ThemeStageService';
 import { Logger } from '../utils/Logger';
 import { loadComponentSchemas } from '../services/SchemaLoader';
 import { HelpOverlay } from './HelpOverlay';
@@ -75,6 +76,7 @@ export class Editor implements IViewHost {
     public keyboardManager: EditorKeyboardManager;
     // public undoManager: EditorUndoManager; (REMOVED)
     public interactionManager: EditorInteractionManager;
+    public themeStageService: ThemeStageService;
 
     // Core State
     public project: GameProject;
@@ -127,6 +129,7 @@ export class Editor implements IViewHost {
         this.menuManager = new EditorMenuManager(this);
         this.keyboardManager = new EditorKeyboardManager(this);
         this.interactionManager = new EditorInteractionManager(this);
+        this.themeStageService = new ThemeStageService(this);
 
         // Connect global Undo/Redo Engine
         snapshotManager.setRestoreCallback((projectData) => {
@@ -462,6 +465,9 @@ export class Editor implements IViewHost {
     public isRunning(): boolean { return this.runManager.runtime !== null; }
     public switchView(view: ViewType) { this.viewManager.switchView(view); }
     public createStage(type: StageType, name?: string) { return this.stageManager.createStage(type, name); }
+    public openThemeEditor() { this.themeStageService.enterThemeEditor(); }
+    public saveThemeFromEditor() { this.themeStageService.saveThemeAs(); }
+    public exitThemeEditor() { this.themeStageService.exitThemeEditor(); }
     public switchStage(id: string, keepView?: boolean) {
         // ARCHITEKTUR-FIX: switchStage wird NUR von User-Aktionen aufgerufen (Menü, createStage).
         // Die Runtime-Navigation nutzt handleStageChange/handleStageSwitch statt switchStage.

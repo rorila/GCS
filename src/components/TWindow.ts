@@ -18,6 +18,7 @@ export interface ComponentStyle {
     fontStyle?: string;
     textAlign?: string;
     fontFamily?: string;
+    textShadow?: string;
     borderRadius?: number;
     opacity?: number;
     boxShadow?: string;

@@ -318,6 +318,11 @@
                     "label": "Dialog Root"
                 },
                 {
+                    "type": "ThemeDialog",
+                    "icon": "🎨",
+                    "label": "Theme Dialog"
+                },
+                {
                     "type": "SidePanel",
                     "icon": "📌",
                     "label": "Side Panel"

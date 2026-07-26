@@ -1,0 +1,83 @@
+{
+  "id": "sunset-vibes",
+  "name": "Sunset Vibes",
+  "description": "Warmer Orange-Lila-Verlauf mit weichem Glow.",
+  "components": {
+    "TButton": {
+      "backgroundColor": "#ff7043",
+      "borderColor": "#ff9e80",
+      "borderWidth": 2,
+      "color": "#ffffff",
+      "borderRadius": 18,
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "boxShadow": "0 0 8px #ff9e80, 0 0 16px rgba(255, 158, 128, 0.4)"
+    },
+    "TPanel": {
+      "backgroundColor": "#2d1b2e",
+      "borderColor": "#ff9e80",
+      "borderWidth": 2,
+      "borderRadius": 20,
+      "boxShadow": "0 8px 32px rgba(255, 158, 128, 0.25)"
+    },
+    "TCard": {
+      "backgroundColor": "#4a148c",
+      "borderColor": "#ffab91",
+      "borderWidth": 2,
+      "borderRadius": 22,
+      "boxShadow": "0 10px 20px rgba(255, 158, 128, 0.25)"
+    },
+    "TLabel": {
+      "color": "#ffe0b2",
+      "fontSize": 14,
+      "fontFamily": "\"Trebuchet MS\", sans-serif",
+      "fontWeight": "bold",
+      "textShadow": "0 0 6px #ff7043"
+    },
+    "TNumberLabel": {
+      "color": "#ffe0b2",
+      "fontSize": 14,
+      "fontFamily": "\"Trebuchet MS\", sans-serif",
+      "fontWeight": "bold",
+      "textShadow": "0 0 6px #ff7043"
+    },
+    "TDialogRoot": {
+      "backgroundColor": "#2d1b2e",
+      "borderColor": "#ff9e80",
+      "borderWidth": 2,
+      "borderRadius": 24,
+      "boxShadow": "0 20px 40px rgba(255, 112, 67, 0.35)"
+    },
+    "TSidePanel": {
+      "backgroundColor": "#2d1b2e",
+      "borderColor": "#ff9e80",
+      "borderWidth": 2,
+      "boxShadow": "10px 0 30px rgba(255, 158, 128, 0.25)"
+    },
+    "TEdit": {
+      "backgroundColor": "#4a148c",
+      "borderColor": "#ff9e80",
+      "borderWidth": 2,
+      "color": "#ffe0b2",
+      "borderRadius": 12,
+      "boxShadow": "0 0 8px #ff9e80, 0 0 16px rgba(255, 158, 128, 0.4)"
+    },
+    "TTextInput": {
+      "backgroundColor": "#4a148c",
+      "borderColor": "#ff9e80",
+      "borderWidth": 2,
+      "color": "#ffe0b2",
+      "borderRadius": 12,
+      "boxShadow": "0 0 8px #ff9e80, 0 0 16px rgba(255, 158, 128, 0.4)"
+    },
+    "TStickyNote": {
+      "backgroundColor": "#ffccbc",
+      "borderColor": "#ff7043",
+      "borderWidth": 1,
+      "color": "#2d1b2e",
+      "borderRadius": 4,
+      "boxShadow": "2px 4px 8px rgba(0,0,0,0.2)",
+      "fontFamily": "\"Trebuchet MS\", sans-serif"
+    }
+  }
+}

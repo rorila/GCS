@@ -404,6 +404,19 @@ export class TextObjectRenderer {
 
         const ti = el.querySelector('.sticky-title') as HTMLInputElement;
         const body = el.querySelector('.sticky-body') as HTMLElement;
+        const header = el.querySelector('.sticky-header') as HTMLElement;
+        const toolbar = el.querySelector('.sticky-toolbar') as HTMLElement;
+
+        // Im Editor-Designmodus sollen Klicks das Objekt selektieren,
+        // nicht in Titel/Body/Toolbar fokussieren.
+        if (!isRunMode) {
+            [ti, body, header, toolbar].forEach((child) => {
+                if (child) {
+                    child.style.pointerEvents = 'none';
+                    child.style.userSelect = 'none';
+                }
+            });
+        }
 
         const titleValue = obj.title !== undefined ? String(obj.title) : 'Notiz';
         if (ti && ti.value !== titleValue && document.activeElement !== ti) {

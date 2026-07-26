@@ -16,6 +16,15 @@ export interface AIProjectContext {
         id?: string;
         name: string;
         description?: string;
+        activeThemeId?: string;
+    };
+
+    globalInventory: {
+        stages: Array<{ id: string; name: string; type: string }>;
+        tasks: Array<{ name: string; stageId?: string }>;
+        actions: Array<{ name: string; type: string }>;
+        variables: Array<{ name: string; type: string; scope?: string }>;
+        themes: Array<{ id: string; name: string }>;
     };
 
     selectedUserStories: AIUserStorySummary[];
@@ -27,13 +36,6 @@ export interface AIProjectContext {
         objects: AIObjectSummary[];
         tasks: AITaskSummary[];
         variables: AIVariableSummary[];
-    };
-
-    globalInventory: {
-        stages: Array<{ id: string; name: string; type: string }>;
-        tasks: Array<{ name: string; stageId?: string }>;
-        actions: Array<{ name: string; type: string }>;
-        variables: Array<{ name: string; type: string; scope?: string }>;
     };
 
     relevantApiDocs?: KnowledgeChunk[];
@@ -182,6 +184,7 @@ export class ProjectContextBuilder {
             id: this.project.meta?.id,
             name: this.project.meta?.name || 'Unbenannt',
             description: this.project.meta?.description || this.project.description || '',
+            activeThemeId: this.project.activeThemeId,
         };
     }
 
@@ -329,11 +332,17 @@ export class ProjectContextBuilder {
             }
         }
 
+        const themes = (this.project.themes || []).map(t => ({
+            id: t.id,
+            name: t.name,
+        }));
+
         return {
             stages,
             tasks: Array.from(taskMap.values()),
             actions: Array.from(actionMap.values()),
             variables,
+            themes,
         };
     }
 }

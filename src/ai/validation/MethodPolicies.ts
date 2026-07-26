@@ -33,7 +33,7 @@ export const VALID_ACTION_TYPES = new Set<string>([
     'list_push', 'list_pop', 'list_get', 'list_set', 'list_remove', 'list_clear', 'list_shuffle',
     'list_contains', 'list_length', 'map_get', 'map_set', 'map_delete', 'map_has', 'map_keys',
     'http', 'respond_http', 'execute_login_request', 'data_action', 'handle_api_request',
-    'load_theme_map', 'store_token', 'create_room', 'join_room', 'service'
+    'load_theme_map', 'set_active_theme', 'show_theme_dialog', 'store_token', 'create_room', 'join_room', 'service'
 ]);
 
 export const VALID_VARIABLE_TYPES = new Set<string>([

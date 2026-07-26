@@ -1,0 +1,65 @@
+{
+  "id": "legacy-dark",
+  "name": "Legacy Dark (Alt)",
+  "description": "Das klassische GCS Dark-Theme ohne Transparenzen.",
+  "components": {
+    "TButton": {
+      "backgroundColor": "#444444",
+      "borderColor": "#000000",
+      "borderWidth": 1,
+      "color": "#ffffff",
+      "borderRadius": 4,
+      "textAlign": "center"
+    },
+    "TPanel": {
+      "backgroundColor": "#222222",
+      "borderColor": "#444444",
+      "borderWidth": 1
+    },
+    "TCard": {
+      "backgroundColor": "#333333",
+      "borderColor": "#111111",
+      "borderWidth": 1
+    },
+    "TLabel": {
+      "color": "#ffffff",
+      "fontSize": 14
+    },
+    "TNumberLabel": {
+      "color": "#ffffff",
+      "fontSize": 14,
+      "fontFamily": "Consolas, monospace",
+      "fontWeight": "bold"
+    },
+    "TDialogRoot": {
+      "backgroundColor": "#2a2a3e",
+      "borderColor": "#4fc3f7",
+      "borderWidth": 1
+    },
+    "TSidePanel": {
+      "backgroundColor": "#222222",
+      "borderColor": "#444444",
+      "borderWidth": 1
+    },
+    "TEdit": {
+      "backgroundColor": "#333333",
+      "borderColor": "#444444",
+      "borderWidth": 1,
+      "color": "#ffffff"
+    },
+    "TTextInput": {
+      "backgroundColor": "#333333",
+      "borderColor": "#444444",
+      "borderWidth": 1,
+      "color": "#ffffff"
+    },
+    "TStickyNote": {
+      "backgroundColor": "#fff9c4",
+      "borderColor": "#fbc02d",
+      "borderWidth": 1,
+      "color": "#333333",
+      "borderRadius": 2,
+      "boxShadow": "2px 4px 8px rgba(0,0,0,0.2)"
+    }
+  }
+}

@@ -15,6 +15,7 @@ import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { SpritePool } from './SpritePool';
 import { AudioManager } from './AudioManager';
 import { buildEventContext } from './EventContext';
+import { themeRegistry } from './ThemeRegistry';
 import { Logger } from '../utils/Logger';
 
 const logger = Logger.get('GameRuntime', 'Runtime_Execution');
@@ -60,6 +61,36 @@ export class GameRuntime implements IVariableHost {
         objects?: any[],
         private options: RuntimeOptions = {}
     ) {
+        // Projektspezifische Themes registrieren und aktives Theme setzen,
+        // damit exportierte Spiele dieselben Styles verwenden wie im Editor.
+        if (project && project.themes && project.themes.length > 0) {
+            themeRegistry.loadProjectThemes(project.themes);
+        }
+        if (project && project.activeThemeId) {
+            themeRegistry.setActiveTheme(project.activeThemeId);
+        }
+
+        // Optional: gespeicherte Spieler-Präferenz aus dem Standalone-Export wiederherstellen
+        try {
+            if (typeof localStorage !== 'undefined') {
+                const savedTheme = localStorage.getItem('gcs-active-theme');
+                if (savedTheme && savedTheme !== themeRegistry.getActiveThemeId()) {
+                    themeRegistry.setActiveTheme(savedTheme);
+                }
+            }
+        } catch (_e) {
+            // localStorage ist in einigen Umgebungen nicht verfügbar
+        }
+
+        // Bei Theme-Wechsel während des Spiels Stage-Hintergrund aktualisieren und neu rendern
+        themeRegistry.onChange = (themeId) => {
+            logger.info(`[GameRuntime] Theme changed to ${themeId}; re-rendering.`);
+            this.applyActiveThemeStageStyle();
+            if (this.options.onRender) {
+                this.options.onRender();
+            }
+        };
+
         this.reactiveRuntime = new ReactiveRuntime();
         this.variableManager = new RuntimeVariableManager(this, options.initialGlobalVars);
         this.variableManager.initializeVariables(project);
@@ -109,6 +140,8 @@ export class GameRuntime implements IVariableHost {
                 activeStage.grid.backgroundColor = merged.backgroundColor;
             }
             if (merged.backgroundImage) activeStage.backgroundImage = merged.backgroundImage;
+
+            this.applyActiveThemeStageStyle();
 
             // NEW: Initialize stage variables for the first stage correctly!
             this.variableManager.initializeStageVariables(activeStage);
@@ -184,7 +217,7 @@ export class GameRuntime implements IVariableHost {
                                 return; // Voll-Render zwingend umgehen!
                             }
 
-                            const isDialog = obj?.className === 'TDialogRoot' || obj?.className === 'TDialog' || obj?.className === 'TSidePanel' || obj?.constructor?.name === 'TDialogRoot';
+                            const isDialog = obj?.className === 'TDialogRoot' || obj?.className === 'TDialog' || obj?.className === 'TThemeDialog' || obj?.className === 'TSidePanel' || obj?.constructor?.name === 'TDialogRoot' || obj?.constructor?.name === 'TThemeDialog';
 
                             // Targeted Rendering: Update nur eine einzelne Objektstruktur im DOM (für echte UI-Komponenten)
                             // AUSNAHME: Dialoge erfordern einen Full-Render, da ihre Sichtbarkeit (Slide-In/Out)
@@ -223,6 +256,18 @@ export class GameRuntime implements IVariableHost {
         this.init();
         this.initStageController();
         if (activeStage && options.onStageSwitch) options.onStageSwitch(activeStage.id);
+    }
+
+    /**
+     * Wendet den Stage-Stil des aktiven Themes auf die Runtime-Stage an.
+     */
+    private applyActiveThemeStageStyle(): void {
+        const stage = this.stage;
+        if (!stage) return;
+        const themeStage = themeRegistry.getStageStyle();
+        if (!stage.grid) stage.grid = {} as any;
+        stage.grid.backgroundColor = themeStage.backgroundColor;
+        (stage.grid as any).gridColor = themeStage.gridColor;
     }
 
     /**

@@ -3,6 +3,7 @@ import { PropertyHelper } from '../../PropertyHelper';
 import { serviceRegistry } from '../../../services/ServiceRegistry';
 import { resolveTarget } from '../ActionHelper';
 import { Logger } from '../../../utils/Logger';
+import { themeRegistry } from '../../ThemeRegistry';
 
 const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 const dataLogger = Logger.get('Action', 'DataStore_Sync');
@@ -253,6 +254,56 @@ export function registerMiscActions() {
         parameters: [
             { name: 'target', label: 'Ziel (z.B. MainThemes)', type: 'select', source: 'objects', hint: 'Welches Theme soll überschrieben werden?' },
             { name: 'source', label: 'Quelle (z.B. DataThemeDark)', type: 'select', source: 'objects', hint: 'Welches Theme soll geladen werden?' }
+        ]
+    });
+
+    // 24. Aktives Theme zur Laufzeit setzen
+    actionRegistry.register('set_active_theme', (action) => {
+        const themeId = action.themeId;
+        if (!themeId) {
+            runtimeLogger.warn('[Action: set_active_theme] Keine themeId angegeben.');
+            return false;
+        }
+        if (!themeRegistry.getAvailableThemes().some(t => t.id === themeId)) {
+            runtimeLogger.warn(`[Action: set_active_theme] Theme "${themeId}" nicht verfügbar.`);
+            return false;
+        }
+        themeRegistry.setActiveTheme(themeId);
+        if (action.savePreference !== false && typeof localStorage !== 'undefined') {
+            localStorage.setItem('gcs-active-theme', themeId);
+        }
+        runtimeLogger.info(`[Action: set_active_theme] Theme gewechselt zu "${themeId}".`);
+        return true;
+    }, {
+        type: 'set_active_theme',
+        label: 'Aktives Theme setzen',
+        description: 'Wechselt das aktive Theme zur Laufzeit und optional als Spieler-Präferenz.',
+        parameters: [
+            { name: 'themeId', label: 'Theme', type: 'select', source: 'themes', hint: 'Verfügbare Themes aus dem ThemeRegistry' },
+            { name: 'savePreference', label: 'Präferenz speichern', type: 'boolean', defaultValue: true }
+        ]
+    });
+
+    // 25. Theme-Dialog anzeigen
+    actionRegistry.register('show_theme_dialog', (action, context) => {
+        const targetName = action.target;
+        if (!targetName) {
+            runtimeLogger.warn('[Action: show_theme_dialog] Kein Ziel-Objekt angegeben.');
+            return false;
+        }
+        const targetObj = context.objects.find((o: any) => o.name === targetName || o.id === targetName);
+        if (targetObj && typeof (targetObj as any).show === 'function') {
+            (targetObj as any).show();
+            return true;
+        }
+        runtimeLogger.warn(`[Action: show_theme_dialog] Ziel "${targetName}" ist kein Dialog oder nicht gefunden.`);
+        return false;
+    }, {
+        type: 'show_theme_dialog',
+        label: 'Theme-Dialog anzeigen',
+        description: 'Zeigt einen TThemeDialog zur Theme-Auswahl an.',
+        parameters: [
+            { name: 'target', label: 'Theme-Dialog', type: 'select', source: 'theme_dialogs', hint: 'Vorhandener TThemeDialog auf der Stage' }
         ]
     });
 }

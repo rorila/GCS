@@ -19,7 +19,7 @@
 - [§3 Die 7-Schritte-Methodik](#3-die-7-schritte-methodik)
 - [§4 API-Referenz (alle Methoden)](#4-api-referenz)
 - [§3.13 AgentScript Import/Export](#313-agentscript-importexport)
-- [§5 ActionType-Katalog (24 Typen)](#5-actiontype-katalog)
+- [§5 ActionType-Katalog (49 Typen)](#5-actiontype-katalog)
 - [§6 Komponenten-Steckbriefe](#6-komponenten-steckbriefe)
 - [§7 Workflow-Rezepte (End-to-End)](#7-workflow-rezepte)
 - [§8 Anti-Pattern-Katalog](#8-anti-pattern-katalog)
@@ -1595,11 +1595,11 @@ console.log(result.warnings);          // ['Asset assets/ball.png nicht gefunden
 ## §4 ActionType-Katalog
 
 > [!IMPORTANT]
-> **Quelle der Wahrheit:** `src/model/types.ts:88` (`export type ActionType = ...`) definiert exakt **47 legale Strings** für das Feld `action.type`. Jeder andere Wert wird vom Validator als Fehler markiert und vom Runtime-`ActionRegistry` als "unbekannt" übersprungen.
+> **Quelle der Wahrheit:** `src/model/types.ts:88` (`export type ActionType = ...`) definiert exakt **49 legale Strings** für das Feld `action.type`. Jeder andere Wert wird vom Validator als Fehler markiert und vom Runtime-`ActionRegistry` als "unbekannt" übersprungen.
 >
 > **Registrierung:** Die Runtime-Handler leben in `src/runtime/actions/handlers/*.ts` und werden via `actionRegistry.register('<type>', handler, metadata)` eingehängt. Alle hier aufgeführten Typen sind tatsächlich registriert; es gibt keine Engine-internen Reserved-Typen mehr.
 
-### §4.0 Die 47 ActionTypes auf einen Blick
+### §4.0 Die 49 ActionTypes auf einen Blick
 
 | # | ActionType | Kategorie | Pflicht-Parameter | Handler-Datei | Status |
 |:--:|:---|:---|:---|:---|:---|
@@ -1647,9 +1647,11 @@ console.log(result.warnings);          // ['Asset assets/ball.png nicht gefunden
 | 42 | `execute_login_request` | I. Network / HTTP | `provider` | `HttpActions.ts` | ✅ Aktiv |
 | 43 | `handle_api_request` | I. Network / HTTP | `endpoint` | `HttpActions.ts` | ✅ Aktiv |
 | 44 | `load_theme_map` | J. Daten & Themes | `themeId` | `MiscActions.ts` | ✅ Aktiv |
-| 45 | `store_token` | J. Daten & Themes | `token`, `key` | `MiscActions.ts` | ✅ Aktiv |
-| 46 | `create_room` | K. Multiplayer | `game` | `MiscActions.ts` | ✅ Aktiv |
-| 47 | `join_room` | K. Multiplayer | `code` | `MiscActions.ts` | ✅ Aktiv |
+| 45 | `set_active_theme` | J. Daten & Themes | `themeId` | `MiscActions.ts` | ✅ Aktiv |
+| 46 | `show_theme_dialog` | E. Dialog & UI | `target` | `MiscActions.ts` | ✅ Aktiv |
+| 47 | `store_token` | J. Daten & Themes | `token`, `key` | `MiscActions.ts` | ✅ Aktiv |
+| 48 | `create_room` | K. Multiplayer | `game` | `MiscActions.ts` | ✅ Aktiv |
+| 49 | `join_room` | K. Multiplayer | `code` | `MiscActions.ts` | ✅ Aktiv |
 
 **Legende:**
 - ✅ **Aktiv** — Handler unter diesem Namen registriert, volle Unterstützung in `addAction()`
@@ -1662,15 +1664,15 @@ A. Property & Math       → Werte mutieren, lesen, berechnen            (8 Type
 B. Method & Service      → Funktionen/Services aufrufen                (2 Typen)
 C. Flow & Navigation     → Stage-Wechsel, Spiel-Neustart               (3 Typen)
 D. Animation & Audio     → Visuelle Effekte, Bewegung und Ton          (5 Typen)
-E. Dialog & UI           → Dialoge, Toasts                             (2 Typen)
+E. Dialog & UI           → Dialoge, Toasts, Theme-Auswahl               (4 Typen)
 F. Events                → Event-Binding / Unbinding                    (2 Typen)
 G. Objekte               → Object-Pool (Spawn/Destroy)                  (2 Typen)
 H. Collections           → Listen & Maps                               (16 Typen)
 I. Network / HTTP        → REST-Aufrufe, API-Requests                  (5 Typen)
-J. Daten & Themes        → Token, Themes                                (2 Typen)
+J. Daten & Themes        → Token, Themes                                (4 Typen)
 K. Multiplayer           → Room-Management                             (2 Typen)
 ────────────────────────────────────────────────────────────────────────────────
-Σ                                                                      47 Typen
+Σ                                                                      49 Typen
 ```
 
 ### §4.2 Konventionen für alle Steckbriefe
@@ -2392,11 +2394,11 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 ## §5 Komponenten-Steckbriefe
 
 > [!IMPORTANT]
-> **Quellen:** `docs/schemas/schema_*.json` (28 Komponenten mit vollständigem Schema) + `src/components/T*.ts` (alle 76 registrierten Klassen). Alle Komponenten erben von `TWindow` (Base-Class) und folgen den `baseProperties` aus `schema_base.json`.
+> **Quellen:** `docs/schemas/schema_*.json` (28 Komponenten mit vollständigem Schema) + `src/components/T*.ts` (alle 77 registrierten Klassen). Alle Komponenten erben von `TWindow` (Base-Class) und folgen den `baseProperties` aus `schema_base.json`.
 >
 > **Grundregel:** Jede Komponente hat einen **`className`** (z.B. `"TButton"`) und einen **`name`** (Instanz-Bezeichner, z.B. `"StartBtn"`). Der `name` ist der Referenz-Schlüssel für Actions (`target`), Event-Bindings (`connectEvent`) und `${var}`-Interpolation.
 
-### §5.0 Gesamt-Übersicht (alle 76 Komponenten)
+### §5.0 Gesamt-Übersicht (alle 77 Komponenten)
 
 | # | className | Kategorie | Stage | Kurz-Zweck |
 |:--:|:---|:---|:---|:---|
@@ -2476,6 +2478,7 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 | 74 | `TVideo` | Medien | main | Video-Player |
 | 75 | `TVirtualGamepad` | Service | blueprint | On-Screen-Touch-Gamepad |
 | 76 | `TWindow` | Base | — | Abstrakte Basisklasse aller Komponenten |
+| 77 | `TThemeDialog` | Dialog | main | Theme-Auswahl-Dialog (runtime) |
 
 ### §5.1 Taxonomie — 10 Kategorien
 
@@ -2483,7 +2486,7 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 A. UI-Basis       → TLabel, TButton, TShape, TRichText, TNumberLabel, TCard, TBadge, TAvatar, ...  (~15)
 B. Eingabe        → TEdit, TMemo, TNumberInput, TCheckbox, TDropdown, TColorPicker, TEmojiPicker    (7)
 C. Container      → TPanel, TGroupPanel, TTabControl                                                 (3)
-D. Dialoge        → TDialogRoot, TSidePanel, TInfoWindow                                             (3)
+D. Dialoge        → TDialogRoot, TSidePanel, TInfoWindow, TThemeDialog                                (4)
 E. Spiel          → TSprite, TSpriteTemplate                                                         (2)
 F. Medien         → TAudio, TVideo, TImage, TImageList                                               (4)
 G. Timer          → TTimer, TIntervalTimer                                                           (2)
@@ -2492,7 +2495,7 @@ I. Daten          → TDataList, TDataStore, TObjectList, TKeyStore, TTable     
 J. Services       → TGameLoop, TGameState, TInputController, TStageController, TToast, ...           (~20)
 K. Sonstiges/Base → TComponent, TWindow, TStickyNote                                                  (3)
 ────────────────────────────────────────────────────────────────────────────────
-Σ                                                                                                    76
+Σ                                                                                                    77
 ```
 
 ### §5.2 Schema der Steckbriefe (für die 28 voll dokumentierten)
@@ -2895,6 +2898,46 @@ agent.addObject('stage_main', {
 **⚠️ Warnings:**
 - `modal` ist bei `TSidePanel` default `false` (anders als bei `TDialogRoot`!)
 - `centerOnShow` und `draggableAtRuntime` sind automatisch deaktiviert.
+
+---
+
+### §5.D.3 `TThemeDialog` — Theme-Auswahl-Dialog
+
+**Zweck:** Zeigt dem Spieler eine Liste aller verfügbaren Themes an und wechselt das aktive Theme zur Laufzeit. Speichert optional die Auswahl in `localStorage`.
+
+**Stage:** `main` · **Category:** `dialog`
+
+**Properties:**
+
+| Name | Typ | Default | Beschreibung |
+|:---|:---|:---|:---|
+| `title` | `string` | `"Theme auswählen"` | Dialog-Titel |
+| `modal` | `boolean` | `true` | Blockiert die Stage im Hintergrund |
+| `closable` | `boolean` | `true` | Schließen über X erlaubt |
+| `centerOnShow` | `boolean` | `true` | Zentriert den Dialog beim Öffnen |
+| `savePreference` | `boolean` | `true` | Gewähltes Theme in `localStorage` speichern |
+| `closeOnSelect` | `boolean` | `true` | Dialog nach Auswahl automatisch schließen |
+
+**Methoden:** `show`, `hide`, `close`, `toggle` (alle via `call_method` oder `toggle_dialog`)
+
+**Events:** `onShow`, `onClose`
+
+**Beispiel:**
+```typescript
+agent.addObject('stage_main', {
+  className: 'TThemeDialog', name: 'ThemeDialog',
+  x: 10, y: 5, width: 18, height: 21,
+  visible: false, modal: true, closable: true
+});
+
+agent.addAction('OpenThemeDialog', 'toggle_dialog', 'ToggleThemeDialog', {
+  target: 'ThemeDialog'
+});
+```
+
+**⚠️ Warnings:**
+- Der Dialog muss wie `TDialogRoot` initial `visible: false` haben und per Action geöffnet werden.
+- Erbt alle `TDialogRoot`-Eigenschaften.
 
 ---
 

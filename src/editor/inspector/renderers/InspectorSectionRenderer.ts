@@ -2,6 +2,7 @@ import { IInspectable } from '../types';
 import { IInspectorContext } from './IInspectorContext';
 import { GROUP_COLORS } from '../../../components/TComponent';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
+import { themeRegistry } from '../../../runtime/ThemeRegistry';
 import { mediatorService } from '../../../services/MediatorService';
 import { NotificationToast } from '../../ui/NotificationToast';
 import { MediaPickerDialog } from '../MediaPickerDialog';
@@ -142,6 +143,7 @@ export class InspectorSectionRenderer {
 
         const container = document.createElement('div');
         const isInline = !!propDef.inline;
+        let labelEl: HTMLElement | null = null;
         container.style.cssText = `display:flex;align-items:center;gap:${isInline ? '4' : '8'}px;margin-bottom:4px;`;
 
         if (propDef.type === 'button') {
@@ -175,21 +177,21 @@ export class InspectorSectionRenderer {
         }
 
         if (propDef.label && propDef.type !== 'textarea') {
-            const label = context.renderer.renderLabel(propDef.label);
-            label.style.marginBottom = '0';
-            label.style.flexShrink = '0';
+            labelEl = context.renderer.renderLabel(propDef.label);
+            labelEl.style.marginBottom = '0';
+            labelEl.style.flexShrink = '0';
             if (propDef.type === 'keyvalue') {
-                label.style.whiteSpace = 'normal';
+                labelEl.style.whiteSpace = 'normal';
             } else if (isInline) {
-                label.style.whiteSpace = 'nowrap';
+                labelEl.style.whiteSpace = 'nowrap';
             } else {
-                label.style.minWidth = '70px';
-                label.style.maxWidth = '90px';
-                label.style.whiteSpace = 'nowrap';
-                label.style.overflow = 'hidden';
-                label.style.textOverflow = 'ellipsis';
+                labelEl.style.minWidth = '70px';
+                labelEl.style.maxWidth = '90px';
+                labelEl.style.whiteSpace = 'nowrap';
+                labelEl.style.overflow = 'hidden';
+                labelEl.style.textOverflow = 'ellipsis';
             }
-            container.appendChild(label);
+            container.appendChild(labelEl);
         }
 
         // FIX: For FlowNodes (FlowAction), PropertyHelper.getPropertyValue(obj, 'x') reads
@@ -215,6 +217,29 @@ export class InspectorSectionRenderer {
             if (currentValue === undefined || currentValue === null || currentValue === '') {
                 currentValue = propDef.defaultValue ?? '';
             }
+        }
+
+        // Theme-Wert als Fallback anzeigen, wenn die Eigenschaft lokal nicht gesetzt ist.
+        // Beim Schreiben wird weiterhin nur obj.style aktualisiert, das Theme bleibt unverändert.
+        let isThemeValue = false;
+        if (propDef.name.startsWith('style.') && obj && obj.className && obj.style) {
+            const styleProp = propDef.name.substring(6);
+            const localValue = obj.style[styleProp];
+            if ((localValue === undefined || localValue === null) && styleProp) {
+                const mergedStyle = themeRegistry.getMergedStyle(obj.className, obj.style);
+                if (mergedStyle[styleProp] !== undefined) {
+                    currentValue = mergedStyle[styleProp];
+                    isThemeValue = true;
+                }
+            }
+        }
+
+        if (labelEl && isThemeValue) {
+            const indicator = document.createElement('span');
+            indicator.textContent = '●';
+            indicator.title = 'Wert aus dem aktiven Theme (lokal nicht überschrieben)';
+            indicator.style.cssText = 'font-size:9px;color:#00bcd4;margin-left:4px;cursor:help;flex-shrink:0;';
+            labelEl.appendChild(indicator);
         }
 
         // Phase 2 (SYNC_REFACTOR): wasMissing-Writer ENTFERNT.

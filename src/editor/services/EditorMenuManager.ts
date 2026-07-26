@@ -6,6 +6,7 @@ import { playbackEngine } from '../../services/PlaybackEngine';
 import { dataService } from '../../services/DataService';
 import { projectStore } from '../../services/ProjectStore';
 import { mediatorService } from '../../services/MediatorService';
+import { themeRegistry } from '../../runtime/ThemeRegistry';
 import { Logger } from '../../utils/Logger';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PromptDialog } from '../ui/PromptDialog';
@@ -32,6 +33,7 @@ export interface EditorMenuHost {
     exportJSON(): void;
     exportJSONCompressed(): void;
     exportTheme(): void;
+    openThemeEditor(): void;
     createStage(type: StageType): void;
     deleteCurrentStage(): void;
     createStageFromTemplate(): void;
@@ -73,7 +75,12 @@ export class EditorMenuManager {
             await menuBar.loadFromJSON('./editor/menu_bar.json');
 
             this.host.menuBar = menuBar;
+
+            // Externe Theme-JSON-Dateien laden (z. B. AI-generierte Themes in public/themes/)
+            await themeRegistry.loadThemesFromIndex('./themes/index.json');
+
             this.updateStagesMenu();
+            this.updateThemesMenu();
 
             // Stage-Label initial setzen (initMenuBar ist async, daher wird
             // updateStageLabel() beim ersten setProject() übersprungen weil menuBar noch null ist)
@@ -93,6 +100,11 @@ export class EditorMenuManager {
     }
 
     public handleMenuAction(action: string) {
+        if (action.startsWith('switch-theme-')) {
+            this.switchTheme(action.replace('switch-theme-', ''));
+            return;
+        }
+
         switch (action) {
             case 'new-project': this.host.newProject(); break;
             case 'new-project-direct': this.host.newProjectDirect(); break;
@@ -115,6 +127,7 @@ export class EditorMenuManager {
             case 'export-json': this.host.exportJSON(); break;
             case 'export-json-gzip': this.host.exportJSONCompressed(); break;
             case 'export-theme': this.host.exportTheme(); break;
+            case 'open-theme-editor': this.host.openThemeEditor(); break;
             case 'export-agent-script': AgentScriptDialog.showExport(() => this.refreshAfterAgentScriptImport()); break;
             case 'import-agent-script': AgentScriptDialog.showImport(
                 () => this.refreshAfterAgentScriptImport(),
@@ -322,6 +335,7 @@ export class EditorMenuManager {
 
         // Base items for stage management
         const baseItems: MenuItem[] = [
+            { id: 'open-theme-editor', label: '🎨 Theme-Editor öffnen', action: 'open-theme-editor', icon: '🎨' },
             { id: 'manage-stages', label: '📋 Stages verwalten...', action: 'manage-stages' },
             { id: 'new-stage', label: 'Neue Stage', action: 'new-stage', icon: '📄' },
             { id: 'new-splash', label: 'Neuer Splashscreen', action: 'new-splash', icon: '🚀' },
@@ -329,8 +343,9 @@ export class EditorMenuManager {
             { id: 'import-stage', label: 'Stage importieren', action: 'import-stage', icon: '📥' }
         ];
 
-        // Dynamic stage list
-        const stageItems: MenuItem[] = this.host.project.stages.map(s => ({
+        // Dynamic stage list (Theme-Editor-Stage ausblenden)
+        const visibleStages = this.host.project.stages.filter(s => s.type !== 'theme-editor');
+        const stageItems: MenuItem[] = visibleStages.map(s => ({
             id: s.id,
             label: s.type === 'blueprint' ? `🏗️ ${s.name} (Blueprint)` : `🎭 ${s.name}`,
             action: `switch-stage-${s.id}`,
@@ -338,6 +353,61 @@ export class EditorMenuManager {
         }));
 
         this.host.menuBar.updateMenu('stages', [...baseItems, ...stageItems]);
+        this.updateThemesMenu();
+    }
+
+    /**
+     * Aktualisiert das Themes-Menü mit allen registrierten Themes.
+     */
+    public updateThemesMenu(): void {
+        if (!this.host.menuBar) return;
+
+        const activeThemeId = themeRegistry.getActiveThemeId();
+        const themeItems: MenuItem[] = themeRegistry.getAvailableThemes().map(t => ({
+            id: `theme-${t.id}`,
+            label: t.id === activeThemeId ? `✅ ${t.name}` : t.name,
+            action: `switch-theme-${t.id}`,
+            active: t.id === activeThemeId
+        }));
+
+        this.host.menuBar.updateMenu('themes', [
+            { id: 'open-theme-editor', label: '🎨 Theme-Editor öffnen', action: 'open-theme-editor', icon: '🎨' },
+            ...themeItems
+        ]);
+    }
+
+    private switchTheme(themeId: string): void {
+        const theme = themeRegistry.getAvailableThemes().find(t => t.id === themeId);
+        if (!theme) {
+            NotificationToast.show(`Theme "${themeId}" nicht gefunden.`, 'error');
+            return;
+        }
+
+        // Datei-basierte Themes in das Projekt übernehmen, damit sie beim Speichern/Export erhalten bleiben.
+        const projectThemes = this.host.project.themes || (this.host.project.themes = []);
+        if (!projectThemes.some(t => t.id === themeId)) {
+            projectThemes.push(JSON.parse(JSON.stringify(theme)));
+        }
+
+        themeRegistry.setActiveTheme(themeId);
+        this.host.project.activeThemeId = themeId;
+
+        // Theme-Stage-Stil auf die aktuelle Editor-Stage anwenden
+        const themeStage = themeRegistry.getStageStyle();
+        const activeStage = this.host.getActiveStage();
+        if (activeStage) {
+            if (!activeStage.grid) activeStage.grid = { cols: 64, rows: 40, cellSize: 20, visible: true, backgroundColor: themeStage.backgroundColor };
+            activeStage.grid.backgroundColor = themeStage.backgroundColor;
+            (activeStage.grid as any).gridColor = themeStage.gridColor;
+            const stage = (this.host as any).stage;
+            if (stage) {
+                stage.grid = activeStage.grid;
+            }
+        }
+
+        this.host.render();
+        this.updateThemesMenu();
+        NotificationToast.show(`Theme aktiviert: ${theme.name}`, 'info');
     }
 
     /**

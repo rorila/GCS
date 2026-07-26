@@ -135,6 +135,18 @@
             ]
         },
         {
+            "id": "themes",
+            "label": "Themes",
+            "items": [
+                {
+                    "id": "open-theme-editor",
+                    "label": "Theme-Editor öffnen",
+                    "action": "open-theme-editor",
+                    "icon": "🎨"
+                }
+            ]
+        },
+        {
             "id": "stages",
             "label": "Stages",
             "items": [

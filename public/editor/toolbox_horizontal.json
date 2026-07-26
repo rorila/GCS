@@ -265,6 +265,11 @@
                     "label": "DialogRoot"
                 },
                 {
+                    "type": "ThemeDialog",
+                    "icon": "🎨",
+                    "label": "ThemeDialog"
+                },
+                {
                     "type": "InfoWindow",
                     "icon": "ℹ️",
                     "label": "InfoWindow"

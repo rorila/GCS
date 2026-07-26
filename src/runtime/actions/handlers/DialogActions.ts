@@ -19,7 +19,8 @@ export function registerDialogActions() {
         }
 
         const className = target.className || target.constructor?.name;
-        if (className !== 'TDialogRoot' && className !== 'TDialog') {
+        const isDialog = className === 'TDialogRoot' || className === 'TThemeDialog' || className === 'TDialog';
+        if (!isDialog) {
             logger.warn(`toggle_dialog: Ziel "${action.target}" ist kein Dialog (className=${className}).`);
         }
 

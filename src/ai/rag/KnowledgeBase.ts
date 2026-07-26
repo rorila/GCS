@@ -6,6 +6,13 @@ import { AIConfig } from '../config/AIConfig';
 import { RagQueryPlanner } from './RagQueryPlanner';
 import { AIProjectContext } from '../context/ProjectContextBuilder';
 
+export interface RagBudget {
+    /** Maximale Anzahl zurückgegebener Chunks. */
+    maxChunks?: number;
+    /** Maximale Gesamtgröße in Zeichen (grobe Token-Obergrenze: ~4 Zeichen/Token). */
+    maxTotalChars?: number;
+}
+
 /**
  * KnowledgeBase
  *
@@ -20,6 +27,27 @@ import { AIProjectContext } from '../context/ProjectContextBuilder';
 
 export class KnowledgeBase {
     private static instance: KnowledgeBase;
+
+    /** Standard-Wissensbasis-Dokumente, die automatisch geladen werden. */
+    public static readonly DEFAULT_URLS = [
+        '/docs/AGENT_API_REFERENCE.md',
+        '/docs/AI_PROJECT_GENERATION.md',
+        '/docs/LLM_INTERFACE_CONCEPT.md',
+        '/docs/AgentAPI.md',
+        '/docs/AgentController_FeatureAlignment.md',
+        '/docs/AgentController_Vorlagen.md',
+        '/docs/AgentScriptIO_Plan.md',
+        '/docs/AI_Agent_Integration_Plan.md',
+        '/docs/components.md',
+        '/docs/runtime-guide.md',
+        '/docs/ui-inspector-guide.md',
+        '/docs/coding-standards.md',
+        '/docs/NAMING_CONVENTIONS.md',
+        '/docs/architecture.md',
+        '/docs/GCS_FEATURE_MAP.md',
+        '/docs/user-stories-tab-plan.md',
+    ];
+
     private chunks: KnowledgeChunk[] = [];
     private loaded = false;
     private loading: Promise<void> | null = null;
@@ -35,7 +63,18 @@ export class KnowledgeBase {
         return KnowledgeBase.instance;
     }
 
-    public async loadFromUrl(url: string = '/docs/AGENT_API_REFERENCE.md'): Promise<boolean> {
+    /**
+     * Lädt die Standard-Wissensbasis oder eine benutzerdefinierte URL-Liste.
+     * Bereits geladene Inhalte werden nicht erneut geladen.
+     */
+    public async loadFromUrl(urls?: string | string[]): Promise<boolean> {
+        const targetUrls = urls
+            ? (Array.isArray(urls) ? urls : [urls])
+            : KnowledgeBase.DEFAULT_URLS;
+        return this.loadFromUrls(targetUrls);
+    }
+
+    private async loadFromUrls(urls: string[]): Promise<boolean> {
         if (this.loaded) {
             return true;
         }
@@ -45,20 +84,36 @@ export class KnowledgeBase {
             return this.loaded;
         }
 
-        this.loading = this.doLoad(url);
+        this.loading = this.doLoad(urls);
         await this.loading;
         return this.loaded;
     }
 
-    private async doLoad(url: string): Promise<void> {
+    private async doLoad(urls: string[]): Promise<void> {
         try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+            const responses = await Promise.all(
+                urls.map(async (url) => {
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) {
+                            console.warn(`[KnowledgeBase] Laden von ${url} fehlgeschlagen: HTTP ${response.status}`);
+                            return null;
+                        }
+                        const markdown = await response.text();
+                        const source = url.split('/').pop() || url;
+                        return { markdown, source };
+                    } catch (err) {
+                        console.warn(`[KnowledgeBase] Laden von ${url} fehlgeschlagen:`, err);
+                        return null;
+                    }
+                })
+            );
 
-            const markdown = await response.text();
-            this.loadFromMarkdown(markdown, 'AGENT_API_REFERENCE');
+            for (const item of responses) {
+                if (item) {
+                    this.loadFromMarkdown(item.markdown, item.source);
+                }
+            }
         } catch (err) {
             console.warn('[KnowledgeBase] Laden fehlgeschlagen:', err);
         } finally {
@@ -79,7 +134,7 @@ export class KnowledgeBase {
             }
         }
 
-        this.chunks = freshChunks;
+        this.chunks.push(...freshChunks);
         this.loaded = true;
         this.embeddingsReady = this.chunks.every(c => !!c.embedding);
     }
@@ -138,7 +193,12 @@ export class KnowledgeBase {
      * Synchrone Suche (Keyword + Metadaten). Wird als Fallback und aus
      * synchronen Kontexten (z.B. ProjectContextBuilder) verwendet.
      */
-    public getRelevantChunks(query: string, topK = 3, context?: AIProjectContext): KnowledgeChunk[] {
+    public getRelevantChunks(
+        query: string,
+        topK = 3,
+        context?: AIProjectContext,
+        budget: Partial<RagBudget> = {}
+    ): KnowledgeChunk[] {
         if (!this.loaded || !query.trim()) {
             return [];
         }
@@ -161,7 +221,7 @@ export class KnowledgeBase {
             }
         }
 
-        return results;
+        return this.applyBudget(results, { maxChunks: topK, maxTotalChars: 24000, ...budget });
     }
 
     /**
@@ -169,7 +229,13 @@ export class KnowledgeBase {
      * finalScore = vectorScore * 0.65 + keywordScore * 0.25 + metadataScore * 0.10
      * Fällt bei fehlenden Embeddings auf die Keyword-Suche zurück.
      */
-    public async getRelevantChunksAsync(query: string, config: AIConfig, topK = 3, context?: AIProjectContext): Promise<KnowledgeChunk[]> {
+    public async getRelevantChunksAsync(
+        query: string,
+        config: AIConfig,
+        topK = 3,
+        context?: AIProjectContext,
+        budget: Partial<RagBudget> = {}
+    ): Promise<KnowledgeChunk[]> {
         if (!this.loaded || !query.trim()) {
             return [];
         }
@@ -216,7 +282,32 @@ export class KnowledgeBase {
             }
         }
 
-        return results;
+        return this.applyBudget(results, { maxChunks: topK, maxTotalChars: 24000, ...budget });
+    }
+
+    /**
+     * Wendet das Budget (max. Chunks + max. Zeichen) auf eine sortierte Ergebnisliste an.
+     * Beinhaltet immer mindestens den ersten Chunk, damit niemals eine leere RAG-Antwort zurückkommt.
+     */
+    private applyBudget(
+        chunks: KnowledgeChunk[],
+        budget: Required<Pick<RagBudget, 'maxChunks' | 'maxTotalChars'>>
+    ): KnowledgeChunk[] {
+        const maxChunks = budget.maxChunks ?? chunks.length;
+        const maxTotalChars = budget.maxTotalChars ?? Number.MAX_SAFE_INTEGER;
+
+        let totalChars = 0;
+        const result: KnowledgeChunk[] = [];
+
+        for (const chunk of chunks.slice(0, maxChunks)) {
+            totalChars += chunk.content.length + chunk.title.length;
+            if (result.length > 0 && totalChars > maxTotalChars) {
+                break;
+            }
+            result.push(chunk);
+        }
+
+        return result;
     }
 
     /**

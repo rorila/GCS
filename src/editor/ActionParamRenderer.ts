@@ -7,6 +7,7 @@ import { componentRegistry } from '../services/ComponentRegistry';
 
 
 import { serviceRegistry } from '../services/ServiceRegistry';
+import { themeRegistry } from '../runtime/ThemeRegistry';
 import { MethodReturnMap } from './MethodRegistry';
 import { Logger } from '../utils/Logger';
 
@@ -66,6 +67,13 @@ export class ActionParamRenderer {
 
                     let items: any[] = [];
                     if (param.source === 'objects') items = projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
+                    else if (param.source === 'theme_dialogs') {
+                        const dialogs = projectObjectRegistry.getObjects()
+                            .filter((o: any) => o.className === 'TThemeDialog' || o.type === 'ThemeDialog');
+                        items = dialogs.length > 0
+                            ? dialogs.map(o => ({ value: o.name, label: `${o.name} (Theme Dialog)` }))
+                            : [{ value: '', label: '— Kein Theme Dialog vorhanden —' }];
+                    }
                     else if (param.source === 'variables') items = (ctx.enrichedProject.variables || []).map((v: any) => ({ value: v.name, label: v.name }));
                     else if (param.source === 'stages') items = (ctx.project.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
                     else if (param.source === 'objects_and_services') {
@@ -116,6 +124,7 @@ export class ActionParamRenderer {
                         }
                     }
                     else if (param.source === 'services') items = serviceRegistry.listServices().map(s => ({ value: s, label: s }));
+                    else if (param.source === 'themes') items = themeRegistry.getAvailableThemes().map(t => ({ value: t.id, label: t.name }));
                     else if (param.source === 'tasks') items = projectTaskRegistry.getTasks().map(t => ({ value: t.name, label: t.name }));
                     else if (param.source === 'actions') items = projectActionRegistry.getActions().map(a => ({ value: a.name, label: a.name }));
                     else if (param.source === 'easing-functions') items = ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));

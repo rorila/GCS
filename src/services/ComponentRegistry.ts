@@ -73,6 +73,7 @@ import { TDataList } from '../components/TDataList';
 import { TAuthService } from '../components/TAuthService';
 import { TUserManager } from '../components/TUserManager';
 import { TSidePanel } from '../components/TSidePanel';
+import { TThemeDialog } from '../components/TThemeDialog';
 /**
  * ComponentRegistry - Der zentrale "Broker" für alle GCS-Komponenten.
  */
@@ -142,6 +143,7 @@ export class ComponentRegistry {
         this.register('TStageController', TStageController);
         this.register('TGameState', TGameState);
         this.register('TDialogRoot', TDialogRoot);
+        this.register('TThemeDialog', TThemeDialog);
         this.register('TInfoWindow', TInfoWindow);
         this.register('TStatusBar', TStatusBar);
         this.register('TObjectList', TObjectList);
@@ -220,6 +222,7 @@ export class ComponentRegistry {
         this.typeMapping.set('TabControl', 'TTabControl');
         this.typeMapping.set('InspectorTemplate', 'TInspectorTemplate');
         this.typeMapping.set('DialogRoot', 'TDialogRoot');
+        this.typeMapping.set('ThemeDialog', 'TThemeDialog');
         this.typeMapping.set('InfoWindow', 'TInfoWindow');
         this.typeMapping.set('Toast', 'TToast'); // TToast fehlt ggf. noch als registrierte Klasse oben? (muss nachgeholt werden falls nötig)
         this.typeMapping.set('StatusBar', 'TStatusBar');

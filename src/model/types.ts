@@ -116,7 +116,7 @@ export type ActionType =
     | 'http' | 'respond_http' | 'execute_login_request'
     | 'data_action' | 'handle_api_request'
     // Daten & Themes
-    | 'load_theme_map' | 'store_token'
+    | 'load_theme_map' | 'store_token' | 'set_active_theme' | 'show_theme_dialog'
     // Multiplayer
     | 'create_room' | 'join_room'
     // Service
@@ -436,7 +436,7 @@ export interface InputConfig {
 // ─────────────────────────────────────────────
 // Stage System (Multi-Stage Support)
 // ─────────────────────────────────────────────
-export type StageType = 'standard' | 'splash' | 'main' | 'template' | 'blueprint';
+export type StageType = 'standard' | 'splash' | 'main' | 'template' | 'blueprint' | 'theme-editor';
 
 export interface StageDefinition {
     id: string;               // Eindeutige ID der Stage
