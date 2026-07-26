@@ -289,6 +289,7 @@ export class Editor implements IViewHost {
                     const name = (idbProject as any).meta?.name || 'Unbenannt';
                     const sourcePath = (idbProject as any).meta?._sourcePath || `projects/${name.replace(/[^a-zA-Z0-9_\\-]/g, '_')}.json`;
                     this.loadProject(idbProject, sourcePath);
+                    this.themeStageService.restoreSession();
                     Editor.logger.info(`Projekt aus IndexedDB geladen: "${name}" (Pfad: ${sourcePath})`);
                     // Alten LocalStorage-Eintrag aufräumen (Migration)
                     localStorage.removeItem('gcs_last_project');
@@ -314,6 +315,7 @@ export class Editor implements IViewHost {
             const name = localProject.meta?.name || 'Unbenannt';
             const sourcePath = localProject.meta?._sourcePath || `projects/${(localProject.meta?.name || 'Unbenannt').replace(/[^a-zA-Z0-9_\\-]/g, '_')}.json`;
             this.loadProject(localProject, sourcePath);
+            this.themeStageService.restoreSession();
             Editor.logger.info(`Projekt aus LocalStorage migriert: "${name}" (Pfad: ${sourcePath})`);
             // Nach erfolgreicher Migration: LocalStorage-Eintrag entfernen
             localStorage.removeItem('gcs_last_project');

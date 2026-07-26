@@ -45,6 +45,7 @@ export class ThemeStageService {
         this.host.stageManager.switchStage(this.THEME_STAGE_ID);
         this.host.selectObject(null);
 
+        this.persistSession();
         this.renderBanner();
     }
 
@@ -68,6 +69,7 @@ export class ThemeStageService {
         if (!this.active) return;
 
         this.hideBanner();
+        this.clearSession();
 
         // Theme-Stage wieder aus dem Projekt entfernen, damit sie nicht persistiert wird.
         this.host.project.stages = (this.host.project.stages || []).filter(s => s.id !== this.THEME_STAGE_ID);
@@ -359,5 +361,39 @@ export class ThemeStageService {
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         `;
+    }
+
+    private static readonly SESSION_KEY = 'gcs-theme-editor-session';
+
+    private persistSession(): void {
+        try {
+            sessionStorage.setItem(ThemeStageService.SESSION_KEY, JSON.stringify({
+                active: true,
+                sourceThemeId: this.sourceThemeId
+            }));
+        } catch (e) {
+            // sessionStorage kann in einigen Umgebungen nicht verfügbar sein
+        }
+    }
+
+    private clearSession(): void {
+        try {
+            sessionStorage.removeItem(ThemeStageService.SESSION_KEY);
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    public restoreSession(): void {
+        try {
+            const raw = sessionStorage.getItem(ThemeStageService.SESSION_KEY);
+            if (!raw) return;
+            const session = JSON.parse(raw);
+            if (session.active && session.sourceThemeId) {
+                this.enterThemeEditor(session.sourceThemeId);
+            }
+        } catch (e) {
+            // ignore
+        }
     }
 }
