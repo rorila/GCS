@@ -2394,11 +2394,11 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 ## §5 Komponenten-Steckbriefe
 
 > [!IMPORTANT]
-> **Quellen:** `docs/schemas/schema_*.json` (28 Komponenten mit vollständigem Schema) + `src/components/T*.ts` (alle 77 registrierten Klassen). Alle Komponenten erben von `TWindow` (Base-Class) und folgen den `baseProperties` aus `schema_base.json`.
+> **Quellen:** `docs/schemas/schema_*.json` (28 Komponenten mit vollständigem Schema) + `src/components/T*.ts` (alle 78 registrierten Klassen). Alle Komponenten erben von `TWindow` (Base-Class) und folgen den `baseProperties` aus `schema_base.json`.
 >
 > **Grundregel:** Jede Komponente hat einen **`className`** (z.B. `"TButton"`) und einen **`name`** (Instanz-Bezeichner, z.B. `"StartBtn"`). Der `name` ist der Referenz-Schlüssel für Actions (`target`), Event-Bindings (`connectEvent`) und `${var}`-Interpolation.
 
-### §5.0 Gesamt-Übersicht (alle 77 Komponenten)
+### §5.0 Gesamt-Übersicht (alle 78 Komponenten)
 
 | # | className | Kategorie | Stage | Kurz-Zweck |
 |:--:|:---|:---|:---|:---|
@@ -2479,6 +2479,7 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 | 75 | `TVirtualGamepad` | Service | blueprint | On-Screen-Touch-Gamepad |
 | 76 | `TWindow` | Base | — | Abstrakte Basisklasse aller Komponenten |
 | 77 | `TThemeDialog` | Dialog | main | Theme-Auswahl-Dialog (runtime) |
+| 78 | `TParallaxBackground` | Spiel | main | Parallax-Hintergrund für scrollende Levels |
 
 ### §5.1 Taxonomie — 10 Kategorien
 
@@ -2487,7 +2488,7 @@ A. UI-Basis       → TLabel, TButton, TShape, TRichText, TNumberLabel, TCard, T
 B. Eingabe        → TEdit, TMemo, TNumberInput, TCheckbox, TDropdown, TColorPicker, TEmojiPicker    (7)
 C. Container      → TPanel, TGroupPanel, TTabControl                                                 (3)
 D. Dialoge        → TDialogRoot, TSidePanel, TInfoWindow, TThemeDialog                                (4)
-E. Spiel          → TSprite, TSpriteTemplate                                                         (2)
+E. Spiel          → TSprite, TSpriteTemplate, TParallaxBackground                                      (3)
 F. Medien         → TAudio, TVideo, TImage, TImageList                                               (4)
 G. Timer          → TTimer, TIntervalTimer                                                           (2)
 H. Variablen      → T*Variable, TStringMap, TRandomVariable, TThresholdVariable, TRangeVariable, ... (~12)
@@ -2495,7 +2496,7 @@ I. Daten          → TDataList, TDataStore, TObjectList, TKeyStore, TTable     
 J. Services       → TGameLoop, TGameState, TInputController, TStageController, TToast, ...           (~20)
 K. Sonstiges/Base → TComponent, TWindow, TStickyNote                                                  (3)
 ────────────────────────────────────────────────────────────────────────────────
-Σ                                                                                                    77
+Σ                                                                                                    78
 ```
 
 ### §5.2 Schema der Steckbriefe (für die 28 voll dokumentierten)
@@ -3027,6 +3028,58 @@ agent.addAction('FireBullet', 'call_method', 'SpawnBullet', {
 **⚠️ Warnings:**
 - `TSpriteTemplate` ist zur Laufzeit **unsichtbar**.
 - Nutze die Action `spawn_object` (`type: 'call_method'` auf Template), um eine Instanz zu platzieren.
+
+---
+
+### §5.E.3 `TParallaxBackground` — Parallax-Hintergrund
+
+**Zweck:** Rendert **mehrere scrollende Hintergrund-Ebenen** mit unterschiedlichen Geschwindigkeiten. Ideal für Jump & Run / Endless Runner, bei denen sich der Spieler nicht bewegt, aber die Welt vorbeiscrollt.
+
+**Stage:** `main` · **Category:** `game`
+
+**Properties:**
+
+| Name | Typ | Default | Beschreibung |
+|:---|:---|:---|:---|
+| `layers` | `json` | `[]` | Array von `{ image, speedFactor, y?, height?, objectFit?, opacity? }` |
+| `baseSpeed` | `number` | `2` | Basis-Geschwindigkeit in Grid-Zellen pro Sekunde |
+| `repeat` | `boolean` | `true` | Hintergrund nahtlos wiederholen |
+
+**Layer-Format:**
+
+```json
+[
+  { "image": "bg_mountains.png", "speedFactor": 0.1, "y": 0, "height": 100, "objectFit": "cover" },
+  { "image": "bg_city.png",     "speedFactor": 0.3, "y": 40, "height": 60, "objectFit": "cover" },
+  { "image": "bg_ground.png",   "speedFactor": 0.8, "y": 80, "height": 20, "objectFit": "cover" }
+]
+```
+
+**Methoden:** keine (läuft automatisch über `onRuntimeUpdate`)
+
+**Events:** keine
+
+**Beispiel:**
+
+```typescript
+agent.addObject('stage_main', {
+  className: 'TParallaxBackground', name: 'ParallaxBg',
+  x: 0, y: 0, width: 64, height: 40,
+  zIndex: -1000,
+  baseSpeed: 4,
+  layers: [
+    { image: 'bg_sky.png', speedFactor: 0.05, y: 0, height: 100 },
+    { image: 'bg_hills.png', speedFactor: 0.2, y: 50, height: 50 },
+    { image: 'bg_ground.png', speedFactor: 0.8, y: 80, height: 20 }
+  ]
+});
+```
+
+**Caveats:**
+- Setze `zIndex` niedrig (z. B. `-1000`), damit der Hintergrund hinter allen anderen Objekten liegt.
+- Die Bilder sollten horizontal **kachelbar** sein, damit `repeat: true` nahtlos wirkt.
+- `y` und `height` werden in **Prozent** der Komponenten-Höhe interpretiert.
+- Geschwindigkeit wird mit der globalen Spiellogik gekoppelt, indem man `baseSpeed` über eine `property`-Action setzt.
 
 ---
 

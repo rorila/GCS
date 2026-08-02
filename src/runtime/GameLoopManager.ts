@@ -44,6 +44,7 @@ export class GameLoopManager {
     private sprites: TSprite[] = [];
     private inputControllers: any[] = [];
     private panels: any[] = [];
+    private runtimeUpdatables: any[] = [];
 
     // Callbacks
     private renderCallback: (() => void) | null = null;
@@ -119,6 +120,9 @@ export class GameLoopManager {
             obj.className === 'TPanel' || obj.className === 'TGroupPanel' || obj.constructor?.name === 'TPanel' || obj.constructor?.name === 'TGroupPanel'
         );
 
+        // Komponenten mit onRuntimeUpdate sammeln (z.B. TParallaxBackground)
+        this.runtimeUpdatables = objects.filter((obj: any) => typeof obj.onRuntimeUpdate === 'function');
+
         // Find GameState component
         const gameStateObj = objects.find(obj =>
             obj.className === 'TGameState' || obj.constructor?.name === 'TGameState'
@@ -182,6 +186,7 @@ export class GameLoopManager {
         this.sprites = [];
         this.inputControllers = [];
         this.panels = [];
+        this.runtimeUpdatables = [];
         this.renderCallback = null;
         this.spriteRenderCallback = null;
         this.eventCallback = null;
@@ -294,14 +299,20 @@ export class GameLoopManager {
             sprite.velocityX !== 0 || sprite.velocityY !== 0 || sprite.isAnimating
         );
 
+        // Keep loop alive for runtime-updatable components (e.g. TParallaxBackground)
+        const hasRuntimeUpdatables = this.runtimeUpdatables.length > 0;
+
         // Only do work if something is active
-        const needsUpdate = hasActiveAnimations || hasMovingSprites;
+        const needsUpdate = hasActiveAnimations || hasMovingSprites || hasRuntimeUpdatables;
 
         if (needsUpdate) {
             this.idleFrameCount = 0;
 
             // Update all sprites
             this.updateSprites(deltaTime, spritesMoving);
+
+            // Update runtime-updatable components
+            this.updateRuntimeUpdatables(deltaTime);
 
             // Update tween animations
             AnimationManager.getInstance().update();
@@ -350,6 +361,17 @@ export class GameLoopManager {
         this.sprites.forEach(sprite => {
             if (!sprite.visible) return; // Pool-Instanz im Leerlauf
             sprite.update(deltaTime, applyVelocity);
+        });
+    }
+
+    /**
+     * Update components that provide their own runtime loop hook.
+     */
+    private updateRuntimeUpdatables(deltaTime: number): void {
+        this.runtimeUpdatables.forEach(obj => {
+            if (obj && typeof obj.onRuntimeUpdate === 'function') {
+                obj.onRuntimeUpdate(deltaTime);
+            }
         });
     }
 

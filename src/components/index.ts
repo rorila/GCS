@@ -49,6 +49,7 @@ export * from './TNumberLabel';
 export * from './TObjectList';
 export * from './TObjectVariable';
 export * from './TPanel';
+export * from './TParallaxBackground';
 export * from './TRichText';
 export * from './TProgressBar';
 export * from './TRandomVariable';

@@ -1097,6 +1097,7 @@ export class StageRenderer {
         else if (className === 'TLabel' || className === 'TNumberLabel') TextObjectRenderer.renderLabel(ctx, el, obj);
         else if (className === 'TStickyNote') TextObjectRenderer.renderStickyNote(ctx, el, obj, isNew);
         else if (className === 'TPanel') TextObjectRenderer.renderPanel(ctx, el, obj);
+        else if (className === 'TParallaxBackground') this.renderParallaxBackground(el, obj);
         else if (className === 'TRichText') TextObjectRenderer.renderRichText(ctx, el, obj);
         else if (className === 'TGameHeader') TextObjectRenderer.renderGameHeader(ctx, el, obj);
         else if (className === 'TSprite' || className === 'TSpriteTemplate') SpriteRenderer.render(ctx, el, obj);
@@ -1374,6 +1375,15 @@ export class StageRenderer {
      * Rendert eine TDataList: Im Editor das Template, im Run-Modus die geklonten Karten
      */
     
+    /**
+     * Rendert einen TParallaxBackground: Übergibt das DOM-Element an die Komponente,
+     * die sich selbst um das Aufbauen und Animieren der Ebenen kümmert.
+     */
+    private renderParallaxBackground(el: HTMLElement, obj: any): void {
+        if (!obj || typeof obj.setElement !== 'function') return;
+        obj.setElement(el, this.host.grid.cellSize, this.host.runMode);
+    }
+
     /**
      * Rendert eine TImageList: Zeigt den aktuellen Frame des Sprite-Sheets an.
      * Nutzt CSS background-size + background-position für pixelgenaues Clipping.
