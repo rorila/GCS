@@ -1101,6 +1101,7 @@ export class StageRenderer {
         else if (className === 'TRichText') TextObjectRenderer.renderRichText(ctx, el, obj);
         else if (className === 'TGameHeader') TextObjectRenderer.renderGameHeader(ctx, el, obj);
         else if (className === 'TSpawner') this.renderSpawner(el, obj);
+        else if (className === 'TSpeedlines') this.renderSpeedlines(el, obj);
         else if (className === 'TSprite' || className === 'TSpriteTemplate') SpriteRenderer.render(ctx, el, obj);
         else if (className === 'TShape') ShapeRenderer.render(ctx, el, obj, isNew);
         else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
@@ -1392,6 +1393,14 @@ export class StageRenderer {
         el.style.textAlign = 'center';
         el.textContent = `Spawner: ${obj.templateName || '---'}\n${obj.spawnInterval}s`;
         el.style.whiteSpace = 'pre-line';
+    }
+
+    /**
+     * Rendert TSpeedlines: Übergibt das DOM-Element an die Komponente.
+     */
+    private renderSpeedlines(el: HTMLElement, obj: any): void {
+        if (!obj || typeof obj.setElement !== 'function') return;
+        obj.setElement(el, this.host.grid.cellSize, this.host.runMode);
     }
 
     /**

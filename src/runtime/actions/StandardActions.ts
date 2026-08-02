@@ -9,6 +9,7 @@ import { registerMiscActions } from './handlers/MiscActions';
 import { registerDialogActions } from './handlers/DialogActions';
 import { registerCollectionActions } from './handlers/CollectionActions';
 import { registerEventActions } from './handlers/EventActions';
+import { registerEffectActions } from './handlers/EffectActions';
 
 /**
  * REGISTRIERUNG ALLER STANDARD-AKTIONEN
@@ -28,4 +29,5 @@ export function registerStandardActions() {
     registerDialogActions();
     registerCollectionActions();
     registerEventActions();
+    registerEffectActions();
 }

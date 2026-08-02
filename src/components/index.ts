@@ -58,6 +58,7 @@ export * from './TRealVariable';
 export * from './TShape';
 export * from './TSidePanel';
 export * from './TSpawner';
+export * from './TSpeedlines';
 export * from './TSplashScreen';
 export * from './TSplashStage';
 export * from './TSprite';

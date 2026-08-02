@@ -2394,11 +2394,11 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 ## §5 Komponenten-Steckbriefe
 
 > [!IMPORTANT]
-> **Quellen:** `docs/schemas/schema_*.json` (28 Komponenten mit vollständigem Schema) + `src/components/T*.ts` (alle 79 registrierten Klassen). Alle Komponenten erben von `TWindow` (Base-Class) und folgen den `baseProperties` aus `schema_base.json`.
+> **Quellen:** `docs/schemas/schema_*.json` (28 Komponenten mit vollständigem Schema) + `src/components/T*.ts` (alle 80 registrierten Klassen). Alle Komponenten erben von `TWindow` (Base-Class) und folgen den `baseProperties` aus `schema_base.json`.
 >
 > **Grundregel:** Jede Komponente hat einen **`className`** (z.B. `"TButton"`) und einen **`name`** (Instanz-Bezeichner, z.B. `"StartBtn"`). Der `name` ist der Referenz-Schlüssel für Actions (`target`), Event-Bindings (`connectEvent`) und `${var}`-Interpolation.
 
-### §5.0 Gesamt-Übersicht (alle 79 Komponenten)
+### §5.0 Gesamt-Übersicht (alle 80 Komponenten)
 
 | # | className | Kategorie | Stage | Kurz-Zweck |
 |:--:|:---|:---|:---|:---|
@@ -2481,11 +2481,12 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 | 77 | `TThemeDialog` | Dialog | main | Theme-Auswahl-Dialog (runtime) |
 | 78 | `TParallaxBackground` | Spiel | main | Parallax-Hintergrund für scrollende Levels |
 | 79 | `TSpawner` | Service | main | Automatischer Pool-Spawner für Sprites |
+| 80 | `TSpeedlines` | UI | main | Geschwindigkeits-Linien Overlay |
 
 ### §5.1 Taxonomie — 10 Kategorien
 
 ```
-A. UI-Basis       → TLabel, TButton, TShape, TRichText, TNumberLabel, TCard, TBadge, TAvatar, ...  (~15)
+A. UI-Basis       → TLabel, TButton, TShape, TRichText, TNumberLabel, TCard, TBadge, TAvatar, TSpeedlines, ...  (~15)
 B. Eingabe        → TEdit, TMemo, TNumberInput, TCheckbox, TDropdown, TColorPicker, TEmojiPicker    (7)
 C. Container      → TPanel, TGroupPanel, TTabControl                                                 (3)
 D. Dialoge        → TDialogRoot, TSidePanel, TInfoWindow, TThemeDialog                                (4)
@@ -2497,7 +2498,7 @@ I. Daten          → TDataList, TDataStore, TObjectList, TKeyStore, TTable     
 J. Services       → TGameLoop, TGameState, TInputController, TStageController, TToast, TSpawner, ... (~21)
 K. Sonstiges/Base → TComponent, TWindow, TStickyNote                                                  (3)
 ────────────────────────────────────────────────────────────────────────────────
-Σ                                                                                                    79
+Σ                                                                                                    80
 ```
 
 ### §5.2 Schema der Steckbriefe (für die 28 voll dokumentierten)
@@ -3139,6 +3140,69 @@ agent.addObject('stage_main', {
 - Das Template muss `velocityX < 0` haben, damit die Objekte nach links fliegen.
 - Der Spawner selbst ist zur Laufzeit unsichtbar (`isHiddenInRun: true`).
 - Für Multiplayer sollten Spawner-Parameter identisch sein; sie senden selbst keinen Netzwerk-Traffic.
+
+---
+
+### §5.E.5 `TSpeedlines` — Geschwindigkeits-Linien Overlay
+
+**Zweck:** Zeigt animierte Streifen über der Stage an, die von rechts nach links fliegen – ideal für Speed-Boosts oder schnelle Endless-Runner-Passagen.
+
+**Stage:** `main` · **Category:** `ui`
+
+**Properties:**
+
+| Name | Typ | Default | Beschreibung |
+|:---|:---|:---|:---|
+| `lineCount` | `number` | `12` | Anzahl der Streifen |
+| `speed` | `number` | `0.4` | Animationsdauer pro Durchlauf in Sekunden |
+| `lineColor` | `string` | `"rgba(255,255,255,0.5)"` | Farbe der Streifen |
+| `overlayOpacity` | `number` | `0.3` | Deckkraft des Hintergrund-Overlays |
+| `lineWidth` | `number` | `2` | Breite einer Linie in Pixel |
+| `lineLength` | `number` | `120` | Länge einer Linie in Pixel |
+
+**Methoden:** keine
+
+**Events:** keine
+
+**Beispiel:**
+
+```typescript
+agent.addObject('stage_main', {
+  className: 'TSpeedlines', name: 'Speedlines',
+  x: 0, y: 0, width: 64, height: 40,
+  visible: false, zIndex: 500,
+  lineCount: 16, speed: 0.3,
+  lineColor: 'rgba(255,255,255,0.7)',
+  overlayOpacity: 0.1
+});
+
+// Ein-/Ausblenden per Action (z.B. bei Boost)
+agent.addAction('ShowSpeedlines', 'property', 'EnableSpeedlines', {
+  target: '',
+  changes: { 'Speedlines.visible': true }
+});
+
+agent.addAction('HideSpeedlines', 'property', 'DisableSpeedlines', {
+  target: '',
+  changes: { 'Speedlines.visible': false }
+});
+```
+
+**Kamera-Shake Action:**
+
+```typescript
+agent.addAction('HardLandingShake', 'shake_screen', 'HardLandingShake', {
+  intensity: 'medium',
+  duration: 250
+});
+```
+
+- `intensity`: `light` | `medium` | `heavy`
+- `duration`: Dauer in Millisekunden
+
+**Caveats:**
+- `TSpeedlines` sollte über allem liegen (`zIndex` hoch) und initial `visible: false` haben.
+- `shake_screen` wirkt auf das Stage-Viewport-Element. Im Multiplayer wird der Shake lokal ausgelöst (visuell, kein Netzwerk-Traffic).
 
 ---
 
