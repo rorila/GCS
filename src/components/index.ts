@@ -57,6 +57,7 @@ export * from './TRangeVariable';
 export * from './TRealVariable';
 export * from './TShape';
 export * from './TSidePanel';
+export * from './TSpawner';
 export * from './TSplashScreen';
 export * from './TSplashStage';
 export * from './TSprite';

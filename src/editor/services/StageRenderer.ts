@@ -1100,6 +1100,7 @@ export class StageRenderer {
         else if (className === 'TParallaxBackground') this.renderParallaxBackground(el, obj);
         else if (className === 'TRichText') TextObjectRenderer.renderRichText(ctx, el, obj);
         else if (className === 'TGameHeader') TextObjectRenderer.renderGameHeader(ctx, el, obj);
+        else if (className === 'TSpawner') this.renderSpawner(el, obj);
         else if (className === 'TSprite' || className === 'TSpriteTemplate') SpriteRenderer.render(ctx, el, obj);
         else if (className === 'TShape') ShapeRenderer.render(ctx, el, obj, isNew);
         else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
@@ -1375,6 +1376,24 @@ export class StageRenderer {
      * Rendert eine TDataList: Im Editor das Template, im Run-Modus die geklonten Karten
      */
     
+    /**
+     * Rendert einen TSpawner: Design-Mode Platzhalter, da der Spawner zur Laufzeit unsichtbar ist.
+     */
+    private renderSpawner(el: HTMLElement, obj: any): void {
+        el.innerHTML = '';
+        el.style.background = 'rgba(16, 185, 129, 0.15)';
+        el.style.border = '1px dashed rgba(16, 185, 129, 0.6)';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.color = '#34d399';
+        el.style.fontSize = '12px';
+        el.style.fontFamily = 'sans-serif';
+        el.style.textAlign = 'center';
+        el.textContent = `Spawner: ${obj.templateName || '---'}\n${obj.spawnInterval}s`;
+        el.style.whiteSpace = 'pre-line';
+    }
+
     /**
      * Rendert einen TParallaxBackground: Übergibt das DOM-Element an die Komponente,
      * die sich selbst um das Aufbauen und Animieren der Ebenen kümmert.

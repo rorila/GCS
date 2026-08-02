@@ -23,6 +23,8 @@ export interface IRuntimeComponent {
         gridConfig: GridConfig;
         objects: ComponentData[];
         contextVars?: Record<string, any>;
+        spawnObject?: (templateId: string, x?: number, y?: number) => any;
+        destroyObject?: (instanceId: string) => void;
     }): void;
 
     onRuntimeStart?(): void;

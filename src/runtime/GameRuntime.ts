@@ -382,6 +382,8 @@ export class GameRuntime implements IVariableHost {
             gridConfig,
             objects: this.objects,
             contextVars: this.contextVars,
+            spawnObject: (templateId: string, x?: number, y?: number) => this.spawnObject(templateId, x, y),
+            destroyObject: (instanceId: string) => this.destroyObject(instanceId),
             // Feature C: TForEach-Callbacks für dynamisches Spawning/Destroying
             addObject: (obj: any) => {
                 this.objects.push(obj);

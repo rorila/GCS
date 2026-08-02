@@ -2394,11 +2394,11 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 ## §5 Komponenten-Steckbriefe
 
 > [!IMPORTANT]
-> **Quellen:** `docs/schemas/schema_*.json` (28 Komponenten mit vollständigem Schema) + `src/components/T*.ts` (alle 78 registrierten Klassen). Alle Komponenten erben von `TWindow` (Base-Class) und folgen den `baseProperties` aus `schema_base.json`.
+> **Quellen:** `docs/schemas/schema_*.json` (28 Komponenten mit vollständigem Schema) + `src/components/T*.ts` (alle 79 registrierten Klassen). Alle Komponenten erben von `TWindow` (Base-Class) und folgen den `baseProperties` aus `schema_base.json`.
 >
 > **Grundregel:** Jede Komponente hat einen **`className`** (z.B. `"TButton"`) und einen **`name`** (Instanz-Bezeichner, z.B. `"StartBtn"`). Der `name` ist der Referenz-Schlüssel für Actions (`target`), Event-Bindings (`connectEvent`) und `${var}`-Interpolation.
 
-### §5.0 Gesamt-Übersicht (alle 78 Komponenten)
+### §5.0 Gesamt-Übersicht (alle 79 Komponenten)
 
 | # | className | Kategorie | Stage | Kurz-Zweck |
 |:--:|:---|:---|:---|:---|
@@ -2480,6 +2480,7 @@ s.animate('MyTask', 'Enemy', 'explode', 600);   // → 'animate'
 | 76 | `TWindow` | Base | — | Abstrakte Basisklasse aller Komponenten |
 | 77 | `TThemeDialog` | Dialog | main | Theme-Auswahl-Dialog (runtime) |
 | 78 | `TParallaxBackground` | Spiel | main | Parallax-Hintergrund für scrollende Levels |
+| 79 | `TSpawner` | Service | main | Automatischer Pool-Spawner für Sprites |
 
 ### §5.1 Taxonomie — 10 Kategorien
 
@@ -2493,10 +2494,10 @@ F. Medien         → TAudio, TVideo, TImage, TImageList                        
 G. Timer          → TTimer, TIntervalTimer                                                           (2)
 H. Variablen      → T*Variable, TStringMap, TRandomVariable, TThresholdVariable, TRangeVariable, ... (~12)
 I. Daten          → TDataList, TDataStore, TObjectList, TKeyStore, TTable                            (5)
-J. Services       → TGameLoop, TGameState, TInputController, TStageController, TToast, ...           (~20)
+J. Services       → TGameLoop, TGameState, TInputController, TStageController, TToast, TSpawner, ... (~21)
 K. Sonstiges/Base → TComponent, TWindow, TStickyNote                                                  (3)
 ────────────────────────────────────────────────────────────────────────────────
-Σ                                                                                                    78
+Σ                                                                                                    79
 ```
 
 ### §5.2 Schema der Steckbriefe (für die 28 voll dokumentierten)
@@ -3082,6 +3083,62 @@ agent.addObject('stage_main', {
 - `y` und `height` werden in **Prozent** der Komponenten-Höhe interpretiert.
 - Geschwindigkeit wird mit der globalen Spiellogik gekoppelt, indem man `baseSpeed` über eine `property`-Action setzt.
 - Für **exakte Synchronisation** im Multiplayer: `scrollSource` auf eine synchronisierte Variable setzen (z. B. `${globalGameTime}`), statt lokale Zeit zu verwenden.
+
+---
+
+### §5.E.4 `TSpawner` — Automatischer Pool-Spawner
+
+**Zweck:** Spawnt **Pool-Instanzen** aus einem `TSpriteTemplate` in regelmäßigen Abständen und recycelt sie, sobald sie links aus dem Bild laufen. Speziell für Endless-Runner-Hindernisse und Plattformen gedacht.
+
+**Stage:** `main` · **Category:** `service`
+
+**Properties:**
+
+| Name | Typ | Default | Beschreibung |
+|:---|:---|:---|:---|
+| `templateName` | `string` | `""` | Name des `TSpriteTemplate` |
+| `enabled` | `boolean` | `true` | Spawner aktivieren |
+| `spawnInterval` | `number` | `1.5` | Sekunden zwischen zwei Spawns |
+| `spawnX` | `number` | `70` | X-Spawn-Position in Grid-Zellen (rechts außerhalb) |
+| `spawnYMin` | `number` | `20` | Minimale Y-Position |
+| `spawnYMax` | `number` | `35` | Maximale Y-Position |
+| `spawnCountStart` | `number` | `3` | Anzahl sofortiger Spawns beim Start |
+| `randomizeY` | `boolean` | `true` | Y zufällig zwischen Min und Max |
+| `recycleOffScreen` | `boolean` | `true` | Automatisch zurückgeben, wenn außerhalb |
+| `velocityX` | `number` | `undefined` | Optional: Velocity-X überschreiben |
+
+**Methoden:** keine (läuft automatisch)
+
+**Events:** keine
+
+**Beispiel:**
+
+```typescript
+// 1. Template im Blueprint definieren
+agent.addObject('stage_blueprint', {
+  className: 'TSpriteTemplate', name: 'PlatformTemplate',
+  x: 0, y: 0, width: 4, height: 1,
+  velocityX: -4,
+  poolSize: 8, autoRecycle: true,
+  spriteColor: '#34d399'
+});
+
+// 2. Spawner in der main-Stage
+agent.addObject('stage_main', {
+  className: 'TSpawner', name: 'PlatformSpawner',
+  x: 0, y: 0, width: 2, height: 2,
+  templateName: 'PlatformTemplate',
+  spawnInterval: 1.5, spawnX: 70,
+  spawnYMin: 30, spawnYMax: 34,
+  spawnCountStart: 4
+});
+```
+
+**Caveats:**
+- Referenziertes Template muss ein `TSpriteTemplate` sein, damit der Pool funktioniert.
+- Das Template muss `velocityX < 0` haben, damit die Objekte nach links fliegen.
+- Der Spawner selbst ist zur Laufzeit unsichtbar (`isHiddenInRun: true`).
+- Für Multiplayer sollten Spawner-Parameter identisch sein; sie senden selbst keinen Netzwerk-Traffic.
 
 ---
 
