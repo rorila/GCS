@@ -8,6 +8,7 @@ export class TSprite extends TWindow {
     // Motion properties
     public velocityX: number = 0;
     public velocityY: number = 0;
+    public gravity: number = 0; // Zellen pro Sekunde², z.B. 25 für Jump & Run
 
     // Collision properties
     public collisionGroup: string = 'default';
@@ -77,6 +78,7 @@ export class TSprite extends TWindow {
             // Motion group
             { name: 'velocityX', label: 'Velocity X', type: 'number', group: 'Motion' },
             { name: 'velocityY', label: 'Velocity Y', type: 'number', group: 'Motion' },
+            { name: 'gravity', label: 'Gravity', type: 'number', group: 'Motion' },
             // Interpolation group
             { name: 'lerpSpeed', label: 'Lerp Speed', type: 'number', group: 'Interpolation' },
             // Collision group
@@ -128,6 +130,11 @@ export class TSprite extends TWindow {
         }
 
         const moveFactor = deltaTime * 60; // Normalize to 60fps
+
+        // Gravity: Beschleunige nach unten (positive Y-Richtung)
+        if (applyVelocity && this.gravity !== 0) {
+            this.velocityY += this.gravity * deltaTime;
+        }
 
         // 1. Regular velocity movement (Local Simulation / Dead Reckoning)
         if (applyVelocity) {

@@ -1,6 +1,7 @@
 import { ComponentRegistry } from '../src/utils/ComponentRegistry';
 import { TParallaxBackground } from '../src/components/TParallaxBackground';
 import { TSpawner } from '../src/components/TSpawner';
+import { TSprite } from '../src/components/TSprite';
 import { TSpeedlines } from '../src/components/TSpeedlines';
 import { TSpriteTemplate } from '../src/components/TSpriteTemplate';
 import { actionRegistry } from '../src/runtime/ActionRegistry';
@@ -160,7 +161,21 @@ export async function runTests(): Promise<TestResult[]> {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 6. EffectActions: shake_screen Action registriert
+    // 6. TSprite Gravity
+    // ═══════════════════════════════════════════════════════
+    try {
+        const sprite = new TSprite('TestPlayer', 0, 0, 2, 2);
+        sprite.gravity = 10;
+        sprite.velocityY = 0;
+        sprite.update(0.1);
+        if (sprite.velocityY !== 1) throw new Error(`velocityY=${sprite.velocityY}, erwartet 1`);
+        addResult(results, 'TSprite Gravity', true);
+    } catch (e: any) {
+        addResult(results, 'TSprite Gravity', false, e.message);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 7. EffectActions: shake_screen Action registriert
     // ═══════════════════════════════════════════════════════
     try {
         registerEffectActions();
