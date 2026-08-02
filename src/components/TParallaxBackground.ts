@@ -20,6 +20,8 @@ export class TParallaxBackground extends TWindow {
     public layers: ParallaxLayer[] = [];
     public baseSpeed: number = 2;
     public repeat: boolean = true;
+    /** Optional: Name einer synchronisierten Variable, z.B. '${globalGameTime}' */
+    public scrollSource: string = '';
 
     private running: boolean = false;
     private element: HTMLElement | null = null;
@@ -27,6 +29,7 @@ export class TParallaxBackground extends TWindow {
     private runMode: boolean = false;
     private scrollX: number = 0;
     private layerEls: { container: HTMLElement; layer: ParallaxLayer }[] = [];
+    private runtimeCallbacks: any = null;
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
@@ -50,11 +53,13 @@ export class TParallaxBackground extends TWindow {
                 hint: '[{"image":"bg1.png","speedFactor":0.1,"y":0,"height":100}]'
             },
             { name: 'baseSpeed', label: 'Basis-Geschwindigkeit (Zellen/s)', type: 'number', group: 'KONFIGURATION' },
+            { name: 'scrollSource', label: 'Scroll-Quelle (optional, z.B. ${globalGameTime})', type: 'string', group: 'KONFIGURATION', hint: 'Leer = lokale Zeit. Bei Multiplayer: Name einer synchronisierten Variable.' },
             { name: 'repeat', label: 'Nahtlos wiederholen', type: 'boolean', group: 'KONFIGURATION' }
         ];
     }
 
-    public initRuntime(): void {
+    public initRuntime(callbacks: any): void {
+        this.runtimeCallbacks = callbacks;
         this.running = true;
     }
 
@@ -69,8 +74,32 @@ export class TParallaxBackground extends TWindow {
 
     public onRuntimeUpdate(deltaTime: number): void {
         if (!this.running || !this.element || !this.runMode) return;
-        this.scrollX += this.baseSpeed * deltaTime;
+
+        if (this.scrollSource) {
+            // Synchronisierter Offset aus einer Variable (z.B. Multiplayer-Host-Time)
+            this.scrollX = this.resolveScrollSource();
+        } else {
+            // Lokale Zeit-Integration
+            this.scrollX += this.baseSpeed * deltaTime;
+        }
+
         this.updateLayerTransforms();
+    }
+
+    private resolveScrollSource(): number {
+        const source = this.scrollSource.trim();
+        const vars = this.runtimeCallbacks?.contextVars || {};
+
+        // Binding-Syntax ${varName}
+        if (source.startsWith('${') && source.endsWith('}')) {
+            const varName = source.slice(2, -1).trim();
+            const value = vars[varName];
+            return typeof value === 'number' ? value : Number(value) || 0;
+        }
+
+        // Direkter Zahlenwert
+        const direct = Number(source);
+        return isNaN(direct) ? 0 : direct;
     }
 
     /**
@@ -225,7 +254,8 @@ export class TParallaxBackground extends TWindow {
             ...super.toDTO(),
             layers: this.layers,
             baseSpeed: this.baseSpeed,
-            repeat: this.repeat
+            repeat: this.repeat,
+            scrollSource: this.scrollSource
         };
     }
 }

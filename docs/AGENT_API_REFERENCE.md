@@ -3043,6 +3043,7 @@ agent.addAction('FireBullet', 'call_method', 'SpawnBullet', {
 |:---|:---|:---|:---|
 | `layers` | `json` | `[]` | Array von `{ image, speedFactor, y?, height?, objectFit?, opacity? }` |
 | `baseSpeed` | `number` | `2` | Basis-Geschwindigkeit in Grid-Zellen pro Sekunde |
+| `scrollSource` | `string` | `""` | Optional: `${varName}` einer synchronisierten Variable für exakten Multiplayer-Offset. Leer = lokale Zeit. |
 | `repeat` | `boolean` | `true` | Hintergrund nahtlos wiederholen |
 
 **Layer-Format:**
@@ -3080,6 +3081,7 @@ agent.addObject('stage_main', {
 - Die Bilder sollten horizontal **kachelbar** sein, damit `repeat: true` nahtlos wirkt.
 - `y` und `height` werden in **Prozent** der Komponenten-Höhe interpretiert.
 - Geschwindigkeit wird mit der globalen Spiellogik gekoppelt, indem man `baseSpeed` über eine `property`-Action setzt.
+- Für **exakte Synchronisation** im Multiplayer: `scrollSource` auf eine synchronisierte Variable setzen (z. B. `${globalGameTime}`), statt lokale Zeit zu verwenden.
 
 ---
 
