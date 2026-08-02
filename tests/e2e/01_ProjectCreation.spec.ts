@@ -35,7 +35,7 @@ test.describe('UseCase: Ein neues Projekt (Spiel) erzeugen', () => {
         const dropdownDatei = page.locator('.menu-dropdown');
         await expect(dropdownDatei).toBeVisible({ timeout: 3000 });
 
-        const neuesProjektItem = dropdownDatei.locator('.menu-item:has-text("Neues Projekt")');
+        const neuesProjektItem = dropdownDatei.locator('.menu-item:has-text("Neues Projekt...")');
         await expect(neuesProjektItem).toBeVisible({ timeout: 3000 });
         await neuesProjektItem.click();
         await page.waitForTimeout(500);
@@ -45,7 +45,7 @@ test.describe('UseCase: Ein neues Projekt (Spiel) erzeugen', () => {
         let projectData = await page.evaluate(() => (window as any).editor.project);
 
         // Metadata-Defaults
-        expect(projectData.meta.name).toBe('Neues Spiel');
+        expect(projectData.meta.name).toBe('NewProjekt');
         expect(projectData.meta.author).toBe('');
         expect(projectData.meta.description).toBe('');
 

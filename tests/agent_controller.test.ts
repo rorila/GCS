@@ -662,10 +662,10 @@ export async function runTests(): Promise<TestResult[]> {
         agent.createTask('stage_main', 'NavigateTask');
         agent.addAction('NavigateTask', 'navigate_stage', 'NavigateStage', { stageId: 'stage_main', reset: false });
 
-        const blueprint = project.stages![0];
-        const toastAction = blueprint.actions?.find((a: any) => a.name === 'ShowToast');
-        const bindAction = blueprint.actions?.find((a: any) => a.name === 'BindEvent');
-        const navAction = blueprint.actions?.find((a: any) => a.name === 'NavigateStage');
+        const allActions = project.stages?.flatMap(s => s.actions || []) || [];
+        const toastAction = allActions.find((a: any) => a.name === 'ShowToast');
+        const bindAction = allActions.find((a: any) => a.name === 'BindEvent');
+        const navAction = allActions.find((a: any) => a.name === 'NavigateStage');
 
         const ok = toastAction?.type === 'show_toast'
             && bindAction?.type === 'bind_event'

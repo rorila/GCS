@@ -1,9 +1,9 @@
 {
   "meta": {
-    "name": "NewProjekt",
+    "name": "MyCoolGame",
     "version": "1.0.0",
-    "author": "",
-    "description": "",
+    "author": "GCS-Team",
+    "description": "Das ist mein cooles Spiel",
     "_sourcePath": "projects/NewProjekt.json"
   },
   "stage": {
@@ -17,14 +17,6 @@
     }
   },
   "flow": {
-    "stage": {
-      "cols": 100,
-      "rows": 100,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#1e1e1e"
-    },
     "elements": [],
     "connections": []
   },
@@ -111,8 +103,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -128,71 +120,22 @@
     },
     {
       "id": "main",
-      "name": "Haupt-Level",
+      "name": "MainStage",
       "type": "main",
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1784918697824_2wreh2pde",
+          "id": "obj_1785396219603_h4wgiux88",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 21,
-          "y": 18,
+          "x": 10,
+          "y": 10,
           "width": 6,
           "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "text": "Button_3",
-          "icon": ""
-        },
-        {
-          "className": "TRichText",
-          "id": "obj_1784918765672_kdgxn5cqb",
-          "name": "RichText_4",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "htmlContent": "<h1>Rich Text Panel</h1><p>Bearbeiten für eigenen Inhalt.</p>",
-          "visible": true,
-          "x": 31,
-          "y": 17,
-          "width": 18,
-          "height": 7,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "color": "#000000",
-            "fontSize": 16,
-            "backgroundColor": "transparent",
-            "borderColor": "#aaa",
-            "borderWidth": 1
-          },
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines"
-        },
-        {
-          "className": "TCard",
-          "id": "obj_1784918780918_4j0ggbe86",
-          "name": "Card_5",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 6,
-          "y": 5,
-          "width": 8,
-          "height": 10,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
@@ -202,307 +145,92 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "caption": "",
-          "showGrid": false,
-          "title": "Card Titel",
-          "subtitle": "Subtitel",
-          "showHeader": true,
-          "showFooter": false
+          "text": "Button_3",
+          "icon": ""
         }
       ],
-      "actions": [],
-      "tasks": [],
+      "actions": [
+        {
+          "id": "node-1785396206087",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "ShowTheHighscoreStage_Unique",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "reset": false
+        },
+        {
+          "id": "node-1785396209070",
+          "details": "",
+          "type": "property",
+          "name": "Action1",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        }
+      ],
+      "tasks": [
+        {
+          "id": "0003bcc2-ce4b-4821-ad38-6e73ffc304c3",
+          "name": "SwitchToTheHighscoreStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "ShowTheHighscoreStage_Unique",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SwitchToTheHighscoreStage": {
+              "x": 40,
+              "y": 40
+            },
+            "ShowTheHighscoreStage_Unique": {
+              "x": 300,
+              "y": 300
+            }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1785396209070",
+              "type": "action",
+              "x": 300,
+              "y": 300,
+              "width": 300,
+              "height": 60,
+              "properties": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "type": "navigate_stage",
+                "isLinked": true,
+                "showDetails": false
+              }
+            }
+          ]
+        }
+      ],
       "variables": [],
       "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
+        "cols": 60,
+        "rows": 38,
+        "cellSize": 22,
         "snapToGrid": true,
         "visible": true,
-        "backgroundColor": "#c72323"
-      }
-    },
-    {
-      "id": "__theme_editor__",
-      "name": "Theme Editor",
-      "type": "theme-editor",
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#1e1e2e"
+        "backgroundColor": "#16da36"
       },
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1784918912813_fqgaip48g",
-          "name": "Theme_TButton",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 2,
-          "y": 2,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "color": "#ffffff",
-            "fontWeight": "bold",
-            "textAlign": "center",
-            "backgroundColor": "#ff7043",
-            "borderColor": "#ff9e80",
-            "borderWidth": 2,
-            "borderRadius": 18,
-            "boxShadow": "0 0 8px #ff9e80, 0 0 16px rgba(255, 158, 128, 0.4)"
-          },
-          "text": "Theme_TButton",
-          "icon": ""
-        },
-        {
-          "className": "TPanel",
-          "id": "obj_1784918912813_5insqolt3",
-          "name": "Theme_TPanel",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 14,
-          "y": 2,
-          "width": 10,
-          "height": 5,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#2d1b2e",
-            "borderColor": "#ff9e80",
-            "borderWidth": 2,
-            "borderRadius": 20,
-            "boxShadow": "0 8px 32px rgba(255, 158, 128, 0.25)"
-          },
-          "caption": "",
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines"
-        },
-        {
-          "className": "TCard",
-          "id": "obj_1784918912813_bcxn83lnx",
-          "name": "Theme_TCard",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 26,
-          "y": 2,
-          "width": 8,
-          "height": 5,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#4a148c",
-            "borderColor": "#ffab91",
-            "borderWidth": 2,
-            "borderRadius": 22,
-            "boxShadow": "0 10px 20px rgba(255, 158, 128, 0.25)"
-          },
-          "caption": "",
-          "showGrid": false,
-          "title": "Card Titel",
-          "subtitle": "Subtitel",
-          "showHeader": true,
-          "showFooter": false
-        },
-        {
-          "className": "TLabel",
-          "id": "obj_1784918912813_wrlu4d9my",
-          "name": "Theme_TLabel",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 2,
-          "y": 8,
-          "width": 6,
-          "height": 1,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "color": "#ffe0b2",
-            "fontSize": 14,
-            "fontFamily": "\"Trebuchet MS\", sans-serif",
-            "fontWeight": "bold"
-          },
-          "text": "Theme_TLabel"
-        },
-        {
-          "className": "TNumberLabel",
-          "id": "obj_1784918912814_z52mzoyqd",
-          "name": "Theme_TNumberLabel",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 14,
-          "y": 8,
-          "width": 6,
-          "height": 1,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "text": "",
-          "startValue": 0,
-          "value": 0,
-          "maxValue": null,
-          "step": 1
-        },
-        {
-          "className": "TDialogRoot",
-          "id": "obj_1784918912814_rlstma8zb",
-          "name": "Theme_TDialogRoot",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": false,
-          "x": 26,
-          "y": 8,
-          "width": 12,
-          "height": 7,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#2d1b2e",
-            "borderColor": "#ff9e80",
-            "borderWidth": 2,
-            "borderRadius": 24,
-            "boxShadow": "0 20px 40px rgba(255, 112, 67, 0.35)"
-          },
-          "title": "Theme_TDialogRoot",
-          "modal": true,
-          "closable": true,
-          "draggableAtRuntime": true,
-          "centerOnShow": true,
-          "slideDirection": "right",
-          "onShowTask": "",
-          "onCloseTask": "",
-          "onCancelTask": "",
-          "children": []
-        },
-        {
-          "className": "TSidePanel",
-          "id": "obj_1784918912814_src10gmfc",
-          "name": "Theme_TSidePanel",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": false,
-          "x": 2,
-          "y": 14,
-          "width": 8,
-          "height": 10,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#2d1b2e",
-            "borderColor": "#ff9e80",
-            "borderWidth": 2,
-            "boxShadow": "10px 0 30px rgba(255, 158, 128, 0.25)"
-          },
-          "title": "Theme_TSidePanel",
-          "modal": false,
-          "closable": true,
-          "side": "right",
-          "resizable": true,
-          "overlayDimming": false,
-          "draggableAtRuntime": false,
-          "centerOnShow": false,
-          "onShowTask": "",
-          "onCloseTask": "",
-          "onCancelTask": "",
-          "slideDirection": "right",
-          "children": []
-        },
-        {
-          "className": "TEdit",
-          "id": "obj_1784918912814_sudciormi",
-          "name": "Theme_TEdit",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 14,
-          "y": 14,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "color": "#ffe0b2",
-            "backgroundColor": "#4a148c",
-            "borderColor": "#ff9e80",
-            "borderWidth": 2,
-            "borderRadius": 12,
-            "boxShadow": "0 0 8px #ff9e80, 0 0 16px rgba(255, 158, 128, 0.4)"
-          },
-          "text": "",
-          "placeholder": "Enter text...",
-          "maxLength": 100
-        },
-        {
-          "className": "TStickyNote",
-          "id": "obj_1784918912814_fhi8te4t8",
-          "name": "Theme_TStickyNote",
-          "scope": "stage",
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "title": "Notiz",
-          "noteColor": "yellow",
-          "visible": true,
-          "x": 2,
-          "y": 20,
-          "width": 5,
-          "height": 3,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "text": "Neue Notiz..."
-        }
-      ]
+      "flowCharts": {}
     }
   ],
-  "activeStageId": "__theme_editor__",
+  "activeStageId": "main",
   "userStories": {
     "userStories": []
   },
-  "schemaVersion": "4.0.0",
-  "activeThemeId": "sunset-vibes"
+  "schemaVersion": "4.0.0"
 }

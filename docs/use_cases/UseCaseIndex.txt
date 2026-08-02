@@ -1,3 +1,14 @@
+### 2026-07-30
+[UC-2026-07-30-TestExecutionAndFixes]
+Beschreibung: Durchführung von npm run test nach Änderungen, Behebung von Barrel-Export-Lücken (TThemeDialog) und E2E-Selektoren.
+Beteiligte Dateien:
+- src/components/index.ts (Z. 82): Export von TThemeDialog hinzugefügt.
+- tests/agent_controller.test.ts (Z. 665-668): Action-Suche über alle Stages erweitert.
+- tests/rocket_countdown.test.ts (Z. 161): Action-Count über alle Stages erweitert.
+- tests/e2e/01_ProjectCreation.spec.ts (Z. 38, 48): Selektor für 'Neues Projekt...' und Standard-Spielname 'NewProjekt' korrigiert.
+- tests/e2e/11_ThemeSwitch.spec.ts (Z. 61): Banner-Button-Text auf 'Speichern unter...' korrigiert.
+Ergebnis: Testsuite erfolgreich ausgeführt. 278 von 280 Tests bestanden in docs/QA_Report.md.
+
 ### 2026-06-25
 [UC-2026-06-25-TimerReactiveBindingFix]
 Beschreibung: Bugfix — Behebung des reaktiven Bindings für Timer-Eigenschaften (und andere Nicht-Variablen) im Run-Mode. Zuvor wurden in `GameRuntime.initializeReactiveBindings` Eigenschaften auf den rohen Objekten statt auf den reaktiven Proxies gebunden, wodurch Eigenschaftsänderungen (z. B. `currentInterval++`) an UI-Elementen wie `TLabel` nicht den Set-Trap des Proxys auslösten und somit kein Re-Render getriggert wurde.

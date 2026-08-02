@@ -58,6 +58,6 @@ test.describe('Theme Switching', () => {
         await themeEditorItem.click();
 
         // Theme-Editor-Stage sollte angelegt werden; Banner erscheint
-        await expect(page.locator('text=Als Theme speichern')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('text=Speichern unter...')).toBeVisible({ timeout: 5000 });
     });
 });

@@ -1,3 +1,11 @@
+## [3.32.11] - 2026-07-30
+### Behoben / Test-Validierung
+- **Export für TThemeDialog in Barrel-Datei:** `TThemeDialog` wurde in `src/components/index.ts` exportiert, um die Vollständigkeit der Registrierungen sicherzustellen.
+- **Aktualisierung des Runtime-Bundles:** `runtime-standalone.js` neu erstellt (`npm run bundle:runtime`) und Prüfsummen in `export_checksums.json` via `export_integrity.test.ts` aktualisiert.
+- **Stage-übergreifende Action-Suche in Tests:** `agent_controller.test.ts` und `rocket_countdown.test.ts` durchsuchen nun alle Stages nach Actions, um mit dem per-stage Action-Routing kompatibel zu sein.
+- **E2E Test-Korrekturen:** Menüauswahl in `01_ProjectCreation.spec.ts` für `Neues Projekt...` präzisiert und Theme-Editor-Banner-Selektor angepasst.
+- **Test-Ergebnis:** 278 von 280 Tests in `docs/QA_Report.md` erfolgreich bestanden.
+
 ## [3.32.10] - 2026-06-25
 ### Behoben
 - **TTimer/TIntervalTimer Binding im Run-Mode (CRITICAL FIX):** Ein schwerwiegender Fehler wurde behoben, bei dem reaktive Bindings wie `${StageTimer.currentInterval}` im Run-Mode `"undefined"` lieferten. Die Ursache war, dass `TTimer`-Komponenten im Projekt-JSON fälschlicherweise `isVariable: true` trugen. Dadurch wurden sie vom `RuntimeVariableManager` als Datenvariable importiert (mit Defaultwert `0`), und `ReactiveRuntime.getContext()` gab anstelle der echten Proxy-Instanz den numerischen Variablenwert zurück. Bindings wie `${StageTimer.currentInterval}` versuchten dann `(0).currentInterval` aufzulösen → `undefined`.

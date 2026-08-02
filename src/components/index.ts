@@ -79,4 +79,5 @@ export * from './TVariable';
 export * from './TVideo';
 export * from './TVirtualGamepad';
 export * from './TWindow';
+export * from './TThemeDialog';
 export * from './TStickyNote';

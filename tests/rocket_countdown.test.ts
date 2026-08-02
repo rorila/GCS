@@ -157,8 +157,8 @@ export async function runTests(): Promise<TestResult[]> {
         const hasTickTask = mainStage.tasks!.some(t => t.name === 'OnTimerTick');
         const hasFinishTask = mainStage.tasks!.some(t => t.name === 'OnCountdownFinish');
 
-        // Actions prüfen (im Blueprint)
-        const actionCount = blueprint.actions!.length;
+        // Actions prüfen (über alle Stages)
+        const actionCount = (blueprint.actions?.length || 0) + (mainStage.actions?.length || 0);
         const blueprintObjCount = blueprint.objects!.length;
         const hasGameLoop = blueprint.objects!.some((o: any) => o.name === 'GameLoop' && o.className === 'TGameLoop');
         const hasGameState = blueprint.objects!.some((o: any) => o.name === 'GameState' && o.className === 'TGameState');

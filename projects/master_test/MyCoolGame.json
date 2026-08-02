@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "GCS-Team",
     "description": "Das ist mein cooles Spiel",
-    "_sourcePath": "projects/Neues_Spiel.json"
+    "_sourcePath": "projects/NewProjekt.json"
   },
   "stage": {
     "grid": {
@@ -125,7 +125,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1783076939765_gkbykv5it",
+          "id": "obj_1785396219603_h4wgiux88",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -151,7 +151,7 @@
       ],
       "actions": [
         {
-          "id": "node-1783076926565",
+          "id": "node-1785396206087",
           "details": "",
           "type": "navigate_stage",
           "name": "ShowTheHighscoreStage_Unique",
@@ -161,7 +161,7 @@
           "reset": false
         },
         {
-          "id": "node-1783076929582",
+          "id": "node-1785396209070",
           "details": "",
           "type": "property",
           "name": "Action1",
@@ -172,7 +172,7 @@
       ],
       "tasks": [
         {
-          "id": "00d59ed4-181c-4308-9159-2c01bf6f42c3",
+          "id": "0003bcc2-ce4b-4821-ad38-6e73ffc304c3",
           "name": "SwitchToTheHighscoreStage",
           "description": "",
           "actionSequence": [
@@ -195,7 +195,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1783076929582",
+              "id": "node-1785396209070",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -228,5 +228,8 @@
     }
   ],
   "activeStageId": "main",
+  "userStories": {
+    "userStories": []
+  },
   "schemaVersion": "4.0.0"
 }
