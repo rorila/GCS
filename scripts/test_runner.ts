@@ -21,6 +21,7 @@ import { runTests as runCoordinateTests } from '../src/runtime/CoordinateBinding
 import { runTests as runGameLoopManagerTests } from '../tests/game_loop_manager.test.js';
 import { runTests as runAgentControllerTests } from '../tests/agent_controller.test.js';
 import { runTests as runRocketCountdownTests } from '../tests/rocket_countdown.test.js';
+import { runTests as runJumpAndRunComponentTests } from '../tests/jumpandrun_components.test.js';
 import { runSyncValidatorTests } from '../tests/sync_validator.test.js';
 import { runSnapshotTests } from '../tests/snapshot_manager.test.js';
 import { runProjectStoreTests } from '../tests/project_store.test.js';
@@ -224,6 +225,11 @@ async function main() {
         await timer.measure('Raketen-Countdown', async () => {
             console.log('🏃 Starte Raketen-Countdown Tests...');
             allResults.push(...await runRocketCountdownTests());
+        });
+
+        await timer.measure('Jump & Run Components', async () => {
+            console.log('🏃 Starte Jump & Run Component Tests...');
+            allResults.push(...await runJumpAndRunComponentTests());
         });
 
         await timer.measure('Mathe-Quiz', async () => {
