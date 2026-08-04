@@ -160,13 +160,13 @@ const mainStage = {
             style: { color: '#f87171', backgroundColor: 'rgba(0,0,0,0.5)', borderColor: 'transparent', borderWidth: 0, fontSize: 20, fontWeight: 'bold', textAlign: 'center' }
         }),
         // Eingabe
-        obj({
+        {
             className: 'TInputController', id: 'input_controller', name: 'InputController',
             isService: true, isHiddenInRun: true, x: 0, y: 0, width: 7, height: 2,
             events: { onKeyDown_Space: 'PlayerJump', onKeyDown_Enter: 'RestartGame' },
             enabled: true,
             style: { color: '#ffffff', backgroundColor: '#9c27b0', borderColor: '#6a1b9a', borderWidth: 2 }
-        })
+        }
     ],
     actions: [
         action('act_start_game', 'Act_StartGame', 'property', {

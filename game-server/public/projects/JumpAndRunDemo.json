@@ -427,15 +427,6 @@
           }
         },
         {
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
           "className": "TInputController",
           "id": "input_controller",
           "name": "InputController",
