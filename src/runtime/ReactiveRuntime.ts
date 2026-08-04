@@ -397,11 +397,11 @@ export class ReactiveRuntime {
      */
     debug(): void {
         if (this.bindings.size === 0) {
-            logger.error('Keine BindVariablen gefunden');
+            logger.debug('Keine BindVariablen gefunden');
             return;
         }
 
-        logger.error('=== BIND-DUMP: Active Bindings ===');
+        logger.debug('=== BIND-DUMP: Active Bindings ===');
         this.bindings.forEach(bindingList => {
             bindingList.forEach(binding => {
                 const targetName = binding.targetObj.name || 'Unknown';
