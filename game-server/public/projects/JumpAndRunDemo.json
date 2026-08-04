@@ -210,7 +210,9 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "layers": [],
+          "layers": [
+            { "image": "landscape.svg", "speedFactor": 0.15, "y": 0, "height": 100, "objectFit": "cover" }
+          ],
           "baseSpeed": 4,
           "scrollSource": "",
           "repeat": true
