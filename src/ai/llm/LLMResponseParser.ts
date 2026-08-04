@@ -45,7 +45,7 @@ export class LLMResponseParser {
     private static tryParse(text: string): any | undefined {
         try {
             return JSON.parse(text);
-        } catch (e) {
+        } catch {
             // Manchmal generiert das Modell trailing Kommentare oder Text.
             // Wir versuchen, bis zum letzten validen JSON-Token zu finden.
             return this.tryParseByTruncation(text);

@@ -1,4 +1,5 @@
 import { AIConfig, defaultAIConfig, sanitizeAIConfig } from './AIConfig';
+import { Logger } from '../../utils/Logger';
 
 /**
  * AIConfigStore
@@ -10,6 +11,7 @@ import { AIConfig, defaultAIConfig, sanitizeAIConfig } from './AIConfig';
 const STORAGE_KEY = 'gcs-ai-config';
 
 export class AIConfigStore {
+    private static logger = Logger.get('AIConfigStore');
     private static config: AIConfig | null = null;
 
     public static load(): AIConfig {
@@ -25,7 +27,7 @@ export class AIConfigStore {
                 return this.config;
             }
         } catch (e) {
-            console.warn('[AIConfigStore] Konfiguration konnte nicht geladen werden:', e);
+            AIConfigStore.logger.warn('Konfiguration konnte nicht geladen werden:', e);
         }
 
         this.config = { ...defaultAIConfig };
@@ -37,7 +39,7 @@ export class AIConfigStore {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(this.config));
         } catch (e) {
-            console.warn('[AIConfigStore] Konfiguration konnte nicht gespeichert werden:', e);
+            AIConfigStore.logger.warn('Konfiguration konnte nicht gespeichert werden:', e);
         }
     }
 

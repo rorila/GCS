@@ -58,7 +58,7 @@ export class IndexedDBAdapter implements IStorageAdapter {
         return typeof indexedDB !== 'undefined';
     }
 
-    async save(project: GameProject, _filename?: string): Promise<void> {
+    async save(project: GameProject, _?: string): Promise<void> {
         const db = await this.openDB();
 
         return new Promise<void>((resolve, reject) => {
@@ -87,7 +87,7 @@ export class IndexedDBAdapter implements IStorageAdapter {
         });
     }
 
-    async load(_filename?: string): Promise<GameProject | null> {
+    async load(_?: string): Promise<GameProject | null> {
         try {
             const db = await this.openDB();
 
@@ -114,7 +114,7 @@ export class IndexedDBAdapter implements IStorageAdapter {
                                     IndexedDBAdapter.logger.info(`[INDEXEDDB-LOAD] UfoTemplate has BASE64 image! Prefix: ${ufo.backgroundImage.substring(0, 50)}`);
                                 }
                             }
-                        } catch(e) {}
+                        } catch { void 0; }
                         
                         resolve(record.project);
                     } else {

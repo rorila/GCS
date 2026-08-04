@@ -1,4 +1,5 @@
 import { KnowledgeChunk } from './KnowledgeChunk';
+import { Logger } from '../../utils/Logger';
 
 /**
  * RagStore
@@ -72,7 +73,7 @@ export class RagStore {
         try {
             localStorage.setItem(key, JSON.stringify(value));
         } catch (err) {
-            console.warn(`[RagStore] Speichern von ${key} fehlgeschlagen:`, err);
+            Logger.get('RagStore').warn(`Speichern von ${key} fehlgeschlagen:`, err);
         }
     }
 }

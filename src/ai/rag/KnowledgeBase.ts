@@ -5,6 +5,7 @@ import { RagStore } from './RagStore';
 import { AIConfig } from '../config/AIConfig';
 import { RagQueryPlanner } from './RagQueryPlanner';
 import { AIProjectContext } from '../context/ProjectContextBuilder';
+import { Logger } from '../../utils/Logger';
 
 export interface RagBudget {
     /** Maximale Anzahl zurückgegebener Chunks. */
@@ -27,6 +28,7 @@ export interface RagBudget {
 
 export class KnowledgeBase {
     private static instance: KnowledgeBase;
+    private logger = Logger.get('KnowledgeBase');
 
     /** Standard-Wissensbasis-Dokumente, die automatisch geladen werden. */
     public static readonly DEFAULT_URLS = [
@@ -96,14 +98,14 @@ export class KnowledgeBase {
                     try {
                         const response = await fetch(url);
                         if (!response.ok) {
-                            console.warn(`[KnowledgeBase] Laden von ${url} fehlgeschlagen: HTTP ${response.status}`);
+                            this.logger.warn(`Laden von ${url} fehlgeschlagen: HTTP ${response.status}`);
                             return null;
                         }
                         const markdown = await response.text();
                         const source = url.split('/').pop() || url;
                         return { markdown, source };
                     } catch (err) {
-                        console.warn(`[KnowledgeBase] Laden von ${url} fehlgeschlagen:`, err);
+                        this.logger.warn(`Laden von ${url} fehlgeschlagen:`, err);
                         return null;
                     }
                 })
@@ -115,7 +117,7 @@ export class KnowledgeBase {
                 }
             }
         } catch (err) {
-            console.warn('[KnowledgeBase] Laden fehlgeschlagen:', err);
+            this.logger.warn('Laden fehlgeschlagen:', err);
         } finally {
             this.loading = null;
         }
@@ -163,7 +165,7 @@ export class KnowledgeBase {
             this.store.save(this.chunks);
             return true;
         } catch (err) {
-            console.warn('[KnowledgeBase] Embedding fehlgeschlagen, Fallback auf Keyword-Suche:', err);
+            this.logger.warn('Embedding fehlgeschlagen, Fallback auf Keyword-Suche:', err);
             // Teilstand trotzdem persistieren
             this.store.save(this.chunks);
             return false;
@@ -246,7 +248,7 @@ export class KnowledgeBase {
             : { queries: [query], reasoning: [] };
 
         if (reasoning.length > 0) {
-            console.debug('[RagQueryPlanner]', reasoning);
+            this.logger.debug('[RagQueryPlanner]', reasoning);
         }
         const blocked = this.blockedChunkTypes();
 
@@ -269,7 +271,7 @@ export class KnowledgeBase {
                     const queryEmbedding = await new EmbeddingProvider(config).embed(q);
                     chunks = this.rankChunks(q, queryEmbedding, 2, blocked);
                 } catch (err) {
-                    console.warn('[KnowledgeBase] Query-Embedding fehlgeschlagen, Fallback auf Keyword-Suche:', err);
+                    this.logger.warn('Query-Embedding fehlgeschlagen, Fallback auf Keyword-Suche:', err);
                     chunks = this.rankChunks(q, undefined, 2, blocked);
                 }
             }

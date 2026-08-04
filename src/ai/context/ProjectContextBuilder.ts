@@ -140,14 +140,15 @@ export class ProjectContextBuilder {
         const all = this.getAllUserStories();
 
         switch (request.scope) {
-            case 'selectedUserStory':
+            case 'selectedUserStory': {
                 if (request.selectedUserStoryIds && request.selectedUserStoryIds.length > 0) {
                     const selected = new Set(request.selectedUserStoryIds);
                     return all.filter(s => selected.has(s.id));
                 }
                 return all;
+            }
 
-            case 'plannedUserStories':
+            case 'plannedUserStories': {
                 const planned = all.filter(
                     s =>
                         (s.plannedActions && s.plannedActions.length > 0) ||
@@ -156,11 +157,13 @@ export class ProjectContextBuilder {
                         s.plannedComponent
                 );
                 return planned.length > 0 ? planned : all;
+            }
 
-            case 'activeStage':
+            case 'activeStage': {
                 if (!activeStageId) return all;
                 const related = all.filter(s => s.relatedStages?.includes(activeStageId));
                 return related.length > 0 ? related : all;
+            }
 
             case 'project':
             default:

@@ -18,7 +18,7 @@ export class ServerStorageAdapter implements IStorageAdapter {
         return typeof fetch !== 'undefined';
     }
 
-    async save(project: GameProject, _filename?: string): Promise<void> {
+    async save(project: GameProject, _?: string): Promise<void> {
         const res = await fetch('/api/dev/save-project', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

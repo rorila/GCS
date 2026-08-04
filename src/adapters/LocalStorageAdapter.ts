@@ -28,14 +28,14 @@ export class LocalStorageAdapter implements IStorageAdapter {
         }
     }
 
-    async save(project: GameProject, _filename?: string): Promise<void> {
+    async save(project: GameProject, _?: string): Promise<void> {
         const json = JSON.stringify(project);
         localStorage.setItem(STORAGE_KEY, json);
         localStorage.setItem(TIMESTAMP_KEY, Date.now().toString());
         LocalStorageAdapter.logger.debug(`Auto-save. Size: ${(json.length / 1024).toFixed(2)} KB`);
     }
 
-    async load(_filename?: string): Promise<GameProject | null> {
+    async load(_?: string): Promise<GameProject | null> {
         const json = localStorage.getItem(STORAGE_KEY);
         if (!json) return null;
         try {
