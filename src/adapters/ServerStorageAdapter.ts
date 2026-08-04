@@ -19,6 +19,7 @@ export class ServerStorageAdapter implements IStorageAdapter {
     }
 
     async save(project: GameProject, _?: string): Promise<void> {
+        void _;
         const res = await fetch('/api/dev/save-project', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

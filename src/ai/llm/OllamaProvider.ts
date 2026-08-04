@@ -19,7 +19,7 @@ export class OllamaProvider implements LLMProvider {
             const res = await fetch(`${this.config.endpoint}/api/tags`, { method: 'GET', signal: controller.signal });
             clearTimeout(timeout);
             return res.ok;
-        } catch (e) {
+        } catch {
             return false;
         }
     }

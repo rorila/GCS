@@ -18,6 +18,7 @@ export class Planner {
     constructor(private project: GameProject) {}
 
     public async buildMessages(request: AIGenerationRequest, _config: AIConfig): Promise<LLMMessage[]> {
+        void _config;
         const context = new ProjectContextBuilder(this.project).buildForPlanner(request);
         return this.buildMessagesWithContext(request, context);
     }

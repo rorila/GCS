@@ -57,7 +57,7 @@ export class LLMResponseParser {
             const candidate = text.substring(0, i);
             try {
                 return JSON.parse(candidate);
-            } catch (e) {
+            } catch {
                 // continue truncating
             }
         }

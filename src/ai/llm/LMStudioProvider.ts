@@ -19,7 +19,7 @@ export class LMStudioProvider implements LLMProvider {
             const res = await fetch(`${this.config.endpoint}/models`, { method: 'GET', signal: controller.signal });
             clearTimeout(timeout);
             return res.ok;
-        } catch (e) {
+        } catch {
             return false;
         }
     }

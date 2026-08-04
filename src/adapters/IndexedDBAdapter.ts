@@ -59,6 +59,7 @@ export class IndexedDBAdapter implements IStorageAdapter {
     }
 
     async save(project: GameProject, _?: string): Promise<void> {
+        void _;
         const db = await this.openDB();
 
         return new Promise<void>((resolve, reject) => {
@@ -88,6 +89,7 @@ export class IndexedDBAdapter implements IStorageAdapter {
     }
 
     async load(_?: string): Promise<GameProject | null> {
+        void _;
         try {
             const db = await this.openDB();
 

@@ -42,6 +42,7 @@ export class RagStore {
                 embeddings[chunk.id] = chunk.embedding;
             }
             const { embedding, ...bare } = chunk;
+            void embedding;
             return bare as KnowledgeChunk;
         });
 
