@@ -84,6 +84,12 @@ export class InspectorActionHandler {
             case 'openRichTextEditor':
                 await this.handleOpenRichTextEditor(selectedObject);
                 break;
+            case 'parallaxAddLayer':
+                this.handleAddParallaxLayer(selectedObject);
+                break;
+            case 'parallaxRemoveLayer':
+                this.handleRemoveParallaxLayer(buttonDef, selectedObject);
+                break;
             default:
                 InspectorActionHandler.logger.warn(`Unknown action: ${action}`);
         }
@@ -500,5 +506,37 @@ export class InspectorActionHandler {
             projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'htmlContent', value: result });
             this.host.update(obj);
         }
+    }
+
+    private handleAddParallaxLayer(obj: any): void {
+        const layers = Array.isArray(obj.layers) ? [...obj.layers] : [];
+        layers.push({
+            image: '',
+            speedFactor: 0.1,
+            y: 0,
+            height: 100,
+            objectFit: 'cover',
+            opacity: 1
+        });
+        const target = this.resolveOriginalObject(obj);
+        projectStore.dispatch({ type: 'SET_PROPERTY', target, path: 'layers', value: layers });
+        if (target !== obj) {
+            PropertyHelper.setPropertyValue(obj, 'layers', layers);
+        }
+        this.host.update(obj);
+    }
+
+    private handleRemoveParallaxLayer(buttonDef: any, obj: any): void {
+        const index = buttonDef?.actionData?.index ?? 0;
+        const layers = Array.isArray(obj.layers) ? [...obj.layers] : [];
+        if (index >= 0 && index < layers.length) {
+            layers.splice(index, 1);
+        }
+        const target = this.resolveOriginalObject(obj);
+        projectStore.dispatch({ type: 'SET_PROPERTY', target, path: 'layers', value: layers });
+        if (target !== obj) {
+            PropertyHelper.setPropertyValue(obj, 'layers', layers);
+        }
+        this.host.update(obj);
     }
 }

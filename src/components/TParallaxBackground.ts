@@ -1,5 +1,6 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { InspectorSection } from '../model/InspectorTypes';
 
 export interface ParallaxLayer {
     /** Bild-URL oder Dateiname (wie bei TSprite) */
@@ -56,6 +57,48 @@ export class TParallaxBackground extends TWindow {
             { name: 'scrollSource', label: 'Scroll-Quelle (optional, z.B. ${globalGameTime})', type: 'string', group: 'KONFIGURATION', hint: 'Leer = lokale Zeit. Bei Multiplayer: Name einer synchronisierten Variable.' },
             { name: 'repeat', label: 'Nahtlos wiederholen', type: 'boolean', group: 'KONFIGURATION' }
         ];
+    }
+
+    public getInspectorSections(): InspectorSection[] {
+        const sections = super.getInspectorSections();
+
+        // Rohen JSON-Editor ausblenden, stattdessen eigene Ebenen-UI
+        for (const section of sections) {
+            section.properties = section.properties.filter((p: TPropertyDef) => p.name !== 'layers');
+        }
+
+        const configSection = sections.find(s => s.id === 'konfiguration' || s.label === 'KONFIGURATION');
+        if (configSection) {
+            configSection.properties.push({
+                name: 'addLayer',
+                label: '+ Ebene hinzufügen',
+                type: 'button',
+                group: 'KONFIGURATION',
+                action: 'parallaxAddLayer',
+                style: { backgroundColor: '#2e7d32' }
+            });
+        }
+
+        const layers = Array.isArray(this.layers) ? this.layers : [];
+        layers.forEach((_, i) => {
+            sections.push({
+                id: `parallax_layer_${i}`,
+                label: `Ebene ${i + 1}`,
+                icon: '🖼️',
+                collapsed: false,
+                properties: [
+                    { name: `layers.${i}.image`, label: 'Bild', type: 'image_picker', group: `EBENE ${i + 1}` },
+                    { name: `layers.${i}.speedFactor`, label: 'Geschwindigkeit', type: 'number', step: 0.05, group: `EBENE ${i + 1}` },
+                    { name: `layers.${i}.y`, label: 'Y (%)', type: 'number', step: 1, group: `EBENE ${i + 1}` },
+                    { name: `layers.${i}.height`, label: 'Höhe (%)', type: 'number', step: 1, group: `EBENE ${i + 1}` },
+                    { name: `layers.${i}.objectFit`, label: 'Darstellung', type: 'select', options: ['cover', 'contain', 'fill', 'none'], group: `EBENE ${i + 1}` },
+                    { name: `layers.${i}.opacity`, label: 'Deckkraft', type: 'number', step: 0.05, min: 0, max: 1, group: `EBENE ${i + 1}` },
+                    { name: `removeLayer_${i}`, label: 'Ebene entfernen', type: 'button', group: `EBENE ${i + 1}`, action: 'parallaxRemoveLayer', actionData: { index: i }, style: { backgroundColor: '#662222' } }
+                ]
+            });
+        });
+
+        return sections;
     }
 
     public initRuntime(callbacks: any): void {
