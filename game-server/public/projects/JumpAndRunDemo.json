@@ -42,24 +42,24 @@
       "type": "blueprint",
       "objects": [
         {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
           "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "className": "TStageController",
-          "id": "stage_controller",
-          "name": "StageController",
-          "isService": true,
-          "isHiddenInRun": true,
           "x": 2,
           "y": 2,
           "width": 8,
           "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#9c27b0",
@@ -74,24 +74,24 @@
           "isOnSplashStage": false
         },
         {
+          "className": "TGameLoop",
+          "id": "game_loop",
+          "name": "GameLoop",
           "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "className": "TGameLoop",
-          "id": "game_loop",
-          "name": "GameLoop",
-          "isService": true,
-          "isHiddenInRun": true,
           "x": 2,
           "y": 7,
           "width": 4,
           "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#2196f3",
@@ -104,24 +104,25 @@
           "boundsOffsetBottom": 0
         },
         {
+          "className": "TGameState",
+          "id": "game_state",
+          "name": "GameState",
           "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "className": "TGameState",
-          "id": "game_state",
-          "name": "GameState",
-          "isService": true,
-          "isHiddenInRun": true,
           "x": 7,
           "y": 7,
           "width": 4,
           "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#f44336",
@@ -130,12 +131,45 @@
           },
           "state": "idle",
           "spritesMoving": false,
-          "collisionsEnabled": false
+          "collisionsEnabled": false,
+          "score": 0,
+          "level": 1,
+          "lives": 3,
+          "maxLives": 3
         }
       ],
       "actions": [],
       "tasks": [],
-      "variables": [],
+      "variables": [
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
       "grid": {
         "cols": 64,
         "rows": 40,
@@ -155,169 +189,204 @@
       },
       "objects": [
         {
+          "className": "TParallaxBackground",
+          "id": "bg",
+          "name": "Bg",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "className": "TParallaxBackground",
-          "id": "bg",
-          "name": "Bg",
           "x": 0,
           "y": 0,
           "width": 64,
           "height": 40,
-          "baseSpeed": 4,
-          "repeat": true,
-          "scrollSource": "",
-          "layers": [],
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
           "style": {
-            "backgroundColor": "transparent"
-          }
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "layers": [],
+          "baseSpeed": 4,
+          "scrollSource": "",
+          "repeat": true
         },
         {
+          "className": "TSpeedlines",
+          "id": "speedlines",
+          "name": "Speedlines",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": false,
-          "zIndex": 500,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "className": "TSpeedlines",
-          "id": "speedlines",
-          "name": "Speedlines",
           "x": 0,
           "y": 0,
           "width": 64,
           "height": 40,
+          "zIndex": 500,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
           "lineCount": 16,
           "speed": 0.3,
           "lineColor": "rgba(255,255,255,0.7)",
           "overlayOpacity": 0.1,
           "lineWidth": 2,
-          "lineLength": 120,
-          "style": {
-            "backgroundColor": "transparent"
-          }
+          "lineLength": 120
         },
         {
+          "className": "TPanel",
+          "id": "ground",
+          "name": "Ground",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": true,
-          "className": "TPanel",
-          "id": "ground",
-          "name": "Ground",
           "x": 0,
           "y": 36,
           "width": 64,
           "height": 4,
-          "pushOutOnCollision": true,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "backgroundColor": "#374151",
             "borderColor": "transparent",
             "borderWidth": 0
-          }
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         },
         {
+          "className": "TSprite",
+          "id": "player",
+          "name": "Player",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onCollisionBottom": "PlayerLand"
+          },
           "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": true,
-          "className": "TSprite",
-          "id": "player",
-          "name": "Player",
           "x": 10,
           "y": 34,
           "width": 2,
           "height": 2,
-          "pushOutOnCollision": false,
-          "collisionGroup": "player",
-          "shape": "rect",
-          "spriteColor": "#34d399",
-          "velocityX": 0,
-          "velocityY": 0,
-          "gravity": 28,
-          "lerpSpeed": 0.1,
-          "events": {
-            "onCollisionBottom": "PlayerLand"
-          },
-          "style": {
-            "backgroundColor": "#34d399",
-            "borderColor": "#065f46",
-            "borderWidth": 1
-          }
-        },
-        {
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#34d399",
+            "borderColor": "#065f46",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 28,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#34d399",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
           "className": "TSpriteTemplate",
           "id": "obstacle_template",
           "name": "ObstacleTemplate",
+          "scope": "stage",
           "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "GameOver"
+          },
+          "visible": true,
           "x": 60,
           "y": 30,
           "width": 2,
           "height": 2,
-          "pushOutOnCollision": false,
-          "collisionGroup": "obstacle",
-          "shape": "rect",
-          "spriteColor": "#f87171",
-          "velocityX": -6,
-          "gravity": 0,
-          "lerpSpeed": 0.1,
-          "poolSize": 8,
-          "autoRecycle": true,
-          "lifetime": 0,
-          "events": {
-            "onCollision": "GameOver"
-          },
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
           "style": {
             "backgroundColor": "#f87171",
             "borderColor": "#991b1b",
             "borderWidth": 1
-          }
+          },
+          "velocityX": -6,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "obstacle",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#f87171",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0,
+          "poolSize": 8,
+          "autoRecycle": true,
+          "lifetime": 0
         },
         {
+          "className": "TSpawner",
+          "id": "obstacle_spawner",
+          "name": "ObstacleSpawner",
           "scope": "stage",
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "className": "TSpawner",
-          "id": "obstacle_spawner",
-          "name": "ObstacleSpawner",
           "x": 0,
           "y": 0,
           "width": 4,
           "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#34d399",
+            "backgroundColor": "rgba(16, 185, 129, 0.15)",
+            "borderColor": "rgba(16, 185, 129, 0.6)",
+            "borderWidth": 1
+          },
           "templateName": "ObstacleTemplate",
           "enabled": true,
           "spawnInterval": 1.8,
@@ -327,126 +396,129 @@
           "spawnCountStart": 0,
           "randomizeY": true,
           "recycleOffScreen": true,
-          "velocityX": -6,
-          "isHiddenInRun": true,
-          "style": {
-            "backgroundColor": "rgba(16, 185, 129, 0.15)",
-            "borderColor": "rgba(16, 185, 129, 0.6)",
-            "borderWidth": 1,
-            "color": "#34d399"
-          }
+          "velocityX": -6
         },
         {
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
           "className": "TIntervalTimer",
           "id": "score_timer",
           "name": "ScoreTimer",
+          "scope": "stage",
           "isService": true,
           "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onIntervall": "IncrementScore"
+          },
+          "visible": true,
           "x": 40,
           "y": 2,
           "width": 4,
           "height": 2,
-          "duration": 1000,
-          "count": 0,
-          "enabled": false,
-          "events": {
-            "onIntervall": "IncrementScore"
-          },
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#ff9800",
             "borderColor": "#e65100",
             "borderWidth": 2
-          }
+          },
+          "duration": 1000,
+          "count": 0,
+          "enabled": false
         },
         {
+          "className": "TNumberLabel",
+          "id": "score_label",
+          "name": "ScoreLabel",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "className": "TNumberLabel",
-          "id": "score_label",
-          "name": "ScoreLabel",
           "x": 2,
           "y": 2,
           "width": 6,
           "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "",
           "startValue": 0,
           "value": 0,
           "maxValue": null,
-          "step": 1,
-          "style": {
-            "color": "#ffffff",
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0,
-            "fontSize": 20,
-            "fontWeight": "bold"
-          }
+          "step": 1
         },
         {
+          "className": "TLabel",
+          "id": "gameover_label",
+          "name": "GameOverLabel",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": false,
-          "zIndex": 100,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "className": "TLabel",
-          "id": "gameover_label",
-          "name": "GameOverLabel",
           "x": 24,
           "y": 18,
           "width": 16,
           "height": 4,
-          "text": "GAME OVER - ENTER zum Neustart",
+          "zIndex": 100,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#f87171",
-            "backgroundColor": "rgba(0,0,0,0.5)",
-            "borderColor": "transparent",
-            "borderWidth": 0,
             "fontSize": 20,
             "fontWeight": "bold",
-            "textAlign": "center"
-          }
+            "textAlign": "center",
+            "backgroundColor": "rgba(0,0,0,0.5)",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "GAME OVER - ENTER zum Neustart"
         },
         {
           "className": "TInputController",
           "id": "input_controller",
           "name": "InputController",
+          "scope": "stage",
           "isService": true,
           "isHiddenInRun": true,
-          "x": 0,
-          "y": 0,
-          "width": 7,
-          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
           "events": {
             "onKeyDown_Space": "PlayerJump",
             "onKeyDown_Enter": "RestartGame"
           },
-          "enabled": true,
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
           "style": {
             "color": "#ffffff",
             "backgroundColor": "#9c27b0",
             "borderColor": "#6a1b9a",
             "borderWidth": 2
-          }
+          },
+          "enabled": true
         }
       ],
       "actions": [
@@ -556,7 +628,17 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "flowLayout": {}
+          "flowLayout": {
+            "StartGame": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_StartGame": {
+              "x": 220,
+              "y": 40
+            }
+          },
+          "id": "a7128490-8ed0-45d1-b2dd-bf6b7f7aaf68"
         },
         {
           "name": "PlayerJump",
@@ -570,7 +652,8 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "flowLayout": {}
+          "flowLayout": {},
+          "id": "fc496078-ff24-40d5-a72a-8126dc52cbb8"
         },
         {
           "name": "PlayerLand",
@@ -584,7 +667,17 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "flowLayout": {}
+          "flowLayout": {
+            "PlayerLand": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_PlayerLand": {
+              "x": 220,
+              "y": 40
+            }
+          },
+          "id": "b30c85c6-6675-48b7-909b-380375ab0eed"
         },
         {
           "name": "GameOver",
@@ -608,7 +701,8 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "flowLayout": {}
+          "flowLayout": {},
+          "id": "a9ec355a-099e-477f-84b2-e9f16ac237b2"
         },
         {
           "name": "RestartGame",
@@ -622,7 +716,17 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "flowLayout": {}
+          "flowLayout": {
+            "RestartGame": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_RestartGame": {
+              "x": 220,
+              "y": 40
+            }
+          },
+          "id": "50505af6-a37f-47a4-8a38-3a553e47053e"
         },
         {
           "name": "IncrementScore",
@@ -636,7 +740,8 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "flowLayout": {}
+          "flowLayout": {},
+          "id": "bfa6a298-1f76-4d73-92ca-acd7a82bdb65"
         }
       ],
       "variables": [],
@@ -662,5 +767,10 @@
         "onTouchEnd"
       ]
     }
-  ]
+  ],
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0",
+  "activeStageId": "main"
 }

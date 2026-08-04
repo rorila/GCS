@@ -44,10 +44,11 @@ export class FlowComponent extends FlowElement {
         // Read the pure name from dataset.name to avoid reading accumulated decorated text
         const title = this.content.dataset.name || this.data?.name || 'Component';
         const hasBindings = this.data?.paramValues && Object.keys(this.data.paramValues).length > 0;
+        const details = this.content.dataset.details || '';
 
         if (this.showDetails && hasBindings) {
             // Detail view: show all bindings
-            const details = Object.entries(this.data.paramValues)
+            const bindingDetails = Object.entries(this.data.paramValues)
                 .map(([key, val]) => {
                     const valStr = String(val);
                     const isBound = valStr.startsWith('${');
@@ -61,16 +62,21 @@ export class FlowComponent extends FlowElement {
             this.content.innerHTML = `
                 <div style="text-align:center;padding:8px 4px">
                     <div style="font-weight:bold;font-size:12px">${title}</div>
+                    ${details ? `<div style="font-size:9px;color:#aaa;margin-top:2px">${details}</div>` : ''}
                     <div style="font-family:'Courier New', monospace;font-size:10px;color:#ccc;margin-top:4px;font-weight:normal;line-height:1.2">
-                        ${details}
+                        ${bindingDetails}
                     </div>
                 </div>
             `;
         } else {
             // Concept view: show name with icon indicator if bindings exist
-            this.content.innerHTML = '';
             const bindingIcon = hasBindings ? ' 𝑓' : '';  // Mathematical italic f as icon
-            this.content.innerText = title + bindingIcon;
+            this.content.innerHTML = `
+                <div style="text-align:center;padding:4px">
+                    <div style="font-weight:bold;font-size:12px">${title + bindingIcon}</div>
+                    ${details ? `<div style="font-size:9px;color:#aaa;margin-top:2px">${details}</div>` : ''}
+                </div>
+            `;
             this.content.style.fontWeight = 'bold';
             this.content.style.fontSize = '12px';
             this.content.style.textAlign = 'center';

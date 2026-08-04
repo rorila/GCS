@@ -67,6 +67,10 @@ export class FlowMapManager {
         const eventLinkSpacing = 80;
         const cellSize = this.host.flowStage.cellSize;
 
+        const activeStage = this.host.getActiveStage();
+        const stageName = activeStage?.name || activeStage?.id || 'Global';
+        const stageId = activeStage?.id || 'stage';
+
         const objectsWithTasks = this.host.getCurrentObjects().filter(obj => {
             const tasks = (obj as any).events || (obj as any).Tasks;
             const hasTasks = tasks && Object.values(tasks).some((v: any) => typeof v === 'string' && v.trim() !== '');
@@ -115,12 +119,45 @@ export class FlowMapManager {
             return true;
         });
 
-        // 1. Process Objects
+        // 1. Process Stage (onEnter, onRuntimeStart, etc.)
+        const stageTaskMappings = (activeStage as any)?.events || (activeStage as any)?.Tasks || {};
+        const stageEvents = Object.entries(stageTaskMappings)
+            .filter(([_, taskName]) => typeof taskName === 'string' && taskName.trim() !== '') as [string, string][];
+
+        if (stageEvents.length > 0) {
+            const stageNodeId = `proxy-stage-${stageId}`;
+            const stageNode = new FlowComponent(stageNodeId, startX, currentY, this.host.canvas, cellSize);
+            stageNode.Name = stageName;
+            stageNode.Details = 'Stage';
+            stageNode.autoSize();
+            stageNode.data = {
+                stageObjectId: stageId,
+                isProxy: true,
+                paramValues: {}
+            };
+            stageNode.setShowDetails(false);
+
+            this.host.nodes.push(stageNode);
+            this.host.setupNodeListeners(stageNode);
+
+            stageEvents.forEach(([eventName, taskName], idx) => {
+                const taskY = currentY + (idx * eventLinkSpacing);
+                const taskNode = this.createMapTaskNode(taskName, eventName, taskX, taskY, stageId);
+                this.host.nodes.push(taskNode);
+                this.host.setupNodeListeners(taskNode);
+
+                this.createEventLink(stageNode, taskNode, stageName, eventName);
+            });
+
+            currentY += Math.max(rowHeight, stageEvents.length * eventLinkSpacing + 20);
+        }
+
+        // 2. Process Objects
         objectsWithTasks.forEach(obj => {
             const objNode = new FlowComponent('proxy-' + obj.id, startX, currentY, this.host.canvas, cellSize);
+            objNode.Details = `${stageName} | ${(obj as any).className || 'Object'}`;
             objNode.Name = obj.name;
             objNode.autoSize();
-            objNode.Details = (obj as any).className || 'Object';
 
             const bindings: Record<string, any> = {};
             const gatherBindings = (target: any, prefix = '') => {
