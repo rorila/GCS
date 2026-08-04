@@ -709,12 +709,15 @@ export class InspectorRenderer {
                         // Standard JSON-Feld (für NICHT-property Actions)
                         // ═══════════════════════════════════════════════════
                         let displayValue = '';
-                        if (typeof currentValue === 'object' && currentValue !== null) {
+                        if (Array.isArray(currentValue)) {
+                            displayValue = JSON.stringify(currentValue);
+                        } else if (typeof currentValue === 'object' && currentValue !== null) {
                             const keys = Object.keys(currentValue);
                             if (keys.length > 0) {
                                 displayValue = keys.map(k => {
                                     const val = currentValue[k];
                                     if (typeof val === 'string') return `${k} := '${val}'`;
+                                    if (typeof val === 'object' && val !== null) return `${k} := ${JSON.stringify(val)}`;
                                     return `${k} := ${val}`;
                                 }).join(', ');
                             } else {
@@ -728,7 +731,7 @@ export class InspectorRenderer {
                         edit.onchange = () => {
                             let val: any = edit.value;
                             try {
-                                if (val.trim().startsWith('{')) {
+                                if (val.trim().startsWith('{') || val.trim().startsWith('[')) {
                                     val = JSON.parse(val);
                                 } else if (val.includes(':=')) {
                                     const parts = val.split(',').map((p: string) => p.trim());
