@@ -135,7 +135,7 @@ export class PropertyWatcher {
         const objName = target.name || target.id || 'Unknown';
 
         // List of internal properties that are not relevant for the user workflow
-        const INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className', 'timerId', 'onTimerCallback', 'interval']);
+        const INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className', 'timerId', 'onTimerCallback', 'interval', 'runtimeCallbacks', 'onEventCallback']);
 
         // HIGH-FREQUENCY sprite properties: updated 60x/sec by game loop, logging them
         // floods the debug output and blocks the main thread (exponential log growth!)
@@ -156,8 +156,16 @@ export class PropertyWatcher {
             const isHighFreqAnimSpam = HIGH_FREQ_ANIM_PROPS.has(propertyPath) && oldValue !== undefined;
 
             if (!isInternal && !isHighFreqSprite && !isHighFreqAnimSpam) {
-                const displayNew = typeof newValue === 'object' ? JSON.stringify(newValue)?.substring(0, 50) : newValue;
-                const displayOld = typeof oldValue === 'object' ? JSON.stringify(oldValue)?.substring(0, 50) : oldValue;
+                const safeStringify = (v: any): string | undefined => {
+                    if (typeof v !== 'object' || v === null) return v;
+                    try {
+                        return JSON.stringify(v)?.substring(0, 50);
+                    } catch {
+                        return '[Circular]';
+                    }
+                };
+                const displayNew = safeStringify(newValue);
+                const displayOld = safeStringify(oldValue);
 
                 DebugLogService.getInstance().log('Variable',
                     `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
