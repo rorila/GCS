@@ -215,7 +215,7 @@ export class ExpressionParser {
             case 'Literal':
                 return node.value;
             
-            case 'Identifier':
+            case 'Identifier': {
                 // Allowed safe globals
                 if (node.name === 'Math') return Math;
                 if (node.name === 'Number') return Number;
@@ -228,7 +228,8 @@ export class ExpressionParser {
                 const val = context[node.name];
                 return PropertyHelper.resolveValue(val);
 
-            case 'MemberExpression':
+            }
+            case 'MemberExpression': {
                 // FIX: For member access, we need the RAW object (not resolveValue'd).
                 // Otherwise TVariable.value gets pre-resolved to a primitive,
                 // and then obj["value"] on a number/string returns undefined -> NaN.
@@ -255,10 +256,11 @@ export class ExpressionParser {
                 const result = obj[propName];
                 return PropertyHelper.resolveValue(result);
 
-            case 'CallExpression':
+            }
+            case 'CallExpression': {
                 const callee = node.callee;
                 let calleeObj: any = null;
-                let calleeFunc: Function;
+                let calleeFunc: (...args: any[]) => any;
                 let funcNameStr = '';
 
                 if (callee.type === 'Identifier') {
@@ -320,7 +322,8 @@ export class ExpressionParser {
                 const args = node.arguments.map((arg: any) => this.evaluateAST(arg, context, allowedCalls));
                 return calleeFunc.apply(calleeObj, args);
 
-            case 'BinaryExpression':
+            }
+            case 'BinaryExpression': {
                 const left = this.evaluateAST(node.left, context, allowedCalls);
                 // Kurzschluss-Auswertung (Short-circuiting) für logische Operatoren in BinaryExpression (jsep legacy)
                 if (node.operator === '&&') return left && this.evaluateAST(node.right, context, allowedCalls);
@@ -344,13 +347,15 @@ export class ExpressionParser {
                     default: return undefined;
                 }
 
-            case 'LogicalExpression':
+            }
+            case 'LogicalExpression': {
                 const lLogical = this.evaluateAST(node.left, context, allowedCalls);
                 if (node.operator === '&&') return lLogical && this.evaluateAST(node.right, context, allowedCalls);
                 if (node.operator === '||') return lLogical || this.evaluateAST(node.right, context, allowedCalls);
                 return undefined;
 
-            case 'UnaryExpression':
+            }
+            case 'UnaryExpression': {
                 const arg = this.evaluateAST(node.argument, context, allowedCalls);
                 switch (node.operator) {
                     case '!': return !arg;
@@ -360,14 +365,16 @@ export class ExpressionParser {
                     case 'typeof': return typeof arg;
                     default: return undefined;
                 }
+            }
 
             case 'ArrayExpression':
                 return node.elements.map((el: any) => this.evaluateAST(el, context, allowedCalls));
 
-            case 'ConditionalExpression':
+            case 'ConditionalExpression': {
                 const test = this.evaluateAST(node.test, context, allowedCalls);
                 return test ? this.evaluateAST(node.consequent, context, allowedCalls) : this.evaluateAST(node.alternate, context, allowedCalls);
 
+            }
             default:
                 throw new Error(`Unsupported expression type: ${node.type}`);
         }

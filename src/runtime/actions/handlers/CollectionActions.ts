@@ -334,7 +334,7 @@ export function registerCollectionActions() {
             if (typeof item === 'object' && typeof value === 'object') {
                 return JSON.stringify(item) === JSON.stringify(value);
             }
-            // eslint-disable-next-line eqeqeq
+             
             return item == value;  // Loose comparison for string/number compat
         });
 

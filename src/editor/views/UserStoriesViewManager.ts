@@ -71,9 +71,10 @@ export class UserStoriesViewManager {
         stories = [...stories].sort((a: any, b: any) => {
             switch (sortOption) {
                 case 'title': return (a.title || '').localeCompare(b.title || '');
-                case 'priority': 
+                case 'priority': { 
                     const pMap: Record<string, number> = { high: 3, medium: 2, low: 1 };
                     return (pMap[b.priority || 'low'] || 0) - (pMap[a.priority || 'low'] || 0);
+                }
                 case 'status': return (a.status || '').localeCompare(b.status || '');
                 case 'updated': return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
                 default: return 0;

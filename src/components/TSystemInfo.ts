@@ -82,7 +82,7 @@ export class TSystemInfo extends TComponent {
 
     private detectBrowserVersion(): string {
         const ua = navigator.userAgent;
-        const match = ua.match(/(Firefox|Edg|Chrome|Safari|OPR|Opera)[\/\s](\d+(\.\d+)?)/);
+        const match = ua.match(/(Firefox|Edg|Chrome|Safari|OPR|Opera)[/\s](\d+(\.\d+)?)/);
         return match ? match[2] : 'Unknown';
     }
 

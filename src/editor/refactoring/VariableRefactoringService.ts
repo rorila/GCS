@@ -127,7 +127,7 @@ export class VariableRefactoringService {
      */
     public static getVariableUsageReport(project: GameProject, varName: string): UsageReport {
         const report: UsageReport = { totalCount: 0, locations: [] };
-        const searchPattern = new RegExp(`\\$?\{?${varName}\}?`, 'g');
+        const searchPattern = new RegExp(`\\$?{?${varName}}?`, 'g');
 
         const scan = (obj: any, type: any, name: string) => {
             if (!obj) return;

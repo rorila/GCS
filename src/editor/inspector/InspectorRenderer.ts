@@ -1247,6 +1247,7 @@ export class InspectorRenderer {
         if (prop.source === 'dataStoreFields') {
             // Felder des gewählten DataStores dynamisch auflösen
             try {
+                // eslint-disable-next-line @typescript-eslint/no-require-imports
                 const { dataService } = require('../../services/DataService');
                 const allObjects = projectObjectRegistry.getObjects();
                 // Den DataStore-Namen vom aktuell selektierten Objekt lesen

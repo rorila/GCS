@@ -31,7 +31,7 @@ export class MediatorService {
     private refactoringLogger = Logger.get('Mediator', 'Flow_Synchronization');
     private static instance: MediatorService;
     private transientManagers: Map<string, TObjectList[]> = new Map();
-    private eventListeners: Map<string, Function[]> = new Map();
+    private eventListeners: Map<string, ((...args: any[]) => any)[]> = new Map();
     private debounceTimers: Map<string, any> = new Map();
 
     private constructor() { }
@@ -72,7 +72,7 @@ export class MediatorService {
     /**
      * Registriert einen Listener für ein bestimmtes Event.
      */
-    public on(event: string, callback: Function): void {
+    public on(event: string, callback: (...args: any[]) => any): void {
         if (!this.eventListeners.has(event)) {
             this.eventListeners.set(event, []);
         }
@@ -82,7 +82,7 @@ export class MediatorService {
     /**
      * Entfernt einen Listener.
      */
-    public off(event: string, callback: Function): void {
+    public off(event: string, callback: (...args: any[]) => any): void {
         if (!this.eventListeners.has(event)) return;
         const listeners = this.eventListeners.get(event)!;
         const index = listeners.indexOf(callback);

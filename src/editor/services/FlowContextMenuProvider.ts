@@ -132,7 +132,8 @@ export class FlowContextMenuProvider {
             const dsName = state.collectedData.dataStore;
             if (dsName) {
                 try {
-                    const { dataService } = require('../../services/DataService');
+                // eslint-disable-next-line @typescript-eslint/no-require-imports
+                const { dataService } = require('../../services/DataService');
                     const allObjects = projectObjectRegistry.getObjects();
                     const dsObj = allObjects.find(o => o.name === dsName || o.id === dsName);
                     const collection = (dsObj as any)?.defaultCollection || '';

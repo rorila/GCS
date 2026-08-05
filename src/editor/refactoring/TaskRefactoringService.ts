@@ -169,7 +169,7 @@ export class TaskRefactoringService {
             });
         }
 
-        const searchPattern = new RegExp(`\\$?\{?${taskName}\}?`, 'g');
+        const searchPattern = new RegExp(`\\$?{?${taskName}}?`, 'g');
         const scanInterpolation = (obj: any, type: any, name: string) => {
             if (!obj) return;
             const str = JSON.stringify(obj);

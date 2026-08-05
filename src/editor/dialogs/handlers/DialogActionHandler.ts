@@ -53,7 +53,7 @@ export class DialogActionHandler {
                 this.toggleVariable(ctx, actionData.variableName);
                 break;
 
-            case 'changeActionType':
+            case 'changeActionType': {
                 const typeVal = ctx.getInputValue('ActionTypeSelect');
                 if (typeVal) {
                     ctx.updateModelValue('ActionTypeSelect', typeVal);
@@ -61,6 +61,7 @@ export class DialogActionHandler {
                 ctx.render();
                 break;
 
+            }
             case 'addPropertyChange':
                 this.addPropertyChange(ctx);
                 break;

@@ -109,7 +109,7 @@ export class EditorMenuManager {
         switch (action) {
             case 'new-project': this.host.newProject(); break;
             case 'new-project-direct': this.host.newProjectDirect(); break;
-            case 'project-properties':
+            case 'project-properties': {
                 const editorVM = (this.host as any).viewManager;
                 if (editorVM && typeof editorVM.showEditProjectPropertiesDialog === 'function') {
                     editorVM.showEditProjectPropertiesDialog();
@@ -117,6 +117,7 @@ export class EditorMenuManager {
                     NotificationToast.show('Projekt-Eigenschaften-Dialog nicht verfügbar.', 'error');
                 }
                 break;
+            }
             case 'save': this.host.saveProjectToFile(); break;
             case 'save-as': this.host.saveProjectAs(); break;
             case 'save-dev': this.host.saveProject(); break;
@@ -140,11 +141,12 @@ export class EditorMenuManager {
                 (script, options) => this.replaceProjectWithAgentScript(script, options)
             ); break;
             case 'export-exe': NotificationToast.show('Exe-Export ist für eine zukünftige Version geplant.', 'info'); break;
-            case 'multiplayer':
+            case 'multiplayer': {
                 const lobby = document.getElementById('multiplayer-lobby');
                 if (lobby) lobby.style.display = 'flex';
                 break;
-            case 'new-stage':
+            }
+            case 'new-stage': {
                 EditorMenuManager.logger.info('[Menu] new-stage geklickt → createStageFromWizard');
                 const editor: any = this.host as any;
                 if (typeof editor.createStageFromWizard === 'function') {
@@ -165,7 +167,8 @@ export class EditorMenuManager {
                     }
                 }
                 break;
-            case 'new-splash':
+            }
+            case 'new-splash': {
                 this.host.createStage('splash');
                 this.host.selectObject(null);
                 if (this.host.inspector) {
@@ -173,6 +176,7 @@ export class EditorMenuManager {
                     if (ss) this.host.inspector.update(ss);
                 }
                 break;
+            }
             case 'new-from-template': this.host.createStageFromTemplate(); break;
             case 'save-as-template': this.host.saveStageAsTemplate(); break;
             case 'import-stage': this.host.importStageFromFile(); break;
@@ -189,13 +193,14 @@ export class EditorMenuManager {
                     (this.host as any).stageManager.moveStage(this.host.project.activeStageId, 'down');
                 break;
             case 'show-excluded': this.showExcludedBlueprintDialog(); break;
-            case 'stage-settings':
+            case 'stage-settings': {
                 this.host.selectObject(null);
                 if (this.host.inspector) {
                     const activeStage = this.host.getActiveStage();
                     if (activeStage) this.host.inspector.update(activeStage);
                 }
                 break;
+            }
             case 'force-reload': this.host.loadFromServer(); break;
             case 'seed-data':
                 ConfirmDialog.show('Achtung: Dies überschreibt lokale Test-Daten (gcs_db_data.json) mit den Server-Daten. Fortfahren?').then(confirmed => {
@@ -211,7 +216,7 @@ export class EditorMenuManager {
                     });
                 });
                 break;
-            default:
+            default: {
                 const normalizedAction = action.replace(/\s+/g, '');
                 if (normalizedAction.startsWith('switch-stage-')) {
                     const stageId = normalizedAction.replace('switch-stage-', '');
@@ -219,6 +224,7 @@ export class EditorMenuManager {
                 } else {
                     this.handleRecordingAction(action);
                 }
+            }
         }
     }
 
@@ -278,7 +284,7 @@ export class EditorMenuManager {
                     if (name) changeRecorder.startRecording(name);
                 });
                 break;
-            case 'record-stop':
+            case 'record-stop': {
                 const recording = changeRecorder.stopRecording();
                 if (recording) {
                     NotificationToast.show(`Recording "${recording.name}" gestoppt. ${recording.actions.length} Aktionen aufgezeichnet.`);
@@ -286,10 +292,11 @@ export class EditorMenuManager {
                     this.host.playbackControls?.show();
                 }
                 break;
+            }
             case 'playback-show':
                 this.host.playbackControls?.show();
                 break;
-            case 'recording-export':
+            case 'recording-export': {
                 const currentRec = (playbackEngine as any).currentRecording;
                 if (currentRec) {
                     const json = JSON.stringify(currentRec, null, 2);
@@ -304,7 +311,8 @@ export class EditorMenuManager {
                     NotificationToast.show('Kein Recording zum Exportieren vorhanden.');
                 }
                 break;
-            case 'recording-import':
+            }
+            case 'recording-import': {
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = '.gcsrec, .json';
@@ -327,6 +335,7 @@ export class EditorMenuManager {
                 };
                 input.click();
                 break;
+            }
             default:
                 EditorMenuManager.logger.warn('Unknown menu action:', action);
         }

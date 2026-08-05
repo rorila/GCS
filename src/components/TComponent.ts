@@ -305,6 +305,7 @@ export abstract class TComponent implements IInspectable {
         if (!path.includes('.')) return (this as any)[path];
 
         const parts = path.split('.');
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         let current: any = this;
         for (const part of parts) {
             if (current === undefined || current === null) return undefined;

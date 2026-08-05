@@ -374,8 +374,8 @@ primary_region = "fra"
         // S-01: </script>-Sequenzen escapen um HTML-Injection zu verhindern
         // (gilt auch bei type="application/json", da der HTML-Parser trotzdem </script> erkennt)
         const projectJSON = JSON.stringify(project, null, 2)
-            .replace(/<\/script>/gi, '<\/script>')
-            .replace(/<!--/g, '<\!--');
+            .replace(/<\/script>/gi, '</script>')
+            .replace(/<!--/g, '<!--');
         const mainStage = project.stages?.find((s: any) => s.type === 'main') || project.stages?.[0] || project.stage;
         const gridConfig = mainStage?.grid || { cols: 20, rows: 15, cellSize: 32, backgroundColor: '#ffffff' };
         const stageWidth = gridConfig.cols * gridConfig.cellSize;

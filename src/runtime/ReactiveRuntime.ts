@@ -269,48 +269,46 @@ export class ReactiveRuntime {
     public getContext(): Record<string, any> {
         if (this._contextCache) return this._contextCache;
 
-        const self = this;
-
         // Root context Proxy
         const context = new Proxy({}, {
             get: (_target, prop: string) => {
                 // SPECIAL: Namespaces
                 // SPECIAL: Namespaces
                 if (prop === 'global') {
-                    if (!self._globalProxyCache) {
-                        self._globalProxyCache = new Proxy({}, {
+                    if (!this._globalProxyCache) {
+                        this._globalProxyCache = new Proxy({}, {
                             get: (_t, subProp: string) => {
-                                const obj = self.objectsByName.get(subProp);
+                                const obj = this.objectsByName.get(subProp);
                                 if (obj && obj.scope === 'global') return obj;
-                                return self.variables.get(subProp);
+                                return this.variables.get(subProp);
                             },
-                            has: (_t, subProp: string) => self.objectsByName.has(subProp) || self.variables.has(subProp),
-                            ownKeys: () => Array.from(new Set([...self.objectsByName.keys(), ...self.variables.keys()])),
+                            has: (_t, subProp: string) => this.objectsByName.has(subProp) || this.variables.has(subProp),
+                            ownKeys: () => Array.from(new Set([...this.objectsByName.keys(), ...this.variables.keys()])),
                             getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
                         });
                     }
-                    return self._globalProxyCache;
+                    return this._globalProxyCache;
                 }
                 
                 if (prop === 'stage') {
-                    if (!self._stageProxyCache) {
-                        self._stageProxyCache = new Proxy({}, {
+                    if (!this._stageProxyCache) {
+                        this._stageProxyCache = new Proxy({}, {
                             get: (_t, subProp: string) => {
-                                const obj = self.objectsByName.get(subProp);
+                                const obj = this.objectsByName.get(subProp);
                                 if (obj && obj.scope === 'stage') return obj;
-                                return self.variables.get(subProp);
+                                return this.variables.get(subProp);
                             },
-                            has: (_t, subProp: string) => self.objectsByName.has(subProp) || self.variables.has(subProp),
-                            ownKeys: () => Array.from(new Set([...self.objectsByName.keys(), ...self.variables.keys()])),
+                            has: (_t, subProp: string) => this.objectsByName.has(subProp) || this.variables.has(subProp),
+                            ownKeys: () => Array.from(new Set([...this.objectsByName.keys(), ...this.variables.keys()])),
                             getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
                         });
                     }
-                    return self._stageProxyCache;
+                    return this._stageProxyCache;
                 }
 
                 // Normal access (Root)
                 // Priority 1: Registered Object (Proxy/Component)
-                const obj = self.objectsByName.get(prop);
+                const obj = this.objectsByName.get(prop);
                 if (obj !== undefined) {
                     // CRITICAL FIX: TTimer und TIntervalTimer sind Service-Komponenten,
                     // KEINE Datenvariablen! Auch wenn isVariable=true gesetzt ist (Legacy),
@@ -321,7 +319,7 @@ export class ReactiveRuntime {
                         && !TIMER_CLASSES.has(obj.className);
 
                     if (isRealVariable) {
-                        const varValue = self.variables.get(prop);
+                        const varValue = this.variables.get(prop);
                         // IMMER den echten Component-Wert für TStringMap nutzen (dies umgeht den Empty-Proxy-Bug völlig!)
                         if (obj.className === 'TStringMap' && obj.value !== undefined) {
                             return obj.value;
@@ -338,17 +336,17 @@ export class ReactiveRuntime {
                 }
 
                 // Priority 2: Variable Value
-                const variable = self.variables.get(prop);
+                const variable = this.variables.get(prop);
                 if (variable !== undefined) return variable;
 
                 // Priority 3: ID lookup
-                return self.objectsById.get(prop);
+                return this.objectsById.get(prop);
             },
             has: (_target, prop: string) => {
-                return prop === 'global' || prop === 'stage' || self.objectsByName.has(prop) || self.variables.has(prop) || self.objectsById.has(prop);
+                return prop === 'global' || prop === 'stage' || this.objectsByName.has(prop) || this.variables.has(prop) || this.objectsById.has(prop);
             },
             ownKeys: () => {
-                const keys = new Set(['global', 'stage', ...self.objectsByName.keys(), ...self.variables.keys(), ...self.objectsById.keys()]);
+                const keys = new Set(['global', 'stage', ...this.objectsByName.keys(), ...this.variables.keys(), ...this.objectsById.keys()]);
                 return Array.from(keys);
             },
             getOwnPropertyDescriptor: (_target, _unused) => {

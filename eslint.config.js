@@ -221,12 +221,12 @@ export default [
       // Graduell anzugehen:
       '@typescript-eslint/no-explicit-any': 'off',
       'no-console': 'error',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { varsIgnorePattern: '^_', argsIgnorePattern: '^_', caughtErrors: 'none' }],
       // Stilistische/syntaktische Warnungen:
       'no-case-declarations': 'warn',
       '@typescript-eslint/no-this-alias': 'warn',
       '@typescript-eslint/no-unsafe-function-type': 'warn',
-      'no-empty': 'warn',
+      'no-empty': ['warn', { allowEmptyCatch: true }],
       'no-useless-escape': 'warn',
       '@typescript-eslint/ban-ts-comment': 'warn',
       'no-prototype-builtins': 'warn',

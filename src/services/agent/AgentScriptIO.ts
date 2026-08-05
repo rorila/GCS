@@ -635,7 +635,9 @@ export class AgentScriptIO {
 
     private assetExists(assetPath: string, projectRoot?: string): boolean {
         try {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
             const fs = require('fs');
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
             const path = require('path');
             if (fs.existsSync(assetPath)) return true;
             if (projectRoot) {

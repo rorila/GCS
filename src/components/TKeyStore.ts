@@ -38,7 +38,7 @@ export class TKeyStore extends TWindow {
      * @returns true bei Erfolg, false wenn Schlüssel bereits existiert
      */
     public create(key: string, data: any): boolean {
-        if (this.items.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(this.items, key)) {
             return false; // Schlüssel existiert bereits
         }
         this.items[key] = data;
@@ -75,7 +75,7 @@ export class TKeyStore extends TWindow {
      * @returns true bei Erfolg, false wenn Schlüssel nicht existiert
      */
     public update(key: string, data: any): boolean {
-        if (!this.items.hasOwnProperty(key)) {
+        if (!Object.prototype.hasOwnProperty.call(this.items, key)) {
             this.fireEvent('onNotFound', { key });
             return false;
         }
@@ -94,7 +94,7 @@ export class TKeyStore extends TWindow {
      * Erstellt oder aktualisiert einen Eintrag (Upsert)
      */
     public set(key: string, data: any): void {
-        const exists = this.items.hasOwnProperty(key);
+        const exists = Object.prototype.hasOwnProperty.call(this.items, key);
         this.items[key] = data;
         if (exists) {
             this.fireEvent('onItemUpdated', { key, newData: data });
@@ -109,7 +109,7 @@ export class TKeyStore extends TWindow {
      * @returns true bei Erfolg, false wenn Schlüssel nicht existiert
      */
     public delete(key: string): boolean {
-        if (!this.items.hasOwnProperty(key)) {
+        if (!Object.prototype.hasOwnProperty.call(this.items, key)) {
             this.fireEvent('onNotFound', { key });
             return false;
         }
@@ -157,7 +157,7 @@ export class TKeyStore extends TWindow {
      * Prüft ob ein Schlüssel existiert
      */
     public has(key: string): boolean {
-        return this.items.hasOwnProperty(key);
+        return Object.prototype.hasOwnProperty.call(this.items, key);
     }
 
     /**

@@ -108,11 +108,12 @@ export class DataService {
                             if (itemValue != queryValue) return false;
                         }
                         break;
-                    case 'IN':
+                    case 'IN': {
                         // Wert-Menge (Wert ist einer von...)
                         const set = String(queryValue).split(',').map(s => s.trim());
                         if (!set.includes(String(itemValue))) return false;
                         break;
+                    }
                     case '==':
                     default:
                         // Case 1: Loose equality (covering string/number/null)

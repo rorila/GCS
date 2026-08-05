@@ -153,7 +153,7 @@ ${taskBlock}
         return lines.join('\n');
     }
 
-    private parsePlan(raw: string): AIImplementationPlan { // eslint-disable-line
+    private parsePlan(raw: string): AIImplementationPlan {  
         const cleaned = raw
             .trim()
             .replace(/^```json\s*/i, '')

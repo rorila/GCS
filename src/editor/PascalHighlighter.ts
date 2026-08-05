@@ -18,7 +18,7 @@ export class PascalHighlighter {
             { name: 'keyword', regex: new RegExp(`\\b(${this.KEYWORDS.join('|')})\\b`, 'gi'), color: '#c586c0' },
             { name: 'type', regex: new RegExp(`\\b(${this.TYPES.join('|')})\\b`, 'gi'), color: '#4ec9b0' },
             { name: 'number', regex: /\b\d+(\.\d+)?\b/g, color: '#b5cea8' },
-            { name: 'procedure', regex: /\b([a-z_][a-z0-9_]*)(?=\s*[;(\.])/gi, color: '#dcdcaa' },
+            { name: 'procedure', regex: /\b([a-z_][a-z0-9_]*)(?=\s*[;(.)])/gi, color: '#dcdcaa' },
             { name: 'variable', regex: /\b([a-z_][a-z0-9_]*)(?=\s*:)/gi, color: '#9cdcfe' }
         ];
 

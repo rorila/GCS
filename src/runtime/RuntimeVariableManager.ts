@@ -265,6 +265,7 @@ export class RuntimeVariableManager {
                     if (prop.includes('.')) {
                         const propPath = prop.split('.').slice(1).join('.');
                         try {
+                            // eslint-disable-next-line @typescript-eslint/no-require-imports
                             const ExpressionParser = require('./ExpressionParser').ExpressionParser;
                             ExpressionParser.setNestedProperty(propPath, finalValue, component);
                             componentUpdated = true;

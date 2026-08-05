@@ -352,19 +352,6 @@ export class JSONMultiplayerLobby {
                 break;
             case 'ready':
                 network.ready();
-                if (this.config) {
-                    this.statusText = this.config.messages.waitingForReady;
-                }
-                this.render();
-                break;
-            default:
-                // Try custom action handler
-                const handler = this.actions.get(actionName);
-                if (handler) {
-                    handler();
-                } else {
-                    logger.warn('[JSONMultiplayerLobby] Unknown action:', actionName);
-                }
         }
     }
 }

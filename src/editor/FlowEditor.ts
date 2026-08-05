@@ -283,6 +283,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.stateManager = new FlowStateManager();
         this.stateManager.loadShowDetailsFromStorage();
 
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const thisRef = this;
         this.selectionManager = new FlowSelectionManager({
             stateManager: this.stateManager,

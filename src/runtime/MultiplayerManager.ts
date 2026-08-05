@@ -253,7 +253,7 @@ export class MultiplayerManager {
                 if (this.onRoomCreated) this.onRoomCreated(msg);
                 break;
 
-            case 'room_joined':
+            case 'room_joined': {
                 // Check if this is a rejoin (we already had a room code)
                 const isRejoin = this.roomCode !== null && this.roomCode === msg.roomCode;
 
@@ -269,6 +269,7 @@ export class MultiplayerManager {
                 }
                 break;
 
+            }
             case 'player_joined':
                 if (this.onPlayerJoined) this.onPlayerJoined(msg);
                 this.ready();

@@ -237,7 +237,7 @@ export class TStage extends TWindow {
                 return { x: stageWidth / 2, y: stageHeight + outsideMargin };
             case 'BottomRight':
                 return { x: stageWidth + outsideMargin, y: stageHeight + outsideMargin };
-            case 'ChaosIn':
+            case 'ChaosIn': {
                 // Zufällige Position außerhalb der Bühne
                 const angle = Math.random() * Math.PI * 2;
                 const distance = Math.max(stageWidth, stageHeight) + outsideMargin;
@@ -245,17 +245,19 @@ export class TStage extends TWindow {
                     x: stageWidth / 2 + Math.cos(angle) * distance,
                     y: stageHeight / 2 + Math.sin(angle) * distance
                 };
+            }
             case 'ChaosOut':
                 // Alle starten in der Mitte
                 return { x: stageWidth / 2, y: stageHeight / 2 };
             case 'Matrix':
                 // Objekte kommen von oben, versetzt nach Index
                 return { x: targetX, y: -outsideMargin - (index * 20) };
-            case 'Random':
+            case 'Random': {
                 // Zufälliges Muster auswählen (ohne Random und Matrix)
                 const simplePatterns = ['UpLeft', 'UpMiddle', 'UpRight', 'Left', 'Right', 'BottomLeft', 'BottomMiddle', 'BottomRight'];
                 const randomPattern = simplePatterns[Math.floor(Math.random() * simplePatterns.length)];
                 return this.getPatternStartPosition(randomPattern, targetX, targetY, index);
+            }
             default:
                 return { x: 0, y: 0 };
         }

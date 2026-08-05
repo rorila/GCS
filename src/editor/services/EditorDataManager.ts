@@ -351,7 +351,7 @@ export class EditorDataManager {
                 this.currentSavePath = combinedPath.replace(/\\/g, '/');
                 this.currentFileHandle = newHandle;
                 
-                const fileBaseName = (newPath?.replace(/^.*[\\\/]/, '') || newHandle?.name || '').replace('.json', '');
+                const fileBaseName = (newPath?.replace(/^.*[\\/]/, '') || newHandle?.name || '').replace('.json', '');
                 if (!this.host.project.meta) (this.host.project as any).meta = {};
                 (this.host.project.meta as any).name = fileBaseName;
                 (this.host.project.meta as any)._sourcePath = this.currentSavePath;

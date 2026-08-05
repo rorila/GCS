@@ -86,7 +86,9 @@ export function loadComponentSchemasSync(basePath: string = './docs/'): any {
     // Im Node.js-Kontext: fs.readFileSync nutzen
     // Wird in Tests verwendet
     try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const fs = require('fs');
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const path = require('path');
 
         const baseSchemaPath = path.resolve(basePath, 'schemas/schema_base.json');
