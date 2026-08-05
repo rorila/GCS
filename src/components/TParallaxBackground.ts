@@ -17,6 +17,7 @@ export interface ParallaxLayer {
     opacity?: number;
 }
 
+
 export class TParallaxBackground extends TWindow {
     public layers: ParallaxLayer[] = [];
     public baseSpeed: number = 2;
@@ -29,8 +30,11 @@ export class TParallaxBackground extends TWindow {
     private cellSize: number = 20;
     private runMode: boolean = false;
     private scrollX: number = 0;
-    private layerEls: { container: HTMLElement; layer: ParallaxLayer }[] = [];
+    private layerEls: { container: HTMLElement; layer: ParallaxLayer; tileWidth?: number }[] = [];
     private runtimeCallbacks: any = null;
+    private building: boolean = false;
+    private designBuilt: boolean = false;
+    private lastDesignLayersJson: string = '';
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
@@ -133,6 +137,7 @@ export class TParallaxBackground extends TWindow {
         const source = this.scrollSource.trim();
         const vars = this.runtimeCallbacks?.contextVars || {};
 
+
         // Binding-Syntax ${varName}
         if (source.startsWith('${') && source.endsWith('}')) {
             const varName = source.slice(2, -1).trim();
@@ -149,11 +154,25 @@ export class TParallaxBackground extends TWindow {
      * Wird vom StageRenderer aufgerufen, sobald das DOM-Element bereitsteht.
      */
     public setElement(el: HTMLElement, cellSize: number, runMode: boolean): void {
+        const isSameElement = this.element === el;
+        const layersJson = JSON.stringify(this.layers);
+
+        if (isSameElement && !runMode && this.designBuilt && this.lastDesignLayersJson === layersJson) {
+            return;
+        }
+
         this.element = el;
         this.cellSize = cellSize;
         this.runMode = runMode;
+        this.lastDesignLayersJson = layersJson;
+        this.designBuilt = false;
         el.style.overflow = 'hidden';
         el.style.pointerEvents = 'none';
+
+        if (isSameElement && runMode && (this.building || this.layerEls.length > 0)) {
+            if (!this.building) this.updateLayerTransforms();
+            return;
+        }
 
         if (runMode) {
             this.buildRunLayers();
@@ -163,19 +182,29 @@ export class TParallaxBackground extends TWindow {
     }
 
     private buildDesignPlaceholder(): void {
-        if (!this.element) return;
+        if (!this.element) {  return; }
+        this.building = false;
+        this.layerEls = [];
         const el = this.element;
         el.innerHTML = '';
-        el.style.background = this.style?.backgroundColor || 'rgba(30, 41, 59, 0.3)';
+        el.style.background = this.style?.backgroundColor || 'rgba(30, 41, 59, 0.85)';
         el.style.display = 'flex';
         el.style.alignItems = 'center';
         el.style.justifyContent = 'center';
+
+        const previewRoot = document.createElement('div');
+        previewRoot.style.position = 'absolute';
+        previewRoot.style.inset = '0';
+        previewRoot.style.pointerEvents = 'none';
+        previewRoot.style.overflow = 'hidden';
+        el.appendChild(previewRoot);
 
         const wrapper = document.createElement('div');
         wrapper.style.textAlign = 'center';
         wrapper.style.color = '#cbd5e1';
         wrapper.style.fontSize = '14px';
         wrapper.style.fontFamily = 'sans-serif';
+        wrapper.style.textShadow = '0 1px 4px rgba(0, 0, 0, 0.9)';
 
         const title = document.createElement('div');
         title.textContent = 'Parallax-Hintergrund';
@@ -206,73 +235,128 @@ export class TParallaxBackground extends TWindow {
         wrapper.appendChild(barContainer);
 
         el.appendChild(wrapper);
+        this.designBuilt = true;
+
+        const layers = Array.isArray(this.layers) ? this.layers : [];
+        if (layers.length === 0) {  return; }
+
+        Promise.all(layers.map(layer => this.loadLayerImage(layer))).then(loaded => {
+            if (!this.element || this.runMode) {  return; }
+            loaded.forEach((result, index) => {
+                if (!result) {  return; }
+                const layer = layers[index];
+                const img = this.createLayerImage(layer, result.src);
+                img.style.position = 'absolute';
+                img.style.top = `${layer.y ?? 0}%`;
+                img.style.left = '0';
+                img.style.width = '100%';
+                img.style.height = `${layer.height ?? 100}%`;
+                img.style.objectFit = layer.objectFit || 'cover';
+                img.style.opacity = String(layer.opacity ?? 1);
+                previewRoot.appendChild(img);
+            });
+        });
     }
 
     private buildRunLayers(): void {
-        if (!this.element) return;
+        if (this.building) {  return; }
+        if (!this.element) {  return; }
         const el = this.element;
+        if (el.clientWidth <= 0 || el.clientHeight <= 0) {  return; }
+
+        this.building = true;
         el.innerHTML = '';
         el.style.background = 'transparent';
         this.layerEls = [];
 
         const layers = Array.isArray(this.layers) ? this.layers : [];
-        if (layers.length === 0) return;
+        if (layers.length === 0) {  this.building = false; return; }
 
-        layers.forEach((layer, index) => {
-            const container = document.createElement('div');
-            container.className = `parallax-layer parallax-layer-${index}`;
-            container.style.position = 'absolute';
-            container.style.top = `${layer.y ?? 0}%`;
-            container.style.left = '0';
-            container.style.width = '200%';
-            container.style.height = `${layer.height ?? 100}%`;
-            container.style.overflow = 'hidden';
-            container.style.opacity = String(layer.opacity ?? 1);
 
-            const imgA = this.createLayerImage(layer);
-            imgA.style.left = '0';
-            const imgB = this.createLayerImage(layer);
-            imgB.style.left = '50%';
+        Promise.all(layers.map(layer => this.loadLayerImage(layer))).then(loaded => {
+            this.building = false;
+            if (!this.element || !this.runMode) {  return; }
+            loaded.forEach((result, index) => {
+                if (!result) {  return; }
+                const layer = layers[index];
+                const elHeight = el.clientHeight || (this.height * this.cellSize);
+                const containerHeight = elHeight * ((layer.height ?? 100) / 100);
+                if (containerHeight <= 0 || result.naturalHeight <= 0) {  return; }
+                const tileWidth = (result.naturalWidth / result.naturalHeight) * containerHeight;
 
-            container.appendChild(imgA);
-            if (this.repeat) {
-                container.appendChild(imgB);
-            }
+                const container = document.createElement('div');
+                container.className = `parallax-layer parallax-layer-${index}`;
+                container.style.position = 'absolute';
+                container.style.top = `${layer.y ?? 0}%`;
+                container.style.left = '0';
+                container.style.width = `${2 * tileWidth}px`;
+                container.style.height = `${layer.height ?? 100}%`;
+                container.style.overflow = 'hidden';
+                container.style.opacity = String(layer.opacity ?? 1);
 
-            el.appendChild(container);
-            this.layerEls.push({ container, layer });
+                const imgA = this.createLayerImage(layer, result.src);
+                imgA.style.left = '0';
+                imgA.style.width = `${tileWidth}px`;
+                imgA.style.height = '100%';
+
+                const imgB = this.createLayerImage(layer, result.src);
+                imgB.style.left = `${tileWidth}px`;
+                imgB.style.width = `${tileWidth}px`;
+                imgB.style.height = '100%';
+
+                container.appendChild(imgA);
+                if (this.repeat) {
+                    container.appendChild(imgB);
+                }
+
+                el.appendChild(container);
+                this.layerEls.push({ container, layer, tileWidth });
+            });
+            this.updateLayerTransforms();
         });
-
-        this.updateLayerTransforms();
     }
 
-    private createLayerImage(layer: ParallaxLayer): HTMLImageElement {
+    private loadLayerImage(layer: ParallaxLayer): Promise<{ src: string; naturalWidth: number; naturalHeight: number } | null> {
+        const src = this.normalizeImagePath(layer.image);
+        if (!src) {  return Promise.resolve(null); }
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => {
+                resolve({ src, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight });
+            };
+            img.onerror = () => {
+                resolve(null);
+            };
+            img.src = src;
+        });
+    }
+
+    private createLayerImage(layer: ParallaxLayer, src: string): HTMLImageElement {
         const img = document.createElement('img');
         img.style.position = 'absolute';
         img.style.top = '0';
-        img.style.width = '50%';
-        img.style.height = '100%';
         img.style.objectFit = layer.objectFit || 'cover';
         img.style.pointerEvents = 'none';
         img.style.userSelect = 'none';
         img.draggable = false;
-        img.src = this.normalizeImagePath(layer.image);
+        img.src = src;
         return img;
     }
 
     private updateLayerTransforms(): void {
-        if (!this.element) return;
+        if (!this.element) {  return; }
         const containerWidth = this.element.clientWidth || this.width * this.cellSize;
-        if (containerWidth <= 0) return;
+        if (containerWidth <= 0) {  return; }
 
-        this.layerEls.forEach(({ container, layer }) => {
-            const offset = (this.scrollX * this.cellSize * layer.speedFactor) % containerWidth;
+        this.layerEls.forEach(({ container, layer, tileWidth }) => {
+            const cycle = tileWidth || containerWidth;
+            const offset = (this.scrollX * this.cellSize * layer.speedFactor) % cycle;
             container.style.transform = `translateX(${-offset}px)`;
         });
     }
 
     private normalizeImagePath(raw: string): string {
-        if (!raw) return '';
+        if (!raw) {  return ''; }
         let src = raw;
         if (src.startsWith('url(')) {
             const match = src.match(/url\(['"]?([^'"]+)['"]?\)/);

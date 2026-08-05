@@ -110,6 +110,7 @@ export class Stage implements StageHost, StageInteractionHost {
 
     public render() {
         this.renderer.renderObjects(this.lastRenderedObjects);
+        this.updategrid();
     }
 
     /**
@@ -168,7 +169,6 @@ export class Stage implements StageHost, StageInteractionHost {
 
         this.element.style.width = `${width}px`;
         this.element.style.height = `${height}px`;
-        this.element.style.backgroundColor = backgroundColor || '#ffffff';
 
         if (this.runMode) {
             Stage.logger.info(`Game Stage Size updated: ${width}x${height}px. Visible: ${visible}. Host: ${this.container.id}`);
@@ -180,6 +180,20 @@ export class Stage implements StageHost, StageInteractionHost {
             this.container.style.minHeight = '';
             this.container.style.minWidth = '';
         }
+
+        const hasParallaxBackground = this.lastRenderedObjects.some((o: any) => o.className === 'TParallaxBackground');
+
+        if (hasParallaxBackground) {
+            this.element.style.backgroundColor = 'transparent';
+            this.element.style.backgroundImage = 'none';
+            this.element.style.backgroundSize = '';
+            this.element.style.backgroundPosition = '';
+            this.element.style.backgroundRepeat = '';
+            this.updateBorder();
+            return;
+        }
+
+        this.element.style.backgroundColor = backgroundColor || '#ffffff';
 
         if (visible && !this.runMode) {
             const gridColor = (this.gridConfig as any).gridColor || '#dddddd';
@@ -235,6 +249,7 @@ export class Stage implements StageHost, StageInteractionHost {
 
     public renderObjects(objects: any[]) {
         this.renderer.renderObjects(objects);
+        this.updategrid();
     }
 
     public focusObject(id: string): void {

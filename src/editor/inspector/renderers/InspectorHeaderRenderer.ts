@@ -41,11 +41,11 @@ export class InspectorHeaderRenderer {
         let allObjects: any[] = [];
         const activeStage = context.project.stages?.find(s => s.id === context.project.activeStageId);
         if (activeStage) {
-            allObjects = flattenWithChildren([...(activeStage.objects || []), ...(activeStage.variables || [])]);
+            allObjects = [activeStage, ...flattenWithChildren([...(activeStage.objects || []), ...(activeStage.variables || [])])];
         }
         const blueprintStage = context.project.stages?.find(s => s.type === 'blueprint');
         if (blueprintStage && activeStage?.type !== 'blueprint') {
-             allObjects = [...allObjects, ...flattenWithChildren([...(blueprintStage.objects || []), ...(blueprintStage.variables || [])])];
+             allObjects = [...allObjects, blueprintStage, ...flattenWithChildren([...(blueprintStage.objects || []), ...(blueprintStage.variables || [])])];
         }
 
         const uniqueObjects = Array.from(new Map(allObjects.map(o => [o.id, o])).values());

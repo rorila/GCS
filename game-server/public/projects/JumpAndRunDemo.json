@@ -211,9 +211,15 @@
             "borderWidth": 0
           },
           "layers": [
-            { "image": "landscape.svg", "speedFactor": 0.15, "y": 0, "height": 100, "objectFit": "cover" }
+            {
+              "image": "./images/backgrounds/Modernes Pong-Design mit lebendigen Farben.png",
+              "speedFactor": 0.5,
+              "y": 0,
+              "height": 100,
+              "objectFit": "cover"
+            }
           ],
-          "baseSpeed": 4,
+          "baseSpeed": 10,
           "scrollSource": "",
           "repeat": true
         },
@@ -703,7 +709,24 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "flowLayout": {},
+          "flowLayout": {
+            "GameOver": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ShakeScreen": {
+              "x": 220,
+              "y": 40
+            },
+            "Act_StopGame": {
+              "x": 440,
+              "y": 40
+            },
+            "Act_ShowGameOver": {
+              "x": 640,
+              "y": 40
+            }
+          },
           "id": "a9ec355a-099e-477f-84b2-e9f16ac237b2"
         },
         {

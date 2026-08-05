@@ -764,7 +764,9 @@ export class StageRenderer {
             }
 
             // Grid overlay
-            if (obj.showGrid && !this.host.runMode) {
+            if (className === 'TParallaxBackground') {
+                // TParallaxBackground verwaltet seinen Hintergrund selbst (Design-Platzhalter / Ebenen)
+            } else if (obj.showGrid && !this.host.runMode) {
                 this.applyGridOverlay(el, obj);
             } else {
                 this.applyBackground(el, obj, className, objId);
@@ -1270,7 +1272,9 @@ export class StageRenderer {
         this.updateObjectPosition(el, obj, className, isVisible);
 
         // 3. Basiseigenschaften
-        this.applyBackground(el, obj, className, obj.id);
+        if (className !== 'TParallaxBackground') {
+            this.applyBackground(el, obj, className, obj.id);
+        }
 
         if (obj.style) {
             if (obj.style.color !== undefined) el.style.color = obj.style.color;
