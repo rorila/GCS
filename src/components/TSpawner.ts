@@ -20,9 +20,6 @@ export class TSpawner extends TWindow {
     public randomizeY: boolean = true;
     /** Instanzen automatisch zurückgeben, wenn sie links aus dem Bild laufen */
     public recycleOffScreen: boolean = true;
-    /** Optionale Überschreibung der X-Geschwindigkeit */
-    public velocityX: number | undefined = undefined;
-
     private running: boolean = false;
     private callbacks: any = null;
     private templateId: string = '';
@@ -47,8 +44,7 @@ export class TSpawner extends TWindow {
             { name: 'spawnYMax', label: 'Spawn-Y Max (Zellen)', type: 'number', group: 'SPAWNER' },
             { name: 'spawnCountStart', label: 'Start-Spawns', type: 'number', group: 'SPAWNER' },
             { name: 'randomizeY', label: 'Y zufällig', type: 'boolean', group: 'SPAWNER' },
-            { name: 'recycleOffScreen', label: 'Recyclen wenn außerhalb', type: 'boolean', group: 'SPAWNER' },
-            { name: 'velocityX', label: 'Velocity X (optional)', type: 'number', group: 'SPAWNER' }
+            { name: 'recycleOffScreen', label: 'Recyclen wenn außerhalb', type: 'boolean', group: 'SPAWNER' }
         ];
     }
 
@@ -111,10 +107,7 @@ export class TSpawner extends TWindow {
         const instance = this.callbacks.spawnObject(this.templateId, x, y);
         if (!instance) return;
 
-        if (this.velocityX !== undefined) {
-            instance.velocityX = this.velocityX;
-        }
-
+        // VelocityX kommt ausschließlich aus dem TSpriteTemplate (SpritePool.acquire)
         this.activeInstances.push(instance);
     }
 
@@ -142,8 +135,7 @@ export class TSpawner extends TWindow {
             spawnYMax: this.spawnYMax,
             spawnCountStart: this.spawnCountStart,
             randomizeY: this.randomizeY,
-            recycleOffScreen: this.recycleOffScreen,
-            velocityX: this.velocityX
+            recycleOffScreen: this.recycleOffScreen
         };
     }
 }

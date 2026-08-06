@@ -20,6 +20,7 @@ import jwt from 'jsonwebtoken';
 
 const PORT = parseInt(process.env.PORT || '8080');
 const PUBLIC_DIR = path.join(__dirname, '../public');
+const ROOT_PUBLIC_DIR = path.join(__dirname, '../../public');
 
 // Builder URL for fetching runtime versions (only used when runtime is missing)
 const BUILDER_URL = process.env.BUILDER_URL || 'http://localhost:5173';
@@ -81,6 +82,10 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // Serve static files from public folder
+// Medien aus dem Editor-public-Verzeichnis (Media-Picker) vorziehen
+app.use('/images', express.static(path.join(ROOT_PUBLIC_DIR, 'images')));
+app.use('/audio', express.static(path.join(ROOT_PUBLIC_DIR, 'audio')));
+app.use('/videos', express.static(path.join(ROOT_PUBLIC_DIR, 'videos')));
 app.use(express.static(PUBLIC_DIR));
 
 // Root serves the player (Game Server is standalone)
