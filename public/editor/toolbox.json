@@ -177,6 +177,11 @@
                     "type": "ParallaxBackground",
                     "icon": "🌄",
                     "label": "Parallax Background"
+                },
+                {
+                    "type": "Spawner",
+                    "icon": "🧬",
+                    "label": "Spawner"
                 }
             ]
         },
