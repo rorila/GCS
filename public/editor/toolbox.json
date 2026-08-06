@@ -172,6 +172,11 @@
                     "type": "ProgressBar",
                     "icon": "📊",
                     "label": "Progress Bar"
+                },
+                {
+                    "type": "ParallaxBackground",
+                    "icon": "🌄",
+                    "label": "Parallax Background"
                 }
             ]
         },

@@ -138,6 +138,11 @@
                     "type": "GameState",
                     "icon": "⏯️",
                     "label": "GameState"
+                },
+                {
+                    "type": "ParallaxBackground",
+                    "icon": "🌄",
+                    "label": "ParallaxBackground"
                 }
             ]
         },

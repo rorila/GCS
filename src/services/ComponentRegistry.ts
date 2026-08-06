@@ -203,6 +203,7 @@ export class ComponentRegistry {
         this.typeMapping.set('SystemInfo', 'TSystemInfo');
         this.typeMapping.set('GameHeader', 'TGameHeader');
         this.typeMapping.set('Sprite', 'TSprite');
+        this.typeMapping.set('ParallaxBackground', 'TParallaxBackground');
         this.typeMapping.set('SpriteTemplate', 'TSpriteTemplate');
         this.typeMapping.set('EmojiPicker', 'TEmojiPicker');
         this.typeMapping.set('Shape', 'TShape');
