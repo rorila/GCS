@@ -298,7 +298,7 @@ export class TParallaxBackground extends TWindow {
                     container.style.left = '0';
                     container.style.width = `${2 * tileWidth}px`;
                     container.style.height = `${layer.height ?? 100}%`;
-                    container.style.overflow = 'hidden';
+                    container.style.overflow = (this.direction === 'left-to-right' || this.direction === 'top-to-bottom') ? 'visible' : 'hidden';
                     container.style.opacity = String(layer.opacity ?? 1);
 
                     const imgA = this.createLayerImage(layer, result.src);
@@ -335,7 +335,7 @@ export class TParallaxBackground extends TWindow {
                     container.style.left = '0';
                     container.style.width = '100%';
                     container.style.height = `${2 * tileHeight}px`;
-                    container.style.overflow = 'hidden';
+                    container.style.overflow = (this.direction === 'left-to-right' || this.direction === 'top-to-bottom') ? 'visible' : 'hidden';
                     container.style.opacity = String(layer.opacity ?? 1);
 
                     const imgA = this.createLayerImage(layer, result.src);
