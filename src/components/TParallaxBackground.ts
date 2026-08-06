@@ -24,13 +24,15 @@ export class TParallaxBackground extends TWindow {
     public repeat: boolean = true;
     /** Optional: Name einer synchronisierten Variable, z.B. '${globalGameTime}' */
     public scrollSource: string = '';
+    /** Scroll-Richtung */
+    public direction: 'right-to-left' | 'left-to-right' | 'top-to-bottom' | 'bottom-to-top' = 'right-to-left';
 
     private running: boolean = false;
     private element: HTMLElement | null = null;
     private cellSize: number = 20;
     private runMode: boolean = false;
     private scrollX: number = 0;
-    private layerEls: { container: HTMLElement; layer: ParallaxLayer; tileWidth?: number }[] = [];
+    private layerEls: { container: HTMLElement; layer: ParallaxLayer; tileWidth?: number; tileHeight?: number }[] = [];
     private runtimeCallbacks: any = null;
     private building: boolean = false;
     private designBuilt: boolean = false;
@@ -59,7 +61,8 @@ export class TParallaxBackground extends TWindow {
             },
             { name: 'baseSpeed', label: 'Basis-Geschwindigkeit (Zellen/s)', type: 'number', group: 'KONFIGURATION' },
             { name: 'scrollSource', label: 'Scroll-Quelle (optional, z.B. ${globalGameTime})', type: 'string', group: 'KONFIGURATION', hint: 'Leer = lokale Zeit. Bei Multiplayer: Name einer synchronisierten Variable.' },
-            { name: 'repeat', label: 'Nahtlos wiederholen', type: 'boolean', group: 'KONFIGURATION' }
+            { name: 'repeat', label: 'Nahtlos wiederholen', type: 'boolean', group: 'KONFIGURATION' },
+            { name: 'direction', label: 'Richtung', type: 'select', options: ['right-to-left', 'left-to-right', 'top-to-bottom', 'bottom-to-top'], defaultValue: 'right-to-left', group: 'KONFIGURATION' }
         ];
     }
 
@@ -272,6 +275,7 @@ export class TParallaxBackground extends TWindow {
         const layers = Array.isArray(this.layers) ? this.layers : [];
         if (layers.length === 0) {  this.building = false; return; }
 
+        const isHorizontal = this.direction === 'right-to-left' || this.direction === 'left-to-right';
 
         Promise.all(layers.map(layer => this.loadLayerImage(layer))).then(loaded => {
             this.building = false;
@@ -280,37 +284,86 @@ export class TParallaxBackground extends TWindow {
                 if (!result) {  return; }
                 const layer = layers[index];
                 const elHeight = el.clientHeight || (this.height * this.cellSize);
+                const elWidth = el.clientWidth || (this.width * this.cellSize);
                 const containerHeight = elHeight * ((layer.height ?? 100) / 100);
                 if (containerHeight <= 0 || result.naturalHeight <= 0) {  return; }
-                const tileWidth = (result.naturalWidth / result.naturalHeight) * containerHeight;
 
-                const container = document.createElement('div');
-                container.className = `parallax-layer parallax-layer-${index}`;
-                container.style.position = 'absolute';
-                container.style.top = `${layer.y ?? 0}%`;
-                container.style.left = '0';
-                container.style.width = `${2 * tileWidth}px`;
-                container.style.height = `${layer.height ?? 100}%`;
-                container.style.overflow = 'hidden';
-                container.style.opacity = String(layer.opacity ?? 1);
+                if (isHorizontal) {
+                    const tileWidth = (result.naturalWidth / result.naturalHeight) * containerHeight;
 
-                const imgA = this.createLayerImage(layer, result.src);
-                imgA.style.left = '0';
-                imgA.style.width = `${tileWidth}px`;
-                imgA.style.height = '100%';
+                    const container = document.createElement('div');
+                    container.className = `parallax-layer parallax-layer-${index}`;
+                    container.style.position = 'absolute';
+                    container.style.top = `${layer.y ?? 0}%`;
+                    container.style.left = '0';
+                    container.style.width = `${2 * tileWidth}px`;
+                    container.style.height = `${layer.height ?? 100}%`;
+                    container.style.overflow = 'hidden';
+                    container.style.opacity = String(layer.opacity ?? 1);
 
-                const imgB = this.createLayerImage(layer, result.src);
-                imgB.style.left = `${tileWidth}px`;
-                imgB.style.width = `${tileWidth}px`;
-                imgB.style.height = '100%';
+                    const imgA = this.createLayerImage(layer, result.src);
+                    imgA.style.width = `${tileWidth}px`;
+                    imgA.style.height = '100%';
 
-                container.appendChild(imgA);
-                if (this.repeat) {
-                    container.appendChild(imgB);
+                    const imgB = this.createLayerImage(layer, result.src);
+                    imgB.style.width = `${tileWidth}px`;
+                    imgB.style.height = '100%';
+
+                    if (this.direction === 'right-to-left') {
+                        imgA.style.left = '0';
+                        imgB.style.left = `${tileWidth}px`;
+                    } else {
+                        imgA.style.left = `-${tileWidth}px`;
+                        imgB.style.left = '0';
+                    }
+
+                    container.appendChild(imgA);
+                    if (this.repeat) {
+                        container.appendChild(imgB);
+                    }
+
+                    el.appendChild(container);
+                    this.layerEls.push({ container, layer, tileWidth });
+                } else {
+                    const tileHeight = containerHeight;
+                    if (elWidth <= 0) {  return; }
+
+                    const container = document.createElement('div');
+                    container.className = `parallax-layer parallax-layer-${index}`;
+                    container.style.position = 'absolute';
+                    container.style.top = `${layer.y ?? 0}%`;
+                    container.style.left = '0';
+                    container.style.width = '100%';
+                    container.style.height = `${2 * tileHeight}px`;
+                    container.style.overflow = 'hidden';
+                    container.style.opacity = String(layer.opacity ?? 1);
+
+                    const imgA = this.createLayerImage(layer, result.src);
+                    imgA.style.width = '100%';
+                    imgA.style.height = `${tileHeight}px`;
+                    imgA.style.left = '0';
+
+                    const imgB = this.createLayerImage(layer, result.src);
+                    imgB.style.width = '100%';
+                    imgB.style.height = `${tileHeight}px`;
+                    imgB.style.left = '0';
+
+                    if (this.direction === 'bottom-to-top') {
+                        imgA.style.top = '0';
+                        imgB.style.top = `${tileHeight}px`;
+                    } else {
+                        imgA.style.top = `-${tileHeight}px`;
+                        imgB.style.top = '0';
+                    }
+
+                    container.appendChild(imgA);
+                    if (this.repeat) {
+                        container.appendChild(imgB);
+                    }
+
+                    el.appendChild(container);
+                    this.layerEls.push({ container, layer, tileHeight });
                 }
-
-                el.appendChild(container);
-                this.layerEls.push({ container, layer, tileWidth });
             });
             this.updateLayerTransforms();
         });
@@ -346,12 +399,24 @@ export class TParallaxBackground extends TWindow {
     private updateLayerTransforms(): void {
         if (!this.element) {  return; }
         const containerWidth = this.element.clientWidth || this.width * this.cellSize;
-        if (containerWidth <= 0) {  return; }
+        const containerHeight = this.element.clientHeight || this.height * this.cellSize;
+        if (containerWidth <= 0 || containerHeight <= 0) {  return; }
 
-        this.layerEls.forEach(({ container, layer, tileWidth }) => {
-            const cycle = tileWidth || containerWidth;
-            const offset = (this.scrollX * this.cellSize * layer.speedFactor) % cycle;
-            container.style.transform = `translateX(${-offset}px)`;
+        const isHorizontal = this.direction === 'right-to-left' || this.direction === 'left-to-right';
+        const isReverse = this.direction === 'left-to-right' || this.direction === 'top-to-bottom';
+
+        this.layerEls.forEach(({ container, layer, tileWidth, tileHeight }) => {
+            const cycle = (isHorizontal ? tileWidth : tileHeight) || (isHorizontal ? containerWidth : containerHeight);
+            let rawOffset = (this.scrollX * this.cellSize * layer.speedFactor) % cycle;
+            if (rawOffset < 0) { rawOffset += cycle; }
+
+            if (isHorizontal) {
+                const x = isReverse ? rawOffset : -rawOffset;
+                container.style.transform = `translateX(${x}px)`;
+            } else {
+                const y = isReverse ? rawOffset : -rawOffset;
+                container.style.transform = `translateY(${y}px)`;
+            }
         });
     }
 
@@ -382,7 +447,8 @@ export class TParallaxBackground extends TWindow {
             layers: this.layers,
             baseSpeed: this.baseSpeed,
             repeat: this.repeat,
-            scrollSource: this.scrollSource
+            scrollSource: this.scrollSource,
+            direction: this.direction
         };
     }
 }
