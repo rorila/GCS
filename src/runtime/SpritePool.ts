@@ -80,6 +80,13 @@ export class SpritePool {
                 shape: template.shape,
                 spriteColor: template.spriteColor,
                 lerpSpeed: template.lerpSpeed,
+                // Hitbox-Einstellungen vom Template übernehmen
+                customHitbox: template.customHitbox,
+                hitboxShape: template.hitboxShape,
+                hitboxOffsetX: template.hitboxOffsetX,
+                hitboxOffsetY: template.hitboxOffsetY,
+                hitboxWidth: template.hitboxWidth,
+                hitboxHeight: template.hitboxHeight,
                 // Pool-Metadata
                 templateId: template.id,
                 templateName: template.name,
