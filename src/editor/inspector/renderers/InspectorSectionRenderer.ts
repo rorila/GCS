@@ -637,8 +637,13 @@ export class InspectorSectionRenderer {
                         valInput.onchange = () => {
                             const newChanges = { ...changes };
                             const raw = valInput.value.trim();
-                            const num = Number(raw);
-                            newChanges[key] = (!isNaN(num) && raw !== '') ? num : raw;
+                            const lower = raw.toLowerCase();
+                            if (lower === 'true' || lower === 'false') {
+                                newChanges[key] = lower === 'true';
+                            } else {
+                                const num = Number(raw);
+                                newChanges[key] = (!isNaN(num) && raw !== '') ? num : raw;
+                            }
                             applyChanges(newChanges);
                         };
                         valWrapper.appendChild(valInput);
