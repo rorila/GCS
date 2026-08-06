@@ -43,8 +43,11 @@ export class TSpriteTemplate extends TSprite {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
+        const props = super.getInspectorProperties().map(p =>
+            (p.name === 'width' || p.name === 'height') ? { ...p, max: 20 } : p
+        );
         return [
-            ...super.getInspectorProperties(),
+            ...props,
             // Pool Settings group
             { name: 'poolSize', label: 'Pool Size', type: 'string', group: 'Pool Settings' },
             { name: 'autoRecycle', label: 'Auto Recycle', type: 'boolean', group: 'Pool Settings' },
