@@ -311,7 +311,8 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onCollisionBottom": "PlayerLand"
+            "onCollisionBottom": "PlayerLand",
+            "onBoundaryHit": "BoundaryHit"
           },
           "visible": true,
           "x": 8,
@@ -594,6 +595,14 @@
             "Player.gravity": 0,
             "Player.y": 32
           }
+        },
+        {
+          "id": "act_boundary_hit",
+          "name": "BoundaryHit",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
         },
         {
           "id": "act_shake_screen",
