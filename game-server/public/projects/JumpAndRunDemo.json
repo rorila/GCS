@@ -212,16 +212,25 @@
           },
           "layers": [
             {
-              "image": "./images/backgrounds/Modernes Pong-Design mit lebendigen Farben.png",
-              "speedFactor": 0.5,
+              "image": "./images/backgrounds/MathilderBackground2.jpg",
+              "speedFactor": 1,
               "y": 0,
               "height": 100,
               "objectFit": "cover"
+            },
+            {
+              "image": "./images/backgrounds/MathilderBackground3.jpg",
+              "speedFactor": 0.1,
+              "y": 0,
+              "height": 100,
+              "objectFit": "cover",
+              "opacity": 1
             }
           ],
           "baseSpeed": 10,
           "scrollSource": "",
-          "repeat": true
+          "repeat": true,
+          "direction": "right-to-left"
         },
         {
           "className": "TSpeedlines",
@@ -253,7 +262,7 @@
           "lineLength": 120
         },
         {
-          "className": "TPanel",
+          "className": "TSprite",
           "id": "ground",
           "name": "Ground",
           "scope": "stage",
@@ -274,10 +283,24 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "caption": "",
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines"
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "obstacle",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#374151",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
         },
         {
           "className": "TSprite",
@@ -291,10 +314,10 @@
             "onCollisionBottom": "PlayerLand"
           },
           "visible": true,
-          "x": 10,
-          "y": 34,
-          "width": 2,
-          "height": 2,
+          "x": 8,
+          "y": 25,
+          "width": 4,
+          "height": 4,
           "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
@@ -312,7 +335,7 @@
           "pushOutOnCollision": false,
           "shape": "rect",
           "spriteColor": "#34d399",
-          "backgroundImage": "",
+          "backgroundImage": "./images/Ufos/ufo_transparet.png",
           "objectFit": "contain",
           "imageListId": "",
           "imageIndex": 0,
@@ -349,7 +372,7 @@
             "borderColor": "#991b1b",
             "borderWidth": 1
           },
-          "velocityX": -6,
+          "velocityX": -0.3,
           "velocityY": 0,
           "gravity": 0,
           "lerpSpeed": 0.1,
@@ -357,7 +380,7 @@
           "pushOutOnCollision": false,
           "shape": "rect",
           "spriteColor": "#f87171",
-          "backgroundImage": "",
+          "backgroundImage": "./images/Ufos/ufo_transparet.png",
           "objectFit": "contain",
           "imageListId": "",
           "imageIndex": 0,
@@ -381,9 +404,9 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 0,
-          "y": 0,
-          "width": 4,
+          "x": 4,
+          "y": 4,
+          "width": 8,
           "height": 2,
           "zIndex": 0,
           "rotation": 0,
@@ -403,8 +426,7 @@
           "spawnYMax": 33,
           "spawnCountStart": 0,
           "randomizeY": true,
-          "recycleOffScreen": true,
-          "velocityX": -6
+          "recycleOffScreen": true
         },
         {
           "className": "TIntervalTimer",
@@ -448,7 +470,7 @@
           "dragMode": "move",
           "visible": true,
           "x": 2,
-          "y": 2,
+          "y": 5,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -512,7 +534,7 @@
             "onKeyDown_Enter": "RestartGame"
           },
           "visible": true,
-          "x": 0,
+          "x": 7,
           "y": 0,
           "width": 7,
           "height": 2,
@@ -566,7 +588,8 @@
           "showDetails": false,
           "target": "",
           "changes": {
-            "Player.velocityY": 0
+            "Player.velocityY": 0,
+            "Player.y": 32
           }
         },
         {
