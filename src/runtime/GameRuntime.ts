@@ -153,13 +153,7 @@ export class GameRuntime implements IVariableHost {
             this.syncVariableComponents();
 
             // ─── OBJECT POOL: TSpriteTemplate → Pool-Instanzen erzeugen ───
-            const templates = this.objects.filter(obj =>
-                obj.className === 'TSpriteTemplate' || obj.constructor?.name === 'TSpriteTemplate'
-            ) as TSpriteTemplate[];
-
-            templates.forEach(template => {
-                this.spritePool.init(template, this.objects, this.contextVars);
-            });
+            this.initSpritePools();
 
             logger.warn(`[REACTIVE-DEBUG] makeReactive=${!!options.makeReactive}, objects=${this.objects.length}, stage=${this.stage?.id}`);
             if (options.makeReactive) {
@@ -373,6 +367,16 @@ export class GameRuntime implements IVariableHost {
         this.initMainGame();
     }
 
+    private initSpritePools(): void {
+        const templates = this.objects.filter(obj =>
+            obj.className === 'TSpriteTemplate' || obj.constructor?.name === 'TSpriteTemplate'
+        ) as TSpriteTemplate[];
+
+        templates.forEach(template => {
+            this.spritePool.init(template, this.objects, this.contextVars);
+        });
+    }
+
     private initMainGame() {
 
         const gridConfig = (this.stage && this.stage.grid) || this.project.stage?.grid || this.project.grid;
@@ -522,6 +526,7 @@ export class GameRuntime implements IVariableHost {
         // 1.4 Reset: Stage-Cache leeren, damit Objekte neu hydratisiert werden
         if (reset) {
             this.stageManager.clearCache();
+            this.spritePool.destroy();
             logger.info(`[handleStageChange] Reset angefordert: Stage-Cache geleert fuer Stage ${newStageId}`);
         }
 
@@ -597,6 +602,11 @@ export class GameRuntime implements IVariableHost {
             this.variableManager.importVariablesFromObjects(this.objects);
 
             this.initializeReactiveBindings();
+        }
+
+        // 3.5 OBJECT POOL für Stage-Reset neu aufbauen
+        if (reset) {
+            this.initSpritePools();
         }
 
         // 4. SYNC and START
