@@ -620,6 +620,15 @@ export class GameRuntime implements IVariableHost {
         this.initMainGame();
 
 
+        // Bei Stage-Reset (z.B. Act_RestartGame): onRuntimeStart für alle Objekte
+        // und Stage-Start-Events (onEnter/onRuntimeStart) erneut feuern,
+        // damit Spawner, GameState etc. wie beim ersten Start initialisieren.
+        if (reset) {
+            this.objects.forEach(obj => obj.onRuntimeStart?.());
+            this.triggerStageStartEvents();
+        }
+
+
         if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }
 
