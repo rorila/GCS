@@ -26,13 +26,15 @@ export class TSpawner extends TWindow {
     private timer: number = 0;
     private activeInstances: any[] = [];
 
-    constructor(name: string, x: number, y: number, width: number, height: number) {
+    constructor(name: string, x: number = 0, y: number = 0, width: number = 8, height: number = 2) {
         super(name, x, y, width, height);
+        this.isService = true;
         this.isHiddenInRun = true;
         this.collisionEnabled = false;
         this.text = '';
         this.style.backgroundColor = '#34d399';
         this.style.borderColor = '#065f46';
+        this.style.borderWidth = 2;
         this.style.color = '#ffffff';
     }
 
