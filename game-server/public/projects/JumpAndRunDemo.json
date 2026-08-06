@@ -329,7 +329,7 @@
           },
           "velocityX": 0,
           "velocityY": 0,
-          "gravity": 28,
+          "gravity": 0.4,
           "lerpSpeed": 0.1,
           "collisionGroup": "player",
           "pushOutOnCollision": false,
@@ -566,7 +566,8 @@
             "Speedlines.visible": false,
             "ScoreLabel.value": 0,
             "Player.x": 10,
-            "Player.y": 34,
+            "Player.y": 32,
+            "Player.gravity": 0,
             "Player.velocityX": 0,
             "Player.velocityY": 0
           }
@@ -578,7 +579,8 @@
           "showDetails": false,
           "target": "",
           "changes": {
-            "Player.velocityY": -10
+            "Player.velocityY": -0.3,
+            "Player.gravity": 0.4
           }
         },
         {
@@ -589,6 +591,7 @@
           "target": "",
           "changes": {
             "Player.velocityY": 0,
+            "Player.gravity": 0,
             "Player.y": 32
           }
         },
@@ -683,7 +686,16 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "flowLayout": {},
+          "flowLayout": {
+            "PlayerJump": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_PlayerJump": {
+              "x": 220,
+              "y": 40
+            }
+          },
           "id": "fc496078-ff24-40d5-a72a-8126dc52cbb8"
         },
         {
