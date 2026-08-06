@@ -31,6 +31,9 @@ export class TSpawner extends TWindow {
         this.isHiddenInRun = true;
         this.collisionEnabled = false;
         this.text = '';
+        this.style.backgroundColor = '#34d399';
+        this.style.borderColor = '#065f46';
+        this.style.color = '#ffffff';
     }
 
     public getInspectorProperties(): TPropertyDef[] {

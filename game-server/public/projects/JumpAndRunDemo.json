@@ -340,12 +340,12 @@
           "objectFit": "contain",
           "imageListId": "",
           "imageIndex": 0,
-          "customHitbox": false,
-          "hitboxShape": "auto",
+          "customHitbox": true,
+          "hitboxShape": "rect",
           "hitboxOffsetX": 0,
-          "hitboxOffsetY": 0,
-          "hitboxWidth": 0,
-          "hitboxHeight": 0
+          "hitboxOffsetY": 1,
+          "hitboxWidth": 4,
+          "hitboxHeight": 2
         },
         {
           "className": "TSpriteTemplate",
@@ -414,9 +414,9 @@
           "align": "NONE",
           "collisionEnabled": false,
           "style": {
-            "color": "#34d399",
-            "backgroundColor": "rgba(16, 185, 129, 0.15)",
-            "borderColor": "rgba(16, 185, 129, 0.6)",
+            "color": "#ffffff",
+            "backgroundColor": "#34d399",
+            "borderColor": "#065f46",
             "borderWidth": 1
           },
           "templateName": "ObstacleTemplate",
@@ -470,8 +470,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 2,
-          "y": 5,
+          "x": 9,
+          "y": 13,
           "width": 6,
           "height": 2,
           "zIndex": 0,
