@@ -211,8 +211,9 @@ app.post('/api/dev/save-project', (req, res) => {
             return res.status(400).json({ error: 'Ungültige Projektdaten' });
         }
 
-        // Speicherpfad aus _sourcePath der Metadaten (vom Client gesetzt)
-        const relativePath = projectData.meta?._sourcePath || 'projects/project.json';
+        // Speicherpfad ergibt sich aus dem Spielnamen
+        const gameName = (projectData.meta?.name || 'project').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const relativePath = `projects/${gameName}.json`;
         const projectPath = path.join(PUBLIC_DIR, relativePath);
 
         // Sicherheits-Check: Verzeichnis sicherstellen
@@ -228,8 +229,8 @@ app.post('/api/dev/save-project', (req, res) => {
         console.log(`[TRACE] [API] Saving project to ${projectPath}`);
         console.log(`[TRACE] [API] Data summary: Actions=${actionCount}, Tasks=${taskCount}, Stages=${stageCount}`);
 
-        // _sourcePath aktualisieren falls noch nicht gesetzt
-        if (projectData.meta && !projectData.meta._sourcePath) {
+        // _sourcePath immer auf den einheitlichen Pfad setzen
+        if (projectData.meta) {
             projectData.meta._sourcePath = relativePath;
         }
 
@@ -237,6 +238,7 @@ app.post('/api/dev/save-project', (req, res) => {
         // Backup-Rotation nur beim expliziten Speichern via save-custom.
 
         fs.writeFileSync(projectPath, JSON.stringify(projectData, null, 2), 'utf-8');
+
         console.log(`[TRACE] [API] Project saved successfully.`);
         res.json({ success: true, message: 'Projekt erfolgreich gespeichert' });
     } catch (err) {

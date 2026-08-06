@@ -484,7 +484,7 @@ export class EditorDataManager {
             EditorDataManager.logger.info(`[LoadProject] Quellpfad aus _sourcePath: ${this.currentSavePath}`);
         } else if (data.meta?.name) {
             // Letzter Fallback: Pfad aus Projektnamen konstruieren
-            const safeName = data.meta.name.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
+            const safeName = data.meta.name.replace(/[^a-zA-Z0-9_-]/g, '_');
             this.currentSavePath = `projects/${safeName}.json`;
             EditorDataManager.logger.info(`[LoadProject] Quellpfad aus meta.name abgeleitet: ${this.currentSavePath}`);
         }
@@ -756,6 +756,16 @@ export class EditorDataManager {
         }
     }
 
+    private normalizeSourcePath(): void {
+        if (!this.host.project) return;
+        const name = this.host.project.meta?.name || 'project';
+        const safeName = name.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const relativePath = `projects/${safeName}.json`;
+        this.currentSavePath = relativePath;
+        if (!this.host.project.meta) this.host.project.meta = {} as any;
+        this.host.project.meta._sourcePath = relativePath;
+    }
+
     public updateProjectJSON() {
         if (this.host.project) {
             // 1. In LocalStorage sichern (Crash-Schutz)
@@ -781,6 +791,9 @@ export class EditorDataManager {
             // Dieser Debounce MUSS exakt so auf 1000ms gesetzt bleiben. Das Modul erhält sonst bei DND-Drag oder WYSIWYG
             // bis zu 5 synchrone save-Calls. Die 'Native FileSystem API' blockt parallele Writes hart ab 
             // ("The associated file is already being written"), was das Speichern komplett zerstört.
+
+            this.normalizeSourcePath();
+
             if (this._diskSaveTimer !== null) {
                 clearTimeout(this._diskSaveTimer);
             }

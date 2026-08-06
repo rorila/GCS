@@ -146,15 +146,17 @@ class UniversalPlayer implements StageHost {
             // Load game and create a multiplayer room
             logger.info(`[UniversalPlayer] Hosting multiplayer game: ${gameFile}`);
             const baseUrl = network.getHttpUrl();
-            await this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
+            const safeName = gameFile.replace(/[^a-zA-Z0-9_-]/g, '_');
+            await this.loadProjectFromUrl(`${baseUrl}/projects/${safeName}.json`);
             // Create room after project is loaded (will trigger room_created message)
             network.createRoom(gameFile);
             this.showOverlay('Raum wird erstellt...', '');
         } else if (gameFile) {
-            // Load specific game file from platform (single player)
+            // Load specific game file from projects folder
             logger.info(`[UniversalPlayer] Loading game: ${gameFile}`);
             const baseUrl = network.getHttpUrl();
-            await this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
+            const safeName = gameFile.replace(/[^a-zA-Z0-9_-]/g, '_');
+            await this.loadProjectFromUrl(`${baseUrl}/projects/${safeName}.json`);
         } else if ((window as any).PROJECT_DATA) {
             // Use compressed embedded project (gzip + Base64)
             logger.info('[UniversalPlayer] Loading compressed embedded project');

@@ -1,9 +1,5 @@
 import { IViewHost } from '../EditorViewTypes';
-import { GameExporter } from '../../export/GameExporter';
 import { projectStore } from '../../services/ProjectStore';
-import { Logger } from '../../utils/Logger';
-
-const logger = Logger.get('RunViewManager');
 
 /**
  * RunViewManager - Verwaltet die Run/Spiel-Ansicht im Editor.
@@ -30,52 +26,17 @@ export class RunViewManager {
         const iframe = document.createElement('iframe');
         iframe.id = 'game-runtime-iframe';
         iframe.style.cssText = 'width: 100%; height: 100%; border: none; background: #000;';
-        iframe.src = './player.html';
-        
+
+        // Run-Tab lädt dieselbe Datei wie Autosave: projects/<Spielname>.json
+        const project = projectStore.getProject() || this.host.project;
+        const gameName = (project?.meta?.name || 'project').replace(/[^a-zA-Z0-9_-]/g, '_');
+        iframe.src = `./player.html?game=${encodeURIComponent(gameName)}`;
+
         // WICHTIG: tabindex für Fokus-Fang
         iframe.tabIndex = 0;
-        
+
         container.appendChild(iframe);
         this.activeIframe = iframe;
-        
-        // Projekt-Daten vorbereiten
-        this.injectProjectIntoIframe(iframe);
-    }
-
-    /**
-     * Injiziert das aktuelle Projekt in den IFrame
-     */
-    private injectProjectIntoIframe(iframe: HTMLIFrameElement): void {
-        const exporter = new GameExporter();
-        
-        // ── WICHTIGER FIX: Verwende projectStore statt this.host.project,
-        // da this.host.project oft eine veraltete Referenz ist (Unidirectional Data Flow!)
-        const latestProject = projectStore.getProject() || this.host.project;
-        
-        // LOGGE URSPRUNG!
-        const origStage = latestProject.stages?.find((s: any) => s.id === latestProject.activeStageId) || latestProject.stages?.[0];
-        logger.debug(`ORIGINAL project store. Objects: ${origStage?.objects?.length}`, origStage?.objects);
-
-        const cleanProjectData = exporter.getCleanProject(latestProject);
-
-        // DEBUG: Prüfen ob das Gamepad HIER überhaupt vorhanden ist!
-        const mainStage = cleanProjectData.stages?.find((s: any) => s.id === cleanProjectData.activeStageId) || cleanProjectData.stages?.[0];
-        const hasGamepad = mainStage?.objects?.some((o: any) => o.className === 'TVirtualGamepad');
-        logger.debug(`Sende CLEAN Projekt an IFrame. Objekte: ${mainStage?.objects?.length}, Beinhaltet Gamepad? ${hasGamepad}`);
-        if (!hasGamepad) {
-            logger.warn(`ALARM! Das Gamepad fehlt schon BEVOR es an den IFrame gesendet wird! CLEAN Objects:`, mainStage?.objects);
-        }
-
-        // Synchrone Datenübergabe
-        (iframe as any)._injectedProject = cleanProjectData;
-
-        const messageHandler = (e: MessageEvent) => {
-            if (e.data && e.data.type === 'IFRAME_READY') {
-                iframe.contentWindow?.postMessage({ type: 'START_RUN', project: cleanProjectData }, '*');
-                window.removeEventListener('message', messageHandler);
-            }
-        };
-        window.addEventListener('message', messageHandler);
     }
 
     /**
