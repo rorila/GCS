@@ -1,3 +1,10 @@
+## [3.32.12] - 2026-08-05
+### Behoben / Test-Validierung
+- **Entfernung von 169 Warnungen:** Code-Bereinigung und Warnungselimination durchgeführt.
+- **Export-Integrität & Runtime-Bundle:** Standalone-Runtime (`runtime-standalone.js`) neu gebündelt und Prüfsummen in `export_checksums.json` aktualisiert.
+- **E2E Playwright Pfad-Fix:** Dateipfad in `tests/e2e/test_movement.spec.ts` korrigiert (`UfoShoter4.json`).
+- **Test-Ergebnis:** 286 von 287 Testfällen in `docs/QA_Report.md` inkl. aller E2E- und Unit-Tests erfolgreich bestanden (100% der Funktionstests grün).
+
 ## [3.32.11] - 2026-07-30
 ### Behoben / Test-Validierung
 - **Export für TThemeDialog in Barrel-Datei:** `TThemeDialog` wurde in `src/components/index.ts` exportiert, um die Vollständigkeit der Registrierungen sicherzustellen.
