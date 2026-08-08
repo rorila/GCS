@@ -21,6 +21,8 @@ export interface ParallaxLayer {
 export class TParallaxBackground extends TWindow {
     public layers: ParallaxLayer[] = [];
     public baseSpeed: number = 2;
+    /** Geschwindigkeit in Zellen/Frame, wie TSprite.velocityX; baseSpeed = abs(velocityX) * 60 */
+    public velocityX: number = 0;
     public repeat: boolean = true;
     /** Optional: Name einer synchronisierten Variable, z.B. '${globalGameTime}' */
     public scrollSource: string = '';
@@ -59,7 +61,7 @@ export class TParallaxBackground extends TWindow {
                 ]),
                 hint: '[{"image":"bg1.png","speedFactor":0.1,"y":0,"height":100}]'
             },
-            { name: 'baseSpeed', label: 'Basis-Geschwindigkeit (Zellen/s)', type: 'number', group: 'KONFIGURATION' },
+            { name: 'velocityX', label: 'Geschwindigkeit-X (Zellen/Frame)', type: 'number', group: 'KONFIGURATION', hint: 'Wie TSprite.velocityX. Intern * 60 für Zellen/s.' },
             { name: 'scrollSource', label: 'Scroll-Quelle (optional, z.B. ${globalGameTime})', type: 'string', group: 'KONFIGURATION', hint: 'Leer = lokale Zeit. Bei Multiplayer: Name einer synchronisierten Variable.' },
             { name: 'repeat', label: 'Nahtlos wiederholen', type: 'boolean', group: 'KONFIGURATION' },
             { name: 'direction', label: 'Richtung', type: 'select', options: ['right-to-left', 'left-to-right', 'top-to-bottom', 'bottom-to-top'], defaultValue: 'right-to-left', group: 'KONFIGURATION' }
@@ -125,19 +127,23 @@ export class TParallaxBackground extends TWindow {
     public onRuntimeUpdate(deltaTime: number): void {
         if (!this.running || !this.element || !this.runMode) return;
 
-        if (this.scrollSource) {
+        const scrollSource = String(this.scrollSource).trim();
+        if (scrollSource !== '') {
             // Synchronisierter Offset aus einer Variable (z.B. Multiplayer-Host-Time)
-            this.scrollX = this.resolveScrollSource();
+            this.scrollX = this.resolveScrollSource(scrollSource);
         } else {
             // Lokale Zeit-Integration
-            this.scrollX += this.baseSpeed * deltaTime;
+            const baseSpeed = this.velocityX !== 0
+                ? Math.abs(this.velocityX) * 60
+                : this.baseSpeed;
+            this.scrollX += baseSpeed * deltaTime;
         }
 
         this.updateLayerTransforms();
     }
 
-    private resolveScrollSource(): number {
-        const source = this.scrollSource.trim();
+    private resolveScrollSource(rawSource?: string): number {
+        const source = rawSource ?? String(this.scrollSource).trim();
         const vars = this.runtimeCallbacks?.contextVars || {};
 
 
@@ -217,7 +223,7 @@ export class TParallaxBackground extends TWindow {
 
         const count = Array.isArray(this.layers) ? this.layers.length : 0;
         const info = document.createElement('div');
-        info.textContent = `${count} Ebenen | Basis: ${this.baseSpeed} Zellen/s`;
+        info.textContent = `${count} Ebenen | vX: ${this.velocityX} (=${Math.abs(this.velocityX) * 60} Zellen/s)`;
         info.style.fontSize = '12px';
         wrapper.appendChild(info);
 
@@ -446,6 +452,7 @@ export class TParallaxBackground extends TWindow {
             ...super.toDTO(),
             layers: this.layers,
             baseSpeed: this.baseSpeed,
+            velocityX: this.velocityX,
             repeat: this.repeat,
             scrollSource: this.scrollSource,
             direction: this.direction

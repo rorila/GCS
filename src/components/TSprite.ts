@@ -26,6 +26,32 @@ export class TSprite extends TWindow {
     // TImageList support
     public imageListId: string = '';
     public imageIndex: number = 0;
+    /** Name der zugeordneten TAnimation-Komponente */
+    private _animationId: string = '';
+    get animationId(): string { return this._animationId; }
+    set animationId(value: string) {
+        if (this._animationId !== value) {
+            this._animationId = value;
+        }
+    }
+
+    // Video support
+    public videoSource: string = '';
+    public videoObjectFit: ImageFit = 'contain';
+    public videoAutoplay: boolean = true;
+    public videoLoop: boolean = true;
+    public videoMuted: boolean = true;
+    public videoVolume: number = 1;
+    public videoPlaybackRate: number = 1;
+
+    /** Aktive Darstellungsart im Inspector (simple | spritesheet | animation | video) */
+    private _appearanceMode: 'simple' | 'spritesheet' | 'animation' | 'video' | '' = '';
+    get appearanceMode(): 'simple' | 'spritesheet' | 'animation' | 'video' {
+        return this._appearanceMode || (this.animationId ? 'animation' : (this.imageListId ? 'spritesheet' : (this.videoSource ? 'video' : 'simple')));
+    }
+    set appearanceMode(value: 'simple' | 'spritesheet' | 'animation' | 'video') {
+        this._appearanceMode = value;
+    }
 
     // Error offset for smooth correction
     private errorX: number = 0;
@@ -73,7 +99,7 @@ export class TSprite extends TWindow {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        return [
+        const props: TPropertyDef[] = [
             ...super.getInspectorProperties(),
             // Motion group
             { name: 'velocityX', label: 'Velocity X', type: 'number', group: 'Motion' },
@@ -87,10 +113,23 @@ export class TSprite extends TWindow {
             // Appearance group
             { name: 'shape', label: 'Shape', type: 'select', group: 'Appearance', options: ['rect', 'circle'] },
             { name: 'spriteColor', label: 'Sprite Color', type: 'color', group: 'Appearance' },
+            { name: 'appearanceMode', label: 'Aktive Darstellungsart', type: 'select', group: 'Appearance', options: ['simple', 'spritesheet', 'animation', 'video'], defaultValue: 'simple', hint: 'Welche Darstellung zur Laufzeit verwendet wird' },
+            { name: 'sepImage', label: 'Einfaches Bild', type: 'separator', group: 'Appearance', serializable: false, editorOnly: true },
             { name: 'backgroundImage', label: 'Sprite Image', type: 'image_picker', group: 'Appearance' },
             { name: 'objectFit', label: 'Image Fit', type: 'select', group: 'Appearance', options: ['cover', 'contain', 'fill', 'none'] },
-            { name: 'imageListId', label: 'Sprite Sheet', type: 'select', source: 'imageLists', group: 'Appearance', hint: 'Optional: Verknüpft das Sprite mit einer TImageList' },
+            { name: 'sepSpritesheet', label: 'Sprite-Sheet', type: 'separator', group: 'Appearance', serializable: false, editorOnly: true },
+            { name: 'imageListId', label: 'Sprite Sheet', type: 'select', source: 'imageLists', group: 'Appearance', hint: 'Verknüpft das Sprite mit einer TImageList' },
             { name: 'imageIndex', label: 'Frame Index', type: 'number', min: 0, step: 1, group: 'Appearance', hint: '0-basierter Index des Frames aus der TImageList' },
+            { name: 'sepAnimation', label: 'Animation', type: 'separator', group: 'Appearance', serializable: false, editorOnly: true },
+            { name: 'animationId', label: 'Animation', type: 'select', source: 'animations', group: 'Appearance', hint: 'TAnimation-Komponente auswählen' },
+            { name: 'sepVideo', label: 'Video', type: 'separator', group: 'Appearance', serializable: false, editorOnly: true },
+            { name: 'videoSource', label: 'Video', type: 'video_picker', group: 'Appearance', hint: 'Video-Datei für den Sprite' },
+            { name: 'videoObjectFit', label: 'Video Fit', type: 'select', group: 'Appearance', options: ['cover', 'contain', 'fill', 'none'], defaultValue: 'contain' },
+            { name: 'videoAutoplay', label: 'Autoplay', type: 'boolean', group: 'Appearance', defaultValue: true },
+            { name: 'videoLoop', label: 'Loop', type: 'boolean', group: 'Appearance', defaultValue: true },
+            { name: 'videoMuted', label: 'Muted', type: 'boolean', group: 'Appearance', defaultValue: true },
+            { name: 'videoVolume', label: 'Volume', type: 'number', group: 'Appearance', min: 0, max: 1, step: 0.1, defaultValue: 1 },
+            { name: 'videoPlaybackRate', label: 'Playback Rate', type: 'number', group: 'Appearance', min: 0.1, step: 0.1, defaultValue: 1 },
             // Hitbox group
             { name: 'customHitbox', label: 'Custom Hitbox', type: 'boolean', group: 'Hitbox' },
             { name: 'hitboxShape', label: 'Hitbox Shape', type: 'select', group: 'Hitbox', options: ['auto', 'rect', 'circle'], dependsOn: { property: 'customHitbox', value: true } },
@@ -99,6 +138,7 @@ export class TSprite extends TWindow {
             { name: 'hitboxWidth', label: 'Width (0=auto)', type: 'number', group: 'Hitbox', dependsOn: { property: 'customHitbox', value: true } },
             { name: 'hitboxHeight', label: 'Height (0=auto)', type: 'number', group: 'Hitbox', dependsOn: { property: 'customHitbox', value: true } }
         ];
+        return props;
     }
 
 
@@ -282,8 +322,17 @@ export class TSprite extends TWindow {
     public toDTO(): any {
         return {
             ...super.toDTO(),
+            appearanceMode: this.appearanceMode,
             imageListId: this.imageListId,
-            imageIndex: this.imageIndex
+            imageIndex: this.imageIndex,
+            animationId: this.animationId,
+            videoSource: this.videoSource,
+            videoObjectFit: this.videoObjectFit,
+            videoAutoplay: this.videoAutoplay,
+            videoLoop: this.videoLoop,
+            videoMuted: this.videoMuted,
+            videoVolume: this.videoVolume,
+            videoPlaybackRate: this.videoPlaybackRate
         };
     }
 }

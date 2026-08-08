@@ -890,8 +890,12 @@ export class GameRuntime implements IVariableHost {
                 if (actions) {
                     // Actions can be a single object or an array
                     const actionList = Array.isArray(actions) ? actions : [actions];
+                    // self MUSS mitgegeben werden, sonst kann resolveTarget('%Self%')
+                    // das ausloesende Objekt nicht bestimmen und faellt auf die
+                    // Event-Daten zurueck (bei Kollisionen ein reines Datenobjekt).
+                    const directVars = { self: obj, sender: obj };
                     for (const action of actionList) {
-                        this.actionExecutor.execute(action, {}, this.contextVars, data, eventLogId);
+                        this.actionExecutor.execute(action, directVars, this.contextVars, data, eventLogId);
                     }
                 }
             }

@@ -642,6 +642,31 @@ export class GameLoopManager {
     }
 
     /**
+     * Setzt alle Kollisions-/Boundary-Cooldowns eines Sprites zurueck.
+     *
+     * Notwendig fuer Object-Pooling: Pool-Instanzen behalten ihre ID ueber
+     * release/acquire hinweg. Ohne Reset wuerde eine neu gespawnte Instanz die
+     * Cooldowns ihres Vorlebens erben und ihre erste Kollision verschlucken.
+     */
+    public clearTrackingFor(spriteId: string): void {
+        if (!spriteId) return;
+
+        this.collidedThisFrame.delete(spriteId);
+        this.exitedSprites.delete(spriteId);
+
+        for (const key of Array.from(this.collisionCooldowns.keys())) {
+            if (key.startsWith(`${spriteId}_`) || key.endsWith(`_${spriteId}`)) {
+                this.collisionCooldowns.delete(key);
+            }
+        }
+        for (const key of Array.from(this.boundaryCooldowns.keys())) {
+            if (key.startsWith(`${spriteId}_`)) {
+                this.boundaryCooldowns.delete(key);
+            }
+        }
+    }
+
+    /**
      * Check if sprites hit stage boundaries
      */
     private checkBoundaries(): void {

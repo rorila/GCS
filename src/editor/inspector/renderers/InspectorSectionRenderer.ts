@@ -85,7 +85,10 @@ export class InspectorSectionRenderer {
             parent.appendChild(card);
 
             const props = section.properties;
+            console.log('[InspectorSectionRenderer] section:', section.label, 'propCount:', props.length, 'propNames:', props.map(p => p.name));
             let i = 0;
+            let currentBody: HTMLElement = body;
+
             while (i < props.length) {
                 const propDef = props[i];
 
@@ -93,6 +96,20 @@ export class InspectorSectionRenderer {
                     const condValues = propDef.visibleWhen.values;
                     const currentCondValue = PropertyHelper.getPropertyValue(obj, propDef.visibleWhen.field) ?? '';
                     if (Array.isArray(condValues) && !condValues.includes(currentCondValue)) { i++; continue; }
+                }
+
+                if (propDef.type === 'separator') {
+                    const frame = document.createElement('div');
+                    frame.style.cssText = 'border:1px solid #444; border-radius:6px; padding:8px; margin-top:8px; margin-bottom:12px; background:#1e1e2e; display:flex; flex-direction:column; gap:6px;';
+                    const header = document.createElement('div');
+                    header.textContent = propDef.label || '';
+                    header.style.cssText = 'font-size:12px;font-weight:bold;color:#4da6ff;margin-bottom:4px;';
+                    frame.appendChild(header);
+                    body.appendChild(frame);
+                    console.log('[InspectorSectionRenderer] created frame', propDef.name, propDef.label);
+                    currentBody = frame;
+                    i++;
+                    continue;
                 }
 
                 if (propDef.inline && i + 1 < props.length && props[i + 1].inline) {
@@ -110,10 +127,10 @@ export class InspectorSectionRenderer {
                         i++;
                         count++;
                     }
-                    body.appendChild(inlineRow);
+                    currentBody.appendChild(inlineRow);
                 } else {
                     const el = this.renderProperty(propDef, obj, context);
-                    if (el) body.appendChild(el);
+                    if (el) currentBody.appendChild(el);
                     i++;
                 }
             }

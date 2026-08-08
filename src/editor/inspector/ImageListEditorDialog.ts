@@ -437,7 +437,10 @@ export class ImageListEditorDialog {
         }
 
         const img = new Image();
-        img.crossOrigin = 'anonymous';
+        const isCrossOrigin = /^(https?:)|^(\/\/)/i.test(this.currentSrc);
+        if (isCrossOrigin) {
+            img.crossOrigin = 'anonymous';
+        }
         img.onload = () => {
             this.sheetImage = img;
             this.imageLoaded = true;
@@ -452,12 +455,14 @@ export class ImageListEditorDialog {
             this.frameSizeLabel.style.color = '#f38ba8';
         };
 
-        // URL normalisieren
-        let src = this.currentSrc;
-        if (!src.startsWith('http') && !src.startsWith('/') && !src.startsWith('data:')) {
+        // URL normalisieren: root-relative Pfade (/images/...) nicht verändern,
+        // relative Pfade ggf. mit ./images/ prefixen, externe URLs lassen wir unverändert.
+        let src = this.currentSrc.trim();
+        const isAbsolute = /^(https?:)|^(\/\/)/i.test(src);
+        const isRootRelative = src.startsWith('/');
+        if (!isAbsolute && !isRootRelative && !src.startsWith('.')) {
             src = `./images/${src}`;
         }
-        if (src.startsWith('/images/')) src = '.' + src;
         img.src = src;
     }
 

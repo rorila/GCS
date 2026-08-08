@@ -75,6 +75,8 @@ import { TUserManager } from '../components/TUserManager';
 import { TSidePanel } from '../components/TSidePanel';
 import { TThemeDialog } from '../components/TThemeDialog';
 import { TSpawner } from '../components/TSpawner';
+import { TAnimation } from '../components/TAnimation';
+import { TParallaxBackground } from '../components/TParallaxBackground';
 /**
  * ComponentRegistry - Der zentrale "Broker" für alle GCS-Komponenten.
  */
@@ -130,6 +132,8 @@ export class ComponentRegistry {
         this.register('TLink', TLink);
         this.register('TProgressBar', TProgressBar);
         this.register('TSpawner', TSpawner);
+        this.register('TAnimation', TAnimation);
+        this.register('TParallaxBackground', TParallaxBackground);
 
         // System Komponenten
         this.register('TSplashScreen', TSplashScreen);
@@ -207,6 +211,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Sprite', 'TSprite');
         this.typeMapping.set('ParallaxBackground', 'TParallaxBackground');
         this.typeMapping.set('Spawner', 'TSpawner');
+        this.typeMapping.set('Animation', 'TAnimation');
         this.typeMapping.set('SpriteTemplate', 'TSpriteTemplate');
         this.typeMapping.set('EmojiPicker', 'TEmojiPicker');
         this.typeMapping.set('Shape', 'TShape');

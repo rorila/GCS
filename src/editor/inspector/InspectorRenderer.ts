@@ -872,9 +872,40 @@ export class InspectorRenderer {
             });
 
             // Properties in group
+            let currentContainer: any[] = groupChildren;
+            console.log('[InspectorRenderer] group:', groupName, 'props:', groupProps.length, 'names:', groupProps.map((p: any) => p.name));
+
             for (let i = 0; i < groupProps.length; i++) {
                 const prop = groupProps[i];
                 const labelStyle: any = { fontSize: 12, color: '#aaa' };
+
+                // Frame/section start: wrap the following controls in a bordered panel
+                if (prop.type === 'separator') {
+                    const frame = {
+                        className: 'TPanel',
+                        name: `${prop.name}Frame`,
+                        style: {
+                            border: '1px solid #444',
+                            borderRadius: '6px',
+                            padding: '8px',
+                            marginTop: '8px',
+                            marginBottom: '12px',
+                            backgroundColor: '#1e1e2e'
+                        },
+                        children: [
+                            {
+                                className: 'TLabel',
+                                name: `${prop.name}Header`,
+                                text: prop.label,
+                                style: { fontSize: 12, fontWeight: 'bold', color: '#4da6ff', marginBottom: '8px' }
+                            }
+                        ]
+                    };
+                    groupChildren.push(frame);
+                    currentContainer = frame.children;
+                    console.log('[InspectorRenderer] creating frame for separator', prop.name, prop.label, 'frameChildren:', currentContainer.length);
+                    continue;
+                }
 
                 // Start an inline group if this prop and next prop are inline
                 if (prop.inline && groupProps[i + 1]?.inline) {
@@ -885,7 +916,7 @@ export class InspectorRenderer {
                         style: { display: 'flex', gap: '12px', marginBottom: '8px', padding: '0', alignItems: 'center' },
                         children: inlineGroup
                     };
-                    groupChildren.push(wrapper);
+                    currentContainer.push(wrapper);
 
                     // Collect up to 2 consecutive inline props
                     let inlineCount = 0;
@@ -919,7 +950,7 @@ export class InspectorRenderer {
 
                 // Normal rendering (not inline group)
                 if (prop.type !== 'boolean') {
-                    groupChildren.push({
+                    currentContainer.push({
                         className: 'TLabel',
                         name: `${prop.name}Label`,
                         text: `${prop.label || prop.name}:`,
@@ -930,7 +961,7 @@ export class InspectorRenderer {
 
                 const inputName = `${prop.name}Input`;
                 const binding = `\${selectedObject.${prop.name}}`;
-                this.pushInputIntoUI(groupChildren, prop, inputName, binding);
+                this.pushInputIntoUI(currentContainer, prop, inputName, binding);
             }
 
             // Wrap the group in a Card Panel
@@ -1125,6 +1156,20 @@ export class InspectorRenderer {
                     }
                 ]
             });
+        } else if (prop.type === 'separator') {
+            target.push({
+                className: 'TPanel',
+                name: `${prop.name}Wrapper`,
+                style: { borderTop: '1px solid #444', marginTop: '12px', marginBottom: '4px', paddingTop: '6px', flex: 1 },
+                children: [
+                    {
+                        className: 'TLabel',
+                        name: inputName,
+                        caption: prop.label,
+                        style: { fontWeight: 'bold', color: '#ccc', fontSize: '12px' }
+                    }
+                ]
+            });
         } else if (prop.type === 'button') {
             target.push({
                 className: 'TButton',
@@ -1157,6 +1202,13 @@ export class InspectorRenderer {
             return [
                 { value: '', label: '— Keine —' },
                 ...imageLists.map((o: any) => ({ value: o.name, label: o.name }))
+            ];
+        }
+        if (prop.source === 'animations') {
+            const animations = projectObjectRegistry.getObjects().filter((o: any) => o.className === 'TAnimation');
+            return [
+                { value: '', label: '— Keine —' },
+                ...animations.map((o: any) => ({ value: o.name, label: o.name }))
             ];
         }
         if (prop.source === 'variables') {

@@ -5,6 +5,7 @@ export * from './PlaybackControls';
 export * from './PlaybackOverlay';
 export * from './TAPIServer';
 export * from './TAudio';
+export * from './TAnimation';
 export * from './TAuthService';
 export * from './TAvatar';
 export * from './TBadge';

@@ -80,6 +80,9 @@ export class SpritePool {
                 shape: template.shape,
                 spriteColor: template.spriteColor,
                 lerpSpeed: template.lerpSpeed,
+                imageListId: template.imageListId,
+                imageIndex: template.imageIndex,
+                animationId: template.animationId,
                 // Hitbox-Einstellungen vom Template übernehmen
                 customHitbox: template.customHitbox,
                 hitboxShape: template.hitboxShape,
@@ -307,5 +310,13 @@ export class SpritePool {
         entry.sprite.velocityY = 0;
         entry.busy = false;
         entry.acquiredAt = 0;
+
+        // Kollisions-/Boundary-Cooldowns der wiederverwendeten ID zuruecksetzen,
+        // sonst verschluckt die naechste gespawnte Instanz ihre erste Kollision.
+        // Lazy-Import verhindert eine zirkulaere Abhaengigkeit.
+        const spriteId = entry.sprite.id;
+        import('./GameLoopManager').then(({ GameLoopManager }) => {
+            GameLoopManager.getInstance().clearTrackingFor(spriteId);
+        }).catch(err => logger.error('[SpritePool] Fehler beim Lazy-Import von GameLoopManager:', err));
     }
 }

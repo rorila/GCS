@@ -191,6 +191,18 @@
                     "label": "Seed Test Data (Dev)",
                     "action": "seed-data",
                     "icon": "🌱"
+                },
+                {
+                    "id": "video-to-spritesheet",
+                    "label": "Video → SpriteSheet",
+                    "action": "open-video-to-spritesheet",
+                    "icon": "🎬"
+                },
+                {
+                    "id": "image-transparency",
+                    "label": "Bild transparenzieren",
+                    "action": "open-image-transparency",
+                    "icon": "🖼️"
                 }
             ]
         }

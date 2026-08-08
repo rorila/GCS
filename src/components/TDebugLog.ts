@@ -532,7 +532,28 @@ export class TDebugLog {
             if (stage.objects) flatten(stage.objects);
             if (stage.variables) result.push(...stage.variables);
         }
+
+        result.push(...this.getRuntimePoolInstances());
         return result;
+    }
+
+    /**
+     * Liefert die zur Laufzeit aktiven Pool-Instanzen (aus TSpriteTemplate gespawnte
+     * Objekte wie "CherryTemplate_pool_3").
+     *
+     * Diese Objekte sind transient (isTransient) und stehen NIE in project.objects.
+     * Ohne sie liesse sich im Viewer nicht auf gespawnte Objekte filtern, obwohl
+     * genau diese die onCollision-Events ausloesen.
+     */
+    private getRuntimePoolInstances(): any[] {
+        // Editor: runtimeObjects ist ein Getter auf runManager.runtimeObjects
+        const objects: any[] = this.editor?.runtimeObjects
+            || this.editor?.runManager?.runtime?.objects
+            || this.editor?.runtime?.objects;
+
+        if (!Array.isArray(objects)) return [];
+
+        return objects.filter((o: any) => o && o.isPoolInstance === true && o.name);
     }
 
     /**

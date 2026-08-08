@@ -9,11 +9,16 @@ export function resolveTarget(targetName: string, objects: any[], vars: Record<s
 
     // Resolve 'self' and 'other' from event context (collision events provide {self, other, hitSide})
     if (normalized === 'self') {
+        // 1. Explizites self aus den Event-Daten
         if (eventData?.self) return eventData.self;
-        // Fallback: eventData IS the context object itself (e.g. onClick sender)
+        // 2. vars.self wird von GameRuntime.handleEvent gesetzt und ist die
+        //    autoritative Live-Referenz auf das auslösende Objekt — auch bei
+        //    Pool-Instanzen (z.B. Cherry_pool_3). MUSS vor dem eventData-Fallback
+        //    stehen, da contextObj bei Dot-Notation-Auflösung durch das Template
+        //    ersetzt werden kann.
+        if (vars?.self) return vars.self;
+        // 3. Fallback: eventData IS the context object itself (e.g. onClick sender)
         if (eventData && eventData.name) return eventData;
-        // Fallback: 'self' was injected into vars by GameRuntime.handleEvent
-        if (vars.self) return vars.self;
         return null;
     }
     if (normalized === 'other') {

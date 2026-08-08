@@ -169,8 +169,15 @@ export class TaskExecutor {
             }
 
             if (foundTaskName) {
-                logger.debug(`Final resolution for "${taskName}": "${foundTaskName}"`);
-                return this.execute(foundTaskName, vars, globalVars, objectFound, depth + 1, taskLogId, params, isRemoteExecution);
+                // WICHTIG: objectFound stammt aus dem Projekt (Stages/Blueprint) und ist
+                // bei Object-Pooling nur das TSpriteTemplate — NIE die gespawnte
+                // Live-Instanz (z.B. "Cherry_pool_3"), da Pool-Instanzen transient sind.
+                // Der urspruengliche contextObj ist die echte Instanz und hat Vorrang,
+                // sonst zeigen %Self%-Actions auf das Template statt auf das Objekt,
+                // das die Kollision tatsaechlich ausgeloest hat.
+                const effectiveContext = this.preferLiveInstance(contextObj, objectFound, objName);
+                logger.debug(`Final resolution for "${taskName}": "${foundTaskName}" (context: ${effectiveContext?.name || 'none'})`);
+                return this.execute(foundTaskName, vars, globalVars, effectiveContext, depth + 1, taskLogId, params, isRemoteExecution);
             }
 
             // Only warn if it's NOT an optional event and NOT found
@@ -178,11 +185,17 @@ export class TaskExecutor {
             const isOptionalEvent = optionalEvents.includes(evtName);
 
             if (!isOptionalEvent) {
-                if (objectFound) {
-                    logger.warn(`Object "${objName}" found, but no task mapping for event "${evtName}".`);
-                } else {
-                    logger.warn(`Could not resolve dot-notation "${taskName}". Object "${objName}" not found in current project.`);
-                }
+                const reason = objectFound
+                    ? `Object "${objName}" found, but no task mapping for event "${evtName}".`
+                    : `Could not resolve dot-notation "${taskName}". Object "${objName}" not found in current project.`;
+                logger.warn(reason);
+                // Sichtbar im Debug-Log-Viewer machen: sonst erscheint nur der
+                // "Task START"-Eintrag ohne jede Action und der Abbruch bleibt unsichtbar.
+                DebugLogService.getInstance().log('Event', `UNRESOLVED task "${taskName}": ${reason}`, {
+                    parentId: taskLogId,
+                    objectName: contextObj?.name,
+                    data: { taskName, objName, evtName, objectFound: objectFound?.name }
+                });
             }
             return;
         }
@@ -195,6 +208,11 @@ export class TaskExecutor {
             if (!hasFlowChart) {
                 // This is for direct task calls (not dot-notation) without any definition
                 logger.warn(`Task definition or FlowChart not found: ${taskName}`);
+                DebugLogService.getInstance().log('Event', `MISSING task definition: "${taskName}" (weder ActionSequence noch FlowChart vorhanden)`, {
+                    parentId: taskLogId,
+                    objectName: contextObj?.name,
+                    data: { taskName, availableFlowCharts: Object.keys(this.flowCharts || {}) }
+                });
                 return;
             }
         }
@@ -217,6 +235,11 @@ export class TaskExecutor {
             } else {
                 if (actionSequence.length === 0) {
                     logger.debug(`Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
+                    DebugLogService.getInstance().log('Event', `EMPTY task "${taskName}": keine Actions definiert`, {
+                        parentId: taskLogId,
+                        objectName: contextObj?.name,
+                        data: { taskName }
+                    });
                 }
 
                 for (const seqItem of actionSequence) {
@@ -239,6 +262,42 @@ export class TaskExecutor {
         }
     }
 
+
+    /**
+     * Entscheidet, welches Objekt als Ausfuehrungskontext (`self`) verwendet wird.
+     *
+     * Hintergrund: Bei Object-Pooling existiert im Projekt nur das TSpriteTemplate
+     * (z.B. "CherryTemplate"). Die tatsaechlich sichtbaren Objekte sind transiente
+     * Pool-Instanzen ("CherryTemplate_pool_3"), die nie im Projekt stehen.
+     * Loest ein Event per Dot-Notation auf, findet die Projektsuche daher immer nur
+     * das Template. Ohne diesen Vorrang wuerden %Self%-Actions das Template treffen
+     * statt die Instanz, die das Event ausgeloest hat.
+     *
+     * @param liveObj      Der bereits vorhandene Kontext (potentiell die Live-Instanz)
+     * @param projectObj   Das in der Projektstruktur gefundene Objekt
+     * @param requestedName Der in der Dot-Notation angegebene Objektname
+     */
+    private preferLiveInstance(liveObj: any, projectObj: any, requestedName: string): any {
+        if (!liveObj) return projectObj;
+        if (!projectObj || liveObj === projectObj) return liveObj;
+
+        // Direkter Treffer: der Kontext IST das gesuchte Objekt
+        if (liveObj.name === requestedName || liveObj.id === requestedName) {
+            return liveObj;
+        }
+
+        // Pool-Instanz des gefundenen Templates? Dann gewinnt die Instanz.
+        const isPoolInstanceOfTemplate =
+            liveObj.isPoolInstance === true &&
+            (liveObj.templateId === projectObj.id || liveObj.templateName === projectObj.name);
+
+        if (isPoolInstanceOfTemplate) {
+            logger.debug(`preferLiveInstance: Nutze Pool-Instanz "${liveObj.name}" statt Template "${projectObj.name}"`);
+            return liveObj;
+        }
+
+        return projectObj;
+    }
 
     /**
      * Execute a task's flowChart directly at runtime

@@ -88,7 +88,14 @@
     "Ufos": [
       "ufo_transparet.png"
     ],
-    "": []
+    "": [
+      "KaeheFliegt.png",
+      "KirscheTransparent.png",
+      "KraehenFlugTransparent.png",
+      "spritesheet_1786193388727.png",
+      "spritesheet_1786194109030.png",
+      "spritesheet_1786195112640.png"
+    ]
   },
   "audio": {
     "": [
@@ -98,7 +105,8 @@
   },
   "videos": {
     "": [
-      "Video Project.mp4"
+      "Video Project.mp4",
+      "vogelflug.mp4"
     ]
   }
 }

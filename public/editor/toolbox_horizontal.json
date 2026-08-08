@@ -148,6 +148,11 @@
                     "type": "Spawner",
                     "icon": "🧬",
                     "label": "Spawner"
+                },
+                {
+                    "type": "Animation",
+                    "icon": "🎬",
+                    "label": "Animation"
                 }
             ]
         },

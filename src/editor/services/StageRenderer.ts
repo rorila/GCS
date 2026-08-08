@@ -14,6 +14,7 @@ import { VirtualGamepadRenderer } from './renderers/VirtualGamepadRenderer';
 import { TextObjectRenderer } from './renderers/TextObjectRenderer';
     import { ComplexComponentRenderer } from './renderers/ComplexComponentRenderer';
 import { themeRegistry } from '../../runtime/ThemeRegistry';
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 const logger = Logger.get('StageRenderer', 'Component_Manipulation');
 
 /**
@@ -36,10 +37,14 @@ export interface StageHost {
 // Referenz-CellSize für fontSize-Skalierung
 const REFERENCE_CELL_SIZE = 20;
 
+const DEFAULT_NO_FRAMES_SVG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="8" fill="#252536"/><rect x="8" y="18" width="48" height="28" rx="4" stroke="#7f849c" stroke-width="3" fill="none"/><circle cx="24" cy="32" r="7" fill="#7f849c"/><path d="M38 26L48 32L38 38V26Z" fill="#7f849c"/><rect x="10" y="14" width="6" height="4" rx="1" fill="#7f849c"/><rect x="48" y="14" width="6" height="4" rx="1" fill="#7f849c"/><rect x="10" y="46" width="6" height="4" rx="1" fill="#7f849c"/><rect x="48" y="46" width="6" height="4" rx="1" fill="#7f849c"/></svg>');
+
 export class StageRenderer {
     private host: StageHost;
     private cachedVariableContext: Record<string, any> | undefined;
     private variableContextCached = false;
+    private animationPreview: { id: string; timer: number | null; el: HTMLElement; imageList: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number } | null = null;
+    private spriteAnimationPreview: { id: string; timer: number | null; el: HTMLElement; obj: any; ctx: IRenderContext; animObj: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number } | null = null;
 
     constructor(host: StageHost) {
         this.host = host;
@@ -945,6 +950,14 @@ export class StageRenderer {
             // Highlight selected
             this.updateSelectionState(el, objId);
         });
+
+        // Stop running animation/sprite previews if their owning object is no longer selected
+        if (this.animationPreview && !this.host.selectedIds.has(this.animationPreview.id)) {
+            this.stopAnimationPreview();
+        }
+        if (this.spriteAnimationPreview && !this.host.selectedIds.has(this.spriteAnimationPreview.id)) {
+            this.stopSpriteAnimationPreview();
+        }
     }
 
     private collectAllIds(objs: any[]): Set<string> {
@@ -1104,7 +1117,12 @@ export class StageRenderer {
         else if (className === 'TGameHeader') TextObjectRenderer.renderGameHeader(ctx, el, obj);
         else if (className === 'TSpawner') this.renderSpawner(el, obj);
         else if (className === 'TSpeedlines') this.renderSpeedlines(el, obj);
-        else if (className === 'TSprite' || className === 'TSpriteTemplate') SpriteRenderer.render(ctx, el, obj);
+        else if (className === 'TSprite' || className === 'TSpriteTemplate') {
+            SpriteRenderer.render(ctx, el, obj);
+            if (className === 'TSprite') {
+                this.startSpriteAnimationPreview(el, obj, ctx);
+            }
+        }
         else if (className === 'TShape') ShapeRenderer.render(ctx, el, obj, isNew);
         else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
         else if ((className === 'TDialogRoot' || className === 'TThemeDialog')) ComplexComponentRenderer.renderDialogRoot(ctx, el, obj);
@@ -1112,6 +1130,7 @@ export class StageRenderer {
         else if (className === 'TInfoWindow') ComplexComponentRenderer.renderInfoWindow(ctx, el, obj, isNew);
         else if (className === 'TColorPicker') InputRenderer.renderColorPicker(ctx, el, obj, isNew);
         else if (className === 'TImageList') this.renderImageList(el, obj);
+        else if (className === 'TAnimation') this.renderAnimation(el, obj);
         else if (className === 'TVideo') this.renderVideo(el, obj);
         else if (className === 'TLink') this.renderLink(el, obj);
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
@@ -1417,6 +1436,45 @@ export class StageRenderer {
     }
 
     /**
+     * Standard-Platzhalter für TImageList/TAnimation ohne Frames/Bild.
+     * Zeigt ein SVG-Default-Bild und den Komponententyp als Text.
+     */
+    private renderDefaultImagePlaceholder(el: HTMLElement, label: string): void {
+        el.style.backgroundImage = `url("${DEFAULT_NO_FRAMES_SVG}")`;
+        el.style.backgroundSize = 'contain';
+        el.style.backgroundPosition = 'center';
+        el.style.backgroundRepeat = 'no-repeat';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.backgroundColor = '#1e1e2e';
+
+        el.querySelector('.animation-type-label')?.remove();
+        let labelEl = el.querySelector('.component-type-label') as HTMLElement;
+        if (!labelEl) {
+            labelEl = document.createElement('div');
+            labelEl.className = 'component-type-label';
+            labelEl.style.cssText = `
+                position: absolute;
+                bottom: 4px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(30, 30, 46, 0.85);
+                color: #89b4fa;
+                font-size: 10px;
+                font-weight: bold;
+                padding: 2px 6px;
+                border-radius: 3px;
+                pointer-events: none;
+                z-index: 10;
+                white-space: nowrap;
+            `;
+            el.appendChild(labelEl);
+        }
+        labelEl.textContent = label;
+    }
+
+    /**
      * Rendert eine TImageList: Zeigt den aktuellen Frame des Sprite-Sheets an.
      * Nutzt CSS background-size + background-position für pixelgenaues Clipping.
      */
@@ -1427,24 +1485,14 @@ export class StageRenderer {
         const currentFrame = obj.currentImageNumber || 0;
 
         if (!src) {
-            // Kein Bild: Platzhalter anzeigen
-            el.style.backgroundImage = 'none';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.justifyContent = 'center';
-            if (!el.querySelector('.imagelist-placeholder')) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'imagelist-placeholder';
-                placeholder.textContent = '🎞️';
-                placeholder.style.cssText = 'font-size: 24px; opacity: 0.5; pointer-events: none;';
-                el.appendChild(placeholder);
-            }
+            this.renderDefaultImagePlaceholder(el, 'ImageList');
             return;
         }
 
         // Platzhalter entfernen falls vorhanden
         const existing = el.querySelector('.imagelist-placeholder');
         if (existing) existing.remove();
+        el.querySelector('.component-type-label')?.remove();
 
         // URL normalisieren
         let imgSrc = src;
@@ -1497,6 +1545,257 @@ export class StageRenderer {
             if (badge) badge.remove();
         }
     }
+    /**
+     * Rendert eine TAnimation: Zeigt das 1. Frame der verknüpften TImageList.
+     * Falls keine ImageList/Bild vorhanden ist, wird der Platzhalter angezeigt.
+     */
+    private renderAnimation(el: HTMLElement, obj: any): void {
+        const imageListId = obj.imageListId || '';
+        let imageList: any = null;
+        if (imageListId) {
+            imageList = this.host.lastRenderedObjects.find((o: any) =>
+                (o.name === imageListId || o.id === imageListId) &&
+                (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+            );
+            if (!imageList) {
+                imageList = projectObjectRegistry.getObjects().find((o: any) =>
+                    (o.name === imageListId || o.id === imageListId) &&
+                    (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+                );
+            }
+        }
+        const hasSrc = imageList && (imageList.backgroundImage || imageList.src);
+        if (!hasSrc) {
+            this.renderDefaultImagePlaceholder(el, 'Animation');
+            return;
+        }
+        this.renderImageList(el, {
+            backgroundImage: imageList.backgroundImage,
+            src: imageList.src,
+            imageCountHorizontal: imageList.imageCountHorizontal,
+            imageCountVertical: imageList.imageCountVertical,
+            currentImageNumber: 0
+        });
+
+        // TAnimation-Kennzeichnung, auch wenn ein Bild gerendert wird
+        let labelEl = el.querySelector('.animation-type-label') as HTMLElement;
+        if (!labelEl) {
+            labelEl = document.createElement('div');
+            labelEl.className = 'animation-type-label';
+            labelEl.style.cssText = `
+                position: absolute;
+                bottom: 4px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(30, 30, 46, 0.85);
+                color: #f9e2af;
+                font-size: 10px;
+                font-weight: bold;
+                padding: 2px 6px;
+                border-radius: 3px;
+                pointer-events: none;
+                z-index: 10;
+                white-space: nowrap;
+            `;
+            el.appendChild(labelEl);
+        }
+        labelEl.textContent = 'Animation';
+
+        const id = obj.id || obj.name;
+        if (this.animationPreview && this.animationPreview.id === id && !this.host.selectedIds.has(id)) {
+            this.stopAnimationPreview();
+        }
+        if (id && this.host.selectedIds.has(id)) {
+            this.startAnimationPreview(el, obj, imageList);
+        }
+    }
+
+    private startAnimationPreview(el: HTMLElement, obj: any, imageList: any): void {
+        const id = obj.id || obj.name;
+        const frameDuration = Math.max(1, obj.frameDuration || 100);
+        const imageCount = Math.max(1, obj.imageCount || 1);
+        const loop = !!obj.loop;
+        const enabled = !!obj.enabled;
+
+        if (this.animationPreview && this.animationPreview.id === id) {
+            this.animationPreview.frameDuration = frameDuration;
+            this.animationPreview.imageCount = imageCount;
+            this.animationPreview.loop = loop;
+            this.animationPreview.enabled = enabled;
+            this.animationPreview.el = el;
+            this.animationPreview.imageList = imageList;
+            if (!enabled || imageCount <= 1) {
+                this.stopAnimationPreview();
+            }
+            return;
+        }
+
+        this.stopAnimationPreview();
+
+        if (!enabled || imageCount <= 1) {
+            return;
+        }
+
+        this.animationPreview = { id, timer: null, el, imageList, frameDuration, imageCount, loop, enabled, currentFrame: 0 };
+
+        const tick = () => {
+            if (!this.animationPreview || this.animationPreview.id !== id) return;
+            const preview = this.animationPreview;
+            const frame = preview.currentFrame;
+
+            this.renderImageList(preview.el, {
+                backgroundImage: preview.imageList.backgroundImage,
+                src: preview.imageList.src,
+                imageCountHorizontal: preview.imageList.imageCountHorizontal,
+                imageCountVertical: preview.imageList.imageCountVertical,
+                currentImageNumber: frame
+            });
+
+            let labelEl = preview.el.querySelector('.animation-type-label') as HTMLElement;
+            if (!labelEl) {
+                labelEl = document.createElement('div');
+                labelEl.className = 'animation-type-label';
+                labelEl.style.cssText = `
+                    position: absolute;
+                    bottom: 4px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(30, 30, 46, 0.85);
+                    color: #f9e2af;
+                    font-size: 10px;
+                    font-weight: bold;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    pointer-events: none;
+                    z-index: 10;
+                    white-space: nowrap;
+                `;
+                preview.el.appendChild(labelEl);
+            }
+            labelEl.textContent = 'Animation';
+
+            const nextFrame = preview.currentFrame + 1;
+            if (nextFrame >= preview.imageCount) {
+                if (preview.loop) {
+                    preview.currentFrame = 0;
+                    preview.timer = window.setTimeout(tick, preview.frameDuration);
+                } else {
+                    this.stopAnimationPreview();
+                }
+            } else {
+                preview.currentFrame = nextFrame;
+                preview.timer = window.setTimeout(tick, preview.frameDuration);
+            }
+        };
+
+        tick();
+    }
+
+    private stopAnimationPreview(): void {
+        if (this.animationPreview && this.animationPreview.timer !== null) {
+            window.clearTimeout(this.animationPreview.timer);
+        }
+        this.animationPreview = null;
+    }
+
+    private startSpriteAnimationPreview(el: HTMLElement, obj: any, ctx: IRenderContext): void {
+        const id = obj.id || obj.name;
+        const selected = this.host.selectedIds.has(id);
+
+        if (!selected) {
+            if (this.spriteAnimationPreview && this.spriteAnimationPreview.id === id) {
+                this.stopSpriteAnimationPreview();
+            }
+            return;
+        }
+
+        const animId = obj.animationId;
+        if (!animId) {
+            if (this.spriteAnimationPreview && this.spriteAnimationPreview.id === id) {
+                this.stopSpriteAnimationPreview();
+            }
+            return;
+        }
+
+        let animObj = this.host.lastRenderedObjects.find(o => (o.name === animId || o.id === animId) && (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation'));
+        if (!animObj) {
+            animObj = projectObjectRegistry.getObjects().find((o: any) => (o.name === animId || o.id === animId) && (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation'));
+        }
+
+        if (this.spriteAnimationPreview && this.spriteAnimationPreview.id === id) {
+            if (!animObj) {
+                this.stopSpriteAnimationPreview();
+                return;
+            }
+            const preview = this.spriteAnimationPreview;
+            preview.frameDuration = Math.max(1, animObj.frameDuration || 100);
+            preview.imageCount = Math.max(1, animObj.imageCount || 1);
+            preview.loop = !!animObj.loop;
+            preview.enabled = !!animObj.enabled;
+            preview.animObj = animObj;
+            preview.el = el;
+            preview.obj = obj;
+            preview.ctx = ctx;
+            if (!preview.enabled || preview.imageCount <= 1) {
+                this.stopSpriteAnimationPreview();
+            }
+            return;
+        }
+
+        if (!animObj) return;
+
+        this.stopSpriteAnimationPreview();
+
+        const frameDuration = Math.max(1, animObj.frameDuration || 100);
+        const imageCount = Math.max(1, animObj.imageCount || 1);
+        const loop = !!animObj.loop;
+        const enabled = !!animObj.enabled;
+
+        if (!enabled || imageCount <= 1) {
+            return;
+        }
+
+        this.spriteAnimationPreview = { id, timer: null, el, obj, ctx, animObj, frameDuration, imageCount, loop, enabled, currentFrame: 0 };
+
+        const tick = () => {
+            if (!this.spriteAnimationPreview || this.spriteAnimationPreview.id !== id) return;
+            const preview = this.spriteAnimationPreview;
+            const frame = preview.currentFrame;
+
+            // WICHTIG: kein Spread — Getter wie appearanceMode/animationId liegen auf dem
+            // Prototyp und gingen dabei verloren. Ein Proxy überlagert nur imageIndex.
+            const frameObj = new Proxy(preview.obj, {
+                get(target, prop, receiver) {
+                    if (prop === 'imageIndex') return frame;
+                    return Reflect.get(target, prop, receiver);
+                }
+            });
+            SpriteRenderer.render(preview.ctx, preview.el, frameObj);
+
+            const nextFrame = preview.currentFrame + 1;
+            if (nextFrame >= preview.imageCount) {
+                if (preview.loop) {
+                    preview.currentFrame = 0;
+                    preview.timer = window.setTimeout(tick, preview.frameDuration);
+                } else {
+                    this.stopSpriteAnimationPreview();
+                }
+            } else {
+                preview.currentFrame = nextFrame;
+                preview.timer = window.setTimeout(tick, preview.frameDuration);
+            }
+        };
+
+        tick();
+    }
+
+    private stopSpriteAnimationPreview(): void {
+        if (this.spriteAnimationPreview && this.spriteAnimationPreview.timer !== null) {
+            window.clearTimeout(this.spriteAnimationPreview.timer);
+        }
+        this.spriteAnimationPreview = null;
+    }
+
     // ─────────────────────────────────────────────────────────────────
     // FAST PATH: Sprite-Positionen direkt im DOM aktualisieren
     // Wird 60×/sec vom GameLoopManager aufgerufen, OHNE volles Render.

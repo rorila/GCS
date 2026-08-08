@@ -8,8 +8,10 @@ export class TSpawner extends TWindow {
     public enabled: boolean = true;
     /** Zeit zwischen zwei Spawns in Sekunden */
     public spawnInterval: number = 1.5;
-    /** X-Position in Grid-Zellen, an der gespawnt wird */
+    /** X-Position in Grid-Zellen, an der gespawnt wird (nur bei spawnAxis = 'Y') */
     public spawnX: number = 70;
+    /** Fixe Y-Position in Grid-Zellen, wenn spawnAxis = 'X' */
+    public spawnY: number = 20;
     /** Minimale Y-Position */
     public spawnYMin: number = 20;
     /** Maximale Y-Position */
@@ -20,6 +22,14 @@ export class TSpawner extends TWindow {
     public randomizeY: boolean = true;
     /** Instanzen automatisch zurückgeben, wenn sie links aus dem Bild laufen */
     public recycleOffScreen: boolean = true;
+    /** Aktive Spawn-Achse: Y, X oder XY */
+    public spawnAxis: 'Y' | 'X' | 'XY' = 'Y';
+    /** Minimale X-Position */
+    public spawnXMin: number = 0;
+    /** Maximale X-Position */
+    public spawnXMax: number = 70;
+    /** Zufällige X-Position zwischen Min und Max */
+    public randomizeX: boolean = true;
     private running: boolean = false;
     private callbacks: any = null;
     private templateId: string = '';
@@ -41,15 +51,20 @@ export class TSpawner extends TWindow {
     public getInspectorProperties(): TPropertyDef[] {
         return [
             ...super.getInspectorProperties(),
-            { name: 'templateName', label: 'Template-Name', type: 'string', group: 'SPAWNER' },
-            { name: 'enabled', label: 'Aktiviert', type: 'boolean', group: 'SPAWNER' },
-            { name: 'spawnInterval', label: 'Spawn-Intervall (s)', type: 'number', group: 'SPAWNER' },
-            { name: 'spawnX', label: 'Spawn-X (Zellen)', type: 'number', group: 'SPAWNER' },
-            { name: 'spawnYMin', label: 'Spawn-Y Min (Zellen)', type: 'number', group: 'SPAWNER' },
-            { name: 'spawnYMax', label: 'Spawn-Y Max (Zellen)', type: 'number', group: 'SPAWNER' },
-            { name: 'spawnCountStart', label: 'Start-Spawns', type: 'number', group: 'SPAWNER' },
-            { name: 'randomizeY', label: 'Y zufällig', type: 'boolean', group: 'SPAWNER' },
-            { name: 'recycleOffScreen', label: 'Recyclen wenn außerhalb', type: 'boolean', group: 'SPAWNER' }
+            { name: 'templateName', label: 'Template-Name', type: 'string', group: 'SPAWNER ALLGEMEIN' },
+            { name: 'enabled', label: 'Aktiviert', type: 'boolean', group: 'SPAWNER ALLGEMEIN' },
+            { name: 'spawnInterval', label: 'Spawn-Intervall (s)', type: 'number', group: 'SPAWNER ALLGEMEIN' },
+            { name: 'spawnAxis', label: 'Spawn-Achse', type: 'select', group: 'SPAWNER ALLGEMEIN', options: [{ value: 'Y', label: 'Y' }, { value: 'X', label: 'X' }, { value: 'XY', label: 'XY' }] },
+            { name: 'spawnCountStart', label: 'Start-Spawns', type: 'number', group: 'SPAWNER ALLGEMEIN' },
+            { name: 'recycleOffScreen', label: 'Recyclen wenn außerhalb', type: 'boolean', group: 'SPAWNER ALLGEMEIN' },
+            { name: 'spawnY', label: 'Spawn-Y (fix, wenn X)', type: 'number', group: 'SPAWNER X' },
+            { name: 'spawnXMin', label: 'Spawn-X Min (Zellen)', type: 'number', group: 'SPAWNER X' },
+            { name: 'spawnXMax', label: 'Spawn-X Max (Zellen)', type: 'number', group: 'SPAWNER X' },
+            { name: 'randomizeX', label: 'X zufällig', type: 'boolean', group: 'SPAWNER X' },
+            { name: 'spawnX', label: 'Spawn-X (fix, wenn Y)', type: 'number', group: 'SPAWNER Y' },
+            { name: 'spawnYMin', label: 'Spawn-Y Min (Zellen)', type: 'number', group: 'SPAWNER Y' },
+            { name: 'spawnYMax', label: 'Spawn-Y Max (Zellen)', type: 'number', group: 'SPAWNER Y' },
+            { name: 'randomizeY', label: 'Y zufällig', type: 'boolean', group: 'SPAWNER Y' }
         ];
     }
 
@@ -65,8 +80,12 @@ export class TSpawner extends TWindow {
         this.findTemplate();
 
         for (let i = 0; i < this.spawnCountStart; i++) {
-            // Erste Spawns leicht versetzt, damit sie nicht alle übereinander liegen
-            this.spawnOne(this.spawnX + i * 15);
+            // Erste Spawns leicht versetzt bei Y-Achse, sonst zufällig im gewählten Achsenbereich
+            if (this.spawnAxis === 'Y') {
+                this.spawnOne(this.spawnX + i * 15);
+            } else {
+                this.spawnOne();
+            }
         }
     }
 
@@ -99,17 +118,35 @@ export class TSpawner extends TWindow {
         }
     }
 
-    private spawnOne(x: number = this.spawnX): void {
+    private spawnOne(x?: number, y?: number): void {
         if (!this.templateId) {
             this.findTemplate();
         }
         if (!this.templateId || !this.callbacks.spawnObject) return;
 
-        const y = this.randomizeY
-            ? this.spawnYMin + Math.random() * (this.spawnYMax - this.spawnYMin)
-            : this.spawnYMin;
+        let spawnX: number;
+        if (x !== undefined) {
+            spawnX = x;
+        } else if (this.spawnAxis === 'X' || this.spawnAxis === 'XY') {
+            spawnX = this.randomizeX
+                ? this.spawnXMin + Math.random() * (this.spawnXMax - this.spawnXMin)
+                : this.spawnXMin;
+        } else {
+            spawnX = this.spawnX;
+        }
 
-        const instance = this.callbacks.spawnObject(this.templateId, x, y);
+        let spawnY: number;
+        if (y !== undefined) {
+            spawnY = y;
+        } else if (this.spawnAxis === 'Y' || this.spawnAxis === 'XY') {
+            spawnY = this.randomizeY
+                ? this.spawnYMin + Math.random() * (this.spawnYMax - this.spawnYMin)
+                : this.spawnYMin;
+        } else {
+            spawnY = this.spawnY;
+        }
+
+        const instance = this.callbacks.spawnObject(this.templateId, spawnX, spawnY);
         if (!instance) return;
 
         // VelocityX kommt ausschließlich aus dem TSpriteTemplate (SpritePool.acquire)
@@ -136,10 +173,15 @@ export class TSpawner extends TWindow {
             enabled: this.enabled,
             spawnInterval: this.spawnInterval,
             spawnX: this.spawnX,
+            spawnY: this.spawnY,
+            spawnAxis: this.spawnAxis,
+            spawnXMin: this.spawnXMin,
+            spawnXMax: this.spawnXMax,
+            randomizeX: this.randomizeX,
             spawnYMin: this.spawnYMin,
             spawnYMax: this.spawnYMax,
-            spawnCountStart: this.spawnCountStart,
             randomizeY: this.randomizeY,
+            spawnCountStart: this.spawnCountStart,
             recycleOffScreen: this.recycleOffScreen
         };
     }

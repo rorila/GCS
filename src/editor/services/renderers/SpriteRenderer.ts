@@ -6,66 +6,117 @@ const spriteLogger = Logger.get('SpriteRenderer', 'Asset_Diagnostics');
 
 export class SpriteRenderer {
     public static render(ctx: IRenderContext, el: HTMLElement, obj: any): void {
-        const hasImageList = !!obj.imageListId;
-        const hasDirectImage = !!obj.backgroundImage;
-        
-        
-        
-        let imageListObj: any = null;
-        if (hasImageList) {
-            imageListObj = ctx.host.lastRenderedObjects.find(o => o.name === obj.imageListId || o.id === obj.imageListId);
-            
-            // Fallback: If TImageList is a global object not currently rendered on the stage
-            if (!imageListObj) {
-                const registryObjs = projectObjectRegistry.getObjects();
-                imageListObj = registryObjs.find((o: any) => o.name === obj.imageListId || o.id === obj.imageListId);
+        const appearanceMode = obj.appearanceMode || (obj.animationId ? 'animation' : (obj.imageListId ? 'spritesheet' : (obj.videoSource ? 'video' : (obj.backgroundImage ? 'simple' : 'simple'))));
+        let imageListId = obj.imageListId || '';
+        const useImageList = appearanceMode === 'spritesheet' || appearanceMode === 'animation';
+        const hasDirectImage = appearanceMode === 'simple' && !!obj.backgroundImage;
+        const hasVideo = appearanceMode === 'video' && !!obj.videoSource;
+
+        // Bei Animation: TAnimation auflösen und deren imageListId verwenden
+        if (appearanceMode === 'animation' && obj.animationId) {
+            let animObj = ctx.host.lastRenderedObjects.find(o => (o.name === obj.animationId || o.id === obj.animationId) && (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation'));
+            if (!animObj) {
+                animObj = projectObjectRegistry.getObjects().find((o: any) => (o.name === obj.animationId || o.id === obj.animationId) && (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation'));
+            }
+            if (animObj) {
+                imageListId = animObj.imageListId || '';
             }
         }
 
-        const effectiveHasImage = hasDirectImage || (hasImageList && imageListObj && (imageListObj.backgroundImage || imageListObj.src));
-        
-        
-        el.style.backgroundColor = effectiveHasImage ? 'transparent' : (obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b');
-        
-        if (effectiveHasImage) {
+        let imageListObj: any = null;
+        const hasImageList = useImageList && !!imageListId;
+        if (hasImageList) {
+            imageListObj = ctx.host.lastRenderedObjects.find(o =>
+                (o.name === imageListId || o.id === imageListId) &&
+                (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+            );
+
+            // Fallback: If TImageList is a global object not currently rendered on the stage
+            if (!imageListObj) {
+                const registryObjs = projectObjectRegistry.getObjects();
+                imageListObj = registryObjs.find((o: any) =>
+                    (o.name === imageListId || o.id === imageListId) &&
+                    (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+                );
+            }
+        }
+
+        const effectiveHasMedia = hasDirectImage || (hasImageList && imageListObj && (imageListObj.backgroundImage || imageListObj.src)) || hasVideo;
+
+        if ((obj.className === 'TSprite' || obj.className === 'TSpriteTemplate') && !effectiveHasMedia && !(el as any)._spriteNoMediaDiag) {
+            (el as any)._spriteNoMediaDiag = true;
+            console.warn('[SPRITE-DIAG] TSprite hat kein Medium', {
+                name: obj.name,
+                id: obj.id,
+                className: obj.className,
+                appearanceMode,
+                animationId: obj.animationId,
+                imageListId,
+                imageListObjFound: !!imageListObj,
+                imageListObjName: imageListObj?.name,
+                imageListObjBackgroundImage: imageListObj?.backgroundImage,
+                imageListObjSrc: imageListObj?.src,
+                hasImageList,
+                hasDirectImage,
+                hasVideo,
+                objBackgroundImage: obj.backgroundImage,
+                objSrc: obj.src,
+                objVideoSource: obj.videoSource
+            });
+        }
+
+        el.style.backgroundColor = effectiveHasMedia ? 'transparent' : (obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b');
+
+        if (effectiveHasMedia) {
             el.style.borderColor = 'transparent';
 
             let imgEl = el.querySelector('.sprite-image-layer') as HTMLElement;
-            let isDivLayer = imgEl && imgEl.tagName.toLowerCase() === 'div';
+            const expectedTag = hasVideo ? 'video' : (imageListObj ? 'div' : 'img');
 
             let bgImg = '';
-            if (imageListObj) {
-                bgImg = imageListObj.backgroundImage || imageListObj.src || '';
+            let src = '';
+            if (hasVideo) {
+                bgImg = obj.videoSource || '';
+                src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
+                    ? bgImg
+                    : `./videos/${bgImg}`;
+                if (src.startsWith('/videos/')) src = '.' + src;
             } else {
-                bgImg = obj.backgroundImage;
+                if (imageListObj) {
+                    bgImg = imageListObj.backgroundImage || imageListObj.src || '';
+                } else {
+                    bgImg = obj.backgroundImage;
+                }
+                src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
+                    ? bgImg
+                    : `./images/${bgImg}`;
+                if (src.startsWith('/images/') || src.startsWith('/audio/')) {
+                    src = '.' + src;
+                }
             }
 
-            let src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
-                ? bgImg
-                : `./images/${bgImg}`;
-
-            if (src.startsWith('/images/') || src.startsWith('/audio/')) {
-                src = '.' + src;
-            }
-
-            // ── DIAGNOSE: Bildpfad-Auflösung ──
+            // ── DIAGNOSE: Pfad-Auflösung ──
             if (!(el as any)._spritePathLogged) {
                 spriteLogger.info(`[PATH-DIAG] Sprite "${obj.name}" (${obj.id}): raw="${bgImg.substring(0, 80)}" → resolved="${src.substring(0, 120)}" runMode=${ctx.host.runMode}`);
                 (el as any)._spritePathLogged = true;
             }
 
-            if (!imgEl || (imageListObj && !isDivLayer) || (!imageListObj && isDivLayer)) {
+            const isCorrectLayer = imgEl && imgEl.tagName.toLowerCase() === expectedTag;
+            if (!isCorrectLayer) {
                 if (imgEl) imgEl.remove();
-                
+
                 if (imageListObj) {
                     imgEl = document.createElement('div');
+                } else if (hasVideo) {
+                    imgEl = document.createElement('video');
+                    (imgEl as HTMLVideoElement).onerror = () => { imgEl.style.display = 'none'; };
                 } else {
                     imgEl = document.createElement('img');
                     (imgEl as HTMLImageElement).onerror = () => { imgEl.style.display = 'none'; };
                     imgEl.style.willChange = 'transform';
                     imgEl.style.backfaceVisibility = 'hidden';
                 }
-                
+
                 imgEl.className = 'sprite-image-layer';
                 imgEl.style.position = 'absolute';
                 imgEl.style.top = '0';
@@ -75,14 +126,16 @@ export class SpriteRenderer {
                 imgEl.style.pointerEvents = 'none';
                 imgEl.style.userSelect = 'none';
                 imgEl.draggable = false;
-                
+
                 el.appendChild(imgEl);
             }
 
             if (imageListObj) {
                 const hCount = imageListObj.imageCountHorizontal || 1;
                 const vCount = imageListObj.imageCountVertical || 1;
-                const rawIndex = obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : (imageListObj.currentImageNumber || 0);
+                const rawIndex = appearanceMode === 'animation'
+                    ? (obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : 0)
+                    : (obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : (imageListObj.currentImageNumber || 0));
                 const currentFrame = Math.max(0, Math.min(rawIndex, (hCount * vCount) - 1));
 
                 const col = currentFrame % hCount;
@@ -93,11 +146,33 @@ export class SpriteRenderer {
                 const bgPosX = hCount <= 1 ? 0 : (col / (hCount - 1)) * 100;
                 const bgPosY = vCount <= 1 ? 0 : (row / (vCount - 1)) * 100;
 
-                imgEl.style.backgroundImage = `url("${src}")`;
+                imgEl.style.backgroundImage = `url("${SpriteRenderer.encodeImageUrl(src)}")`;
                 imgEl.style.backgroundSize = `${bgSizeX}% ${bgSizeY}%`;
                 imgEl.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
                 imgEl.style.backgroundRepeat = 'no-repeat';
                 imgEl.style.display = '';
+            } else if (hasVideo) {
+                const videoEl = imgEl as HTMLVideoElement;
+                if (videoEl.getAttribute('src') !== src) {
+                    videoEl.src = src;
+                    videoEl.load();
+                }
+                videoEl.style.objectFit = obj.videoObjectFit || 'contain';
+                videoEl.playbackRate = typeof obj.videoPlaybackRate === 'number' ? Math.max(0.1, obj.videoPlaybackRate) : 1;
+                if (ctx.host.runMode) {
+                    videoEl.autoplay = obj.videoAutoplay;
+                    videoEl.loop = obj.videoLoop;
+                    videoEl.muted = obj.videoMuted;
+                    videoEl.volume = typeof obj.videoVolume === 'number' ? Math.max(0, Math.min(1, obj.videoVolume)) : 1;
+                    videoEl.play().catch(() => { /* Autoplay may be blocked */ });
+                } else {
+                    videoEl.autoplay = false;
+                    videoEl.loop = false;
+                    videoEl.muted = true;
+                    videoEl.volume = 0;
+                    videoEl.pause();
+                }
+                videoEl.style.display = '';
             } else {
                 const imgNode = imgEl as HTMLImageElement;
                 if (imgNode.getAttribute('src') !== src) {
@@ -126,7 +201,7 @@ export class SpriteRenderer {
                 hbEl.style.zIndex = '100';
                 el.appendChild(hbEl);
             }
-            
+
             const w = (obj.hitboxWidth && obj.hitboxWidth > 0) ? obj.hitboxWidth : obj.width;
             const h = (obj.hitboxHeight && obj.hitboxHeight > 0) ? obj.hitboxHeight : obj.height;
             const x = obj.hitboxOffsetX || 0;
@@ -153,9 +228,16 @@ export class SpriteRenderer {
 
         const textValue = obj.caption || (ctx.host.runMode ? '' : obj.name);
         if (el.innerText !== textValue) {
-            if (!effectiveHasImage) {
+            if (!effectiveHasMedia) {
                 el.innerText = textValue;
             }
         }
+    }
+
+    private static encodeImageUrl(url: string): string {
+        if (!url || url.startsWith('data:')) return url;
+        const parts = url.split('/');
+        const last = encodeURIComponent(parts.pop() || '');
+        return [...parts, last].join('/');
     }
 }

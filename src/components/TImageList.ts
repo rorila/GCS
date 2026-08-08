@@ -31,6 +31,9 @@ export class TImageList extends TImage {
     /** Index des aktuell angezeigten Teilbildes (0-basiert) */
     public currentImageNumber: number = 0;
 
+    /** Im Run-Mode unsichtbar — ImageLists sind reine Editor-/Ressourcen-Komponenten */
+    public isHiddenInRun: boolean = true;
+
     constructor(name: string, x: number, y: number, width: number = 8, height: number = 6) {
         super(name, x, y, width, height);
 

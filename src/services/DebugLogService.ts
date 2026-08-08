@@ -42,12 +42,30 @@ export class DebugLogService {
         });
     }
 
+    /**
+     * Legt einen Log-Eintrag als aktuellen Parent-Kontext auf den Stack.
+     *
+     * WICHTIG: Push/Pop MUSS symmetrisch sein. Fruehere Version ignorierte leere
+     * IDs beim Push, popte aber immer — dadurch wurde bei verworfenen Eintraegen
+     * (log() liefert '') der Kontext des uebergeordneten Tasks entfernt und alle
+     * folgenden Actions landeten unter dem falschen Parent bzw. auf Root-Ebene
+     * (wo sie ohne objectName vom Anzeige-Filter ausgeblendet wurden).
+     * Deshalb wird jetzt auch fuer leere IDs ein Platzhalter gepusht.
+     */
     public pushContext(id: string) {
-        if (id) this.contextStack.push(id);
+        this.contextStack.push(id || '');
     }
 
     public popContext() {
         this.contextStack.pop();
+    }
+
+    /** Oberster gueltiger (nicht-leerer) Kontext-Eintrag. */
+    private getCurrentContextId(): string | undefined {
+        for (let i = this.contextStack.length - 1; i >= 0; i--) {
+            if (this.contextStack[i]) return this.contextStack[i];
+        }
+        return undefined;
     }
 
     public setEnabled(enabled: boolean) {
@@ -80,15 +98,22 @@ export class DebugLogService {
         level?: any,
         category?: any
     } = {}): string {
-        if (!this.enabled || this.isNotifying) {
+        if (!this.enabled) {
             // Diagnose: einmalig pro 50 verworfene Eintraege ein Hinweis,
             // damit wir sehen ob enabled=false die Ursache ist.
-            if (!this.enabled) {
-                this._droppedDueToDisabled++;
-                if (this._droppedDueToDisabled === 1 || this._droppedDueToDisabled % 50 === 0) {
-                    DebugLogService.logger.warn(`LOG VERWORFEN (enabled=false). count=${this._droppedDueToDisabled}, type=${type}, msg="${message}"`);
-                }
+            this._droppedDueToDisabled++;
+            if (this._droppedDueToDisabled === 1 || this._droppedDueToDisabled % 50 === 0) {
+                DebugLogService.logger.warn(`LOG VERWORFEN (enabled=false). count=${this._droppedDueToDisabled}, type=${type}, msg="${message}"`);
             }
+            return '';
+        }
+
+        // Re-Entrancy-Schutz: Waehrend notify() rendert, koennen ueber die
+        // Logger-Bruecke neue 'System'-Eintraege entstehen — die wuerden eine
+        // Endlosschleife ausloesen. Fachliche Eintraege (Event/Task/Action/...)
+        // duerfen dagegen NICHT verworfen werden, sonst fehlen im Viewer
+        // sporadisch Actions bei Event-Bursts (z.B. Kollisionen).
+        if (this.isNotifying && type === 'System') {
             return '';
         }
 
@@ -108,7 +133,7 @@ export class DebugLogService {
 
         // AUTO-PARENT: If no parentId provided, check if we are in a scoped context (Task/Action)
         // But ONLY if not flattened
-        const parentId = options.flatten ? undefined : (options.parentId || (this.contextStack.length > 0 ? this.contextStack[this.contextStack.length - 1] : undefined));
+        const parentId = options.flatten ? undefined : (options.parentId || this.getCurrentContextId());
 
         const id = `log-${Date.now()}-${this.counter++}`;
         const entry: LogEntry = {
@@ -142,6 +167,17 @@ export class DebugLogService {
                 this.scheduleNotify();
                 return id;
             }
+
+            // Parent wurde bereits verdraengt (maxLogs/maxChildren-Eviction).
+            // Der Eintrag landet als Root — ohne Kontext waere er fuer die
+            // Object/Event-Dropdown-Filter unsichtbar. Daher den letzten bekannten
+            // Kontext aus dem Stack nachziehen, damit Actions nicht verschwinden.
+            if (!entry.objectName || !entry.eventName) {
+                const inherited = this.findNearestKnownContext();
+                if (!entry.objectName) entry.objectName = inherited.objectName;
+                if (!entry.eventName)  entry.eventName  = inherited.eventName;
+            }
+            entry.parentId = undefined;
         }
 
         this.logs.push(entry);
@@ -153,6 +189,22 @@ export class DebugLogService {
         }
         this.scheduleNotify();
         return id;
+    }
+
+    /**
+     * Sucht im Kontext-Stack von oben nach unten den ersten noch vorhandenen
+     * Eintrag und liefert dessen objectName/eventName.
+     */
+    private findNearestKnownContext(): { objectName?: string, eventName?: string } {
+        for (let i = this.contextStack.length - 1; i >= 0; i--) {
+            const ctxId = this.contextStack[i];
+            if (!ctxId) continue;
+            const ctx = this.entryMap.get(ctxId);
+            if (ctx) {
+                return { objectName: ctx.objectName, eventName: ctx.eventName };
+            }
+        }
+        return {};
     }
 
     /** Entfernt einen Entry und alle seine Children rekursiv aus der entryMap */
@@ -174,6 +226,7 @@ export class DebugLogService {
     public clear(): void {
         this.logs = [];
         this.entryMap.clear();
+        this.contextStack = [];
         this.notify();
     }
 

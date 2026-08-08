@@ -1116,6 +1116,13 @@ export class Editor implements IViewHost {
             }
             this.autoSaveToLocalStorage(); // ARC-FIX: Persist property changes to disk!
 
+            // FIX: Sprite-Bilder sofort auf der Stage aktualisieren, wenn Medien-Eigenschaften geändert werden
+            const spriteMediaProps = ['animationId', 'imageListId', 'appearanceMode', 'videoSource'];
+            if (spriteMediaProps.includes(update.propertyName) &&
+                (update.object?.className === 'TSprite' || update.object?.className === 'TSpriteTemplate')) {
+                this.render();
+            }
+
             this.renderManager.refreshAllViews('inspector');
         };
         this.inspector.onProjectUpdate = () => { this.render(); this.autoSaveToLocalStorage(); this.renderManager.refreshAllViews('inspector'); };

@@ -30,11 +30,19 @@ interface MediaManifest {
 // Cache für das Manifest (wird nur einmal geladen)
 let manifestCache: MediaManifest | null = null;
 
+/**
+ * Verwirft den Manifest-Cache. Nach dem Upload neuer Medien aufrufen,
+ * damit die Dateien ohne Neuladen des Editors im Picker erscheinen.
+ */
+export function invalidateMediaManifestCache(): void {
+    manifestCache = null;
+}
+
 async function loadManifest(): Promise<MediaManifest> {
     if (manifestCache) return manifestCache;
     try {
         // Lade relativ, damit es im Electron file:// Protokoll (bzw. dist-Ordner) funktioniert
-        const resp = await fetch('./media-manifest.json');
+        const resp = await fetch(`./media-manifest.json?t=${Date.now()}`, { cache: 'no-store' });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         manifestCache = await resp.json();
         return manifestCache!;

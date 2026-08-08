@@ -15,6 +15,9 @@ import { AgentScriptDialog } from '../dialogs/AgentScriptDialog';
 import { AgentScriptLibrary } from '../dialogs/AgentScriptLibrary';
 import { AgentScript, ImportOptions } from '../../services/agent/AgentScriptTypes';
 import { AgentController } from '../../services/AgentController';
+import { VideoToSpriteSheetTool } from '../tools/VideoToSpriteSheetTool';
+import { ImageTransparencyTool } from '../tools/ImageTransparencyTool';
+import { invalidateMediaManifestCache } from '../inspector/MediaPickerDialog';
 
 export interface EditorMenuHost {
     project: GameProject;
@@ -216,6 +219,14 @@ export class EditorMenuManager {
                     });
                 });
                 break;
+            case 'open-video-to-spritesheet': {
+                this.openVideoToSpriteSheetTool();
+                break;
+            }
+            case 'open-image-transparency': {
+                this.openImageTransparencyTool();
+                break;
+            }
             default: {
                 const normalizedAction = action.replace(/\s+/g, '');
                 if (normalizedAction.startsWith('switch-stage-')) {
@@ -339,6 +350,84 @@ export class EditorMenuManager {
             default:
                 EditorMenuManager.logger.warn('Unknown menu action:', action);
         }
+    }
+
+    private openImageTransparencyTool(): void {
+        const tool = new ImageTransparencyTool(document.body, 'http://localhost:8080/api/upload/spritesheet');
+        tool.onExport = (result) => {
+            invalidateMediaManifestCache();
+            NotificationToast.show(`Bild '${result.fileName}' gespeichert.`, 'success');
+        };
+        tool.onError = (msg) => NotificationToast.show(msg, 'error');
+        tool.open();
+    }
+
+    private openVideoToSpriteSheetTool(): void {
+        const tool = new VideoToSpriteSheetTool(document.body, 'http://localhost:8080/api/upload/spritesheet');
+        tool.onExport = (result) => this.handleSpriteSheetExport(result);
+        tool.onError = (msg) => NotificationToast.show(msg, 'error');
+        tool.open();
+    }
+
+    private handleSpriteSheetExport(result: any): void {
+        const editor = this.host as any;
+        if (!editor || !editor.commandManager || typeof editor.getActiveStage !== 'function') return;
+
+        const activeStage = editor.getActiveStage();
+        if (!activeStage || !activeStage.objects) {
+            NotificationToast.show('Keine aktive Stage vorhanden.', 'error');
+            return;
+        }
+
+        // Neue Datei liegt jetzt in public/images — Picker-Cache verwerfen,
+        // damit sie ohne Editor-Reload im MediaPicker auftaucht.
+        invalidateMediaManifestCache();
+
+        const baseName = (result.metadata && result.metadata.name) ? result.metadata.name : 'spritesheet';
+        const objects: any[] = activeStage.objects;
+
+        const imageListName = this.makeUniqueName(objects, baseName);
+        const imageList = editor.commandManager.createObjectInstance('TImageList', imageListName, 2, 2);
+        if (imageList) {
+            // TImageList erbt von TImage und nutzt `src` als Bildquelle.
+            // `backgroundImage` wird zusätzlich gesetzt, weil der SpriteRenderer beide Wege unterstützt.
+            imageList.src = result.url;
+            imageList.backgroundImage = result.url;
+            imageList.imageCountHorizontal = result.metadata ? result.metadata.columns : 1;
+            imageList.imageCountVertical = result.metadata ? result.metadata.rows : 1;
+            imageList.currentImageNumber = 0;
+            imageList.scope = 'stage';
+            objects.push(imageList);
+        }
+
+        const animName = this.makeUniqueName(objects, `${baseName}_anim`);
+        const animation = editor.commandManager.createObjectInstance('TAnimation', animName, 12, 2);
+        if (animation) {
+            animation.imageListId = imageList ? imageList.name : '';
+            animation.imageCount = result.metadata ? result.metadata.frames : 1;
+            animation.frameDuration = Math.round(((result.metadata && result.metadata.frameInterval) || 0.1) * 1000);
+            animation.loop = true;
+            animation.enabled = true;
+            animation.scope = 'stage';
+            objects.push(animation);
+        }
+
+        editor.render();
+        if (animation) editor.selectObject(animation.id);
+        NotificationToast.show(`SpriteSheet '${imageListName}' und Animation '${animName}' erstellt.`, 'success');
+
+        this.host.autoSaveToLocalStorage();
+        projectStore.setProject(this.host.project);
+        mediatorService.notifyDataChanged(this.host.project, 'video-to-spritesheet');
+        Promise.resolve(this.host.saveProject()).catch(e => EditorMenuManager.logger.error('Speichern fehlgeschlagen:', e));
+    }
+
+    private makeUniqueName(objects: any[], base: string): string {
+        const names = new Set(objects.map(o => o.name));
+        if (!names.has(base)) return base;
+        let i = 2;
+        while (names.has(`${base}_${i}`)) i++;
+        return `${base}_${i}`;
     }
 
     public updateStagesMenu(): void {
