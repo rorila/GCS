@@ -873,7 +873,6 @@ export class InspectorRenderer {
 
             // Properties in group
             let currentContainer: any[] = groupChildren;
-            console.log('[InspectorRenderer] group:', groupName, 'props:', groupProps.length, 'names:', groupProps.map((p: any) => p.name));
 
             for (let i = 0; i < groupProps.length; i++) {
                 const prop = groupProps[i];
@@ -903,7 +902,6 @@ export class InspectorRenderer {
                     };
                     groupChildren.push(frame);
                     currentContainer = frame.children;
-                    console.log('[InspectorRenderer] creating frame for separator', prop.name, prop.label, 'frameChildren:', currentContainer.length);
                     continue;
                 }
 

@@ -154,6 +154,7 @@ export default [
         Float64Array: 'readonly',
         ImageData: 'readonly',
         ImageBitmap: 'readonly',
+        createImageBitmap: 'readonly',
         OffscreenCanvas: 'readonly',
         Path2D: 'readonly',
         TextMetrics: 'readonly',

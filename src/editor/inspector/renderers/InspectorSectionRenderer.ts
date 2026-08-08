@@ -85,7 +85,6 @@ export class InspectorSectionRenderer {
             parent.appendChild(card);
 
             const props = section.properties;
-            console.log('[InspectorSectionRenderer] section:', section.label, 'propCount:', props.length, 'propNames:', props.map(p => p.name));
             let i = 0;
             let currentBody: HTMLElement = body;
 
@@ -106,7 +105,6 @@ export class InspectorSectionRenderer {
                     header.style.cssText = 'font-size:12px;font-weight:bold;color:#4da6ff;margin-bottom:4px;';
                     frame.appendChild(header);
                     body.appendChild(frame);
-                    console.log('[InspectorSectionRenderer] created frame', propDef.name, propDef.label);
                     currentBody = frame;
                     i++;
                     continue;

@@ -9,6 +9,9 @@
 
 import { PromptDialog } from '../ui/PromptDialog';
 import { removeBackgroundFromImageData } from './ImageUtils';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('VideoToSpriteSheetTool');
 
 interface Frame {
     id: number;
@@ -775,8 +778,8 @@ export class VideoToSpriteSheetTool {
 
         const minBoxW = Math.min(...bboxes.map(b => b.w));
         const minBoxH = Math.min(...bboxes.map(b => b.h));
-        console.info(
-            `[VideoToSpriteSheet] Auto-Crop: Video ${imageW}x${imageH} | ` +
+        logger.info(
+            `Auto-Crop: Video ${imageW}x${imageH} | ` +
             `Bbox min ${minBoxW}x${minBoxH}, max ${maxW}x${maxH} | ` +
             `Rahmen ${w}x${h} (${((w / imageW) * 100).toFixed(0)}% x ${((h / imageH) * 100).toFixed(0)}% des Bildes)`
         );

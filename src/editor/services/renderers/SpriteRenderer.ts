@@ -45,7 +45,7 @@ export class SpriteRenderer {
 
         if ((obj.className === 'TSprite' || obj.className === 'TSpriteTemplate') && !effectiveHasMedia && !(el as any)._spriteNoMediaDiag) {
             (el as any)._spriteNoMediaDiag = true;
-            console.warn('[SPRITE-DIAG] TSprite hat kein Medium', {
+            spriteLogger.warn('[SPRITE-DIAG] TSprite hat kein Medium', {
                 name: obj.name,
                 id: obj.id,
                 className: obj.className,
