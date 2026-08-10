@@ -92,6 +92,9 @@
       "KaeheFliegt.png",
       "KirscheTransparent.png",
       "KraehenFlugTransparent.png",
+      "NewWalkingManImageList.png",
+      "WalkingManImageList.png",
+      "WalkingManImageListNo2.png",
       "spritesheet_1786193388727.png",
       "spritesheet_1786194109030.png",
       "spritesheet_1786195112640.png"
@@ -99,7 +102,10 @@
   },
   "audio": {
     "": [
+      "Bing.mp3",
+      "Blub.mp3",
       "ball_lost.wav",
+      "crash.mp3",
       "pingpong-hit.wav"
     ]
   },

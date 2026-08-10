@@ -6,6 +6,16 @@
     "description": "Das ist mein cooles Spiel",
     "_sourcePath": "projects/MyCoolGame.json"
   },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
   "flow": {
     "elements": [],
     "connections": []
@@ -112,24 +122,62 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [],
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_1786390598299_0bxzgdhvn",
+          "name": "Button_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Button_3",
+          "icon": ""
+        }
+      ],
       "actions": [
         {
-          "name": "ShowTheHighscoreStage",
+          "id": "node-1786390584901",
           "details": "",
           "type": "navigate_stage",
+          "name": "ShowTheHighscoreStage_Unique",
           "showDetails": false,
-          "id": "313f40d0-c068-4ec7-804c-544eb9b3b68d",
+          "target": "",
+          "changes": {},
           "reset": false
+        },
+        {
+          "id": "node-1786390587967",
+          "details": "",
+          "type": "property",
+          "name": "Action1",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
         }
       ],
       "tasks": [
         {
+          "id": "efe9344c-3b13-42a5-8183-e2d1b762dede",
           "name": "SwitchToTheHighscoreStage",
           "description": "",
           "actionSequence": [
             {
-              "name": "ShowTheHighscoreStage",
+              "name": "ShowTheHighscoreStage_Unique",
               "type": "action"
             }
           ],
@@ -140,12 +188,32 @@
               "x": 40,
               "y": 40
             },
-            "ShowTheHighscoreStage": {
-              "x": 40,
-              "y": 140
+            "ShowTheHighscoreStage_Unique": {
+              "x": 300,
+              "y": 300
             }
           },
-          "id": "11f9c352-f053-4284-913c-5012f724821e"
+          "standaloneNodes": [
+            {
+              "id": "node-1786390587967",
+              "type": "action",
+              "x": 300,
+              "y": 300,
+              "width": 300,
+              "height": 60,
+              "properties": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "type": "navigate_stage",
+                "isLinked": true,
+                "showDetails": false
+              }
+            }
+          ]
         }
       ],
       "variables": [],
@@ -157,29 +225,10 @@
         "visible": true,
         "backgroundColor": "#16da36"
       },
-      "description": "Das ist mein cooles Spiel",
-      "flowCharts": {}
-    },
-    {
-      "id": "stage-1773685660117",
-      "name": "Stage 1",
-      "type": "standard",
-      "objects": [],
-      "actions": [],
-      "tasks": [],
-      "variables": [],
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#ffffff"
-      },
       "flowCharts": {}
     }
   ],
-  "activeStageId": "stage-1773685660117",
+  "activeStageId": "main",
   "userStories": {
     "userStories": []
   },
