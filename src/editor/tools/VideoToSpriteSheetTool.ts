@@ -30,8 +30,9 @@ interface ToolSettings {
     removeBackground: boolean;
     backgroundColor: string;
     tolerance: number;
-    autoCrop: boolean;
+    cropMode: 'none' | 'auto' | 'manual';
     cropPadding: number;
+    manualCropRect: { x: number; y: number; w: number; h: number } | null;
     fps: number;
     loop: boolean;
 }
@@ -74,8 +75,9 @@ export class VideoToSpriteSheetTool {
         removeBackground: false,
         backgroundColor: '#00FF00',
         tolerance: 30,
-        autoCrop: false,
+        cropMode: 'none',
         cropPadding: 2,
+        manualCropRect: null,
         fps: 12,
         loop: true
     };
@@ -240,7 +242,7 @@ export class VideoToSpriteSheetTool {
         urlInput.onchange = () => this.loadVideoUrl(urlInput.value.trim());
 
         const player = document.createElement('video');
-        player.style.cssText = 'width:100%;max-height:180px;background:#000;border-radius:4px;';
+        player.style.cssText = 'width:100%;max-height:320px;background:#000;border-radius:4px;';
         player.controls = true;
         player.muted = true;
 
@@ -334,11 +336,83 @@ export class VideoToSpriteSheetTool {
         section.appendChild(makeCheckbox('Hintergrund entfernen', 'removeBackground'));
         section.appendChild(makeColor('Hintergrundfarbe', 'backgroundColor'));
         section.appendChild(makeNumber('Toleranz (0-100)', 'tolerance', 1, 0, 100));
-        section.appendChild(makeCheckbox('Automatisch zuschneiden', 'autoCrop'));
+        section.appendChild(this.renderCropModeRow());
         section.appendChild(makeNumber('Zuschnitt-Rand (px)', 'cropPadding', 1, 0));
         section.appendChild(makeCheckbox('Loop Vorschau', 'loop'));
 
         return section;
+    }
+
+    /** Zuschnitt-Modus (Kein/Automatisch/Manuell) inkl. Rahmen-Auswahl fuer den manuellen Modus. */
+    private renderCropModeRow(): HTMLElement {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+
+        const modeRow = document.createElement('div');
+        modeRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
+        const lbl = document.createElement('label');
+        lbl.textContent = 'Zuschnitt';
+        lbl.style.cssText = 'min-width:120px;font-size:12px;color:#e0d4f5;';
+        const select = document.createElement('select');
+        select.style.cssText = 'padding:4px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:4px;';
+        const options: Array<[ToolSettings['cropMode'], string]> = [
+            ['none', 'Kein'],
+            ['auto', 'Automatisch'],
+            ['manual', 'Manuell']
+        ];
+        options.forEach(([value, text]) => {
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = text;
+            if (this.settings.cropMode === value) opt.selected = true;
+            select.appendChild(opt);
+        });
+        modeRow.appendChild(lbl);
+        modeRow.appendChild(select);
+
+        const manualRow = document.createElement('div');
+        manualRow.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-left:128px;';
+
+        const setBtn = document.createElement('button');
+        setBtn.textContent = 'Rahmen im Video festlegen…';
+        setBtn.style.cssText = this.getBtnStyles();
+        setBtn.onclick = () => this.openManualCropOverlay(() => updateRectInfo());
+
+        const rectInfo = document.createElement('span');
+        rectInfo.style.cssText = 'font-size:12px;color:#aaa;';
+
+        const discardBtn = document.createElement('button');
+        discardBtn.textContent = 'Verwerfen';
+        discardBtn.style.cssText = this.getBtnStyles();
+        discardBtn.onclick = () => {
+            this.settings.manualCropRect = null;
+            updateRectInfo();
+        };
+
+        const updateRectInfo = () => {
+            const r = this.settings.manualCropRect;
+            rectInfo.textContent = r ? `Rahmen: ${r.w}x${r.h}px bei (${r.x},${r.y})` : 'Kein Rahmen festgelegt.';
+            discardBtn.style.display = r ? '' : 'none';
+        };
+        updateRectInfo();
+
+        manualRow.appendChild(setBtn);
+        manualRow.appendChild(rectInfo);
+        manualRow.appendChild(discardBtn);
+
+        const updateManualRowVisibility = () => {
+            manualRow.style.display = this.settings.cropMode === 'manual' ? '' : 'none';
+        };
+        updateManualRowVisibility();
+
+        select.onchange = () => {
+            this.settings.cropMode = select.value as ToolSettings['cropMode'];
+            updateManualRowVisibility();
+        };
+
+        wrap.appendChild(modeRow);
+        wrap.appendChild(manualRow);
+        return wrap;
     }
 
     private renderFrameActions(): HTMLElement {
@@ -683,6 +757,169 @@ export class VideoToSpriteSheetTool {
         };
     }
 
+    /**
+     * Overlay zum manuellen Festlegen eines Zuschnitt-Rahmens direkt am Video.
+     *
+     * Das bereits geladene <video>-Element wird für die Dauer des Overlays
+     * hierher verschoben (kein Neuladen, Abspielposition bleibt erhalten) und
+     * beim Schließen wieder an seinen ursprünglichen Platz gesetzt. Ein Toggle
+     * schaltet zwischen normaler Videosteuerung (spulen/abspielen, um die
+     * passende Stelle zu finden) und dem Ziehen des Rahmens um, da eine
+     * durchgehend aktive Ziehfläche die native <video controls>-Leiste
+     * blockieren würde.
+     */
+    private openManualCropOverlay(onApplied: () => void): void {
+        if (!this.video || !this.videoWidth || !this.videoHeight) {
+            this.log('Bitte zuerst ein Video laden.');
+            window.alert('Bitte zuerst ein Video laden, bevor ein manueller Rahmen festgelegt werden kann.');
+            return;
+        }
+        const video = this.video;
+        const imgW = this.videoWidth;
+        const imgH = this.videoHeight;
+
+        const originalParent = video.parentElement;
+        const originalNextSibling = video.nextSibling;
+        const originalStyleCssText = video.style.cssText;
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:20000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;';
+
+        const info = document.createElement('div');
+        info.textContent = 'Zur passenden Stelle spulen, dann "Rahmen zeichnen" aktivieren und Rahmen aufziehen.';
+        info.style.cssText = 'color:#fff;font-size:14px;text-align:center;max-width:80vw;';
+
+        const videoWrap = document.createElement('div');
+        videoWrap.style.cssText = 'position:relative;display:inline-block;';
+
+        video.style.cssText = 'max-width:90vw;max-height:70vh;background:#000;border-radius:4px;display:block;';
+        videoWrap.appendChild(video);
+
+        const drawLayer = document.createElement('div');
+        drawLayer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
+        videoWrap.appendChild(drawLayer);
+
+        const selectionBox = document.createElement('div');
+        selectionBox.style.cssText = 'position:absolute;border:2px dashed #4da6ff;background:rgba(77,166,255,0.15);display:none;pointer-events:none;';
+        videoWrap.appendChild(selectionBox);
+
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex;gap:8px;';
+
+        const drawToggleBtn = document.createElement('button');
+        drawToggleBtn.textContent = 'Rahmen zeichnen';
+        drawToggleBtn.style.cssText = this.getBtnStyles();
+
+        const applyBtn = document.createElement('button');
+        applyBtn.textContent = 'Übernehmen';
+        applyBtn.style.cssText = this.getBtnStyles(true);
+        applyBtn.disabled = true;
+
+        const discardBtn = document.createElement('button');
+        discardBtn.textContent = 'Verwerfen';
+        discardBtn.style.cssText = this.getBtnStyles();
+
+        btnRow.appendChild(drawToggleBtn);
+        btnRow.appendChild(applyBtn);
+        btnRow.appendChild(discardBtn);
+
+        overlay.appendChild(info);
+        overlay.appendChild(videoWrap);
+        overlay.appendChild(btnRow);
+        document.body.appendChild(overlay);
+
+        let drawMode = false;
+        let dragging = false;
+        let startX = 0, startY = 0;
+        let rect: { x: number; y: number; w: number; h: number } | null = null;
+
+        const toImageCoords = (e: MouseEvent): { x: number; y: number } => {
+            const r = video.getBoundingClientRect();
+            const scaleX = imgW / r.width;
+            const scaleY = imgH / r.height;
+            const x = Math.max(0, Math.min(imgW, Math.round((e.clientX - r.left) * scaleX)));
+            const y = Math.max(0, Math.min(imgH, Math.round((e.clientY - r.top) * scaleY)));
+            return { x, y };
+        };
+
+        const updateSelectionBox = () => {
+            if (!rect || rect.w < 1 || rect.h < 1) {
+                selectionBox.style.display = 'none';
+                applyBtn.disabled = true;
+                return;
+            }
+            const r = video.getBoundingClientRect();
+            const scaleX = r.width / imgW;
+            const scaleY = r.height / imgH;
+            selectionBox.style.display = 'block';
+            selectionBox.style.left = `${rect.x * scaleX}px`;
+            selectionBox.style.top = `${rect.y * scaleY}px`;
+            selectionBox.style.width = `${rect.w * scaleX}px`;
+            selectionBox.style.height = `${rect.h * scaleY}px`;
+            applyBtn.disabled = false;
+        };
+
+        const setDrawMode = (active: boolean) => {
+            drawMode = active;
+            drawLayer.style.pointerEvents = active ? 'auto' : 'none';
+            drawLayer.style.cursor = active ? 'crosshair' : 'default';
+            drawToggleBtn.textContent = active ? 'Video steuern' : 'Rahmen zeichnen';
+            if (active) video.pause();
+            info.textContent = active
+                ? 'Rahmen bei gedrückter Maustaste aufziehen.'
+                : 'Zur passenden Stelle spulen, dann "Rahmen zeichnen" aktivieren und Rahmen aufziehen.';
+        };
+        drawToggleBtn.onclick = () => setDrawMode(!drawMode);
+
+        // Mousemove/-up bewusst auf document statt nur auf der Ziehfläche registriert:
+        // Verlässt der Zeiger während des Ziehens kurz den Video-Rand (leicht möglich
+        // bei Drag Richtung Bildrand), darf die Auswahl nicht abbrechen.
+        // toImageCoords() klemmt die Koordinaten ohnehin auf die Bildgrenzen.
+        const onMouseMove = (e: MouseEvent) => {
+            if (!dragging) return;
+            const p = toImageCoords(e);
+            const x = Math.min(startX, p.x);
+            const y = Math.min(startY, p.y);
+            rect = { x, y, w: Math.abs(p.x - startX), h: Math.abs(p.y - startY) };
+            updateSelectionBox();
+        };
+        const onMouseUp = () => { dragging = false; };
+
+        drawLayer.onmousedown = (e) => {
+            if (!drawMode) return;
+            dragging = true;
+            const p = toImageCoords(e);
+            startX = p.x;
+            startY = p.y;
+            rect = { x: startX, y: startY, w: 0, h: 0 };
+            updateSelectionBox();
+        };
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+
+        const restoreVideo = () => {
+            video.style.cssText = originalStyleCssText;
+            if (originalParent) {
+                originalParent.insertBefore(video, originalNextSibling);
+            }
+        };
+
+        const closeOverlay = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            restoreVideo();
+            overlay.remove();
+        };
+        discardBtn.onclick = closeOverlay;
+
+        applyBtn.onclick = () => {
+            if (!rect || rect.w < 1 || rect.h < 1) return;
+            this.settings.manualCropRect = { ...rect };
+            closeOverlay();
+            onApplied();
+        };
+    }
+
     /** Wendet die aktuellen Bildbearbeitungs-Einstellungen auf ein Frame an. */
     private processFrame(imageData: ImageData): ImageData {
         if (!this.settings.removeBackground) return imageData;
@@ -847,7 +1084,21 @@ export class VideoToSpriteSheetTool {
         let cropH = this.videoHeight;
         let cropRects = processed.map(() => ({ x: 0, y: 0 }));
 
-        if (this.settings.autoCrop) {
+        if (this.settings.cropMode === 'manual' && this.settings.manualCropRect) {
+            const r = this.settings.manualCropRect;
+            // Clamping gegen die tatsächliche Bildgröße: Absicherung, falls der
+            // Rahmen auf einem anderen Video/einer anderen Auflösung erstellt wurde.
+            cropW = Math.max(1, Math.min(r.w, this.videoWidth - Math.min(r.x, this.videoWidth - 1)));
+            cropH = Math.max(1, Math.min(r.h, this.videoHeight - Math.min(r.y, this.videoHeight - 1)));
+            const clampedX = Math.max(0, Math.min(r.x, this.videoWidth - cropW));
+            const clampedY = Math.max(0, Math.min(r.y, this.videoHeight - cropH));
+            cropRects = processed.map(() => ({ x: clampedX, y: clampedY }));
+
+            this.applySettingValue('spriteWidth', cropW);
+            this.applySettingValue('spriteHeight', cropH);
+
+            this.log(`Manueller Zuschnitt: Rahmen ${cropW}x${cropH}px bei (${clampedX},${clampedY}) — für alle Frames identisch.`);
+        } else if (this.settings.cropMode === 'auto') {
             const crop = this.computeUniformCrop(processed, this.settings.cropPadding);
             cropW = crop.w;
             cropH = crop.h;
