@@ -43,6 +43,33 @@ export class EditorRunManager {
         });
     }
 
+    /**
+     * Spiegelt Änderungen an einer TAnimation bzw. TImageList auf das korrespondierende
+     * Objekt der laufenden Runtime. Ohne diesen Sync wirken Inspector-Änderungen erst
+     * nach einem Neustart, weil die Runtime auf eigenen Objektkopien arbeitet.
+     */
+    public syncAnimationToRuntime(source: any): void {
+        if (!this.runtime || !this.runtimeObjects || !source) return;
+
+        const className = source.className;
+        if (className !== 'TAnimation' && className !== 'TImageList') return;
+
+        const target: any = this.runtimeObjects.find((o: any) =>
+            (o.id === source.id || o.name === source.name) && o.className === className
+        );
+        if (!target) return;
+
+        const props = className === 'TAnimation'
+            ? ['frameDuration', 'imageCount', 'loop', 'enabled', 'imageListId']
+            : ['imageCountHorizontal', 'imageCountVertical', 'currentImageNumber', 'src', 'backgroundImage'];
+
+        props.forEach(p => {
+            if (source[p] !== undefined) target[p] = source[p];
+        });
+
+        logger.info(`[RunManager] ${className} '${source.name}' auf Runtime gespiegelt.`);
+    }
+
     public setRunMode(running: boolean) {
         if (running) {
             // ...
@@ -145,10 +172,17 @@ export class EditorRunManager {
                 makeReactive: true,
                 multiplayerManager: mpManager,
                 onRender: () => this.editor.render(),
-                onComponentUpdate: (obj: any) => {
+                onComponentUpdate: (obj: any, prop?: string) => {
                     const activeStage = this.runStage || this.editor.stage;
-                    if (activeStage && activeStage.renderer && typeof activeStage.renderer.updateSingleObject === 'function') {
-                        activeStage.renderer.updateSingleObject(obj);
+                    const renderer = activeStage && activeStage.renderer;
+                    if (!renderer) return;
+                    // PERF: Reine Frame-Wechsel (Animation) über den Fast-Path abwickeln.
+                    if (prop === 'imageIndex' && typeof renderer.updateSpriteFrame === 'function'
+                        && renderer.updateSpriteFrame(obj)) {
+                        return;
+                    }
+                    if (typeof renderer.updateSingleObject === 'function') {
+                        renderer.updateSingleObject(obj);
                     }
                 },
                 onSpriteRender: (sprites: any[]) => this.renderSpritesOnly(sprites),

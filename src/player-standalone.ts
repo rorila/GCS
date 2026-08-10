@@ -7,10 +7,32 @@ import { GridConfig, GameProject, StageDefinition, ComponentData } from './model
 import { GameLoopManager } from './runtime/GameLoopManager';
 import { AnimationManager } from './runtime/AnimationManager';
 import { Logger } from './utils/Logger';
+import { LogLevel } from './utils/LogTypes';
 
 // 0. Initialize Tauri FS Adapter early
 import { installTauriFSAdapter } from './utils/TauriFSAdapter';
 installTauriFSAdapter();
+
+// PERF: Im ausgelieferten Spiel ist Logging per Default aus. console.*-Aufrufe in den
+// Render-/Loop-Pfaden kosten auf schwacher Hardware messbar Zeit.
+// Mit ?debug=1 (oder ?debug=DEBUG|INFO|WARN) lässt sich das Logging wieder einschalten.
+function applyPlayerLogLevel(): void {
+    if (typeof window === 'undefined') return;
+    const param = new URLSearchParams(window.location.search).get('debug');
+    if (!param) {
+        Logger.setGlobalLevel(LogLevel.ERROR);
+        return;
+    }
+    switch (param.toUpperCase()) {
+        case 'DEBUG':
+        case '1':
+        case 'TRUE': Logger.setGlobalLevel(LogLevel.DEBUG); break;
+        case 'INFO': Logger.setGlobalLevel(LogLevel.INFO); break;
+        case 'WARN': Logger.setGlobalLevel(LogLevel.WARN); break;
+        default: Logger.setGlobalLevel(LogLevel.ERROR); break;
+    }
+}
+applyPlayerLogLevel();
 
 const logger = Logger.get('UniversalPlayer', 'Runtime_Execution');
 // HeadlessRuntime and HeadlessServer are Node.js-only (use express)
@@ -296,8 +318,12 @@ class UniversalPlayer implements StageHost {
         // 2. Initialize new Runtime
         this.runtime = new GameRuntime(project, undefined, {
             onRender: () => this.render(),
-            onComponentUpdate: (obj: any) => {
-                if (this.renderer && typeof this.renderer.updateSingleObject === 'function') {
+            onComponentUpdate: (obj: any, prop?: string) => {
+                if (!this.renderer) return;
+                // PERF: Reine Frame-Wechsel (Animation, bis zu 60x/s) brauchen keinen
+                // vollständigen Objekt-Update mit Theme-Merge und Layout-Neuberechnung.
+                if (prop === 'imageIndex' && this.renderer.updateSpriteFrame(obj)) return;
+                if (typeof this.renderer.updateSingleObject === 'function') {
                     this.renderer.updateSingleObject(obj);
                 }
             },

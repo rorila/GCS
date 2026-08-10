@@ -13,6 +13,29 @@ import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('VideoToSpriteSheetTool');
 
+/** Version des Tools — wird im Dialog-Header angezeigt, damit die getestete Version erkennbar ist. */
+export const VIDEO_TO_SPRITESHEET_TOOL_VERSION = '1.6.0';
+
+/**
+ * Performance-Budget für Sprite-Sheets.
+ *
+ * Dekodierte Bilder belegen 4 Byte pro Pixel im Speicher — unabhängig von der
+ * Dateigröße. Zu große Sheets führen auf schwacher Hardware dazu, dass der Browser
+ * dekodierte Bitmaps verwirft und pro Frame neu dekodiert (sichtbares Ruckeln).
+ */
+const PERF = {
+    /** Empfohlene maximale Kantenlänge einer Frame-Zelle. */
+    MAX_FRAME_EDGE: 256,
+    /** Zielgrenze für die Sheet-Kantenlänge — auf jeder GPU als Textur nutzbar. */
+    MAX_SHEET_EDGE: 2048,
+    /** Übliche harte Texturgrenze; darüber verweigern viele GPUs den Upload. */
+    MAX_TEXTURE_EDGE: 8192,
+    /** Pixel-Budget pro Sheet (2048x2048) — entspricht ca. 16 MB RAM. */
+    MAX_SHEET_PIXELS: 4_000_000,
+    /** Empfohlene maximale Frame-Anzahl pro Animation. */
+    MAX_FRAMES: 32
+} as const;
+
 interface Frame {
     id: number;
     time: number;
@@ -27,6 +50,10 @@ interface ToolSettings {
     spriteWidth: number;
     spriteHeight: number;
     columns: number;
+    /** Maximale Kantenlänge einer Frame-Zelle in px. 0 = keine Begrenzung. */
+    maxFrameSize: number;
+    /** Spaltenzahl automatisch so wählen, dass das Sheet GPU-taugliche Maße behält. */
+    autoColumns: boolean;
     removeBackground: boolean;
     backgroundColor: string;
     tolerance: number;
@@ -72,6 +99,8 @@ export class VideoToSpriteSheetTool {
         spriteWidth: 256,
         spriteHeight: 256,
         columns: 4,
+        maxFrameSize: PERF.MAX_FRAME_EDGE,
+        autoColumns: true,
         removeBackground: false,
         backgroundColor: '#00FF00',
         tolerance: 30,
@@ -121,7 +150,19 @@ export class VideoToSpriteSheetTool {
     }
 
     private log(msg: string): void {
-        if (this.logEl) this.logEl.textContent = msg;
+        if (this.logEl) {
+            this.logEl.style.color = '#ff9f43';
+            this.logEl.textContent = msg;
+        }
+        logger.info(msg);
+    }
+
+    private logSuccess(msg: string): void {
+        if (this.logEl) {
+            this.logEl.style.color = '#7fd1a0';
+            this.logEl.textContent = msg;
+        }
+        logger.info(msg);
     }
 
     private render(): void {
@@ -134,7 +175,7 @@ export class VideoToSpriteSheetTool {
 
         const header = document.createElement('div');
         header.style.cssText = this.getHeaderStyles();
-        header.innerHTML = '<h2 style="margin:0;font-size:16px;color:#e0e0e0;">🎬 Video → SpriteSheet</h2>';
+        header.innerHTML = `<h2 style="margin:0;font-size:16px;color:#e0e0e0;">🎬 Video → SpriteSheet <span style="font-size:11px;color:#7fd1a0;font-weight:normal;">v${VIDEO_TO_SPRITESHEET_TOOL_VERSION}</span></h2>`;
 
         const closeBtn = document.createElement('button');
         closeBtn.textContent = '✕';
@@ -151,10 +192,10 @@ export class VideoToSpriteSheetTool {
         this.videoInfoEl.style.cssText = 'font-size:12px;color:#aaa;margin-bottom:8px;';
 
         this.frameGridEl = document.createElement('div');
-        this.frameGridEl.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;min-height:320px;max-height:380px;overflow-y:auto;padding:10px;background:#1e1e2e;border-radius:6px;border:1px solid #3a3a4f;';
+        this.frameGridEl.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;flex:0 0 auto;min-height:420px;max-height:520px;overflow-y:auto;padding:12px;background:#1e1e2e;border-radius:6px;border:1px solid #3a3a4f;';
 
         this.sheetPreviewEl = document.createElement('div');
-        this.sheetPreviewEl.style.cssText = 'margin-top:12px;overflow:auto;max-height:220px;background:#1e1e2e;border-radius:6px;padding:8px;';
+        this.sheetPreviewEl.style.cssText = 'margin-top:12px;overflow:auto;flex:0 0 auto;min-height:320px;max-height:520px;background:#1e1e2e;border-radius:6px;padding:8px;';
 
         this.sheetInfoEl = document.createElement('div');
         this.sheetInfoEl.style.cssText = 'font-size:12px;color:#aaa;margin-top:8px;';
@@ -333,6 +374,8 @@ export class VideoToSpriteSheetTool {
         section.appendChild(makeNumber('Sprite-Breite', 'spriteWidth', 1, 1));
         section.appendChild(makeNumber('Sprite-Höhe', 'spriteHeight', 1, 1));
         section.appendChild(makeNumber('Spalten', 'columns', 1, 1));
+        section.appendChild(makeCheckbox('Spalten automatisch', 'autoColumns'));
+        section.appendChild(makeNumber('Max. Frame-Kante (px, 0=aus)', 'maxFrameSize', 16, 0));
         section.appendChild(makeCheckbox('Hintergrund entfernen', 'removeBackground'));
         section.appendChild(makeColor('Hintergrundfarbe', 'backgroundColor'));
         section.appendChild(makeNumber('Toleranz (0-100)', 'tolerance', 1, 0, 100));
@@ -451,7 +494,12 @@ export class VideoToSpriteSheetTool {
         const buildBtn = document.createElement('button');
         buildBtn.textContent = 'SpriteSheet erstellen';
         buildBtn.style.cssText = this.getBtnStyles(true);
-        buildBtn.onclick = () => this.buildSheet();
+        buildBtn.onclick = () => {
+            this.buildSheet().catch(e => {
+                this.log(`Fehler beim Erstellen: ${e?.message || e}`);
+                logger.error('buildSheet fehlgeschlagen:', e);
+            });
+        };
 
         const previewAnimBtn = document.createElement('button');
         previewAnimBtn.textContent = 'Animation abspielen';
@@ -517,7 +565,7 @@ export class VideoToSpriteSheetTool {
         const animCanvas = document.createElement('canvas');
         animCanvas.width = this.settings.spriteWidth;
         animCanvas.height = this.settings.spriteHeight;
-        animCanvas.style.cssText = `width:128px;height:128px;border-radius:4px;margin-top:8px;${this.getCheckerboardStyles()}`;
+        animCanvas.style.cssText = `align-self:center;width:auto;height:auto;max-width:100%;max-height:320px;border-radius:4px;margin-top:8px;${this.getCheckerboardStyles()}`;
         this.animPreviewCanvas = animCanvas;
 
         section.appendChild(row);
@@ -650,18 +698,46 @@ export class VideoToSpriteSheetTool {
             };
             updateCardStyle(frame.selected);
 
+            const THUMB_MAX = 128;
+            const preview = this.processFrame(frame.imageData);
+            let crop: { x: number; y: number; w: number; h: number };
+
+            if (this.settings.cropMode === 'manual' && this.settings.manualCropRect) {
+                const r = this.settings.manualCropRect;
+                const x = Math.max(0, Math.min(r.x, preview.width - 1));
+                const y = Math.max(0, Math.min(r.y, preview.height - 1));
+                crop = {
+                    x, y,
+                    w: Math.max(1, Math.min(r.w, preview.width - x)),
+                    h: Math.max(1, Math.min(r.h, preview.height - y))
+                };
+            } else if (this.settings.cropMode === 'auto') {
+                const bbox = this.computeBbox(preview);
+                const pad = this.settings.cropPadding;
+                const x = Math.max(0, bbox.x - pad);
+                const y = Math.max(0, bbox.y - pad);
+                crop = {
+                    x, y,
+                    w: Math.min(preview.width - x, bbox.w + pad * 2),
+                    h: Math.min(preview.height - y, bbox.h + pad * 2)
+                };
+            } else {
+                crop = { x: 0, y: 0, w: preview.width, h: preview.height };
+            }
+
+            const scale = Math.min(THUMB_MAX / crop.w, THUMB_MAX / crop.h);
+            const thumbW = Math.max(1, Math.round(crop.w * scale));
+            const thumbH = Math.max(1, Math.round(crop.h * scale));
+
             const thumbCanvas = document.createElement('canvas');
-            thumbCanvas.width = 64;
-            thumbCanvas.height = 64;
-            thumbCanvas.style.cssText = `border-radius:4px;${this.getCheckerboardStyles()}`;
+            thumbCanvas.width = thumbW;
+            thumbCanvas.height = thumbH;
+            thumbCanvas.style.cssText = `width:auto;height:auto;max-width:${THUMB_MAX}px;max-height:${THUMB_MAX}px;border-radius:4px;${this.getCheckerboardStyles()}`;
+
             const tctx = thumbCanvas.getContext('2d');
             if (tctx) {
-                const preview = this.processFrame(frame.imageData);
-                const bmp = await createImageBitmap(preview);
-                const scale = Math.min(64 / preview.width, 64 / preview.height);
-                const dw = preview.width * scale;
-                const dh = preview.height * scale;
-                tctx.drawImage(bmp, 0, 0, preview.width, preview.height, (64 - dw) / 2, (64 - dh) / 2, dw, dh);
+                const bmp = await createImageBitmap(preview, crop.x, crop.y, crop.w, crop.h);
+                tctx.drawImage(bmp, 0, 0, crop.w, crop.h, 0, 0, thumbW, thumbH);
                 bmp.close?.();
             }
 
@@ -1121,12 +1197,21 @@ export class VideoToSpriteSheetTool {
                     `(${(shrink * 100).toFixed(0)}% weniger Fläche, Rand ${this.settings.cropPadding}px).`
                 );
             }
+        } else {
+            this.applySettingValue('spriteWidth', cropW);
+            this.applySettingValue('spriteHeight', cropH);
         }
+
+        // Zellgröße auf das Performance-Budget begrenzen, bevor das Raster berechnet wird.
+        this.applyFrameSizeLimit(cropW, cropH);
 
         const cropped = processed.map((p, i) => this.cropImageData(p, cropRects[i].x, cropRects[i].y, cropW, cropH));
 
-        this.sheetColumns = this.settings.columns;
-        this.sheetRows = Math.ceil(cropped.length / this.sheetColumns);
+        // Raster aus Spaltenzahl (ggf. automatisch) und Frame-Anzahl ableiten.
+        this.sheetColumns = this.computeSheetColumns(
+            cropped.length, this.settings.spriteWidth, this.settings.spriteHeight
+        );
+        this.sheetRows = Math.max(1, Math.ceil(cropped.length / this.sheetColumns));
 
         const canvas = document.createElement('canvas');
         canvas.width = this.sheetColumns * this.settings.spriteWidth;
@@ -1155,29 +1240,144 @@ export class VideoToSpriteSheetTool {
 
         this.sheetCanvas = canvas;
 
+        if (this.animPreviewCanvas) {
+            this.animPreviewCanvas.width = this.settings.spriteWidth;
+            this.animPreviewCanvas.height = this.settings.spriteHeight;
+            this.drawPreviewFrame(0);
+        }
+
         if (this.sheetPreviewEl) {
             this.sheetPreviewEl.innerHTML = '';
+
+            const caption = document.createElement('div');
+            caption.textContent = `SpriteSheet (alle Frames) — ${this.sheetColumns}x${this.sheetRows}, ${canvas.width}x${canvas.height}px`;
+            caption.style.cssText = 'font-size:11px;color:#aaa;margin-bottom:6px;';
+            this.sheetPreviewEl.appendChild(caption);
+
             const img = document.createElement('img');
             img.src = canvas.toDataURL('image/png');
-            img.style.cssText = `max-width:100%;image-rendering:pixelated;${this.getCheckerboardStyles()}`;
+            img.style.cssText = `display:block;width:auto;height:auto;max-width:100%;max-height:480px;image-rendering:pixelated;${this.getCheckerboardStyles()}`;
             this.sheetPreviewEl.appendChild(img);
         }
 
-        if (this.sheetInfoEl) {
-            this.sheetInfoEl.textContent = `SpriteSheet: ${canvas.width}x${canvas.height}px | ` +
-                `${this.sheetColumns}x${this.sheetRows} | ${selected.length} Frames | ` +
-                `Zelle: ${this.settings.spriteWidth}x${this.settings.spriteHeight}px`;
+        this.reportSheetBudget(canvas, selected.length);
+    }
+
+    /**
+     * Begrenzt die Frame-Zelle auf `maxFrameSize`, ohne das Seitenverhältnis zu verändern.
+     * Grund: Jedes Pixel kostet zur Laufzeit 4 Byte Speicher.
+     */
+    private applyFrameSizeLimit(cropW: number, cropH: number): void {
+        const limit = Math.round(this.settings.maxFrameSize) || 0;
+        if (limit <= 0) return;
+
+        const longest = Math.max(cropW, cropH);
+        if (longest <= limit) return;
+
+        const scale = limit / longest;
+        const cellW = Math.max(1, Math.round(cropW * scale));
+        const cellH = Math.max(1, Math.round(cropH * scale));
+
+        this.applySettingValue('spriteWidth', cellW);
+        this.applySettingValue('spriteHeight', cellH);
+
+        this.log(
+            `Frame verkleinert: ${cropW}x${cropH} → ${cellW}x${cellH}px (Grenze ${limit}px). ` +
+            `Spart etwa ${(100 - scale * scale * 100).toFixed(0)}% Speicher pro Frame.`
+        );
+    }
+
+    /**
+     * Ermittelt die Spaltenzahl. Bei `autoColumns` wird ein möglichst quadratisches
+     * Sheet angestrebt, dessen Kanten die GPU-taugliche Grenze nicht überschreiten.
+     */
+    private computeSheetColumns(frameCount: number, cellW: number, cellH: number): number {
+        const manual = Math.max(1, Math.min(Math.round(this.settings.columns) || 1, frameCount));
+        if (!this.settings.autoColumns) return manual;
+
+        let best = 0;
+        let bestRatio = Number.POSITIVE_INFINITY;
+
+        for (let cols = 1; cols <= frameCount; cols++) {
+            const rows = Math.ceil(frameCount / cols);
+            const w = cols * cellW;
+            const h = rows * cellH;
+            if (w > PERF.MAX_SHEET_EDGE || h > PERF.MAX_SHEET_EDGE) continue;
+
+            const ratio = Math.max(w, h) / Math.min(w, h);
+            if (ratio < bestRatio) {
+                bestRatio = ratio;
+                best = cols;
+            }
         }
 
-        this.log('SpriteSheet erstellt.');
+        if (best === 0) {
+            const fallback = Math.max(1, Math.ceil(Math.sqrt(frameCount)));
+            this.log(
+                `Kein Raster unter ${PERF.MAX_SHEET_EDGE}px möglich: ${frameCount} Frames à ${cellW}x${cellH}px ` +
+                `sind zu viel. Weniger Frames wählen oder "Max. Frame-Kante" verkleinern.`
+            );
+            return Math.min(fallback, frameCount);
+        }
+
+        if (best !== manual) {
+            this.applySettingValue('columns', best);
+            this.log(`Spalten automatisch auf ${best} gesetzt (Raster ${best}x${Math.ceil(frameCount / best)}).`);
+        }
+        return best;
+    }
+
+    /** Bewertet das erzeugte Sheet gegen das Performance-Budget. */
+    private reportSheetBudget(canvas: HTMLCanvasElement, frameCount: number): void {
+        const pixels = canvas.width * canvas.height;
+        const megaBytes = (pixels * 4) / (1024 * 1024);
+        const overEdge = canvas.width > PERF.MAX_SHEET_EDGE || canvas.height > PERF.MAX_SHEET_EDGE;
+        const overTexture = canvas.width > PERF.MAX_TEXTURE_EDGE || canvas.height > PERF.MAX_TEXTURE_EDGE;
+        const overPixels = pixels > PERF.MAX_SHEET_PIXELS;
+
+        const level = (overTexture || overPixels) ? 'bad' : (overEdge ? 'warn' : 'good');
+
+        if (this.sheetInfoEl) {
+            this.sheetInfoEl.textContent =
+                `SpriteSheet: ${canvas.width}x${canvas.height}px | ${this.sheetColumns}x${this.sheetRows} | ` +
+                `${frameCount} Frames | Zelle: ${this.settings.spriteWidth}x${this.settings.spriteHeight}px | ` +
+                `Speicher: ca. ${megaBytes.toFixed(1)} MB`;
+            this.sheetInfoEl.style.color =
+                level === 'good' ? '#4caf50' : level === 'warn' ? '#ffb300' : '#ff5252';
+        }
+
+        if (overTexture) {
+            this.log(
+                `Sheet ${canvas.width}x${canvas.height}px überschreitet die Texturgrenze von ` +
+                `${PERF.MAX_TEXTURE_EDGE}px — viele Geräte rendern dann ohne GPU. Bitte verkleinern.`
+            );
+        } else if (overPixels) {
+            this.log(
+                `Sheet belegt ca. ${megaBytes.toFixed(1)} MB Speicher (Budget: ` +
+                `${((PERF.MAX_SHEET_PIXELS * 4) / (1024 * 1024)).toFixed(0)} MB). Auf schwacher Hardware ruckelt ` +
+                `das Spiel, weil der Browser Bilder ständig neu dekodiert.`
+            );
+        } else if (overEdge) {
+            this.log(`Sheet über ${PERF.MAX_SHEET_EDGE}px Kantenlänge — auf älteren Mobilgeräten problematisch.`);
+        } else {
+            this.logSuccess(
+                `SpriteSheet erstellt: ${canvas.width}x${canvas.height}px, ${this.sheetColumns}x${this.sheetRows}, ` +
+                `ca. ${megaBytes.toFixed(1)} MB.`
+            );
+        }
+
+        if (frameCount > PERF.MAX_FRAMES) {
+            this.log(
+                `${frameCount} Frames sind mehr als empfohlen (${PERF.MAX_FRAMES}). ` +
+                `Frame-Abstand erhöhen — z. B. ${(this.settings.interval * frameCount / PERF.MAX_FRAMES).toFixed(2)}s ` +
+                `ergibt etwa ${PERF.MAX_FRAMES} Frames bei gleicher Laufzeit.`
+            );
+        }
     }
 
     private playAnimation(): void {
         this.stopAnimationPreview();
         if (!this.sheetCanvas || !this.animPreviewCanvas) return;
-
-        const ctx = this.animPreviewCanvas.getContext('2d');
-        if (!ctx) return;
 
         const selected = this.frames.filter(f => f.selected);
         if (selected.length === 0) return;
@@ -1187,19 +1387,7 @@ export class VideoToSpriteSheetTool {
 
         let index = 0;
         const step = () => {
-            const col = index % this.sheetColumns;
-            const row = Math.floor(index / this.sheetColumns);
-            ctx.clearRect(0, 0, this.settings.spriteWidth, this.settings.spriteHeight);
-            ctx.drawImage(
-                this.sheetCanvas as HTMLCanvasElement,
-                col * this.settings.spriteWidth,
-                row * this.settings.spriteHeight,
-                this.settings.spriteWidth,
-                this.settings.spriteHeight,
-                0, 0,
-                this.settings.spriteWidth,
-                this.settings.spriteHeight
-            );
+            this.drawPreviewFrame(index);
             index++;
             if (index >= selected.length) {
                 if (this.settings.loop) {
@@ -1211,7 +1399,26 @@ export class VideoToSpriteSheetTool {
             }
             this.animationPreviewTimer = window.setTimeout(step, 1000 / this.settings.fps);
         };
-        this.animationPreviewTimer = window.setTimeout(step, 1000 / this.settings.fps);
+        step();
+    }
+
+    private drawPreviewFrame(index: number): void {
+        if (!this.sheetCanvas || !this.animPreviewCanvas) return;
+        const ctx = this.animPreviewCanvas.getContext('2d');
+        if (!ctx) return;
+        const col = index % this.sheetColumns;
+        const row = Math.floor(index / this.sheetColumns);
+        ctx.clearRect(0, 0, this.settings.spriteWidth, this.settings.spriteHeight);
+        ctx.drawImage(
+            this.sheetCanvas as HTMLCanvasElement,
+            col * this.settings.spriteWidth,
+            row * this.settings.spriteHeight,
+            this.settings.spriteWidth,
+            this.settings.spriteHeight,
+            0, 0,
+            this.settings.spriteWidth,
+            this.settings.spriteHeight
+        );
     }
 
     private async uploadAndSave(): Promise<void> {
@@ -1265,7 +1472,17 @@ export class VideoToSpriteSheetTool {
                 }
             };
 
+            this.logSuccess(
+                `ImageList '${resultName}' erzeugt: ${selected.length} Frames, ` +
+                `${this.sheetColumns}x${this.sheetRows} Raster, ` +
+                `Framegröße ${this.settings.spriteWidth}x${this.settings.spriteHeight}px, ` +
+                `Datei ${data.url}`
+            );
+
             if (this.onExport) this.onExport(result);
+
+            // Overlay schließen, damit die neu erzeugte ImageList auf der Stage sichtbar wird.
+            window.setTimeout(() => this.close(), 600);
         } catch (e: any) {
             this.log(`Fehler: ${e.message}`);
             if (this.onError) this.onError(e.message);

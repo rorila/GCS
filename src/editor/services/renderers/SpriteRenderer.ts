@@ -146,11 +146,33 @@ export class SpriteRenderer {
                 const bgPosX = hCount <= 1 ? 0 : (col / (hCount - 1)) * 100;
                 const bgPosY = vCount <= 1 ? 0 : (row / (vCount - 1)) * 100;
 
-                imgEl.style.backgroundImage = `url("${SpriteRenderer.encodeImageUrl(src)}")`;
-                imgEl.style.backgroundSize = `${bgSizeX}% ${bgSizeY}%`;
-                imgEl.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
-                imgEl.style.backgroundRepeat = 'no-repeat';
-                imgEl.style.display = '';
+                // PERF: Styles nur schreiben, wenn sich der Wert geändert hat.
+                // Im Standalone-Export sind Bilder als Base64-Data-URL eingebettet — eine
+                // erneute Zuweisung kostet dort pro Frame das Parsen eines mehrere MB
+                // großen Strings und war die Ursache für Ruckeln.
+                const cache = imgEl as any;
+                if (cache._bgSrc !== src) {
+                    cache._bgSrc = src;
+                    imgEl.style.backgroundImage = `url("${SpriteRenderer.encodeImageUrl(src)}")`;
+                }
+
+                const bgSize = `${bgSizeX}% ${bgSizeY}%`;
+                if (cache._bgSize !== bgSize) {
+                    cache._bgSize = bgSize;
+                    imgEl.style.backgroundSize = bgSize;
+                }
+
+                const bgPos = `${bgPosX}% ${bgPosY}%`;
+                if (cache._bgPos !== bgPos) {
+                    cache._bgPos = bgPos;
+                    imgEl.style.backgroundPosition = bgPos;
+                }
+
+                if (!cache._bgRepeatSet) {
+                    cache._bgRepeatSet = true;
+                    imgEl.style.backgroundRepeat = 'no-repeat';
+                }
+                if (imgEl.style.display !== '') imgEl.style.display = '';
             } else if (hasVideo) {
                 const videoEl = imgEl as HTMLVideoElement;
                 if (videoEl.getAttribute('src') !== src) {

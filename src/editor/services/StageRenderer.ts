@@ -44,7 +44,7 @@ export class StageRenderer {
     private cachedVariableContext: Record<string, any> | undefined;
     private variableContextCached = false;
     private animationPreview: { id: string; timer: number | null; el: HTMLElement; imageList: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number } | null = null;
-    private spriteAnimationPreview: { id: string; timer: number | null; el: HTMLElement; obj: any; ctx: IRenderContext; animObj: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number } | null = null;
+    private spriteAnimationPreview: { id: string; timer: number | null; el: HTMLElement; obj: any; ctx: IRenderContext; animObj: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number; tick: (() => void) | null } | null = null;
 
     constructor(host: StageHost) {
         this.host = host;
@@ -1228,6 +1228,30 @@ export class StageRenderer {
         }
     }
 
+    /**
+     * PERF-FAST-PATH: Aktualisiert nur den Frame-Ausschnitt eines Sprites.
+     * Ein Frame-Wechsel (imageIndex) benötigt lediglich eine neue backgroundPosition;
+     * `updateSingleObject` würde dagegen Theme-Merge, Align und Layout neu berechnen.
+     *
+     * @returns true, wenn der Fast-Path angewendet wurde.
+     */
+    public updateSpriteFrame(obj: any): boolean {
+        if (!this.host || !this.host.element || !obj || !obj.id) return false;
+        if (obj.className !== 'TSprite' && obj.className !== 'TSpriteTemplate') return false;
+
+        const el = this.host.element.querySelector(`[data-id="${obj.id}"]`) as HTMLElement;
+        if (!el) return false;
+
+        const ctx: IRenderContext = {
+            host: this.host,
+            scaleFontSize: this.scaleFontSize.bind(this),
+            updateSelectionState: this.updateSelectionState.bind(this)
+        };
+
+        SpriteRenderer.render(ctx, el, obj);
+        return true;
+    }
+
     public updateSingleObject(obj: any): void {
         if (!this.host || !this.host.element || !obj || !obj.id) return;
 
@@ -1717,10 +1741,7 @@ export class StageRenderer {
             return;
         }
 
-        let animObj = this.host.lastRenderedObjects.find(o => (o.name === animId || o.id === animId) && (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation'));
-        if (!animObj) {
-            animObj = projectObjectRegistry.getObjects().find((o: any) => (o.name === animId || o.id === animId) && (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation'));
-        }
+        const animObj = this.resolveAnimationObject(animId);
 
         if (this.spriteAnimationPreview && this.spriteAnimationPreview.id === id) {
             if (!animObj) {
@@ -1728,7 +1749,9 @@ export class StageRenderer {
                 return;
             }
             const preview = this.spriteAnimationPreview;
-            preview.frameDuration = Math.max(1, animObj.frameDuration || 100);
+            const newDuration = Math.max(1, animObj.frameDuration || 100);
+            const durationChanged = preview.frameDuration !== newDuration;
+            preview.frameDuration = newDuration;
             preview.imageCount = Math.max(1, animObj.imageCount || 1);
             preview.loop = !!animObj.loop;
             preview.enabled = !!animObj.enabled;
@@ -1738,6 +1761,16 @@ export class StageRenderer {
             preview.ctx = ctx;
             if (!preview.enabled || preview.imageCount <= 1) {
                 this.stopSpriteAnimationPreview();
+                return;
+            }
+            // Geänderte Geschwindigkeit sofort anwenden: der bereits geplante Timer
+            // würde sonst noch mit der alten Dauer ablaufen.
+            if (durationChanged && preview.tick) {
+                if (preview.timer !== null) {
+                    window.clearTimeout(preview.timer);
+                    preview.timer = null;
+                }
+                preview.timer = window.setTimeout(preview.tick, newDuration);
             }
             return;
         }
@@ -1755,11 +1788,33 @@ export class StageRenderer {
             return;
         }
 
-        this.spriteAnimationPreview = { id, timer: null, el, obj, ctx, animObj, frameDuration, imageCount, loop, enabled, currentFrame: 0 };
+        logger.info(
+            `Sprite-Vorschau '${obj.name}' nutzt TAnimation '${animId}': ` +
+            `frameDuration=${frameDuration}ms, imageCount=${imageCount}, loop=${loop}`
+        );
+
+        this.spriteAnimationPreview = { id, timer: null, el, obj, ctx, animObj, frameDuration, imageCount, loop, enabled, currentFrame: 0, tick: null };
 
         const tick = () => {
             if (!this.spriteAnimationPreview || this.spriteAnimationPreview.id !== id) return;
             const preview = this.spriteAnimationPreview;
+
+            // Werte bei JEDEM Tick frisch auflösen: sonst liefe die Vorschau mit der
+            // Geschwindigkeit weiter, die beim Start der Vorschau gültig war.
+            const live = this.resolveAnimationObject(animId);
+            if (live) {
+                preview.animObj = live;
+                preview.frameDuration = Math.max(1, live.frameDuration || 100);
+                preview.imageCount = Math.max(1, live.imageCount || 1);
+                preview.loop = !!live.loop;
+                preview.enabled = !!live.enabled;
+                if (!preview.enabled || preview.imageCount <= 1) {
+                    this.stopSpriteAnimationPreview();
+                    return;
+                }
+            }
+
+            if (preview.currentFrame >= preview.imageCount) preview.currentFrame = 0;
             const frame = preview.currentFrame;
 
             // WICHTIG: kein Spread — Getter wie appearanceMode/animationId liegen auf dem
@@ -1786,7 +1841,23 @@ export class StageRenderer {
             }
         };
 
+        this.spriteAnimationPreview.tick = tick;
         tick();
+    }
+
+    /**
+     * Löst eine TAnimation über Name oder Id auf. Erst über die aktuell gerenderten
+     * Objekte (Live-Instanzen der Stage), dann über die Projekt-Registry.
+     */
+    private resolveAnimationObject(animId: string): any | null {
+        const isAnim = (o: any) => (o.name === animId || o.id === animId) &&
+            (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation');
+
+        const fromStage = this.host.lastRenderedObjects.find(isAnim);
+        if (fromStage) return fromStage;
+
+        const fromRegistry = projectObjectRegistry.getObjects().find(isAnim);
+        return fromRegistry || null;
     }
 
     private stopSpriteAnimationPreview(): void {
