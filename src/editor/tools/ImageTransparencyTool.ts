@@ -17,7 +17,7 @@ import { removeBackgroundFromImageData } from './ImageUtils';
 import { PromptDialog } from '../ui/PromptDialog';
 
 interface ImageTransparencySettings {
-    backgroundColor: string;
+    backgroundColors: string[];
     tolerance: number;
 }
 
@@ -32,13 +32,13 @@ export class ImageTransparencyTool {
     private uploadUrl: string;
     private container: HTMLElement;
     private settings: ImageTransparencySettings = {
-        backgroundColor: '#00FF00',
+        backgroundColors: ['#00FF00'],
         tolerance: 30
     };
 
     private originalCanvas: HTMLCanvasElement | null = null;
     private previewCanvas: HTMLCanvasElement | null = null;
-    private colorInput: HTMLInputElement | null = null;
+    private colorListEl: HTMLElement | null = null;
     private toleranceInput: HTMLInputElement | null = null;
     private logEl: HTMLElement | null = null;
     private fileName: string = 'transparent';
@@ -172,31 +172,38 @@ export class ImageTransparencyTool {
 
     private renderControls(): HTMLElement {
         const section = document.createElement('div');
-        section.style.cssText = 'display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px;';
+        section.style.cssText = 'display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px;';
 
         const colorWrap = document.createElement('div');
-        colorWrap.style.cssText = 'display:flex;align-items:center;gap:8px;';
+        colorWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
         const colorLabel = document.createElement('label');
-        colorLabel.textContent = 'Hintergrundfarbe:';
+        colorLabel.textContent = 'Hintergrundfarben:';
         colorLabel.style.cssText = 'color:#e0d4f5;font-size:12px;';
 
-        this.colorInput = document.createElement('input');
-        this.colorInput.type = 'color';
-        this.colorInput.value = this.settings.backgroundColor;
-        this.colorInput.style.cssText = 'width:50px;height:24px;border:none;background:transparent;';
-        this.colorInput.oninput = () => {
-            this.settings.backgroundColor = this.colorInput!.value;
-            this.updatePreview();
-        };
+        this.colorListEl = document.createElement('div');
+        this.colorListEl.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:28px;';
+        this.renderColorList();
+
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex;gap:8px;align-items:center;';
 
         const pickBtn = document.createElement('button');
         pickBtn.textContent = 'Aus Bild';
         pickBtn.style.cssText = this.getBtnStyles();
-        pickBtn.onclick = () => this.pickColorFromImage(this.colorInput!);
+        pickBtn.onclick = () => this.pickColorFromImage();
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = 'Alle löschen';
+        clearBtn.style.cssText = this.getBtnStyles();
+        clearBtn.onclick = () => this.clearColors();
+
+        btnRow.appendChild(pickBtn);
+        btnRow.appendChild(clearBtn);
 
         colorWrap.appendChild(colorLabel);
-        colorWrap.appendChild(this.colorInput);
-        colorWrap.appendChild(pickBtn);
+        colorWrap.appendChild(this.colorListEl);
+        colorWrap.appendChild(btnRow);
 
         const tolWrap = document.createElement('div');
         tolWrap.style.cssText = 'display:flex;align-items:center;gap:8px;';
@@ -244,7 +251,7 @@ export class ImageTransparencyTool {
         canvas.width = 256;
         canvas.height = 256;
         canvas.style.maxWidth = '45%';
-        canvas.style.maxHeight = '300px';
+        canvas.style.maxHeight = '450px';
         canvas.style.width = 'auto';
         canvas.style.height = 'auto';
         canvas.style.borderRadius = '4px';
@@ -277,8 +284,14 @@ export class ImageTransparencyTool {
         uploadBtn.style.cssText = this.getBtnStyles(true);
         uploadBtn.onclick = () => this.uploadAndSave();
 
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = 'Beenden';
+        closeBtn.style.cssText = this.getBtnStyles();
+        closeBtn.onclick = () => this.close();
+
         row.appendChild(downloadBtn);
         row.appendChild(uploadBtn);
+        row.appendChild(closeBtn);
         return row;
     }
 
@@ -287,7 +300,7 @@ export class ImageTransparencyTool {
     }
 
     private getDialogStyles(): string {
-        return 'position:relative;background:#11111b;border:1px solid #444;border-radius:8px;padding:16px;width:90%;max-width:720px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;';
+        return 'position:relative;background:#11111b;border:1px solid #444;border-radius:8px;padding:16px;width:90%;max-width:1100px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;';
     }
 
     private getBtnStyles(primary = false): string {
@@ -343,7 +356,7 @@ export class ImageTransparencyTool {
         if (!ctx || !outCtx) return;
 
         const imageData = ctx.getImageData(0, 0, this.originalCanvas.width, this.originalCanvas.height);
-        const processed = removeBackgroundFromImageData(imageData, this.settings.backgroundColor, this.settings.tolerance);
+        const processed = removeBackgroundFromImageData(imageData, this.settings.backgroundColors, this.settings.tolerance);
 
         outCtx.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
         outCtx.putImageData(processed, 0, 0);
@@ -360,15 +373,30 @@ export class ImageTransparencyTool {
         return `${((transparent / total) * 100).toFixed(1)}% transparent`;
     }
 
-    private pickColorFromImage(input: HTMLInputElement): void {
+    private pickColorFromImage(): void {
         if (!this.originalCanvas) return;
 
         const canvas = this.originalCanvas;
         const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10001;cursor:crosshair;';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10001;cursor:crosshair;display:flex;justify-content:center;align-items:center;';
         document.body.appendChild(overlay);
 
+        const panel = document.createElement('div');
+        panel.style.cssText = 'position:absolute;top:16px;left:50%;transform:translateX(-50%);background:#11111b;border:1px solid #444;border-radius:6px;padding:8px 12px;color:#e0d4f5;font-size:12px;display:flex;gap:10px;align-items:center;';
+        panel.textContent = 'Klicke auf den Hintergrund, um Farben hinzuzufügen.';
+        const doneBtn = document.createElement('button');
+        doneBtn.textContent = 'Fertig';
+        doneBtn.style.cssText = this.getBtnStyles(true);
+        doneBtn.onclick = (ev) => {
+            ev.stopPropagation();
+            overlay.remove();
+        };
+        panel.appendChild(doneBtn);
+        overlay.appendChild(panel);
+
         overlay.onclick = (e) => {
+            if (e.target !== overlay) return;
+
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
@@ -380,12 +408,24 @@ export class ImageTransparencyTool {
             const pixel = ctx.getImageData(x, y, 1, 1).data;
             const hex = '#' + [pixel[0], pixel[1], pixel[2]].map(v => v.toString(16).padStart(2, '0')).join('');
 
-            this.settings.backgroundColor = hex;
-            input.value = hex;
+            if (this.settings.backgroundColors.includes(hex)) {
+                this.log(`Farbe ${hex} bereits in Liste.`);
+                return;
+            }
+
+            this.settings.backgroundColors.push(hex);
+            this.renderColorList();
             this.updatePreview();
-            this.log(`Hintergrundfarbe aus Bild: ${hex} bei (${x},${y})`);
-            overlay.remove();
+            this.log(`Farbe hinzugefügt: ${hex} bei (${x},${y})`);
         };
+
+        const keyHandler = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                overlay.remove();
+                document.removeEventListener('keydown', keyHandler);
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
     }
 
     private getResultBase64(): string {
@@ -447,5 +487,49 @@ export class ImageTransparencyTool {
             this.log(`Fehler: ${e.message}`);
             if (this.onError) this.onError(e.message);
         }
+    }
+
+    private renderColorList(): void {
+        if (!this.colorListEl) return;
+        this.colorListEl.innerHTML = '';
+
+        if (this.settings.backgroundColors.length === 0) {
+            const empty = document.createElement('span');
+            empty.textContent = 'Keine Farbe ausgewählt';
+            empty.style.cssText = 'color:#888;font-size:12px;';
+            this.colorListEl.appendChild(empty);
+            return;
+        }
+
+        this.settings.backgroundColors.forEach((color, index) => {
+            const chip = document.createElement('div');
+            chip.style.cssText = 'display:flex;align-items:center;gap:4px;background:#2a2a3e;border:1px solid #444;border-radius:4px;padding:2px 6px;';
+
+            const swatch = document.createElement('div');
+            swatch.style.cssText = `width:16px;height:16px;border-radius:3px;background:${color};border:1px solid #666;`;
+            swatch.title = color;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = '×';
+            removeBtn.title = 'Farbe entfernen';
+            removeBtn.style.cssText = 'background:transparent;border:none;color:#e0d4f5;font-size:14px;cursor:pointer;padding:0 2px;line-height:1;';
+            removeBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                this.settings.backgroundColors.splice(index, 1);
+                this.renderColorList();
+                this.updatePreview();
+            };
+
+            chip.appendChild(swatch);
+            chip.appendChild(removeBtn);
+            this.colorListEl!.appendChild(chip);
+        });
+    }
+
+    private clearColors(): void {
+        this.settings.backgroundColors = [];
+        this.renderColorList();
+        this.updatePreview();
+        this.log('Alle Hintergrundfarben gelöscht.');
     }
 }

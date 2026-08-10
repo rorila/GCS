@@ -397,6 +397,20 @@ export class EditorMenuManager {
             imageList.imageCountVertical = result.metadata ? result.metadata.rows : 1;
             imageList.currentImageNumber = 0;
             imageList.scope = 'stage';
+            if (!(imageList as any).className) (imageList as any).className = 'TImageList';
+
+            // Sichtbare Größe anhand der Frame-Dimensionen skalieren (passt auf die Stage)
+            const grid = activeStage.grid || { cols: 20, rows: 15, cellSize: 32 };
+            const frameW = (result.metadata ? result.metadata.frameWidth : 32) / grid.cellSize;
+            const frameH = (result.metadata ? result.metadata.frameHeight : 32) / grid.cellSize;
+            const maxW = Math.max(2, grid.cols - 4);
+            const maxH = Math.max(2, grid.rows - 4);
+            const scale = Math.min(maxW / frameW, maxH / frameH, 1);
+            imageList.width = Math.max(2, Math.round(frameW * scale));
+            imageList.height = Math.max(2, Math.round(frameH * scale));
+            imageList.x = 2;
+            imageList.y = 2;
+
             objects.push(imageList);
         }
 
@@ -412,9 +426,17 @@ export class EditorMenuManager {
             objects.push(animation);
         }
 
+        EditorMenuManager.logger.info(
+            `SpriteSheet-Import: ImageList '${imageListName}' (${imageList ? 'ok' : 'FEHLER'}), ` +
+            `Animation '${animName}' (${animation ? 'ok' : 'FEHLER'}), ` +
+            `Raster ${result.metadata?.columns}x${result.metadata?.rows}, ` +
+            `Frames ${result.metadata?.frames}, URL ${result.url}, ` +
+            `Stage '${activeStage.name || activeStage.id}' hat jetzt ${objects.length} Objekte`
+        );
+
         editor.render();
-        if (animation) editor.selectObject(animation.id);
-        NotificationToast.show(`SpriteSheet '${imageListName}' und Animation '${animName}' erstellt.`, 'success');
+        if (imageList) editor.selectObject(imageList.id);
+        NotificationToast.show(`ImageList '${imageListName}' (${result.metadata ? result.metadata.frames : 0} Frames, ${result.metadata ? result.metadata.frameWidth : 0}x${result.metadata ? result.metadata.frameHeight : 0}) erstellt.`, 'success');
 
         this.host.autoSaveToLocalStorage();
         projectStore.setProject(this.host.project);

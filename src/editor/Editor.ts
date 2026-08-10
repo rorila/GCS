@@ -1123,6 +1123,16 @@ export class Editor implements IViewHost {
                 this.render();
             }
 
+            // Kaskade TImageList → TAnimation → TSprite: Änderungen an der Quelle müssen
+            // sofort auf die abhängigen Sprites (Vorschau + Frame-Ausschnitt) durchschlagen.
+            const animationProps = ['frameDuration', 'imageCount', 'loop', 'enabled', 'imageListId'];
+            const imageListProps = ['imageCountHorizontal', 'imageCountVertical', 'currentImageNumber', 'src', 'backgroundImage'];
+            if ((update.object?.className === 'TAnimation' && animationProps.includes(update.propertyName)) ||
+                (update.object?.className === 'TImageList' && imageListProps.includes(update.propertyName))) {
+                this.render();
+                this.runManager.syncAnimationToRuntime(update.object);
+            }
+
             this.renderManager.refreshAllViews('inspector');
         };
         this.inspector.onProjectUpdate = () => { this.render(); this.autoSaveToLocalStorage(); this.renderManager.refreshAllViews('inspector'); };
