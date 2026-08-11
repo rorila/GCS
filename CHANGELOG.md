@@ -1,3 +1,13 @@
+## [3.33.0] - 2026-08-10
+### Hinzugefügt & Refaktoriert
+- **VideoToSpriteSheet Modularisierung (<1000 Zeilen):** `VideoToSpriteSheetTool.ts` (1517 Zeilen) wurde in 4 spezialisierte Untermodule in `src/editor/tools/spritesheet/` aufgeteilt:
+  - `VideoToSpriteSheetTypes.ts` (Typen, Interfaces, `PERF`-Budget)
+  - `VideoToSpriteSheetCrop.ts` (YCbCr Chroma-Keying & Bounding-Box Mathematik, Uniform Crop, Spaltenoptimierung)
+  - `VideoToSpriteSheetUI.ts` (DOM-Hilfsfunktionen, Styles, Manueller Zuschnitt & Eyedropper Overlays)
+  - `VideoToSpriteSheetTool.ts` (Haupt-Orchestrierungsklasse auf 475 Zeilen reduziert)
+- **Unit-Test-Abdeckung:** `tests/video_to_spritesheet.test.ts` neu erstellt (12 automatisierte Testfälle für Chroma-Keying, Bbox, Uniform Crop, Frame-Limits & Spaltenwahl) und in `scripts/test_runner.ts` integriert.
+- **Export Integrität:** Prüfsummen in `export_checksums.json` via `export_integrity.test.ts` aktualisiert.
+
 ## [3.32.12] - 2026-08-05
 ### Behoben / Test-Validierung
 - **Entfernung von 169 Warnungen:** Code-Bereinigung und Warnungselimination durchgeführt.

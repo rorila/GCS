@@ -1,3 +1,16 @@
+### 2026-08-10
+[UC-2026-08-10-VideoToSpriteSheet]
+Beschreibung: Refactoring und Qualitätssicherung des `VideoToSpriteSheetTool` — Modularisierung zur Einhaltung der 1000-Zeilen-Regel (Aufteilung von 1517 Zeilen auf 4 fokussierte Untermodule), Implementierung umfassender Unit-Tests für YCbCr Chroma-Keying & Bounding-Box-Berechnungen sowie Aktualisierung des Testrunners und der Integritäts-Hashes.
+Beteiligte Dateien:
+- src/editor/tools/spritesheet/VideoToSpriteSheetTypes.ts (Z. 1-73): [NEU] Typen, Interfaces (`Frame`, `ToolSettings`, `ExportResult`) & Performance-Budgets (`PERF`).
+- src/editor/tools/spritesheet/VideoToSpriteSheetCrop.ts (Z. 1-178): [NEU] Algorithmen für Bounding-Box (`computeBbox`), Uniform Crop (`computeUniformCrop`), Größen-Limitierung & Spalten-Optimierung.
+- src/editor/tools/spritesheet/VideoToSpriteSheetUI.ts (Z. 1-225): [NEU] Styles, Formulargruppen & Overlays für manuellen Zuschnitt (`openManualCropOverlay`) & Eyedropper (`pickColorFromVideo`).
+- src/editor/tools/VideoToSpriteSheetTool.ts (Z. 1-475): [REFACTOR] Reduktion von 1517 auf 475 Zeilen; Orchestrierung der Untermodule unter Beibehaltung der öffentlichen API.
+- tests/video_to_spritesheet.test.ts (Z. 1-140): [NEU] 12 Unit-Tests für YCbCr Chroma-Keying, Bbox, Uniform Crop, Frame-Limits & Spaltenwahl.
+- scripts/test_runner.ts (Z. 48, 395-403): Einbindung der VideoToSpriteSheet Testsuite.
+- tests/export_integrity.test.ts: Aktualisierung der Exporthashes für GameRuntime & Exporter.
+Ergebnis: Saubere Modularisierung aller Dateien unter 1000 Zeilen, 12 neue automatisierte Tests erfolgreich eingebunden, Testsuite grün.
+
 ### 2026-07-30
 [UC-2026-07-30-TestExecutionAndFixes]
 Beschreibung: Durchführung von npm run test nach Änderungen, Behebung von Barrel-Export-Lücken (TThemeDialog) und E2E-Selektoren.

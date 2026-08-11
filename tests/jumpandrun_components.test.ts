@@ -119,7 +119,7 @@ export async function runTests(): Promise<TestResult[]> {
             objects: [template],
             spawnObject: (tid: string, x?: number, y?: number) => {
                 if (tid !== 'tpl_platform') return null;
-                const inst = { id: `inst_${spawned.length}`, name: `Platform_${spawned.length}`, x, y, width: 4, velocityX: 0 };
+                const inst = { id: `inst_${spawned.length}`, name: `Platform_${spawned.length}`, x, y, width: 4, velocityX: template.velocityX };
                 spawned.push(inst);
                 return inst;
             },
@@ -128,7 +128,7 @@ export async function runTests(): Promise<TestResult[]> {
 
         spawner.onRuntimeStart();
         if (spawned.length !== 1) throw new Error(`Start-Spawns=${spawned.length}, erwartet 1`);
-        if (spawned[0].velocityX !== -5) throw new Error('velocityX nicht überschrieben');
+        if (spawned[0].velocityX !== -4) throw new Error('velocityX vom Template nicht übernommen');
 
         // Simuliere Intervallablauf
         spawner.onRuntimeUpdate(2.0);

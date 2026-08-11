@@ -1,4 +1,4 @@
-﻿# Developer Guidelines
+# Developer Guidelines
 
 > [!CAUTION]
 > **PFLICHT-REGEL FÜR KI-AGENTEN**: Jede Code-Änderung MUSS mit `npm run test` (oder `run_tests.bat`) validiert werden. Der `docs/QA_Report.md` ist Teil der „Definition of Done". Tests VOR der Nutzer-Benachrichtigung ausführen.
@@ -523,4 +523,11 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mssen zwingen
 - **Lösung:** Beim Registrieren eines Objekts in `registerObject` wird dem rohen Objekt eine Referenz auf seinen Proxy zugewiesen: `obj.__proxy__ = reactiveObj`. Der Timer-Loop wird dann über den Proxy gestartet (`self.start()`), sodass `this` innerhalb des Loops der Proxy ist.
 - **DO NOT:** Führe asynchrone Callbacks (wie `setInterval` im Timer), die reaktive Properties mutieren, direkt auf dem rohen Objekt aus. Verwende immer die `__proxy__`-Referenz, falls diese existiert.
 - **DO NOT:** Proxy-Wrapping auf Timeout/Interval ID-Objekten in Node.js ausführen. In Node.js gibt `setInterval` ein komplexes Timeout-Objekt zurück. Wenn dieses Objekt vom Proxy-Get-Trap reaktiv verpackt wird, schlägt der Vergleich `this.timerId !== currentId` (Geister-Tick-Schutz) fehl, da ein Proxy mit dem rohen Objekt verglichen wird. Schließe `timerId` vom Proxy-Wrapping aus.
+
+### 28. VideoToSpriteSheet, YCbCr Chroma-Keying & Performance-Budgets
+- **Farbraum-Transformation (YCbCr)**: Bei der Freistellung von Hintergründen in Bildern/Videos (`ImageUtils.removeBackgroundFromImageData`) wird der YCbCr-Farbraum verwendet. Die Luminanz \(Y\) wird ignoriert, damit Schattenwürfe und Lichtreflexionen derselben Hintergrundfarbe sauber herausgefiltert werden, ohne den Vordergrundobjekten ihre Farbe zu rauben. Für unbunte Hintergründe (Grau/Schwarz/Weiß) dient ein RGB-Euklidischer-Distanz-Fallback.
+- **Rauschrobustes Auto-Cropping**: Für Bounding-Box-Ermittlungen (`VideoToSpriteSheetCrop.computeBbox`) werden Histogramme und Dichte-Schwellenwerte (`BBOX_ALPHA_THRESHOLD = 16`, `BBOX_MIN_DENSITY = 0.005`) angewendet. Dadurch führen einzelne Kompressions-Pixel oder Rauschen am Rand nicht zum fälschlichen Aufblähen des Zuschnitts.
+- **Performance-Budgets (`PERF`)**: Bilddateien belegen entpackt im VRAM 4 Byte pro Pixel. Sprite-Sheets müssen harte GPU-Kantenlängen (`MAX_TEXTURE_EDGE = 8192`, `MAX_SHEET_EDGE = 2048`) und Pixel-Budgets (`MAX_SHEET_PIXELS = 4_000_000`) einhalten. Wenn ein Sheet diese Limits überschreitet, müssen Frame-Größen oder Spaltenzahlen (`calculateLimitedFrameSize`, `computeSheetColumns`) angepasst werden.
+- **Modularisierung (<1000 Zeilen)**: Komplexe Medien-Tools wie `VideoToSpriteSheetTool` werden in fokussierte Untermodule aufgeteilt (`VideoToSpriteSheetTypes`, `VideoToSpriteSheetCrop`, `VideoToSpriteSheetUI`), um die 1000-Zeilen-Regel strikt einzuhalten.
+
 
