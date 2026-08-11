@@ -355,8 +355,8 @@ export class AudioSequenceTool {
         return offline.startRendering();
     }
 
-    private play(): void {
-        if (!this.filteredBuffer) {
+    private async play(): Promise<void> {
+        if (!this.sourceBuffer) {
             this.log('Bitte zuerst Audio laden.', true);
             return;
         }
@@ -366,8 +366,18 @@ export class AudioSequenceTool {
         }
 
         this.readInputs();
+
+        const duration = this.sourceBuffer.duration;
+        const start = Math.max(0, Math.min(this.state.start, duration - 0.001));
+        const end = Math.max(start + 0.001, Math.min(this.state.end, duration));
+        const playDuration = end - start;
+
+        if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+        }
+
         const source = this.audioContext.createBufferSource();
-        source.buffer = this.filteredBuffer;
+        source.buffer = this.sourceBuffer;
         source.loop = this.state.loop;
 
         const gain = this.audioContext.createGain();
@@ -391,7 +401,7 @@ export class AudioSequenceTool {
             lastNode = filter;
         }
 
-        if (this.filteredBuffer.numberOfChannels <= 2) {
+        if (this.sourceBuffer.numberOfChannels <= 2) {
             const panner = this.audioContext.createStereoPanner();
             panner.pan.value = this.state.pan;
             lastNode.connect(panner);
@@ -401,7 +411,7 @@ export class AudioSequenceTool {
         lastNode.connect(gain);
         gain.connect(this.audioContext.destination);
 
-        source.start(0, this.state.start, this.state.end - this.state.start);
+        source.start(0, start, playDuration);
 
         this.currentSource = source;
     }
