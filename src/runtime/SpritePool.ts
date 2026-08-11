@@ -200,7 +200,11 @@ export class SpritePool {
         entry.busy = true;
         entry.acquiredAt = performance.now();
 
-        logger.info(`Pool "${pool.templateName}": acquire → ${sprite.name} @ (${x}, ${y})`);
+        logger.info(
+            `[IMAGEINDEX-DIAG] Pool "${pool.templateName}": acquire → ${sprite.name} @ (${x}, ${y}) ` +
+            `imageIndex=${sprite.imageIndex} (Template=${template.imageIndex}), imageListId="${sprite.imageListId}", animationId="${sprite.animationId}"`
+        );
+        this.logInstanceStates(templateId);
         return sprite;
     }
 
@@ -266,6 +270,20 @@ export class SpritePool {
      */
     public hasPool(templateId: string): boolean {
         return this.pools.has(templateId);
+    }
+
+    /**
+     * Diagnose: Gibt für alle Instanzen eines Pools den aktuellen imageIndex aus.
+     * Hilft festzustellen, ob bereits gespawnte Instanzen ihren Frame behalten.
+     */
+    public logInstanceStates(templateId: string): void {
+        const pool = this.pools.get(templateId);
+        if (!pool) return;
+
+        const states = pool.entries.map(e =>
+            `${e.sprite.name}: busy=${e.busy} imageIndex=${e.sprite.imageIndex}`
+        );
+        logger.info(`[IMAGEINDEX-DIAG] Pool "${pool.templateName}" Zustand:\n  ${states.join('\n  ')}`);
     }
 
     /**
