@@ -47,6 +47,7 @@ import { runSchemaMigratorTests } from '../tests/sync/schema_migrator.test.js';
 import { runTimerVariableTests } from '../tests/timer_variable.test.js';
 import { runSpawnObjectVariableTests } from '../tests/spawn_object_variable.test.js';
 import { runTimerReactiveTests } from '../tests/timer_reactive.test.js';
+import { runVideoToSpriteSheetTests } from '../tests/video_to_spritesheet.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -389,6 +390,15 @@ async function main() {
 
         await timer.measure('TTimer/TIntervalTimer Reactive Properties', async () => {
             allResults.push(...await runTimerReactiveTests());
+        });
+
+        await timer.measure('VideoToSpriteSheet Tool', async () => {
+            try {
+                runVideoToSpriteSheetTests();
+                allResults.push({ name: 'VideoToSpriteSheet Tool', passed: true, type: 'Media-Tool', expectedSuccess: true, actualSuccess: true });
+            } catch (e: any) {
+                allResults.push({ name: 'VideoToSpriteSheet Tool', passed: false, type: 'Media-Tool', expectedSuccess: true, actualSuccess: false, details: e.message });
+            }
         });
 
         // 🌐 Browser E2E Tests (Playwright)
