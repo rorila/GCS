@@ -21,6 +21,9 @@ export class AudioSequenceTool {
     private sourceBuffer: AudioBuffer | null = null;
     private filteredBuffer: AudioBuffer | null = null;
     private currentSource: AudioBufferSourceNode | null = null;
+    private playStartTime: number = 0;
+    private playStartOffset: number = 0;
+    private playheadRaf: number | null = null;
 
     private state: AudioToolState = {
         start: 0,
@@ -422,13 +425,19 @@ export class AudioSequenceTool {
             lastNode.connect(gain);
             gain.connect(this.audioContext.destination);
 
-            source.start(this.audioContext.currentTime + 0.05, start, playDuration);
+            const when = this.audioContext.currentTime + 0.05;
+            source.start(when, start, playDuration);
+            this.playStartTime = when;
+            this.playStartOffset = start;
+
             source.onended = () => {
                 this.currentSource = null;
+                this.stopPlayhead();
                 this.log('Wiedergabe beendet.');
             };
 
             this.currentSource = source;
+            this.startPlayhead();
             this.log('Wiedergabe gestartet.');
         } catch (e: any) {
             this.log(`Play-Fehler: ${e.message}`, true);
@@ -440,6 +449,26 @@ export class AudioSequenceTool {
             try { this.currentSource.stop(); } catch (e) {}
             this.currentSource = null;
         }
+        this.stopPlayhead();
+    }
+
+    private startPlayhead(): void {
+        this.stopPlayhead();
+        const tick = () => {
+            if (!this.audioContext || !this.currentSource) return;
+            const current = this.audioContext.currentTime - this.playStartTime + this.playStartOffset;
+            this.drawWaveform(current);
+            this.playheadRaf = requestAnimationFrame(tick);
+        };
+        this.playheadRaf = requestAnimationFrame(tick);
+    }
+
+    private stopPlayhead(): void {
+        if (this.playheadRaf) {
+            cancelAnimationFrame(this.playheadRaf);
+            this.playheadRaf = null;
+        }
+        this.drawWaveform();
     }
 
     private exportWav(): void {
@@ -504,7 +533,7 @@ export class AudioSequenceTool {
         return new Blob([outBuffer], { type: 'audio/wav' });
     }
 
-    private drawWaveform(): void {
+    private drawWaveform(playheadTime?: number): void {
         if (!this.canvas || !this.canvasCtx || !this.filteredBuffer) return;
 
         const ctx = this.canvasCtx;
@@ -535,6 +564,18 @@ export class AudioSequenceTool {
             ctx.lineTo(x, halfH + max * halfH);
         }
         ctx.stroke();
+
+        // Playhead zeichnen
+        if (this.sourceBuffer && playheadTime !== undefined) {
+            const total = this.sourceBuffer.duration;
+            const playheadX = (Math.max(0, Math.min(playheadTime, total)) / total) * width;
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(playheadX, 0);
+            ctx.lineTo(playheadX, height);
+            ctx.stroke();
+        }
 
         // Trim-Bereich markieren
         if (this.sourceBuffer) {
