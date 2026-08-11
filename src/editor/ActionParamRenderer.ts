@@ -66,7 +66,10 @@ export class ActionParamRenderer {
                     sel.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
 
                     let items: any[] = [];
-                    if (param.source === 'objects') items = projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
+                    if (param.source === 'objects') items = [
+                        { value: 'self', label: 'self (Selbstreferenz)' },
+                        ...projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }))
+                    ];
                     else if (param.source === 'theme_dialogs') {
                         const dialogs = projectObjectRegistry.getObjects()
                             .filter((o: any) => o.className === 'TThemeDialog' || o.type === 'ThemeDialog');

@@ -98,7 +98,7 @@ export function registerAnimationActions() {
         label: 'Komponente animieren',
         description: 'Startet eine Animation/Effekt auf einer Komponente.',
         parameters: [
-            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', hint: 'Das zu animierende Objekt' },
+            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', defaultValue: 'self', hint: 'Das zu animierende Objekt ("self" = das auslösende Objekt)' },
             { name: 'effect', label: 'Effekt', type: 'select', options: [
                 'shake', 'pulse', 'bounce', 'fade', 
                 'grow', 'shrink', 'explode', 'pop',

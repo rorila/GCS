@@ -108,7 +108,12 @@ export class InspectorActionHandler {
             // Clean up old parameters that are no longer valid (optional but good practice)
             // But for safety, we only inject new ones so we don't accidentally delete useful data.
             meta.parameters.forEach(param => {
-                if (param.defaultValue !== undefined && dataTarget[param.name] === undefined) {
+                if (param.defaultValue === undefined) return;
+                // Ein leerer String stammt beim Typwechsel immer vom alten Typ (das Feld
+                // existierte dort, wurde aber nie befüllt) und ist nie eine bewusste
+                // Eingabe. Er muss daher wie ein fehlender Wert behandelt werden.
+                const current = dataTarget[param.name];
+                if (current === undefined || current === '') {
                     dataTarget[param.name] = param.defaultValue;
                     InspectorActionHandler.logger.debug(`[FLOW-TRACE] Injected default value for ${param.name}: ${param.defaultValue}`);
                 }
