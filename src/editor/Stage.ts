@@ -175,10 +175,16 @@ export class Stage implements StageHost, StageInteractionHost {
             // Force container to be at least as big as the stage if not in flex layout
             this.container.style.minHeight = `${height}px`;
             this.container.style.minWidth = `${width}px`;
+            // Sprites, die die Bühne verlassen, müssen geclippt werden — sonst blähen sie
+            // den Inhalt auf und der scrollbare Container zeigt Scrollbalken.
+            // Entspricht dem Export-CSS für #run-stage.
+            this.element.style.overflow = 'hidden';
         } else {
             // ARC-FIX: Remove min-width/height when NOT in run-mode to prevent leakage from previous sessions
             this.container.style.minHeight = '';
             this.container.style.minWidth = '';
+            // Im Editor bleiben Objekte über dem Bühnenrand sichtbar
+            this.element.style.overflow = '';
         }
 
         const hasParallaxBackground = this.lastRenderedObjects.some((o: any) => o.className === 'TParallaxBackground');
