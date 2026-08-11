@@ -288,33 +288,48 @@ export class VideoToSpriteSheetTool {
             }
         }
 
-        this.frames = [];
+        // Gewünschte Zeiten berechnen, bestehende Frames wiederverwenden.
+        const desiredTimes: number[] = [];
+        for (let t = start; t <= end + 0.001; t += interval) {
+            desiredTimes.push(Math.min(t, end));
+        }
+
+        const existingByTime = new Map<number, Frame>();
+        for (const f of this.frames) {
+            existingByTime.set(f.time, f);
+        }
+
         const canvas = document.createElement('canvas');
         canvas.width = this.videoWidth;
         canvas.height = this.videoHeight;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) return;
 
-        let id = 0;
-        for (let t = start; t <= end + 0.001; t += interval) {
-            const clampedT = Math.min(t, end);
-            this.video.currentTime = clampedT;
-            await new Promise<void>((resolve, reject) => {
-                if (!this.video) return resolve();
-                this.video.onseeked = () => resolve();
-                this.video.onerror = () => reject(new Error('Seek error'));
-            });
+        let nextId = this.frames.reduce((m, f) => Math.max(m, f.id), -1) + 1;
+        const newFrames: Frame[] = [];
+        const newTimes: number[] = [];
 
-            ctx.drawImage(this.video, 0, 0);
-            const imageData = ctx.getImageData(0, 0, this.videoWidth, this.videoHeight);
-            this.frames.push({ id: id++, time: clampedT, imageData, selected: true });
+        for (const t of desiredTimes) {
+            const existing = existingByTime.get(t);
+            if (existing) {
+                newFrames.push(existing);
+            } else {
+                this.video.currentTime = t;
+                await new Promise<void>((resolve, reject) => {
+                    if (!this.video) return resolve();
+                    this.video.onseeked = () => resolve();
+                    this.video.onerror = () => reject(new Error('Seek error'));
+                });
 
-            if (id % 10 === 0) {
-                this.log(`${id} Frames extrahiert...`);
+                ctx.drawImage(this.video, 0, 0);
+                const imageData = ctx.getImageData(0, 0, this.videoWidth, this.videoHeight);
+                newFrames.push({ id: nextId++, time: t, imageData, selected: true });
+                newTimes.push(t);
             }
         }
 
-        this.log(`${this.frames.length} Frames extrahiert.`);
+        this.frames = newFrames;
+        this.log(`${newTimes.length} neue Frames extrahiert, ${this.frames.length} insgesamt.`);
         this.renderVideoInfo();
         this.renderFrameGrid();
     }
@@ -332,7 +347,7 @@ export class VideoToSpriteSheetTool {
             updateCardStyle(frame.selected);
 
             const THUMB_MAX = 128;
-            const preview = this.processFrame(frame.imageData);
+            const preview = this.processFrame(frame);
             let crop: { x: number; y: number; w: number; h: number };
 
             if (this.settings.cropMode === 'manual' && this.settings.manualCropRect) {
@@ -419,9 +434,19 @@ export class VideoToSpriteSheetTool {
         this.renderFrameGrid();
     }
 
-    private processFrame(imageData: ImageData): ImageData {
-        if (!this.settings.removeBackground) return imageData;
-        return removeBackgroundFromImageData(imageData, this.settings.backgroundColor, this.settings.tolerance);
+    private processFrame(frame: Frame): ImageData {
+        const settingsKey = `${this.settings.removeBackground}|${this.settings.backgroundColor}|${this.settings.tolerance}`;
+        if (frame.processedImageData && frame.processedSettingsKey === settingsKey) {
+            return frame.processedImageData;
+        }
+
+        const result = this.settings.removeBackground
+            ? removeBackgroundFromImageData(frame.imageData, this.settings.backgroundColor, this.settings.tolerance)
+            : frame.imageData;
+
+        frame.processedImageData = result;
+        frame.processedSettingsKey = settingsKey;
+        return result;
     }
 
     private applySettingValue(key: keyof ToolSettings, value: number): void {
@@ -441,7 +466,7 @@ export class VideoToSpriteSheetTool {
 
         const processed: ImageData[] = [];
         for (const frame of selected) {
-            processed.push(this.processFrame(frame.imageData));
+            processed.push(this.processFrame(frame));
         }
 
         if (this.settings.removeBackground && processed.length > 0) {

@@ -32,6 +32,10 @@ export interface Frame {
     time: number;
     imageData: ImageData;
     selected: boolean;
+    /** Zwischengespeicherter processFrame-Ausgang, damit nur neue Frames umgerechnet werden. */
+    processedImageData?: ImageData;
+    /** Schlüssel der Einstellungen, für die die Zwischenspeicherung gilt. */
+    processedSettingsKey?: string;
 }
 
 export interface CropRect {
