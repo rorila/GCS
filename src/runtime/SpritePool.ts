@@ -188,6 +188,13 @@ export class SpritePool {
         sprite.y = y;
         sprite.velocityX = template.velocityX;
         sprite.velocityY = template.velocityY;
+        sprite.imageIndex = template.imageIndex;
+        sprite.imageListId = template.imageListId;
+        sprite.animationId = template.animationId;
+        if (template.backgroundImage) {
+            sprite.backgroundImage = template.backgroundImage;
+            sprite.objectFit = template.objectFit;
+        }
         sprite.visible = true;
 
         entry.busy = true;
@@ -259,21 +266,6 @@ export class SpritePool {
      */
     public hasPool(templateId: string): boolean {
         return this.pools.has(templateId);
-    }
-
-    /**
-     * Aktualisiert eine Eigenschaft in allen aktiven (busy) Instanzen eines Templates.
-     * Wird verwendet, wenn z.B. imageIndex/imageListId am TSpriteTemplate zur Laufzeit geändert wird.
-     */
-    public updateTemplateInstances(templateId: string, prop: string, value: any): void {
-        const pool = this.pools.get(templateId);
-        if (!pool) return;
-
-        pool.entries.forEach(entry => {
-            if (entry.busy && entry.sprite) {
-                (entry.sprite as any)[prop] = value;
-            }
-        });
     }
 
     /**

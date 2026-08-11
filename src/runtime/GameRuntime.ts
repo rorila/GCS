@@ -181,18 +181,12 @@ export class GameRuntime implements IVariableHost {
                     let renderScheduled = false;
 
                     this.reactiveRuntime.getWatcher().addGlobalListener(
-                        (obj: any, prop: string, newValue: any) => {
+                        (obj: any, prop: string) => {
                             if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') {
                                 if (prop === 'x' || prop === 'y') {
                                     GameLoopManager.getInstance().requestRender();
                                 }
                                 return;
-                            }
-
-                            // Sprite-Template Änderungen auf alle aktiven Pool-Instanzen propagieren
-                            if (obj?.className === 'TSpriteTemplate' && (prop === 'imageIndex' || prop === 'imageListId' || prop === 'animationId')) {
-                                this.spritePool.updateTemplateInstances(obj.id, prop, newValue);
-                                GameLoopManager.getInstance().requestRender();
                             }
 
                             if (prop && prop.startsWith('_')) return;
