@@ -19,11 +19,23 @@ export class TNumberLabel extends TTextControl {
 
     public onEvent: ((eventName: string) => void) | null = null;
 
-    /** Aktueller numerischer Wert. Jede Änderung synchronisiert `text` automatisch. */
+    /** Aktueller numerischer Wert. Jede Änderung synchronisiert `text` automatisch und prüft Limit-Events. */
     get value(): number { return this._value; }
     set value(v: number) {
         this._value = Number(v) || 0;
         this.text = String(this._value);
+        this._checkAndFireValueEvents();
+    }
+
+    private _checkAndFireValueEvents(): void {
+        if (this.maxValue !== null && this._value >= this.maxValue && this.onEvent) {
+            this.onEvent('onMaxValueReached');
+            logger.info(`[TNumberLabel] ${this.name}: onMaxValueReached fired (value=${this._value}, maxValue=${this.maxValue})`);
+        }
+        if (this.minValue !== null && this._value <= this.minValue && this.onEvent) {
+            this.onEvent('onMinValueReached');
+            logger.info(`[TNumberLabel] ${this.name}: onMinValueReached fired (value=${this._value}, minValue=${this.minValue})`);
+        }
     }
 
     /**
@@ -36,6 +48,7 @@ export class TNumberLabel extends TTextControl {
             const s = String(newValue ?? '').trim();
             const parsed = s !== '' ? Number(s) : NaN;
             this._value = !isNaN(parsed) ? parsed : 0;
+            this._checkAndFireValueEvents();
         }
         return super.applyChange(propertyName, newValue, oldValue);
     }
@@ -53,17 +66,17 @@ export class TNumberLabel extends TTextControl {
      * Fires onMaxValueReached when the maximum is reached or exceeded.
      */
     public incValue(): void {
-        const oldValue = this.value;
+        const oldValue = this._value;
         let newValue = oldValue + this.step;
         if (this.maxValue !== null) {
             newValue = Math.min(newValue, this.maxValue);
         }
-        this.value = newValue;
+        this._value = newValue;
+        this.text = String(newValue);
 
         logger.info(`[TNumberLabel] incValue on ${this.name}: ${oldValue} + ${this.step} = ${this.value}, maxValue=${this.maxValue}, onEvent=${!!this.onEvent}`);
 
-        if (this.maxValue !== null && oldValue < this.maxValue && this.value >= this.maxValue) {
-            logger.info(`[TNumberLabel] ${this.name}: MaxValue reached! value=${this.value} >= maxValue=${this.maxValue}. Firing onMaxValueReached...`);
+        if (this.maxValue !== null && oldValue < this.maxValue && this._value >= this.maxValue) {
             if (this.onEvent) {
                 this.onEvent('onMaxValueReached');
                 logger.info(`[TNumberLabel] ${this.name}: onMaxValueReached event fired!`);
@@ -78,17 +91,17 @@ export class TNumberLabel extends TTextControl {
      * Fires onMinValueReached when the minimum is reached or undershot.
      */
     public decValue(): void {
-        const oldValue = this.value;
+        const oldValue = this._value;
         let newValue = oldValue - this.step;
         if (this.minValue !== null) {
             newValue = Math.max(newValue, this.minValue);
         }
-        this.value = newValue;
+        this._value = newValue;
+        this.text = String(newValue);
 
         logger.info(`[TNumberLabel] decValue on ${this.name}: ${oldValue} - ${this.step} = ${this.value}, minValue=${this.minValue}, onEvent=${!!this.onEvent}`);
 
-        if (this.minValue !== null && oldValue > this.minValue && this.value <= this.minValue) {
-            logger.info(`[TNumberLabel] ${this.name}: MinValue reached! value=${this.value} <= minValue=${this.minValue}. Firing onMinValueReached...`);
+        if (this.minValue !== null && oldValue > this.minValue && this._value <= this.minValue) {
             if (this.onEvent) {
                 this.onEvent('onMinValueReached');
                 logger.info(`[TNumberLabel] ${this.name}: onMinValueReached event fired!`);
