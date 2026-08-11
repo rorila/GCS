@@ -17,6 +17,7 @@ import { AgentScript, ImportOptions } from '../../services/agent/AgentScriptType
 import { AgentController } from '../../services/AgentController';
 import { VideoToSpriteSheetTool } from '../tools/VideoToSpriteSheetTool';
 import { ImageTransparencyTool } from '../tools/ImageTransparencyTool';
+import { AudioSequenceTool } from '../tools/AudioSequenceTool';
 import { invalidateMediaManifestCache } from '../inspector/MediaPickerDialog';
 
 export interface EditorMenuHost {
@@ -227,6 +228,10 @@ export class EditorMenuManager {
                 this.openImageTransparencyTool();
                 break;
             }
+            case 'open-audio-sequence': {
+                this.openAudioSequenceTool();
+                break;
+            }
             default: {
                 const normalizedAction = action.replace(/\s+/g, '');
                 if (normalizedAction.startsWith('switch-stage-')) {
@@ -359,6 +364,11 @@ export class EditorMenuManager {
             NotificationToast.show(`Bild '${result.fileName}' gespeichert.`, 'success');
         };
         tool.onError = (msg) => NotificationToast.show(msg, 'error');
+        tool.open();
+    }
+
+    private openAudioSequenceTool(): void {
+        const tool = new AudioSequenceTool(document.body);
         tool.open();
     }
 

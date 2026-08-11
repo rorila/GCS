@@ -203,6 +203,12 @@
                     "label": "Bild transparenzieren",
                     "action": "open-image-transparency",
                     "icon": "🖼️"
+                },
+                {
+                    "id": "audio-sequence",
+                    "label": "Audio Sequenzen",
+                    "action": "open-audio-sequence",
+                    "icon": "🎵"
                 }
             ]
         }
