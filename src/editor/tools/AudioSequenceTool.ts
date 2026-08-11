@@ -24,6 +24,8 @@ export class AudioSequenceTool {
     private playStartTime: number = 0;
     private playStartOffset: number = 0;
     private playheadRaf: number | null = null;
+    private isDragging = false;
+    private dragStartX = 0;
 
     private state: AudioToolState = {
         start: 0,
@@ -156,11 +158,65 @@ export class AudioSequenceTool {
         this.canvas = document.createElement('canvas');
         this.canvas.width = 800;
         this.canvas.height = 160;
-        this.canvas.style.cssText = 'width:100%;height:160px;background:#1a1a2e;border-radius:4px;';
+        this.canvas.style.cssText = 'width:100%;height:160px;background:#1a1a2e;border-radius:4px;cursor:col-resize;';
         this.canvasCtx = this.canvas.getContext('2d');
+
+        this.canvas.onmousedown = (e) => this.onCanvasMouseDown(e);
+        this.canvas.onmousemove = (e) => this.onCanvasMouseMove(e);
+        this.canvas.onmouseup = (e) => this.onCanvasMouseUp(e);
+        this.canvas.onmouseleave = () => this.onCanvasMouseUp(null);
 
         section.appendChild(this.canvas);
         return section;
+    }
+
+    private onCanvasMouseDown(e: MouseEvent): void {
+        if (!this.canvas || !this.sourceBuffer) return;
+        this.isDragging = true;
+        this.dragStartX = e.offsetX;
+        const t = this.timeFromX(e.offsetX);
+        this.state.start = t;
+        this.state.end = t;
+        this.updateTimeInputs();
+        this.drawWaveform();
+    }
+
+    private onCanvasMouseMove(e: MouseEvent): void {
+        if (!this.isDragging || !this.canvas || !this.sourceBuffer) return;
+        const t = this.timeFromX(e.offsetX);
+        const start = Math.min(this.timeFromX(this.dragStartX), t);
+        const end = Math.max(this.timeFromX(this.dragStartX), t);
+        this.state.start = Math.max(0, start);
+        this.state.end = Math.min(this.sourceBuffer.duration, end);
+        this.updateTimeInputs();
+        this.drawWaveform();
+    }
+
+    private onCanvasMouseUp(e: MouseEvent | null): void {
+        if (!this.isDragging) return;
+        this.isDragging = false;
+        if (e && this.canvas && this.sourceBuffer) {
+            const t = this.timeFromX(e.offsetX);
+            const start = Math.min(this.timeFromX(this.dragStartX), t);
+            const end = Math.max(this.timeFromX(this.dragStartX), t);
+            this.state.start = Math.max(0, start);
+            this.state.end = Math.min(this.sourceBuffer.duration, end);
+            this.updateTimeInputs();
+        }
+        this.drawWaveform();
+    }
+
+    private timeFromX(x: number): number {
+        if (!this.canvas || !this.sourceBuffer) return 0;
+        const rect = this.canvas.getBoundingClientRect();
+        const scale = this.canvas.width / rect.width;
+        const localX = Math.max(0, Math.min(x * scale, this.canvas.width));
+        return (localX / this.canvas.width) * this.sourceBuffer.duration;
+    }
+
+    private updateTimeInputs(): void {
+        if (this.startInput) this.startInput.input.value = this.state.start.toFixed(3);
+        if (this.endInput) this.endInput.input.value = this.state.end.toFixed(3);
     }
 
     private renderControlsSection(): HTMLElement {
