@@ -30,7 +30,7 @@ export class FlowConnection {
 
     constructor(container: HTMLElement, x1: number, y1: number, x2: number, y2: number, id?: string) {
         this.id = id || `conn_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        logger.info(`%c[FlowConnection:INIT] ID=${this.id} Coords=(${x1},${y1})->(${x2},${y2})`, 'background: #222; color: #bada55');
+        logger.debug(`[FlowConnection:INIT] ID=${this.id} Coords=(${x1},${y1})->(${x2},${y2})`);
         this.startX = x1;
         this.startY = y1;
         this.endX = x2;
@@ -181,13 +181,13 @@ export class FlowConnection {
     }
 
     public attachStart(target: FlowElement) {
-        logger.info(`[FlowConnection:ATTACH_START] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
+        logger.debug(`[FlowConnection:ATTACH_START] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
         this.startTarget = target;
         this.updatePosition();
     }
 
     public attachEnd(target: FlowElement) {
-        logger.info(`[FlowConnection:ATTACH_END] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
+        logger.debug(`[FlowConnection:ATTACH_END] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
         this.endTarget = target;
         this.updatePosition();
     }

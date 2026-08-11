@@ -114,7 +114,7 @@ export function makeReactive<T extends object>(
                 logger.info(`Set ${objName}.${propertyPath} = ${newValue}`);
 
                 if (property === 'currentInterval') {
-                    logger.warn(`[TIMER-DEBUG] Proxy.set FIRED: objName="${objName}" path="${propertyPath}" newValue=${newValue} old=${oldValue} actualRoot.name="${actualRoot.name}" actualRoot.id="${actualRoot.id}"`);
+                    logger.debug(`[TIMER-DEBUG] Proxy.set FIRED: objName="${objName}" path="${propertyPath}" newValue=${newValue} old=${oldValue} actualRoot.name="${actualRoot.name}" actualRoot.id="${actualRoot.id}"`);
                 }
 
                 watcher.notify(actualRoot, propertyPath, newValue, oldValue);

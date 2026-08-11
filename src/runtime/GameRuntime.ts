@@ -1085,14 +1085,14 @@ export class GameRuntime implements IVariableHost {
      * Traverses all objects and registers reactive bindings for properties containing ${...}
      */
     private initializeReactiveBindings(): void {
-        logger.info('[BIND-DEBUG] initializeReactiveBindings() started. Total objects:', this.objects.length);
-        logger.info('[BIND-DEBUG] Stage Objects in Runtime:', this.objects.map(o => `${o.name || o.id} (${o.className})`));
+        logger.debug('[BIND-DEBUG] initializeReactiveBindings() started. Total objects:', this.objects.length);
+        logger.debug('[BIND-DEBUG] Stage Objects in Runtime:', this.objects.map(o => `${o.name || o.id} (${o.className})`));
 
         const process = (objs: any[]) => {
             objs.forEach(obj => {
                 const targetObj = this.reactiveRuntime.getObject(obj.id || obj.name) || obj;
                 if (targetObj.className === 'TLabel' || targetObj.className === 'TTextControl') {
-                    logger.warn(`[LABEL-SCAN] "${targetObj.name}" text="${targetObj.text}"`);
+                    logger.debug(`[LABEL-SCAN] "${targetObj.name}" text="${targetObj.text}"`);
                 }
                 this.bindObjectProperties(targetObj);
                 if (obj.children && obj.children.length > 0) {

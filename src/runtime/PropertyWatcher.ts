@@ -43,7 +43,7 @@ export class PropertyWatcher {
         }
 
         if (target?.name === 'StageTimer' || propertyPath === 'currentInterval') {
-            PropertyWatcher.logger.warn(`[TIMER-DEBUG] watch() called: object="${target?.name || target?.id}", path="${propertyPath}", watcherMapKey=${target === this.watchers.keys().next().value ? 'first-key' : 'other'}, isProxy=${!!(object as any).__isProxy__}`);
+            PropertyWatcher.logger.debug(`[TIMER-DEBUG] watch() called: object="${target?.name || target?.id}", path="${propertyPath}", watcherMapKey=${target === this.watchers.keys().next().value ? 'first-key' : 'other'}, isProxy=${!!(object as any).__isProxy__}`);
         }
 
         // Initialize watchers for this object if needed
@@ -128,7 +128,7 @@ export class PropertyWatcher {
 
         if (target?.name === 'StageTimer' || propertyPath === 'currentInterval') {
             const hasWatcher = this.watchers.has(target);
-            PropertyWatcher.logger.warn(`[TIMER-DEBUG] notify() called: object="${target?.name || target?.id}", path="${propertyPath}", newValue=${newValue}, watcherFound=${hasWatcher}, totalWatchedObjects=${this.watchers.size}`);
+            PropertyWatcher.logger.debug(`[TIMER-DEBUG] notify() called: object="${target?.name || target?.id}", path="${propertyPath}", newValue=${newValue}, watcherFound=${hasWatcher}, totalWatchedObjects=${this.watchers.size}`);
         }
 
         const objectWatchers = this.watchers.get(target);

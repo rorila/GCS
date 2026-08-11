@@ -178,7 +178,7 @@ export class ReactiveRuntime {
                     }
                 }
 
-                logger.error(`[BIND-UPDATE] Evaluating "${expression}" on "${targetObj.name || targetObj.id}.${targetProp}". Result: "${finalValue}"`);
+                logger.debug(`[BIND-UPDATE] Evaluating "${expression}" on "${targetObj.name || targetObj.id}.${targetProp}". Result: "${finalValue}"`);
 
                 // Update target property
                 if (targetProp.includes('.')) {
@@ -403,11 +403,11 @@ export class ReactiveRuntime {
         this.bindings.forEach(bindingList => {
             bindingList.forEach(binding => {
                 const targetName = binding.targetObj.name || 'Unknown';
-                logger.error(`  Binding: ${targetName}.${binding.targetProp} ← ${binding.expression}`);
-                logger.error(`    Dependencies: ${JSON.stringify(binding.dependencies)}`);
+                logger.debug(`  Binding: ${targetName}.${binding.targetProp} ← ${binding.expression}`);
+                logger.debug(`    Dependencies: ${JSON.stringify(binding.dependencies)}`);
             });
         });
-        logger.error('==================================');
+        logger.debug('==================================');
     }
 
     /**

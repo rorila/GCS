@@ -211,7 +211,7 @@ export class FlowAction extends FlowElement {
             if (this.data && !this.data.isLinked) {
                 this.data.isLinked = true;
                 this.data.name = action.name;
-                logger.info(`[FLOW-TRACE] Action "${this.Name}" is now LINKED.`);
+                logger.debug(`[FLOW-TRACE] Action "${this.Name}" is now LINKED.`);
             }
 
             // FIX: If this.data has a different type than the project action, prefer this.data
@@ -227,7 +227,7 @@ export class FlowAction extends FlowElement {
             return action;
         }
 
-        logger.warn(`[FLOW-TRACE] Action Definition NOT FOUND for "${this.Name}". Falling back to local data copy.`);
+        logger.debug(`[FLOW-TRACE] Action Definition NOT FOUND for "${this.Name}". Falling back to local data copy.`);
         return this.data;
     }
 

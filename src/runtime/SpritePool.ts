@@ -213,7 +213,7 @@ export class SpritePool {
         entry.busy = true;
         entry.acquiredAt = performance.now();
 
-        logger.info(
+        logger.debug(
             `Pool "${pool.templateName}": acquire → ${sprite.name} @ (${x}, ${y}) imageIndex=${sprite.imageIndex}`
         );
         return sprite;
