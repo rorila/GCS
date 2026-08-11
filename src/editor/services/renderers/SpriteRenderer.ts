@@ -138,15 +138,6 @@ export class SpriteRenderer {
                     : (obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : (imageListObj.currentImageNumber || 0));
                 const currentFrame = Math.max(0, Math.min(rawIndex, (hCount * vCount) - 1));
 
-                if (obj.isPoolInstance && (el as any)._lastDiagFrame !== currentFrame) {
-                    (el as any)._lastDiagFrame = currentFrame;
-                    spriteLogger.info(
-                        `[IMAGEINDEX-DIAG] Render "${obj.name}" (Template=${obj.templateName}): ` +
-                        `obj.imageIndex=${obj.imageIndex} → currentFrame=${currentFrame}, ` +
-                        `mode=${appearanceMode}, imageList="${imageListObj.name}" (currentImageNumber=${imageListObj.currentImageNumber})`
-                    );
-                }
-
                 const col = currentFrame % hCount;
                 const row = Math.floor(currentFrame / hCount);
 

@@ -33,6 +33,16 @@ export class SpritePool {
     private pools: Map<string, TemplatePool> = new Map();
 
     /**
+     * Liefert einen konkreten Zahlenwert. Ausdrücke wie "${Var}" ergeben 0,
+     * damit Pool-Instanzen keine Live-Bindings erben.
+     */
+    private static resolveNumeric(value: any): number {
+        if (typeof value === 'number' && !isNaN(value)) return value;
+        const num = Number(value);
+        return isNaN(num) ? 0 : num;
+    }
+
+    /**
      * Pool für ein Template initialisieren.
      * Erzeugt `template.poolSize` echte TSprite-Instanzen.
      * 
@@ -81,7 +91,10 @@ export class SpritePool {
                 spriteColor: template.spriteColor,
                 lerpSpeed: template.lerpSpeed,
                 imageListId: template.imageListId,
-                imageIndex: template.imageIndex,
+                // Ausdrücke wie ${Var} dürfen nicht in die Instanz kopiert werden — sonst
+                // erhielte jede Instanz ein eigenes Live-Binding. Der konkrete Wert wird
+                // erst beim Spawn in acquire() gesetzt.
+                imageIndex: SpritePool.resolveNumeric(template.imageIndex),
                 animationId: template.animationId,
                 // Hitbox-Einstellungen vom Template übernehmen
                 customHitbox: template.customHitbox,
@@ -188,7 +201,7 @@ export class SpritePool {
         sprite.y = y;
         sprite.velocityX = template.velocityX;
         sprite.velocityY = template.velocityY;
-        sprite.imageIndex = template.imageIndex;
+        sprite.imageIndex = SpritePool.resolveNumeric(template.imageIndex);
         sprite.imageListId = template.imageListId;
         sprite.animationId = template.animationId;
         if (template.backgroundImage) {
@@ -201,10 +214,8 @@ export class SpritePool {
         entry.acquiredAt = performance.now();
 
         logger.info(
-            `[IMAGEINDEX-DIAG] Pool "${pool.templateName}": acquire → ${sprite.name} @ (${x}, ${y}) ` +
-            `imageIndex=${sprite.imageIndex} (Template=${template.imageIndex}), imageListId="${sprite.imageListId}", animationId="${sprite.animationId}"`
+            `Pool "${pool.templateName}": acquire → ${sprite.name} @ (${x}, ${y}) imageIndex=${sprite.imageIndex}`
         );
-        this.logInstanceStates(templateId);
         return sprite;
     }
 
@@ -270,20 +281,6 @@ export class SpritePool {
      */
     public hasPool(templateId: string): boolean {
         return this.pools.has(templateId);
-    }
-
-    /**
-     * Diagnose: Gibt für alle Instanzen eines Pools den aktuellen imageIndex aus.
-     * Hilft festzustellen, ob bereits gespawnte Instanzen ihren Frame behalten.
-     */
-    public logInstanceStates(templateId: string): void {
-        const pool = this.pools.get(templateId);
-        if (!pool) return;
-
-        const states = pool.entries.map(e =>
-            `${e.sprite.name}: busy=${e.busy} imageIndex=${e.sprite.imageIndex}`
-        );
-        logger.info(`[IMAGEINDEX-DIAG] Pool "${pool.templateName}" Zustand:\n  ${states.join('\n  ')}`);
     }
 
     /**

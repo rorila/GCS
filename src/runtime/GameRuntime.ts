@@ -1160,6 +1160,12 @@ export class GameRuntime implements IVariableHost {
     }
 
     private bindObjectProperties(obj: any): void {
+        // Pool-Instanzen erben Ausdrücke wie ${Var} vom Template. Würden sie eigene
+        // Bindings bekommen, änderten sich auch bereits gespawnte Instanzen bei jeder
+        // Variablenänderung. Der konkrete Wert wird stattdessen in SpritePool.acquire()
+        // beim Spawn eingefroren.
+        if (obj?.isPoolInstance === true) return;
+
         const skipProps = ['id', 'name', 'className', 'parentId', 'constructor', 'Tasks'];
 
         const bindProps = (target: any, pathPrefix: string = '') => {
