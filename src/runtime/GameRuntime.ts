@@ -1160,11 +1160,11 @@ export class GameRuntime implements IVariableHost {
     }
 
     private bindObjectProperties(obj: any): void {
-        // Pool-Instanzen erben Ausdrücke wie ${Var} vom Template. Würden sie eigene
-        // Bindings bekommen, änderten sich auch bereits gespawnte Instanzen bei jeder
-        // Variablenänderung. Der konkrete Wert wird stattdessen in SpritePool.acquire()
-        // beim Spawn eingefroren.
-        if (obj?.isPoolInstance === true) return;
+        // Pool-Instanzen erben Ausdrücke wie ${Var} vom Template. Sie müssen einmalig
+        // aufgelöst werden (sonst bleiben z.B. width/height rohe Strings und zerstören
+        // das Layout), dürfen aber keine Live-Watcher erhalten — sonst würden bereits
+        // gespawnte Instanzen bei jeder Variablenänderung mitaktualisiert.
+        const once = obj?.isPoolInstance === true;
 
         const skipProps = ['id', 'name', 'className', 'parentId', 'constructor', 'Tasks'];
 
@@ -1181,10 +1181,10 @@ export class GameRuntime implements IVariableHost {
                 const designVal = obj[DESIGN_VALUES]?.[propPath];
                 if (designVal && typeof designVal === 'string' && designVal.includes('${')) {
                     logger.debug(`Restoring and binding reactive expression: ${obj.name}.${propPath} ← ${designVal}`);
-                    this.reactiveRuntime.bindComponent(obj, propPath, designVal);
+                    this.reactiveRuntime.bindComponent(obj, propPath, designVal, undefined, once);
                 } else if (typeof val === 'string' && val.includes('${')) {
                     logger.debug(`Creating reactive binding: ${obj.name}.${propPath} ← ${val}`);
-                    this.reactiveRuntime.bindComponent(obj, propPath, val);
+                    this.reactiveRuntime.bindComponent(obj, propPath, val, undefined, once);
                 } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'events' || key === 'Tasks' || key === 'grid')) {
                     // Recursive binding for nested objects like style, grid or events
                     bindProps(val, propPath);

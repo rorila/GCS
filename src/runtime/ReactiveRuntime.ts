@@ -98,9 +98,12 @@ export class ReactiveRuntime {
      * @param targetObj Target object to update
      * @param targetProp Property to update
      * @param expression Expression to evaluate (e.g., "${player.score}")
+     * @param once If true, the expression is evaluated exactly once and no
+     *             dependency watchers are registered. Used for pool instances that
+     *             inherit template expressions but must keep their spawn-time value.
      * @returns Binding ID for later removal
      */
-    bind(targetObj: any, targetProp: string, expression: string): string {
+    bind(targetObj: any, targetProp: string, expression: string, once: boolean = false): string {
         const bindingId = `${Date.now()}_${Math.random()}`;
 
         // Extract dependencies from expression
@@ -188,6 +191,13 @@ export class ReactiveRuntime {
                 }
             }
         };
+
+        // ONCE-MODE: Evaluate a single time, skip watchers and do not store the binding
+        // so updateBindingsForVariable() cannot revive it later.
+        if (once) {
+            binding.update();
+            return bindingId;
+        }
 
         // Watch all dependencies
         deps.forEach(dep => {
@@ -375,10 +385,11 @@ export class ReactiveRuntime {
         component: any,
         componentProp: string,
         dataExpression: string,
-        onChange?: (newValue: any) => void
+        onChange?: (newValue: any) => void,
+        once: boolean = false
     ): string {
         // Bind data → component (one-way)
-        const bindingId = this.bind(component, componentProp, dataExpression);
+        const bindingId = this.bind(component, componentProp, dataExpression, once);
 
         // Bind component → data (reverse direction)
         if (onChange) {
