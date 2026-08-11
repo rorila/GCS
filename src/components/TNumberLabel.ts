@@ -11,12 +11,34 @@ const logger = Logger.get('TNumberLabel');
  */
 export class TNumberLabel extends TTextControl {
     public className: string = 'TNumberLabel';
-    public value: number = 0;
+    private _value: number = 0;
     public startValue: number = 0;
+    public minValue: number | null = null;
     public maxValue: number | null = null;
     public step: number = 1;
 
     public onEvent: ((eventName: string) => void) | null = null;
+
+    /** Aktueller numerischer Wert. Jede Änderung synchronisiert `text` automatisch. */
+    get value(): number { return this._value; }
+    set value(v: number) {
+        this._value = Number(v) || 0;
+        this.text = String(this._value);
+    }
+
+    /**
+     * Property-Änderung anwenden.
+     * Wird vom InspectorHost aufgerufen. Bei Änderungen an `text` (INHALT)
+     * wird der numerische `value` passend aktualisiert, ohne `text` zu überschreiben.
+     */
+    public applyChange(propertyName: string, newValue: any, oldValue?: any): boolean {
+        if (propertyName === 'text') {
+            const s = String(newValue ?? '').trim();
+            const parsed = s !== '' ? Number(s) : NaN;
+            this._value = !isNaN(parsed) ? parsed : 0;
+        }
+        return super.applyChange(propertyName, newValue, oldValue);
+    }
 
     constructor(name: string, x: number, y: number, startValue: number = 0) {
         super(name, x, y, 8, 2);
@@ -28,14 +50,19 @@ export class TNumberLabel extends TTextControl {
 
     /**
      * Increments the value by the step amount.
-     * Fires onMaxValueReached if maxValue is set and reached.
+     * Fires onMaxValueReached when the maximum is reached or exceeded.
      */
     public incValue(): void {
         const oldValue = this.value;
-        this.value += this.step;
+        let newValue = oldValue + this.step;
+        if (this.maxValue !== null) {
+            newValue = Math.min(newValue, this.maxValue);
+        }
+        this.value = newValue;
+
         logger.info(`[TNumberLabel] incValue on ${this.name}: ${oldValue} + ${this.step} = ${this.value}, maxValue=${this.maxValue}, onEvent=${!!this.onEvent}`);
 
-        if (this.maxValue !== null && this.value >= this.maxValue) {
+        if (this.maxValue !== null && oldValue < this.maxValue && this.value >= this.maxValue) {
             logger.info(`[TNumberLabel] ${this.name}: MaxValue reached! value=${this.value} >= maxValue=${this.maxValue}. Firing onMaxValueReached...`);
             if (this.onEvent) {
                 this.onEvent('onMaxValueReached');
@@ -48,17 +75,26 @@ export class TNumberLabel extends TTextControl {
 
     /**
      * Decrements the value by the step amount.
-     * Fires onMinValueReached if 0 is reached and startValue was > 0.
+     * Fires onMinValueReached when the minimum is reached or undershot.
      */
     public decValue(): void {
         const oldValue = this.value;
-        this.value -= this.step;
+        let newValue = oldValue - this.step;
+        if (this.minValue !== null) {
+            newValue = Math.max(newValue, this.minValue);
+        }
+        this.value = newValue;
 
-        // Ensure we don't go below 0 if that's desired
-        if (this.value < 0) this.value = 0;
+        logger.info(`[TNumberLabel] decValue on ${this.name}: ${oldValue} - ${this.step} = ${this.value}, minValue=${this.minValue}, onEvent=${!!this.onEvent}`);
 
-        if (oldValue > 0 && this.value === 0 && this.startValue > 0) {
-            if (this.onEvent) this.onEvent('onMinValueReached');
+        if (this.minValue !== null && oldValue > this.minValue && this.value <= this.minValue) {
+            logger.info(`[TNumberLabel] ${this.name}: MinValue reached! value=${this.value} <= minValue=${this.minValue}. Firing onMinValueReached...`);
+            if (this.onEvent) {
+                this.onEvent('onMinValueReached');
+                logger.info(`[TNumberLabel] ${this.name}: onMinValueReached event fired!`);
+            } else {
+                logger.warn(`[TNumberLabel] ${this.name}: onEvent callback is NOT registered! Event cannot be fired.`);
+            }
         }
     }
 
@@ -92,6 +128,7 @@ export class TNumberLabel extends TTextControl {
             ...props,
             { name: 'startValue', label: 'Anfangswert', type: 'number', group: 'Numeric' },
             { name: 'value', label: 'Aktueller Wert', type: 'number', group: 'Numeric' },
+            { name: 'minValue', label: 'Minimalwert (Optional)', type: 'number', group: 'Numeric' },
             { name: 'maxValue', label: 'Maximalwert (Optional)', type: 'number', group: 'Numeric' },
             { name: 'step', label: 'Schrittweite', type: 'number', group: 'Numeric' }
         ];
@@ -102,6 +139,7 @@ export class TNumberLabel extends TTextControl {
             ...super.toDTO(),
             value: this.value,
             startValue: this.startValue,
+            minValue: this.minValue,
             maxValue: this.maxValue,
             step: this.step
         };
