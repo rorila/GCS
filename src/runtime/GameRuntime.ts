@@ -350,6 +350,16 @@ export class GameRuntime implements IVariableHost {
 
         logger.info(`[GameRuntime] START() called, objectCount=${this.objects.length}, splash=${this.isSplashActive}, stage=${this.stage?.id}`);
 
+        // TNumberLabel und TTimer muessen ihre onEvent-Callbacks an GameRuntime binden,
+        // damit onMaxValueReached/onMinValueReached/onTimer in Standalone-Engine feuern.
+        this.objects.forEach(obj => {
+            if (obj.className === 'TNumberLabel' || obj.className === 'TTimer') {
+                if ('onEvent' in obj) {
+                    (obj as any).onEvent = (eventName: string) => this.handleEvent(obj.id, eventName);
+                }
+            }
+        });
+
         if (this.options.onRender) this.options.onRender();
         this.objects.forEach(obj => this.handleEvent(obj.id, 'onStart'));
 
