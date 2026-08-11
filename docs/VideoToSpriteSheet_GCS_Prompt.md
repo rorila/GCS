@@ -1,10 +1,10 @@
 # Aufgabe: Video-to-SpriteSheet Tool für GCS entwickeln
 
-Entwickle ein eigenständiges, wiederverwendbares Tool namens:
+Entwickle ein Tool namens:
 
 **VideoToSpriteSheet**
 
-Das Tool soll später als Bestandteil in mein bestehendes **GCS (Game Creation System)** integriert werden können.
+Das Tool soll als Bestandteil in das aktuelle Projekt integriert werden können.
 
 ## 1. Ziel
 
