@@ -2,6 +2,8 @@ import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('AudioSequenceTool');
 
+export const AUDIO_SEQUENCE_TOOL_VERSION = '1.0.1';
+
 interface AudioToolState {
     start: number;
     end: number;
@@ -84,8 +86,8 @@ export class AudioSequenceTool {
         const header = document.createElement('div');
         header.style.cssText = this.getHeaderStyles();
         const title = document.createElement('h2');
-        title.textContent = '🎵 Audio Sequenzen';
         title.style.cssText = 'margin:0;font-size:16px;color:#e0e0e0;';
+        title.innerHTML = `🎵 Audio Sequenzen <span style="font-size:11px;color:#7fd1a0;font-weight:normal;">v${AUDIO_SEQUENCE_TOOL_VERSION}</span>`;
 
         const closeBtn = document.createElement('button');
         closeBtn.textContent = '✕';
@@ -365,55 +367,72 @@ export class AudioSequenceTool {
             this.audioContext = new AudioContext();
         }
 
-        this.readInputs();
+        try {
+            this.readInputs();
 
-        const duration = this.sourceBuffer.duration;
-        const start = Math.max(0, Math.min(this.state.start, duration - 0.001));
-        const end = Math.max(start + 0.001, Math.min(this.state.end, duration));
-        const playDuration = end - start;
+            const duration = this.sourceBuffer.duration;
+            const start = Math.max(0, Math.min(this.state.start, duration - 0.001));
+            const end = Math.max(start + 0.001, Math.min(this.state.end, duration));
+            const playDuration = end - start;
 
-        if (this.audioContext.state === 'suspended') {
-            await this.audioContext.resume();
+            this.log(`Play: start=${start.toFixed(2)}s, end=${end.toFixed(2)}s, state=${this.audioContext.state}`);
+
+            if (this.audioContext.state !== 'running') {
+                this.log('AudioContext aktivieren...');
+                await this.audioContext.resume();
+            }
+
+            if (this.audioContext.state !== 'running') {
+                this.log(`AudioContext nicht running: ${this.audioContext.state}`, true);
+                return;
+            }
+
+            const source = this.audioContext.createBufferSource();
+            source.buffer = this.sourceBuffer;
+            source.loop = this.state.loop;
+
+            const gain = this.audioContext.createGain();
+            gain.gain.value = this.state.gain;
+
+            let lastNode: AudioNode = source;
+
+            if (this.state.lowpass > 0) {
+                const filter = this.audioContext.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = this.state.lowpass;
+                lastNode.connect(filter);
+                lastNode = filter;
+            }
+
+            if (this.state.highpass > 0) {
+                const filter = this.audioContext.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = this.state.highpass;
+                lastNode.connect(filter);
+                lastNode = filter;
+            }
+
+            if (this.sourceBuffer.numberOfChannels <= 2) {
+                const panner = this.audioContext.createStereoPanner();
+                panner.pan.value = this.state.pan;
+                lastNode.connect(panner);
+                lastNode = panner;
+            }
+
+            lastNode.connect(gain);
+            gain.connect(this.audioContext.destination);
+
+            source.start(this.audioContext.currentTime + 0.05, start, playDuration);
+            source.onended = () => {
+                this.currentSource = null;
+                this.log('Wiedergabe beendet.');
+            };
+
+            this.currentSource = source;
+            this.log('Wiedergabe gestartet.');
+        } catch (e: any) {
+            this.log(`Play-Fehler: ${e.message}`, true);
         }
-
-        const source = this.audioContext.createBufferSource();
-        source.buffer = this.sourceBuffer;
-        source.loop = this.state.loop;
-
-        const gain = this.audioContext.createGain();
-        gain.gain.value = this.state.gain;
-
-        let lastNode: AudioNode = source;
-
-        if (this.state.lowpass > 0) {
-            const filter = this.audioContext.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = this.state.lowpass;
-            lastNode.connect(filter);
-            lastNode = filter;
-        }
-
-        if (this.state.highpass > 0) {
-            const filter = this.audioContext.createBiquadFilter();
-            filter.type = 'highpass';
-            filter.frequency.value = this.state.highpass;
-            lastNode.connect(filter);
-            lastNode = filter;
-        }
-
-        if (this.sourceBuffer.numberOfChannels <= 2) {
-            const panner = this.audioContext.createStereoPanner();
-            panner.pan.value = this.state.pan;
-            lastNode.connect(panner);
-            lastNode = panner;
-        }
-
-        lastNode.connect(gain);
-        gain.connect(this.audioContext.destination);
-
-        source.start(0, start, playDuration);
-
-        this.currentSource = source;
     }
 
     private stop(): void {
