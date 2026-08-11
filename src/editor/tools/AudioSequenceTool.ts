@@ -24,6 +24,7 @@ export class AudioSequenceTool {
     private playStartTime: number = 0;
     private playStartOffset: number = 0;
     private playheadRaf: number | null = null;
+    private copiedBuffer: AudioBuffer | null = null;
     private isDragging = false;
     private dragStartX = 0;
 
@@ -298,9 +299,21 @@ export class AudioSequenceTool {
         exportBtn.style.cssText = this.getBtnStyles(true);
         exportBtn.onclick = () => this.exportWav();
 
+        const copyBtn = document.createElement('button');
+        copyBtn.textContent = 'Bereich kopieren';
+        copyBtn.style.cssText = this.getBtnStyles();
+        copyBtn.onclick = () => this.copySelection();
+
+        const pasteBtn = document.createElement('button');
+        pasteBtn.textContent = 'Bei Start einfügen';
+        pasteBtn.style.cssText = this.getBtnStyles();
+        pasteBtn.onclick = () => this.pasteAtStart();
+
         section.appendChild(playBtn);
         section.appendChild(stopBtn);
         section.appendChild(applyBtn);
+        section.appendChild(copyBtn);
+        section.appendChild(pasteBtn);
         section.appendChild(exportBtn);
 
         return section;
@@ -525,6 +538,80 @@ export class AudioSequenceTool {
             this.playheadRaf = null;
         }
         this.drawWaveform();
+    }
+
+    private copySelection(): void {
+        if (!this.sourceBuffer) {
+            this.log('Bitte zuerst Audio laden.', true);
+            return;
+        }
+        this.readInputs();
+        const startSample = Math.floor(Math.max(0, this.state.start) * this.sourceBuffer.sampleRate);
+        const endSample = Math.min(this.sourceBuffer.length, Math.floor(Math.max(this.state.end, this.state.start) * this.sourceBuffer.sampleRate));
+        const length = Math.max(1, endSample - startSample);
+
+        const copied = new AudioBuffer({
+            numberOfChannels: this.sourceBuffer.numberOfChannels,
+            length,
+            sampleRate: this.sourceBuffer.sampleRate
+        });
+
+        for (let ch = 0; ch < this.sourceBuffer.numberOfChannels; ch++) {
+            const source = this.sourceBuffer.getChannelData(ch);
+            const target = copied.getChannelData(ch);
+            for (let i = 0; i < length; i++) {
+                target[i] = source[startSample + i];
+            }
+        }
+
+        this.copiedBuffer = copied;
+        this.log(`Bereich kopiert: ${(length / this.sourceBuffer.sampleRate).toFixed(3)}s`);
+    }
+
+    private pasteAtStart(): void {
+        if (!this.sourceBuffer) {
+            this.log('Bitte zuerst Audio laden.', true);
+            return;
+        }
+        if (!this.copiedBuffer) {
+            this.log('Bitte zuerst einen Bereich kopieren.', true);
+            return;
+        }
+        this.readInputs();
+
+        const sr = this.sourceBuffer.sampleRate;
+        const insertSample = Math.floor(Math.max(0, this.state.start) * sr);
+        const newLength = this.sourceBuffer.length + this.copiedBuffer.length;
+
+        const pasted = new AudioBuffer({
+            numberOfChannels: this.sourceBuffer.numberOfChannels,
+            length: newLength,
+            sampleRate: sr
+        });
+
+        for (let ch = 0; ch < this.sourceBuffer.numberOfChannels; ch++) {
+            const original = this.sourceBuffer.getChannelData(ch);
+            const copy = this.copiedBuffer.getChannelData(ch);
+            const target = pasted.getChannelData(ch);
+
+            for (let i = 0; i < insertSample; i++) {
+                target[i] = original[i];
+            }
+            for (let i = 0; i < copy.length; i++) {
+                target[insertSample + i] = copy[i];
+            }
+            for (let i = insertSample; i < original.length; i++) {
+                target[copy.length + i] = original[i];
+            }
+        }
+
+        this.sourceBuffer = pasted;
+        this.filteredBuffer = pasted;
+        this.state.start = 0;
+        this.state.end = pasted.duration;
+        this.updateTimeInputs();
+        this.drawWaveform();
+        this.log(`Bereich bei ${(insertSample / sr).toFixed(3)}s eingefügt. Neue Dauer: ${pasted.duration.toFixed(3)}s`);
     }
 
     private exportWav(): void {
