@@ -262,6 +262,21 @@ export class SpritePool {
     }
 
     /**
+     * Aktualisiert eine Eigenschaft in allen aktiven (busy) Instanzen eines Templates.
+     * Wird verwendet, wenn z.B. imageIndex/imageListId am TSpriteTemplate zur Laufzeit geändert wird.
+     */
+    public updateTemplateInstances(templateId: string, prop: string, value: any): void {
+        const pool = this.pools.get(templateId);
+        if (!pool) return;
+
+        pool.entries.forEach(entry => {
+            if (entry.busy && entry.sprite) {
+                (entry.sprite as any)[prop] = value;
+            }
+        });
+    }
+
+    /**
      * Alle aktiven (busy) Instanzen über alle Pools.
      */
     public getActiveInstances(): TSprite[] {
