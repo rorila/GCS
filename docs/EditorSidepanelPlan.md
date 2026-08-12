@@ -15,10 +15,11 @@ Im Editor soll ein seitliches Panel (Regal) über einen Hamburger-Button erreich
 
 ### Schritt 1: UI-Skelett
 
-- **Hamburger-Button** immer im Editor-Tab-Menü sichtbar (dynamisch erzeugen, falls Template fehlt).
+- **Hamburger-Button** ausschließlich im Editor-Mode im Tab-Menü sichtbar, positioniert vor dem **Stage**-Tab (dynamisch erzeugen, falls Template fehlt).
 - **Slide-in-Panel** rechts (`width: 320px`, `transition: transform 0.25s ease`).
 - Offen/Geschlossen-Status in `Editor.ts` speichern.
 - Panel initial leer, nur Header + Close-Button + Suchfeld.
+- Sidepanel und Hamburger-Button werden im Run-Mode ausgeblendet.
 
 ### Schritt 2: Workflow — Objekte in das Regal verschieben und zurückholen
 
