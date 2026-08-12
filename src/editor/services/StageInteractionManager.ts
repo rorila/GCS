@@ -870,7 +870,9 @@ export class StageInteractionManager {
 
             // Sidepanel: Komponente in Regal verschieben (nur für isHiddenInRun oder Dialoge)
             if ((obj.isHiddenInRun || isDialog(obj.className)) && !obj.isManagedInSidepanel) {
+                console.log('[StageInteractionManager] Sidepanel context menu entry for', objectId, 'hiddenInRun=', obj.isHiddenInRun, 'className=', obj.className);
                 this.addContextItem('📦 In Sidepanel verschieben', '#a3be8c', () => {
+                    console.log('[StageInteractionManager] moveToSidepanel clicked for', objectId);
                     if (this.host.onEvent) this.host.onEvent(objectId, 'moveToSidepanel');
                 });
             }

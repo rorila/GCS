@@ -1280,6 +1280,7 @@ export class Editor implements IViewHost {
     }
 
     public moveObjectToSidepanel(objOrId: any): void {
+        console.log('[Editor] moveObjectToSidepanel called with', objOrId);
         const obj = typeof objOrId === 'string' ? this.findObjectById(objOrId) : objOrId;
         if (!obj) return;
         if (obj.isManagedInSidepanel) return;
@@ -1288,12 +1289,14 @@ export class Editor implements IViewHost {
         const rawObj = this.findRawObjectInProject(obj.id);
         if (rawObj) {
             rawObj.isManagedInSidepanel = true;
+            console.log('[Editor] set isManagedInSidepanel=true on rawObj', rawObj.id, rawObj.name);
         }
         obj.isManagedInSidepanel = true;
         this.hideManagedObjectsOnStage = true;
         this.sidePanel?.setHideManagedActive(true);
         this.refreshSidepanel();
         this.render();
+        console.log('[Editor] calling autoSaveToLocalStorage after moveObjectToSidepanel');
         this.autoSaveToLocalStorage();
     }
 
