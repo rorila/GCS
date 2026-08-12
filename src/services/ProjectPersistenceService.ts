@@ -160,6 +160,10 @@ export class ProjectPersistenceService {
         const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
 
+        const managedCount = (targetProject.stages || []).reduce((acc, s) => acc + (s.objects || []).filter((o: any) => o.isManagedInSidepanel).length, 0)
+            + (targetProject.objects || []).filter((o: any) => o.isManagedInSidepanel).length;
+        ProjectPersistenceService.logger.info(`[PPS] autoSaveToLocalStorage called. adapter=${this.autoSaveAdapter?.name ?? 'none'}, managedInSidepanel=${managedCount}`);
+
         // Nach einem QuotaExceeded-Fehler keine weiteren Versuche starten
         if (this.localStorageQuotaExceeded) return;
 
