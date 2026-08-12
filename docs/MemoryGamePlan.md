@@ -126,22 +126,26 @@ Nach jedem gefundenen Paar:
 
 Ruft `InitGame` auf.
 
-## 3.6 Konkrete Tasks und Actions
+## 3.6 Konkrete Tasks und Actions (kleinteilig)
 
-Da das Mischen der Karten, die dynamische Grid-Berechnung und das Erzeugen der Karten-Objekte mit den bestehenden Standard-Actions allein sehr aufwändig wäre, wird eine kleine Runtime-Komponente `MemoryGameService` eingeführt. Diese stellt Methoden bereit, die über `call_method`-Actions aus den GCS-Tasks aufgerufen werden.
+Da das Mischen der Karten, die dynamische Grid-Berechnung und das Erzeugen der Karten-Objekte mit den bestehenden Standard-Actions allein sehr aufwändig wären, wird eine Runtime-Komponente `MemoryGameService` eingeführt. Jede Methode ist dabei klein und aufgabenorientiert, sodass die GCS-Tasks aus wenigen `call_method`-Actions bestehen.
 
-> **Alternative:** Werden keine neuen Runtime-Methoden gewünscht, ließe sich das Spiel rein mit Standard-Actions bauen, dann müssten aber die Karten händisch im Editor platziert und die Zuordnung der Bild-Indizes statisch erfolgen. Das würde aber die Anpassbarkeit (Anzahl der Bilder, dynamische Größe) einschränken.
-
-### `MemoryGameService` (Runtime-Komponente)
-
-Methoden:
+### `MemoryGameService` (Runtime-Komponente) — Methoden
 
 | Methode | Beschreibung |
 |---|---|
-| `initGame()` | Erzeugt die Karten, mischt sie, berechnet Grid/Größe und setzt den Spielzustand zurück. |
-| `onCardClick(cardName: string)` | Verarbeitet Klicks auf eine Karte. |
-| `onFlipBackTimer()` | Wird nach Ablauf von `timerFlipBack` aufgerufen und vergleicht die beiden aufgedeckten Karten. |
-| `restart()` | Alias für `initGame()`. |
+| `resetState()` | Setzt `varCurrentPlayer`, `varScore1`, `varScore2`, `varRevealedCount`, `varFirstCard`, `varSecondCard` zurück. |
+| `shuffleAndCreateGrid()` | Bestimmt `pairCount` aus `imgCards`, erzeugt und mischt die Indizes, berechnet Grid/Größe und erstellt die Karten. |
+| `showCardBacks()` | Zeigt für alle Karten die Rückseite `imgBack` an. |
+| `revealCard(cardName: string)` | Deckt eine Karte auf, speichert sie als First/Second Card und startet ggf. den Timer. |
+| `startCompareTimer()` | Startet `timerFlipBack`. |
+| `checkPairs()` | Vergleicht die Indizes von First/Second Card. |
+| `handleMatch()` | Markiert beide Karten als gelöst, erhöht Punkte, bleibt am Zug. |
+| `handleMismatch()` | Dreht beide Karten um und wechselt den Spieler. |
+| `switchPlayer()` | Wechselt `varCurrentPlayer` zwischen 1 und 2. |
+| `checkWin()` | Prüft, ob alle Paare gefunden wurden, und zeigt das Ergebnis an. |
+| `updateStatus(text: string)` | Setzt den Text von `txtStatus`. |
+| `restart()` | Führt `resetState`, `shuffleAndCreateGrid`, `showCardBacks` und `updateStatus` aus. |
 
 ### Task: `InitGame`
 
@@ -149,31 +153,41 @@ Methoden:
 
 **Actions:**
 
-| Reihenfolge | Action-Typ | Parameter | Beschreibung |
+| # | Action-Typ | Parameter | Beschreibung |
 |---|---|---|---|
-| 1 | `call_method` | target: `MemoryGameService`, method: `initGame` | Erzeugt und mischt alle Karten. |
+| 1 | `call_method` | target: `MemoryGameService`, method: `resetState` | Initialisiert Spielvariablen. |
+| 2 | `call_method` | target: `MemoryGameService`, method: `shuffleAndCreateGrid` | Erzeugt die Karten dynamisch. |
+| 3 | `call_method` | target: `MemoryGameService`, method: `showCardBacks` | Zeigt die Rückseiten. |
+| 4 | `call_method` | target: `MemoryGameService`, method: `updateStatus`, params: `["Spieler 1 ist am Zug"]` | Initialer Status. |
 
 ### Task: `OnCardClick`
 
-Wird beim Klick auf eine Karte ausgelöst. Da `onClick` auf jedem `TSprite` einzeln gebunden werden muss, wird diese Task für jede Karte registriert. Der Karten-Name wird als Event-Daten übergeben.
-
-**Trigger:** `onClick` einer Karte (wird dynamisch in `initGame` via `bind_event` verbunden).
+**Trigger:** `onClick` einer Karte (wird dynamisch in `shuffleAndCreateGrid` via `bind_event` verbunden).
 
 **Actions:**
 
-| Reihenfolge | Action-Typ | Parameter | Beschreibung |
+| # | Action-Typ | Parameter | Beschreibung |
 |---|---|---|---|
-| 1 | `call_method` | target: `MemoryGameService`, method: `onCardClick`, params: `["${eventData.cardName}"]` | Verarbeitet den Klick. |
+| 1 | `call_method` | target: `MemoryGameService`, method: `revealCard`, params: `["${eventData.cardName}"]` | Deckt die Karte auf. |
+| 2 | `call_method` | target: `MemoryGameService`, method: `startCompareTimer` | Startet den Vergleichs-Timer, sobald zwei Karten offen sind. |
 
-### Task: `OnFlipBackTimer`
+### Task: `OnCompareTimer`
 
 **Trigger:** `onTimer` von `timerFlipBack`.
 
 **Actions:**
 
-| Reihenfolge | Action-Typ | Parameter | Beschreibung |
+| # | Action-Typ | Parameter | Beschreibung |
 |---|---|---|---|
-| 1 | `call_method` | target: `MemoryGameService`, method: `onFlipBackTimer` | Vergleicht die Karten und aktualisiert Punkte/Spieler. |
+| 1 | `call_method` | target: `MemoryGameService`, method: `checkPairs` | Vergleicht die beiden Karten. |
+| 2a | `call_method` | target: `MemoryGameService`, method: `handleMatch` | Nur wenn `checkPairs` "match" meldet. |
+| 2b | `call_method` | target: `MemoryGameService`, method: `updateStatus`, params: `["Paar gefunden! Spieler ${varCurrentPlayer} ist nochmal dran."]` | Nur bei Match. |
+| 2c | `call_method` | target: `MemoryGameService`, method: `checkWin` | Nur bei Match. |
+| 3a | `call_method` | target: `MemoryGameService`, method: `handleMismatch` | Nur wenn `checkPairs` "mismatch" meldet. |
+| 3b | `call_method` | target: `MemoryGameService`, method: `switchPlayer` | Nur bei Mismatch. |
+| 3c | `call_method` | target: `MemoryGameService`, method: `updateStatus`, params: `["Spieler ${varCurrentPlayer} ist am Zug"]` | Nur bei Mismatch. |
+
+> **Hinweis:** Bedingte Ausführung (`nur wenn match/mismatch`) kann entweder innerhalb der Service-Methode geschehen oder durch separate kleine Methoden (`onMatchFlow`, `onMismatchFlow`) ersetzt werden, um bedingte Actions in GCS zu vermeiden.
 
 ### Task: `OnRestart`
 
@@ -181,9 +195,9 @@ Wird beim Klick auf eine Karte ausgelöst. Da `onClick` auf jedem `TSprite` einz
 
 **Actions:**
 
-| Reihenfolge | Action-Typ | Parameter | Beschreibung |
+| # | Action-Typ | Parameter | Beschreibung |
 |---|---|---|---|
-| 1 | `call_method` | target: `MemoryGameService`, method: `restart` | Startet das Spiel neu. |
+| 1 | `call_method` | target: `MemoryGameService`, method: `restart` | Kompletter Neustart. |
 
 ## 4. Layout-Vorschlag
 
