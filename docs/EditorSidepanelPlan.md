@@ -41,7 +41,7 @@ Im Editor soll ein seitliches Panel (Regal) über einen Hamburger-Button erreich
 
 - Datenquelle: Objekte der aktuellen Stage (`project.stages[].objects`).
 - Filter für das Sidepanel: `obj.isManagedInSidepanel === true && (obj.isHiddenInRun === true || isDialog(obj.className))`.
-- Hilfsfunktion `isDialog(className)` erkennt Dialog-Komponenten wie `TDialog`, `TDialogRoot`, etc.
+- Hilfsfunktion `isDialog(className)` erkennt Dialog-Komponenten wie `TDialog`, `TDialogRoot`, `TToast`, etc.
 - Nur Komponenten, die entweder `isHiddenInRun` sind oder Dialoge darstellen, können in das Regal verschoben werden. Alle anderen sichtbaren Komponenten verbleiben auf der Stage.
 
 ### Schritt 4: Sektionen und Filter
