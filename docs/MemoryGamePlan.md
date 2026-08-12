@@ -18,7 +18,7 @@ Ein klassisches Memory-Spiel für zwei Spieler im Game Creation Studio (GCS).
 | `imgCards` | `TImageList` | Enthält die Motive. Index 0 bis N-1. Jedes Motiv kommt als Paar vor. |
 | `imgBack` | `TImage` oder `TImageList` (1 Eintrag) | Rückseitenbild für alle Karten im verdeckten Zustand. |
 
-> **Hinweis:** Für den ersten Entwurf werden die Motive als Platzhalter mit sichtbaren Zahlen (z.B. 1..8) erzeugt. Die Rückseite (`imgBack`) zeigt ein großes Fragezeichen, damit das Spielprinzip sofort testbar ist.
+> **Hinweis:** Für den ersten Entwurf werden die Motive als generierte Platzhalterbilder mit sichtbaren Zahlen (z.B. 1..8) in `imgCards` angelegt. Die Rückseite (`imgBack`) zeigt ein großes Fragezeichen. Beide lassen sich später einfach gegen echte Bilder austauschen, ohne den Code zu ändern.
 
 ### 2.2 Stage-Objekte
 
@@ -27,8 +27,9 @@ Ein klassisches Memory-Spiel für zwei Spieler im Game Creation Studio (GCS).
 | `cardContainer` | `TObjectList` / `TGroupPanel` (optional) | Container, in den die Karten dynamisch eingefügt werden. |
 | `txtStatus` | `TLabel` | Zeigt an, wer am Zug ist und ob ein Paar gefunden wurde. |
 | `txtScore1` / `txtScore2` | `TNumberLabel` | Punktestände der beiden Spieler. |
-| `txtPlayer` | `TLabel` | Anzeige des aktuellen Spielers. |
+| `txtPlayer1` / `txtPlayer2` | `TLabel` | Anzeige Spieler 1 / Spieler 2. Der aktive Spieler wird farblich hervorgehoben. |
 | `btnRestart` | `TButton` | Startet das Spiel neu. |
+| `dlgWin` | `TDialog` oder `TToast` | Popup für Gewinneranzeige am Spielende. |
 
 > Die Karten (`TSprite`) werden zur Laufzeit in `InitGame` erzeugt, je nach Anzahl der Bilder in `imgCards`.
 
@@ -143,9 +144,11 @@ Da das Mischen der Karten, die dynamische Grid-Berechnung und das Erzeugen der K
 | `handleMatch()` | Markiert beide Karten als gelöst, erhöht Punkte, bleibt am Zug. |
 | `handleMismatch()` | Dreht beide Karten um und wechselt den Spieler. |
 | `switchPlayer()` | Wechselt `varCurrentPlayer` zwischen 1 und 2. |
-| `checkWin()` | Prüft, ob alle Paare gefunden wurden, und zeigt das Ergebnis an. |
+| `highlightCurrentPlayer()` | Hebt das aktive Spieler-Label (`txtPlayer1` oder `txtPlayer2`) farblich hervor. |
+| `checkWin()` | Prüft, ob alle Paare gefunden wurden, und zeigt das Ergebnis im Popup an. |
+| `showWinPopup(winnerText: string)` | Zeigt den Gewinn-Text im Dialog `dlgWin` an. |
 | `updateStatus(text: string)` | Setzt den Text von `txtStatus`. |
-| `restart()` | Führt `resetState`, `shuffleAndCreateGrid`, `showCardBacks` und `updateStatus` aus. |
+| `restart()` | Führt `resetState`, `shuffleAndCreateGrid`, `showCardBacks`, `updateStatus` und `highlightCurrentPlayer` aus. |
 
 ### Task: `InitGame`
 
@@ -159,6 +162,7 @@ Da das Mischen der Karten, die dynamische Grid-Berechnung und das Erzeugen der K
 | 2 | `call_method` | target: `MemoryGameService`, method: `shuffleAndCreateGrid` | Erzeugt die Karten dynamisch. |
 | 3 | `call_method` | target: `MemoryGameService`, method: `showCardBacks` | Zeigt die Rückseiten. |
 | 4 | `call_method` | target: `MemoryGameService`, method: `updateStatus`, params: `["Spieler 1 ist am Zug"]` | Initialer Status. |
+| 5 | `call_method` | target: `MemoryGameService`, method: `highlightCurrentPlayer` | Hebt Spieler 1 hervor. |
 
 ### Task: `OnCardClick`
 
@@ -182,10 +186,12 @@ Da das Mischen der Karten, die dynamische Grid-Berechnung und das Erzeugen der K
 | 1 | `call_method` | target: `MemoryGameService`, method: `checkPairs` | Vergleicht die beiden Karten. |
 | 2a | `call_method` | target: `MemoryGameService`, method: `handleMatch` | Nur wenn `checkPairs` "match" meldet. |
 | 2b | `call_method` | target: `MemoryGameService`, method: `updateStatus`, params: `["Paar gefunden! Spieler ${varCurrentPlayer} ist nochmal dran."]` | Nur bei Match. |
-| 2c | `call_method` | target: `MemoryGameService`, method: `checkWin` | Nur bei Match. |
+| 2c | `call_method` | target: `MemoryGameService`, method: `checkWin` | Nur bei Match. Zeigt ggf. Popup. |
+| 2d | `call_method` | target: `MemoryGameService`, method: `highlightCurrentPlayer` | Nur bei Match (Spieler bleibt). |
 | 3a | `call_method` | target: `MemoryGameService`, method: `handleMismatch` | Nur wenn `checkPairs` "mismatch" meldet. |
 | 3b | `call_method` | target: `MemoryGameService`, method: `switchPlayer` | Nur bei Mismatch. |
 | 3c | `call_method` | target: `MemoryGameService`, method: `updateStatus`, params: `["Spieler ${varCurrentPlayer} ist am Zug"]` | Nur bei Mismatch. |
+| 3d | `call_method` | target: `MemoryGameService`, method: `highlightCurrentPlayer` | Nur bei Mismatch (neuer Spieler). |
 
 > **Hinweis:** Bedingte Ausführung (`nur wenn match/mismatch`) kann entweder innerhalb der Service-Methode geschehen oder durch separate kleine Methoden (`onMatchFlow`, `onMismatchFlow`) ersetzt werden, um bedingte Actions in GCS zu vermeiden.
 
@@ -256,8 +262,9 @@ Die Karten füllen die gesamte Stage aus. UI-Elemente (Status, Punkte, Neustart)
 | Stage-Seitenverhältnis ändern | Kartengröße und Grid passen sich beim Neustart automatisch an. |
 | Einzelspieler-Modus | `varCurrentPlayer` und `varScore2` entfernen, `txtPlayer` ausblenden. |
 
-## 7. Offene Punkte
+## 7. Entscheidungen
 
-- Sollen die Platzhalterbilder als Text-Label innerhalb der Karten (z.B. große Zahl) oder als generierte Bilder umgesetzt werden?
-- Soll es ein Gewinner-Popup geben oder reicht die Textanzeige?
-- Soll der aktuelle Spieler farblich hervorgehoben werden?
+- **Platzhalterbilder:** Generierte Bilder in `imgCards` (Zahlen 1..N), austauschbar.
+- **Rückseite:** Fragezeichen-Bild in `imgBack`, austauschbar.
+- **Gewinner:** Popup über `dlgWin` (`TDialog`/`TToast`).
+- **Spieler-Hervorhebung:** Aktiver Spieler wird über `txtPlayer1`/`txtPlayer2` farblich hervorgehoben.
