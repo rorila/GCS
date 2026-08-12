@@ -23,6 +23,9 @@ export interface EditorInteractionHost {
     getActiveStage(): any;
     render(): void;
     autoSaveToLocalStorage(): void;
+    moveObjectToSidepanel(id: string): void;
+    moveObjectFromSidepanel(id: string): void;
+    canMoveToSidepanel(obj: any): boolean;
     projectStore?: any;
 }
 
@@ -354,6 +357,8 @@ export class EditorInteractionManager {
                     (this.host as any).stageManager.toggleBlueprintExclusion(id);
                     this.host.render();
                     this.host.autoSaveToLocalStorage();
+                } else if (eventName === 'moveToSidepanel') {
+                    this.host.moveObjectToSidepanel(id);
                 } else if (eventName === 'showStageContextMenu') {
                     this.showStageBackgroundMenu(data.clientX, data.clientY);
                 } else if (eventName === 'createUseCase') {

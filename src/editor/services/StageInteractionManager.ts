@@ -863,9 +863,17 @@ export class StageInteractionManager {
         this.contextMenuEl.style.cssText = `position:fixed; left:${clientX}px; top:${clientY}px; background:#2d2d2d; border:1px solid #555; border-radius:4px; box-shadow:0 4px 12px rgba(0,0,0,0.4); z-index:10000; min-width:120px; overflow:hidden;`;
 
         const obj = this.host.lastRenderedObjects.find(o => o.id === objectId);
+        const isDialog = (className?: string) => ['TDialog', 'TDialogRoot', 'TToast'].includes(className || '');
         if (obj) {
             if (obj.isGhost) this.addContextItem('📌 In Stage anzeigen', '#4fc3f7', () => { if (this.host.onEvent) this.host.onEvent(objectId, 'pinGlobal'); });
             else if (obj.scope === 'global' && !this.host.isBlueprint) this.addContextItem('🚫 Aus Stage entfernen', '#ffab91', () => { if (this.host.onEvent) this.host.onEvent(objectId, 'unpinGlobal'); });
+
+            // Sidepanel: Komponente in Regal verschieben (nur für isHiddenInRun oder Dialoge)
+            if ((obj.isHiddenInRun || isDialog(obj.className)) && !obj.isManagedInSidepanel) {
+                this.addContextItem('📦 In Sidepanel verschieben', '#a3be8c', () => {
+                    if (this.host.onEvent) this.host.onEvent(objectId, 'moveToSidepanel');
+                });
+            }
 
             // Blueprint-Vererbung: Geerbtes Objekt auf dieser Stage ausblenden
             if (obj.isInherited && obj.isFromBlueprint && !this.host.isBlueprint) {

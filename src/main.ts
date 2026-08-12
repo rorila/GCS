@@ -29,6 +29,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <!-- Stage Container -->
         <main id="stage-container">
           <div id="view-tabs" class="tabs-header">
+            <button id="sidepanel-toggle-btn" class="tab-btn sidepanel-hamburger" title="Komponenten-Regal" style="font-weight: bold;">☰</button>
             <button class="tab-btn active" data-view="stage">Stage</button>
             <button class="tab-btn" data-view="run">Run</button>
             <button class="tab-btn" data-view="iframe">Run (IFrame)</button>

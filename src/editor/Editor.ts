@@ -41,6 +41,7 @@ import { themeRegistry } from '../runtime/ThemeRegistry';
 import { Logger } from '../utils/Logger';
 import { loadComponentSchemas } from '../services/SchemaLoader';
 import { HelpOverlay } from './HelpOverlay';
+import { EditorSidepanel } from './EditorSidepanel';
 
 
 
@@ -85,6 +86,10 @@ export class Editor implements IViewHost {
     public currentSelectedId: string | null = null;
     public objectStore: ObjectStore = new ObjectStore();
     private useHorizontalToolbox: boolean = false;
+
+    // Sidepanel
+    private sidePanel: EditorSidepanel | null = null;
+    public hideManagedObjectsOnStage: boolean = true;
 
     public get isProjectDirty() { return this.viewManager.isProjectDirty; }
     public set isProjectDirty(v: boolean) { this.viewManager.isProjectDirty = v; }
@@ -152,6 +157,7 @@ export class Editor implements IViewHost {
         this.initComponentPalette();
         this.initFlowEditor();
         this.initMenuBar();
+        this.initSidePanel();
         this.initMediator();
 
         // 5. Manager Initialization
@@ -354,6 +360,7 @@ export class Editor implements IViewHost {
         } else {
             this.renderManager.render();
         }
+        this.refreshSidepanel();
     }
     public addObject(type: string, x: number, y: number) { this.commandManager.addObject(type, x, y); }
     public removeObject(id: string) { this.commandManager.removeObject(id); }
@@ -1190,6 +1197,105 @@ export class Editor implements IViewHost {
 
     private initMenuBar() {
         this.menuManager.initMenuBar();
+    }
+
+    private initSidePanel() {
+        this.sidePanel = new EditorSidepanel();
+        this.sidePanel.callbacks = {
+            onSelect: (id) => this.selectObject(id),
+            onRename: (id, newName) => {
+                const raw = this.findRawObjectInProject(id);
+                if (raw) {
+                    raw.name = newName;
+                    this.render();
+                    this.autoSaveToLocalStorage();
+                }
+            },
+            onDelete: (id) => this.removeObjectWithConfirm(id),
+            onRestoreToStage: (id) => this.moveObjectFromSidepanel(id),
+            onToggleHideManaged: () => {
+                this.hideManagedObjectsOnStage = !this.hideManagedObjectsOnStage;
+                this.render();
+            }
+        };
+
+        // Hamburger-Button binden
+        const toggleBtn = document.getElementById('sidepanel-toggle-btn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => this.sidePanel?.toggle());
+        }
+
+        // Sidepanel mit aktueller Stage befüllen
+        this.refreshSidepanel();
+    }
+
+    public refreshSidepanel(): void {
+        if (!this.sidePanel) return;
+        this.sidePanel.loadObjects(this.getSidepanelObjectSources());
+    }
+
+    private getSidepanelObjectSources(): { id: string; name: string; className: string }[] {
+        const activeStage = this.getActiveStage();
+        if (!activeStage?.objects) return [];
+        return activeStage.objects
+            .filter((o: any) => o.isManagedInSidepanel === true)
+            .map((o: any) => ({ id: o.id, name: o.name, className: o.className }));
+    }
+
+    public isDialog(className?: string): boolean {
+        if (!className) return false;
+        return ['TDialog', 'TDialogRoot', 'TToast'].includes(className);
+    }
+
+    public canMoveToSidepanel(objOrClassName: any): boolean {
+        const className = typeof objOrClassName === 'string' ? objOrClassName : objOrClassName?.className;
+        if (!className) return false;
+        return objOrClassName?.isHiddenInRun === true || this.isDialog(className);
+    }
+
+    private findRawObjectInProject(id: string): any | null {
+        if (this.project.objects) {
+            const found = this.project.objects.find((o: any) => o.id === id);
+            if (found) return found;
+        }
+        for (const stage of this.project.stages || []) {
+            if (stage.objects) {
+                const found = stage.objects.find((o: any) => o.id === id);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    public moveObjectToSidepanel(objOrId: any): void {
+        const obj = typeof objOrId === 'string' ? this.findObjectById(objOrId) : objOrId;
+        if (!obj) return;
+        if (obj.isManagedInSidepanel) return;
+        if (!this.canMoveToSidepanel(obj)) return;
+
+        const rawObj = this.findRawObjectInProject(obj.id);
+        if (rawObj) {
+            rawObj.isManagedInSidepanel = true;
+        }
+        obj.isManagedInSidepanel = true;
+        this.hideManagedObjectsOnStage = true;
+        this.sidePanel?.setHideManagedActive(true);
+        this.refreshSidepanel();
+        this.render();
+        this.autoSaveToLocalStorage();
+    }
+
+    public moveObjectFromSidepanel(id: string): void {
+        const obj = this.findObjectById(id);
+        if (!obj) return;
+        const rawObj = this.findRawObjectInProject(id);
+        if (rawObj) {
+            rawObj.isManagedInSidepanel = false;
+        }
+        obj.isManagedInSidepanel = false;
+        this.sidePanel?.removeObject(id);
+        this.render();
+        this.autoSaveToLocalStorage();
     }
 
     private initMediator() {

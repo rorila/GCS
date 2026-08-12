@@ -32,6 +32,7 @@ export interface ComponentData {
     isVariable?: boolean;
     isService?: boolean;
     isHiddenInRun?: boolean;
+    isManagedInSidepanel?: boolean;
     isTransient?: boolean;
     draggable?: boolean;
     droppable?: boolean;

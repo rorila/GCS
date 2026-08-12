@@ -82,6 +82,12 @@ export class EditorRunManager {
         this.editor.stage.runMode = running;
         this.editor.stage.updateBorder();
 
+        // Sidepanel/Hamburger-Button nur im Editor-Mode sichtbar
+        const hamburgerBtn = document.getElementById('sidepanel-toggle-btn');
+        if (hamburgerBtn) hamburgerBtn.style.display = running ? 'none' : '';
+        const sidePanel = (this.editor as any).sidePanel;
+        if (running && sidePanel) sidePanel.close();
+
         // EARLY event handler assignment to prevent "missing handler" errors during first render
         // Note: Stage events are now permanently routed to the runtime via EditorInteractionManager 
         // when runMode is true. No need to reassign or nullify them here.

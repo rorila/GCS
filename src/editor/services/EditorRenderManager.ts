@@ -76,6 +76,11 @@ export class EditorRenderManager {
                 objectsToRender = objectsToRender.map((obj: any) => this.resolveObjectPreview(obj, previewVarContext!));
             }
 
+            // Sidepanel: verwaltete Objekte auf der Stage ausblenden, wenn gewünscht
+            if ((this.host as any).hideManagedObjectsOnStage) {
+                objectsToRender = objectsToRender.filter((obj: any) => !obj.isManagedInSidepanel);
+            }
+
             stage.renderObjects(objectsToRender);
 
             // Stage-Wrapper nur im Stage-Tab einblenden (Run nutzt #run-stage)
