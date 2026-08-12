@@ -1219,8 +1219,20 @@ export class Editor implements IViewHost {
             }
         };
 
-        // Hamburger-Button binden
-        const toggleBtn = document.getElementById('sidepanel-toggle-btn');
+        // Hamburger-Button binden (dynamisch erzeugen, falls nicht vorhanden)
+        let toggleBtn = document.getElementById('sidepanel-toggle-btn');
+        if (!toggleBtn) {
+            const tabsContainer = document.getElementById('view-tabs');
+            if (tabsContainer) {
+                toggleBtn = document.createElement('button');
+                toggleBtn.id = 'sidepanel-toggle-btn';
+                toggleBtn.className = 'tab-btn sidepanel-hamburger';
+                toggleBtn.title = 'Komponenten-Regal';
+                toggleBtn.style.fontWeight = 'bold';
+                toggleBtn.textContent = '☰';
+                tabsContainer.insertBefore(toggleBtn, tabsContainer.firstChild);
+            }
+        }
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => this.sidePanel?.toggle());
         }
