@@ -1262,7 +1262,9 @@ export class Editor implements IViewHost {
     public canMoveToSidepanel(objOrClassName: any): boolean {
         const className = typeof objOrClassName === 'string' ? objOrClassName : objOrClassName?.className;
         if (!className) return false;
-        return objOrClassName?.isHiddenInRun === true || this.isDialog(className);
+        if (objOrClassName?.isHiddenInRun === true) return true;
+        if (objOrClassName?.isVariable === true) return true;
+        return this.isDialog(className);
     }
 
     private findRawObjectInProject(id: string): any | null {
