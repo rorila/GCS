@@ -22,7 +22,10 @@ Im Editor soll ein seitliches Panel (Regal) über einen Hamburger-Button erreich
 
 ### Schritt 2: Workflow — Objekte in das Regal verschieben und zurückholen
 
-- Im Kontextmenü einer markierten Komponente erscheint der Eintrag **"In Sidepanel verschieben"**.
+- Im Kontextmenü einer markierten Komponente erscheint der Eintrag **"In Sidepanel verschieben"** nur, wenn:
+  - `obj.isHiddenInRun === true` (z.B. Logik-Komponenten), oder
+  - das Objekt ein Dialog ist (z.B. `TDialog`, `TDialogRoot`, etc.).
+- Normale sichtbare Komponenten (Spieler, Gegner, Plattformen, etc.) können nicht in das Regal verschoben werden und verbleiben auf der Stage.
 - Beim Verschieben:
   - `obj.isManagedInSidepanel = true` wird im Projekt-JSON gesetzt.
   - Sofort danach `autoSaveToLocalStorage()` auslösen, damit das Flag persistiert wird.
@@ -37,8 +40,9 @@ Im Editor soll ein seitliches Panel (Regal) über einen Hamburger-Button erreich
 ### Schritt 3: Komponenten ermitteln
 
 - Datenquelle: Objekte der aktuellen Stage (`project.stages[].objects`).
-- Filter: `obj.isManagedInSidepanel === true`.
-- Keine automatische Erkennung nach `visible` oder `isHiddenInRun` — der Nutzer steuert explizit, was im Regal landet.
+- Filter für das Sidepanel: `obj.isManagedInSidepanel === true && (obj.isHiddenInRun === true || isDialog(obj.className))`.
+- Hilfsfunktion `isDialog(className)` erkennt Dialog-Komponenten wie `TDialog`, `TDialogRoot`, etc.
+- Nur Komponenten, die entweder `isHiddenInRun` sind oder Dialoge darstellen, können in das Regal verschoben werden. Alle anderen sichtbaren Komponenten verbleiben auf der Stage.
 
 ### Schritt 4: Sektionen und Filter
 
