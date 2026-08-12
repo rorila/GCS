@@ -75,15 +75,6 @@ export class IndexedDBAdapter implements IStorageAdapter {
             const request = store.put(record, PROJECT_KEY);
 
             request.onsuccess = () => {
-                // Größe grob schätzen (für Debug-Log)
-                const sizeKB = JSON.stringify(project).length / 1024;
-                const stages = project.stages || [];
-                let managedCount = 0;
-                stages.forEach((s: any) => {
-                    (s.objects || []).forEach((o: any) => { if (o.isManagedInSidepanel) managedCount++; });
-                });
-                (project.objects || []).forEach((o: any) => { if (o.isManagedInSidepanel) managedCount++; });
-                IndexedDBAdapter.logger.debug(`Auto-save. Größe: ~${sizeKB.toFixed(0)} KB, managedInSidepanel=${managedCount}`);
                 resolve();
             };
 
@@ -107,16 +98,6 @@ export class IndexedDBAdapter implements IStorageAdapter {
                 request.onsuccess = () => {
                     const record = request.result;
                     if (record && record.project) {
-                        const stages = record.project.stages || [];
-                        let managedCount = 0;
-                        stages.forEach((s: any) => {
-                            (s.objects || []).forEach((o: any) => { if (o.isManagedInSidepanel) managedCount++; });
-                        });
-                        (record.project.objects || []).forEach((o: any) => { if (o.isManagedInSidepanel) managedCount++; });
-                        IndexedDBAdapter.logger.info(
-                            `Projekt aus IndexedDB geladen (gespeichert: ${new Date(record.savedAt).toLocaleTimeString()}, managedInSidepanel=${managedCount})`
-                        );
-                        
                         // DEEP DIAGNOSTICS: Check if base64 images exist in the JSON payload!
                         try {
                             const objects = record.project?.stages?.[0]?.objects || [];

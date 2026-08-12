@@ -358,7 +358,6 @@ export class EditorInteractionManager {
                     this.host.render();
                     this.host.autoSaveToLocalStorage();
                 } else if (eventName === 'moveToSidepanel') {
-                    console.log('[EditorInteractionManager] moveToSidepanel event for', id);
                     this.host.moveObjectToSidepanel(id);
                 } else if (eventName === 'showStageContextMenu') {
                     this.showStageBackgroundMenu(data.clientX, data.clientY);

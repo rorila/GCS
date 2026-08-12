@@ -680,9 +680,7 @@ export class EditorDataManager {
     }
 
     public autoSaveToLocalStorage() {
-        console.log('[EditorDataManager] autoSaveToLocalStorage called');
         this.host.syncStageObjectsToProject();
-        console.log('[EditorDataManager] after syncStageObjectsToProject, calling updateProjectJSON');
         this.updateProjectJSON();
 
         // Dirty-Markierung: Nur wenn seit dem Laden mehr als 2 Sekunden vergangen sind.
@@ -769,10 +767,8 @@ export class EditorDataManager {
     }
 
     public updateProjectJSON() {
-        console.log('[EditorDataManager] updateProjectJSON called, hasProject=', !!this.host.project);
         if (this.host.project) {
             // 1. In LocalStorage sichern (Crash-Schutz)
-            console.log('[EditorDataManager] calling projectPersistenceService.autoSaveToLocalStorage');
             projectPersistenceService.autoSaveToLocalStorage(this.host.project);
 
             // 2. workingProjectData für JSON-View aktualisieren

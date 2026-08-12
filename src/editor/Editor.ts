@@ -1282,7 +1282,6 @@ export class Editor implements IViewHost {
     }
 
     public moveObjectToSidepanel(objOrId: any): void {
-        console.log('[Editor] moveObjectToSidepanel called with', objOrId);
         const obj = typeof objOrId === 'string' ? this.findObjectById(objOrId) : objOrId;
         if (!obj) return;
         if (obj.isManagedInSidepanel) return;
@@ -1291,33 +1290,21 @@ export class Editor implements IViewHost {
         const rawObj = this.findRawObjectInProject(obj.id);
         if (rawObj) {
             rawObj.isManagedInSidepanel = true;
-            console.log('[Editor] set isManagedInSidepanel=true on rawObj', rawObj.id, rawObj.name);
         }
         obj.isManagedInSidepanel = true;
         this.hideManagedObjectsOnStage = true;
         this.sidePanel?.setHideManagedActive(true);
         this.refreshSidepanel();
         this.render();
-        console.log('[Editor] calling autoSaveToLocalStorage after moveObjectToSidepanel');
         this.autoSaveToLocalStorage();
     }
 
     public moveObjectFromSidepanel(id: string): void {
-        console.log('[Editor] moveObjectFromSidepanel called with', id);
         const rawObj = this.findRawObjectInProject(id);
-        if (!rawObj) {
-            console.warn('[Editor] moveObjectFromSidepanel: rawObj not found for', id);
-            return;
-        }
-        if (!rawObj.isManagedInSidepanel) {
-            console.warn('[Editor] moveObjectFromSidepanel: rawObj is not managed in sidepanel', id);
-            return;
-        }
+        if (!rawObj || !rawObj.isManagedInSidepanel) return;
         rawObj.isManagedInSidepanel = false;
-        console.log('[Editor] set isManagedInSidepanel=false on rawObj', rawObj.id, rawObj.name);
         this.sidePanel?.removeObject(id);
         this.render();
-        console.log('[Editor] calling autoSaveToLocalStorage after moveObjectFromSidepanel');
         this.autoSaveToLocalStorage();
     }
 
