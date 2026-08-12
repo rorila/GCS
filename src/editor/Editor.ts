@@ -1301,15 +1301,21 @@ export class Editor implements IViewHost {
     }
 
     public moveObjectFromSidepanel(id: string): void {
-        const obj = this.findObjectById(id);
-        if (!obj) return;
+        console.log('[Editor] moveObjectFromSidepanel called with', id);
         const rawObj = this.findRawObjectInProject(id);
-        if (rawObj) {
-            rawObj.isManagedInSidepanel = false;
+        if (!rawObj) {
+            console.warn('[Editor] moveObjectFromSidepanel: rawObj not found for', id);
+            return;
         }
-        obj.isManagedInSidepanel = false;
+        if (!rawObj.isManagedInSidepanel) {
+            console.warn('[Editor] moveObjectFromSidepanel: rawObj is not managed in sidepanel', id);
+            return;
+        }
+        rawObj.isManagedInSidepanel = false;
+        console.log('[Editor] set isManagedInSidepanel=false on rawObj', rawObj.id, rawObj.name);
         this.sidePanel?.removeObject(id);
         this.render();
+        console.log('[Editor] calling autoSaveToLocalStorage after moveObjectFromSidepanel');
         this.autoSaveToLocalStorage();
     }
 
