@@ -1,71 +1,87 @@
-# Plan: Editor-Sidepanel für nicht-sichtbare Komponenten
+# Plan: Editor-Sidepanel als dynamisches Regal
 
 ## Ziel
 
-Im Editor soll ein seitliches Panel über einen Hamburger-Button erreichbar sein, das alle Komponenten auflistet, die im Run-Modus nicht angezeigt werden (`isHiddenInRun`, `visible = false`, Logik-Komponenten wie `TTimer`, `TGameLoop`, etc.). Das Panel gliedert die Komponenten in Sektionen, bietet Filter/Suche und ermöglicht schnelles Editieren.
+Im Editor soll ein seitliches Panel (Regal) über einen Hamburger-Button erreichbar sein, in dem Komponenten aufbewahrt werden können, die gerade nicht im Fokus des Users liegen. Das Panel gliedert die Komponenten nach Typ in Sektionen, bietet Filter/Suche und ermöglicht schnelles Editieren.
+
+## Konzepte
+
+- **Regal pro Stage**: Jede Stage besitzt ihr eigenes Sidepanel. Objekte, die in das Regal verschoben werden, bleiben der Stage zugeordnet.
+- **Manuelle Steuerung**: Der Nutzer entscheidet pro Objekt, ob es im Regal verwaltet wird. Es findet kein automatisches Verschieben beim Projekt-Laden statt.
+- **Kein Verlust von Stage-Eigenschaften**: Beim Verschieben in das Regal oder zurück auf die Stage werden Position/Größe/Rotation (`x`, `y`, `width`, `height`, `rotation`, etc.) nicht verändert.
+- **Status-Flag**: Jede Komponente erhält die Eigenschaft `isManagedInSidepanel: boolean`. Ist sie `true`, erscheint das Objekt im Sidepanel der aktuellen Stage und kann auf der Stage ausgeblendet werden.
 
 ## Schritt-für-Schritt-Umsetzung
 
 ### Schritt 1: UI-Skelett
 
-- **Hamburger-Button** oben in der Editor-Toolbar platzieren.
-- **Slide-in-Panel** rechts oder links (`width: 320px`, `transition: transform 0.25s ease`).
-- Offen/Geschlossen-Status in `Editor.ts`/`UIState` speichern.
-- Panel initial leer, nur Header + Close-Button.
+- **Hamburger-Button** immer im Editor-Tab-Menü sichtbar (dynamisch erzeugen, falls Template fehlt).
+- **Slide-in-Panel** rechts (`width: 320px`, `transition: transform 0.25s ease`).
+- Offen/Geschlossen-Status in `Editor.ts` speichern.
+- Panel initial leer, nur Header + Close-Button + Suchfeld.
 
-### Schritt 1.5: Workflow — Objekt auf die Stage ziehen und ins Sidepanel verschieben
+### Schritt 2: Workflow — Objekte in das Regal verschieben und zurückholen
 
-- Nutzer platziert eine nicht-sichtbare/Logik-Komponente wie gewohnt auf der Stage.
-- Das Objekt bleibt auf der Stage sichtbar, bis der Nutzer es aktiv in das Sidepanel überführt.
-- Im Kontextmenü einer markierten Komponente erscheint der Eintrag **"In Sidepanel verschieben"** (alternativ: Button in der Selection-Toolbar).
+- Im Kontextmenü einer markierten Komponente erscheint der Eintrag **"In Sidepanel verschieben"**.
 - Beim Verschieben:
-  - `obj.isManagedInSidepanel = true` (oder `isHiddenInRun = true`) wird gesetzt.
-  - Das Objekt wird in das Sidepanel aufgenommen und in die passende Sektion sortiert.
-  - Auf der Stage bleibt es optional als kleines, transparentes Ghost-Icon oder wird vollständig ausgeblendet (Einstellung).
-- Aus dem Sidepanel kann das Objekt optional zurück auf die Stage gezogen werden ("Zurück auf Stage platzieren").
+  - `obj.isManagedInSidepanel = true` wird im Projekt-JSON gesetzt.
+  - Das Objekt wird in das Sidepanel der aktuellen Stage aufgenommen und in die passende Sektion sortiert.
+  - Auf der Stage wird es optional ausgeblendet (Toggle "Verwaltete Objekte auf der Stage ausblenden").
+- Im Sidepanel-Kontextmenü eines Eintrags erscheint **"Auf Stage zurückholen"**.
+- Beim Zurückholen:
+  - `obj.isManagedInSidepanel = false` wird gesetzt.
+  - Das Objekt erscheint wieder auf der Stage an seiner ursprünglichen Position.
 
-### Schritt 2: Komponenten ermitteln
+### Schritt 3: Komponenten ermitteln
 
-- Filterlogik: `obj.visible === false || (obj as any).isHiddenInRun === true || isLogicComponent(obj.className)`.
-- `isLogicComponent()`-Helfer für Klassen wie `TTimer`, `TGameLoop`, `TInputController`, `TGameState`, `TGameServer`, `THandshake`, `THeartbeat`, `TStageController`, `TVariable`.
-- Datenquelle: `project.objects` bzw. `coreStore.getProject().objects`.
+- Datenquelle: Objekte der aktuellen Stage (`project.stages[].objects`).
+- Filter: `obj.isManagedInSidepanel === true`.
+- Keine automatische Erkennung nach `visible` oder `isHiddenInRun` — der Nutzer steuert explizit, was im Regal landet.
 
-### Schritt 3: Sektionen und Filter
+### Schritt 4: Sektionen und Filter
 
-- Gruppierung nach `className` oder einer erweiterten Kategorie (`Logik`, `Input`, `Netzwerk`, `Variablen`, `UI (versteckt)`).
+- Gruppierung nach `className` (z.B. `TTimer`, `TInputController`).
 - Aufklappbare Sektionen (Accordion).
 - Suchfeld oben im Panel, das Name und Typ filtert.
 - Zähler pro Sektion (`Timer (3)`, `InputController (1)`).
 
-### Schritt 4: Listen-Ansicht pro Komponente
+### Schritt 5: Listen-Ansicht pro Komponente
 
-- Liste mit: Name, Mini-Icon/Indikator, aktuellem Status (z.B. Timer-Laufzeit, NumberLabel-Wert).
+- Liste mit: Name, Mini-Icon/Indikator.
 - Klick auf Eintrag öffnet den Inspector für diese Komponente.
-- Rechtsklick/Kontextmenü: Umbenennen, Löschen, Duplizieren.
-- "+"-Button pro Sektion zum Erstellen einer neuen Logik-Komponente dieses Typs.
+- Rechtsklick/Kontextmenü: Umbenennen, Löschen, Duplizieren, Auf Stage zurückholen.
+- "+"-Button pro Sektion zum Erstellen einer neuen Komponente dieses Typs (optional).
 
-### Schritt 5: Stage-Aufräumen
+### Schritt 6: Stage-Aufräumen
 
-- Toggle "Nur sichtbare Objekte auf der Stage anzeigen".
-- Objekte, die ins Sidepanel verschoben wurden, werden auf der Stage ausgeblendet oder als kleine Ghost-Icons dargestellt.
-- Kein automatisches Verschieben: Der Nutzer entscheidet pro Objekt, ob es im Sidepanel verwaltet werden soll.
+- Toggle im Sidepanel: "Verwaltete Objekte auf der Stage ausblenden".
+- Ist der Toggle aktiv, werden Objekte mit `isManagedInSidepanel === true` beim Stage-Rendering gefiltert.
+- Standard: aktiv, sobald mindestens ein Objekt ins Regal verschoben wurde.
 
-### Schritt 6: Testing & Refinement
+### Schritt 7: Persistenz
+
+- `isManagedInSidepanel` muss im Projekt-JSON erhalten bleiben.
+- Beim Auto-Save (LocalStorage/IndexedDB) wird das aktuelle Projekt inklusive Flag gespeichert.
+- Beim Laden eines Projekts werden Objekte mit `isManagedInSidepanel === true` automatisch in das Sidepanel der jeweiligen Stage geladen.
+
+### Schritt 8: Testing & Refinement
 
 - Großes Projekt laden und Panel auf Performance prüfen.
-- Keyboard-Shortcuts (z.B. `Strg+Shift+L` zum Öffnen/Schließen).
-- Test: Neues Objekt anlegen, Inspector-Öffnung, Löschen, Filterung.
+- Keyboard-Shortcut `Strg+Shift+L` zum Öffnen/Schließen.
+- Test: Verschieben, Zurückholen, Löschen, Umbenennen, Filterung, Neuladen der Seite.
 
 ## Optionale Erweiterungen
 
 - Favoriten/Recent-Liste im Panel.
 - Farbige Tags pro Komponententyp.
 - Drag & Drop zum Umsortieren in Sektionen.
-- Gruppen/Ordner für eigene Logik-Cluster (z.B. `Player-Logik`, `Level-Logik`).
+- Gruppen/Ordner für eigene Logik-Cluster.
 
-## Betroffene Dateien (Vorschlag)
+## Betroffene Dateien
 
-- `src/editor/Editor.ts` – Button + Panel-State.
-- `src/editor/services/renderers/` oder neuer `src/editor/sidepanel/` Ordner.
-- `src/editor/inspector/InspectorRenderer.ts` – Öffnen des Inspectors aus dem Panel.
-- `src/services/registry/CoreStore.ts` – ggf. Hilfsgetter für gefilterte Objekte.
+- `src/editor/Editor.ts` – Button + Panel-State + Verschiebe-Methoden.
+- `src/editor/EditorSidepanel.ts` – Panel-UI.
+- `src/editor/services/EditorInteractionManager.ts` – Kontextmenü-Einträge.
+- `src/editor/services/EditorRenderManager.ts` – Filter für Stage-Rendering.
+- `src/model/types.ts` – `isManagedInSidepanel` in `ComponentData`.
+- `src/editor/services/EditorDataManager.ts` – Auto-Save.
