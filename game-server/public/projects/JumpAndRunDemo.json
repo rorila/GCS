@@ -975,6 +975,7 @@
           "name": "BallonFrameRandom",
           "scope": "stage",
           "isVariable": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",

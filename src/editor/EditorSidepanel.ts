@@ -20,7 +20,7 @@ export class EditorSidepanel {
     private isOpen: boolean = false;
     private items = new Map<string, SidepanelItem>();
     private filterText = '';
-    private collapsedSections = new Set<string>();
+    private expandedSections = new Set<string>();
     private hideManagedObjects: boolean = true;
 
     public callbacks: SidepanelCallbacks = {};
@@ -122,10 +122,10 @@ export class EditorSidepanel {
             if (sectionHeader) {
                 const sectionName = sectionHeader.getAttribute('data-section');
                 if (sectionName) {
-                    if (this.collapsedSections.has(sectionName)) {
-                        this.collapsedSections.delete(sectionName);
+                    if (this.expandedSections.has(sectionName)) {
+                        this.expandedSections.delete(sectionName);
                     } else {
-                        this.collapsedSections.add(sectionName);
+                        this.expandedSections.add(sectionName);
                     }
                     this.render();
                 }
@@ -214,7 +214,7 @@ export class EditorSidepanel {
             section.className = 'sidepanel-section';
             section.style.cssText = 'margin-bottom: 8px;';
 
-            const isCollapsed = this.collapsedSections.has(className);
+            const isCollapsed = !this.expandedSections.has(className);
             const itemCount = items.length;
 
             section.innerHTML = `
