@@ -25,6 +25,7 @@ Im Editor soll ein seitliches Panel (Regal) über einen Hamburger-Button erreich
 - Im Kontextmenü einer markierten Komponente erscheint der Eintrag **"In Sidepanel verschieben"**.
 - Beim Verschieben:
   - `obj.isManagedInSidepanel = true` wird im Projekt-JSON gesetzt.
+  - Sofort danach `autoSaveToLocalStorage()` auslösen, damit das Flag persistiert wird.
   - Das Objekt wird in das Sidepanel der aktuellen Stage aufgenommen und in die passende Sektion sortiert.
   - Auf der Stage wird es optional ausgeblendet (Toggle "Verwaltete Objekte auf der Stage ausblenden").
 - Im Sidepanel-Kontextmenü eines Eintrags erscheint **"Auf Stage zurückholen"**.
@@ -61,6 +62,7 @@ Im Editor soll ein seitliches Panel (Regal) über einen Hamburger-Button erreich
 ### Schritt 7: Persistenz
 
 - `isManagedInSidepanel` muss im Projekt-JSON erhalten bleiben.
+- Beim Verschieben/Zurückholen wird sofort `autoSaveToLocalStorage()` aufgerufen, damit das Flag in LocalStorage/IndexedDB landet.
 - Beim Auto-Save (LocalStorage/IndexedDB) wird das aktuelle Projekt inklusive Flag gespeichert.
 - Beim Laden eines Projekts werden Objekte mit `isManagedInSidepanel === true` automatisch in das Sidepanel der jeweiligen Stage geladen.
 
