@@ -31,6 +31,7 @@ Im Editor soll ein seitliches Panel (Regal) über einen Hamburger-Button erreich
 - Im Sidepanel-Kontextmenü eines Eintrags erscheint **"Auf Stage zurückholen"**.
 - Beim Zurückholen:
   - `obj.isManagedInSidepanel = false` wird gesetzt.
+  - Sofort danach `autoSaveToLocalStorage()` auslösen, damit das Flag persistiert wird.
   - Das Objekt erscheint wieder auf der Stage an seiner ursprünglichen Position.
 
 ### Schritt 3: Komponenten ermitteln
