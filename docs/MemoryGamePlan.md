@@ -1,0 +1,249 @@
+# Memory-Spiel Projektplan (GCS)
+
+## 1. Zielsetzung
+
+Ein klassisches Memory-Spiel für zwei Spieler im Game Creation Studio (GCS).
+- Die Kartenbilder kommen aus einer zentralen `TImageList`.
+- Die Rückseite ist ein austauschbares Bild.
+- Die Anzahl der Bilder in der `TImageList` bestimmt die Anzahl der Pärchen.
+- Das Layout (Spalten/Zeilen) und die Kartengröße werden **dynamisch** berechnet, sodass die Karten die gesamte Stage ausfüllen.
+- Austauschbarkeit: Um ein neues Kartendeck zu verwenden, reicht es, die Bilder in `imgCards` und `imgBack` auszutauschen.
+
+## 2. Komponentenübersicht
+
+### 2.1 Bilder / Assets
+
+| Asset | Typ | Zweck |
+|---|---|---|
+| `imgCards` | `TImageList` | Enthält die Motive. Index 0 bis N-1. Jedes Motiv kommt als Paar vor. |
+| `imgBack` | `TImage` oder `TImageList` (1 Eintrag) | Rückseitenbild für alle Karten im verdeckten Zustand. |
+
+> **Hinweis:** Für den ersten Entwurf werden die Motive als Platzhalter mit sichtbaren Zahlen (z.B. 1..8) erzeugt. Die Rückseite (`imgBack`) zeigt ein großes Fragezeichen, damit das Spielprinzip sofort testbar ist.
+
+### 2.2 Stage-Objekte
+
+| Name | Typ | Beschreibung |
+|---|---|---|
+| `cardContainer` | `TObjectList` / `TGroupPanel` (optional) | Container, in den die Karten dynamisch eingefügt werden. |
+| `txtStatus` | `TLabel` | Zeigt an, wer am Zug ist und ob ein Paar gefunden wurde. |
+| `txtScore1` / `txtScore2` | `TNumberLabel` | Punktestände der beiden Spieler. |
+| `txtPlayer` | `TLabel` | Anzeige des aktuellen Spielers. |
+| `btnRestart` | `TButton` | Startet das Spiel neu. |
+
+> Die Karten (`TSprite`) werden zur Laufzeit in `InitGame` erzeugt, je nach Anzahl der Bilder in `imgCards`.
+
+### 2.3 Spielstatus-Variablen
+
+| Name | Typ | Inhalt |
+|---|---|---|
+| `varCurrentPlayer` | `TVariable` | Wert `1` oder `2`. |
+| `varScore1` | `TNumberLabel` | Punkte Spieler 1. |
+| `varScore2` | `TNumberLabel` | Punkte Spieler 2. |
+| `varFirstCard` | `TVariable` | Name/ID der ersten aufgedeckten Karte. |
+| `varSecondCard` | `TVariable` | Name/ID der zweiten aufgedeckten Karte. |
+| `varRevealedCount` | `TVariable` | Anzahl der aktuell offenen Karten (0, 1 oder 2). |
+| `mapCardIndex` | `TStringMap` | Zuordnung `Kartenname -> ImageList-Index`. |
+| `mapCardSolved` | `TStringMap` | Zuordnung `Kartenname -> "true"`, wenn das Paar bereits gefunden wurde. |
+| `timerFlipBack` | `TTimer` | Verzögerung, bevor zwei nicht passende Karten wieder umgedreht werden. |
+
+## 3. Spielmechanik
+
+### 3.1 Initialisierung (`InitGame`)
+
+1. Bestimme `pairCount = imgCards.items.length` und `totalCards = pairCount * 2`.
+2. Erzeuge ein Array mit den Indizes aus `imgCards`, jeden Index doppelt:
+   ```
+   indices = [0,0,1,1,2,2,...,pairCount-1,pairCount-1]
+   ```
+3. Mische das Array per Fisher-Yates-Algorithmus.
+4. Berechne das optimale Grid für die Stage:
+   - Lies `stageWidth` und `stageHeight` der aktuellen Stage.
+   - Suche `cols` und `rows`, sodass `cols * rows >= totalCards` und das Verhältnis `cols/rows` möglichst nahe an `stageWidth/stageHeight` liegt.
+   - Beispiel-Heuristik: Für jede mögliche Spaltenzahl `c` von 1 bis `totalCards`:
+     - `r = ceil(totalCards / c)`
+     - Bewerte `abs(c/r - stageWidth/stageHeight)`
+     - Wähle das Paar mit dem kleinsten Fehler und kleinstem Platzverlust.
+5. Berechne die Kartengröße:
+   - `gap = 8` (Pixel Abstand)
+   - `cardSize = min(stageWidth / cols, stageHeight / rows) - gap`
+   - `cardSize` ist quadratisch.
+6. Entferne bzw. leere vorherige Karten aus dem Container.
+7. Erzeuge `totalCards` quadratische `TSprite`-Karten:
+   - Name: `card_0` .. `card_{totalCards-1}`
+   - Größe: `cardSize x cardSize`
+   - Position: zentriert im Grid
+   - Initial: `backgroundImage = imgBack`
+   - Event: `onClick -> OnCardClick(cardName)`
+8. Schreibe für jede Karte den gemischten Index in `mapCardIndex`.
+9. Setze `mapCardSolved` für alle Karten auf `"false"`.
+10. Setze `varCurrentPlayer = 1`, `varScore1 = 0`, `varScore2 = 0`, `varRevealedCount = 0`.
+11. Aktualisiere `txtStatus` und `txtPlayer`.
+
+### 3.2 Kartenklick (`OnCardClick`)
+
+Eingabe: Name der angeklickten Karte (`cardId`).
+
+1. Ignoriere den Klick, wenn:
+   - `varRevealedCount == 2` (Vergleich läuft)
+   - `mapCardSolved[cardId] == "true"` (bereits gefunden)
+   - `varFirstCard == cardId` (gleiche Karte erneut geklickt)
+2. Decke die Karte auf: Setze `backgroundImage` auf das Bild aus `imgCards` mit Index `mapCardIndex[cardId]`.
+3. Wenn `varRevealedCount == 0`:
+   - `varFirstCard = cardId`
+   - `varRevealedCount = 1`
+4. Wenn `varRevealedCount == 1`:
+   - `varSecondCard = cardId`
+   - `varRevealedCount = 2`
+   - Starte `timerFlipBack` (z.B. 1.2 Sekunden).
+
+### 3.3 Vergleich (`OnTimerFlipBack`)
+
+1. Lies die beiden Indizes:
+   - `idx1 = mapCardIndex[varFirstCard]`
+   - `idx2 = mapCardIndex[varSecondCard]`
+2. **Paar gefunden** (`idx1 == idx2`):
+   - Markiere beide Karten als gelöst: `mapCardSolved[varFirstCard] = "true"`, `mapCardSolved[varSecondCard] = "true"`.
+   - Erhöhe Punktestand des aktuellen Spielers (`varScore1` oder `varScore2`).
+   - Setze `txtStatus` z.B. auf "Paar gefunden! Spieler X ist nochmal dran."
+   - Lösche `varFirstCard` und `varSecondCard`, setze `varRevealedCount = 0`.
+   - Spieler bleibt am Zug.
+3. **Kein Paar** (`idx1 != idx2`):
+   - Drehe beide Karten wieder auf `imgBack` um.
+   - Lösche `varFirstCard` und `varSecondCard`, setze `varRevealedCount = 0`.
+   - Wechsle Spieler: `varCurrentPlayer = 3 - varCurrentPlayer`.
+   - Aktualisiere `txtPlayer` und `txtStatus`.
+
+### 3.4 Gewinnprüfung (`CheckWin`)
+
+Nach jedem gefundenen Paar:
+1. Prüfe, ob `mapCardSolved` für alle 16 Karten `"true"` ist.
+2. Falls ja:
+   - Bestimme Gewinner anhand von `varScore1` und `varScore2`.
+   - Zeige Ergebnis in `txtStatus` an.
+   - Deaktiviere alle Karten-Klick-Events oder blende sie aus.
+
+### 3.5 Neustart (`OnRestart`)
+
+Ruft `InitGame` auf.
+
+## 3.6 Konkrete Tasks und Actions
+
+Da das Mischen der Karten, die dynamische Grid-Berechnung und das Erzeugen der Karten-Objekte mit den bestehenden Standard-Actions allein sehr aufwändig wäre, wird eine kleine Runtime-Komponente `MemoryGameService` eingeführt. Diese stellt Methoden bereit, die über `call_method`-Actions aus den GCS-Tasks aufgerufen werden.
+
+> **Alternative:** Werden keine neuen Runtime-Methoden gewünscht, ließe sich das Spiel rein mit Standard-Actions bauen, dann müssten aber die Karten händisch im Editor platziert und die Zuordnung der Bild-Indizes statisch erfolgen. Das würde aber die Anpassbarkeit (Anzahl der Bilder, dynamische Größe) einschränken.
+
+### `MemoryGameService` (Runtime-Komponente)
+
+Methoden:
+
+| Methode | Beschreibung |
+|---|---|
+| `initGame()` | Erzeugt die Karten, mischt sie, berechnet Grid/Größe und setzt den Spielzustand zurück. |
+| `onCardClick(cardName: string)` | Verarbeitet Klicks auf eine Karte. |
+| `onFlipBackTimer()` | Wird nach Ablauf von `timerFlipBack` aufgerufen und vergleicht die beiden aufgedeckten Karten. |
+| `restart()` | Alias für `initGame()`. |
+
+### Task: `InitGame`
+
+**Trigger:** `OnStageEnter` des Spiel-Stages oder `onClick` von `btnRestart`.
+
+**Actions:**
+
+| Reihenfolge | Action-Typ | Parameter | Beschreibung |
+|---|---|---|---|
+| 1 | `call_method` | target: `MemoryGameService`, method: `initGame` | Erzeugt und mischt alle Karten. |
+
+### Task: `OnCardClick`
+
+Wird beim Klick auf eine Karte ausgelöst. Da `onClick` auf jedem `TSprite` einzeln gebunden werden muss, wird diese Task für jede Karte registriert. Der Karten-Name wird als Event-Daten übergeben.
+
+**Trigger:** `onClick` einer Karte (wird dynamisch in `initGame` via `bind_event` verbunden).
+
+**Actions:**
+
+| Reihenfolge | Action-Typ | Parameter | Beschreibung |
+|---|---|---|---|
+| 1 | `call_method` | target: `MemoryGameService`, method: `onCardClick`, params: `["${eventData.cardName}"]` | Verarbeitet den Klick. |
+
+### Task: `OnFlipBackTimer`
+
+**Trigger:** `onTimer` von `timerFlipBack`.
+
+**Actions:**
+
+| Reihenfolge | Action-Typ | Parameter | Beschreibung |
+|---|---|---|---|
+| 1 | `call_method` | target: `MemoryGameService`, method: `onFlipBackTimer` | Vergleicht die Karten und aktualisiert Punkte/Spieler. |
+
+### Task: `OnRestart`
+
+**Trigger:** `onClick` von `btnRestart`.
+
+**Actions:**
+
+| Reihenfolge | Action-Typ | Parameter | Beschreibung |
+|---|---|---|---|
+| 1 | `call_method` | target: `MemoryGameService`, method: `restart` | Startet das Spiel neu. |
+
+## 4. Layout-Vorschlag
+
+Die Karten füllen die gesamte Stage aus. UI-Elemente (Status, Punkte, Neustart) werden **außerhalb** des Kartenbereichs platziert, damit die Stage-Fläche vollständig für das Spielfeld genutzt wird.
+
+```
++--------------------------------------------------+
+|  Memory                                          |
+|  Spieler 1: [txtScore1]    Spieler 2: [txtScore2]|
+|  [txtStatus]                          [btnRestart]|
+|                                                  |
+|  +------------------------------------------+    |
+|  |                                          |    |
+|  |  Karten-Grid (dynamisch, quadratisch,    |    |
+|  |  zentriert, füllt Stage-Fläche aus)      |    |
+|  |                                          |    |
+|  +------------------------------------------+    |
++--------------------------------------------------+
+```
+
+- Kartengröße: **quadratisch**, berechnet aus Stage-Breite/Höhe und Anzahl der Karten.
+- Abstand zwischen Karten: `gap` (z.B. 8 px).
+- Grid: dynamisch `cols × rows`, abhängig von `pairCount` und Stage-Seitenverhältnis.
+- Beispiele:
+  - 8 Paare (16 Karten) auf 16:9-Stage → z.B. `cols=4, rows=4`
+  - 6 Paare (12 Karten) auf 16:9-Stage → z.B. `cols=4, rows=3`
+  - 10 Paare (20 Karten) auf 16:9-Stage → z.B. `cols=5, rows=4`
+  - 18 Paare (36 Karten) auf 16:9-Stage → z.B. `cols=6, rows=6`
+
+## 5. Implementierungsreihenfolge
+
+1. Projekt "Memory" im GCS anlegen.
+2. `TImageList` `imgCards` mit 8 Platzhalterbildern (Zahlen 1..8) erstellen.
+3. `imgBack` als Rückseitenbild mit Fragezeichen anlegen.
+4. UI-Komponenten (`txtStatus`, `txtScore1`, `txtScore2`, `txtPlayer`, `btnRestart`) hinzufügen.
+5. State-Variablen (`varCurrentPlayer`, `varScore1`, `varScore2`, `varRevealedCount`, `varFirstCard`, `varSecondCard`) und `timerFlipBack` anlegen.
+6. `mapCardIndex` und `mapCardSolved` als `TStringMap` anlegen.
+7. Optional: `cardContainer` als `TObjectList` oder `TGroupPanel` anlegen.
+8. Runtime-Komponente `MemoryGameService` anlegen (TypeScript) mit den Methoden `initGame`, `onCardClick`, `onFlipBackTimer`, `restart`.
+9. Tasks im GCS anlegen:
+   - `InitGame` mit `call_method` auf `MemoryGameService.initGame`
+   - `OnCardClick` mit `call_method` auf `MemoryGameService.onCardClick`
+   - `OnFlipBackTimer` mit `call_method` auf `MemoryGameService.onFlipBackTimer`
+   - `OnRestart` mit `call_method` auf `MemoryGameService.restart`
+10. `btnRestart.onClick` auf `OnRestart` setzen.
+11. `OnStageEnter` des Spiel-Stages auf `InitGame` setzen.
+12. Testlauf und Feinabstimmung für verschiedene `imgCards`-Größen.
+
+## 6. Anpassungsmöglichkeiten
+
+| Änderung | Vorgehen |
+|---|---|
+| Andere Anzahl Pärchen | Anzahl der Bilder in `imgCards` ändern. Grid und Kartengröße passen sich automatisch an. |
+| Andere Rückseite | Bild in `imgBack` austauschen. |
+| Andere Kartenbilder | Bilder in `imgCards` austauschen, Reihenfolge/Index bleibt beliebig. |
+| Stage-Seitenverhältnis ändern | Kartengröße und Grid passen sich beim Neustart automatisch an. |
+| Einzelspieler-Modus | `varCurrentPlayer` und `varScore2` entfernen, `txtPlayer` ausblenden. |
+
+## 7. Offene Punkte
+
+- Sollen die Platzhalterbilder als Text-Label innerhalb der Karten (z.B. große Zahl) oder als generierte Bilder umgesetzt werden?
+- Soll es ein Gewinner-Popup geben oder reicht die Textanzeige?
+- Soll der aktuelle Spieler farblich hervorgehoben werden?
