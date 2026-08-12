@@ -107,6 +107,7 @@ export abstract class TComponent implements IInspectable {
     // Visibility & Scoping Meta-Flags
     public isService: boolean = false;       // If true, component is merged globally across stages
     public isHiddenInRun: boolean = false;    // If true, component is hidden in run mode
+    public isManagedInSidepanel: boolean = false; // If true, component is managed in the editor sidepanel
 
     // Drag & Drop Properties
     public draggable: boolean = false;
@@ -230,6 +231,7 @@ export abstract class TComponent implements IInspectable {
             isVariable: this.isVariable || undefined,
             isService: this.isService || undefined,
             isHiddenInRun: this.isHiddenInRun || undefined,
+            isManagedInSidepanel: this.isManagedInSidepanel || undefined,
             isTransient: this.isTransient || undefined,
             draggable: this.draggable || undefined,
             droppable: this.droppable || undefined,
