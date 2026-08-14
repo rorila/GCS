@@ -280,6 +280,14 @@ export class VariablePickerDialog {
 
         let fields: string[] = [];
 
+        if (className === 'TListVariable' || className === 'TList') {
+            const items = v.items || (Array.isArray(v.value) ? v.value : []);
+            if (Array.isArray(items) && items.length > 0) {
+                return items.map((_: any, i: number) => `[${i}]`);
+            }
+            return [];
+        }
+
         if (v._isComp) {
             // Für Komponenten: Lade Inspektor-Properties
             const props = componentRegistry.getInspectorProperties({ className: v.className });
@@ -410,12 +418,13 @@ export class VariablePickerDialog {
 
                     const fieldName = document.createElement('span');
                     fieldName.style.cssText = 'color:#bbb; font-size:12px; font-family:monospace;';
-                    fieldName.innerText = `${v.name}.${field}`;
+                    const fieldExpr = field.startsWith('[') ? `${v.name}${field}` : `${v.name}.${field}`;
+                    fieldName.innerText = fieldExpr;
                     subRow.appendChild(fieldName);
 
                     subRow.onclick = (e) => {
                         e.stopPropagation();
-                        onSelect(`${v.name}.${field}`);
+                        onSelect(fieldExpr);
                     };
                     subContainer.appendChild(subRow);
                 });

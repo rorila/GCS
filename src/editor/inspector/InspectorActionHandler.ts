@@ -15,6 +15,7 @@ import { NotificationToast } from '../ui/NotificationToast';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { MediaPickerDialog } from './MediaPickerDialog';
 import { ImageListEditorDialog } from './ImageListEditorDialog';
+import { ObjectListPickerDialog } from './ObjectListPickerDialog';
 import { projectStore } from '../../services/ProjectStore';
 import { ActionRegistry } from '../../runtime/ActionRegistry';
 
@@ -77,6 +78,9 @@ export class InspectorActionHandler {
                 break;
             case 'openImageListEditor':
                 await this.handleOpenImageListEditor(selectedObject);
+                break;
+            case 'openObjectListPicker':
+                await this.handleOpenObjectListPicker(selectedObject);
                 break;
             case 'openStringMapEditor':
                 await this.handleOpenStringMapEditor(selectedObject);
@@ -350,11 +354,11 @@ export class InspectorActionHandler {
         }
 
         // Validierung (nur für nicht-Repeater)
-        if (!isRepeater && !varNameInput.includes('.')) {
-            const baseVarName = varNameInput.split('.')[0];
-            const baseVar = variables.find(v => v.name === baseVarName);
+        if (!isRepeater) {
+            const baseVarName = varNameInput.split(/[.\[]/)[0];
+            const baseVar = [...variables, ...projectObjectRegistry.getObjects()].find(v => v.name === baseVarName);
             if (!baseVar) {
-                NotificationToast.show(`Basis-Variable "${baseVarName}" wurde nicht gefunden.`);
+                NotificationToast.show(`Basis-Variable/Komponente "${baseVarName}" wurde nicht gefunden.`);
                 return;
             }
         }
@@ -543,5 +547,29 @@ export class InspectorActionHandler {
             PropertyHelper.setPropertyValue(obj, 'layers', layers);
         }
         this.host.update(obj);
+    }
+
+    private async handleOpenObjectListPicker(obj: any): Promise<void> {
+        InspectorActionHandler.logger.info('Opening Object List Picker for:', obj.name);
+
+        const current = Array.isArray(obj.items) ? obj.items : [];
+        const allObjects = projectObjectRegistry.getObjects()
+            .filter((o: any) => o.id !== obj.id && !o.isInherited)
+            .map((o: any) => ({ id: o.id, name: o.name, className: o.className }));
+
+        const result = await ObjectListPickerDialog.show(
+            current,
+            allObjects,
+            `Objekte für ${obj.name || 'ObjectList'}`
+        );
+
+        if (result !== null) {
+            const target = this.resolveOriginalObject(obj);
+            projectStore.dispatch({ type: 'SET_PROPERTY', target, path: 'items', value: result });
+            if (target !== obj) {
+                PropertyHelper.setPropertyValue(obj, 'items', result);
+            }
+            this.host.update(obj);
+        }
     }
 }

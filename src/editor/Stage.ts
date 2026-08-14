@@ -1,6 +1,7 @@
 import { GridConfig } from '../model/types';
 import { Logger } from '../utils/Logger';
 import { projectVariableRegistry } from '../services/registry/VariableRegistry';
+import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
 
 import { StageRenderer, StageHost } from './services/StageRenderer';
 import { StageInteractionManager, StageInteractionHost } from './services/StageInteractionManager';
@@ -123,6 +124,28 @@ export class Stage implements StageHost, StageInteractionHost {
         const vars = projectVariableRegistry.getVariables(undefined, false);
         for (const v of vars) {
             ctx[v.name] = v.value !== undefined ? v.value : v.defaultValue;
+        }
+
+        // Auch variable-ähnliche Komponenten (TListVariable, TStringMap, TObjectList, ...) als Variablen bereitstellen
+        const objects = (projectObjectRegistry as any).getObjects ? (projectObjectRegistry as any).getObjects() : [];
+        const EXCLUDED_TIMER_CLASSES = new Set(['TTimer', 'TIntervalTimer']);
+        for (const o of objects) {
+            if (!o) continue;
+            const isVarLike = o.isVariable ||
+                (o.className && (
+                    o.className.includes('Variable') ||
+                    o.className === 'TStringMap' ||
+                    o.className === 'TList' ||
+                    o.className === 'TObjectList'
+                ));
+            if (isVarLike && !EXCLUDED_TIMER_CLASSES.has(o.className)) {
+                const val = o.value !== undefined
+                    ? o.value
+                    : (o.entries !== undefined ? o.entries : (o.items !== undefined ? o.items : o.data));
+                if (val !== undefined) {
+                    ctx[o.name] = val;
+                }
+            }
         }
         return ctx;
     }

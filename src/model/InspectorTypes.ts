@@ -14,7 +14,7 @@
 export interface TPropertyDef {
     name: string;      // Property key or path (e.g. 'x', 'style.backgroundColor')
     label: string;     // Display label
-    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker' | 'audio_picker' | 'video_picker' | 'json' | 'button' | 'text' | 'textarea' | 'separator' | 'TVariableSelect' | 'TObjectSelect' | 'hidden';
+    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker' | 'audio_picker' | 'video_picker' | 'json' | 'button' | 'text' | 'textarea' | 'separator' | 'TVariableSelect' | 'TObjectSelect' | 'hidden' | 'object_list' | 'value_list';
     group?: string;    // 'Geometry', 'Style', 'Identity' etc.
     readonly?: boolean;
     serializable?: boolean; // Ob die Property gespeichert werden soll (default: true)

@@ -7,6 +7,10 @@ export class TObjectList extends TTable {
     public searchValue: string = '';
     public searchProperty: string = 'name';
 
+    /** Runtime-Kompatibilität: list_*-Aktionen sprechen das Array über .value an */
+    get value(): any { return this.items; }
+    set value(v: any) { this.items = Array.isArray(v) ? v : []; }
+
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 8, 4); // Größerer Default
         this.isVariable = true;
@@ -28,6 +32,7 @@ export class TObjectList extends TTable {
         const props = super.getInspectorProperties();
         return [
             ...props,
+            { name: 'items', label: 'Enthaltene Objekte', type: 'object_list', group: 'List' },
             { name: 'searchValue', label: 'Suche (Wert)', type: 'string', group: 'List' },
             { name: 'searchProperty', label: 'Suche (Property)', type: 'string', group: 'List' }
         ];

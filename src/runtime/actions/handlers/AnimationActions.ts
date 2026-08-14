@@ -73,7 +73,7 @@ export function registerAnimationActions() {
                                 context.runTask!(interpolatedTask, { self: targetObj, sender: targetObj, target: targetObj }, targetObj);
                             }
                             : undefined;
-                        animManager.flip(targetObj, duration, onMidpoint);
+                        animManager.flip(targetObj, duration, onMidpoint, context.objects);
                         break;
                     }
                     default: {

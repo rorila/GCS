@@ -50,8 +50,15 @@ export class Player {
                 logger.info("Game Loaded:", this.project.meta.name);
                 this.showStatus(`Loaded: ${this.project.meta.name}`);
 
-                if (this.project.stage && this.project.stage.grid) {
-                    this.stage.grid = { ...this.project.stage.grid, visible: false };
+                const startStageId = (this.project as any).activeStageId || (this.project.stage as any)?.id || this.project.stages?.[0]?.id;
+                const activeProjectStage = this.project.stages?.find((s: any) => s.id === startStageId) || this.project.stage;
+
+                if (activeProjectStage && (activeProjectStage as any).grid) {
+                    this.stage.grid = {
+                        ...(activeProjectStage as any).grid,
+                        backgroundColor: (activeProjectStage as any).backgroundColor || (activeProjectStage as any).grid.backgroundColor,
+                        visible: false
+                    };
                     this.stage.updategrid();
                 }
 
@@ -63,7 +70,8 @@ export class Player {
 
                 // 2. Initialize Unified GameRuntime
                 this.runtime = new GameRuntime(this.project, this.objects, {
-                    onRender: () => this.stage.renderObjects(this.objects)
+                    onRender: () => this.stage.renderObjects(this.objects),
+                    startStageId
                 });
 
                 // 3. Start Runtime (triggers startAnimation, etc.)

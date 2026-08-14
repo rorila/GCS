@@ -17,6 +17,14 @@
     }
   },
   "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
     "elements": [],
     "connections": []
   },
@@ -103,8 +111,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -123,6 +131,149 @@
       "name": "Haupt-Level",
       "type": "main",
       "objects": [
+        {
+          "className": "TImage",
+          "id": "obj_1786694701578_iz7ol2pz7",
+          "name": "BackCard",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 44,
+          "y": 2,
+          "width": 4,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "./images/family_portrais/Rolf.png",
+          "objectFit": "cover",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a"
+        },
+        {
+          "className": "TImage",
+          "id": "706662db-3447-4d15-b074-c827a4fbc80c",
+          "name": "FrontCard",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 36,
+          "y": 2,
+          "width": 4,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "./images/family_portrais/Silvia.png",
+          "objectFit": "cover",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1786697026730_k48t4cgew",
+          "name": "KlickAnzeige",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 34,
+          "y": 14,
+          "width": 15,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#270c0c",
+            "fontSize": 36,
+            "textAlign": "center",
+            "backgroundColor": "#b85656",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "KlickAnzeige"
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1786697246582_uyqk08gb9",
+          "name": "Var_FrontCardImage",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 53,
+          "y": 2,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": "${FrontCard.src}",
+          "value": "${FrontCard.src}"
+        },
+        {
+          "className": "TVariable",
+          "id": "752db940-113d-4895-91b1-dc1978fbf0af",
+          "name": "Var_BackCardImage",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 53,
+          "y": 5,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": "${BackCard.src}",
+          "value": "${BackCard.src}"
+        },
         {
           "className": "TButton",
           "id": "obj_1786697662061_yuaz5vyfg",
@@ -248,10 +399,10 @@
                 "onClick": "LetTheCardFlip"
               },
               "visible": true,
-              "x": 1,
-              "y": 1,
-              "width": 6,
-              "height": 6,
+              "x": 0.5,
+              "y": 0.5,
+              "width": 7,
+              "height": 7,
               "zIndex": 1,
               "rotation": 0,
               "align": "NONE",
@@ -262,7 +413,7 @@
                 "borderWidth": 0,
                 "borderRadius": 15
               },
-              "src": "${List_15[1]}",
+              "src": "${Var_FrontCardImage}",
               "objectFit": "cover",
               "alt": "",
               "imageOpacity": 1,
@@ -271,13 +422,106 @@
           ]
         },
         {
+          "className": "TObjectList",
+          "id": "obj_1786719516670_ymn15eyex",
+          "name": "ObjectList_14",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 5,
+          "y": 18,
+          "width": 12,
+          "height": 11,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "data": [],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Name",
+              "width": "1fr"
+            },
+            {
+              "property": "uiScope",
+              "label": "Scope",
+              "width": "60px"
+            },
+            {
+              "property": "usageCount",
+              "label": "Links",
+              "width": "50px"
+            }
+          ],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "items": [
+            "obj_1786694701578_iz7ol2pz7",
+            "706662db-3447-4d15-b074-c827a4fbc80c"
+          ],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1
+        },
+        {
+          "className": "TStringMap",
+          "id": "obj_1786722383246_x67hnpb50",
+          "name": "StringMap_15",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 23,
+          "y": 28,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#00897b",
+            "borderColor": "#00695c",
+            "borderWidth": 2
+          },
+          "entries": {}
+        },
+        {
           "className": "TListVariable",
           "id": "obj_1786722460618_1hfyz1cl7",
           "name": "List_15",
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
-          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -297,11 +541,34 @@
           },
           "items": [
             "./images/family_portrais/Rolf.png",
-            "./images/family_portrais/Silvia.png",
-            "./images/family_portrais/Leona.png",
-            "./images/family_portrais/Miria.png",
-            "./images/family_portrais/Helena.png"
+            "./images/family_portrais/Silvia.png"
           ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "obj_1786722688323_c5myy5j6f",
+          "name": "List_16",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": []
         }
       ],
       "actions": [
@@ -313,7 +580,7 @@
           "showDetails": false,
           "target": "",
           "changes": {
-            "CardImage.src": "${List_15[0]}"
+            "CardImage.src": "${Var_BackCardImage}"
           }
         },
         {
@@ -324,7 +591,7 @@
           "showDetails": false,
           "target": "",
           "changes": {
-            "CardImage.src": "${List_15[1]}"
+            "CardImage.src": "${Var_FrontCardImage}"
           }
         },
         {

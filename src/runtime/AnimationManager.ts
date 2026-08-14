@@ -607,9 +607,22 @@ export class AnimationManager {
      * Feuert bei exakt 50% der Dauer den optionalen onMidpoint-Callback,
      * damit Inhalte (Bilder/Texte) gewechselt werden können.
      */
-    public flip(target: any, duration: number = 600, onMidpoint?: () => void): void {
+    public flip(target: any, duration: number = 600, onMidpoint?: () => void, children?: any[]): void {
         if (!target) return;
+
+        // Kinder ermitteln, die zum Target gehören (per parentId)
+        const childObjects = (children || []).filter(c => c && (c.parentId === target.id || c.parentId === target.name));
+
         let midpointFired = false;
+
+        const setAllTransforms = (value: string) => {
+            if (!target.style) target.style = {};
+            target.style.transform = value;
+            for (const child of childObjects) {
+                if (!child.style) child.style = {};
+                child.style.transform = value;
+            }
+        };
 
         const fireMidpoint = () => {
             if (midpointFired) return;
@@ -624,7 +637,7 @@ export class AnimationManager {
         };
 
         this.addTween(target, '_virtual', 1, duration, 'easeInOut', () => {
-            target.style.transform = ''; // Reset am Ende
+            setAllTransforms(''); // Reset am Ende
             fireMidpoint(); // Sicherstellen, dass der Callback spätestens am Ende ausgeführt wurde
         }, (val) => {
             // Bei exakt 50% oder knapp drüber feuern wir den Midpoint-Callback
@@ -634,8 +647,7 @@ export class AnimationManager {
 
             // Visueller 3D-Flip über Skalierung (Absolutwert verhindert spiegelverkehrte Darstellung)
             const scale = Math.abs(Math.cos(val * Math.PI));
-            if (!target.style) target.style = {};
-            target.style.transform = `scaleX(${scale})`;
+            setAllTransforms(`scaleX(${scale})`);
         });
     }
 }

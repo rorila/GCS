@@ -167,11 +167,12 @@ export class ExpressionParser {
             return Number(trimmed);
         }
 
-        // Handle simple property access (e.g., "playerName", "player.score")
-        if (/^[a-zA-Z_$][\w.]*$/.test(trimmed)) {
-            const res = this.getNestedProperty(trimmed, context);
+        // Handle simple property access (e.g., "playerName", "player.score", "List_15[0]")
+        const normalizedPath = trimmed.replace(/\[(\d+)\]/g, '.$1');
+        if (/^[a-zA-Z_$][\w.]*$/.test(normalizedPath)) {
+            const res = this.getNestedProperty(normalizedPath, context);
             if (trimmed.includes('StageTimer') || trimmed.includes('currentInterval')) {
-                logger.info(`[BIND-DEBUG] evaluate simple property: "${trimmed}". Result:`, res);
+                logger.info(`[BIND-DEBUG] evaluate simple property: "${normalizedPath}". Result:`, res);
             }
             return res;
         }

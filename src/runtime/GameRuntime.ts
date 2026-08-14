@@ -263,8 +263,12 @@ export class GameRuntime implements IVariableHost {
         if (!stage) return;
         const themeStage = themeRegistry.getStageStyle();
         if (!stage.grid) stage.grid = {} as any;
-        stage.grid.backgroundColor = themeStage.backgroundColor;
-        (stage.grid as any).gridColor = themeStage.gridColor;
+        if (!stage.grid.backgroundColor && !(stage as any).backgroundColor) {
+            stage.grid.backgroundColor = themeStage.backgroundColor;
+        }
+        if (!(stage.grid as any).gridColor) {
+            (stage.grid as any).gridColor = themeStage.gridColor;
+        }
     }
 
     /**

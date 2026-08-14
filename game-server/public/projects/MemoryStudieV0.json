@@ -111,8 +111,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -180,37 +180,87 @@
       "type": "standard",
       "objects": [
         {
+          "className": "TInputController",
           "id": "input_controller",
           "name": "InputController",
-          "className": "TInputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
           "x": 0,
           "y": 0,
           "width": 2,
           "height": 2,
-          "visible": false
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
         },
         {
+          "className": "TVirtualGamepad",
           "id": "virtual_gamepad",
           "name": "VirtualGamepad",
-          "className": "TVirtualGamepad",
+          "scope": "stage",
+          "isService": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
           "x": 0,
           "y": 0,
           "width": 10,
           "height": 4,
-          "visible": true
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#00ffcc",
+            "borderWidth": 1,
+            "opacity": 0.8
+          },
+          "layoutStyle": "split",
+          "splitVerticalAlignment": "bottom",
+          "autoHideOnDesktop": true,
+          "scale": 1
         },
         {
+          "className": "TPanel",
           "id": "background_panel",
           "name": "Background",
-          "className": "TPanel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
           "x": 0,
           "y": 0,
           "width": 64,
           "height": 40,
-          "visible": true,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
           "style": {
-            "backgroundColor": "#dddde4"
+            "backgroundColor": "#dddde4",
+            "borderColor": "transparent",
+            "borderWidth": 0
           },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
           "children": [
             {
               "className": "TImage",

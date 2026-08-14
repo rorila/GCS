@@ -1026,8 +1026,18 @@ export class StageRenderer {
 
         if (bgImg && typeof bgImg === 'string') {
             const vars = this.getVariableContext();
-            const objects = this.host.lastRenderedObjects || [];
+            const objects = [...(this.host.lastRenderedObjects || []), ...projectObjectRegistry.getObjects()];
             bgImg = PropertyHelper.interpolate(bgImg, vars, objects);
+
+            if (typeof bgImg !== 'string') {
+                logger.warn(`[StageRenderer] Resolved image src is not a string for ${objId} (${className}): ${bgImg}`);
+                bgImg = String(bgImg ?? '');
+            }
+            if (bgImg.includes(',')) {
+                const first = bgImg.split(',')[0].trim();
+                logger.warn(`[StageRenderer] Resolved image src is a list for ${objId} (${className}); using first entry: ${first}`);
+                bgImg = first;
+            }
 
             if (bgImg.startsWith('url(')) {
                 const match = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);

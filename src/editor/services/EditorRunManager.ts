@@ -100,7 +100,7 @@ export class EditorRunManager {
             logger.info(`%c══════════════════════════════════════════════════`, 'color: #00ff00');
 
             const mpManager = (this.editor as any)._isMultiplayer ? network : undefined;
-            const activeStage = this.editor.getActiveStage();
+            const activeStage = this.editor.stageManager.getActiveStage();
             let startStageId: string | undefined;
 
             if (activeStage && activeStage.type !== 'main' && activeStage.type !== 'splash') {

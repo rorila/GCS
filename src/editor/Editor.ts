@@ -535,14 +535,16 @@ export class Editor implements IViewHost {
         // 3. UI State Reset
         this.currentSelectedId = null;
         if (this.stage) {
-            const activeStage = this.getActiveStage();
+            const activeStage = this.stageManager.getActiveStage();
             if (activeStage && activeStage.grid) {
                 // WICHTIG: backgroundImage VOR grid setzen, da der grid-Setter updategrid() auslöst
                 this.stage.backgroundImage = (activeStage as any).backgroundImage || '';
                 this.stage.backgroundImageMode = (activeStage as any).backgroundImageMode || 'cover';
-                this.stage.grid = activeStage.grid;
+                this.stage.grid = { ...activeStage.grid, backgroundColor: (activeStage as any).backgroundColor || activeStage.grid.backgroundColor };
             } else {
-                this.stage.grid = project.stage?.grid || project.stages?.[1]?.grid || project.stages?.[0]?.grid || { cols: 64, rows: 40, cellSize: 20, visible: true, backgroundColor: '#1e1e2e' };
+                const stageForBg = project.stage || project.stages?.[1] || project.stages?.[0];
+                const grid = project.stage?.grid || project.stages?.[1]?.grid || project.stages?.[0]?.grid || { cols: 64, rows: 40, cellSize: 20, visible: true, backgroundColor: '#1e1e2e' };
+                this.stage.grid = { ...grid, backgroundColor: (stageForBg as any)?.backgroundColor || grid.backgroundColor };
             }
         }
 

@@ -607,6 +607,12 @@ export class StageInteractionManager {
             const dx = coords.x - this.dragStartRel.x;
             const dy = coords.y - this.dragStartRel.y;
 
+            // Kein echtes Draggen bei Klick ohne Bewegung: Snap verhindern
+            if (this.isDragging && Math.abs(dx) < 2 && Math.abs(dy) < 2) {
+                this.isDragging = false;
+                this.dragElements.forEach(el => { el.style.transform = ''; });
+            }
+
             if (this.isResizing && this.initialSize && this.initialPos) {
                 const el = this.host.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
                 if (el) {

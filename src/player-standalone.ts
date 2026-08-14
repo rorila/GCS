@@ -320,9 +320,11 @@ class UniversalPlayer implements StageHost {
         }
 
         this.currentProject = project;
+        const startStageId = (project as any).activeStageId || (project.stage as any)?.id || project.stages?.[0]?.id;
 
         // 2. Initialize new Runtime
         this.runtime = new GameRuntime(project, undefined, {
+            startStageId,
             onRender: () => this.render(),
             onComponentUpdate: (obj: any, prop?: string) => {
                 if (!this.renderer) return;
@@ -477,7 +479,7 @@ class UniversalPlayer implements StageHost {
 
         const grid = activeStage.grid;
         const context = this.runtime ? this.runtime.getContext() : {};
-        const bgExpression = grid.backgroundColor || '#2e2e2e';
+        const bgExpression = (activeStage as any).backgroundColor || grid.backgroundColor || '#2e2e2e';
         const bg = ExpressionParser.interpolate(bgExpression, context);
         
         logger.info('===== BACKGROUND DEBUG =====');
@@ -503,7 +505,7 @@ class UniversalPlayer implements StageHost {
             this.element.style.backgroundImage = 'none';
             this.element.style.backgroundColor = bg;
         }
-        
+
         logger.info(`5. Target element bg-color after set: ${this.element.style.backgroundColor}`);
         logger.info('============================');
     }

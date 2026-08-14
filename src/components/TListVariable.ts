@@ -18,8 +18,7 @@ export class TListVariable extends TWindow {
         const props = super.getInspectorProperties();
         return [
             ...props,
-            // Value editing for lists might be complex in property inspector,
-            // but we can show the item count at least.
+            { name: 'items', label: 'Werte', type: 'value_list', group: 'List' }
         ];
     }
 

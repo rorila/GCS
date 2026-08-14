@@ -216,7 +216,7 @@ export class PropertyHelper {
         }
 
         return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
-            const trimmedPath = path.trim();
+            const trimmedPath = path.trim().replace(/\[(\d+)\]/g, '.$1');
             logger.info(`Starting interpolation for path: "${trimmedPath}"`);
             // 0. Try literals first
             if (trimmedPath === 'true') return 'true';
