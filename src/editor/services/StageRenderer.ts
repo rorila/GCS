@@ -1024,9 +1024,15 @@ export class StageRenderer {
         const bgColor = obj.style?.backgroundColor || 'transparent';
         let bgImg = obj.backgroundImage || obj.src || obj.style?.backgroundImage;
 
-        if (bgImg && bgImg.startsWith('url(')) {
-            const match = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);
-            if (match) bgImg = match[1];
+        if (bgImg && typeof bgImg === 'string') {
+            const vars = this.getVariableContext();
+            const objects = this.host.lastRenderedObjects || [];
+            bgImg = PropertyHelper.interpolate(bgImg, vars, objects);
+
+            if (bgImg.startsWith('url(')) {
+                const match = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);
+                if (match) bgImg = match[1];
+            }
         }
 
         if (this.host.runMode && !(el as any).runModeTraceDone) {
@@ -1503,10 +1509,16 @@ export class StageRenderer {
      * Nutzt CSS background-size + background-position für pixelgenaues Clipping.
      */
     private renderImageList(el: HTMLElement, obj: any): void {
-        const src = obj.backgroundImage || obj.src || '';
+        let src = obj.backgroundImage || obj.src || '';
         const hCount = obj.imageCountHorizontal || 1;
         const vCount = obj.imageCountVertical || 1;
         const currentFrame = obj.currentImageNumber || 0;
+
+        if (src && typeof src === 'string') {
+            const vars = this.getVariableContext();
+            const objects = this.host.lastRenderedObjects || [];
+            src = PropertyHelper.interpolate(src, vars, objects);
+        }
 
         if (!src) {
             this.renderDefaultImagePlaceholder(el, 'ImageList');

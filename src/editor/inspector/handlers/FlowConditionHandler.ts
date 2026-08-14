@@ -9,11 +9,16 @@ const logger = Logger.get('FlowConditionHandler');
 export class FlowConditionHandler implements IInspectorHandler {
 
     canHandle(obj: any): boolean {
+        const type = typeof obj?.getType === 'function' ? obj.getType() : null;
+        // FlowLoop (for/while/repeat) wird von FlowLoopHandler behandelt
+        if (type === 'for' || type === 'while' || type === 'repeat') {
+            return false;
+        }
+
         const isCondition = obj && (
             obj.constructor?.name === 'FlowCondition' ||
-            (typeof obj.getType === 'function' && obj.getType() === 'condition')
+            type === 'condition'
         );
-        if (isCondition) logger.info('[FlowConditionHandler] Identified Condition node!');
         return !!isCondition;
     }
 

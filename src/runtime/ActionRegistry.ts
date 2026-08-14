@@ -11,6 +11,7 @@ export interface ActionContext {
     spawnObject?: (templateId: string, x?: number, y?: number) => any;
     destroyObject?: (instanceId: string) => void;
     onRestartGame?: () => void;
+    runTask?: (taskName: string, vars?: Record<string, any>, contextObj?: any) => Promise<any>;
 }
 
 export interface ActionParameter {

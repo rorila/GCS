@@ -4,10 +4,18 @@ import { FlowCondition } from './FlowCondition';
 export class FlowLoop extends FlowCondition {
     private loopType: 'While' | 'For' | 'Repeat' = 'While';
 
-    constructor(id: string, x: number, y: number, container: HTMLElement, gridSize: number, loopType: 'While' | 'For' | 'Repeat') {
+    constructor(id: string, x: number, y: number, container: HTMLElement, gridSize: number, loopType: string) {
         super(id, x, y, container, gridSize);
-        this.loopType = loopType;
+        this.loopType = FlowLoop.normalizeLoopType(loopType);
         this.applyLoopStyling();
+    }
+
+    private static normalizeLoopType(loopType: string): 'While' | 'For' | 'Repeat' {
+        switch (String(loopType || '').toLowerCase()) {
+            case 'for': return 'For';
+            case 'repeat': return 'Repeat';
+            default: return 'While';
+        }
     }
 
     public getType(): string { return this.loopType.toLowerCase(); }
@@ -30,17 +38,18 @@ export class FlowLoop extends FlowCondition {
     }
 
     public getInspectorProperties(): any[] {
-        const props = super.getInspectorProperties();
         if (this.loopType === 'For') {
             return [
-                ...props.filter(p => !['Variable', 'Operator', 'Value'].includes(p.name)),
-                { name: 'Iterator', type: 'string', label: 'Zähler (i)' },
-                { name: 'From', type: 'number', label: 'Startwert' },
-                { name: 'To', type: 'number', label: 'Endwert' },
-                { name: 'Step', type: 'number', label: 'Schrittweite' }
+                { group: 'Allgemein', name: 'Type', type: 'string', label: 'Knotentyp', readOnly: true },
+                { group: 'Allgemein', name: 'Name', type: 'string', label: 'Name' },
+                { group: 'Allgemein', name: 'Description', type: 'string', label: 'Beschreibung' },
+                { group: 'For-Schleife', name: 'Iterator', type: 'string', label: 'Zählervariable' },
+                { group: 'For-Schleife', name: 'From', type: 'number', label: 'Startwert' },
+                { group: 'For-Schleife', name: 'To', type: 'number', label: 'Endwert' },
+                { group: 'For-Schleife', name: 'Step', type: 'number', label: 'Schrittweite' }
             ];
         }
-        return props;
+        return super.getInspectorProperties();
     }
 
     // For Loop Accessors

@@ -9,6 +9,8 @@ import { Logger } from '../utils/Logger';
  */
 export class ActionExecutor {
     private static logger = Logger.get('ActionExecutor', 'Runtime_Execution');
+    private taskExecutor: any;
+
     constructor(
         private objects: any[],
         private multiplayerManager?: any,
@@ -23,6 +25,10 @@ export class ActionExecutor {
 
     public setObjects(objects: any[]) {
         this.objects = objects;
+    }
+
+    public setTaskExecutor(taskExecutor: any): void {
+        this.taskExecutor = taskExecutor;
     }
 
     /**
@@ -73,7 +79,20 @@ export class ActionExecutor {
                     onNavigate: this.onNavigate,
                     spawnObject: this.spawnCallback,
                     destroyObject: this.destroyCallback,
-                    onRestartGame: this.onRestartGame
+                    onRestartGame: this.onRestartGame,
+                    runTask: (taskName: string, taskVars?: Record<string, any>, taskContextObj?: any) => {
+                        if (this.taskExecutor) {
+                            const mergedVars = { ...vars, ...taskVars };
+                            const ctx = taskContextObj ?? contextObj;
+                            if (ctx) {
+                                if (!mergedVars.self) mergedVars.self = ctx;
+                                if (!mergedVars.sender) mergedVars.sender = ctx;
+                            }
+                            return this.taskExecutor.execute(taskName, mergedVars, globalVars, ctx, 0, undefined);
+                        }
+                        ActionExecutor.logger.warn(`[ActionExecutor] runTask called but no taskExecutor available for task: ${taskName}`);
+                        return Promise.resolve();
+                    }
                 });
             }
 

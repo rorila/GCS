@@ -1,0 +1,348 @@
+{
+  "meta": {
+    "name": "MemoryStudieV0",
+    "version": "1.0.0",
+    "author": "RoRiLa",
+    "description": "Ein Memory-Spiel wird schrittweise aufgebaut",
+    "_sourcePath": "projects/MemoryStudieV0.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "main",
+      "name": "Haupt-Level",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TPanel",
+          "id": "obj_1786694399202_rkk1mx6cm",
+          "name": "Panel_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 6,
+          "width": 52,
+          "height": 24,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "fontSize": 96,
+            "fontWeight": "bold",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "Hier kommt die Zusammenfassung hin",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    },
+    {
+      "id": "stage_mssns69i",
+      "name": "Neue Stage",
+      "type": "standard",
+      "objects": [
+        {
+          "id": "input_controller",
+          "name": "InputController",
+          "className": "TInputController",
+          "x": 0,
+          "y": 0,
+          "width": 2,
+          "height": 2,
+          "visible": false
+        },
+        {
+          "id": "virtual_gamepad",
+          "name": "VirtualGamepad",
+          "className": "TVirtualGamepad",
+          "x": 0,
+          "y": 0,
+          "width": 10,
+          "height": 4,
+          "visible": true
+        },
+        {
+          "id": "background_panel",
+          "name": "Background",
+          "className": "TPanel",
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 40,
+          "visible": true,
+          "style": {
+            "backgroundColor": "#dddde4"
+          },
+          "children": [
+            {
+              "className": "TImage",
+              "id": "obj_1786694549557_cdz65nmgx",
+              "name": "Image_7",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 9,
+              "y": 6,
+              "width": 8,
+              "height": 6,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "src": "",
+              "objectFit": "contain",
+              "alt": "",
+              "imageOpacity": 1,
+              "fallbackColor": "#2a2a2a"
+            },
+            {
+              "className": "TImage",
+              "id": "obj_1786694562149_uuhi9m0m3",
+              "name": "Image_8",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 11,
+              "y": 30,
+              "width": 8,
+              "height": 6,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "src": "",
+              "objectFit": "contain",
+              "alt": "",
+              "imageOpacity": 1,
+              "fallbackColor": "#2a2a2a"
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1786694609300_qz90dnahi",
+              "name": "Button_9",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 6,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Button_9",
+              "icon": ""
+            },
+            {
+              "className": "TAudio",
+              "id": "obj_1786694614714_fpcbpe5t6",
+              "name": "Audio_10",
+              "scope": "stage",
+              "isVariable": true,
+              "isService": true,
+              "isHiddenInRun": true,
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 5,
+              "y": 23,
+              "width": 4,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "color": "#fff",
+                "backgroundColor": "#7e57c2",
+                "borderColor": "#512da8",
+                "borderWidth": 2
+              },
+              "src": "",
+              "volume": 1,
+              "loop": false,
+              "preload": true
+            }
+          ]
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    }
+  ],
+  "activeStageId": "stage_mssns69i",
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0"
+}

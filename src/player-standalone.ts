@@ -90,6 +90,12 @@ class UniversalPlayer implements StageHost {
     public lastRenderedObjects: ComponentData[] = [];
     public onEvent: ((id: string, eventName: string, data?: unknown) => void) | null = null;
 
+    /** Liefert Variablenwerte fuer die Aufloesung von ${...}-Bindings im RunMode. */
+    public getVariableContext(): Record<string, any> {
+        if (!this.runtime) return {};
+        return this.runtime.contextVars;
+    }
+
     public get grid(): GridConfig {
         const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject?.stage || this.currentProject?.stages?.[0]);
         if (!activeStage?.grid) {

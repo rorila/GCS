@@ -1,0 +1,191 @@
+{
+  "meta": {
+    "name": "Neues Spiel",
+    "version": "1.0.0",
+    "author": "",
+    "description": "",
+    "_sourcePath": "projects/Neues_Spiel.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "main",
+      "name": "Haupt-Level",
+      "type": "main",
+      "objects": [],
+      "actions": [],
+      "tasks": [
+        {
+          "id": "2ecf1e8d-8d94-4ef9-80b2-063991af8efa",
+          "name": "ANewTask",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ANewTask": {
+              "x": 40,
+              "y": 40
+            },
+            "for": {
+              "x": 700,
+              "y": 260
+            }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1786641504679",
+              "type": "for",
+              "x": 700,
+              "y": 260,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "for",
+                "details": "",
+                "description": "",
+                "text": "Bedingung"
+              },
+              "data": {
+                "name": "for"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {}
+    }
+  ],
+  "activeStageId": "main",
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0"
+}

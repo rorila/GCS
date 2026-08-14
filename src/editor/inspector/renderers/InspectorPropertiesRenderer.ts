@@ -77,7 +77,7 @@ export class InspectorPropertiesRenderer {
         const staticObjects = await context.templateLoader.loadTemplate(inspectorFile, obj);
 
         const isDefaultInspector = inspectorFile === './inspector.json';
-        
+
         let dynamicObjects: any[] = [];
         if (isDefaultInspector) {
             // FIX: Für nackte JSON-Objekte generieren wir die Properties via Registry nach!

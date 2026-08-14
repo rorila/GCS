@@ -829,6 +829,22 @@ export class InspectorSectionRenderer {
             wrapper.appendChild(input);
             wrapper.appendChild(browseBtn);
 
+            const pickVarBtn = document.createElement('button');
+            pickVarBtn.textContent = 'V';
+            pickVarBtn.title = 'Variable verknüpfen (Bind)';
+            pickVarBtn.style.cssText = 'padding:4px 8px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;font-weight:bold;transition:all 0.15s;';
+            pickVarBtn.onmouseenter = () => { pickVarBtn.style.background = '#ff9f43'; };
+            pickVarBtn.onmouseleave = () => { pickVarBtn.style.background = '#e67e22'; };
+            pickVarBtn.onclick = () => {
+                if (context.actionHandler) {
+                    (context.actionHandler as any).handleAction(
+                        { action: 'pickVariable', property: propDef.name, propertyType: propDef.type },
+                        obj
+                    );
+                }
+            };
+            wrapper.appendChild(pickVarBtn);
+
             if (propDef.type === 'image_picker') {
                 const pasteBtn = document.createElement('button');
                 pasteBtn.textContent = '📋';

@@ -1170,7 +1170,12 @@ export class Editor implements IViewHost {
 
             // Binden der Selektion an den globalen Editor/Inspector
             this.flowEditor.onObjectSelect = (obj: any) => {
-                if (obj && obj.id) {
+                if (obj && obj.isFlowNode) {
+                    // Flow-Knoten (For/While/Repeat, Task, Action ...) haben keine Projekt-Objekt-ID.
+                    // Sie werden daher direkt an den Inspector uebergeben.
+                    this.currentSelectedId = obj.id;
+                    if (this.inspector) this.inspector.update(obj);
+                } else if (obj && obj.id) {
                     this.selectObject(obj.id);
                 } else {
                     this.selectObject(null);

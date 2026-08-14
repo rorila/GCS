@@ -23,6 +23,9 @@ export class FlowToolbox {
             { label: 'Task', icon: '⚡', type: 'task' },
             { label: 'Action', icon: '🎬', type: 'action' },
             { label: 'If Condition', icon: '❓', type: 'condition' },
+            { label: 'For Loop', icon: '🔁', type: 'for' },
+            { label: 'While Loop', icon: '🔂', type: 'while' },
+            { label: 'Repeat Loop', icon: '⏭️', type: 'repeat' },
             { label: 'Variable', icon: '📦', type: 'VariableDecl' },
             { label: 'Pfeil', icon: '🔗', type: 'Connection' },
             { label: 'Notiz', icon: '📝', type: 'comment' }

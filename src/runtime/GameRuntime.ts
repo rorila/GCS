@@ -126,6 +126,7 @@ export class GameRuntime implements IVariableHost {
             this.objects = objects;
             this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined, options.onRestartGame);
             this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
+            this.actionExecutor.setTaskExecutor(this.taskExecutor);
         } else if (activeStage) {
             this.stage = activeStage;
             this.isSplashActive = activeStage.type === 'splash';
@@ -241,10 +242,12 @@ export class GameRuntime implements IVariableHost {
 
             this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, this.spawnObject.bind(this), this.destroyObject.bind(this), options.onRestartGame);
             this.taskExecutor = new TaskExecutor(project, merged.actions, this.actionExecutor, merged.flowCharts, options.multiplayerManager, merged.tasks);
+            this.actionExecutor.setTaskExecutor(this.taskExecutor);
         } else {
             this.objects = [];
             this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, undefined, undefined, options.onRestartGame);
             this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
+            this.actionExecutor.setTaskExecutor(this.taskExecutor);
         }
 
         this.init();

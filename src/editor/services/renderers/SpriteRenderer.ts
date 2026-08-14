@@ -1,5 +1,6 @@
 import { IRenderContext } from './IRenderContext';
 import { projectObjectRegistry } from '../../../services/registry/ObjectRegistry';
+import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { Logger } from '../../../utils/Logger';
 
 const spriteLogger = Logger.get('SpriteRenderer', 'Asset_Diagnostics');
@@ -75,17 +76,26 @@ export class SpriteRenderer {
 
             let bgImg = '';
             let src = '';
+            const resolveSrc = (raw: string) => {
+                if (raw && typeof raw === 'string' && raw.includes('${')) {
+                    const vars = ctx.host.getVariableContext ? ctx.host.getVariableContext() : {};
+                    const objects = ctx.host.lastRenderedObjects || [];
+                    raw = PropertyHelper.interpolate(raw, vars, objects);
+                }
+                return raw;
+            };
+
             if (hasVideo) {
-                bgImg = obj.videoSource || '';
+                bgImg = resolveSrc(obj.videoSource || '');
                 src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
                     ? bgImg
                     : `./videos/${bgImg}`;
                 if (src.startsWith('/videos/')) src = '.' + src;
             } else {
                 if (imageListObj) {
-                    bgImg = imageListObj.backgroundImage || imageListObj.src || '';
+                    bgImg = resolveSrc(imageListObj.backgroundImage || imageListObj.src || '');
                 } else {
-                    bgImg = obj.backgroundImage;
+                    bgImg = resolveSrc(obj.backgroundImage || '');
                 }
                 src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
                     ? bgImg

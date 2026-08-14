@@ -7,6 +7,7 @@ import { InspectorTemplateLoader } from './InspectorTemplateLoader';
 import { InspectorActionHandler } from './InspectorActionHandler';
 import { GameObjectHandler } from './handlers/GameObjectHandler';
 import { FlowConditionHandler } from './handlers/FlowConditionHandler';
+import { FlowLoopHandler } from './handlers/FlowLoopHandler';
 import { FlowNodeHandler } from './handlers/FlowNodeHandler';
 import { VariableHandler } from './handlers/VariableHandler';
 import { StageHandler } from './handlers/StageHandler';
@@ -46,6 +47,7 @@ export class InspectorHost implements IInspectorContext {
         this.actionHandler = new InspectorActionHandler(runtime, project, this);
 
         InspectorRegistry.registerHandler(new GameObjectHandler());
+        InspectorRegistry.registerHandler(new FlowLoopHandler());
         InspectorRegistry.registerHandler(new FlowNodeHandler());
         InspectorRegistry.registerHandler(new FlowConditionHandler());
         InspectorRegistry.registerHandler(new VariableHandler());

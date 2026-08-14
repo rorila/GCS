@@ -65,9 +65,17 @@ export function registerAnimationActions() {
                     case 'wobble':
                         animManager.wobble(targetObj, Number(action.intensity) || 15, duration);
                         break;
-                    case 'flip':
-                        animManager.flip(targetObj, duration);
+                    case 'flip': {
+                        const midpointTask = action.midpointTask || '';
+                        const onMidpoint = midpointTask && context.runTask
+                            ? () => {
+                                const interpolatedTask = PropertyHelper.interpolate(String(midpointTask), { ...context.contextVars, ...context.vars, $eventData: context.eventData }, context.objects);
+                                context.runTask!(interpolatedTask, { self: targetObj, sender: targetObj, target: targetObj }, targetObj);
+                            }
+                            : undefined;
+                        animManager.flip(targetObj, duration, onMidpoint);
                         break;
+                    }
                     default: {
                         // Legacy-Effekte: shake, pulse, bounce, fade
                         if (typeof (animManager as any)[effect] === 'function') {
@@ -111,7 +119,8 @@ export function registerAnimationActions() {
             { name: 'degrees', label: 'Grad', type: 'number', defaultValue: 360, hint: 'Für spin', visibleWhen: { field: 'effect', values: ['spin'] } },
             { name: 'intensity', label: 'Intensität', type: 'number', defaultValue: 15, hint: 'Für wobble/shake', visibleWhen: { field: 'effect', values: ['wobble', 'shake'] } },
             { name: 'height', label: 'Sprunghöhe (px)', type: 'number', defaultValue: 20, hint: 'Für bounce', visibleWhen: { field: 'effect', values: ['bounce'] } },
-            { name: 'targetOpacity', label: 'Ziel-Transparenz (0-1)', type: 'number', defaultValue: 0, hint: 'Für fade', visibleWhen: { field: 'effect', values: ['fade'] } }
+            { name: 'targetOpacity', label: 'Ziel-Transparenz (0-1)', type: 'number', defaultValue: 0, hint: 'Für fade', visibleWhen: { field: 'effect', values: ['fade'] } },
+            { name: 'midpointTask', label: 'Midpoint-Task', type: 'select', source: 'tasks', defaultValue: '', placeholder: '--- Task auswählen ---', hint: 'Wird bei 50% des Flip-Effekts ausgeführt (z.B. um das Bild zu wechseln).', visibleWhen: { field: 'effect', values: ['flip'] } }
         ]
     });
 
