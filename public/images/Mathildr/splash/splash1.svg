@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="280.5" height="281.2" viewBox="0 0 280.5 281.2" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="a">
+      <rect x="20.5" y="30.8" width="236.1" height="236.1" style="fill:none"/>
+    </clipPath>
+  </defs>
+  <title>Element 1</title>
+  <path d="M68.7,0H211.8a68.8,68.8,0,0,1,68.7,68.9h0V212.3a68.86,68.86,0,0,1-68.7,68.9H68.7A68.8,68.8,0,0,1,0,212.3H0V68.9A68.8,68.8,0,0,1,68.7,0Z" style="fill:#82dd48"/>
+  <g style="clip-path:url(#a)">
+    <g style="opacity:1">
+      <path d="M256.6,148.8a118,118,0,1,1-118-118h0a118.09,118.09,0,0,1,118,118h0" style="fill: rgb(34, 115, 34);"/>
+    </g>
+  </g>
+  <path d="M264.3,139.7a118.05,118.05,0,1,1-118.1-118h.1a118.09,118.09,0,0,1,118,118" style="fill:#82dd48"/>
+  <path d="M264.3,132.5A110.8,110.8,0,1,1,153.5,21.7h0A110.79,110.79,0,0,1,264.3,132.5h0" style="fill:#eefbdc"/>
+</svg>
