@@ -272,6 +272,7 @@ export class InspectorSectionRenderer {
                     PropertyHelper.setPropertyValue(obj, propDef.name, [...items]);
                 }
                 context.update(obj);
+                if (context.onProjectUpdate) context.onProjectUpdate();
             };
 
             const renderItems = () => {

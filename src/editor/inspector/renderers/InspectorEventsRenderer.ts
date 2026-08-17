@@ -3,7 +3,7 @@ import { InspectorRegistry } from '../InspectorRegistry';
 import { componentRegistry } from '../../../services/ComponentRegistry';
 import { InspectorLegacyRenderer } from './InspectorLegacyRenderer';
 import { Logger } from '../../../utils/Logger';
-import { projectTaskRegistry } from '../../../services/registry/TaskRegistry';
+import { coreStore } from '../../../services/registry/CoreStore';
 
 const logger = Logger.get('InspectorEventsRenderer');
 
@@ -51,11 +51,12 @@ export class InspectorEventsRenderer {
             if ((context as any).contextBuilder) {
                 const cb = (context as any).contextBuilder;
                 if (!cb.availableTasks || cb.availableTasks.length === 0) {
-                    const tasks = projectTaskRegistry.getTasks('all');
-                    if (tasks && tasks.length > 0) {
-                        const mappedTasks = tasks.map(t => ({
+                    const activeStage = coreStore.getActiveStage();
+                    const stageTasks = (activeStage && activeStage.tasks) ? activeStage.tasks : [];
+                    if (stageTasks.length > 0) {
+                        const mappedTasks = stageTasks.map((t: any) => ({
                             value: t.name,
-                            label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
+                            label: `${t.uiEmoji || '🎭'} ${t.name}`
                         }));
                         mappedTasks.unshift({ value: '', label: '- Task auswählen... -' });
                         cb.availableTasks = mappedTasks;

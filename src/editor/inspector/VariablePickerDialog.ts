@@ -106,6 +106,13 @@ export class VariablePickerDialog {
             // Aktuellen Modus tracken
             let currentMode: 'all' | 'variable' | 'component' | 'pure_variable' = mode;
 
+            // self-Klasse (für Property-Picker) aus dem Kontext oder Default
+            let selectedSelfClass = 'TSprite';
+            if (context?.objectId) {
+                const selfObj = projectObjectRegistry.getObjects().find(o => o.id === context.objectId || o.name === context.objectId);
+                if (selfObj?.className) selectedSelfClass = selfObj.className;
+            }
+
             // Event-Listener für Radio-Buttons
             const updateMode = () => {
                 if (allRadioInput.checked) {
@@ -130,7 +137,7 @@ export class VariablePickerDialog {
             const objects = projectObjectRegistry.getObjects().map(o => ({ ...o, _isComp: true }));
             const globalComps = objects.filter(o => o.scope === 'global');
             const stageComps = [
-                { name: 'self', className: 'TSprite', _isComp: true, scope: 'local', uiEmoji: '👤' },
+                { name: 'self', className: selectedSelfClass, _isComp: true, scope: 'local', uiEmoji: '👤' },
                 ...objects.filter(o => o.scope !== 'global')
             ];
 
@@ -212,7 +219,13 @@ export class VariablePickerDialog {
                 if (showComponents && stageComps.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(stageComps, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('📦 Stage-Komponenten', filtered, selectVar, filterLower));
+                        content.appendChild(VariablePickerDialog.createSection('📦 Stage-Komponenten', filtered, selectVar, filterLower, false, (cls) => {
+                            selectedSelfClass = cls;
+                            if (stageComps[0] && stageComps[0].name === 'self') {
+                                stageComps[0].className = cls;
+                            }
+                            renderList(searchInput.value);
+                        }));
                     }
                 }
 
@@ -341,7 +354,7 @@ export class VariablePickerDialog {
         return dialog;
     }
 
-    private static createSection(title: string, vars: any[], onSelect: (name: string) => void, filter: string, hideSubFields: boolean = false): HTMLDivElement {
+    private static createSection(title: string, vars: any[], onSelect: (name: string) => void, filter: string, hideSubFields: boolean = false, onSelfClassChange?: (className: string) => void): HTMLDivElement {
         const section = document.createElement('div');
         section.style.cssText = 'padding:4px 0;';
 
@@ -385,6 +398,25 @@ export class VariablePickerDialog {
             badge.style.cssText = 'font-size:10px; color:#888; background:#222; padding:2px 6px; border-radius:3px; margin-left:8px;';
             badge.innerText = v.className === 'TStringMap' ? 'StringMap' : (v.type || 'string');
             row.appendChild(badge);
+
+            // Klassen-Dropdown für self
+            if (v.name === 'self' && onSelfClassChange) {
+                const classSelect = document.createElement('select');
+                classSelect.style.cssText = 'margin-left:8px; padding:2px 4px; background:#1a1a3e; color:#fff; border:1px solid #333; border-radius:4px; font-size:11px; outline:none; cursor:pointer;';
+                classSelect.onmousedown = (e) => e.stopPropagation();
+                const classes = componentRegistry.getRegisteredClassNames().sort();
+                classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.innerText = c;
+                    if (c === v.className) opt.selected = true;
+                    classSelect.appendChild(opt);
+                });
+                classSelect.onchange = () => {
+                    onSelfClassChange(classSelect.value);
+                };
+                row.appendChild(classSelect);
+            }
 
             // Model-Badge
             if ((v as any).objectModel) {

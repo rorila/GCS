@@ -123,19 +123,29 @@ export class FlowCondition extends FlowElement {
             const options = allVars.map(n => `\${${n}}`);
             props.push({ group: 'Condition', name: 'LeftOperandValue', type: 'select', label: 'Links Variable', options: options.length ? options : ['(Keine Variable gefunden)'] });
         } else if (this.LeftOperandType === 'property') {
-            const comps = projectObjectRegistry.getObjects('all')
-                .filter(c => c.name)
-                .map(c => ({
-                    value: c.uiScope === 'global' ? `global.${c.name}` : c.name,
-                    label: c.uiScope === 'global' ? `${c.name} (global)` : c.name
-                }));
+            const comps = [
+                { value: 'self', label: 'self' },
+                ...projectObjectRegistry.getObjects('all')
+                    .filter(c => c.name)
+                    .map(c => ({
+                        value: c.uiScope === 'global' ? `global.${c.name}` : c.name,
+                        label: c.uiScope === 'global' ? `${c.name} (global)` : c.name
+                    }))
+            ];
             props.push({ group: 'Condition', name: 'LeftOperandBaseVar', type: 'select', label: 'Links Objekt', options: comps.length ? comps : ['(Keine Elemente)'] });
 
             let availableProps: string[] = ['(Auswählen)'];
             const baseVarStr = this.LeftOperandBaseVar || '';
             const cleanTarget = baseVarStr.replace(/^global\./, '');
             const targetObj = projectObjectRegistry.getObjects('all').find(c => c.name === cleanTarget);
-            if (targetObj) {
+            if (cleanTarget === 'self') {
+                const classOptions = componentRegistry.getRegisteredClassNames().map(c => ({ value: c, label: c }));
+                props.push({ group: 'Condition', name: 'LeftOperandSelfClass', type: 'select', label: 'Links Komponententyp', options: classOptions });
+                if (this.LeftOperandSelfClass) {
+                    const inspProps = componentRegistry.getInspectorProperties({ className: this.LeftOperandSelfClass }) || [];
+                    availableProps = inspProps.map((p: any) => p.name).filter((n: string) => n);
+                }
+            } else if (targetObj) {
                 const inspProps = componentRegistry.getInspectorProperties(targetObj) || [];
                 availableProps = inspProps.map((p: any) => p.name).filter((n: string) => n);
             }
@@ -156,19 +166,29 @@ export class FlowCondition extends FlowElement {
             const options = allVars.map(n => `\${${n}}`);
             props.push({ group: 'Condition', name: 'RightOperandValue', type: 'select', label: 'Rechts Variable', options: options.length ? options : ['(Keine Variable gefunden)'] });
         } else if (this.RightOperandType === 'property') {
-            const comps = projectObjectRegistry.getObjects('all')
-                .filter(c => c.name)
-                .map(c => ({
-                    value: c.uiScope === 'global' ? `global.${c.name}` : c.name,
-                    label: c.uiScope === 'global' ? `${c.name} (global)` : c.name
-                }));
+            const comps = [
+                { value: 'self', label: 'self' },
+                ...projectObjectRegistry.getObjects('all')
+                    .filter(c => c.name)
+                    .map(c => ({
+                        value: c.uiScope === 'global' ? `global.${c.name}` : c.name,
+                        label: c.uiScope === 'global' ? `${c.name} (global)` : c.name
+                    }))
+            ];
             props.push({ group: 'Condition', name: 'RightOperandBaseVar', type: 'select', label: 'Rechts Objekt', options: comps.length ? comps : ['(Keine Elemente)'] });
 
             let availableProps: string[] = ['(Auswählen)'];
             const baseVarStr = this.RightOperandBaseVar || '';
             const cleanTarget = baseVarStr.replace(/^global\./, '');
             const targetObj = projectObjectRegistry.getObjects('all').find(c => c.name === cleanTarget);
-            if (targetObj) {
+            if (cleanTarget === 'self') {
+                const classOptions = componentRegistry.getRegisteredClassNames().map(c => ({ value: c, label: c }));
+                props.push({ group: 'Condition', name: 'RightOperandSelfClass', type: 'select', label: 'Rechts Komponententyp', options: classOptions });
+                if (this.RightOperandSelfClass) {
+                    const inspProps = componentRegistry.getInspectorProperties({ className: this.RightOperandSelfClass }) || [];
+                    availableProps = inspProps.map((p: any) => p.name).filter((n: string) => n);
+                }
+            } else if (targetObj) {
                 const inspProps = componentRegistry.getInspectorProperties(targetObj) || [];
                 availableProps = inspProps.map((p: any) => p.name).filter((n: string) => n);
             }
@@ -290,6 +310,18 @@ export class FlowCondition extends FlowElement {
         this.RightOperandValue = `${this.RightOperandBaseVar}.${v}`;
     }
 
+    public get LeftOperandSelfClass(): string { return this.data.condition?.leftSelfClass || ''; }
+    public set LeftOperandSelfClass(v: string) {
+        if (!this.data.condition) this.data.condition = {};
+        this.data.condition.leftSelfClass = v;
+    }
+
+    public get RightOperandSelfClass(): string { return this.data.condition?.rightSelfClass || ''; }
+    public set RightOperandSelfClass(v: string) {
+        if (!this.data.condition) this.data.condition = {};
+        this.data.condition.rightSelfClass = v;
+    }
+
     // Legacy Support (maps to LeftOperandValue)
     public get VariableName(): string { return this.LeftOperandValue; }
     public set VariableName(v: string) { this.LeftOperandValue = v; }
@@ -352,8 +384,8 @@ export class FlowCondition extends FlowElement {
         // statt den Setter aufzurufen. Die Setter leiten aber korrekt nach
         // this.data.condition.leftValue/rightValue um.
         const knownSetters = [
-            'LeftOperandType', 'LeftOperandValue', 'LeftOperandBaseVar', 'LeftOperandSubProp',
-            'RightOperandType', 'RightOperandValue', 'RightOperandBaseVar', 'RightOperandSubProp',
+            'LeftOperandType', 'LeftOperandValue', 'LeftOperandBaseVar', 'LeftOperandSubProp', 'LeftOperandSelfClass',
+            'RightOperandType', 'RightOperandValue', 'RightOperandBaseVar', 'RightOperandSubProp', 'RightOperandSelfClass',
             'Operator', 'Name'
         ];
         if (knownSetters.includes(propertyName)) {
@@ -365,7 +397,8 @@ export class FlowCondition extends FlowElement {
         // Bei Typ-Wechsel oder Objekt-Wechsel: vollständiger Re-Render nötig
         const reRenderTriggers = [
             'LeftOperandType', 'RightOperandType',
-            'LeftOperandBaseVar', 'RightOperandBaseVar'
+            'LeftOperandBaseVar', 'RightOperandBaseVar',
+            'LeftOperandSelfClass', 'RightOperandSelfClass'
         ];
         return reRenderTriggers.includes(propertyName);
     }

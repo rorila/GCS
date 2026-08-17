@@ -572,29 +572,37 @@ ${projectJSON}
     private async embedMedia(project: any): Promise<void> {
         const mediaRefs = new Map<string, string>(); // path -> dataUrl
 
+        const mediaExtensions = /\.(png|jpg|jpeg|gif|svg|webp|bmp|ico|mp3|ogg|wav|mp4|webm)$/i;
+        const isMediaPath = (s: string) => {
+            if (!s || typeof s !== 'string' || s.length === 0) return false;
+            if (s.startsWith('data:') || s.startsWith('http://') || s.startsWith('https://')) return false;
+            return (/(^|\/)(images|audio|video|assets)\//i).test(s) || mediaExtensions.test(s);
+        };
+
         // 1. Collect all unique media paths from the project recursively
         const collectPaths = (obj: any) => {
+            if (Array.isArray(obj)) {
+                obj.forEach((item: any) => {
+                    if (typeof item === 'string' && isMediaPath(item)) {
+                        mediaRefs.set(item, '');
+                    } else if (item && typeof item === 'object') {
+                        collectPaths(item);
+                    }
+                });
+                return;
+            }
             if (!obj || typeof obj !== 'object') return;
 
             // Common media properties (includes TImage, TAudio, TVideo, TParallaxBackground layers)
             const props = ['backgroundImage', 'src', 'icon', 'videoSource', 'image'];
             props.forEach(p => {
                 const val = obj[p];
-                if (val && typeof val === 'string' && val.length > 0 && !val.startsWith('data:') && !val.startsWith('http')) {
+                if (typeof val === 'string' && isMediaPath(val)) {
                     mediaRefs.set(val, '');
                 }
             });
 
-            // Recurse into all properties (handles objects[], stage, grid, etc.)
-            Object.values(obj).forEach(val => {
-                if (Array.isArray(val)) {
-                    val.forEach(collectPaths);
-                } else if (val && typeof val === 'object') {
-                    // Avoid recursing into some known non-component fields if needed, 
-                    // but for JSON it's safe to just go deep.
-                    collectPaths(val);
-                }
-            });
+            Object.values(obj).forEach(val => collectPaths(val));
         };
 
         collectPaths(project);
@@ -603,10 +611,13 @@ ${projectJSON}
         logger.info(`[GameExporter] Found ${mediaRefs.size} unique media files to embed.`);
         for (const [path, _] of mediaRefs) {
             try {
-                // Try absolute path first, then relative to images/ or audio/ (Fallback)
+                // Strip leading / or ./ so the path is always relative to the app root
                 let relativePath = path;
-                if (path.startsWith('/')) {
-                    relativePath = path.substring(1); 
+                if (relativePath.startsWith('./')) {
+                    relativePath = relativePath.substring(2);
+                }
+                if (relativePath.startsWith('/')) {
+                    relativePath = relativePath.substring(1);
                 }
                 const url = new URL(relativePath, window.location.href).href;
 
@@ -627,24 +638,29 @@ ${projectJSON}
 
         // 3. Replace paths with Data URLs in the project recursively
         const replacePaths = (obj: any) => {
+            if (Array.isArray(obj)) {
+                obj.forEach((item: any, i: number) => {
+                    if (typeof item === 'string' && mediaRefs.has(item)) {
+                        const dataUrl = mediaRefs.get(item);
+                        if (dataUrl) obj[i] = dataUrl;
+                    } else if (item && typeof item === 'object') {
+                        replacePaths(item);
+                    }
+                });
+                return;
+            }
             if (!obj || typeof obj !== 'object') return;
 
             const props = ['backgroundImage', 'src', 'icon', 'videoSource', 'image'];
             props.forEach(p => {
                 const val = obj[p];
-                if (val && typeof val === 'string' && mediaRefs.has(val)) {
+                if (typeof val === 'string' && mediaRefs.has(val)) {
                     const dataUrl = mediaRefs.get(val);
                     if (dataUrl) obj[p] = dataUrl;
                 }
             });
 
-            Object.values(obj).forEach(val => {
-                if (Array.isArray(val)) {
-                    val.forEach(replacePaths);
-                } else if (val && typeof val === 'object') {
-                    replacePaths(val);
-                }
-            });
+            Object.values(obj).forEach(val => replacePaths(val));
         };
 
         replacePaths(project);

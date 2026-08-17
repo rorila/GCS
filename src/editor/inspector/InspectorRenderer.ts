@@ -2,7 +2,6 @@ import { coreStore } from '../../services/registry/CoreStore';
 import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 import { actionRegistry } from '../../runtime/ActionRegistry';
 import { projectActionRegistry } from '../../services/registry/ActionRegistry';
-import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
 import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
 
 import { serviceRegistry } from '../../services/ServiceRegistry';
@@ -1184,9 +1183,11 @@ export class InspectorRenderer {
         if (!prop.source) return [];
 
         if (prop.source === 'tasks') {
+            const activeStage = coreStore.getActiveStage();
+            const stageTasks = (activeStage && activeStage.tasks) ? activeStage.tasks : [];
             return [
                 { value: '', label: '- Task auswählen... -' },
-                ...projectTaskRegistry.getTasks('all').map(t => ({ value: t.name, label: t.name }))
+                ...stageTasks.map((t: any) => ({ value: t.name, label: t.name }))
             ];
         }
         if (prop.source === 'actions') {

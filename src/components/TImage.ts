@@ -23,6 +23,9 @@ export class TImage extends TPanel {
     // Alt-Text für Barrierefreiheit
     public alt: string = '';
 
+    // Match-Wert für Paar-Vergleiche (z.B. Memory)
+    public matchValue: number = 0;
+
     constructor(name: string, x: number, y: number, width: number = 8, height: number = 6) {
         super(name, x, y, width, height);
 
@@ -90,7 +93,8 @@ export class TImage extends TPanel {
             },
             { name: 'alt', label: 'Alt-Text', type: 'string', group: 'BILD' },
             { name: 'imageOpacity', label: 'Bild-Deckkraft', type: 'number', group: 'BILD', min: 0, max: 1, step: 0.1 },
-            { name: 'fallbackColor', label: 'Fallback-Farbe', type: 'color', group: 'BILD' }
+            { name: 'fallbackColor', label: 'Fallback-Farbe', type: 'color', group: 'BILD' },
+            { name: 'matchValue', label: 'Match-Wert', type: 'number', group: 'DATEN', min: 0, step: 1 }
         ];
     }
 

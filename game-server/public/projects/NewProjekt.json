@@ -135,8 +135,8 @@
             "onClick": "SetFrontImageToCardImage"
           },
           "visible": true,
-          "x": 30,
-          "y": 22,
+          "x": 3,
+          "y": 13,
           "width": 10,
           "height": 2,
           "zIndex": 0,
@@ -163,8 +163,8 @@
             "onClick": "SetBackImageToCardImage"
           },
           "visible": true,
-          "x": 43,
-          "y": 22,
+          "x": 16,
+          "y": 13,
           "width": 10,
           "height": 2,
           "zIndex": 0,
@@ -191,8 +191,8 @@
             "onClick": "LetTheCardFlip"
           },
           "visible": true,
-          "x": 36,
-          "y": 26,
+          "x": 9,
+          "y": 17,
           "width": 10,
           "height": 2,
           "zIndex": 0,
@@ -206,69 +206,6 @@
           },
           "text": "Karten Flipp",
           "icon": ""
-        },
-        {
-          "className": "TGroupPanel",
-          "id": "obj_1786700228461_7bzfif7nj",
-          "name": "GroupPanel",
-          "scope": "stage",
-          "isHiddenInRun": false,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "LetTheCardFlip"
-          },
-          "visible": true,
-          "x": 3,
-          "y": 3,
-          "width": 8,
-          "height": 8,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#1fc740",
-            "borderColor": "transparent",
-            "borderWidth": 0,
-            "borderRadius": 25
-          },
-          "caption": "",
-          "children": [
-            {
-              "className": "TImage",
-              "id": "obj_1786696393029_nz6u9f820",
-              "name": "CardImage",
-              "scope": "stage",
-              "draggable": false,
-              "droppable": false,
-              "dragMode": "move",
-              "events": {
-                "onClick": "LetTheCardFlip"
-              },
-              "visible": true,
-              "x": 1,
-              "y": 1,
-              "width": 6,
-              "height": 6,
-              "zIndex": 1,
-              "rotation": 0,
-              "align": "NONE",
-              "collisionEnabled": false,
-              "style": {
-                "backgroundColor": "transparent",
-                "borderColor": "transparent",
-                "borderWidth": 0,
-                "borderRadius": 15
-              },
-              "src": "${List_15[1]}",
-              "objectFit": "cover",
-              "alt": "",
-              "imageOpacity": 1,
-              "fallbackColor": "#2a2a2a"
-            }
-          ]
         },
         {
           "className": "TListVariable",
@@ -302,6 +239,38 @@
             "./images/family_portrais/Miria.png",
             "./images/family_portrais/Helena.png"
           ]
+        },
+        {
+          "className": "TImage",
+          "id": "obj_1786696393029_nz6u9f820",
+          "name": "CardImage",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "LetTheCardFlip"
+          },
+          "visible": true,
+          "x": 10,
+          "y": 2,
+          "width": 8,
+          "height": 8,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#44b027",
+            "borderWidth": 15,
+            "borderRadius": 15
+          },
+          "src": "${List_15[1]}",
+          "objectFit": "cover",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a"
         }
       ],
       "actions": [
@@ -333,7 +302,7 @@
           "type": "animate",
           "name": "Act_LetTheCardFlip",
           "showDetails": false,
-          "target": "GroupPanel",
+          "target": "CardImage",
           "changes": {},
           "effect": "flip",
           "duration": 1000,
@@ -441,8 +410,8 @@
       ],
       "variables": [],
       "grid": {
-        "cols": 64,
-        "rows": 40,
+        "cols": 30,
+        "rows": 20,
         "cellSize": 20,
         "snapToGrid": true,
         "visible": true,

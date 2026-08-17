@@ -1067,9 +1067,14 @@ export class StageRenderer {
                 logger.info(`%c[BG-PATH-DIAG] "${objId}" (${className}): raw bgImg="${String(bgImg).substring(0, 100)}" location.protocol="${window.location.protocol}" location.origin="${window.location.origin}"`, 'color: #ff6b6b; font-weight: bold');
                 (el as any)._bgPathLogged = true;
             }
-            let src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
-                ? bgImg
-                : `./images/${bgImg}`;
+            let src = bgImg;
+            if (!bgImg.startsWith('http') && !bgImg.startsWith('/') && !bgImg.startsWith('.') && !bgImg.startsWith('data:')) {
+                if (bgImg.startsWith('images/') || bgImg.startsWith('audio/') || bgImg.startsWith('video/') || bgImg.startsWith('assets/')) {
+                    src = './' + bgImg;
+                } else {
+                    src = `./images/${bgImg}`;
+                }
+            }
                 
             if (src.startsWith('/images/') || src.startsWith('/audio/')) {
                 src = '.' + src;

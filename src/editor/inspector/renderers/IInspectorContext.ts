@@ -20,6 +20,7 @@ export interface IInspectorContext {
 
     // Optional callbacks from Editor
     onObjectUpdate: ((event?: any) => void) | null;
+    onProjectUpdate: (() => void) | null;
     onObjectDelete: ((obj: any) => void) | null;
     onObjectSelect: ((id: string | null) => void) | null;
 }

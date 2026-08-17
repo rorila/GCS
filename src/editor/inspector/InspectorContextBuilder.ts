@@ -204,32 +204,17 @@ export class InspectorContextBuilder {
                 'text', 'value', 'caption', 'width', 'height', 'top', 'left', 'visible', 'checked', 'progress', 'enabled', 'src'
             ],
 
-            // Liste der verfügbaren Tasks direkt aus dem CoreStore extrahieren (umgeht isolierte Cache-Module)
+            // Liste der verfügbaren Tasks direkt aus der aktuellen Stage extrahieren
             availableTasks: (() => {
-                const project = coreStore.project;
-                if (!project) return [];
-                
-                const allTasks: any[] = [];
-                if (project.tasks) {
-                    project.tasks.forEach(t => allTasks.push({ ...t, uiScope: 'global' }));
+                const activeStage = coreStore.getActiveStage();
+                const stageTasks: any[] = [];
+                if (activeStage && activeStage.tasks) {
+                    activeStage.tasks.forEach((t: any) => stageTasks.push({ ...t, uiScope: 'stage' }));
                 }
-                if (project.stages) {
-                    project.stages.forEach(stage => {
-                        if (stage.type === 'blueprint' && stage.tasks) {
-                            stage.tasks.forEach(t => {
-                                if (!allTasks.find(existing => existing.name === t.name)) {
-                                    allTasks.push({ ...t, uiScope: 'global' });
-                                }
-                            });
-                        } else if (stage.tasks) {
-                            stage.tasks.forEach(t => allTasks.push({ ...t, uiScope: 'stage' }));
-                        }
-                    });
-                }
-                
-                const mappedTasks = allTasks.map(t => ({
+
+                const mappedTasks = stageTasks.map(t => ({
                     value: t.name,
-                    label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
+                    label: `${t.uiEmoji || '🎭'} ${t.name}`
                 }));
                 mappedTasks.unshift({ value: '', label: '- Task auswählen... -' });
                 return mappedTasks;

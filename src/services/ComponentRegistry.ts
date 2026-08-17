@@ -363,6 +363,13 @@ export class ComponentRegistry {
     }
 
     /**
+     * Liefert alle registrierten Klassennamen.
+     */
+    public getRegisteredClassNames(): string[] {
+        return Array.from(this.registry.keys());
+    }
+
+    /**
      * Liefert die Inspector-Properties für eine Klasse.
      */
     public getInspectorProperties(data: any): any[] {

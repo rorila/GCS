@@ -31,9 +31,14 @@ export function getImageStyles(props: Partial<ImageCapableProps>): Record<string
     if (!src) return {};
 
     // URL normalisieren
-    let imageUrl = src.startsWith('http') || src.startsWith('/') || src.startsWith('.') || src.startsWith('data:')
-        ? src
-        : `./images/${src}`;
+    let imageUrl = src;
+    if (!src.startsWith('http') && !src.startsWith('/') && !src.startsWith('.') && !src.startsWith('data:')) {
+        if (src.startsWith('images/') || src.startsWith('audio/') || src.startsWith('video/') || src.startsWith('assets/')) {
+            imageUrl = './' + src;
+        } else {
+            imageUrl = `./images/${src}`;
+        }
+    }
     
     if (imageUrl.startsWith('/images/')) imageUrl = '.' + imageUrl;
 
