@@ -12,6 +12,7 @@
  */
 
 import { TSprite } from '../components/TSprite';
+import { PerfOverlay } from '../utils/PerfOverlay';
 import { TGameState } from '../components/TGameState';
 import { TWindow } from '../components/TWindow';
 import { GridConfig } from '../model/types';
@@ -39,6 +40,7 @@ export class GameLoopManager {
     // Grid reference - bounds are derived from this
     private gridConfig: GridConfig | null = null;
     private gameState: TGameState | null = null;
+    private gameLoopRef: any = null;
 
     // Objects
     private sprites: TSprite[] = [];
@@ -59,9 +61,19 @@ export class GameLoopManager {
     private readonly COLLISION_COOLDOWN_MS = 200;
     private readonly BOUNDARY_COOLDOWN_MS = 500;
 
+    // Adaptive FPS: Ermittelt beim Start automatisch die passende Loop-Rate
+    private targetFPS: number = 60;
+    private autoAdjustFPS: boolean = true;
+    private isBenchmarking: boolean = false;
+    private benchmarkFrameCount: number = 0;
+    private benchmarkTotalMs: number = 0;
+    private readonly BENCHMARK_FRAMES = 60;
+    private readonly BENCHMARK_THRESHOLD_MS = 18; // ~55 FPS Mindestwert
+
     // Auto-Sleep: Nach N aufeinanderfolgenden Idle-Frames wird der rAF-Loop gestoppt
     private idleFrameCount: number = 0;
     private readonly IDLE_THRESHOLD = 3;
+    private lastFrameTime: number = 0;
 
     private constructor() {
         // Private constructor for singleton
@@ -134,10 +146,13 @@ export class GameLoopManager {
             obj.className === 'TGameLoop' || obj.constructor?.name === 'TGameLoop'
         ) as any;
 
+        this.gameLoopRef = gameLoopObj || null;
         if (gameLoopObj) {
             this.boundsOffsetTop = gameLoopObj.boundsOffsetTop || 0;
             this.boundsOffsetBottom = gameLoopObj.boundsOffsetBottom || 0;
             this.boundaryMode = gameLoopObj.boundaryMode || 'clamp';
+            this.targetFPS = typeof gameLoopObj.targetFPS === 'number' ? Math.max(1, gameLoopObj.targetFPS) : 60;
+            this.autoAdjustFPS = gameLoopObj.autoAdjustFPS !== false;
         }
 
         // Clear cooldowns on init
@@ -161,7 +176,15 @@ export class GameLoopManager {
 
         this.state = 'running';
         this.lastTime = performance.now();
+        this.lastFrameTime = this.lastTime;
         this.idleFrameCount = 0;
+
+        if (this.autoAdjustFPS) {
+            this.isBenchmarking = true;
+            this.benchmarkFrameCount = 0;
+            this.benchmarkTotalMs = 0;
+            logger.info(`[GameLoopManager] Starte Performance-Benchmark für ${this.BENCHMARK_FRAMES} Frames`);
+        }
 
         this.loop();
     }
@@ -224,6 +247,14 @@ export class GameLoopManager {
     }
 
     /**
+     * Liefert die aktuell gewaehlte Ziel-Framerate.
+     * Nach dem automatischen Benchmark kann das 30 statt 60 sein.
+     */
+    public getTargetFPS(): number {
+        return this.targetFPS;
+    }
+
+    /**
      * Check if running (includes sleeping state — loop is initialized but idle)
      */
     public isRunning(): boolean {
@@ -273,17 +304,42 @@ export class GameLoopManager {
         }
 
         const now = performance.now();
-        let deltaTime = (now - this.lastTime) / 1000; // Convert to seconds
-        this.lastTime = now;
 
-        // 🚀 ANTI-JITTER: Smooth/Clamp Time Step
-        // Wenn die Framerate leicht schwankt, erzwinge exakte 60 FPS Physikschritte, 
-        // um stotternde Vektor-Bewegungen (Micro-Physics-Jitter) zu eliminieren.
-        if (deltaTime > 0.014 && deltaTime < 0.019) {
-            deltaTime = 0.01666666; 
-        } else if (deltaTime > 0.033) {
-            deltaTime = 0.033; // HARTES CLAMPING f�r Iframe-Lade-Lags (max 30fps step)
+        // Während des Benchmarks lassen wir rAF laufen, um reale Zeiten zu messen.
+        // Danach halten wir die Ziel-Framerate ein: nicht jeden möglichen Frame zeichnen.
+        if (!this.isBenchmarking) {
+            const frameInterval = 1000 / this.targetFPS;
+            if (now - this.lastFrameTime < frameInterval) {
+                this.animationFrameId = requestAnimationFrame(this.loop);
+                return;
+            }
         }
+
+        const frameMs = now - this.lastFrameTime;
+        this.lastFrameTime = now;
+
+        // Benchmark: Sammle die ersten BENCHMARK_FRAMES Durchlaeufe
+        if (this.isBenchmarking) {
+            this.benchmarkTotalMs += frameMs;
+            this.benchmarkFrameCount++;
+
+            if (this.benchmarkFrameCount >= this.BENCHMARK_FRAMES) {
+                const avgMs = this.benchmarkTotalMs / this.BENCHMARK_FRAMES;
+                this.targetFPS = avgMs > this.BENCHMARK_THRESHOLD_MS ? 30 : 60;
+                this.isBenchmarking = false;
+
+                if (this.gameLoopRef) {
+                    this.gameLoopRef.targetFPS = this.targetFPS;
+                }
+
+                logger.info(`[GameLoopManager] Benchmark beendet. Avg ${avgMs.toFixed(2)} ms -> targetFPS=${this.targetFPS}`);
+            }
+        }
+
+        // Fixer Zeitschritt passend zur Ziel-Framerate.
+        // Dadurch bleiben Bewegungen/TIMER bei 60 UND 30 FPS gleich schnell.
+        const deltaTime = 1 / this.targetFPS;
+        this.lastTime = now;
 
         // Update input controllers first
         this.inputControllers.forEach((ic: any) => {
@@ -306,6 +362,11 @@ export class GameLoopManager {
         const needsUpdate = hasActiveAnimations || hasMovingSprites || hasRuntimeUpdatables;
 
         if (needsUpdate) {
+            // DIAGNOSE: Klammert die eigene Loop-Arbeit ein, damit sich in der
+            // PerfOverlay unterscheiden laesst, ob eine lange Frame-Zeit von
+            // unserem Code oder vom Zeichnen des Browsers kommt.
+            PerfOverlay.markWorkBegin();
+
             this.idleFrameCount = 0;
 
             // Update all sprites
@@ -337,13 +398,16 @@ export class GameLoopManager {
             } else if (this.renderCallback) {
                 this.renderCallback();
             }
+
+            PerfOverlay.markWorkEnd();
         } else {
             // Idle-Frame: Nichts zu tun
             this.idleFrameCount++;
 
             // Auto-Sleep: Nach IDLE_THRESHOLD aufeinanderfolgenden Idle-Frames
-            // den rAF-Loop stoppen um CPU/Batterie zu sparen
-            if (this.idleFrameCount >= this.IDLE_THRESHOLD) {
+            // den rAF-Loop stoppen um CPU/Batterie zu sparen.
+            // Waehrend des Benchmarks nicht schlafen, damit echte Leerlaufzeiten gemessen werden.
+            if (!this.isBenchmarking && this.idleFrameCount >= this.IDLE_THRESHOLD) {
                 this.state = 'sleeping';
                 logger.debug(`Entering sleep (${this.idleFrameCount} idle frames)`);
                 return; // Kein requestAnimationFrame → Loop stoppt
@@ -379,17 +443,32 @@ export class GameLoopManager {
      * Check collisions between sprites
      */
     private checkCollisions(): void {
-        for (let i = 0; i < this.sprites.length; i++) {
-            for (let j = i + 1; j < this.sprites.length; j++) {
-                const spriteA = this.sprites[i];
-                const spriteB = this.sprites[j];
+        // PERF: Diese Paar-Schleife ist quadratisch und damit die einzige Stelle im
+        // Loop, die nicht linear mit der Sprite-Anzahl skaliert. Unsichtbare
+        // Pool-Instanzen wuerden jedes Paar ohnehin verwerfen, verursachten aber
+        // trotzdem den Schleifendurchlauf: Bei 30 Pool-Sprites mit 5 aktiven sind
+        // das 435 statt 10 Paaren pro Frame.
+        // Der Filter ist eine Momentaufnahme zum Frame-Beginn. Die Pruefungen im
+        // Rumpf bleiben deshalb erhalten, weil ein onCollision-Handler ein Sprite
+        // mitten in der Schleife freigeben (visible=false) oder animieren kann.
+        const activeSprites: TSprite[] = [];
+        for (const sprite of this.sprites) {
+            if (!sprite.visible) continue;
+            if (sprite.isAnimating) continue;
+            if ((sprite as any).collisionEnabled === false) continue;
+            activeSprites.push(sprite);
+        }
 
-                // Skip invisible pool instances
+        for (let i = 0; i < activeSprites.length; i++) {
+            for (let j = i + 1; j < activeSprites.length; j++) {
+                const spriteA = activeSprites[i];
+                const spriteB = activeSprites[j];
+
+                // Erneut pruefen: ein Event-Handler kann den Zustand mitten im Frame aendern.
                 if (!spriteA.visible || !spriteB.visible) {
                     continue;
                 }
 
-                // Skip if either sprite is currently animating
                 if (spriteA.isAnimating || spriteB.isAnimating) {
                     continue;
                 }
@@ -504,12 +583,18 @@ export class GameLoopManager {
         }
 
         // --- SPRITE VS PANEL COLLISIONS ---
-        for (let i = 0; i < this.sprites.length; i++) {
-            for (let j = 0; j < this.panels.length; j++) {
-                const sprite = this.sprites[i];
-                const panel = this.panels[j];
+        // PERF: Gleiche Filterung wie oben. Zusaetzlich werden inaktive Panels
+        // einmalig aussortiert, statt sie pro Sprite erneut zu pruefen.
+        const activePanels = this.panels.filter((p: any) =>
+            p.visible && !p.isAnimating && p.collisionEnabled !== false
+        );
 
-                // Skip invisible pool instances
+        for (let i = 0; i < activeSprites.length; i++) {
+            for (let j = 0; j < activePanels.length; j++) {
+                const sprite = activeSprites[i];
+                const panel = activePanels[j];
+
+                // Erneut pruefen: Zustand kann sich mitten im Frame geaendert haben.
                 if (!sprite.visible || !panel.visible) continue;
                 if (sprite.isAnimating || panel.isAnimating) continue;
 

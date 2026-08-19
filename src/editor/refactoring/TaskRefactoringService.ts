@@ -202,24 +202,29 @@ export class TaskRefactoringService {
     }
 
     /**
-     * Deletes a task project-wide
+     * Deletes a task – stage-bewusst.
+     * Wenn activeStageId gesetzt ist, wird nur in der aktiven Stage (+ Blueprint) gelöscht,
+     * damit Kopien anderer Stages nicht beeinflusst werden.
      */
-    public static deleteTask(project: GameProject, taskName: string): void {
+    public static deleteTask(project: GameProject, taskName: string, activeStageId?: string): void {
         const lowerName = taskName.toLowerCase();
+        const stagesToProcess = RefactoringUtils.getStagesToProcess(project, activeStageId);
 
-        // 1. Remove from lists
-        if (project.tasks) {
-            project.tasks = project.tasks.filter(t => t.name !== taskName && t.name.toLowerCase() !== lowerName);
-        }
-        if (project.stages) {
-            project.stages.forEach(stage => {
+        // 1. Ziel-Scope ermitteln
+        const inStage = stagesToProcess.some(s => s.tasks?.some((t: any) => t.name === taskName || t.name.toLowerCase() === lowerName));
+
+        // 2. Remove from lists
+        if (inStage) {
+            stagesToProcess.forEach(stage => {
                 if (stage.tasks) {
                     stage.tasks = stage.tasks.filter(t => t.name !== taskName && t.name.toLowerCase() !== lowerName);
                 }
             });
+        } else if (project.tasks) {
+            project.tasks = project.tasks.filter(t => t.name !== taskName && t.name.toLowerCase() !== lowerName);
         }
 
-        // 2. Remove event mappings
+        // 3. Remove event mappings
         const cleanupEvents = (events: any) => {
             if (!events) return;
             Object.keys(events).forEach(key => {
@@ -230,16 +235,18 @@ export class TaskRefactoringService {
             });
         };
 
-        if (project.stages) {
+        if (inStage) {
+            stagesToProcess.forEach(s => cleanupEvents(s.events));
+        } else if (project.stages) {
             project.stages.forEach(s => cleanupEvents(s.events));
         }
 
-        // 3. Remove from sequences
-        const allTasks = [... (project.tasks || [])];
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.tasks) allTasks.push(...s.tasks);
-            });
+        // 4. Remove from sequences
+        const allTasks: any[] = inStage ? [] : [...(project.tasks || [])];
+        if (inStage) {
+            stagesToProcess.forEach(s => { if (s.tasks) allTasks.push(...s.tasks); });
+        } else if (project.stages) {
+            project.stages.forEach(s => { if (s.tasks) allTasks.push(...s.tasks); });
         }
         allTasks.forEach(t => {
             if (t.actionSequence) {
@@ -247,7 +254,7 @@ export class TaskRefactoringService {
             }
         });
 
-        // 4. Remove from Object Events (Global + all Stages)
+        // 5. Remove from Object Events
         const scanAndCleanupObjects = (objs: any[]) => {
             if (!objs) return;
             objs.forEach(obj => {
@@ -257,25 +264,25 @@ export class TaskRefactoringService {
             });
         };
 
-        scanAndCleanupObjects(project.objects || []);
-        scanAndCleanupObjects(project.variables || []);
-        if (project.stages) {
-            project.stages.forEach(stage => {
+        if (inStage) {
+            stagesToProcess.forEach(stage => {
                 scanAndCleanupObjects(stage.objects || []);
                 scanAndCleanupObjects(stage.variables || []);
             });
+        } else {
+            scanAndCleanupObjects(project.objects || []);
+            scanAndCleanupObjects(project.variables || []);
+            if (project.stages) {
+                project.stages.forEach(stage => {
+                    scanAndCleanupObjects(stage.objects || []);
+                    scanAndCleanupObjects(stage.variables || []);
+                });
+            }
         }
 
-        // 5. Remove flow charts
-        if (project.flowCharts) {
-            Object.keys(project.flowCharts).forEach(key => {
-                if (key === taskName || key.toLowerCase() === lowerName) {
-                    delete project.flowCharts![key];
-                }
-            });
-        }
-        if (project.stages) {
-            project.stages.forEach(s => {
+        // 6. Remove flow charts
+        if (inStage) {
+            stagesToProcess.forEach(s => {
                 if (s.flowCharts) {
                     Object.keys(s.flowCharts).forEach(key => {
                         if (key === taskName || key.toLowerCase() === lowerName) {
@@ -284,6 +291,25 @@ export class TaskRefactoringService {
                     });
                 }
             });
+        } else {
+            if (project.flowCharts) {
+                Object.keys(project.flowCharts).forEach(key => {
+                    if (key === taskName || key.toLowerCase() === lowerName) {
+                        delete project.flowCharts![key];
+                    }
+                });
+            }
+            if (project.stages) {
+                project.stages.forEach(s => {
+                    if (s.flowCharts) {
+                        Object.keys(s.flowCharts).forEach(key => {
+                            if (key === taskName || key.toLowerCase() === lowerName) {
+                                delete s.flowCharts![key];
+                            }
+                        });
+                    }
+                });
+            }
         }
 
         TaskRefactoringService.logger.info(`Task "${taskName}" erfolgreich aus dem Projekt-Modell (JSON) gelöscht.`);

@@ -380,12 +380,14 @@ primary_region = "fra"
         const gridConfig = mainStage?.grid || { cols: 20, rows: 15, cellSize: 32, backgroundColor: '#ffffff' };
         const stageWidth = gridConfig.cols * gridConfig.cellSize;
         const stageHeight = gridConfig.rows * gridConfig.cellSize;
+        const pwaHead = this.generatePWAHead(project);
 
         return `<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+${pwaHead}
     <title>${SecurityUtils.escapeHtml(project.meta.name || 'New Game')}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -483,11 +485,14 @@ ${projectJSON}
         const stageWidth = gridConfig.cols * gridConfig.cellSize;
         const stageHeight = gridConfig.rows * gridConfig.cellSize;
 
+        const pwaHead = this.generatePWAHead(project);
+
         return `<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+${pwaHead}
     <title>${SecurityUtils.escapeHtml(project.meta.name || 'New Game')}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -737,5 +742,41 @@ ${projectJSON}
         a.click();
         setTimeout(() => document.body.removeChild(a), 2000);
         NotificationToast.show(`Game exported to Downloads folder.\n\nFile: ${filename}`);
+    }
+
+    /**
+     * Generiert PWA-Head-Markup: ein data-URI Manifest und Apple-Meta-Tags.
+     * Im Single-File-Export kann keine separate manifest.json ausgeliefert werden,
+     * deshalb wird das Manifest inline als data:application/json;base64 verpackt.
+     */
+    private generatePWAHead(project: any): string {
+        const name = SecurityUtils.escapeHtml(project.meta?.name || 'GCS Spiel');
+        const shortName = name.length > 12 ? name.substring(0, 9) + '...' : name;
+        const themeColor = '#0f172a';
+        const backgroundColor = '#0f172a';
+
+        const manifest = {
+            name: project.meta?.name || 'GCS Spiel',
+            short_name: shortName,
+            start_url: '.',
+            display: 'standalone',
+            background_color: backgroundColor,
+            theme_color: themeColor,
+            lang: 'de',
+            orientation: 'any',
+            icons: [
+                { src: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIGZpbGw9IiMwZjE3MmEiLz48dGV4dCB4PSI5NiIgeT0iMTEwIiBmb250LXNpemU9IjcwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNGZhY2ZlIj7wn5iBPC90ZXh0Pjwvc3ZnPg==', sizes: '192x192', type: 'image/svg+xml' }
+            ]
+        };
+
+        const manifestJson = JSON.stringify(manifest);
+        const manifestB64 = btoa(manifestJson);
+
+        return `    <meta name="theme-color" content="${themeColor}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="${name}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="data:application/json;base64,${manifestB64}">`;
     }
 }

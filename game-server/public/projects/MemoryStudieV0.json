@@ -103,8 +103,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -372,6 +372,17 @@
           "changes": {
             "CardImage.src": "${List_15[0]}"
           }
+        },
+        {
+          "id": "node-1786962223641",
+          "details": "",
+          "type": "property",
+          "name": "Act_TestTask",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardImage.visible": false
+          }
         }
       ],
       "tasks": [
@@ -604,7 +615,6 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
-          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -624,8 +634,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         },
         {
@@ -794,8 +804,11 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onTimer": "SetAllCardsBack"
+          },
           "visible": true,
-          "x": 21,
+          "x": 19,
           "y": 14,
           "width": 4,
           "height": 2,
@@ -808,9 +821,9 @@
             "borderColor": "#2e7d32",
             "borderWidth": 2
           },
-          "interval": 1000,
+          "interval": 2000,
           "enabled": false,
-          "maxInterval": 0,
+          "maxInterval": 1,
           "currentInterval": 0
         },
         {
@@ -839,7 +852,9 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "type": "Variable",
+          "type": "integer",
+          "defaultValue": 99,
+          "value": 99,
           "objectModel": ""
         },
         {
@@ -868,7 +883,9 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "type": "Variable",
+          "type": "integer",
+          "defaultValue": 99,
+          "value": "99]",
           "objectModel": ""
         },
         {
@@ -889,11 +906,12 @@
           "align": "NONE",
           "collisionEnabled": false,
           "style": {
+            "textAlign": "center",
             "backgroundColor": "transparent",
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "text": "ErgebnisLabel"
+          "text": "Klicke auf eine Karte"
         }
       ],
       "actions": [
@@ -1017,7 +1035,7 @@
           "name": "Act_SetFirstValue",
           "showDetails": false,
           "changes": {
-            "${KeyStore_18.keyProperty}.self.matchValue": ""
+            "Var_FirstValue": "${self.matchValue}"
           }
         },
         {
@@ -1102,7 +1120,7 @@
           "showDetails": false,
           "target": "",
           "changes": {
-            "self.matchValue": ""
+            "Var_SecondValue": "${self.matchValue}"
           }
         },
         {
@@ -1125,6 +1143,134 @@
           "target": "",
           "changes": {
             "ErgebnisLabel.text": "Daneben!!"
+          }
+        },
+        {
+          "id": "node-1786978874715",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSecondCardInfo",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ErgebnisLabel.text": "Klicke auf eine 2. Karte"
+          }
+        },
+        {
+          "id": "node-1786979390827",
+          "details": "",
+          "type": "property",
+          "name": "Act_StartBackCardTimer",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardTimer.enabled": true
+          }
+        },
+        {
+          "id": "node-1786979524878",
+          "details": "",
+          "type": "animate",
+          "name": "Act_SetFirstCardBack",
+          "showDetails": false,
+          "target": "CardImage1",
+          "changes": {},
+          "effect": "flip",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetBackCardToFirstCard"
+        },
+        {
+          "id": "node-1786979611068",
+          "details": "",
+          "type": "animate",
+          "name": "Act_SetSecondCardBack",
+          "showDetails": false,
+          "target": "CardImage2",
+          "changes": {},
+          "effect": "flip",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetBackCardToSecondCard"
+        },
+        {
+          "id": "node-1786979648826",
+          "details": "",
+          "type": "animate",
+          "name": "Act_SetThirdCardBack",
+          "showDetails": false,
+          "target": "CardImage3",
+          "changes": {},
+          "effect": "flip",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetBackCardToThirdCard"
+        },
+        {
+          "id": "node-1786980372525",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBackCardToFirstCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardImage1.src": "${List_15[4]}"
+          }
+        },
+        {
+          "id": "node-1786988997411",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBackCardToSecondCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardImage2.src": "${List_15[4]}"
+          }
+        },
+        {
+          "id": "node-1786989057430",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBackCardToThirdCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardImage3.src": "${List_15[4]}"
+          }
+        },
+        {
+          "id": "node-1786989232534",
+          "details": "",
+          "type": "property",
+          "name": "Act_InitGame",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Var_IsFrontCardViewing": false,
+            "Var_IsFirstCardSelected": false,
+            "Var_IsSecondCardSelected": false,
+            "CardTimer.enabled": false,
+            "Var_FirstValue": 99,
+            "Var_SecondValue": 99
           }
         }
       ],
@@ -1202,6 +1348,11 @@
                   "name": "Act_SetFirstValue",
                   "type": "action",
                   "layout": "horizontal"
+                },
+                {
+                  "name": "Act_SetSecondCardInfo",
+                  "type": "action",
+                  "layout": "horizontal"
                 }
               ],
               "elseBody": [
@@ -1225,30 +1376,14 @@
                       "name": "Act_setSecondValue",
                       "type": "action",
                       "layout": "horizontal"
+                    },
+                    {
+                      "type": "task",
+                      "name": "CheckSelectedCards",
+                      "layout": "horizontal"
                     }
                   ],
-                  "elseBody": [
-                    {
-                      "condition": {
-                        "leftValue": "${Var_FirstValue}",
-                        "rightType": "variable",
-                        "rightValue": "${Var_SecondValue}"
-                      },
-                      "type": "condition",
-                      "body": [
-                        {
-                          "name": "Act_ShowCoupleInfo",
-                          "type": "action"
-                        }
-                      ],
-                      "elseBody": [
-                        {
-                          "name": "Act_ShowErrorInfo",
-                          "type": "action"
-                        }
-                      ]
-                    }
-                  ]
+                  "elseBody": []
                 }
               ]
             }
@@ -1265,15 +1400,19 @@
               "y": 140
             },
             "Act_FlippAndShowFrontCard": {
-              "x": 380,
+              "x": 360,
               "y": 240
             },
             "Act_SetIsFirstCardSeletedToTrue": {
-              "x": 680,
+              "x": 660,
               "y": 140
             },
             "Act_SetFirstValue": {
-              "x": 1000,
+              "x": 980,
+              "y": 140
+            },
+            "Act_SetSecondCardInfo": {
+              "x": 1200,
               "y": 140
             },
             "${Var_IsSecondCardSelected} == false": {
@@ -1281,24 +1420,16 @@
               "y": 240
             },
             "Act_SetIsSecondCardSeletedToTrue": {
-              "x": 680,
+              "x": 660,
               "y": 240
             },
             "Act_setSecondValue": {
-              "x": 1020,
+              "x": 1000,
               "y": 240
             },
-            "${Var_FirstValue} == ${Var_SecondValue}": {
-              "x": 40,
-              "y": 340
-            },
-            "Act_ShowCoupleInfo": {
-              "x": 380,
-              "y": 340
-            },
-            "Act_ShowErrorInfo": {
-              "x": 40,
-              "y": 440
+            "CheckSelectedCards": {
+              "x": 1240,
+              "y": 240
             }
           }
         },
@@ -1386,6 +1517,256 @@
               "y": 340
             }
           }
+        },
+        {
+          "id": "15aea11d-4eb9-4deb-9f81-d6a27fc7addb",
+          "name": "CheckSelectedCards",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftValue": "${Var_FirstValue}",
+                "rightType": "variable",
+                "rightValue": "${Var_SecondValue}"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_ShowCoupleInfo",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "name": "Act_ShowErrorInfo",
+                  "type": "action"
+                },
+                {
+                  "type": "task",
+                  "name": "StartBackCardTimer"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckSelectedCards": {
+              "x": 40,
+              "y": 40
+            },
+            "${Var_FirstValue} == ${Var_SecondValue}": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_ShowCoupleInfo": {
+              "x": 380,
+              "y": 140
+            },
+            "Act_ShowErrorInfo": {
+              "x": 40,
+              "y": 240
+            },
+            "StartBackCardTimer": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "id": "1abf8c74-202c-463c-9ea0-f817b4032b7e",
+          "name": "SetCardsBackToBackCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_StartBackCardTimer",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetCardsBackToBackCard": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_StartBackCardTimer": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "9629c34f-bb5c-496e-a036-dd06d97e5413",
+          "name": "SetAllCardsBack",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetFirstCardBack",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_SetSecondCardBack",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_SetThirdCardBack",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "type": "task",
+              "name": "InitGame",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetAllCardsBack": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetFirstCardBack": {
+              "x": 260,
+              "y": 40
+            },
+            "Act_SetSecondCardBack": {
+              "x": 500,
+              "y": 40
+            },
+            "Act_SetThirdCardBack": {
+              "x": 760,
+              "y": 40
+            },
+            "InitGame": {
+              "x": 1020,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "8902ec74-2d2b-40f8-9bbd-968ace2ffa38",
+          "name": "StartBackCardTimer",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_StartBackCardTimer",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StartBackCardTimer": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_StartBackCardTimer": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "d2d97be2-eeee-40ca-a1dd-d0edf23f54de",
+          "name": "SetBackCardToFirstCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBackCardToFirstCard",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetBackCardToFirstCard": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetBackCardToFirstCard": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "b9c2b820-56cb-481f-935e-c52dd87d02e8",
+          "name": "SetBackCardToSecondCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBackCardToSecondCard",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetBackCardToSecondCard": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 340,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "c63aa33d-729b-4dbe-92b3-20983370320f",
+          "name": "SetBackCardToThirdCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBackCardToThirdCard",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetBackCardToThirdCard": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetBackCardToThirdCard": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "e4c1a9cd-a1bd-4d33-9959-59bcea666c33",
+          "name": "InitGame",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_InitGame",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "InitGame": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_InitGame": {
+              "x": 220,
+              "y": 40
+            }
+          }
         }
       ],
       "variables": [],
@@ -1414,7 +1795,7 @@
       ]
     }
   ],
-  "activeStageId": "main",
+  "activeStageId": "stage_bc83afa0-3b13-45ff-9b08-7a3ef4b81f96",
   "userStories": {
     "userStories": []
   },

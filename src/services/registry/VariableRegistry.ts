@@ -49,8 +49,11 @@ class VariableRegistry {
             'TTimerVariable', 'TTriggerVariable', 'TThresholdVariable', 'TRangeVariable',
             'TStringMap'
         ]);
-        const allStages = project.stages || [];
-        for (const stage of allStages) {
+        const stagesToProcess = (scopeFilter === 'all' || !coreStore.activeStageId)
+            ? (project.stages || [])
+            : [(project.stages || []).find(s => s.id === coreStore.activeStageId)].filter(Boolean);
+        for (const stage of stagesToProcess as any[]) {
+            if (!stage) continue;
             if (!stage.objects) continue;
             const isBlueprint = stage.type === 'blueprint';
             for (const obj of stage.objects) {
@@ -68,12 +71,7 @@ class VariableRegistry {
         }
 
         // 2. Stage variables
-        if (project.stages) {
-            const stagesToProcess = (scopeFilter === 'all') 
-                ? project.stages 
-                : (coreStore.activeStageId ? [project.stages.find(s => s.id === coreStore.activeStageId)].filter(Boolean) : []);
-
-            for (const stage of stagesToProcess as any[]) {
+        for (const stage of stagesToProcess as any[]) {
                 if (stage && stage.variables) {
                     const isBlueprint = stage.type === 'blueprint';
                     const stageVars = stage.variables
@@ -98,7 +96,6 @@ class VariableRegistry {
                     });
                 }
             }
-        }
 
         // 3. Task variables
         if (context?.taskName) {

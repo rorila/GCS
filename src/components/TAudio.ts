@@ -59,9 +59,11 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
     // ----------------------------------------------------
 
     public initRuntime(_callbacks: { handleEvent: any }): void {
-        // Prepare preloading if configured
+        // Prepare preloading if configured.
+        // Die eigene id muss mitgegeben werden, damit play() genau dieses
+        // vorgeladene Element wiederverwendet statt neu zu dekodieren.
         if (this.preload && this.src) {
-            AudioManager.getInstance().loadAudio(this.src);
+            AudioManager.getInstance().loadAudio(this.src, this.id);
         }
     }
 

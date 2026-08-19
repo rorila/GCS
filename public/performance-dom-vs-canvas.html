@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>DOM vs Canvas — Sprite-Performance</title>
+    <style>
+        :root { --bg: #0f172a; --panel: #1e293b; --accent: #4facfe; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { display: flex; flex-direction: column; }
+        #controls { padding: 12px 16px; background: var(--panel); border-bottom: 1px solid #334155; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        #stage { flex: 1; position: relative; overflow: hidden; display: none; }
+        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; touch-action: none; }
+        #results { padding: 12px 16px; background: var(--panel); border-top: 1px solid #334155; min-height: 120px; }
+        button { background: var(--accent); color: #0f172a; border: 0; border-radius: 4px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+        button:disabled { opacity: 0.5; cursor: wait; }
+        select, input { padding: 7px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }
+        .run { background: #22c55e; color: #052e16; }
+        .stop { background: #ef4444; color: #450a0a; }
+        .row { display: flex; gap: 12px; align-items: center; }
+        .metric { font-family: ui-monospace, 'Cascadia Code', monospace; font-size: 0.95rem; }
+        .dom-sprite { position: absolute; border-radius: 2px; will-change: transform; }
+        table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+        th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; }
+        .ok { color: #22c55e; }
+        .warn { color: #f59e0b; }
+        .bad { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <div class="row">
+            <label for="count">Sprites:</label>
+            <select id="count">
+                <option value="10" selected>10</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+            </select>
+        </div>
+        <div class="row">
+            <label for="mode">Modus:</label>
+            <select id="mode">
+                <option value="dom" selected>DOM</option>
+                <option value="canvas">Canvas 2D</option>
+            </select>
+        </div>
+        <button id="run" class="run">Messung starten</button>
+        <button id="ramp" class="run">Staffel 10 → 1000</button>
+        <button id="stop" class="stop" disabled>Stopp</button>
+        <div class="metric" id="live">Bereit</div>
+    </div>
+    <div id="stage"></div>
+    <canvas id="canvas" width="1280" height="800" style="display:none"></canvas>
+    <div id="results">
+        <table id="table" style="display:none">
+            <thead>
+                <tr><th>Modus</th><th>Sprites</th><th>FPS</th><th>Frame ms</th><th>1% Langsamst</th><th>Speicher Δ MB</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+
+<script>
+const stage = document.getElementById('stage');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+const countEl = document.getElementById('count');
+const modeEl = document.getElementById('mode');
+const runBtn = document.getElementById('run');
+const rampBtn = document.getElementById('ramp');
+const stopBtn = document.getElementById('stop');
+const liveEl = document.getElementById('live');
+const table = document.getElementById('table');
+const tbody = document.getElementById('tbody');
+
+let running = false;
+let rafId = 0;
+let sprites = [];
+let frames = [];
+let lastTime = 0;
+let t0 = 0;
+let memStart = 0;
+const duration = 5000; // ms
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - stage.getBoundingClientRect().top;
+    if (canvas.offsetParent) canvas.style.display = 'block';
+}
+
+function randomColor() {
+    return `hsl(${Math.random() * 360 | 0}, 70%, 60%)`;
+}
+
+function createSpritesDOM(n) {
+    stage.innerHTML = '';
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        const el = document.createElement('div');
+        el.className = 'dom-sprite';
+        const size = 24 + Math.random() * 40 | 0;
+        const x = Math.random() * (w - size);
+        const y = Math.random() * (h - size);
+        const vx = (Math.random() - 0.5) * 400;
+        const vy = (Math.random() - 0.5) * 400;
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        el.style.background = randomColor();
+        el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        stage.appendChild(el);
+        out.push({ el, x, y, w: w - size, h: h - size, vx, vy, size });
+    }
+    return out;
+}
+
+function createSpritesCanvas(n) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        const size = 24 + Math.random() * 40 | 0;
+        out.push({
+            x: Math.random() * (w - size),
+            y: Math.random() * (h - size),
+            w: w - size, h: h - size,
+            vx: (Math.random() - 0.5) * 400,
+            vy: (Math.random() - 0.5) * 400,
+            size,
+            color: randomColor()
+        });
+    }
+    return out;
+}
+
+function updateDOM(dt) {
+    for (const s of sprites) {
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        if (s.x <= 0) { s.x = 0; s.vx = Math.abs(s.vx); }
+        else if (s.x >= s.w) { s.x = s.w; s.vx = -Math.abs(s.vx); }
+        if (s.y <= 0) { s.y = 0; s.vy = Math.abs(s.vy); }
+        else if (s.y >= s.h) { s.y = s.h; s.vy = -Math.abs(s.vy); }
+        s.el.style.transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0)`;
+    }
+}
+
+function updateCanvas(dt) {
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (const s of sprites) {
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        if (s.x <= 0) { s.x = 0; s.vx = Math.abs(s.vx); }
+        else if (s.x >= s.w) { s.x = s.w; s.vx = -Math.abs(s.vx); }
+        if (s.y <= 0) { s.y = 0; s.vy = Math.abs(s.vy); }
+        else if (s.y >= s.h) { s.y = s.h; s.vy = -Math.abs(s.vy); }
+        ctx.fillStyle = s.color;
+        ctx.fillRect(s.x | 0, s.y | 0, s.size, s.size);
+    }
+}
+
+function frame(time) {
+    if (!running) return;
+    if (!lastTime) lastTime = time;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+
+    if (mode === 'dom') updateDOM(dt); else updateCanvas(dt);
+
+    frames.push(dt);
+    const now = performance.now();
+    const elapsed = now - t0;
+    const fps = frames.length / (elapsed / 1000);
+    liveEl.textContent = `Sprites: ${sprites.length} | FPS: ${fps.toFixed(1)} | Frame: ${(dt * 1000).toFixed(2)} ms | ${(elapsed / 1000).toFixed(1)}s`;
+
+    if (elapsed < duration) {
+        rafId = requestAnimationFrame(frame);
+    } else {
+        stop();
+    }
+}
+
+function percentile(arr, p) {
+    const sorted = arr.slice().sort((a, b) => a - b);
+    const idx = Math.floor(sorted.length * p);
+    return sorted[idx] * 1000;
+}
+
+function status(fps) {
+    if (fps >= 55) return '<span class="ok">gut</span>';
+    if (fps >= 30) return '<span class="warn">zum Spielen ok</span>';
+    return '<span class="bad">ruckelt</span>';
+}
+
+function record(modeName, n, fps, frameMs, p99) {
+    const memNow = (performance.memory && performance.memory.usedJSHeapSize) || 0;
+    const memDelta = memStart ? ((memNow - memStart) / 1024 / 1024).toFixed(1) : 'n/a';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${modeName}</td><td>${n}</td><td>${fps.toFixed(1)}</td><td>${frameMs.toFixed(2)}</td><td>${p99.toFixed(2)}</td><td>${memDelta}</td><td>${status(fps)}</td>`;
+    tbody.appendChild(tr);
+    table.style.display = 'table';
+}
+
+let mode = 'dom';
+
+async function runOnce(n, forcedMode) {
+    if (running) await stop();
+    running = true;
+    frames = [];
+    lastTime = 0;
+    t0 = performance.now();
+    memStart = (performance.memory && performance.memory.usedJSHeapSize) || 0;
+    mode = forcedMode || modeEl.value;
+    const count = n || parseInt(countEl.value, 10);
+
+    runBtn.disabled = true;
+    rampBtn.disabled = true;
+    stopBtn.disabled = false;
+    resize();
+
+    if (mode === 'dom') {
+        canvas.style.display = 'none';
+        stage.style.display = 'block';
+        sprites = createSpritesDOM(count);
+    } else {
+        stage.style.display = 'none';
+        canvas.style.display = 'block';
+        stage.innerHTML = '';
+        resize();
+        sprites = createSpritesCanvas(count);
+    }
+
+    rafId = requestAnimationFrame(frame);
+
+    return new Promise(resolve => {
+        const check = setInterval(() => {
+            if (!running) {
+                clearInterval(check);
+                resolve(null);
+            }
+        }, 50);
+    });
+}
+
+function stop() {
+    running = false;
+    cancelAnimationFrame(rafId);
+    const now = performance.now();
+    const elapsed = now - t0;
+    const fps = frames.length / (elapsed / 1000);
+    const avg = frames.reduce((a, b) => a + b, 0) / frames.length * 1000;
+    const p99 = percentile(frames, 0.99);
+    record(mode === 'dom' ? 'DOM' : 'Canvas', sprites.length, fps, avg, p99);
+    liveEl.textContent = `Fertig: ${sprites.length} Sprites, ${fps.toFixed(1)} FPS, ${avg.toFixed(2)} ms/Frame`;
+    runBtn.disabled = false;
+    rampBtn.disabled = false;
+    stopBtn.disabled = true;
+}
+
+async function ramp() {
+    tbody.innerHTML = '';
+    table.style.display = 'table';
+    const counts = [10, 50, 100, 250, 500, 1000];
+    const forced = modeEl.value;
+    for (const c of counts) {
+        countEl.value = String(c);
+        await runOnce(c, forced);
+        // Kurze Pause, damit der Browser aufräumen kann
+        await new Promise(r => setTimeout(r, 400));
+    }
+    liveEl.textContent = 'Staffel-Messung abgeschlossen.';
+}
+
+runBtn.addEventListener('click', () => runOnce());
+rampBtn.addEventListener('click', ramp);
+stopBtn.addEventListener('click', () => { if (running) stop(); });
+window.addEventListener('resize', resize);
+</script>
+</body>
+</html>

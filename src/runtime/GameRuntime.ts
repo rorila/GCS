@@ -196,15 +196,43 @@ export class GameRuntime implements IVariableHost {
                             const isVariableLike = obj?.isVariable || obj?.className?.includes('Variable') || !obj?.id || Array.isArray(obj);
 
                             if (isVariableLike && options.onComponentUpdate) {
+                                // PERF: Frueher wurde hier JEDES Objekt der Buehne
+                                // aufgefrischt — samt Theme-Merge und Layout-Rechnung —
+                                // auch wenn es die Variable gar nicht verwendet. Bei einer
+                                // Variable im Sekundentakt (Zeitanzeige) verursachte das
+                                // sekuendliche Aussetzer.
+                                if (!(this as any)._pendingVarProps) {
+                                    (this as any)._pendingVarProps = new Set<string>();
+                                }
+                                (this as any)._pendingVarProps.add(prop);
+
                                 if (!(this as any)._softRenderScheduled) {
                                     (this as any)._softRenderScheduled = true;
                                     requestAnimationFrame(() => {
                                         (this as any)._softRenderScheduled = false;
-                                        const objs = this.objects || [];
+                                        const props: Set<string> = (this as any)._pendingVarProps || new Set<string>();
+                                        (this as any)._pendingVarProps = new Set<string>();
+
+                                        const targets = new Set<any>();
+                                        let unbound = false;
+                                        props.forEach(p => {
+                                            const deps = this.reactiveRuntime.getObjectsDependingOn(p);
+                                            if (deps.length === 0) unbound = true;
+                                            deps.forEach(d => targets.add(d));
+                                        });
+
+                                        // Sicherheitsnetz: Ist zu einer Variable keine
+                                        // Bindung bekannt, kann sie ueber einen anderen Weg
+                                        // angezeigt werden. Dann bleibt es beim bisherigen
+                                        // Verhalten, damit nichts stehen bleibt.
+                                        const objs: any[] = unbound
+                                            ? (this.objects || [])
+                                            : Array.from(targets);
+
                                         for (let i = 0; i < objs.length; i++) {
                                             const o = objs[i];
                                             if (o && o.id && !o.isVariable && !o.isService) {
-                                                options.onComponentUpdate!(o, prop);
+                                                options.onComponentUpdate!(o, 'variable');
                                             }
                                         }
                                     });

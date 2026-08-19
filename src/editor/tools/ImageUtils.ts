@@ -88,3 +88,70 @@ export function removeBackgroundFromImageData(
 
     return new ImageData(data, imageData.width, imageData.height);
 }
+
+/**
+ * Verkleinert ein einzelnes Frame mit alpha-gewichteter Mittelung.
+ *
+ * Eine gewoehnliche Mittelung zieht die Farbe transparenter Pixel (meist Schwarz)
+ * in die Kanten und erzeugt dunkle Saeume. Hier bestimmt das Alpha das Gewicht:
+ * voellig transparente Pixel steuern keine Farbe bei, ihr Alpha zaehlt aber
+ * weiterhin fuer die Deckkraft des Zielpixels.
+ *
+ * Die Funktion arbeitet auf ImageData, damit sie weder vom Quellformat noch von
+ * einem Canvas abhaengt.
+ */
+export function downscaleFrameAlphaWeighted(
+    src: ImageData,
+    dstWidth: number,
+    dstHeight: number
+): ImageData {
+    if (dstWidth <= 0 || dstHeight <= 0) {
+        throw new Error(`downscaleFrameAlphaWeighted: Zielmasse ungueltig ${dstWidth}x${dstHeight}`);
+    }
+    if (!src || !src.data || src.width <= 0 || src.height <= 0) {
+        throw new Error('downscaleFrameAlphaWeighted: Quell-ImageData ungueltig');
+    }
+
+    const out = new Uint8ClampedArray(dstWidth * dstHeight * 4);
+    const xRatio = src.width / dstWidth;
+    const yRatio = src.height / dstHeight;
+
+    for (let dy = 0; dy < dstHeight; dy++) {
+        const y0 = Math.floor(dy * yRatio);
+        const y1 = Math.max(y0 + 1, Math.floor((dy + 1) * yRatio));
+
+        for (let dx = 0; dx < dstWidth; dx++) {
+            const x0 = Math.floor(dx * xRatio);
+            const x1 = Math.max(x0 + 1, Math.floor((dx + 1) * xRatio));
+
+            let rSum = 0, gSum = 0, bSum = 0, aSum = 0, count = 0;
+
+            for (let y = y0; y < y1; y++) {
+                for (let x = x0; x < x1; x++) {
+                    const i = (y * src.width + x) * 4;
+                    const a = src.data[i + 3];
+                    rSum += src.data[i] * a;
+                    gSum += src.data[i + 1] * a;
+                    bSum += src.data[i + 2] * a;
+                    aSum += a;
+                    count++;
+                }
+            }
+
+            const o = (dy * dstWidth + dx) * 4;
+            if (aSum > 0) {
+                out[o] = rSum / aSum;
+                out[o + 1] = gSum / aSum;
+                out[o + 2] = bSum / aSum;
+                out[o + 3] = aSum / count;
+            } else {
+                out[o] = 0;
+                out[o + 1] = 0;
+                out[o + 2] = 0;
+                out[o + 3] = 0;
+            }
+        }
+    }
+
+    return new ImageData(out, dstWidth, dstHeight);
+}

@@ -70,6 +70,17 @@ export class Logger {
         return new Logger(prefix, useCase);
     }
 
+    /**
+     * PERF: Prueft, ob eine Ausgabe fuer dieses Level ueberhaupt erfolgen wuerde.
+     * Aufrufer in heissen Pfaden (Render-Loop) koennen damit die Konstruktion
+     * teurer Nachrichten (Template-Strings, JSON, Objekt-Traversierung) vermeiden.
+     */
+    public isEnabled(level: LogLevel): boolean {
+        if (level < this.level || level < Logger.globalLevel) return false;
+        if (level < LogLevel.ERROR && this.useCase && !Logger.useCaseFilter(this.useCase)) return false;
+        return true;
+    }
+
     public debug(...args: any[]): void {
         this.log(LogLevel.DEBUG, ...args);
     }

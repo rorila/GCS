@@ -18,6 +18,7 @@ export type BoundaryMode = 'clamp' | 'event-only' | 'bounce';
 export class TGameLoop extends TWindow {
     // Loop settings (read by GameLoopManager)
     public targetFPS: number = 60;
+    public autoAdjustFPS: boolean = true;
     public state: GameLoopState = 'stopped';
 
     // Offset for playable area (e.g., for headers/footers)
@@ -59,6 +60,7 @@ export class TGameLoop extends TWindow {
         return [
             ...super.getInspectorProperties(),
             { name: 'targetFPS', label: 'Target FPS', type: 'number', group: 'Loop Settings' },
+            { name: 'autoAdjustFPS', label: 'Auto FPS anpassen', type: 'boolean', group: 'Loop Settings' },
             { name: 'boundaryMode', label: 'Boundary Mode', type: 'select', group: 'Boundaries', options: ['clamp', 'event-only', 'bounce'] },
             { name: 'boundsOffsetTop', label: 'Bounds Offset Top', type: 'number', group: 'Boundaries' },
             { name: 'boundsOffsetBottom', label: 'Bounds Offset Bottom', type: 'number', group: 'Boundaries' }

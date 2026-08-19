@@ -5,6 +5,7 @@ import { ActionRefactoringService } from './refactoring/ActionRefactoringService
 import { ObjectRefactoringService } from './refactoring/ObjectRefactoringService';
 import { SanitizationService } from './refactoring/SanitizationService';
 import { mediatorService, MediatorEvents } from '../services/MediatorService';
+import { coreStore } from '../services/registry/CoreStore';
 
 /**
  * RefactoringManager (Facade / Delegator)
@@ -23,7 +24,8 @@ export class RefactoringManager {
      * Renames a task project-wide
      */
     public static renameTask(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
-        TaskRefactoringService.renameTask(project, oldName, newName, activeStageId);
+        const stageId = activeStageId || coreStore.activeStageId || undefined;
+        TaskRefactoringService.renameTask(project, oldName, newName, stageId);
         mediatorService.notify(MediatorEvents.TASK_RENAMED, { oldName, newName });
     }
 
@@ -99,7 +101,7 @@ export class RefactoringManager {
     }
 
     public static deleteTask(project: GameProject, taskName: string): void {
-        TaskRefactoringService.deleteTask(project, taskName);
+        TaskRefactoringService.deleteTask(project, taskName, coreStore.activeStageId || undefined);
     }
 
     public static deleteVariable(project: GameProject, variableNameOrId: string): string[] {

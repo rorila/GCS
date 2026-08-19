@@ -1,9 +1,22 @@
 import { IRenderContext } from './IRenderContext';
 import { projectObjectRegistry } from '../../../services/registry/ObjectRegistry';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
+import { SpriteGeometry } from '../../../runtime/SpriteGeometry';
+import { ImageMetaCache } from '../../../runtime/ImageMetaCache';
 import { Logger } from '../../../utils/Logger';
 
 const spriteLogger = Logger.get('SpriteRenderer', 'Asset_Diagnostics');
+
+/**
+ * Grenzen fuer die Befoerderung der Blatt-Ebene auf eine eigene GPU-Ebene.
+ *
+ * Eine befoerderte Blatt-Ebene belegt Grafikspeicher in Groesse des gesamten
+ * Rasters, also hCount * vCount mal der Sprite-Flaeche. Das ist der Preis dafuer,
+ * dass der Frame-Wechsel ohne Neuzeichnen auskommt. Auf Geraeten mit geteiltem
+ * Speicher darf dieser Preis nicht beliebig oft anfallen.
+ */
+const SHEET_FRAME_BUDGET = 12;
+const POOL_PROMOTION_LIMIT = 8;
 
 export class SpriteRenderer {
     public static render(ctx: IRenderContext, el: HTMLElement, obj: any): void {
@@ -117,6 +130,10 @@ export class SpriteRenderer {
 
                 if (imageListObj) {
                     imgEl = document.createElement('div');
+                    // Maske: zeigt genau ein Frame-Fenster des Blatts.
+                    imgEl.style.overflow = 'hidden';
+                    imgEl.style.backfaceVisibility = 'hidden';
+                    imgEl.appendChild(SpriteRenderer.createSheetLayer());
                 } else if (hasVideo) {
                     imgEl = document.createElement('video');
                     (imgEl as HTMLVideoElement).onerror = () => { imgEl.style.display = 'none'; };
@@ -151,37 +168,104 @@ export class SpriteRenderer {
                 const col = currentFrame % hCount;
                 const row = Math.floor(currentFrame / hCount);
 
-                const bgSizeX = hCount * 100;
-                const bgSizeY = vCount * 100;
-                const bgPosX = hCount <= 1 ? 0 : (col / (hCount - 1)) * 100;
-                const bgPosY = vCount <= 1 ? 0 : (row / (vCount - 1)) * 100;
+                // Blatt-Ebene sicherstellen; Elemente aus einem frueheren Aufbau
+                // besitzen sie noch nicht.
+                let sheetEl = imgEl.querySelector('.sprite-sheet-layer') as HTMLElement;
+                if (!sheetEl) {
+                    sheetEl = SpriteRenderer.createSheetLayer();
+                    imgEl.appendChild(sheetEl);
+                }
+                if (imgEl.style.overflow !== 'hidden') imgEl.style.overflow = 'hidden';
+
+                // Altlast: Die Maske trug das Bild frueher selbst.
+                if (imgEl.style.backgroundImage) {
+                    imgEl.style.backgroundImage = '';
+                    imgEl.style.backgroundSize = '';
+                    imgEl.style.backgroundPosition = '';
+                    imgEl.style.willChange = '';
+                }
 
                 // PERF: Styles nur schreiben, wenn sich der Wert geändert hat.
                 // Im Standalone-Export sind Bilder als Base64-Data-URL eingebettet — eine
                 // erneute Zuweisung kostet dort pro Frame das Parsen eines mehrere MB
                 // großen Strings und war die Ursache für Ruckeln.
-                const cache = imgEl as any;
+                const cache = sheetEl as any;
+                const maskCache = imgEl as any;
+
                 if (cache._bgSrc !== src) {
                     cache._bgSrc = src;
-                    imgEl.style.backgroundImage = `url("${SpriteRenderer.encodeImageUrl(src)}")`;
+                    sheetEl.style.backgroundImage = `url("${SpriteRenderer.encodeImageUrl(src)}")`;
                 }
 
-                const bgSize = `${bgSizeX}% ${bgSizeY}%`;
-                if (cache._bgSize !== bgSize) {
-                    cache._bgSize = bgSize;
-                    imgEl.style.backgroundSize = bgSize;
+                // Das Blatt umfasst das ganze Raster; ein Frame entspricht der Maske.
+                const sheetKey = `${hCount}x${vCount}`;
+                if (cache._sheetKey !== sheetKey) {
+                    cache._sheetKey = sheetKey;
+                    sheetEl.style.width = `${hCount * 100}%`;
+                    sheetEl.style.height = `${vCount * 100}%`;
+                    sheetEl.style.backgroundSize = '100% 100%';
                 }
 
-                const bgPos = `${bgPosX}% ${bgPosY}%`;
-                if (cache._bgPos !== bgPos) {
-                    cache._bgPos = bgPos;
-                    imgEl.style.backgroundPosition = bgPos;
+                // PERF: Der Frame-Wechsel ist reine Compositor-Arbeit und erfordert
+                // kein Neuzeichnen. Prozente bei translate beziehen sich auf die
+                // eigene Groesse des Blatts, ein Frame ist daher 1/hCount bzw.
+                // 1/vCount davon.
+                //
+                // Eine befoerderte Ebene kostet Grafikspeicher in Groesse des ganzen
+                // Rasters. Lohnt sich das nicht, wird 2D-translate ohne will-change
+                // verwendet — translate3d allein wuerde Chromium schon zur
+                // Befoerderung veranlassen.
+                const poolSize = Number(obj.poolSize) || 1;
+                const promote = appearanceMode === 'animation'
+                    && hCount * vCount <= SHEET_FRAME_BUDGET
+                    && poolSize <= POOL_PROMOTION_LIMIT;
+
+                const { tx, ty } = SpriteGeometry.frameOffsetPercent(col, row, hCount, vCount);
+                const transform = promote
+                    ? `translate3d(${tx}%, ${ty}%, 0)`
+                    : `translate(${tx}%, ${ty}%)`;
+
+                if (cache._transform !== transform) {
+                    cache._transform = transform;
+                    sheetEl.style.transform = transform;
                 }
 
-                if (!cache._bgRepeatSet) {
-                    cache._bgRepeatSet = true;
-                    imgEl.style.backgroundRepeat = 'no-repeat';
+                if (cache._promote !== promote) {
+                    cache._promote = promote;
+                    sheetEl.style.willChange = promote ? 'transform' : '';
                 }
+
+                // Frame-Angaben fuer Effekte, die das Sprite zerlegen (explode).
+                // Als JS-Eigenschaft, damit pro Frame kein Attribut geschrieben wird.
+                cache._frame = { col, row, hCount, vCount };
+
+                // Verzerrung strukturell verhindern: Die innere Ebene erhaelt das
+                // Seitenverhaeltnis des Frames statt starr die Sprite-Box zu fuellen.
+                // Die Prozent-Mathematik fuer backgroundSize/-Position bleibt gueltig,
+                // weil sie sich auf eben diese Ebene bezieht.
+                const fitMode = obj.frameFit || 'contain';
+                const meta = ImageMetaCache.get(src);
+
+                if (fitMode === 'contain' && meta && obj.width > 0 && obj.height > 0) {
+                    const geo = SpriteGeometry.analyze(
+                        meta.width, meta.height, hCount, vCount, obj.width, obj.height
+                    );
+                    if (geo) {
+                        const fit = SpriteGeometry.containFit(geo.frameAspect, geo.boxAspect);
+                        const fitKey = `${fit.widthPercent.toFixed(3)}|${fit.heightPercent.toFixed(3)}`;
+                        if (maskCache._fitKey !== fitKey) {
+                            maskCache._fitKey = fitKey;
+                            imgEl.style.width = `${fit.widthPercent}%`;
+                            imgEl.style.height = `${fit.heightPercent}%`;
+                            imgEl.style.left = `${fit.leftPercent}%`;
+                            imgEl.style.top = `${fit.topPercent}%`;
+                        }
+                    }
+                } else if (!meta) {
+                    // Masse noch unbekannt: einmalig nachladen, danach neu einpassen.
+                    ImageMetaCache.ensure(src, () => { maskCache._fitKey = undefined; });
+                }
+
                 if (imgEl.style.display !== '') imgEl.style.display = '';
             } else if (hasVideo) {
                 const videoEl = imgEl as HTMLVideoElement;
@@ -264,6 +348,23 @@ export class SpriteRenderer {
                 el.innerText = textValue;
             }
         }
+    }
+
+    /**
+     * Erzeugt die Blatt-Ebene, die das gesamte Spritesheet traegt und per
+     * transform verschoben wird. Die umgebende Maske schneidet sie auf ein
+     * Frame-Fenster zu.
+     */
+    private static createSheetLayer(): HTMLElement {
+        const sheet = document.createElement('div');
+        sheet.className = 'sprite-sheet-layer';
+        sheet.style.position = 'absolute';
+        sheet.style.top = '0';
+        sheet.style.left = '0';
+        sheet.style.backgroundRepeat = 'no-repeat';
+        sheet.style.backfaceVisibility = 'hidden';
+        sheet.style.pointerEvents = 'none';
+        return sheet;
     }
 
     private static encodeImageUrl(url: string): string {

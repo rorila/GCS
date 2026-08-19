@@ -257,16 +257,53 @@ export class ReactiveRuntime {
     }
 
     /**
+     * Prueft, ob eine Abhaengigkeit zu einem Variablennamen gehoert.
+     *
+     * Bewusst dieselbe Bedingung fuer updateBindingsForVariable und
+     * getObjectsDependingOn: Wuerden beide unterschiedlich urteilen, koennte eine
+     * Bindung ihren Wert erhalten, ohne dass das Objekt neu gezeichnet wird.
+     */
+    private static matchesVariable(dependency: string, varName: string): boolean {
+        return dependency.startsWith(varName);
+    }
+
+    /**
      * Updates all bindings that depend on a variable
      */
     private updateBindingsForVariable(varName: string): void {
         this.bindings.forEach(bindingList => {
             bindingList.forEach(binding => {
-                if (binding.dependencies.some(dep => dep.startsWith(varName))) {
+                if (binding.dependencies.some(dep => ReactiveRuntime.matchesVariable(dep, varName))) {
                     binding.update();
                 }
             });
         });
+    }
+
+    /**
+     * Objekte, deren Bindungen von dieser Variable abhaengen.
+     *
+     * Erlaubt gezieltes Auffrischen statt eines Rundumschlags ueber alle Objekte
+     * der Buehne. Eine leere Liste bedeutet: keine Bindung bekannt -- der Aufrufer
+     * muss dann auf das bisherige Verhalten zurueckfallen, weil die Variable auf
+     * einem anderen Weg angezeigt werden koennte.
+     */
+    public getObjectsDependingOn(varName: string): any[] {
+        const out: any[] = [];
+        const seen = new Set<any>();
+
+        this.bindings.forEach(bindingList => {
+            bindingList.forEach(binding => {
+                if (!binding.dependencies.some(dep => ReactiveRuntime.matchesVariable(dep, varName))) return;
+                const target = binding.targetObj;
+                if (target && !seen.has(target)) {
+                    seen.add(target);
+                    out.push(target);
+                }
+            });
+        });
+
+        return out;
     }
 
     private _contextCache: any = null;

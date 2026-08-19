@@ -438,10 +438,20 @@ export class AnimationManager {
 
         // Bild-Quelle ermitteln
         const imgLayer = spriteEl.querySelector('.sprite-image-layer') as HTMLElement;
+        // Bei Spritesheets liegt das Bild auf der Blatt-Ebene innerhalb der Maske.
+        const sheetLayer = spriteEl.querySelector('.sprite-sheet-layer') as HTMLElement;
         let bgImage = '';
         let bgColor = '';
 
-        if (imgLayer && imgLayer.tagName === 'DIV') {
+        // Frame-Angaben, die der SpriteRenderer auf der Blatt-Ebene hinterlegt.
+        // Ohne sie wuerden die Bruchstuecke das gesamte Sheet zeigen statt des
+        // gerade sichtbaren Bildes.
+        const frame = sheetLayer ? (sheetLayer as any)._frame : null;
+
+        if (sheetLayer && sheetLayer.style.backgroundImage) {
+            bgImage = sheetLayer.style.backgroundImage;
+
+        } else if (imgLayer && imgLayer.tagName === 'DIV') {
             bgImage = imgLayer.style.backgroundImage;
 
         } else if (imgLayer && imgLayer.tagName === 'IMG') {
@@ -477,7 +487,15 @@ export class AnimationManager {
                 frag.style.transition = `transform ${duration}ms ease-out, opacity ${duration}ms ease-in`;
                 frag.style.willChange = 'transform, opacity';
 
-                if (bgImage) {
+                if (bgImage && frame) {
+                    // Sheet so skalieren, dass ein Frame genau der Sprite-Groesse
+                    // entspricht, und auf das aktuelle Frame versetzen.
+                    frag.style.backgroundImage = bgImage;
+                    frag.style.backgroundSize = `${rect.width * frame.hCount}px ${rect.height * frame.vCount}px`;
+                    frag.style.backgroundPosition =
+                        `${-(frame.col * rect.width + col * fragW)}px ${-(frame.row * rect.height + row * fragH)}px`;
+                    frag.style.backgroundRepeat = 'no-repeat';
+                } else if (bgImage) {
                     frag.style.backgroundImage = bgImage;
                     frag.style.backgroundSize = `${rect.width}px ${rect.height}px`;
                     frag.style.backgroundPosition = `${-col * fragW}px ${-row * fragH}px`;

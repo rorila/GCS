@@ -18,6 +18,7 @@ import { AgentController } from '../../services/AgentController';
 import { VideoToSpriteSheetTool } from '../tools/VideoToSpriteSheetTool';
 import { ImageTransparencyTool } from '../tools/ImageTransparencyTool';
 import { AudioSequenceTool } from '../tools/AudioSequenceTool';
+import { AssetAnalyzerTool } from '../tools/AssetAnalyzerTool';
 import { invalidateMediaManifestCache } from '../inspector/MediaPickerDialog';
 
 export interface EditorMenuHost {
@@ -232,6 +233,10 @@ export class EditorMenuManager {
                 this.openAudioSequenceTool();
                 break;
             }
+            case 'open-asset-analyzer': {
+                this.openAssetAnalyzerTool();
+                break;
+            }
             default: {
                 const normalizedAction = action.replace(/\s+/g, '');
                 if (normalizedAction.startsWith('switch-stage-')) {
@@ -369,6 +374,15 @@ export class EditorMenuManager {
 
     private openAudioSequenceTool(): void {
         const tool = new AudioSequenceTool(document.body);
+        tool.open();
+    }
+
+    /**
+     * Reine Diagnose: prueft alle Projektbilder auf ein sinnvolles Verhaeltnis
+     * zwischen Quell-Auflösung und Anzeigegroesse. Aendert nichts am Projekt.
+     */
+    private openAssetAnalyzerTool(): void {
+        const tool = new AssetAnalyzerTool(document.body, this.host.project);
         tool.open();
     }
 

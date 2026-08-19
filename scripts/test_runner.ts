@@ -7,6 +7,8 @@ import { runSmartMappingTests } from './test_smart_mapping.js';
 import { runUnificationTests } from './test_unification_regression.js';
 import { runTableUnwrapTests } from '../tests/table_unwrapping.test.js';
 import { runSelectCountTests } from '../tests/select_count.test.js';
+import { runSpriteGeometryTests } from '../tests/sprite_geometry.test.js';
+import { runReactiveTargetedUpdateTests } from '../tests/reactive_targeted_update.test.js';
 // Neue Sicherheitsnetz-Tests (v3.7.0)
 import { runGuardTests } from '../tests/guards.test.js';
 import { runSerializationTests } from '../tests/serialization.test.js';
@@ -191,6 +193,16 @@ async function main() {
         await timer.measure('SELECT COUNT(*)', async () => {
             console.log('🏃 Starte SELECT COUNT(*) Tests...');
             allResults.push(...await runSelectCountTests());
+        });
+
+        await timer.measure('Sprite-Geometrie', async () => {
+            console.log('🏃 Starte Sprite-Geometrie Tests...');
+            allResults.push(...await runSpriteGeometryTests());
+        });
+
+        await timer.measure('Gezieltes Auffrischen', async () => {
+            console.log('🏃 Starte Tests zum gezielten Auffrischen...');
+            allResults.push(...await runReactiveTargetedUpdateTests());
         });
 
         await timer.measure('Action Registration', async () => {

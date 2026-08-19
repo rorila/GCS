@@ -11,6 +11,10 @@ import { LogLevel } from './utils/LogTypes';
 
 // 0. Initialize Tauri FS Adapter early
 import { installTauriFSAdapter } from './utils/TauriFSAdapter';
+import { PerfOverlay } from './utils/PerfOverlay';
+import { ViewportDiagnose } from './utils/ViewportDiagnose';
+import { ImageMetaCache } from './runtime/ImageMetaCache';
+import { applyTouchHardening } from './runtime/TouchHardening';
 installTauriFSAdapter();
 
 // PERF: Im ausgelieferten Spiel ist Logging per Default aus. console.*-Aufrufe in den
@@ -33,6 +37,14 @@ function applyPlayerLogLevel(): void {
     }
 }
 applyPlayerLogLevel();
+
+// DIAGNOSE: Sichtbare Messwerte im Bild, wenn auf dem Zielgeraet keine Konsole
+// erreichbar ist. Nur aktiv bei ?perf=1 bzw. ?debug=perf.
+PerfOverlay.startIfRequested();
+
+// iPAD DIAGNOSE: Permanent oben links Viewport-/Canvas-Werte anzeigen, wenn
+// ?diag=1 oder ?debug=viewport gesetzt ist.
+ViewportDiagnose.startIfRequested();
 
 const logger = Logger.get('UniversalPlayer', 'Runtime_Execution');
 // HeadlessRuntime and HeadlessServer are Node.js-only (use express)
@@ -122,6 +134,7 @@ class UniversalPlayer implements StageHost {
     private dragPhantom: ComponentData | null = null;
     private isDragging: boolean = false;
     private dragOffset: { x: number, y: number } = { x: 0, y: 0 };
+    private scalingRafId: number | null = null;
 
     constructor() {
         this.element = document.getElementById('run-stage')!;
@@ -134,7 +147,13 @@ class UniversalPlayer implements StageHost {
 
     private async init() {
         // 1. Setup Scaling
-        window.addEventListener('resize', () => this.setupScaling());
+        window.addEventListener('resize', () => this.scheduleScaling());
+        window.addEventListener('orientationchange', () => this.scheduleScaling());
+        const vv = (window as any).visualViewport;
+        if (vv) {
+            vv.addEventListener('resize', () => this.scheduleScaling());
+            vv.addEventListener('scroll', () => this.scheduleScaling());
+        }
 
         // 2. Connect to Network (Platform always uses network if available)
         try {
@@ -190,14 +209,14 @@ class UniversalPlayer implements StageHost {
             logger.info('[UniversalPlayer] Loading compressed embedded project');
             const project = decompressProject((window as any).PROJECT_DATA);
             if (project) {
-                this.startProject(project);
+                await this.startProject(project);
             } else {
                 logger.error('[UniversalPlayer] Failed to decompress project data');
             }
         } else if ((window as any).PROJECT) {
             // Use embedded project (Standalone HTML Export - plain JSON)
             logger.info('[UniversalPlayer] Loading embedded project');
-            this.startProject((window as any).PROJECT);
+            await this.startProject((window as any).PROJECT);
         } else if ((window as any).WAIT_FOR_PROJECT) {
             // IFrame Runner explicitly waiting for postMessage
             logger.info('[UniversalPlayer] Waiting for PROJECT via postMessage, skipping fallback fetch...');
@@ -296,7 +315,7 @@ class UniversalPlayer implements StageHost {
                     }
                 }
 
-                this.startProject(project);
+                await this.startProject(project);
             } else {
                 logger.error(`[UniversalPlayer] Failed to load project from ${url}`);
                 if (url !== './multiplayer/lobby.json') {
@@ -308,7 +327,64 @@ class UniversalPlayer implements StageHost {
         }
     }
 
-    public startProject(project: GameProject) {
+    private isImageUrl(s: string): boolean {
+        if (!s) return false;
+        if (s.startsWith('data:image')) return true;
+        if (s.startsWith('data:audio') || s.startsWith('data:video')) return false;
+        if (/\.(mp3|ogg|wav|m4a|flac|mp4|webm|mov)(\?.*)?$/i.test(s)) return false;
+        return true;
+    }
+
+    private async preloadImages(project: GameProject): Promise<void> {
+        const rawUrls = new Set<string>();
+        const walk = (v: any) => {
+            if (!v) return;
+            if (Array.isArray(v)) {
+                v.forEach(walk);
+            } else if (typeof v === 'object') {
+                Object.entries(v).forEach(([k, val]) => {
+                    if (typeof val === 'string' && (k === 'backgroundImage' || k === 'src') && val && !val.includes('${') && this.isImageUrl(val)) {
+                        rawUrls.add(val);
+                    }
+                    if (typeof val === 'object' || Array.isArray(val)) walk(val);
+                });
+            }
+        };
+        walk(project);
+
+        const urls = Array.from(rawUrls).map(raw => this.normalizeImageUrl(raw)).filter(Boolean);
+        if (urls.length === 0) return;
+
+        logger.info(`[UniversalPlayer] Preloading ${urls.length} images`);
+        await Promise.all(urls.map(url => this.preloadOneImage(url)));
+    }
+
+    private normalizeImageUrl(raw: string): string {
+        if (!raw) return '';
+        if (raw.startsWith('http') || raw.startsWith('/') || raw.startsWith('.') || raw.startsWith('data:')) return raw;
+        if (raw.startsWith('images/') || raw.startsWith('assets/')) return './' + raw;
+        return `./images/${raw}`;
+    }
+
+    private preloadOneImage(url: string): Promise<void> {
+        return new Promise<void>((resolve) => {
+            let resolved = false;
+            const finish = () => { if (resolved) return; resolved = true; resolve(); };
+            const timer = window.setTimeout(finish, 5000);
+            const img = new Image();
+            // Die Masse fallen hier kostenlos an und werden fuer die
+            // verzerrungsfreie Frame-Einpassung im SpriteRenderer gebraucht.
+            const remember = () => ImageMetaCache.set(url, img.naturalWidth, img.naturalHeight);
+            img.onload = () => { window.clearTimeout(timer); remember(); finish(); };
+            img.onerror = () => { window.clearTimeout(timer); finish(); };
+            img.src = url;
+            if ('decode' in img) {
+                (img as any).decode().then(() => { window.clearTimeout(timer); remember(); finish(); }).catch(() => { window.clearTimeout(timer); finish(); });
+            }
+        });
+    }
+
+    public async startProject(project: GameProject): Promise<void> {
         if (this.isStarted && this.currentProject === project) return;
         this.isStarted = true;
 
@@ -321,6 +397,9 @@ class UniversalPlayer implements StageHost {
 
         this.currentProject = project;
         const startStageId = (project as any).activeStageId || (project.stage as any)?.id || project.stages?.[0]?.id;
+
+        // 1b. Preload images to avoid decode jank on first use
+        await this.preloadImages(project);
 
         // 2. Initialize new Runtime
         this.runtime = new GameRuntime(project, undefined, {
@@ -436,6 +515,14 @@ class UniversalPlayer implements StageHost {
         }
     }
 
+    private scheduleScaling(): void {
+        if (this.scalingRafId !== null) return;
+        this.scalingRafId = requestAnimationFrame(() => {
+            this.scalingRafId = null;
+            this.setupScaling();
+        });
+    }
+
     private setupScaling() {
         if (!this.currentProject) return;
 
@@ -450,8 +537,9 @@ class UniversalPlayer implements StageHost {
         const cellSize = grid.cellSize || 32;
         const stageWidth = grid.cols * cellSize;
         const stageHeight = grid.rows * cellSize;
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
+        const vv = (window as any).visualViewport;
+        const windowWidth = vv ? Math.round(vv.width) : window.innerWidth;
+        const windowHeight = vv ? Math.round(vv.height) : window.innerHeight;
 
         const margin = 20;
         const scale = Math.min((windowWidth - margin) / stageWidth, (windowHeight - margin) / stageHeight, 1.0);
@@ -464,6 +552,16 @@ class UniversalPlayer implements StageHost {
         this.element.style.left = '50%';
         this.element.style.top = '50%';
         this.element.style.position = 'absolute';
+
+        // Diagnose: Stage-Masse bekannt geben, damit ViewportDiagnose sie anzeigt.
+        ViewportDiagnose.getInstance().setMetricsCallback(() => ({
+            stageWidth,
+            stageHeight,
+            canvasCssWidth: this.element.clientWidth,
+            canvasCssHeight: this.element.clientHeight,
+            canvasBufferWidth: this.element.clientWidth,
+            canvasBufferHeight: this.element.clientHeight
+        }));
 
         this.updateBackground();
     }
@@ -481,13 +579,16 @@ class UniversalPlayer implements StageHost {
         const context = this.runtime ? this.runtime.getContext() : {};
         const bgExpression = (activeStage as any).backgroundColor || grid.backgroundColor || '#2e2e2e';
         const bg = ExpressionParser.interpolate(bgExpression, context);
-        
-        logger.info('===== BACKGROUND DEBUG =====');
-        logger.info(`1. bgExpression: ${bgExpression}`);
-        logger.info(`2. ctx.MainThemes: ${context && context['MainThemes'] ? 'FOUND' : 'MISSING'}`);
-        logger.info(`3. Interpolate Result (bg): ${bg}`);
-        
-        logger.info(`[BACKGROUND-TRACE] Stage bg calculated: ${bg} from ${bgExpression}`);
+
+        // PERF: updateBackground() laeuft bei jedem Render. Die Template-Strings
+        // werden nur gebaut, wenn INFO-Logging tatsaechlich aktiv ist.
+        if (logger.isEnabled(LogLevel.INFO)) {
+            logger.info('===== BACKGROUND DEBUG =====');
+            logger.info(`1. bgExpression: ${bgExpression}`);
+            logger.info(`2. ctx.MainThemes: ${context && context['MainThemes'] ? 'FOUND' : 'MISSING'}`);
+            logger.info(`3. Interpolate Result (bg): ${bg}`);
+            logger.info(`[BACKGROUND-TRACE] Stage bg calculated: ${bg} from ${bgExpression}`);
+        }
 
         const bgImg = activeStage.backgroundImage;
 
@@ -511,8 +612,10 @@ class UniversalPlayer implements StageHost {
             this.element.style.backgroundColor = bg;
         }
 
-        logger.info(`5. Target element bg-color after set: ${this.element.style.backgroundColor}`);
-        logger.info('============================');
+        if (logger.isEnabled(LogLevel.INFO)) {
+            logger.info(`5. Target element bg-color after set: ${this.element.style.backgroundColor}`);
+            logger.info('============================');
+        }
     }
 
     private startAnimationTicker() {
@@ -557,9 +660,13 @@ class UniversalPlayer implements StageHost {
     private render() {
         if (!this.runtime) return;
         const objects = this.runtime.getObjects().filter(obj => !this.techClasses.includes(obj.className));
-        logger.info(`[UniversalPlayer] Render ${objects.length} objects. Includes TVirtualGamepad? ${objects.some(o => o.className === 'TVirtualGamepad')}`);
-        if (objects.some(o => o.className === 'TVirtualGamepad')) {
-            logger.info('[UniversalPlayer] Found TVirtualGamepad:', objects.find(o => o.className === 'TVirtualGamepad'));
+        // PERF: Die Diagnose-Scans (some/find ueber alle Objekte) nur bei aktivem Logging.
+        if (logger.isEnabled(LogLevel.INFO)) {
+            const gamepad = objects.find(o => o.className === 'TVirtualGamepad');
+            logger.info(`[UniversalPlayer] Render ${objects.length} objects. Includes TVirtualGamepad? ${!!gamepad}`);
+            if (gamepad) {
+                logger.info('[UniversalPlayer] Found TVirtualGamepad:', gamepad);
+            }
         }
         this.renderer.renderObjects(objects);
         this.updateBackground();
@@ -647,8 +754,9 @@ class UniversalPlayer implements StageHost {
         this.dragTarget.x = coords.x - this.dragOffset.x;
         this.dragTarget.y = coords.y - this.dragOffset.y;
 
-        // Force render for smooth movement
-        this.render();
+        // PERF: Nur die Position des gezogenen Objekts (inkl. Kinder) aktualisieren.
+        // Ein voller render() pro pointermove kostet Theme-Merge und Dock-Layout.
+        this.renderer.updateSpritePositions([this.dragTarget]);
     }
 
     private handleMouseUp(e: MouseEvent | PointerEvent) {
@@ -718,6 +826,10 @@ class UniversalPlayer implements StageHost {
 // Start
 if (typeof document !== 'undefined') {
     const initPlayer = () => {
+        // Vor dem Spielstart: Browser-Gesten einschraenken. Nur hier, nicht im
+        // Editor -- dort sind Textauswahl und Zoom erwuenscht.
+        applyTouchHardening();
+
         if (!(window as any).player) {
             (window as any).player = new UniversalPlayer();
         }

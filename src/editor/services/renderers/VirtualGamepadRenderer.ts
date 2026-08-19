@@ -114,13 +114,14 @@ export class VirtualGamepadRenderer {
         btn.dataset.code = code;
         btn.style.cssText = `
             width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             display: flex; justify-content: center; align-items: center;
             color: white; font-weight: bold; font-family: sans-serif;
-            user-select: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            user-select: none;
             pointer-events: auto; touch-action: none;
+            transition: transform 0.05s ease-out;
+            will-change: transform;
         `;
         btn.innerText = label;
         return btn;
@@ -251,7 +252,15 @@ export class VirtualGamepadRenderer {
             window.dispatchEvent(new KeyboardEvent(type, { code, key: code, bubbles: true }));
         };
 
-        const activeTouches = new Map<number, string>(); // pointerId -> keyCode
+        const activeTouches = new Map<number, HTMLElement>(); // pointerId -> button element
+        const pressedCodes = new Map<string, boolean>();      // code -> currently pressed (multi-touch guard)
+        const lastKeydownTime = new Map<string, number>();    // code -> last keydown timestamp
+        const KEY_COOLDOWN_MS = 80;                           // min time between keydowns for same code
+
+        const setButtonPressed = (btn: HTMLElement | undefined, pressed: boolean) => {
+            if (!btn) return;
+            btn.style.transform = pressed ? 'scale(0.92)' : '';
+        };
 
         // iOS Safari Zoom-Verhinderung (Double-Tap) & Native Touch Priority
         el.addEventListener('touchstart', (e) => {
@@ -265,31 +274,44 @@ export class VirtualGamepadRenderer {
         el.addEventListener('pointerdown', (e) => {
             const btn = (e.target as HTMLElement).closest('.virtual-gamepad-btn') as HTMLElement;
             if (btn && btn.dataset.code) {
-                btn.style.background = 'rgba(255, 255, 255, 0.5)'; // Visual feedback
-                dispatchKey(btn.dataset.code, 'keydown');
-                activeTouches.set(e.pointerId, btn.dataset.code);
+                const code = btn.dataset.code;
+                const now = performance.now();
+
+                // Ignore if same code is already held (multi-touch on same button)
+                if (pressedCodes.get(code)) return;
+
+                // Cooldown: ignore repeat taps faster than KEY_COOLDOWN_MS
+                const last = lastKeydownTime.get(code) || 0;
+                if (now - last < KEY_COOLDOWN_MS) return;
+
+                pressedCodes.set(code, true);
+                lastKeydownTime.set(code, now);
+                setButtonPressed(btn, true);
+                dispatchKey(code, 'keydown');
+                activeTouches.set(e.pointerId, btn);
             }
         });
 
         // PointerUp = Button release
         el.addEventListener('pointerup', (e) => {
-            const code = activeTouches.get(e.pointerId);
-            if (code) {
+            const btn = activeTouches.get(e.pointerId);
+            if (btn) {
+                const code = btn.dataset.code as string;
+                pressedCodes.set(code, false);
                 dispatchKey(code, 'keyup');
                 activeTouches.delete(e.pointerId);
-                // Feedback reset
-                const btn = el.querySelector(`[data-code="${code}"]`) as HTMLElement;
-                if (btn) btn.style.background = 'rgba(255, 255, 255, 0.2)';
+                setButtonPressed(btn, false);
             }
         });
 
         el.addEventListener('pointercancel', (e) => {
-            const code = activeTouches.get(e.pointerId);
-            if (code) {
+            const btn = activeTouches.get(e.pointerId);
+            if (btn) {
+                const code = btn.dataset.code as string;
+                pressedCodes.set(code, false);
                 dispatchKey(code, 'keyup');
                 activeTouches.delete(e.pointerId);
-                const btn = el.querySelector(`[data-code="${code}"]`) as HTMLElement;
-                if (btn) btn.style.background = 'rgba(255, 255, 255, 0.2)';
+                setButtonPressed(btn, false);
             }
         });
     }

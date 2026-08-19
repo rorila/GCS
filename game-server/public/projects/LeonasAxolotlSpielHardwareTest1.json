@@ -1,0 +1,1776 @@
+{
+  "meta": {
+    "name": "LeonasAxolotlSpielHardwareTest1",
+    "version": "1.0.0",
+    "author": "GCS Agent",
+    "description": "Endless Runner Demo mit Parallax, Object Pooling, Shake & Speedlines",
+    "_sourcePath": "projects/LeonasAxolotlSpielHardwareTest1.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1a1a2e"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        },
+        {
+          "className": "TGameLoop",
+          "id": "game_loop",
+          "name": "GameLoop",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 7,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "boundaryMode": "clamp",
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
+        },
+        {
+          "className": "TGameState",
+          "id": "game_state",
+          "name": "GameState",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 7,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#f44336",
+            "borderColor": "#d32f2f",
+            "borderWidth": 2
+          },
+          "state": "idle",
+          "spritesMoving": false,
+          "collisionsEnabled": false,
+          "score": 0,
+          "level": 1,
+          "lives": 3,
+          "maxLives": 3
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "main",
+      "name": "JumpAndRun",
+      "type": "main",
+      "events": {
+        "onEnter": "StartGame"
+      },
+      "objects": [
+        {
+          "className": "TSpeedlines",
+          "id": "speedlines",
+          "name": "Speedlines",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 40,
+          "zIndex": 500,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "lineCount": 16,
+          "speed": 0.3,
+          "lineColor": "rgba(255,255,255,0.7)",
+          "overlayOpacity": 0.1,
+          "lineWidth": 2,
+          "lineLength": 120
+        },
+        {
+          "className": "TSprite",
+          "id": "player",
+          "name": "Player",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "BoundaryHit"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 13,
+          "width": 10,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#34d399",
+            "borderColor": "#065f46",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": -0.4,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "player",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#34d399",
+          "appearanceMode": "animation",
+          "backgroundImage": "./images/Ufos/ufo_transparet.png",
+          "objectFit": "cover",
+          "imageListId": "spritesheet_1786193388727",
+          "imageIndex": 0,
+          "animationId": "Axelotl_anim",
+          "videoSource": "./videos/vogelflug.mp4",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": true,
+          "hitboxShape": "circle",
+          "hitboxOffsetX": 8.5,
+          "hitboxOffsetY": 1.5,
+          "hitboxWidth": 1,
+          "hitboxHeight": 1
+        },
+        {
+          "className": "TSpawner",
+          "id": "obstacle_spawner",
+          "name": "ObstacleSpawner",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18,
+          "y": 2,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#34d399",
+            "backgroundColor": "rgba(16, 185, 129, 0.15)",
+            "borderColor": "rgba(16, 185, 129, 0.6)",
+            "borderWidth": 1
+          },
+          "templateName": "ObstacleTemplate",
+          "enabled": true,
+          "spawnInterval": 2,
+          "spawnAxis": "Y",
+          "spawnCountStart": 1,
+          "recycleOffScreen": true,
+          "spawnY": 20,
+          "spawnXMin": 0,
+          "spawnXMax": 70,
+          "randomizeX": true,
+          "spawnX": 64,
+          "spawnYMin": 1,
+          "spawnYMax": 36,
+          "randomizeY": true
+        },
+        {
+          "className": "TIntervalTimer",
+          "id": "score_timer",
+          "name": "ScoreTimer",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onIntervall": "IncrementScore"
+          },
+          "visible": true,
+          "x": 38,
+          "y": 2,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#ff9800",
+            "borderColor": "#e65100",
+            "borderWidth": 2
+          },
+          "duration": 1000,
+          "count": 0,
+          "enabled": false
+        },
+        {
+          "className": "TNumberLabel",
+          "id": "score_label",
+          "name": "ScoreLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 0,
+          "width": 4,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#db3d3d",
+            "fontSize": 48,
+            "fontWeight": "bold",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "0",
+          "startValue": 0,
+          "value": 0,
+          "minValue": null,
+          "maxValue": null,
+          "step": 1
+        },
+        {
+          "className": "TLabel",
+          "id": "gameover_label",
+          "name": "GameOverLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 24,
+          "y": 18,
+          "width": 16,
+          "height": 4,
+          "zIndex": 100,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f87171",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "textAlign": "center",
+            "backgroundColor": "rgba(0,0,0,0.5)",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "GAME OVER - \nENTER zum Neustart"
+        },
+        {
+          "className": "TInputController",
+          "id": "input_controller",
+          "name": "InputController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_Space": "PlayerJump",
+            "onKeyDown_Enter": "RestartGame"
+          },
+          "visible": true,
+          "x": 7,
+          "y": 0,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TSpawner",
+          "id": "2387b062-63b3-436c-a22a-1a892c139dbd",
+          "name": "CherrySpawner",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18,
+          "y": 4,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#34d399",
+            "backgroundColor": "rgba(16, 185, 129, 0.15)",
+            "borderColor": "rgba(16, 185, 129, 0.6)",
+            "borderWidth": 1
+          },
+          "templateName": "CherryTemplate",
+          "enabled": true,
+          "spawnInterval": 2,
+          "spawnAxis": "Y",
+          "spawnCountStart": 1,
+          "recycleOffScreen": true,
+          "spawnY": 20,
+          "spawnXMin": 0,
+          "spawnXMax": 70,
+          "randomizeX": true,
+          "spawnX": 64,
+          "spawnYMin": 1.5,
+          "spawnYMax": 36,
+          "randomizeY": true
+        },
+        {
+          "className": "TNumberLabel",
+          "id": "967f3ddc-a95d-48ac-a4fc-933638eddb2c",
+          "name": "CherryScoreLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onMinValueReached": "GameOver",
+            "onMaxValueReached": "MehrUfos"
+          },
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 6,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#db3d3d",
+            "fontSize": 48,
+            "fontWeight": "bold",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "5",
+          "startValue": 5,
+          "value": 5,
+          "minValue": 0,
+          "maxValue": 15,
+          "step": 1
+        },
+        {
+          "className": "TAudio",
+          "id": "obj_1786374682271_55fpaeebx",
+          "name": "Audio_CherryTreffer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 29,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "./audio/Bing.mp3",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        },
+        {
+          "className": "TAudio",
+          "id": "obj_1786375054051_4bswb77no",
+          "name": "Audio_UfoTreffer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 31,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "./audio/crash.mp3",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        },
+        {
+          "className": "TAudio",
+          "id": "obj_1786375162153_zl2b5rb7m",
+          "name": "Audio_PlayerJump",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 33,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "./audio/Blub.mp3",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        },
+        {
+          "className": "TSpawner",
+          "id": "560f9725-a14b-4b07-96ed-e62831448c08",
+          "name": "BallonSpawner",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18,
+          "y": 6,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#34d399",
+            "backgroundColor": "rgba(16, 185, 129, 0.15)",
+            "borderColor": "rgba(16, 185, 129, 0.6)",
+            "borderWidth": 1
+          },
+          "templateName": "BalloonTemplate",
+          "enabled": true,
+          "spawnInterval": 2,
+          "spawnAxis": "Y",
+          "spawnCountStart": 1,
+          "recycleOffScreen": true,
+          "spawnY": 20,
+          "spawnXMin": 0,
+          "spawnXMax": 70,
+          "randomizeX": true,
+          "spawnX": 64,
+          "spawnYMin": 1,
+          "spawnYMax": 36,
+          "randomizeY": true
+        },
+        {
+          "className": "TSpriteTemplate",
+          "id": "obj_1786432692846_u9rouw1a9",
+          "name": "BalloonTemplate",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "BallonTreffer"
+          },
+          "visible": true,
+          "x": 50,
+          "y": 12,
+          "width": 9,
+          "height": 5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": -0.3,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "appearanceMode": "animation",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "BallonImageList",
+          "imageIndex": "${BallonFrameRandom}",
+          "animationId": "Clownfisch_anim",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": true,
+          "hitboxShape": "circle",
+          "hitboxOffsetX": 2,
+          "hitboxOffsetY": 1.5,
+          "hitboxWidth": 2,
+          "hitboxHeight": 2,
+          "poolSize": 10,
+          "autoRecycle": true,
+          "lifetime": 0
+        },
+        {
+          "className": "TRandomVariable",
+          "id": "obj_1786436159907_on6bwg2i5",
+          "name": "BallonFrameRandom",
+          "scope": "stage",
+          "isVariable": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 0,
+          "max": 9,
+          "isInteger": true,
+          "value": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1786440919652_9534vjbvd",
+          "name": "RandomBalloonIndex",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 7,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "Variable",
+          "value": "Math.floor(Math.random() * 9)",
+          "objectModel": ""
+        },
+        {
+          "className": "TAudio",
+          "id": "obj_1786455699327_xf2cig7r1",
+          "name": "Audio_BalloonBums",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 35,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "./audio/BallonPlatzt.mp3",
+          "volume": 1,
+          "loop": false,
+          "preload": true
+        },
+        {
+          "className": "TVirtualGamepad",
+          "id": "obj_1786461815484_qw9zynvzo",
+          "name": "VirtualGamepad_32",
+          "scope": "stage",
+          "isService": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 54,
+          "y": 32,
+          "width": 4,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#00ffcc",
+            "borderWidth": 1,
+            "opacity": 0.8
+          },
+          "layoutStyle": "split",
+          "splitVerticalAlignment": "bottom",
+          "autoHideOnDesktop": false,
+          "scale": 1
+        },
+        {
+          "className": "TNumberLabel",
+          "id": "0c560b9e-19be-42b1-b60e-28fa3745e5f4",
+          "name": "BalloonScoreLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onMinValueReached": "GameOver",
+            "onMaxValueReached": "MehrUfos"
+          },
+          "visible": true,
+          "x": 0,
+          "y": 9,
+          "width": 6,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#db3d3d",
+            "fontSize": 48,
+            "fontWeight": "bold",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "0",
+          "startValue": 0,
+          "value": 0,
+          "minValue": 0,
+          "maxValue": 10,
+          "step": 1
+        },
+        {
+          "className": "TImageList",
+          "id": "obj_1787026214790_xfjzi5c4z",
+          "name": "Axelotl",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 9,
+          "y": 18,
+          "width": 13,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "/images/Axelotl.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": 2,
+          "imageCountVertical": 5,
+          "currentImageNumber": 0,
+          "maxImageCount": 10
+        },
+        {
+          "className": "TAnimation",
+          "id": "obj_1787026214790_sqcr8or18",
+          "name": "Axelotl_anim",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 16,
+          "height": 9,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageListId": "Axelotl",
+          "imageCount": 10,
+          "frameDuration": 200,
+          "loop": false,
+          "enabled": false
+        },
+        {
+          "className": "TImageList",
+          "id": "obj_1787026884444_difmxcl0w",
+          "name": "Schwertfisch",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 34,
+          "y": 28,
+          "width": 13,
+          "height": 7,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "/images/Schwertfisch.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": 2,
+          "imageCountVertical": 2,
+          "currentImageNumber": 0,
+          "maxImageCount": 4
+        },
+        {
+          "className": "TImageList",
+          "id": "obj_1787027252228_u5wqpzhdy",
+          "name": "Sandhai",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 48,
+          "y": 26,
+          "width": 13,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "/images/Sandhai.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": 2,
+          "imageCountVertical": 3,
+          "currentImageNumber": 0,
+          "maxImageCount": 6
+        },
+        {
+          "className": "TImageList",
+          "id": "obj_1787028315603_m25pjtqin",
+          "name": "Clownfisch",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 9,
+          "width": 13,
+          "height": 7,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "/images/Clownfisch.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": 2,
+          "imageCountVertical": 3,
+          "currentImageNumber": 0,
+          "maxImageCount": 6
+        },
+        {
+          "className": "TAnimation",
+          "id": "obj_1787028315603_7ue8h5484",
+          "name": "Clownfisch_anim",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 29,
+          "y": 2,
+          "width": 10,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageListId": "Clownfisch",
+          "imageCount": 6,
+          "frameDuration": 250,
+          "loop": false,
+          "enabled": false
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_start_game",
+          "name": "Act_StartGame",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "GameState.spritesMoving": true,
+            "GameState.collisionsEnabled": true,
+            "ScoreTimer.enabled": true,
+            "GameOverLabel.visible": false,
+            "Speedlines.visible": false,
+            "ScoreLabel.value": 0,
+            "Player.x": 10,
+            "Player.y": 32,
+            "Player.gravity": 0,
+            "Player.velocityX": 0,
+            "Player.velocityY": 0
+          }
+        },
+        {
+          "id": "act_player_jump",
+          "name": "Act_PlayerJump",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Player.velocityY": -0.3,
+            "Player.gravity": 0.4
+          }
+        },
+        {
+          "id": "act_player_land",
+          "name": "Act_PlayerLand",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Player.velocityY": 0,
+            "Player.gravity": 0,
+            "Player.y": 32
+          }
+        },
+        {
+          "id": "act_boundary_hit",
+          "name": "BoundaryHit",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "act_shake_screen",
+          "name": "Act_ShakeScreen",
+          "type": "shake_screen",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "intensity": "heavy",
+          "duration": 400
+        },
+        {
+          "id": "act_stop_game",
+          "name": "Act_StopGame",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "GameState.spritesMoving": false,
+            "GameState.collisionsEnabled": false,
+            "ScoreTimer.enabled": false,
+            "Speedlines.visible": false,
+            "ObstacleSpawner.enabled": false
+          }
+        },
+        {
+          "id": "act_show_gameover",
+          "name": "Act_ShowGameOver",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "GameOverLabel.visible": true
+          }
+        },
+        {
+          "id": "act_restart_game",
+          "name": "Act_RestartGame",
+          "type": "navigate_stage",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "stageId": "main",
+          "reset": true
+        },
+        {
+          "id": "node-1786214395978",
+          "details": "",
+          "type": "increment",
+          "name": "Act_IncrementTimeScore",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ScoreLabel.text": 1
+          }
+        },
+        {
+          "id": "node-1786214565982",
+          "details": "",
+          "type": "increment",
+          "name": "Act_IncrementCherryScore",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CherryScoreLabel.value": 1
+          }
+        },
+        {
+          "id": "node-1786220904577",
+          "details": "",
+          "type": "destroy_object",
+          "name": "Act_destroyCherry",
+          "showDetails": false,
+          "target": "%self%",
+          "changes": {}
+        },
+        {
+          "id": "node-1786374649529",
+          "details": "",
+          "type": "play_audio",
+          "name": "Aud_CherryTreffer",
+          "showDetails": false,
+          "target": "Audio_CherryTreffer",
+          "changes": {}
+        },
+        {
+          "id": "node-1786375041353",
+          "details": "",
+          "type": "play_audio",
+          "name": "Act_UfoTreffer",
+          "showDetails": false,
+          "target": "Audio_UfoTreffer",
+          "changes": {}
+        },
+        {
+          "id": "node-1786375205821",
+          "details": "",
+          "type": "play_audio",
+          "name": "Act_AudioPlayerJump",
+          "showDetails": false,
+          "target": "Audio_PlayerJump",
+          "changes": {}
+        },
+        {
+          "id": "node-1786376559553",
+          "details": "",
+          "type": "calculate",
+          "name": "Act_GetRandomFrame",
+          "showDetails": false,
+          "changes": {
+            "BalloonTemplate.imageIndex": "Math.floor(Math.random() * 9)"
+          },
+          "effect": "explode",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 20,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "formula": "Math.floor(Math.random() * 9)",
+          "resultVariable": "${BallonFrameRandom}"
+        },
+        {
+          "id": "node-1786455807646",
+          "details": "",
+          "type": "animate",
+          "name": "Act_BalloonExplore",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "fromFrame": 0,
+          "toFrame": 7,
+          "duration": 500,
+          "effect": "explode",
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": ""
+        },
+        {
+          "id": "node-1786456055120",
+          "details": "",
+          "type": "play_audio",
+          "name": "Act_Aud_BallonBumms",
+          "showDetails": false,
+          "target": "Audio_BalloonBums",
+          "changes": {}
+        },
+        {
+          "id": "node-1786457985240",
+          "details": "",
+          "type": "animate",
+          "name": "Act_UfoExpore",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "effect": "explode",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": ""
+        },
+        {
+          "id": "node-1786458039773",
+          "details": "",
+          "type": "increment",
+          "name": "Act_DecremenCherryScore",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CherryScoreLabel.value": -1
+          },
+          "resultVariable": "${CherryScoreLabel.text}"
+        },
+        {
+          "id": "node-1786464611153",
+          "details": "",
+          "type": "property",
+          "name": "Act_incUfos",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ObstacleSpawner.spawnInterval": 0.4
+          }
+        },
+        {
+          "id": "node-1786464968013",
+          "details": "",
+          "type": "property",
+          "name": "Act_IncUfoOcity",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ObstacleTemplate.velocityX": -0.6
+          }
+        },
+        {
+          "id": "node-1786465768285",
+          "details": "",
+          "type": "increment",
+          "name": "Act_IncBalloonScore",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "BalloonScoreLabel.value": 1
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "StartGame",
+          "description": "Initialisiert und startet das Spiel",
+          "actionSequence": [
+            {
+              "name": "Act_StartGame",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StartGame": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_StartGame": {
+              "x": 220,
+              "y": 40
+            }
+          },
+          "id": "a7128490-8ed0-45d1-b2dd-bf6b7f7aaf68"
+        },
+        {
+          "name": "PlayerJump",
+          "description": "Lässt den Spieler springen",
+          "actionSequence": [
+            {
+              "name": "Act_PlayerJump",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_AudioPlayerJump",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "PlayerJump": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_PlayerJump": {
+              "x": 220,
+              "y": 40
+            },
+            "Act_AudioPlayerJump": {
+              "x": 420,
+              "y": 40
+            }
+          },
+          "id": "fc496078-ff24-40d5-a72a-8126dc52cbb8"
+        },
+        {
+          "name": "PlayerLand",
+          "description": "Stoppt vertikale Geschwindigkeit beim Aufkommen",
+          "actionSequence": [
+            {
+              "name": "Act_PlayerLand",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "PlayerLand": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_PlayerLand": {
+              "x": 220,
+              "y": 40
+            }
+          },
+          "id": "b30c85c6-6675-48b7-909b-380375ab0eed"
+        },
+        {
+          "name": "GameOver",
+          "description": "Beendet das Spiel und zeigt Game Over",
+          "actionSequence": [
+            {
+              "name": "Act_ShakeScreen",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_StopGame",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_ShowGameOver",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_UfoTreffer",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_GetRandomFrame",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "GameOver": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ShakeScreen": {
+              "x": 220,
+              "y": 40
+            },
+            "Act_StopGame": {
+              "x": 440,
+              "y": 40
+            },
+            "Act_ShowGameOver": {
+              "x": 640,
+              "y": 40
+            },
+            "Act_UfoTreffer": {
+              "x": 880,
+              "y": 40
+            },
+            "Act_GetRandomFrame": {
+              "x": 1080,
+              "y": 40
+            }
+          },
+          "id": "a9ec355a-099e-477f-84b2-e9f16ac237b2"
+        },
+        {
+          "name": "RestartGame",
+          "description": "Startet das Spiel neu",
+          "actionSequence": [
+            {
+              "name": "Act_RestartGame",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "RestartGame": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_RestartGame": {
+              "x": 220,
+              "y": 40
+            }
+          },
+          "id": "50505af6-a37f-47a4-8a38-3a553e47053e"
+        },
+        {
+          "name": "IncrementScore",
+          "description": "Erhöht den Score um eins",
+          "actionSequence": [
+            {
+              "name": "Act_IncrementTimeScore",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "IncrementScore": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_IncrementTimeScore": {
+              "x": 260,
+              "y": 40
+            }
+          },
+          "id": "bfa6a298-1f76-4d73-92ca-acd7a82bdb65"
+        },
+        {
+          "id": "d4a79460-b34e-4b98-8d21-8c23438495a3",
+          "name": "IncrementCherryScore",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_IncrementCherryScore",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "IncrementCherryScore": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_IncrementCherryScore": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "24f4fd25-062f-4447-b8c0-915f852f59f4",
+          "name": "PlayerTrifftKirsche",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_destroyCherry",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "type": "task",
+              "name": "IncrementCherryScore",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Aud_CherryTreffer",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "PlayerTrifftKirsche": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_destroyCherry": {
+              "x": 280,
+              "y": 40
+            },
+            "IncrementCherryScore": {
+              "x": 480,
+              "y": 40
+            },
+            "Aud_CherryTreffer": {
+              "x": 760,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "75463379-a590-471b-b658-e946d264896b",
+          "name": "StetNewBallon",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_GetRandomFrame",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StetNewBallon": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_GetRandomFrame": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "906bad17-4cb0-4119-a16b-f04b3c24ee17",
+          "name": "BallonTreffer",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_BalloonExplore",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_Aud_BallonBumms",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_IncBalloonScore",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BallonTreffer": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_BalloonExplore": {
+              "x": 240,
+              "y": 40
+            },
+            "Act_Aud_BallonBumms": {
+              "x": 480,
+              "y": 40
+            },
+            "Act_IncBalloonScore": {
+              "x": 740,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "09047c00-f37b-4842-a325-8c46d2c62eca",
+          "name": "UfoTreffer",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_UfoExpore",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_DecremenCherryScore",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_UfoTreffer",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "UfoTreffer": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_UfoExpore": {
+              "x": 220,
+              "y": 40
+            },
+            "Act_DecremenCherryScore": {
+              "x": 420,
+              "y": 40
+            },
+            "Act_UfoTreffer": {
+              "x": 700,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "1fc80d4b-e9b6-45e9-aff1-7170c82ec2fa",
+          "name": "MehrUfos",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_incUfos",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_IncUfoOcity",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "MehrUfos": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_incUfos": {
+              "x": 220,
+              "y": 40
+            },
+            "Act_IncUfoOcity": {
+              "x": 400,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#1a1a2e"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    }
+  ],
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0",
+  "activeStageId": "main"
+}

@@ -45,6 +45,12 @@ export class StageRenderer {
     private variableContextCached = false;
     private animationPreview: { id: string; timer: number | null; el: HTMLElement; imageList: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number } | null = null;
     private spriteAnimationPreview: { id: string; timer: number | null; el: HTMLElement; obj: any; ctx: IRenderContext; animObj: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number; tick: (() => void) | null } | null = null;
+    private spriteElementCache: Map<string, HTMLElement> = new Map();
+    /** Index-Caches fuer den 60fps-Fast-Path. Werden bei jedem renderObjects() invalidiert. */
+    private fastPathObjectsRef: any[] | null = null;
+    private fastPathById: Map<string, any> = new Map();
+    private fastPathChildrenByParent: Map<string, any[]> = new Map();
+    private fastPathDialogParent: Map<string, any> = new Map();
 
     constructor(host: StageHost) {
         this.host = host;
@@ -53,6 +59,87 @@ export class StageRenderer {
     private resetVariableContext(): void {
         this.variableContextCached = false;
         this.cachedVariableContext = undefined;
+    }
+
+    /**
+     * PERF: Liefert das DOM-Element einer Objekt-ID aus dem Cache.
+     * Vermeidet `querySelector` in den 60fps-Pfaden (Frame- und Positions-Update).
+     */
+    private getCachedElement(objId: string | undefined): HTMLElement | null {
+        if (!objId || !this.host || !this.host.element) return null;
+        const cached = this.spriteElementCache.get(objId);
+        if (cached && cached.isConnected && cached.getAttribute('data-id') === objId) {
+            return cached;
+        }
+        const el = this.host.element.querySelector(`[data-id="${objId}"]`) as HTMLElement | null;
+        if (el) this.spriteElementCache.set(objId, el);
+        return el;
+    }
+
+    /** Verwirft die Fast-Path-Indizes; wird bei jedem vollen Render aufgerufen. */
+    private invalidateFastPathIndex(): void {
+        this.fastPathObjectsRef = null;
+        this.fastPathById.clear();
+        this.fastPathChildrenByParent.clear();
+        this.fastPathDialogParent.clear();
+    }
+
+    /**
+     * PERF: Baut Id- und Parent-Indizes einmalig auf, statt in jedem Frame
+     * `Array.find`/`Array.filter` ueber alle Stage-Objekte laufen zu lassen.
+     */
+    private ensureFastPathIndex(allObjects: any[]): void {
+        if (this.fastPathObjectsRef === allObjects && this.fastPathById.size > 0) return;
+
+        this.fastPathObjectsRef = allObjects;
+        this.fastPathById.clear();
+        this.fastPathChildrenByParent.clear();
+        this.fastPathDialogParent.clear();
+
+        for (const o of allObjects) {
+            const id = o?.id || o?.name;
+            if (id && !this.fastPathById.has(id)) this.fastPathById.set(id, o);
+            if (o?.parentId) {
+                const siblings = this.fastPathChildrenByParent.get(o.parentId);
+                if (siblings) siblings.push(o);
+                else this.fastPathChildrenByParent.set(o.parentId, [o]);
+            }
+        }
+    }
+
+    /**
+     * Ermittelt den Dialog-/SidePanel-Vorfahren eines Objekts.
+     * Die Baumstruktur aendert sich zwischen zwei vollen Renders nicht, daher
+     * wird das Ergebnis gecacht (der `visible`-Zustand wird weiterhin live gelesen).
+     */
+    private resolveDialogParent(obj: any, lookupObject: (id: string) => any): any {
+        const isDialogLike = (o: any): boolean =>
+            !!o && (o.className === 'TDialogRoot' || o.className === 'TThemeDialog' || o.className === 'TSidePanel'
+                || o.constructor?.name === 'TDialogRoot' || o.constructor?.name === 'TThemeDialog');
+
+        if (obj.className === 'TDialogRoot' || obj.className === 'TThemeDialog' || obj.className === 'TSidePanel') {
+            return obj;
+        }
+
+        const objId = obj.id || obj.name;
+        if (objId && this.fastPathDialogParent.has(objId)) {
+            return this.fastPathDialogParent.get(objId);
+        }
+
+        let parentDialog: any = null;
+        let currId = obj.parentId;
+        let sanity = 0;
+        while (currId && sanity++ < 20) {
+            const p = lookupObject(currId);
+            if (isDialogLike(p)) {
+                parentDialog = p;
+                break;
+            }
+            currId = p?.parentId;
+        }
+
+        if (objId) this.fastPathDialogParent.set(objId, parentDialog);
+        return parentDialog;
     }
 
     private getVariableContext(): Record<string, any> {
@@ -249,7 +336,9 @@ export class StageRenderer {
         if (!this.host || !this.host.element) return;
 
         this.resetVariableContext();
-        
+        this.spriteElementCache.clear();
+        this.invalidateFastPathIndex();
+
         // Update object hash for internal bookkeeping
         const objectHash = objects.map(o => `${o.id}@${Number(this.getResolvedNumber(o, 'x', objects)).toFixed(1)},${Number(this.getResolvedNumber(o, 'y', objects)).toFixed(1)}`).join('|');
 
@@ -497,6 +586,9 @@ export class StageRenderer {
                 this.host.element.appendChild(el);
                 isNew = true;
             }
+            this.spriteElementCache.set(objId, el);
+            // Style-Diff-Cache des Fast-Path verwerfen, da renderObjects direkt schreibt.
+            (el as any)._fp = undefined;
 
             const className = obj.className || obj.constructor?.name;
             el.className = 'game-object' + (className ? ' ' + className : '');
@@ -1260,7 +1352,7 @@ export class StageRenderer {
         if (!this.host || !this.host.element || !obj || !obj.id) return false;
         if (obj.className !== 'TSprite' && obj.className !== 'TSpriteTemplate') return false;
 
-        const el = this.host.element.querySelector(`[data-id="${obj.id}"]`) as HTMLElement;
+        const el = this.getCachedElement(obj.id);
         if (!el) return false;
 
         const ctx: IRenderContext = {
@@ -1903,7 +1995,8 @@ export class StageRenderer {
         this.resetVariableContext();
         const cellSize = this.host.grid.cellSize;
         const allObjects = this.host.lastRenderedObjects || [];
-        
+        this.ensureFastPathIndex(allObjects);
+
         const objectsToUpdateMap = new Map<string, any>();
         
         // 1. Zuerst die primär animierten Original-Objekte (aus dem GameRuntime) aufnehmen
@@ -1913,24 +2006,26 @@ export class StageRenderer {
             }
         }
 
-        // 2. Rekursive Helfer-Funktion, um alle Kinder zu sammeln
-        const getChildren = (parentId: string): any[] => {
-            let kids = allObjects.filter(o => o.parentId === parentId);
-            let result = [...kids];
+        // 2. Kinder ueber den vorberechneten Parent-Index sammeln (statt O(n^2) filter)
+        const collectChildren = (parentId: string, out: any[], depth: number): void => {
+            if (depth > 100) return;
+            const kids = this.fastPathChildrenByParent.get(parentId);
+            if (!kids) return;
             for (const k of kids) {
-                if (k.id || k.name) {
-                    result = result.concat(getChildren(k.id || k.name));
-                }
+                out.push(k);
+                const kId = k.id || k.name;
+                if (kId) collectChildren(kId, out, depth + 1);
             }
-            return result;
         };
 
         // 3. Auch alle Kinder in den Update-Zyklus einbeziehen, damit sie sich 
         // synchron mit ihren animierten Containern mitbewegen.
+        const kidBuffer: any[] = [];
         for (const obj of objects) {
             if (!obj.id && !obj.name) continue;
-            const kids = getChildren(obj.id || obj.name);
-            for (const k of kids) {
+            kidBuffer.length = 0;
+            collectChildren(obj.id || obj.name, kidBuffer, 0);
+            for (const k of kidBuffer) {
                 const kId = k.id || k.name;
                 // Originale (aktiv animierte) haben Vorrang! Überschreibe keine bestehenden Einträge.
                 if (kId && !objectsToUpdateMap.has(kId)) {
@@ -1941,6 +2036,10 @@ export class StageRenderer {
 
         const mergedObjectsArray = Array.from(objectsToUpdateMap.values());
 
+        /** Parent-Lookup: bevorzugt die aktuell animierten Objekte, sonst der Stage-Index. */
+        const lookupObject = (id: string): any =>
+            objectsToUpdateMap.get(id) || this.fastPathById.get(id);
+
         // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain)
         // Muss die LATEST properties referenzieren
         const getAbsXYZ = (obj: any): {x: number, y: number} => {
@@ -1949,7 +2048,7 @@ export class StageRenderer {
             let curr = obj.parentId;
             let depth = 0;
             while (curr && depth < 100) {
-                const p = mergedObjectsArray.find(o => (o.id || o.name) === curr) || allObjects.find(o => (o.id || o.name) === curr);
+                const p = lookupObject(curr);
                 if (p) {
                     absX += this.getResolvedNumber(p, 'x', mergedObjectsArray);
                     absY += this.getResolvedNumber(p, 'y', mergedObjectsArray);
@@ -1963,10 +2062,9 @@ export class StageRenderer {
         };
 
         for (const obj of mergedObjectsArray) {
-            const el = this.host.element.querySelector(
-                `[data-id="${obj.id}"]`
-            ) as HTMLElement;
+            const el = this.getCachedElement(obj.id);
             if (!el) continue;
+            const fp = ((el as any)._fp ||= {});
             
             // Rekursive Parent-Positionierung berücksichtigen!
             const absPos = getAbsXYZ(obj);
@@ -1981,68 +2079,81 @@ export class StageRenderer {
                 let isVisible = obj.visible !== false;
                 if (obj.isHiddenInRun) isVisible = false;
 
-                // Feststellen, ob es zum Dialog-Zweig gehört
-                let parentDialog: any = null;
-                if ((obj.className === 'TDialogRoot' || obj.className === 'TThemeDialog') || obj.className === 'TSidePanel') {
-                    parentDialog = obj;
-                } else if (obj.parentId) {
-                    let currId = obj.parentId;
-                    let sanity = 0;
-                    while (currId && sanity++ < 20) {
-                        const p = allObjects.find((o: any) => (o.id || o.name) === currId) || mergedObjectsArray.find((o: any) => (o.id || o.name) === currId);
-                        if (p && ((p.className === 'TDialogRoot' || p.className === 'TThemeDialog') || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot' || p.constructor?.name === 'TThemeDialog')) {
-                            parentDialog = p;
-                            break;
-                        }
-                        currId = p?.parentId;
-                    }
-                }
+                // Feststellen, ob es zum Dialog-Zweig gehört (Ergebnis wird gecacht)
+                const parentDialog = this.resolveDialogParent(obj, lookupObject);
 
                 // Display
-                if (isVisible || parentDialog) {
-                    el.style.display = obj.className === 'TRichText' ? 'block' : 'flex';
-                } else {
-                    el.style.display = 'none';
+                const displayValue = (isVisible || parentDialog)
+                    ? (obj.className === 'TRichText' ? 'block' : 'flex')
+                    : 'none';
+                if (fp.display !== displayValue) {
+                    fp.display = displayValue;
+                    el.style.display = displayValue;
                 }
 
                 // GPU Compositing: Native CSS translate Property
+                let translateValue: string;
                 if (obj.className === 'TVirtualGamepad') {
-                    (el.style as any).translate = 'none';
+                    translateValue = 'none';
                 } else if (parentDialog) {
                     if (parentDialog.visible !== false) {
-                        (el.style as any).translate = `${finalTransX}px ${finalTransY}px`;
+                        translateValue = `${finalTransX}px ${finalTransY}px`;
                     } else {
                         const isLeft = parentDialog.className === 'TSidePanel' 
                             ? parentDialog.side === 'left' 
                             : parentDialog.slideDirection === 'left';
                         const outOfBoundsOffset = isLeft ? -1500 : 1500;
-                        (el.style as any).translate = `${finalTransX + outOfBoundsOffset}px ${finalTransY}px`;
+                        translateValue = `${finalTransX + outOfBoundsOffset}px ${finalTransY}px`;
                     }
                 } else {
-                    (el.style as any).translate = `${finalTransX}px ${finalTransY}px`;
+                    translateValue = `${finalTransX}px ${finalTransY}px`;
+                }
+                if (fp.translate !== translateValue) {
+                    fp.translate = translateValue;
+                    (el.style as any).translate = translateValue;
                 }
                 
                 let transformStr = (obj.style && obj.style.transform !== undefined) ? obj.style.transform : '';
                 if (obj.rotation) {
                     transformStr += ` rotate(${obj.rotation}deg)`;
                 }
-                el.style.transform = transformStr.trim();
+                transformStr = transformStr.trim();
+                if (fp.transform !== transformStr) {
+                    fp.transform = transformStr;
+                    el.style.transform = transformStr;
+                }
 
                 if (obj.style && obj.style.opacity !== undefined) {
                     const resolvedOpacity = this.getResolvedStyleValue(obj, 'opacity', mergedObjectsArray);
                     if (resolvedOpacity !== undefined) {
-                        el.style.opacity = String(resolvedOpacity);
+                        const opacityValue = String(resolvedOpacity);
+                        if (fp.opacity !== opacityValue) {
+                            fp.opacity = opacityValue;
+                            el.style.opacity = opacityValue;
+                        }
                     }
                 } else if (obj.opacity !== undefined) {
-                    el.style.opacity = String(obj.opacity);
+                    const opacityValue = String(obj.opacity);
+                    if (fp.opacity !== opacityValue) {
+                        fp.opacity = opacityValue;
+                        el.style.opacity = opacityValue;
+                    }
                 }
 
                 // Größen-Sync (für grow/shrink Animationen)
                 if (obj.width !== undefined) {
-                    el.style.width = `${this.getResolvedNumber(obj, 'width', mergedObjectsArray) * cellSize}px`;
+                    const widthValue = `${this.getResolvedNumber(obj, 'width', mergedObjectsArray) * cellSize}px`;
+                    if (fp.width !== widthValue) {
+                        fp.width = widthValue;
+                        el.style.width = widthValue;
+                    }
                 }
                 if (obj.height !== undefined) {
-                    el.style.height = `${this.getResolvedNumber(obj, 'height', mergedObjectsArray) * cellSize}px`;
+                    const heightValue = `${this.getResolvedNumber(obj, 'height', mergedObjectsArray) * cellSize}px`;
+                    if (fp.height !== heightValue) {
+                        fp.height = heightValue;
+                        el.style.height = heightValue;
+                    }
                 }
 
             } else {

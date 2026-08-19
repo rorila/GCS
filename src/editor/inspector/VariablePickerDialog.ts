@@ -270,17 +270,22 @@ export class VariablePickerDialog {
 
     private static filterVars(vars: any[], filter: string): any[] {
         if (!filter) return vars;
+        const filterLower = filter.toLowerCase();
         return vars.filter(v => {
             const name = (v.name || '').toLowerCase();
             const model = ((v as any).objectModel || '').toLowerCase();
-            if (name.includes(filter) || model.includes(filter)) return true;
+            if (name.includes(filterLower) || model.includes(filterLower)) return true;
             // Subeigenschaften prüfen
             const fields = VariablePickerDialog.getSubFields(v);
-            return fields.some(f => f.toLowerCase().includes(filter));
+            return fields.some(f => {
+                if (typeof f === 'string') return f.toLowerCase().includes(filterLower);
+                const text = ((f as any).fullLabel || (f as any).label || (f as any).key || '').toLowerCase();
+                return text.includes(filterLower);
+            });
         });
     }
 
-    private static getSubFields(v: any): string[] {
+    private static getSubFields(v: any): any[] {
         const className = (v.className || '') as string;
         const VARIABLE_CLASSNAMES = [
             'TVariable', 'TIntegerVariable', 'TBooleanVariable', 'TStringVariable',
@@ -291,12 +296,19 @@ export class VariablePickerDialog {
             return [];
         }
 
-        let fields: string[] = [];
+        let fields: any[] = [];
 
         if (className === 'TListVariable' || className === 'TList') {
-            const items = v.items || (Array.isArray(v.value) ? v.value : []);
-            if (Array.isArray(items) && items.length > 0) {
-                return items.map((_: any, i: number) => `[${i}]`);
+            const itemArray = (Array.isArray(v.items) && v.items.length > 0)
+                ? v.items
+                : (Array.isArray(v.value) ? v.value : []);
+            if (itemArray.length > 0) {
+                return itemArray.map((item: any, i: number) => {
+                    const valueText = (typeof item === 'object' && item !== null)
+                        ? JSON.stringify(item)
+                        : String(item ?? '');
+                    return { key: `[${i}]`, label: valueText, fullLabel: `[${i}]  ${valueText}` };
+                });
             }
             return [];
         }
@@ -434,8 +446,18 @@ export class VariablePickerDialog {
 
             if (hasSubFields) {
                 subFields.forEach(field => {
+                    const isStringField = typeof field === 'string';
+                    const key = isStringField ? field : ((field as any).key || '');
+                    const display = isStringField
+                        ? (key.startsWith('[') ? `${v.name}${key}` : `${v.name}.${key}`)
+                        : (`${v.name}${(field as any).key}`);
+                    const fullLabel = isStringField
+                        ? display
+                        : (`${display}  ${(field as any).fullLabel || (field as any).label || (field as any).key || ''}`);
+
                     // Filter subfields if search is active
-                    if (filter && !field.toLowerCase().includes(filter) && !v.name?.toLowerCase().includes(filter)) {
+                    const filterText = (isStringField ? field : ((field as any).fullLabel || (field as any).label || (field as any).key || '')).toLowerCase();
+                    if (filter && !filterText.includes(filter) && !v.name?.toLowerCase().includes(filter)) {
                         return;
                     }
                     
@@ -450,13 +472,12 @@ export class VariablePickerDialog {
 
                     const fieldName = document.createElement('span');
                     fieldName.style.cssText = 'color:#bbb; font-size:12px; font-family:monospace;';
-                    const fieldExpr = field.startsWith('[') ? `${v.name}${field}` : `${v.name}.${field}`;
-                    fieldName.innerText = fieldExpr;
+                    fieldName.innerText = fullLabel;
                     subRow.appendChild(fieldName);
 
                     subRow.onclick = (e) => {
                         e.stopPropagation();
-                        onSelect(fieldExpr);
+                        onSelect(display);
                     };
                     subContainer.appendChild(subRow);
                 });

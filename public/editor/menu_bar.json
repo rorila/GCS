@@ -209,6 +209,12 @@
                     "label": "Audio Sequenzen",
                     "action": "open-audio-sequence",
                     "icon": "🎵"
+                },
+                {
+                    "id": "asset-analyzer",
+                    "label": "Bild-Analyse (Performance)",
+                    "action": "open-asset-analyzer",
+                    "icon": "🔍"
                 }
             ]
         }

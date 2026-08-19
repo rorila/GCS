@@ -1,5 +1,6 @@
 
 import { Logger } from '../utils/Logger';
+import { LogLevel } from '../utils/LogTypes';
 import { DESIGN_VALUES } from '../components/TComponent';
 
 const logger = Logger.get('PropertyHelper', 'Variable_Handling');
@@ -10,13 +11,47 @@ const logger = Logger.get('PropertyHelper', 'Variable_Handling');
  */
 export class PropertyHelper {
     /**
+     * PERF: Pfad-Segmente werden gecacht. `getPropertyValue` laeuft im Render-Loop
+     * mehrfach pro Objekt pro Frame; das wiederholte `split('.')` allokiert dabei
+     * fuer immer dieselben wenigen Pfade ('x', 'y', 'width', ...) neue Arrays.
+     */
+    private static readonly pathPartsCache = new Map<string, string[]>();
+
+    private static getPathParts(propPath: string): string[] {
+        let parts = this.pathPartsCache.get(propPath);
+        if (!parts) {
+            parts = propPath.split('.');
+            // Schutz gegen unbegrenztes Wachstum bei dynamisch erzeugten Pfaden.
+            if (this.pathPartsCache.size > 2000) this.pathPartsCache.clear();
+            this.pathPartsCache.set(propPath, parts);
+        }
+        return parts;
+    }
+
+    /**
+     * Prueft, ob ein Objekt wie eine Datenvariable behandelt wird (Wert-Unwrapping).
+     * Entspricht der Bedingung in `getPropertyValue`/`resolveValue`.
+     */
+    private static isVarLike(val: any): boolean {
+        if (!val || typeof val !== 'object') return false;
+        if (val.className === 'TTimer' || val.className === 'TIntervalTimer') return false;
+        return val.isVariable === true
+            || (!!val.className && (val.className.includes('Variable') || val.className === 'TStringMap'));
+    }
+
+    /**
      * Reads a property value using a dot-path (e.g., "style.backgroundColor")
      */
     static getPropertyValue(obj: any, propPath: string): any {
         if (!obj || !propPath) return undefined;
 
-        const parts = propPath.split('.');
+        const parts = this.getPathParts(propPath);
         let current = obj;
+
+        // PERF: Diagnose-Bedingung einmal pro Aufruf statt einmal pro Pfad-Segment
+        // pruefen und nur auswerten, wenn INFO-Logging aktiv ist.
+        const traceMember = logger.isEnabled(LogLevel.INFO)
+            && (propPath.includes('LeftOperand') || propPath.includes('BaseVar'));
 
         for (const part of parts) {
             if (current === undefined || current === null) return undefined;
@@ -67,7 +102,7 @@ export class PropertyHelper {
                 current = undefined;
             }
 
-            if (propPath.includes('LeftOperand') || propPath.includes('BaseVar')) {
+            if (traceMember) {
                 logger.info(`getPropertyValue("${propPath}") member "${part}":`, {
                     targetType: (target as any).constructor?.name || typeof target,
                     hasInContent,
@@ -116,7 +151,10 @@ export class PropertyHelper {
      * Returns true if a value is a binding expression string (e.g., "${myVar}").
      */
     static isBinding(value: any): boolean {
-        return typeof value === 'string' && this.BINDING_REGEX.test(value);
+        // PERF: `includes` ist deutlich guenstiger als der Regex-Test und eine
+        // notwendige Bedingung fuer ein Binding. Der Regex laeuft nur noch,
+        // wenn "${" ueberhaupt vorkommt.
+        return typeof value === 'string' && value.includes('${') && this.BINDING_REGEX.test(value);
     }
 
     /**
@@ -171,6 +209,15 @@ export class PropertyHelper {
      */
     static getResolvedPropertyValue(obj: any, propPath: string, context?: Record<string, any>, objects?: any[]): any {
         if (!obj || !propPath) return undefined;
+
+        // PERF-FAST-PATH: Der Render-Loop fragt 60x/s einfache numerische Werte ab
+        // ('x', 'y', 'width', 'height'). Fuer ein direktes Zahlen-Property eines
+        // Nicht-Variablen-Objekts liefert der volle Pfad-Walk garantiert denselben
+        // Wert; ein Binding kann eine Zahl ausserdem nie sein.
+        if (typeof obj[propPath] === 'number' && !propPath.includes('.') && !this.isVarLike(obj)) {
+            return obj[propPath];
+        }
+
         const raw = this.getPropertyValue(obj, propPath);
         if (this.isBinding(raw)) {
             return this.resolveBinding(raw, context, objects);
@@ -215,9 +262,13 @@ export class PropertyHelper {
             return template;
         }
 
+        // PERF: interpolate() laeuft pro Binding pro Frame. Die Trace-Logs bauen
+        // jeweils Template-Strings, die ohne aktives INFO-Level verworfen wuerden.
+        const traceEnabled = logger.isEnabled(LogLevel.INFO);
+
         return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
             const trimmedPath = path.trim().replace(/\[(\d+)\]/g, '.$1');
-            logger.info(`Starting interpolation for path: "${trimmedPath}"`);
+            if (traceEnabled) logger.info(`Starting interpolation for path: "${trimmedPath}"`);
             // 0. Try literals first
             if (trimmedPath === 'true') return 'true';
             if (trimmedPath === 'false') return 'false';
@@ -250,7 +301,7 @@ export class PropertyHelper {
                     const obj = objects.find(o => o.name === objName || o.id === objName);
                     if (obj) {
                         const val = this.getPropertyValue(obj, propPath);
-                        logger.info(`Interpolate "${trimmedPath}" matched Object "${objName}". Prop: "${propPath}", Value: "${val}"`);
+                        if (traceEnabled) logger.info(`Interpolate "${trimmedPath}" matched Object "${objName}". Prop: "${propPath}", Value: "${val}"`);
                         if (val !== undefined) return String(val);
                     }
                 } else {
@@ -258,7 +309,7 @@ export class PropertyHelper {
                     const obj = objects.find(o => o.name === trimmedPath || o.id === trimmedPath);
                     if (obj) {
                         const resolved = this.resolveValue(obj);
-                        logger.info(`Interpolate "${trimmedPath}" found Object. ID: ${obj.id}, Name: ${obj.name}, Value: "${resolved}"`);
+                        if (traceEnabled) logger.info(`Interpolate "${trimmedPath}" found Object. ID: ${obj.id}, Name: ${obj.name}, Value: "${resolved}"`);
                         if (resolved !== obj) return String(resolved ?? '');
                         // Otherwise return the name or [object]
                         return obj.name || obj.id || String(obj);
@@ -279,7 +330,7 @@ export class PropertyHelper {
 
             if (val !== undefined) {
                 const resolvedVal = this.resolveValue(val);
-                logger.info(`Interpolate "${trimmedPath}" found in vars. Value: "${resolvedVal}"`);
+                if (traceEnabled) logger.info(`Interpolate "${trimmedPath}" found in vars. Value: "${resolvedVal}"`);
                 return String(resolvedVal);
             }
 
