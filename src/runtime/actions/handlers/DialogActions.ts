@@ -1,6 +1,7 @@
 import { actionRegistry } from '../../ActionRegistry';
 import { resolveTarget } from '../ActionHelper';
 import { Logger } from '../../../utils/Logger';
+import { GameLoopManager } from '../../GameLoopManager';
 
 const logger = Logger.get('DialogActions', 'Runtime_Execution');
 
@@ -19,9 +20,9 @@ export function registerDialogActions() {
         }
 
         const className = target.className || target.constructor?.name;
-        const isDialog = className === 'TDialogRoot' || className === 'TThemeDialog' || className === 'TDialog';
+        const isDialog = className === 'TDialogRoot' || className === 'TThemeDialog' || className === 'TDialog' || className === 'TSidePanel';
         if (!isDialog) {
-            logger.warn(`toggle_dialog: Ziel "${action.target}" ist kein Dialog (className=${className}).`);
+            logger.warn(`toggle_dialog: Ziel "${action.target}" ist kein Dialog/Side-Panel (className=${className}).`);
         }
 
         const mode = action.mode || 'toggle';
@@ -45,6 +46,18 @@ export function registerDialogActions() {
                     if (typeof target.show === 'function') target.show();
                 }
                 break;
+        }
+
+        // Side-Panel mit modal/pauseGame haelt das Spiel an. Redundant zu
+        // TSidePanel.onVisibilityChanged, greift aber auch dann, wenn das
+        // aufgeloeste Ziel kein lebendes TSidePanel-Objekt (sondern eine Kopie) ist.
+        if (className === 'TSidePanel' && (target.modal || target.pauseGame)) {
+            const gm = GameLoopManager.getInstance();
+            if (target.visible) {
+                gm.pause();
+            } else if (gm.getState() === 'paused') {
+                gm.resume();
+            }
         }
 
         logger.info(`toggle_dialog: ${target.name} → visible=${target.visible} (mode=${mode})`);

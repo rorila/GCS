@@ -3,6 +3,7 @@ import { Logger } from '../../../utils/Logger';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { NotificationToast } from '../../ui/NotificationToast';
 import { themeRegistry } from '../../../runtime/ThemeRegistry';
+import { getDialogSlideOffset } from './DialogSlide';
 
 const logger = Logger.get('ComplexComponentRenderer');
 
@@ -96,20 +97,64 @@ export class ComplexComponentRenderer {
             titleText.className = 'sidepanel-title-text';
             titleBar.appendChild(titleText);
             
-            // Ein Icon oder Hinweis, dass es ein SidePanel ist
+            // Schließen-Button (nur sichtbar, wenn closeable)
             const iconEl = document.createElement('span');
-            iconEl.textContent = obj.side === 'left' ? '⬅️' : '➡️';
-            iconEl.style.fontSize = '12px';
+            iconEl.className = 'sidepanel-icon';
+            iconEl.style.fontSize = '14px';
             iconEl.style.opacity = '0.7';
+            iconEl.style.padding = '0 8px';
             titleBar.appendChild(iconEl);
 
             el.appendChild(titleBar);
         }
-        
+
         const titleBar = el.querySelector('.sidepanel-title-bar') as HTMLElement;
         const titleText = titleBar.querySelector('.sidepanel-title-text') as HTMLElement;
         if (titleText && titleText.textContent !== (obj.caption || obj.title || obj.name)) {
             titleText.textContent = obj.caption || obj.title || obj.name;
+        }
+
+        const iconEl = titleBar.querySelector('.sidepanel-icon') as HTMLElement;
+        if (iconEl) {
+            if (obj.closable) {
+                iconEl.textContent = '\u2715';
+                iconEl.style.cursor = 'pointer';
+                iconEl.style.display = 'inline';
+                iconEl.style.opacity = '0.7';
+                iconEl.onpointerdown = (e) => { e.stopPropagation(); };
+                iconEl.onmousedown = (e) => { e.stopPropagation(); e.preventDefault(); };
+                iconEl.onclick = (e) => {
+                    e.stopPropagation();
+                    let masterObj: any = obj;
+                    if (ctx.host?.runtime && typeof ctx.host.runtime.getRawObject === 'function') {
+                        const raw = ctx.host.runtime.getRawObject(obj.id);
+                        if (raw) masterObj = raw;
+                    } else if (ctx.host && typeof (ctx.host as any).getObject === 'function') {
+                        const raw = (ctx.host as any).getObject(obj.id);
+                        if (raw) masterObj = raw;
+                    }
+
+                    // Sofortige Slide-Out-Animation, auch wenn der GameLoop pausiert
+                    const cellSize = (ctx.host?.grid?.cellSize) || 20;
+                    const outOfBounds = getDialogSlideOffset(obj, cellSize);
+                    (el.style as any).translate = `${((obj.x || 0) * cellSize) + outOfBounds}px ${(obj.y || 0) * cellSize}px`;
+                    el.style.pointerEvents = 'none';
+
+                    if (typeof masterObj.hide === 'function') {
+                        masterObj.hide();
+                    } else {
+                        masterObj.visible = false;
+                    }
+                };
+            } else {
+                iconEl.textContent = obj.side === 'left' ? '⬅️' : '➡️';
+                iconEl.style.cursor = 'default';
+                iconEl.style.display = 'none';
+                iconEl.style.opacity = '0.7';
+                iconEl.onpointerdown = null;
+                iconEl.onmousedown = null;
+                iconEl.onclick = null;
+            }
         }
 
         // Falls wir im RunMode sind, verhält es sich wie im TSidePanel runMode
@@ -361,7 +406,7 @@ export class ComplexComponentRenderer {
                         masterObj.visible = false;
 
                         // Sofortiges visuelles Feedback: (Schiebt den Dialog entsprechend StageRenderer Logik aus dem Bild)
-                        const outOfBoundsOffset = currentObj.slideDirection === 'left' ? -1500 : 1500;
+                        const outOfBoundsOffset = getDialogSlideOffset(currentObj, cellSize);
                         (el.style as any).translate = `${((currentObj.x || 0) * cellSize) + outOfBoundsOffset}px ${(currentObj.y || 0) * cellSize}px`;
                         el.style.pointerEvents = 'none';
                         (el as any)._wasCentered = false; // Zentrierungs-Zustand resetten

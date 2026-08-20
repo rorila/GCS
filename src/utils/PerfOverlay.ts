@@ -1,4 +1,5 @@
 import { GameLoopManager } from '../runtime/GameLoopManager';
+import * as packageJson from '../../package.json';
 
 /**
  * PerfOverlay - Diagnose-Anzeige direkt im Spiel.
@@ -353,7 +354,8 @@ export class PerfOverlay {
         const w = window.innerWidth;
         const h = window.innerHeight;
 
-        return `RAM ${ram}  cores ${cores}  dpr ${dpr}\n` +
+        const version = (packageJson as any).version || '?';
+        return `v${version}  RAM ${ram}  cores ${cores}  dpr ${dpr}\n` +
             `view ${w}x${h}\n` +
             `gpu ${this.detectGpu()}`;
     }

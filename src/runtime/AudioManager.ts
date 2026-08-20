@@ -5,12 +5,22 @@ interface AudioPool {
     elements: HTMLAudioElement[];
 }
 
+/** Einmalig dekodierte PCM-Daten fuer Web Audio. */
+interface WebAudioBuffer {
+    buffer: AudioBuffer;
+    audioId: string;
+    src: string;
+}
+
 export class AudioManager {
     private static instance: AudioManager;
     private static logger = Logger.get('AudioManager', 'Runtime_Execution');
-    
-    /** Aktuell laufende Elemente pro audioId — Grundlage fuer stop(). */
+
+    /** Aktuell laufende HTML5-Audio-Elemente pro audioId. */
     private activeSources: Map<string, Set<HTMLAudioElement>> = new Map();
+
+    /** Aktuell laufende Web-Audio-Sources pro audioId. */
+    private activeWebSources: Map<string, Set<AudioBufferSourceNode>> = new Map();
 
     /**
      * PERF: Wiederverwendbare Audio-Elemente pro audioId+src.
@@ -26,6 +36,11 @@ export class AudioManager {
      */
     private pools: Map<string, AudioPool> = new Map();
 
+    /** Einmalig dekodierte AudioBuffer fuer Web Audio. */
+    private webBuffers: Map<string, WebAudioBuffer> = new Map();
+
+    private audioContext: AudioContext | null = null;
+
     /**
      * Mehr als vier Instanzen desselben Sounds gleichzeitig sind nicht mehr
      * unterscheidbar. Die Grenze verhindert, dass eine schnelle Trefferfolge
@@ -34,7 +49,111 @@ export class AudioManager {
     private readonly MAX_PER_SOUND = 4;
 
     private constructor() {
-        // We use HTML5 Audio to avoid AudioContext decoding crashes in Electron
+        // We use HTML5 Audio to avoid AudioContext decoding crashes in Electron.
+        // In Browsern (iPad, Safari) wird zusaetzlich Web Audio fuer Soundeffekte genutzt.
+    }
+
+    /**
+     * Heuristische Erkennung von Electron. Dort ist AudioContext historisch
+     * instabil, deshalb bleiben wir bei HTML5 Audio.
+     */
+    private static isElectron(): boolean {
+        if (typeof window === 'undefined') return false;
+        const ua = (navigator.userAgent || '').toLowerCase();
+        return ua.includes('electron') || !!(window as any).process?.versions?.electron;
+    }
+
+    private static isWebAudioSupported(): boolean {
+        return typeof window !== 'undefined' && !AudioManager.isElectron() && (!!(window as any).AudioContext || !!(window as any).webkitAudioContext);
+    }
+
+    private initAudioContext(): AudioContext | null {
+        if (this.audioContext) return this.audioContext;
+        if (!AudioManager.isWebAudioSupported()) return null;
+
+        const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+        try {
+            this.audioContext = new AC();
+            return this.audioContext;
+        } catch (e) {
+            AudioManager.logger.warn('AudioContext konnte nicht erstellt werden', e);
+            return null;
+        }
+    }
+
+    /**
+     * Laedt die Klangdatei fuer Web Audio und dekodiert sie einmalig.
+     * Bei Erfolg wird der gepoolte HTML5-Audio-Weg bei play() nicht verwendet.
+     */
+    private async loadAudioBuffer(resolvedSrc: string, audioId: string): Promise<AudioBuffer | null> {
+        const key = AudioManager.poolKey(audioId, resolvedSrc);
+        if (this.webBuffers.has(key)) {
+            return this.webBuffers.get(key)!.buffer;
+        }
+
+        const ctx = this.initAudioContext();
+        if (!ctx) return null;
+
+        try {
+            const response = await fetch(resolvedSrc);
+            if (!response.ok) {
+                AudioManager.logger.warn(`Audio-Datei nicht ladbar: ${resolvedSrc} (${response.status})`);
+                return null;
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+            this.webBuffers.set(key, { buffer: audioBuffer, audioId, src: resolvedSrc });
+            return audioBuffer;
+        } catch (e) {
+            AudioManager.logger.warn(`Web Audio Dekodierung fehlgeschlagen fuer ${resolvedSrc}`, e);
+            return null;
+        }
+    }
+
+    private getWebBuffer(audioId: string, resolvedSrc: string): AudioBuffer | null {
+        const key = AudioManager.poolKey(audioId, resolvedSrc);
+        return this.webBuffers.get(key)?.buffer || null;
+    }
+
+    private async playWebAudio(audioId: string, resolvedSrc: string, volume: number, loop: boolean): Promise<void> {
+        const buffer = this.getWebBuffer(audioId, resolvedSrc);
+        if (!buffer) return;
+
+        const ctx = this.audioContext!;
+
+        // iOS Safari: AudioContext muss in User-Gesture resume() bekommen haben.
+        if (ctx.state === 'suspended') {
+            try {
+                await ctx.resume();
+            } catch (e) {
+                // Falls resume fehlschlaegt, versuchen wir trotzdem start()
+            }
+        }
+
+        const source = ctx.createBufferSource();
+        const gain = ctx.createGain();
+        source.buffer = buffer;
+        source.loop = loop;
+        gain.gain.value = Math.max(0, Math.min(1, volume));
+
+        source.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (!this.activeWebSources.has(audioId)) {
+            this.activeWebSources.set(audioId, new Set());
+        }
+        const sourceSet = this.activeWebSources.get(audioId)!;
+        sourceSet.add(source);
+
+        source.onended = () => {
+            try {
+                source.disconnect();
+                gain.disconnect();
+            } catch (e) { }
+            sourceSet.delete(source);
+        };
+
+        source.start();
     }
 
     public static getInstance(): AudioManager {
@@ -98,13 +217,17 @@ export class AudioManager {
         if (!src) return null;
         const resolvedSrc = AudioManager.resolveSrc(src);
 
+        // Parallel: HTML5-Audio-Element vorbereiten UND Web-Audio-Buffer dekodieren.
+        // Letzteres geschieht asynchron und blockiert den Main Thread nicht.
         try {
-            // Ueber acquire(), damit das Element im Pool verbleibt und von play()
-            // wiederverwendet wird. Zuvor wurde es sofort verworfen — die
-            // Preload-Option war dadurch wirkungslos.
             const audio = this.acquire(audioId, resolvedSrc);
             audio.preload = 'auto';
             audio.load();
+
+            // Web-Audio-Dekodierung im Hintergrund starten, damit play() spaeter
+            // den schnelleren Pfad waehlen kann.
+            void this.loadAudioBuffer(resolvedSrc, audioId);
+
             return audio;
         } catch (error) {
             AudioManager.logger.error(`Error preloading audio from src`, error);
@@ -117,6 +240,14 @@ export class AudioManager {
         const resolvedSrc = AudioManager.resolveSrc(src);
 
         try {
+            // Browser: Web Audio verwenden, falls der Sound bereits dekodiert wurde.
+            // Das vermeidet den synchronen HTML5-Audio-Overhead auf iOS.
+            const webBuffer = this.getWebBuffer(audioId, resolvedSrc);
+            if (webBuffer) {
+                await this.playWebAudio(audioId, resolvedSrc, volume, loop);
+                return;
+            }
+
             const audio = this.acquire(audioId, resolvedSrc);
             audio.volume = Math.max(0, Math.min(1, volume));
             audio.loop = loop;
@@ -156,6 +287,17 @@ export class AudioManager {
             });
             sourceSet.clear();
         }
+
+        const webSourceSet = this.activeWebSources.get(audioId);
+        if (webSourceSet) {
+            webSourceSet.forEach(source => {
+                try {
+                    source.stop();
+                    source.disconnect();
+                } catch (e) { }
+            });
+            webSourceSet.clear();
+        }
     }
 
     /**
@@ -173,5 +315,16 @@ export class AudioManager {
             sourceSet.clear();
         });
         this.activeSources.clear();
+
+        this.activeWebSources.forEach(sourceSet => {
+            sourceSet.forEach(source => {
+                try {
+                    source.stop();
+                    source.disconnect();
+                } catch (e) { }
+            });
+            sourceSet.clear();
+        });
+        this.activeWebSources.clear();
     }
 }

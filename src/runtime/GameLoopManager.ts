@@ -221,8 +221,14 @@ export class GameLoopManager {
      * Pause the game loop
      */
     public pause(): void {
-        if (this.state === 'running') {
+        // Auch aus 'sleeping' pausieren: sonst koennte ein Event den Loop per
+        // wakeUp() wieder starten, obwohl das Spiel angehalten sein soll.
+        if (this.state === 'running' || this.state === 'sleeping') {
             this.state = 'paused';
+            if (this.animationFrameId !== null) {
+                cancelAnimationFrame(this.animationFrameId);
+                this.animationFrameId = null;
+            }
             logger.debug(`Paused`);
         }
     }
@@ -282,6 +288,15 @@ export class GameLoopManager {
      * (nicht durch Velocity im Loop) – für Gleichbehandlung mit TButton/TPanel.
      */
     public requestRender(): void {
+        if (this.state === 'paused') {
+            // Im Pause-Zustand nur einmalig zeichnen, den Loop aber nicht starten.
+            if (this.spriteRenderCallback) {
+                this.spriteRenderCallback(this.sprites);
+            } else if (this.renderCallback) {
+                this.renderCallback();
+            }
+            return;
+        }
         if (this.state === 'sleeping') {
             this.wakeUp();
             return;
@@ -305,16 +320,8 @@ export class GameLoopManager {
 
         const now = performance.now();
 
-        // Während des Benchmarks lassen wir rAF laufen, um reale Zeiten zu messen.
-        // Danach halten wir die Ziel-Framerate ein: nicht jeden möglichen Frame zeichnen.
-        if (!this.isBenchmarking) {
-            const frameInterval = 1000 / this.targetFPS;
-            if (now - this.lastFrameTime < frameInterval) {
-                this.animationFrameId = requestAnimationFrame(this.loop);
-                return;
-            }
-        }
-
+        // rAF laeuft immer mit echter Bildschirm-Wiederholrate. Der Benchmark misst
+        // lediglich die ersten 60 realen Frame-Zeiten.
         const frameMs = now - this.lastFrameTime;
         this.lastFrameTime = now;
 
@@ -336,9 +343,9 @@ export class GameLoopManager {
             }
         }
 
-        // Fixer Zeitschritt passend zur Ziel-Framerate.
-        // Dadurch bleiben Bewegungen/TIMER bei 60 UND 30 FPS gleich schnell.
-        const deltaTime = 1 / this.targetFPS;
+        // Echte Frame-Zeit als Zeitschritt, begrenzt auf 100ms gegen extreme Haenger.
+        // Dadurch laufen Bewegungen mit der tatsaechlichen Bildschirm-Wiederholrate.
+        const deltaTime = Math.min(frameMs / 1000, 0.1);
         this.lastTime = now;
 
         // Update input controllers first

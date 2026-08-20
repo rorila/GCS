@@ -40,13 +40,20 @@ export class VirtualGamepadRenderer {
         
         // ÜBERSCHREIBE StageRenderer Defaults, damit das Gamepad über den gesamten Screen liegen darf!
         el.style.overflow = 'visible';
-        el.style.position = 'absolute';
+        el.style.position = 'fixed';
         el.style.left = '0px';
         el.style.bottom = '0px';
         el.style.top = 'auto'; // Verhindert zwingende Top-Platzierung
         el.style.width = '100%';
         el.style.height = '100%'; 
         el.style.transform = 'none'; // Verhindere Grid-Skalierung, falls es transform nutzt
+        el.style.zIndex = '2147483646'; // Immer vor dem Spielbild, aber unter PerfOverlay
+
+        // Aus dem Stage-Container herauslösen, damit z-index wirklich wirkt und
+        // keine transformierten Elternelemente das Gamepad hinter Fische/Canvas schieben.
+        if (document.body && el.parentElement !== document.body) {
+            document.body.appendChild(el);
+        }
 
         // 🚀 Verhindere ständigen Re-Render der Buttons (Crash/Performance)
         if ((el as any)._virtualGamepadBuilt) {
@@ -105,7 +112,7 @@ export class VirtualGamepadRenderer {
         }
 
         // Event Delegation
-        this.attachDispatchListeners(el, simulatedKeys);
+        this.attachDispatchListeners(el, simulatedKeys, obj.pressDelay ?? 150, obj.keyCooldown ?? 120);
     }
 
     private static createButton(label: string, code: string): HTMLElement {
@@ -120,8 +127,7 @@ export class VirtualGamepadRenderer {
             color: white; font-weight: bold; font-family: sans-serif;
             user-select: none;
             pointer-events: auto; touch-action: none;
-            transition: transform 0.05s ease-out;
-            will-change: transform;
+            opacity: 1;
         `;
         btn.innerText = label;
         return btn;
@@ -247,19 +253,83 @@ export class VirtualGamepadRenderer {
         return key.substring(0, 3).toUpperCase();
     }
 
-    private static attachDispatchListeners(el: HTMLElement, _keys: string[]) {
+    private static attachDispatchListeners(el: HTMLElement, _keys: string[], pressDelay: number, keyCooldown: number) {
         const dispatchKey = (code: string, type: 'keydown' | 'keyup') => {
             window.dispatchEvent(new KeyboardEvent(type, { code, key: code, bubbles: true }));
         };
 
         const activeTouches = new Map<number, HTMLElement>(); // pointerId -> button element
-        const pressedCodes = new Map<string, boolean>();      // code -> currently pressed (multi-touch guard)
+        const pressedCodes = new Map<string, boolean>();      // code -> currently pressed or queued
         const lastKeydownTime = new Map<string, number>();    // code -> last keydown timestamp
-        const KEY_COOLDOWN_MS = 80;                           // min time between keydowns for same code
+        const pendingTimeouts = new Map<number, number>();    // pointerId -> setTimeout id
+        const keydownFired = new Map<number, boolean>();      // pointerId -> keydown already dispatched
+        const activePress = new Map<string, { pointerId: number; timeoutId: number; btn: HTMLElement }>(); // code -> active press
+        const cachedPress = new Map<string, { pointerId: number; btn: HTMLElement; released: boolean } | null>(); // code -> cached press (max 1)
+        const PRESS_DELAY_MS = Math.max(0, pressDelay);       // time before keydown is dispatched
+        const KEY_COOLDOWN_MS = Math.max(0, keyCooldown);     // min time between keydowns for same code
 
-        const setButtonPressed = (btn: HTMLElement | undefined, pressed: boolean) => {
+        const setButtonVisual = (btn: HTMLElement | undefined, state: 'idle' | 'pending' | 'pressed') => {
             if (!btn) return;
-            btn.style.transform = pressed ? 'scale(0.92)' : '';
+            if (state === 'idle') btn.style.opacity = '1';
+            else if (state === 'pending') btn.style.opacity = '0.75';
+            else btn.style.opacity = '0.55';
+        };
+
+        const cleanupCode = (code: string) => {
+            if (!activePress.has(code) && !cachedPress.has(code)) {
+                pressedCodes.set(code, false);
+            }
+        };
+
+        const scheduleKeydown = (code: string, pointerId: number, btn: HTMLElement, delayMs: number) => {
+            activePress.set(code, { pointerId, btn, timeoutId: -1 });
+            setButtonVisual(btn, 'pending');
+            const timeoutId = window.setTimeout(() => {
+                pendingTimeouts.delete(pointerId);
+                if (activePress.get(code)?.pointerId !== pointerId || activeTouches.get(pointerId) !== btn) return;
+
+                lastKeydownTime.set(code, performance.now());
+                keydownFired.set(pointerId, true);
+                setButtonVisual(btn, 'pressed');
+                dispatchKey(code, 'keydown');
+            }, delayMs);
+            pendingTimeouts.set(pointerId, timeoutId);
+            activePress.set(code, { pointerId, btn, timeoutId });
+        };
+
+        const processQueue = (code: string) => {
+            const cached = cachedPress.get(code);
+            if (!cached || activePress.has(code)) return;
+
+            const now = performance.now();
+            const last = lastKeydownTime.get(code) || 0;
+            const remainingCooldown = Math.max(0, (last + KEY_COOLDOWN_MS) - now);
+
+            cachedPress.delete(code);
+
+            const timeoutId = window.setTimeout(() => {
+                pendingTimeouts.delete(cached.pointerId);
+                if (activePress.get(code)?.pointerId !== cached.pointerId) return;
+
+                lastKeydownTime.set(code, performance.now());
+                keydownFired.set(cached.pointerId, true);
+                setButtonVisual(cached.btn, 'pressed');
+                dispatchKey(code, 'keydown');
+
+                if (cached.released) {
+                    // Finger war schon losgelassen -> sofort keyup
+                    dispatchKey(code, 'keyup');
+                    activePress.delete(code);
+                    keydownFired.delete(cached.pointerId);
+                    activeTouches.delete(cached.pointerId);
+                    setButtonVisual(cached.btn, 'idle');
+                    cleanupCode(code);
+                }
+            }, remainingCooldown);
+
+            pendingTimeouts.set(cached.pointerId, timeoutId);
+            activePress.set(code, { pointerId: cached.pointerId, timeoutId, btn: cached.btn });
+            setButtonVisual(cached.btn, 'pending');
         };
 
         // iOS Safari Zoom-Verhinderung (Double-Tap) & Native Touch Priority
@@ -270,48 +340,107 @@ export class VirtualGamepadRenderer {
             }
         }, { passive: false });
 
-        // PointerDown = Button press
+        // PointerDown = Button press (with press delay and 1-slot cache)
         el.addEventListener('pointerdown', (e) => {
             const btn = (e.target as HTMLElement).closest('.virtual-gamepad-btn') as HTMLElement;
             if (btn && btn.dataset.code) {
                 const code = btn.dataset.code;
                 const now = performance.now();
 
-                // Ignore if same code is already held (multi-touch on same button)
-                if (pressedCodes.get(code)) return;
-
-                // Cooldown: ignore repeat taps faster than KEY_COOLDOWN_MS
-                const last = lastKeydownTime.get(code) || 0;
-                if (now - last < KEY_COOLDOWN_MS) return;
+                // Code already active or cached? Only one cached press allowed.
+                if (pressedCodes.get(code)) {
+                    if (cachedPress.has(code)) return;
+                    cachedPress.set(code, { pointerId: e.pointerId, btn, released: false });
+                    activeTouches.set(e.pointerId, btn);
+                    return;
+                }
 
                 pressedCodes.set(code, true);
-                lastKeydownTime.set(code, now);
-                setButtonPressed(btn, true);
-                dispatchKey(code, 'keydown');
                 activeTouches.set(e.pointerId, btn);
+                keydownFired.set(e.pointerId, false);
+
+                const last = lastKeydownTime.get(code) || 0;
+                const delayMs = Math.max(PRESS_DELAY_MS, (last + KEY_COOLDOWN_MS) - now);
+                scheduleKeydown(code, e.pointerId, btn, delayMs);
             }
         });
 
         // PointerUp = Button release
         el.addEventListener('pointerup', (e) => {
             const btn = activeTouches.get(e.pointerId);
-            if (btn) {
-                const code = btn.dataset.code as string;
-                pressedCodes.set(code, false);
-                dispatchKey(code, 'keyup');
+            if (!btn) return;
+            const code = btn.dataset.code as string;
+
+            const cached = cachedPress.get(code);
+            if (cached && cached.pointerId === e.pointerId) {
+                cached.released = true;
+                // No keyup yet; cached will fire keydown then keyup automatically
+                return;
+            }
+
+            const active = activePress.get(code);
+            if (active && active.pointerId === e.pointerId) {
+                const timeoutId = pendingTimeouts.get(e.pointerId);
+                if (timeoutId !== undefined) {
+                    clearTimeout(timeoutId);
+                    pendingTimeouts.delete(e.pointerId);
+                }
+
+                if (keydownFired.get(e.pointerId)) {
+                    dispatchKey(code, 'keyup');
+                }
+                keydownFired.delete(e.pointerId);
+                activePress.delete(code);
                 activeTouches.delete(e.pointerId);
-                setButtonPressed(btn, false);
+                setButtonVisual(btn, 'idle');
+
+                if (cachedPress.has(code)) {
+                    // pressedCodes bleibt true, da noch ein Cache vorhanden
+                    processQueue(code);
+                } else {
+                    pressedCodes.set(code, false);
+                }
+            } else {
+                activeTouches.delete(e.pointerId);
+                setButtonVisual(btn, 'idle');
             }
         });
 
         el.addEventListener('pointercancel', (e) => {
             const btn = activeTouches.get(e.pointerId);
-            if (btn) {
-                const code = btn.dataset.code as string;
-                pressedCodes.set(code, false);
-                dispatchKey(code, 'keyup');
+            if (!btn) return;
+            const code = btn.dataset.code as string;
+
+            const cached = cachedPress.get(code);
+            if (cached && cached.pointerId === e.pointerId) {
+                cached.released = true;
+                return;
+            }
+
+            const active = activePress.get(code);
+            if (active && active.pointerId === e.pointerId) {
+                const timeoutId = pendingTimeouts.get(e.pointerId);
+                if (timeoutId !== undefined) {
+                    clearTimeout(timeoutId);
+                    pendingTimeouts.delete(e.pointerId);
+                }
+
+                if (keydownFired.get(e.pointerId)) {
+                    dispatchKey(code, 'keyup');
+                }
+                keydownFired.delete(e.pointerId);
+                activePress.delete(code);
                 activeTouches.delete(e.pointerId);
-                setButtonPressed(btn, false);
+                setButtonVisual(btn, 'idle');
+
+                if (cachedPress.has(code)) {
+                    processQueue(code);
+                } else {
+                    pressedCodes.set(code, false);
+                }
+            } else {
+                activeTouches.delete(e.pointerId);
+                setButtonVisual(btn, 'idle');
             }
         });
     }

@@ -16,6 +16,8 @@ export class TVirtualGamepad extends TWindow implements IRuntimeComponent {
     public splitVerticalAlignment: 'bottom' | 'middle' = 'bottom';
     public autoHideOnDesktop: boolean = true;
     public scale: number = 1.0;
+    public pressDelay: number = 150;
+    public keyCooldown: number = 120;
 
     // Laufzeit-Daten (intern)
     public simulatedKeys: string[] = [];
@@ -40,7 +42,9 @@ export class TVirtualGamepad extends TWindow implements IRuntimeComponent {
             { name: 'layoutStyle', label: 'Layout Stil', type: 'select', group: 'Einstellungen', options: ['split', 'action_bar'] },
             { name: 'splitVerticalAlignment', label: 'Vertikale Ausrichtung', type: 'select', group: 'Einstellungen', options: ['bottom', 'middle'], visibleWhen: { field: 'layoutStyle', values: ['split'] } },
             { name: 'autoHideOnDesktop', label: 'Auf PC ausblenden', type: 'boolean', group: 'Einstellungen' },
-            { name: 'scale', label: 'Skalierung', type: 'number', group: 'Einstellungen', min: 0.5, max: 2, step: 0.1, inline: true }
+            { name: 'scale', label: 'Skalierung', type: 'number', group: 'Einstellungen', min: 0.5, max: 2, step: 0.1, inline: true },
+            { name: 'pressDelay', label: 'Press-Verzögerung (ms)', type: 'number', group: 'Zeiten', min: 0, step: 10 },
+            { name: 'keyCooldown', label: 'Tasten-Cooldown (ms)', type: 'number', group: 'Zeiten', min: 0, step: 10 }
         ];
     }
 

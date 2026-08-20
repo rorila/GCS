@@ -15,6 +15,7 @@ import { TextObjectRenderer } from './renderers/TextObjectRenderer';
     import { ComplexComponentRenderer } from './renderers/ComplexComponentRenderer';
 import { themeRegistry } from '../../runtime/ThemeRegistry';
 import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
+import { getDialogSlideOffset } from './renderers/DialogSlide';
 const logger = Logger.get('StageRenderer', 'Component_Manipulation');
 
 /**
@@ -669,10 +670,7 @@ export class StageRenderer {
                         (el.style as any).translate = `${finalX}px ${finalY}px`;
                         el.style.pointerEvents = 'auto';
                     } else {
-                        const isLeft = parentDialog.className === 'TSidePanel' 
-                            ? parentDialog.side === 'left' 
-                            : parentDialog.slideDirection === 'left';
-                        const outOfBoundsOffset = isLeft ? -1500 : 1500;
+                        const outOfBoundsOffset = getDialogSlideOffset(parentDialog, gridConfig.cellSize);
                         (el.style as any).translate = `${finalX + outOfBoundsOffset}px ${finalY}px`;
                         el.style.pointerEvents = 'none';
                     }
@@ -847,13 +845,20 @@ export class StageRenderer {
                     //   Children:      dialogZBase + 1  (klickbar)
                     //   Dialog-Root:   dialogZBase      (Background/Rahmen + Titelleiste als DOM-Kind)
                     //   Overlay:       dialogZBase - 1  (block background)
-                    const dialogZBase = parentDialog.zIndex ? Number(parentDialog.zIndex) : 20000;
+                    const isSidePanelRoot = parentDialog.className === 'TSidePanel' || parentDialog.constructor?.name === 'TSidePanel';
+                    const dialogZBase = parentDialog.zIndex
+                        ? Number(parentDialog.zIndex)
+                        : (isSidePanelRoot ? 100000 : 20000);
                     if ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel') {
                         el.style.zIndex = String(dialogZBase);
                     } else {
                         el.style.zIndex = String(dialogZBase + 1);
                     }
+                    // Marker: Einzel-Updates duerfen diese z-Basis NICHT mit obj.zIndex (Default 0)
+                    // ueberschreiben, sonst landen Dialog/Side-Panel auf derselben Ebene wie Sprites.
+                    el.dataset.dialogZ = el.style.zIndex;
                 } else if (obj.zIndex !== undefined) {
+                    delete el.dataset.dialogZ;
                     el.style.zIndex = String(obj.zIndex);
                 } else if (obj.name && (obj.name.startsWith('Overlay') || obj.name.startsWith('Btn') || obj.name.startsWith('Input')) || obj.className === 'TStatusBar') {
                     el.style.zIndex = '2000';
@@ -1322,10 +1327,7 @@ export class StageRenderer {
                     (el.style as any).translate = `${finalX}px ${finalY}px`;
                     el.style.pointerEvents = 'auto';
                 } else {
-                    const isLeft = parentDialog.className === 'TSidePanel'
-                        ? parentDialog.side === 'left'
-                        : parentDialog.slideDirection === 'left';
-                    const outOfBounds = isLeft ? -1500 : 1500;
+                    const outOfBounds = getDialogSlideOffset(parentDialog, cellSize);
                     (el.style as any).translate = `${finalX + outOfBounds}px ${finalY}px`;
                     el.style.pointerEvents = 'none';
                 }
@@ -1467,8 +1469,15 @@ export class StageRenderer {
             if (obj.style.borderRadius !== undefined) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
             if (obj.style.borderColor !== undefined) el.style.borderColor = obj.style.borderColor;
             if (obj.style.borderWidth !== undefined) el.style.borderWidth = `${obj.style.borderWidth}px`;
-            // zIndex muss auch bei Einzel-Updates (z.B. durch Bindvariable) am DOM gesetzt werden
-            if (obj.zIndex !== undefined) el.style.zIndex = String(obj.zIndex);
+            // zIndex muss auch bei Einzel-Updates (z.B. durch Bindvariable) am DOM gesetzt werden.
+            // AUSNAHME: Dialoge/Side-Panels und deren Kinder haben eine eigene z-Basis
+            // (data-dialog-z). obj.zIndex ist dort meist 0 (TWindow-Default) und wuerde
+            // das Panel auf die Sprite-Ebene zurueckwerfen.
+            if (el.dataset.dialogZ) {
+                el.style.zIndex = el.dataset.dialogZ;
+            } else if (obj.zIndex !== undefined) {
+                el.style.zIndex = String(obj.zIndex);
+            }
         } else if (obj.opacity !== undefined) {
             el.style.opacity = String(obj.opacity);
         }
@@ -2099,10 +2108,7 @@ export class StageRenderer {
                     if (parentDialog.visible !== false) {
                         translateValue = `${finalTransX}px ${finalTransY}px`;
                     } else {
-                        const isLeft = parentDialog.className === 'TSidePanel' 
-                            ? parentDialog.side === 'left' 
-                            : parentDialog.slideDirection === 'left';
-                        const outOfBoundsOffset = isLeft ? -1500 : 1500;
+                        const outOfBoundsOffset = getDialogSlideOffset(parentDialog, cellSize);
                         translateValue = `${finalTransX + outOfBoundsOffset}px ${finalTransY}px`;
                     }
                 } else {

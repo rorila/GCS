@@ -1,5 +1,6 @@
 import { TDialogRoot } from './TDialogRoot';
 import { TPropertyDef } from './TComponent';
+import { GameLoopManager } from '../runtime/GameLoopManager';
 
 
 /**
@@ -23,6 +24,7 @@ export class TSidePanel extends TDialogRoot {
     public side: 'left' | 'right' = 'right';
     public resizable: boolean = true;         // Resize-Handle im Run-Modus
     public overlayDimming: boolean = false;   // Hintergrund-Dimming (unabhängig von modal)
+    public pauseGame: boolean = false;        // Spiel pausieren, solange Panel geöffnet ist
 
     // Runtime-State für Resize
     private _resizeHandle: HTMLElement | null = null;
@@ -79,6 +81,7 @@ export class TSidePanel extends TDialogRoot {
             { name: 'side', label: 'Seite', type: 'select', options: ['left', 'right'], group: 'Side Panel' },
             { name: 'resizable', label: 'Resize (Run)', type: 'boolean', group: 'Side Panel' },
             { name: 'overlayDimming', label: 'Hintergrund dimmen', type: 'boolean', group: 'Side Panel' },
+            { name: 'pauseGame', label: 'Spiel pausieren', type: 'boolean', group: 'Side Panel' },
         ];
     }
 
@@ -93,7 +96,26 @@ export class TSidePanel extends TDialogRoot {
             side: this.side,
             resizable: this.resizable,
             overlayDimming: this.overlayDimming,
+            pauseGame: this.pauseGame,
         };
+    }
+
+    /**
+     * Reagiert auf Sichtbarkeitsänderungen und pausiert/fährt den Game-Loop fort.
+     */
+    protected override onVisibilityChanged(v: boolean): void {
+        super.onVisibilityChanged(v);
+
+        // 'modal' bedeutet fuer ein Side-Panel: das Spiel steht still, solange es offen ist.
+        // 'pauseGame' erlaubt dasselbe auch fuer ein nicht-modales Panel.
+        if (this.modal || this.pauseGame) {
+            const gm = GameLoopManager.getInstance();
+            if (v) {
+                gm.pause();
+            } else if (gm.getState() === 'paused') {
+                gm.resume();
+            }
+        }
     }
 
     /**
@@ -321,6 +343,29 @@ export class TSidePanel extends TDialogRoot {
             const overlay = document.getElementById(`sidepanel-overlay-${this.id}`);
             if (overlay) {
                 overlay.style.display = this.visible ? 'block' : 'none';
+            }
+        }
+
+        // KINDER: pointer-events muss mit der Sichtbarkeit des Panels schwingen,
+        // sonst sind Buttons sichtbar, aber nach dem ersten Schließen nie wieder klickbar.
+        if (typeof document !== 'undefined') {
+            const container = panel?.parentElement || document.querySelector(`[data-id="${this.id || this.name}"]`)?.parentElement;
+            if (container) {
+                const pointerEvents = this.visible ? 'auto' : 'none';
+
+                const rootEl = container.querySelector(`[data-id="${this.id || this.name}"]`) as HTMLElement | null;
+                if (rootEl) rootEl.style.pointerEvents = pointerEvents;
+
+                if (this.children && Array.isArray(this.children)) {
+                    for (const child of this.children) {
+                        const childId = child?.id || child?.name;
+                        if (!childId) continue;
+                        const childEl = container.querySelector(`[data-id="${childId}"]`) as HTMLElement | null;
+                        if (childEl) {
+                            childEl.style.pointerEvents = pointerEvents;
+                        }
+                    }
+                }
             }
         }
     }
