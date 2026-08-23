@@ -48,6 +48,20 @@ export class AnimationManager {
     private activeTweens: Tween[] = [];
     private static instance: AnimationManager | null = null;
 
+    // Temporaere Feinmessung fuer explode() — wird nach der Analyse entfernt.
+    public static lastExplodeTimings: Record<string, number> | null = null;
+
+    /**
+     * Gegenproben fuer die explode()-Diagnose, per URL schaltbar:
+     *   ?expNoWill=1  ohne will-change  → zeigt die Kosten der Compositor-Ebenen
+     *   ?expNoImg=1   ohne Hintergrundbild → zeigt die Kosten des Sheet-Resamplings
+     * Beide Schalter veraendern nur das Aussehen des Effekts, nicht seine Logik.
+     */
+    private static readonly diagNoWillChange: boolean =
+        typeof location !== 'undefined' && new URLSearchParams(location.search).get('expNoWill') === '1';
+    private static readonly diagNoImage: boolean =
+        typeof location !== 'undefined' && new URLSearchParams(location.search).get('expNoImg') === '1';
+
     private constructor() { }
 
     public static getInstance(): AnimationManager {
@@ -394,12 +408,59 @@ export class AnimationManager {
     }
 
     /**
+     * Wandelt einen CSS-Bildwert der Form url("data:image/png;base64,...") in
+     * eine Blob-URL um.
+     *
+     * Hintergrund: Sprite-Bilder liegen als Base64-Data-URL vor und sind damit
+     * mehrere hundert Kilobyte lang. Jede Zuweisung an style.backgroundImage
+     * laesst den CSS-Parser die komplette Nutzlast durchlaufen. In explode()
+     * geschieht das einmal je Fragment. Eine Blob-URL ist rund 45 Zeichen kurz,
+     * wodurch die Zuweisungen kostenlos werden und der Browser das Bild nur
+     * einmal dekodiert.
+     *
+     * Bewusst ohne regulaeren Ausdruck: Backtracking auf einem so langen String
+     * waere selbst wieder teuer. Bei unerwartetem Format bleibt der Originalwert
+     * unveraendert, der Effekt funktioniert dann wie bisher.
+     */
+    private static toBlobUrl(cssUrl: string): string {
+        if (!cssUrl) return cssUrl;
+
+        let inner = cssUrl.trim();
+        if (!inner.startsWith('url(') || !inner.endsWith(')')) return cssUrl;
+
+        inner = inner.slice(4, -1).trim();
+        if (inner.startsWith('"') || inner.startsWith("'")) inner = inner.slice(1, -1);
+        if (!inner.startsWith('data:')) return cssUrl;
+
+        const comma = inner.indexOf(',');
+        if (comma < 0) return cssUrl;
+
+        const meta = inner.slice(5, comma);
+        if (!meta.endsWith(';base64')) return cssUrl;
+
+        try {
+            const binary = atob(inner.slice(comma + 1));
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: meta.slice(0, -7) });
+            return `url("${URL.createObjectURL(blob)}")`;
+        } catch (err) {
+            logger.warn(`[AnimationManager.toBlobUrl] Umwandlung fehlgeschlagen, nutze Original.`, err);
+            return cssUrl;
+        }
+    }
+
+    /**
      * Platzen/Zerbersten: Sprite wird in N Fragmente zerlegt, die in
      * zufällige Richtungen wegfliegen (mit Rotation, Skalierung→0, Fade-out).
      * Danach wird das Sprite unsichtbar (visible=false, recyclebar im Pool).
      * Unterstützt: Direktbilder, Sprite-Sheet-Frames und einfarbige Sprites.
      */
     public explode(target: any, fragments: number = 9, spread: number = 120, duration: number = 600): void {
+        const t0 = performance.now();
+
         if (!target) {
             logger.warn(`[AnimationManager.explode] Ziel-Objekt ist undefined oder null.`);
             return;
@@ -432,9 +493,12 @@ export class AnimationManager {
         }
 
         const rect = spriteEl.getBoundingClientRect();
+        const tFind = performance.now() - t0;
         const gridSize = Math.max(2, Math.round(Math.sqrt(fragments)));
         const fragW = rect.width / gridSize;
         const fragH = rect.height / gridSize;
+
+        const tBgStart = performance.now();
 
         // Bild-Quelle ermitteln
         const imgLayer = spriteEl.querySelector('.sprite-image-layer') as HTMLElement;
@@ -448,19 +512,40 @@ export class AnimationManager {
         // gerade sichtbaren Bildes.
         const frame = sheetLayer ? (sheetLayer as any)._frame : null;
 
-        if (sheetLayer && sheetLayer.style.backgroundImage) {
-            bgImage = sheetLayer.style.backgroundImage;
+        // Zwischenspeicher am Sprite-Element. Er erspart zwei teure Schritte:
+        // das Serialisieren des CSSOM-Werts (der Lesezugriff auf
+        // style.backgroundImage erzeugt eine Kopie der gesamten Data-URL) und
+        // ueber die Blob-URL das mehrfache Parsen in der Fragment-Schleife.
+        // Schluessel ist die imageListId, damit ein Bildwechsel den Eintrag
+        // verwirft.
+        const cached = (spriteEl as any)._explodeBg as
+            { listId: any; image: string; color: string } | undefined;
 
-        } else if (imgLayer && imgLayer.tagName === 'DIV') {
-            bgImage = imgLayer.style.backgroundImage;
-
-        } else if (imgLayer && imgLayer.tagName === 'IMG') {
-            bgImage = `url("${(imgLayer as HTMLImageElement).src}")`;
+        if (cached && cached.listId === target.imageListId) {
+            bgImage = cached.image;
+            bgColor = cached.color;
 
         } else {
-            bgColor = target.spriteColor || target.style?.backgroundColor || '#ff6b6b';
+            if (sheetLayer && sheetLayer.style.backgroundImage) {
+                bgImage = sheetLayer.style.backgroundImage;
 
+            } else if (imgLayer && imgLayer.tagName === 'DIV') {
+                bgImage = imgLayer.style.backgroundImage;
+
+            } else if (imgLayer && imgLayer.tagName === 'IMG') {
+                bgImage = `url("${(imgLayer as HTMLImageElement).src}")`;
+
+            } else {
+                bgColor = target.spriteColor || target.style?.backgroundColor || '#ff6b6b';
+
+            }
+
+            bgImage = AnimationManager.toBlobUrl(bgImage);
+            (spriteEl as any)._explodeBg = {
+                listId: target.imageListId, image: bgImage, color: bgColor
+            };
         }
+        const tBg = performance.now() - tBgStart;
 
         // Container: Stage-Ebene
         const stageEl = spriteEl.closest('.stage-container') || spriteEl.parentElement;
@@ -469,6 +554,11 @@ export class AnimationManager {
         // Sprite sofort unsichtbar
         target.visible = false;
         spriteEl.style.display = 'none';
+
+        // Aufgeteilt in zwei Schleifen, damit die reine JS-/Style-Arbeit von den
+        // DOM-Einhaengungen getrennt messbar wird. Nur so laesst sich entscheiden,
+        // ob die Kosten im Skript oder erst im Compositor entstehen.
+        const tStyleStart = performance.now();
 
         const fragmentEls: HTMLElement[] = [];
 
@@ -485,9 +575,13 @@ export class AnimationManager {
                 frag.style.pointerEvents = 'none';
                 frag.style.zIndex = '999999'; // Erhöht auf maximales Level
                 frag.style.transition = `transform ${duration}ms ease-out, opacity ${duration}ms ease-in`;
-                frag.style.willChange = 'transform, opacity';
+                if (!AnimationManager.diagNoWillChange) {
+                    frag.style.willChange = 'transform, opacity';
+                }
 
-                if (bgImage && frame) {
+                if (AnimationManager.diagNoImage) {
+                    frag.style.backgroundColor = bgColor || '#ff6b6b';
+                } else if (bgImage && frame) {
                     // Sheet so skalieren, dass ein Frame genau der Sprite-Groesse
                     // entspricht, und auf das aktuelle Frame versetzen.
                     frag.style.backgroundImage = bgImage;
@@ -508,13 +602,22 @@ export class AnimationManager {
                     frag.style.borderRadius = '30%';
                 }
 
-                document.body.appendChild(frag);
                 fragmentEls.push(frag);
             }
         }
+        const tStyle = performance.now() - tStyleStart;
+
+        const tAppendStart = performance.now();
+        for (let i = 0; i < fragmentEls.length; i++) {
+            document.body.appendChild(fragmentEls[i]);
+        }
+        const tAppend = performance.now() - tAppendStart;
+
+        const tReflowStart = performance.now();
 
         // Force Layout Reflow synchron, damit die CSS Transition garantiert auslöst
         void document.body.offsetHeight;
+        const tReflow = performance.now() - tReflowStart;
 
         // Animation starten: Ein kurzes Timeout stellt sicher, dass der Browser die 
         // Elemente im DOM gerendert hat, BEVOR die Ziel-Eigenschaften gesetzt werden.
@@ -531,6 +634,9 @@ export class AnimationManager {
         }, 30);
 
         // Aufräumen nach Ablauf
+        AnimationManager.lastExplodeTimings = {
+            find: tFind, bg: tBg, style: tStyle, append: tAppend, reflow: tReflow
+        };
         setTimeout(() => {
             fragmentEls.forEach(f => f.remove());
             logger.info(`[AnimationManager.explode] Animation für "${target.name}" abgeschlossen. DOM aufgeräumt.`);

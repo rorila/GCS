@@ -3,6 +3,7 @@ import { PropertyHelper } from '../../PropertyHelper';
 import { AnimationManager } from '../../AnimationManager';
 import { resolveTarget } from '../ActionHelper';
 import { Logger } from '../../../utils/Logger';
+import { PerfOverlay } from '../../../utils/PerfOverlay';
 
 const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 
@@ -38,6 +39,13 @@ export function registerAnimationActions() {
             }
 
             atLeastOneAnimated = true;
+
+            // DIAGNOSE: Effekte wie 'explode' erzeugen DOM-Elemente und erzwingen
+            // Layout — ein einzelner Aufruf kann einen sichtbaren Aussetzer
+            // verursachen. Weil das Ereignis selten auftritt, ist es in den
+            // Sekundenmittelwerten des Overlays nicht auffindbar.
+            const tEffectStart = performance.now();
+
             try {
                 // Effekt-spezifische Parameter auslesen
                 switch (effect) {
@@ -98,6 +106,18 @@ export function registerAnimationActions() {
                 runtimeLogger.info(`[Action: animate] ${effect} auf "${targetObj.name}" (${targetName}) erfolgreich aufgerufen.`);
             } catch (err) {
                  runtimeLogger.error(`[Action: animate] Fehler beim Ausführen von ${effect}:`, err);
+            }
+
+            const jsMs = performance.now() - tEffectStart;
+            PerfOverlay.markEvent(effect, jsMs);
+
+            if (effect === 'explode' && AnimationManager.lastExplodeTimings) {
+                const t = AnimationManager.lastExplodeTimings;
+                PerfOverlay.markEvent('exp:find', t.find);
+                PerfOverlay.markEvent('exp:bg', t.bg);
+                PerfOverlay.markEvent('exp:style', t.style);
+                PerfOverlay.markEvent('exp:append', t.append);
+                PerfOverlay.markEvent('exp:reflow', t.reflow);
             }
         }
         return atLeastOneAnimated;

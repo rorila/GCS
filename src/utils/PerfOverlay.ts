@@ -40,6 +40,29 @@ interface HeapInfo {
  */
 export type PerfPhase = 'spr' | 'upd' | 'anim' | 'interp' | 'coll' | 'dom';
 
+/**
+ * Messwerte eines seltenen Einzelereignisses (z. B. ein Explosions-Effekt).
+ *
+ * Zwei Zahlen sind noetig, weil solche Ereignisse an zwei Stellen kosten:
+ *  jsMs    - die synchrone Dauer des Aufrufs selbst
+ *  frameMs - die schlechteste Gesamt-Frame-Zeit im Fenster danach; darin steckt
+ *            die Arbeit, die erst der Browser leistet (Layout, Paint, Anlegen
+ *            von Compositor-Ebenen) und die in jsMs gar nicht auftaucht.
+ */
+interface PerfEventStat {
+    count: number;
+    lastJsMs: number;
+    maxJsMs: number;
+    maxFrameMs: number;
+    watchUntil: number;
+    /**
+     * Alle Einzelmessungen. Der Median daraus ist aussagekraeftiger als der
+     * letzte Wert: Einzelne Ausreisser durch GC-Pausen oder Timer-Clamping
+     * verzerren ihn nicht.
+     */
+    samples: number[];
+}
+
 export class PerfOverlay {
     private static instance: PerfOverlay | null = null;
 
@@ -100,6 +123,16 @@ export class PerfOverlay {
     private readonly HITCH_FREEZE_MS = 3000;
 
     private staticInfo: string = '';
+
+    /**
+     * Seltene Einzelereignisse. Diese Werte werden absichtlich NICHT sekuendlich
+     * zurueckgesetzt: Ein Effekt, der nur alle paar Minuten auftritt, waere sonst
+     * verschwunden, bevor man ihn ablesen kann.
+     */
+    private events: Map<string, PerfEventStat> = new Map();
+
+    /** Nachbeobachtung nach einem Ereignis. Deckt Layout und Paint mit ab. */
+    private readonly EVENT_WATCH_MS = 500;
 
     /** Ab dieser Frame-Dauer gilt ein Frame als sichtbarer Aussetzer. */
     private readonly HITCH_MS = 50;
@@ -244,6 +277,27 @@ export class PerfOverlay {
         inst.spriteCount = sprites;
     }
 
+    /**
+     * Meldet ein Einzelereignis samt seiner synchronen Dauer und oeffnet ein
+     * Beobachtungsfenster, in dem tick() die schlechteste Frame-Zeit mitschreibt.
+     */
+    public static markEvent(name: string, jsMs: number): void {
+        const inst = PerfOverlay.instance;
+        if (!inst || !inst.running) return;
+
+        let stat = inst.events.get(name);
+        if (!stat) {
+            stat = { count: 0, lastJsMs: 0, maxJsMs: 0, maxFrameMs: 0, watchUntil: 0, samples: [] };
+            inst.events.set(name, stat);
+        }
+
+        stat.count++;
+        stat.lastJsMs = jsMs;
+        stat.samples.push(jsMs);
+        if (jsMs > stat.maxJsMs) stat.maxJsMs = jsMs;
+        stat.watchUntil = performance.now() + inst.EVENT_WATCH_MS;
+    }
+
     /** Setzt alle Phasensummen der abgelaufenen Sekunde zurueck. */
     private resetPhaseSums(): void {
         this.phaseSum.spr = 0;
@@ -317,6 +371,16 @@ export class PerfOverlay {
         // Zusammensetzen der Ebenen — nicht in unserem Code.
         const restMs = frameMs - this.lastWorkMs;
         if (restMs > this.worstRestMs) this.worstRestMs = restMs;
+
+        // Nachbeobachtung offener Ereignisse. Die Schleife laeuft nur, solange
+        // ueberhaupt ein Fenster offen ist, und ueber sehr wenige Eintraege.
+        if (this.events.size > 0) {
+            this.events.forEach(stat => {
+                if (stat.watchUntil > now && frameMs > stat.maxFrameMs) {
+                    stat.maxFrameMs = frameMs;
+                }
+            });
+        }
 
         // 2. Heap beobachten: Anstieg = Allokation, Abfall = Garbage Collection
         const heap = this.readHeap();
@@ -462,9 +526,26 @@ export class PerfOverlay {
             `steps ø${this.shownStepsAvg.toFixed(2)}   sprites ${this.spriteCount}\n` +
             `hitches ${this.hitchCount}  (max ${this.worstEverMs.toFixed(0)}ms)\n` +
             frozenLine +
+            this.renderEvents() +
             `alloc ${allocMb} MB/s   GC ${this.gcCount}\n` +
             `heap ${usedMb} / ${limitMb} MB\n` +
             this.staticInfo;
+    }
+
+    /** Eine Zeile je gemessenem Einzelereignis, in Reihenfolge des Auftretens. */
+    private renderEvents(): string {
+        if (this.events.size === 0) return '';
+
+        const rows: string[] = [];
+        this.events.forEach((stat, name) => {
+            const sorted = stat.samples.slice().sort((a, b) => a - b);
+            const median = sorted.length === 0 ? 0 : sorted[Math.floor(sorted.length / 2)];
+            rows.push(
+                `${name} x${stat.count}  med ${median.toFixed(1)}/max ${stat.maxJsMs.toFixed(1)}` +
+                `  frame max ${stat.maxFrameMs.toFixed(0)}ms`
+            );
+        });
+        return rows.join('\n') + '\n';
     }
 
     private collectStaticInfo(): string {

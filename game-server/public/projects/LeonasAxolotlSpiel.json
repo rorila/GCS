@@ -166,8 +166,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -2651,7 +2651,7 @@
             },
             "Act_UfoTreffer": {
               "x": 700,
-              "y": 40
+              "y": 20
             }
           }
         },
