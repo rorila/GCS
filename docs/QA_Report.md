@@ -1,67 +1,69 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 10.8.2026, 21:55:38
-**Status**: ✅ ALLE TESTS BESTANDEN
-**Gesamtlauf**: 95.0s
+**Generiert am**: 21.8.2026, 14:25:18
+**Status**: ❌ FEHLER GEFUNDEN
+**Gesamtlauf**: 112.4s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 288)
-    "Bestanden ✅" : 288
-    "Fehlgeschlagen ❌" : 0
+pie title Test-Status (Gesamt: 308)
+    "Bestanden ✅" : 300
+    "Fehlgeschlagen ❌" : 8
 ```
 
 ## ⏱ Timing-Übersicht (sortiert nach Dauer)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 94403ms 🐌 | ✅ |
-| Code Quality & Security Guards | 491ms | ✅ |
-| AgentController | 18ms | ✅ |
-| Coordinate Binding | 14ms | ✅ |
-| Stage-Transition Regression | 7ms | ✅ |
-| Mathe-Quiz | 6ms | ✅ |
-| Export Integrity | 5ms | ✅ |
+| Playwright E2E | 111424ms 🐌 | ✅ |
+| Code Quality & Security Guards | 875ms | ✅ |
+| AgentController | 25ms | ✅ |
+| Coordinate Binding | 13ms | ✅ |
+| Stage-Transition Regression | 11ms | ✅ |
+| Mathe-Quiz | 10ms | ✅ |
+| Export Integrity | 9ms | ✅ |
 | TTimer/TIntervalTimer Reactive Properties | 5ms | ✅ |
-| TaskExecutor | 4ms | ✅ |
 | RefactoringManager | 4ms | ✅ |
-| Stage-Import | 2ms | ✅ |
-| ProjectStore | 2ms | ✅ |
-| FlowDataAction Inspector | 2ms | ✅ |
+| Project Integrity | 4ms | ✅ |
+| TaskExecutor | 4ms | ✅ |
+| VideoToSpriteSheet Tool | 3ms | ✅ |
+| Stage-Import | 3ms | ✅ |
+| ProjectStore | 3ms | ✅ |
 | SyncValidator | 2ms | ✅ |
-| Project Integrity | 2ms | ✅ |
-| SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
 | Serialization | 2ms | ✅ |
-| VideoToSpriteSheet Tool | 2ms | ✅ |
-| Login-Logic | 2ms | ✅ |
-| Pascal Code Generator | 2ms | ✅ |
+| SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
+| FlowDataAction Inspector | 2ms | ✅ |
 | Jump & Run Components | 1ms | ✅ |
 | GameLoopManager Physics | 1ms | ✅ |
-| Smart-Mapping & Discovery | 1ms | ✅ |
-| Action Stage Routing & Duplicates | 1ms | ✅ |
 | Raketen-Countdown | 1ms | ✅ |
-| Event Actions (bind/unbind) | 1ms | ✅ |
+| Pascal Code Generator | 1ms | ✅ |
+| Action Stage Routing & Duplicates | 1ms | ✅ |
 | Action CRUD | 1ms | ✅ |
+| Login-Logic | 1ms | ✅ |
+| Event Actions (bind/unbind) | 1ms | ✅ |
 | SpawnObject Variable Support | 1ms | ✅ |
-| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
 | SnapshotManager | 1ms | ✅ |
-| Unification & Auto-Unwrap | 1ms | ✅ |
-| Virtual Gamepad | 1ms | ✅ |
-| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
-| Action Registration | 1ms | ✅ |
-| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
 | SidePanel | 1ms | ✅ |
+| Unification & Auto-Unwrap | 1ms | ✅ |
+| Action Registration | 1ms | ✅ |
+| Virtual Gamepad | 1ms | ✅ |
+| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
+| SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
+| Sprite-Geometrie | 1ms | ✅ |
+| Electron Security | 1ms | ✅ |
+| Smart-Mapping & Discovery | 1ms | ✅ |
 | FlowSync | 1ms | ✅ |
 | TTimer Variable Resolution | 1ms | ✅ |
-| SyncRefactor P0: Inspector Writeback | 1ms | ✅ |
-| Renaming Robustness | 0ms | ✅ |
-| Electron Security | 0ms | ✅ |
+| Gezieltes Auffrischen | 1ms | ✅ |
+| Renaming Robustness | 1ms | ✅ |
+| SyncRefactor P0: Inspector Writeback | 0ms | ✅ |
 | Component Events | 0ms | ✅ |
 | TTable Smart-Unwrap | 0ms | ✅ |
 | SELECT COUNT(*) | 0ms | ✅ |
 
-**Summe Suiten**: 94995ms
-**Gesamtlauf inkl. Setup/Report**: 95016ms
+**Summe Suiten**: 112423ms
+**Gesamtlauf inkl. Setup/Report**: 112447ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -87,6 +89,26 @@ pie title Test-Status (Gesamt: 288)
 | TTable: Smart-Unwrap TListVariable<br><small>Data: 2, First: Value 1</small> | Smart Mapping | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | TDataAction: SELECT count(*) Only<br><small>Expected: 3, Got: 3</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | TDataAction: SELECT id, count(*)<br><small>Expected: Array(3) with count:1, Got: {"id":1,"count":1}</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: Verzerrung 16:9-Frame in 5:3-Box<br><small>Frame 256x144, Verzerrung 1.0667 (erwartet > 1.02)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: scaleX und scaleY getrennt ausgewiesen<br><small>scaleX=1.280 scaleY=1.200 (erwartet 1.280 / 1.200)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: containFit zentriert ohne Verzerrung<br><small>w=100% h=93.75% top=3.125% (erwartet 100 / 93.75 / 3.125)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: 1:1-Sheet bleibt unangetastet<br><small>Verzerrung 1.0000, Fit 100x100%, scale 1.000</small> | Edge Case | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: hoher Frame in breiter Box<br><small>w=30.00% left=35.00% (erwartet 30 / 35)</small> | Edge Case | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: kleinste verzerrungsfreie Zellengroesse<br><small>Vorschlag 16x9 Zellen = 320x180px (erwartet 16x9 = 320x180)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: unpraktikables Verhaeltnis wird abgelehnt<br><small>255:143 ergibt 0 Vorschlaege (erwartet 0)</small> | Edge Case | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: empfohlene Sheet-Groesse fuer 1:1<br><small>400x360 (erwartet 400x360)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: Frame-Verschiebung 2x3, Frame 4<br><small>tx=0% ty=-66.667% (erwartet 0 / -66.667)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: letztes Frame verschiebt nicht ueber das Blatt hinaus<br><small>tx=-50% ty=-66.667% (erwartet -50 / -66.667)</small> | Edge Case | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: Einzelbild ohne Verschiebung<br><small>tx=0% ty=0%</small> | Edge Case | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: fehlende Masse ergeben null<br><small>analyze() liefert null statt NaN-Werten</small> | Error Handling | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: wholeFrameSize rundet auf ganze Frames<br><small>399x288@2x2 -> 400x288 (Frame 200x144)</small> | Unit | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: wholeFrameSize haelt Frame-Raster ein<br><small>511x300@3x2 -> 510x300 (Frame 170x150)</small> | Unit | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SpriteGeometry: wholeFrameSize beschuetzt vor Null<br><small>0x0@2x2 -> 1x1 pro Frame</small> | Error Handling | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| ReactiveRuntime: nur abhaengige Objekte je Variable<br><small>1 Objekt(e) fuer "timeLeft" (erwartet 1: Zeitanzeige)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| ReactiveRuntime: alle Abhaengigen einer Variable<br><small>2 Objekt(e) fuer "score" (erwartet 2)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| ReactiveRuntime: unbekannte Variable meldet leer<br><small>0 Objekt(e) (erwartet 0 als Rueckfall-Signal)</small> | Edge Case | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| ReactiveRuntime: zusammengesetzte Abhaengigkeit erkannt<br><small>1 Objekt(e) fuer "StageTimer" (erwartet 1)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| ReactiveRuntime: Zeitanzeige frischt nicht die Karten auf<br><small>1 von 33 Objekten (vorher alle 33)</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Action-Registrierung beim Drop<br><small>Action gefunden, Target=Box1</small> | ActionRegistration | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Global Scope Handling<br><small>In Projekt-Aktionen gefunden</small> | ActionRegistration | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage-Scope Fix: Action in Task-Stage registriert<br><small>Action in Stage A gefunden (nicht in Stage B)</small> | ActionRegistration | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -157,14 +179,14 @@ pie title Test-Status (Gesamt: 288)
 | Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 76 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 0</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Baseline 10 eingehalten, Aktuell: 10</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/components/TDebugLog.ts (1024), src/editor/Editor.ts (1400), src/editor/inspector/InspectorRenderer.ts (1342), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1377), src/editor/services/EditorDataManager.ts (1006), src/editor/services/FlowContextMenuProvider.ts (1031), src/editor/services/StageInteractionManager.ts (1023), src/editor/services/StageRenderer.ts (2290), src/runtime/GameLoopManager.ts (1004), src/runtime/GameRuntime.ts (1320), src/services/AgentController.ts (1607)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: bundle:runtime Freshness<br><small>Bundle 16012s veraltet (juengste Quelle: src/runtime/GameLoopManager.ts). Bitte "npm run bundle:runtime" ausfuehren!</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Rename Task: AttemptLogin → DoLogin<br><small>Task=false, Event=false, ObjEvent=false, FlowChart=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Rename Action: ValidatePin → CheckPinCode<br><small>Action=true, Sequence=true, Flow=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Variable: currentUser → activeUser<br><small>Var=true, Formula=true, ResultVar=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Object: LoginButton → SignInButton<br><small>Object=true, ActionTarget=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Delete Task: AttemptLogin<br><small>TaskGone=true, EventCleared=true, FlowChartGone=true, ObjEventCleared=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Delete Task: AttemptLogin<br><small>TaskGone=false, EventCleared=true, FlowChartGone=true, ObjEventCleared=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Delete Action: SetupVars<br><small>ActionGone=true, SequenceCleaned=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Delete Variable: pin<br><small>VariableGone=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Usage Report: AttemptLogin<br><small>Referenzen=2, Orte=2</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -214,11 +236,11 @@ pie title Test-Status (Gesamt: 288)
 | resultVariable in INTO-Sektion<br><small>Sektion: INTO / Ergebnis</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | GROUP_COLORS Mapping<br><small>Einträge: 29, FROM: true, WHERE: true</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Erweiterte Operatoren (CONTAINS, IN)<br><small>CONTAINS: true, IN: true</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: GameExporter.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Export-Integrität: GameExporter.ts<br><small>Hash geändert! Erwartet: D121B32E4481E2B0..., Aktuell: 0DC597356F790884... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Export-Integrität: ProjectPersistenceService.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: player-standalone.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: GameRuntime.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: GameLoopManager.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Export-Integrität: player-standalone.ts<br><small>Hash geändert! Erwartet: C926F046F7154441..., Aktuell: 148E878B574E4FF2... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Export-Integrität: GameRuntime.ts<br><small>Hash geändert! Erwartet: D131EE11055427BB..., Aktuell: E8C2E46725680AAA... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Export-Integrität: GameLoopManager.ts<br><small>Hash geändert! Erwartet: B60171A87D0034EF..., Aktuell: 1313A984E3F91269... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Nested Task Declaration Generation<br><small>Recursive Tasks successfully output</small> | Pascal Generator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Basis-Import (Objekte, Tasks, Actions, Variables)<br><small>2 Objekte, 1 Task, 2 Actions, 1 Variable korrekt kopiert</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | ID-Remap (keine Original-IDs)<br><small>Alle IDs neu generiert</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -227,7 +249,7 @@ pie title Test-Status (Gesamt: 288)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1786391644059_bn (erwartet: stage_import_1786391644059_bn), BackToLobby.stageId=stage_import_1786391644059_yp (erwartet: stage_import_1786391644059_yp)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1787315006715_fg (erwartet: stage_import_1787315006715_fg), BackToLobby.stageId=stage_import_1787315006715_am (erwartet: stage_import_1787315006715_am)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |

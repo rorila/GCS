@@ -17,6 +17,14 @@
     }
   },
   "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
     "elements": [],
     "connections": []
   },
@@ -72,6 +80,37 @@
           "stageCount": 0,
           "isOnMainStage": false,
           "isOnSplashStage": false
+        },
+        {
+          "className": "TGameLoop",
+          "id": "obj_1787393337554_uewtq7k2z",
+          "name": "GameLoop",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 8,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "autoAdjustFPS": true,
+          "boundaryMode": "clamp",
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
         }
       ],
       "actions": [],
@@ -124,215 +163,212 @@
       "type": "main",
       "objects": [
         {
-          "className": "TButton",
-          "id": "obj_1786697662061_yuaz5vyfg",
-          "name": "Button_10",
+          "className": "TGroupPanel",
+          "id": "obj_1787392241559_kxjgn828x",
+          "name": "GroupPanel_3",
           "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "SetFrontImageToCardImage"
-          },
-          "visible": true,
-          "x": 3,
-          "y": 13,
-          "width": 10,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#4866ad",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Setze Vorderseite",
-          "icon": ""
-        },
-        {
-          "className": "TButton",
-          "id": "1561cc1d-32d0-4aa3-99b1-dde3ba1b006a",
-          "name": "Button_1",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "SetBackImageToCardImage"
-          },
-          "visible": true,
-          "x": 16,
-          "y": 13,
-          "width": 10,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#4866ad",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Setze Rückseite",
-          "icon": ""
-        },
-        {
-          "className": "TButton",
-          "id": "a0b79fef-270f-4c26-a79a-3fa76493dfac",
-          "name": "Button_2",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "LetTheCardFlip"
-          },
-          "visible": true,
-          "x": 9,
-          "y": 17,
-          "width": 10,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#4866ad",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Karten Flipp",
-          "icon": ""
-        },
-        {
-          "className": "TListVariable",
-          "id": "obj_1786722460618_1hfyz1cl7",
-          "name": "List_15",
-          "scope": "stage",
-          "isVariable": true,
-          "isHiddenInRun": true,
-          "isManagedInSidepanel": true,
+          "isHiddenInRun": false,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 33,
-          "y": 30,
-          "width": 4,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "#9c27b0",
-            "borderColor": "#7b1fa2",
-            "borderWidth": 2
-          },
-          "items": [
-            "./images/family_portrais/Rolf.png",
-            "./images/family_portrais/Silvia.png",
-            "./images/family_portrais/Leona.png",
-            "./images/family_portrais/Miria.png",
-            "./images/family_portrais/Helena.png"
-          ]
-        },
-        {
-          "className": "TImage",
-          "id": "obj_1786696393029_nz6u9f820",
-          "name": "CardImage",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "LetTheCardFlip"
-          },
-          "visible": true,
-          "x": 10,
+          "x": 15,
           "y": 2,
-          "width": 8,
-          "height": 8,
-          "zIndex": 1,
+          "width": 46,
+          "height": 36,
+          "zIndex": 0,
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
           "style": {
             "backgroundColor": "transparent",
-            "borderColor": "#44b027",
-            "borderWidth": 15,
-            "borderRadius": 15
+            "borderColor": "#0b6b2b",
+            "borderWidth": 2
           },
-          "src": "${List_15[1]}",
-          "objectFit": "cover",
-          "alt": "",
-          "imageOpacity": 1,
-          "fallbackColor": "#2a2a2a"
+          "caption": "",
+          "children": [
+            {
+              "className": "TSprite",
+              "id": "obj_1787392304700_7dfn4c8nd",
+              "name": "TestSprite",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 4,
+              "y": 7,
+              "width": 2,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "#ff6b6b",
+                "borderColor": "#333333",
+                "borderWidth": 1,
+                "shadowOffsetX": 0
+              },
+              "velocityX": "${SpeedVar}",
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "appearanceMode": "simple",
+              "backgroundImage": "./images/Birnen/Helle Birne.png",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "animationId": "",
+              "videoSource": "",
+              "videoObjectFit": "contain",
+              "videoAutoplay": true,
+              "videoLoop": true,
+              "videoMuted": true,
+              "videoVolume": 1,
+              "videoPlaybackRate": 1,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            }
+          ]
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1787392266016_dsubvibzt",
+          "name": "InitButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "InitStage"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 2,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "InitButton",
+          "icon": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1787392740060_1f6mo9eox",
+          "name": "SpeedVar",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 8,
+          "y": 2,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1787393119655_ieo2jh9wc",
+          "name": "SpeedButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SetVelocity"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 5,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "SpeedButton",
+          "icon": ""
         }
       ],
       "actions": [
         {
-          "id": "node-1786697939890",
+          "id": "node-1787392678912",
           "details": "",
-          "type": "property",
-          "name": "Act_SetBackCardImageToVar",
-          "showDetails": false,
-          "target": "",
-          "changes": {
-            "CardImage.src": "${List_15[0]}"
-          }
-        },
-        {
-          "id": "node-1786698228644",
-          "details": "",
-          "type": "property",
-          "name": "Act_SetFrontCardImageToVar",
-          "showDetails": false,
-          "target": "",
-          "changes": {
-            "CardImage.src": "${List_15[1]}"
-          }
-        },
-        {
-          "id": "node-1786698504093",
-          "details": "",
-          "type": "animate",
-          "name": "Act_LetTheCardFlip",
-          "showDetails": false,
-          "target": "CardImage",
-          "changes": {},
-          "effect": "flip",
-          "duration": 1000,
-          "targetScale": 2,
-          "fragments": 9,
-          "spread": 120,
-          "degrees": 360,
-          "intensity": 15,
-          "height": 20,
-          "targetOpacity": 0,
-          "midpointTask": "SetBackImageToCardImage"
-        },
-        {
-          "id": "node-1786717210283",
-          "details": "",
-          "type": "list_shuffle",
-          "name": "action",
+          "type": "variable",
+          "name": "Act_GetVelocity",
           "showDetails": false,
           "target": "",
           "changes": {}
+        },
+        {
+          "id": "node-1787392926605",
+          "details": "",
+          "type": "property",
+          "name": "Act_initStage",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "SpeedVar": 0,
+            "SpeedInput.value": 0
+          }
+        },
+        {
+          "id": "node-1787393160326",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSpriteSpeed",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "TestSprite.velocityX": 0.3
+          }
         }
       ],
       "tasks": [
         {
-          "id": "6d15d305-d877-4383-8058-49fd45ec0dba",
-          "name": "SetBackImageToCardImage",
+          "id": "53dc5520-0900-47a5-ba77-be5c654d976a",
+          "name": "InitStage",
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_SetBackCardImageToVar",
+              "name": "Act_initStage",
               "type": "action",
               "layout": "horizontal"
             }
@@ -340,23 +376,23 @@
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
-            "SetBackImageToCardImage": {
+            "InitStage": {
               "x": 40,
               "y": 40
             },
-            "Act_SetBackCardImageToVar": {
-              "x": 340,
+            "Act_initStage": {
+              "x": 220,
               "y": 40
             }
           }
         },
         {
-          "id": "3a183232-5c54-4585-88f6-83531987764c",
-          "name": "SetFrontImageToCardImage",
+          "id": "e8c29c22-df7b-4057-b2dc-445ba923aa2c",
+          "name": "SetVelocity",
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_SetFrontCardImageToVar",
+              "name": "Act_SetSpriteSpeed",
               "type": "action",
               "layout": "horizontal"
             }
@@ -364,45 +400,12 @@
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
-            "SetFrontImageToCardImage": {
+            "SetVelocity": {
               "x": 40,
               "y": 40
             },
-            "Act_SetFrontCardImageToVar": {
-              "x": 340,
-              "y": 40
-            }
-          }
-        },
-        {
-          "id": "9ad0d2b6-0d11-45f0-9728-eefd9512836e",
-          "name": "LetTheCardFlip",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "Act_LetTheCardFlip",
-              "type": "action",
-              "layout": "horizontal"
-            },
-            {
-              "name": "action",
-              "type": "action",
-              "layout": "horizontal"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "LetTheCardFlip": {
-              "x": 40,
-              "y": 40
-            },
-            "Act_LetTheCardFlip": {
-              "x": 240,
-              "y": 40
-            },
-            "action": {
-              "x": 480,
+            "Act_SetSpriteSpeed": {
+              "x": 220,
               "y": 40
             }
           }
@@ -410,15 +413,13 @@
       ],
       "variables": [],
       "grid": {
-        "cols": 30,
-        "rows": 20,
+        "cols": 64,
+        "rows": 40,
         "cellSize": 20,
         "snapToGrid": true,
         "visible": true,
-        "backgroundColor": "#c05959",
-        "gridColor": "#e59a9a"
+        "backgroundColor": "#dd4646"
       },
-      "backgroundImage": "${Var_CardImage}",
       "flowCharts": {},
       "_supportedEvents": [
         "onClick",

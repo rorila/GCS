@@ -1,0 +1,1034 @@
+{
+  "meta": {
+    "name": "Perf",
+    "version": "1.0.0",
+    "author": "",
+    "description": "",
+    "_sourcePath": "projects/Perf.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        },
+        {
+          "className": "TGameLoop",
+          "id": "obj_1787393337554_uewtq7k2z",
+          "name": "GameLoop",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 8,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "autoAdjustFPS": true,
+          "boundaryMode": "clamp",
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "main",
+      "name": "Haupt-Level",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TGroupPanel",
+          "id": "obj_1787392241559_kxjgn828x",
+          "name": "GroupPanel_3",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 15,
+          "y": 2,
+          "width": 46,
+          "height": 36,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#0b6b2b",
+            "borderWidth": 2
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TSprite",
+              "id": "obj_1787392304700_7dfn4c8nd",
+              "name": "TestSprite_1",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onCollision": "ChangeDirection",
+                "onBoundaryHit": "ChangeDirection"
+              },
+              "visible": true,
+              "x": 2,
+              "y": 0,
+              "width": 10,
+              "height": 15,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": true,
+              "style": {
+                "backgroundColor": "#ff6b6b",
+                "borderColor": "#333333",
+                "borderWidth": 1,
+                "shadowOffsetX": 0
+              },
+              "velocityX": "${SpeedVar}",
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "appearanceMode": "simple",
+              "backgroundImage": "./images/Birnen/Helle Birne.png",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "animationId": "",
+              "videoSource": "",
+              "videoObjectFit": "contain",
+              "videoAutoplay": true,
+              "videoLoop": true,
+              "videoMuted": true,
+              "videoVolume": 1,
+              "videoPlaybackRate": 1,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            }
+          ]
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1787392266016_dsubvibzt",
+          "name": "InitButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "InitStage",
+            "onTouchStart": "InitStage"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 17,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "InitButton",
+          "icon": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1787392740060_1f6mo9eox",
+          "name": "SpeedVar",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 8,
+          "y": 17,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1787393119655_ieo2jh9wc",
+          "name": "SpeedButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SetVelocity",
+            "onTouchStart": "SetVelocity"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 20,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "SpeedButton",
+          "icon": ""
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1787414993996_04q5quwcz",
+          "name": "GoToStage2Button",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GoToStage2",
+            "onTouchStart": "GoToStage2"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 36,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "Next",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1787392678912",
+          "details": "",
+          "type": "variable",
+          "name": "Act_GetVelocity",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1787392926605",
+          "details": "",
+          "type": "property",
+          "name": "Act_initStage",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "SpeedVar": 0,
+            "SpeedInput.value": 0
+          }
+        },
+        {
+          "id": "node-1787393160326",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSpriteSpeed",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "TestSprite_1.velocityX": 0.5,
+            "TestSprite_2.velocityX": 0.4,
+            "TestSprite_4.velocityX": 0.5,
+            "TestSprite_3.velocityX": 0.6
+          }
+        },
+        {
+          "id": "node-1787397678543",
+          "details": "",
+          "type": "negate",
+          "name": "Act_ChangeDirection",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.velocityX": true
+          }
+        },
+        {
+          "id": "node-1787414689182",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetVelocity",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "TestSprite_1.velocityX": 0.3
+          }
+        },
+        {
+          "id": "node-1787415139543",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "Act_GoToStage2",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "reset": false,
+          "stageId": "stage_ec94247e-f8b2-4d55-ae21-bad0ed332302"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "53dc5520-0900-47a5-ba77-be5c654d976a",
+          "name": "InitStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_initStage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "InitStage": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_initStage": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "e8c29c22-df7b-4057-b2dc-445ba923aa2c",
+          "name": "SetVelocity",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetVelocity",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetVelocity": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetVelocity": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "2d180c17-81c4-4d41-ae9b-6be3b4380512",
+          "name": "ChangeDirection",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ChangeDirection",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ChangeDirection": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ChangeDirection": {
+              "x": 260,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "abb1e9c1-b6a3-4c00-99b3-5b9c06e5d12e",
+          "name": "GoToStage2",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_GoToStage2",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "GoToStage2": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_GoToStage2": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#dd4646"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_ec94247e-f8b2-4d55-ae21-bad0ed332302",
+      "name": "TwoSprites",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TGroupPanel",
+          "id": "obj_import_1787415066994_gwd3",
+          "name": "GroupPanel_3",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 15,
+          "y": 2,
+          "width": 46,
+          "height": 36,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#0b6b2b",
+            "borderWidth": 2
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TSprite",
+              "id": "obj_import_1787415066994_lgbg",
+              "name": "TestSprite_1",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onCollision": "ChangeDirection",
+                "onBoundaryHit": "ChangeDirection"
+              },
+              "visible": true,
+              "x": 2,
+              "y": 0,
+              "width": 10,
+              "height": 15,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": true,
+              "style": {
+                "backgroundColor": "#ff6b6b",
+                "borderColor": "#333333",
+                "borderWidth": 1,
+                "shadowOffsetX": 0
+              },
+              "velocityX": "${SpeedVar}",
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "appearanceMode": "simple",
+              "backgroundImage": "./images/Birnen/Helle Birne.png",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "animationId": "",
+              "videoSource": "",
+              "videoObjectFit": "contain",
+              "videoAutoplay": true,
+              "videoLoop": true,
+              "videoMuted": true,
+              "videoVolume": 1,
+              "videoPlaybackRate": 1,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            },
+            {
+              "className": "TSprite",
+              "id": "d732ba7e-bc5d-434d-bc54-cf5727c9ffd1",
+              "name": "TestSprite_2",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onCollision": "ChangeDirection",
+                "onBoundaryHit": "ChangeDirection"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 17,
+              "width": 10,
+              "height": 15,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": true,
+              "style": {
+                "backgroundColor": "#ff6b6b",
+                "borderColor": "#333333",
+                "borderWidth": 1,
+                "shadowOffsetX": 0
+              },
+              "velocityX": "${SpeedVar}",
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "shape": "rect",
+              "spriteColor": "#ff6b6b",
+              "appearanceMode": "simple",
+              "backgroundImage": "./images/Birnen/Helle Birne.png",
+              "objectFit": "contain",
+              "imageListId": "",
+              "imageIndex": 0,
+              "animationId": "",
+              "videoSource": "",
+              "videoObjectFit": "contain",
+              "videoAutoplay": true,
+              "videoLoop": true,
+              "videoMuted": true,
+              "videoVolume": 1,
+              "videoPlaybackRate": 1,
+              "customHitbox": false,
+              "hitboxShape": "auto",
+              "hitboxOffsetX": 0,
+              "hitboxOffsetY": 0,
+              "hitboxWidth": 0,
+              "hitboxHeight": 0
+            }
+          ]
+        },
+        {
+          "className": "TButton",
+          "id": "obj_import_1787415066994_f0n1",
+          "name": "InitButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "InitStage",
+            "onTouchStart": "InitStage"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 17,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "InitButton",
+          "icon": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_import_1787415066994_xi4y",
+          "name": "SpeedVar",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 8,
+          "y": 17,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_import_1787415066994_u1ch",
+          "name": "SpeedButton1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SetVelocity",
+            "onTouchStart": "SetVelocity"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 20,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "SpeedButton1",
+          "icon": ""
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_import_1787415066994_biml",
+          "name": "GoToStage2Button",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 36,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "Next",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TButton",
+          "id": "692ddafd-2f71-4409-a24f-95dfafd85c4a",
+          "name": "SpeedButton2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SetVelocitySprite2",
+            "onTouchStart": "SetVelocitySprite2"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 23,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "SpeedButton2",
+          "icon": ""
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1787392678912",
+          "details": "",
+          "type": "variable",
+          "name": "Act_GetVelocity",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1787392926605",
+          "details": "",
+          "type": "property",
+          "name": "Act_initStage",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "SpeedVar": 0,
+            "SpeedInput.value": 0
+          }
+        },
+        {
+          "id": "node-1787393160326",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSpriteSpeed",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "TestSprite_1.velocityX": 0.5,
+            "TestSprite_2.velocityX": 0.4,
+            "TestSprite_4.velocityX": 0.5,
+            "TestSprite_3.velocityX": 0.6
+          }
+        },
+        {
+          "id": "node-1787397678543",
+          "details": "",
+          "type": "negate",
+          "name": "Act_ChangeDirection",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.velocityX": true
+          }
+        },
+        {
+          "id": "node-1787414689182",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetVelocity",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "TestSprite_1.velocityX": 0.3
+          }
+        },
+        {
+          "id": "node-1787415369866",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetVelocityToSprite2",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "TestSprite_2.velocityX": 0.5
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "id": "53dc5520-0900-47a5-ba77-be5c654d976a",
+          "name": "InitStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_initStage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "InitStage": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_initStage": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "e8c29c22-df7b-4057-b2dc-445ba923aa2c",
+          "name": "SetVelocity",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetVelocity",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetVelocity": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetVelocity": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "2d180c17-81c4-4d41-ae9b-6be3b4380512",
+          "name": "ChangeDirection",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ChangeDirection",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ChangeDirection": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ChangeDirection": {
+              "x": 260,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "6d1b9431-2e70-48b0-8f7b-602428ce50f6",
+          "name": "SetVelocitySprite2",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetVelocityToSprite2",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetVelocitySprite2": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetVelocityToSprite2": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#dd4646"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    }
+  ],
+  "activeStageId": "stage_ec94247e-f8b2-4d55-ae21-bad0ed332302",
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0"
+}

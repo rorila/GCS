@@ -9,6 +9,25 @@ import { Logger } from '../utils/Logger';
  */
 export class PropertyWatcher {
     private static logger = Logger.get('PropertyWatcher', 'Variable_Management');
+
+    // PERF: Diese Listen sind Konstanten und muessen einmalig existieren.
+    // Als lokale Variablen in notify() wurden sie bei JEDER Property-Aenderung
+    // neu allokiert — im Game-Loop sind das bei zwei bewegten Sprites rund
+    // 2000 Set-Allokationen pro Sekunde, obwohl sie nur fuer die Debug-Ausgabe
+    // gebraucht werden.
+
+    /** Interne Eigenschaften, die im Benutzer-Log nichts verloren haben. */
+    private static readonly INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className', 'timerId', 'onTimerCallback', 'interval', 'runtimeCallbacks', 'onEventCallback']);
+
+    /**
+     * Sprite-Eigenschaften, die der Game-Loop 60x pro Sekunde schreibt.
+     * Ihr Logging wuerde die Debug-Ausgabe fluten und den Hauptthread blockieren.
+     */
+    private static readonly HIGH_FREQ_SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
+
+    /** Hochfrequente Animations-Eigenschaften (fade, shake, shrink/grow). */
+    private static readonly HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity', 'transform', 'style.transform', 'width', 'height', 'style.width', 'style.height']);
+
     // Map: Object -> Map: PropertyPath -> Set of Callbacks
     private watchers = new Map<any, Map<string, Set<(newValue: any, oldValue: any) => void>>>();
 
@@ -132,28 +151,18 @@ export class PropertyWatcher {
         }
 
         const objectWatchers = this.watchers.get(target);
-        const objName = target.name || target.id || 'Unknown';
-
-        // List of internal properties that are not relevant for the user workflow
-        const INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className', 'timerId', 'onTimerCallback', 'interval', 'runtimeCallbacks', 'onEventCallback']);
-
-        // HIGH-FREQUENCY sprite properties: updated 60x/sec by game loop, logging them
-        // floods the debug output and blocks the main thread (exponential log growth!)
-        const HIGH_FREQ_SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
-
-        // High-frequency animation properties (fade-in, fade-out, shake, shrink/grow)
-        const HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity', 'transform', 'style.transform', 'width', 'height', 'style.width', 'style.height']);
 
         // Log to DebugLogService — but ONLY for user-relevant, low-frequency changes.
         // CRITICAL: We must NOT use `return` here! The old code aborted the ENTIRE notify()
         // function, preventing globalListeners and specific watchers from being called.
         if (DebugLogService.getInstance().isEnabled()) {
-            const isInternal = INTERNAL_PROPERTIES.has(propertyPath) || propertyPath.startsWith('_');
-            const isHighFreqSprite = HIGH_FREQ_SPRITE_PROPS.has(propertyPath) && target?.className === 'TSprite';
-            
+            const objName = target.name || target.id || 'Unknown';
+            const isInternal = PropertyWatcher.INTERNAL_PROPERTIES.has(propertyPath) || propertyPath.startsWith('_');
+            const isHighFreqSprite = PropertyWatcher.HIGH_FREQ_SPRITE_PROPS.has(propertyPath) && target?.className === 'TSprite';
+
             // Bei Animations-Eigenschaften loggen wir nur die ALLERERSTE Änderung (wenn oldValue undefined ist),
             // damit im Log sichtbar ist, DASS eine Animation gestartet wurde. Das 60fps-Spamming danach wird ignoriert.
-            const isHighFreqAnimSpam = HIGH_FREQ_ANIM_PROPS.has(propertyPath) && oldValue !== undefined;
+            const isHighFreqAnimSpam = PropertyWatcher.HIGH_FREQ_ANIM_PROPS.has(propertyPath) && oldValue !== undefined;
 
             if (!isInternal && !isHighFreqSprite && !isHighFreqAnimSpam) {
                 const safeStringify = (v: any): string | undefined => {

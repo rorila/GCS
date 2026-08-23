@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "LeonasAxolotlSpiel",
+    "name": "LeonasAxolotlSpielvor_Test",
     "version": "1.0.0",
     "author": "GCS Agent",
     "description": "Endless Runner Demo mit Parallax, Object Pooling, Shake & Speedlines",
-    "_sourcePath": "projects/LeonasAxolotlSpiel.json"
+    "_sourcePath": "projects/LeonasAxolotlSpielvor_Test.json"
   },
   "stage": {
     "grid": {
@@ -166,8 +166,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],

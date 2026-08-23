@@ -9,6 +9,18 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
     public volume: number = 1.0;
     public loop: boolean = false;
     public preload: boolean = true;
+    private _active: boolean = true;
+
+    public get active(): boolean {
+        return this._active;
+    }
+
+    public set active(value: boolean) {
+        this._active = value;
+        if (!value) {
+            this.stop();
+        }
+    }
 
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 4, 2);
@@ -31,7 +43,8 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
             { name: 'src', label: 'Audio Datei', type: 'audio_picker', group: 'Audio', hint: 'Pfad oder Base64 (wird beim Export eingebettet)' },
             { name: 'volume', label: 'Lautstärke (0.0-1.0)', type: 'number', group: 'Audio' },
             { name: 'loop', label: 'Wiederholen (Loop)', type: 'boolean', group: 'Audio' },
-            { name: 'preload', label: 'Preload in RAM (Zero-Latency)', type: 'boolean', group: 'Audio', hint: 'Sollte für Soundeffekte immer an sein' }
+            { name: 'preload', label: 'Preload in RAM (Zero-Latency)', type: 'boolean', group: 'Audio', hint: 'Sollte für Soundeffekte immer an sein' },
+            { name: 'active', label: 'Aktiv', type: 'boolean', group: 'Audio', hint: 'Wenn deaktiviert, wird der Ton nicht abgespielt.' }
         ];
     }
     
@@ -49,6 +62,7 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
         json.volume = this.volume;
         json.loop = this.loop;
         json.preload = this.preload;
+        json.active = this.active;
         return json;
     }
 
@@ -80,6 +94,7 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
      * Public method to play the audio (can be called by play_audio action or call_method)
      */
     public play(): void {
+        if (!this.active) return;
         if (!this.src) return;
         AudioManager.getInstance().play(this.id, this.src, this.volume, this.loop);
     }

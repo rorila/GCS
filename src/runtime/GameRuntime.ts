@@ -175,8 +175,15 @@ export class GameRuntime implements IVariableHost {
                 }
 
                 if (options.onRender) {
+                    // Eigenschaften, die der Game-Loop selbst fuehrt. Sie duerfen NICHT
+                    // in den generischen onComponentUpdate-Pfad laufen, sonst loest jede
+                    // Zuweisung ein einzelnes DOM-Update aus — 60x pro Sekunde und Sprite.
+                    // previousX/Y und renderX/Y fehlten hier, waehrend die alten Namen
+                    // _prevX/_prevY noch gelistet sind: bei einer Umbenennung wurde diese
+                    // Liste nicht mitgezogen.
                     const SPRITE_PROPS = new Set([
                         'x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY', 'visible',
+                        'previousX', 'previousY', 'renderX', 'renderY',
                         '_prevVelocityX', '_prevVelocityY', '_prevX', '_prevY'
                     ]);
                     let renderScheduled = false;

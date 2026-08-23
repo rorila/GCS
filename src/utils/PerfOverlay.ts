@@ -28,10 +28,24 @@ interface HeapInfo {
     jsHeapSizeLimit: number;
 }
 
+/**
+ * Abschnitte der Loop-Arbeit, die getrennt gemessen werden.
+ *
+ *  spr    - updateSprites (Physik je Sprite)
+ *  upd    - updateRuntimeUpdatables (Komponenten mit eigenem Loop-Hook)
+ *  anim   - AnimationManager.update (Tweens)
+ *  interp - updateRenderPositions (Sub-Frame-Interpolation)
+ *  coll   - Kollision, Boundaries, Stage-Exits
+ *  dom    - Schreiben der Positionen in den DOM
+ */
+export type PerfPhase = 'spr' | 'upd' | 'anim' | 'interp' | 'coll' | 'dom';
+
 export class PerfOverlay {
     private static instance: PerfOverlay | null = null;
 
     private el: HTMLElement | null = null;
+    private autoCheckbox: HTMLInputElement | null = null;
+    private textEl: HTMLPreElement | null = null;
     private rafId: number | null = null;
     private running: boolean = false;
 
@@ -57,6 +71,24 @@ export class PerfOverlay {
     private worstRestMs: number = 0;
     private shownWorkMs: number = 0;
     private shownRestMs: number = 0;
+
+    // Mittelwerte: der Maximalwert allein sagt nicht, ob eine Sekunde
+    // durchgehend teuer war oder nur einen Ausreisser enthielt.
+    private workSumMs: number = 0;
+    private workFrames: number = 0;
+    private shownWorkAvgMs: number = 0;
+
+    // Phasen-Aufschluesselung der Loop-Arbeit (Summen der laufenden Sekunde)
+    private phaseStart: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0 };
+    private phaseSum: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0 };
+    private shownPhase: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0 };
+
+    // Kontext, ohne den die Phasenzeiten nicht einzuordnen sind: Wie viele
+    // Physikschritte lief die Fixed-Step-Schleife, und wie viele Sprites
+    // stecken ueberhaupt in der Liste (Pool-Instanzen zaehlen mit).
+    private stepsSum: number = 0;
+    private shownStepsAvg: number = 0;
+    private spriteCount: number = 0;
 
     // Anzeigewerte der letzten abgeschlossenen Sekunde
     private fps: number = 0;
@@ -179,6 +211,47 @@ export class PerfOverlay {
         inst.workStart = 0;
         inst.lastWorkMs = ms;
         if (ms > inst.worstWorkMs) inst.worstWorkMs = ms;
+        inst.workSumMs += ms;
+        inst.workFrames++;
+    }
+
+    /** Startet die Messung eines Loop-Abschnitts. */
+    public static phaseBegin(phase: PerfPhase): void {
+        const inst = PerfOverlay.instance;
+        if (!inst || !inst.running) return;
+        inst.phaseStart[phase] = performance.now();
+    }
+
+    /** Beendet die Messung eines Loop-Abschnitts und summiert die Dauer. */
+    public static phaseEnd(phase: PerfPhase): void {
+        const inst = PerfOverlay.instance;
+        if (!inst || !inst.running) return;
+        const start = inst.phaseStart[phase];
+        if (start === 0) return;
+        inst.phaseStart[phase] = 0;
+        inst.phaseSum[phase] += performance.now() - start;
+    }
+
+    /**
+     * Meldet Rahmendaten des Frames: Anzahl der Physikschritte und Groesse der
+     * Sprite-Liste. Ohne diese Werte laesst sich nicht unterscheiden, ob eine
+     * Phase teuer ist oder nur oft ausgefuehrt wird.
+     */
+    public static markFrameStats(steps: number, sprites: number): void {
+        const inst = PerfOverlay.instance;
+        if (!inst || !inst.running) return;
+        inst.stepsSum += steps;
+        inst.spriteCount = sprites;
+    }
+
+    /** Setzt alle Phasensummen der abgelaufenen Sekunde zurueck. */
+    private resetPhaseSums(): void {
+        this.phaseSum.spr = 0;
+        this.phaseSum.upd = 0;
+        this.phaseSum.anim = 0;
+        this.phaseSum.interp = 0;
+        this.phaseSum.coll = 0;
+        this.phaseSum.dom = 0;
     }
 
     public start(): void {
@@ -267,10 +340,26 @@ export class PerfOverlay {
             this.shownRestMs = this.worstRestMs;
             this.allocPerSec = this.allocBytes;
 
+            // Mittelwerte immer auf die Zahl der tatsaechlich gearbeiteten
+            // Loop-Frames beziehen, nicht auf die rAF-Frames dieser Anzeige.
+            const loopFrames = this.workFrames || 1;
+            this.shownWorkAvgMs = this.workSumMs / loopFrames;
+            this.shownPhase.spr = this.phaseSum.spr / loopFrames;
+            this.shownPhase.upd = this.phaseSum.upd / loopFrames;
+            this.shownPhase.anim = this.phaseSum.anim / loopFrames;
+            this.shownPhase.interp = this.phaseSum.interp / loopFrames;
+            this.shownPhase.coll = this.phaseSum.coll / loopFrames;
+            this.shownPhase.dom = this.phaseSum.dom / loopFrames;
+            this.shownStepsAvg = this.stepsSum / loopFrames;
+
             this.frameCount = 0;
             this.worstFrameMs = 0;
             this.worstWorkMs = 0;
             this.worstRestMs = 0;
+            this.workSumMs = 0;
+            this.workFrames = 0;
+            this.stepsSum = 0;
+            this.resetPhaseSums();
             this.allocBytes = 0;
             this.secondStart = now;
 
@@ -304,19 +393,45 @@ export class PerfOverlay {
         s.background = 'rgba(0, 0, 0, 0.88)';
         s.color = '#00ff66';
         s.font = '16px/1.45 Consolas, "Courier New", monospace';
-        s.padding = '10px 14px';
+        s.padding = '28px 14px 10px 14px';
         s.minWidth = '200px';
         s.margin = '0';
         s.whiteSpace = 'pre';
         s.pointerEvents = 'none';
         s.borderBottomRightRadius = '4px';
         s.textShadow = 'none';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = GameLoopManager.getInstance().getAutoAdjustFPS();
+        checkbox.style.pointerEvents = 'auto';
+        checkbox.onchange = () => {
+            GameLoopManager.getInstance().setAutoAdjustFPS(checkbox.checked);
+        };
+
+        const label = document.createElement('label');
+        label.style.cssText = 'position:absolute;top:4px;right:8px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;';
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(' Auto FPS'));
+
+        const pre = document.createElement('pre');
+        pre.style.cssText = 'margin:0;white-space:pre;pointer-events:none;';
+
+        el.appendChild(label);
+        el.appendChild(pre);
         document.body.appendChild(el);
+
         this.el = el;
+        this.autoCheckbox = checkbox;
+        this.textEl = pre as HTMLPreElement;
     }
 
     private render(): void {
-        if (!this.el) return;
+        if (!this.el || !this.textEl) return;
+
+        if (this.autoCheckbox) {
+            this.autoCheckbox.checked = GameLoopManager.getInstance().getAutoAdjustFPS();
+        }
 
         const heap = this.readHeap();
         const usedMb = heap ? (heap.usedJSHeapSize / 1048576).toFixed(1) : '?';
@@ -327,6 +442,9 @@ export class PerfOverlay {
         this.el.style.color = this.shownWorstMs > this.HITCH_MS ? '#ff5555' : '#00ff66';
 
         const target = GameLoopManager.getInstance().getTargetFPS();
+        const targetStr = GameLoopManager.getInstance().getAutoAdjustFPS()
+            ? String(target)
+            : `${target} (manuell)`;
 
         let frozenLine = '';
         if (this.lastHitchSnapshot) {
@@ -336,9 +454,12 @@ export class PerfOverlay {
             }
         }
 
-        this.el.textContent =
-            `FPS ${this.fps}   target ${target}   worst ${this.shownWorstMs.toFixed(0)}ms\n` +
-            `js ${this.shownWorkMs.toFixed(1)}ms   rest ${this.shownRestMs.toFixed(0)}ms\n` +
+        this.textEl.textContent =
+            `FPS ${this.fps}   target ${targetStr}   worst ${this.shownWorstMs.toFixed(0)}ms\n` +
+            `js ø${this.shownWorkAvgMs.toFixed(1)} / max ${this.shownWorkMs.toFixed(1)}ms   rest ${this.shownRestMs.toFixed(0)}ms\n` +
+            `spr ${this.shownPhase.spr.toFixed(1)}  upd ${this.shownPhase.upd.toFixed(1)}  anim ${this.shownPhase.anim.toFixed(1)}  interp ${this.shownPhase.interp.toFixed(1)}\n` +
+            `coll ${this.shownPhase.coll.toFixed(1)}  dom ${this.shownPhase.dom.toFixed(1)}   (øms)\n` +
+            `steps ø${this.shownStepsAvg.toFixed(2)}   sprites ${this.spriteCount}\n` +
             `hitches ${this.hitchCount}  (max ${this.worstEverMs.toFixed(0)}ms)\n` +
             frozenLine +
             `alloc ${allocMb} MB/s   GC ${this.gcCount}\n` +

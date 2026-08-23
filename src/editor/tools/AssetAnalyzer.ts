@@ -99,6 +99,16 @@ export class AssetAnalyzer {
         return `/images/${raw}`;
     }
 
+    /**
+     * Packt CSS-Schreibweisen wie `url("images/a.png")` aus.
+     * `style.backgroundImage` wird im Projekt teils so hinterlegt.
+     */
+    public static unwrapCssUrl(s: unknown): string {
+        if (typeof s !== 'string') return '';
+        const match = /^\s*url\(\s*['"]?(.*?)['"]?\s*\)\s*$/i.exec(s);
+        return match ? match[1] : s;
+    }
+
     /** Grobe Heuristik: Ist der String ein Bild (und nicht Audio/Video)? */
     public static isImagePath(s: unknown): boolean {
         if (typeof s !== 'string' || !s) return false;
@@ -134,6 +144,48 @@ export class AssetAnalyzer {
     }
 
     /**
+     * Klappt eine Objektliste inklusive verschachtelter `children` flach.
+     *
+     * Ohne diesen Schritt wurden Sprites innerhalb eines TGroupPanel/TPanel
+     * komplett uebersehen — und damit genau die Bilder, die am haeufigsten
+     * optimiert werden muessen.
+     */
+    private static flattenObjects(objects: any[]): any[] {
+        const out: any[] = [];
+        const seen = new Set<any>();
+
+        const walk = (list: any[], depth: number): void => {
+            if (!Array.isArray(list) || depth > 50) return;
+            for (const obj of list) {
+                if (!obj || typeof obj !== 'object') continue;
+                if (seen.has(obj)) continue; // Schutz vor Zyklen
+                seen.add(obj);
+                out.push(obj);
+                if (Array.isArray(obj.children)) {
+                    walk(obj.children, depth + 1);
+                }
+            }
+        };
+
+        walk(objects, 0);
+        return out;
+    }
+
+    /**
+     * Bestimmt, welche Bildquelle zur Laufzeit tatsaechlich dargestellt wird.
+     * `TSprite.appearanceMode` leitet sich ohne expliziten Wert aus den
+     * gesetzten Referenzen ab — dieselbe Reihenfolge wird hier gespiegelt.
+     */
+    private static resolveAppearanceMode(obj: any): string {
+        const explicit = obj?.appearanceMode;
+        if (explicit) return String(explicit);
+        if (obj?.animationId) return 'animation';
+        if (obj?.imageListId) return 'spritesheet';
+        if (obj?.videoSource) return 'video';
+        return 'simple';
+    }
+
+    /**
      * Sammelt alle Bildverwendungen inklusive der jeweiligen Anzeigegroesse.
      * Aufloesungsketten: Sprite -> TAnimation -> TImageList -> Bilddatei.
      */
@@ -155,12 +207,28 @@ export class AssetAnalyzer {
             if (consumer) draft.consumers.push(consumer);
         };
 
-        const stages: any[] = project?.stages || (project?.stage ? [project.stage] : []);
+        const stages: any[] = [];
+        if (Array.isArray(project?.stages) && project.stages.length > 0) {
+            stages.push(...project.stages);
+        } else if (project?.stage) {
+            stages.push(project.stage);
+        }
+
+        // Legacy-Ablagen: Projekte vor der Multi-Stage-Migration halten ihre
+        // Objekte direkt am Projekt. Das Grid kommt dann aus project.stage.
+        const legacyGrid = project?.stage?.grid;
+        if (Array.isArray(project?.objects) && project.objects.length > 0) {
+            stages.push({ name: 'Haupt-Level (Legacy)', grid: legacyGrid, objects: project.objects });
+        }
+        if (Array.isArray(project?.splashObjects) && project.splashObjects.length > 0) {
+            stages.push({ name: 'Splash (Legacy)', grid: legacyGrid, objects: project.splashObjects });
+        }
 
         for (const stage of stages) {
             const cellSize = stage?.grid?.cellSize || 20;
             const stageName = stage?.name || stage?.id || 'Stage';
-            const objects: any[] = stage?.objects || [];
+            // Verschachtelte Container aufloesen, sonst fehlen alle Kind-Sprites.
+            const objects: any[] = this.flattenObjects(stage?.objects || []);
 
             const byRef = new Map<string, any>();
             for (const o of objects) {
@@ -199,16 +267,26 @@ export class AssetAnalyzer {
                     }
                 }
 
+                // Welche Quelle zur Laufzeit gewinnt, entscheidet appearanceMode.
+                // Vorher galt das direkte Bild pauschal als verdeckt, sobald
+                // irgendeine ImageList verknuepft war — das verschwieg genau die
+                // Faelle mit appearanceMode 'simple' und hinterlegtem Bild.
+                const appearanceMode = this.resolveAppearanceMode(obj);
+                const sheetActive = appearanceMode === 'spritesheet' || appearanceMode === 'animation';
+                const directActive = appearanceMode === 'simple';
+
                 const list = listRef ? byRef.get(listRef) : undefined;
-                const listSrc = list?.src || list?.backgroundImage;
+                const listSrc = this.unwrapCssUrl(list?.src || list?.backgroundImage || list?.style?.backgroundImage);
                 if (this.isImagePath(listSrc)) {
                     add(listSrc, Number(list.imageCountHorizontal) || 1, Number(list.imageCountVertical) || 1, {
-                        objectName, className, stageName, displayWidthPx, displayHeightPx, via, instances
+                        objectName, className, stageName, displayWidthPx, displayHeightPx, via, instances,
+                        shadowed: !sheetActive
                     });
                 }
 
-                // Direktes Bild des Objekts
-                const directSrc = obj?.src || obj?.backgroundImage;
+                // Direktes Bild des Objekts (auch aus style.backgroundImage,
+                // der Renderer wertet diese Quelle ebenfalls aus).
+                const directSrc = this.unwrapCssUrl(obj?.src || obj?.backgroundImage || obj?.style?.backgroundImage);
                 if (this.isImagePath(directSrc)) {
                     const isOwnImageList = className === 'TImageList';
                     add(
@@ -222,7 +300,9 @@ export class AssetAnalyzer {
                             : {
                                 objectName, className, stageName, displayWidthPx, displayHeightPx,
                                 via: 'direct',
-                                shadowed: !!list,
+                                // Nur Sprites kennen appearanceMode; bei allen anderen
+                                // Komponenten ist das direkte Bild immer die Quelle.
+                                shadowed: className === 'TSprite' ? !directActive : false,
                                 instances
                             }
                     );
@@ -316,7 +396,8 @@ export class AssetAnalyzer {
             hints.push(`Ueber ${MAX_SAFE_TEXTURE_SIZE}px — aeltere GPUs fallen auf Software-Rendering zurueck.`);
         }
         if (draft.consumers.some(c => c.shadowed)) {
-            hints.push('Wird von einer aktiven ImageList/Animation ueberdeckt und nie dargestellt.');
+            const names = draft.consumers.filter(c => c.shadowed).map(c => c.objectName).join(', ');
+            hints.push(`Von der aktiven Darstellungsart (appearanceMode) nicht genutzt bei: ${names}.`);
         }
         const poolTotal = draft.consumers.reduce((s, c) => s + c.instances, 0);
         if (poolTotal > 20) {

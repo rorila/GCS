@@ -52,6 +52,12 @@ export class StageRenderer {
     private fastPathById: Map<string, any> = new Map();
     private fastPathChildrenByParent: Map<string, any[]> = new Map();
     private fastPathDialogParent: Map<string, any> = new Map();
+    /** PERF: Wiederverwendete Puffer fuer updateSpritePositions (kein Muell pro Frame). */
+    private fastPathUpdateMap: Map<string, any> = new Map();
+    private fastPathMergedBuffer: any[] = [];
+    private fastPathKidBuffer: any[] = [];
+    private fastPathAbsX: number = 0;
+    private fastPathAbsY: number = 0;
 
     constructor(host: StageHost) {
         this.host = host;
@@ -170,6 +176,8 @@ export class StageRenderer {
      */
     private getResolvedNumber(obj: any, prop: string, objects?: any[]): number {
         if (!obj) return 0;
+        if (prop === 'x' && (obj.className === 'TSprite' || obj.constructor?.name === 'TSprite') && obj.renderX != null) return obj.renderX;
+        if (prop === 'y' && (obj.className === 'TSprite' || obj.constructor?.name === 'TSprite') && obj.renderY != null) return obj.renderY;
         const vars = this.getVariableContext();
         const val = PropertyHelper.getResolvedPropertyValue(obj, prop, vars, objects);
         if (typeof val === 'number') return val;
@@ -654,7 +662,10 @@ export class StageRenderer {
             // 🎮 PERFORMANTE SPIELE-SCHLEIFE (GPU COMPOSITING)
             if (this.host.runMode) {
                 // Hardware Acceleration: Anker auf Null setzen, damit die GPU Texturen schiebt statt der CPU Layouts rechnet
-                el.style.willChange = 'transform, opacity';
+                // 'translate' muss mit aufgefuehrt werden: animiert wird die separate
+                // CSS-translate-Property, nicht transform. Ohne den Eintrag kann der
+                // Browser die Ebene verwerfen und pro Frame neu rastern -> Ruckeln.
+                el.style.willChange = 'translate, transform, opacity';
                 el.style.backfaceVisibility = 'hidden';
                 el.style.left = '0px';
                 el.style.top = '0px';
@@ -883,6 +894,13 @@ export class StageRenderer {
                 el.style.cursor = 'pointer';
                 el.onclick = (e) => {
                     e.stopPropagation();
+                    // Falls ein Touch-Pointer das onTouchStart bereits ausgeloest hat,
+                    // muss der nachfolgende synthetisierte Click ignoriert werden,
+                    // sonst toggelt ein SidePanel doppelt (oeffnen + sofort schliessen).
+                    const wasTouchStart = (el as any).__wasTouchStart;
+                    (el as any).__wasTouchStart = false;
+                    if (wasTouchStart) return;
+
                     logger.debug(`Click on ${obj.name} (${obj.id}). Task: ${obj.events?.onClick || obj.Tasks?.onClick || 'none'}`);
                     if (this.host.onEvent) {
                         this.host.onEvent(obj.id, 'onClick');
@@ -1009,6 +1027,10 @@ export class StageRenderer {
                 if (hasTouchStart) {
                     el.onpointerdown = (e: PointerEvent) => {
                         e.stopPropagation();
+                        // Merken, ob der Klick von Touch stammte, damit onclick ihn ignorieren kann.
+                        (el as any).__wasTouchStart = e.pointerType === 'touch';
+                        if (e.pointerType !== 'touch') return;
+
                         el.setPointerCapture(e.pointerId);
                         el.style.touchAction = 'none';
                         if (this.host.onEvent) {
@@ -1020,6 +1042,7 @@ export class StageRenderer {
                 if (hasTouchMove) {
                     let moveThrottled = false;
                     el.onpointermove = (e: PointerEvent) => {
+                        if (e.pointerType !== 'touch') return;
                         if (moveThrottled) return;
                         moveThrottled = true;
                         requestAnimationFrame(() => {
@@ -1034,6 +1057,7 @@ export class StageRenderer {
                 if (hasTouchEnd) {
                     el.onpointerup = (e: PointerEvent) => {
                         e.stopPropagation();
+                        if (e.pointerType !== 'touch') return;
                         if (this.host.onEvent) {
                             this.host.onEvent(obj.id, 'onTouchEnd', getPointerData(e));
                         }
@@ -2006,8 +2030,9 @@ export class StageRenderer {
         const allObjects = this.host.lastRenderedObjects || [];
         this.ensureFastPathIndex(allObjects);
 
-        const objectsToUpdateMap = new Map<string, any>();
-        
+        const objectsToUpdateMap = this.fastPathUpdateMap;
+        objectsToUpdateMap.clear();
+
         // 1. Zuerst die primär animierten Original-Objekte (aus dem GameRuntime) aufnehmen
         for (const obj of objects) {
             if (obj && (obj.id || obj.name)) {
@@ -2029,7 +2054,7 @@ export class StageRenderer {
 
         // 3. Auch alle Kinder in den Update-Zyklus einbeziehen, damit sie sich 
         // synchron mit ihren animierten Containern mitbewegen.
-        const kidBuffer: any[] = [];
+        const kidBuffer = this.fastPathKidBuffer;
         for (const obj of objects) {
             if (!obj.id && !obj.name) continue;
             kidBuffer.length = 0;
@@ -2043,15 +2068,21 @@ export class StageRenderer {
             }
         }
 
-        const mergedObjectsArray = Array.from(objectsToUpdateMap.values());
+        const mergedObjectsArray = this.fastPathMergedBuffer;
+        mergedObjectsArray.length = 0;
+        for (const value of objectsToUpdateMap.values()) {
+            mergedObjectsArray.push(value);
+        }
 
         /** Parent-Lookup: bevorzugt die aktuell animierten Objekte, sonst der Stage-Index. */
         const lookupObject = (id: string): any =>
             objectsToUpdateMap.get(id) || this.fastPathById.get(id);
 
-        // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain)
-        // Muss die LATEST properties referenzieren
-        const getAbsXYZ = (obj: any): {x: number, y: number} => {
+        // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain).
+        // Muss die LATEST properties referenzieren.
+        // PERF: Schreibt in Felder statt ein Ergebnisobjekt pro Sprite und Frame
+        // zu allokieren.
+        const accumulateAbsPos = (obj: any): void => {
             let absX = this.getResolvedNumber(obj, 'x', mergedObjectsArray);
             let absY = this.getResolvedNumber(obj, 'y', mergedObjectsArray);
             let curr = obj.parentId;
@@ -2067,7 +2098,8 @@ export class StageRenderer {
                 }
                 depth++;
             }
-            return {x: absX, y: absY};
+            this.fastPathAbsX = absX;
+            this.fastPathAbsY = absY;
         };
 
         for (const obj of mergedObjectsArray) {
@@ -2076,17 +2108,30 @@ export class StageRenderer {
             const fp = ((el as any)._fp ||= {});
             
             // Rekursive Parent-Positionierung berücksichtigen!
-            const absPos = getAbsXYZ(obj);
-            const transX = absPos.x * cellSize;
-            const transY = absPos.y * cellSize;
+            accumulateAbsPos(obj);
+            const transX = this.fastPathAbsX * cellSize;
+            const transY = this.fastPathAbsY * cellSize;
 
             let finalTransX = transX;
             let finalTransY = transY;
 
             if (this.host.runMode) {
                 // ── Sichtbarkeits-Sync (Pool-Sprites) ──
-                let isVisible = obj.visible !== false;
+                let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
                 if (obj.isHiddenInRun) isVisible = false;
+
+                const isFromBlueprint = !!obj.isFromBlueprint;
+                const isBlueprintOnly = !!obj.isBlueprintOnly;
+                const isService = !!obj.isService;
+                if (!this.host.isBlueprint) {
+                    if (isFromBlueprint && (isService || isBlueprintOnly)) {
+                        isVisible = false;
+                    }
+                } else {
+                    if (isFromBlueprint || isService || isBlueprintOnly) {
+                        isVisible = true;
+                    }
+                }
 
                 // Feststellen, ob es zum Dialog-Zweig gehört (Ergebnis wird gecacht)
                 const parentDialog = this.resolveDialogParent(obj, lookupObject);
@@ -2105,7 +2150,7 @@ export class StageRenderer {
                 if (obj.className === 'TVirtualGamepad') {
                     translateValue = 'none';
                 } else if (parentDialog) {
-                    if (parentDialog.visible !== false) {
+                    if (this.checkVisible(parentDialog.visible) && this.checkVisible(parentDialog.style?.visible)) {
                         translateValue = `${finalTransX}px ${finalTransY}px`;
                     } else {
                         const outOfBoundsOffset = getDialogSlideOffset(parentDialog, cellSize);

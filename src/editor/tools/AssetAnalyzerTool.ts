@@ -17,7 +17,7 @@ import { downscaleFrameAlphaWeighted } from './ImageUtils';
 
 const logger = Logger.get('AssetAnalyzerTool');
 
-export const ASSET_ANALYZER_TOOL_VERSION = '1.0.0';
+export const ASSET_ANALYZER_TOOL_VERSION = '1.1.0';
 
 const RATING_META: Record<AssetRating, { label: string; color: string; icon: string }> = {
     ok: { label: 'OK', color: '#7fd1a0', icon: '✅' },

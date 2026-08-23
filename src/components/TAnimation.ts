@@ -24,6 +24,18 @@ export class TAnimation extends TWindow {
     private elapsedMs: number = 0;
     private runtimeCallbacks: any = null;
 
+    /**
+     * Zuletzt an die Sprites uebertragener Frame; -1 erzwingt die erste
+     * Uebertragung.
+     *
+     * PERF: Ohne diesen Merker wurden imageListId und imageIndex bei JEDEM
+     * Loop-Durchlauf neu zugewiesen — auch wenn sich der Frame gar nicht
+     * geaendert hatte. Da imageIndex nicht zu den Loop-eigenen Sprite-
+     * Eigenschaften zaehlt, loeste jede Zuweisung ein einzelnes DOM-Update
+     * mit Bildwechsel aus.
+     */
+    private lastAppliedFrame: number = -1;
+
     constructor(name: string, x: number, y: number, width: number = 2, height: number = 2) {
         super(name, x, y, width, height);
         this.isHiddenInRun = true;
@@ -47,6 +59,7 @@ export class TAnimation extends TWindow {
     public onRuntimeStart(): void {
         this.currentFrame = 0;
         this.elapsedMs = 0;
+        this.lastAppliedFrame = -1;
     }
 
     public onRuntimeUpdate(deltaTime: number): void {
@@ -72,6 +85,12 @@ export class TAnimation extends TWindow {
             }
         }
 
+        // Nur uebertragen, wenn sich der Frame tatsaechlich geaendert hat.
+        // Bei 100 ms Framedauer und 60 Bildern pro Sekunde entfaellt damit
+        // rund fuenf Sechstel der bisherigen Arbeit.
+        if (this.currentFrame === this.lastAppliedFrame) return;
+        this.lastAppliedFrame = this.currentFrame;
+
         const objects = this.runtimeCallbacks?.objects || [];
         const isMatch = (obj: any) => (obj.className === 'TSprite' || obj.constructor?.name === 'TSprite') && obj.animationId === this.name;
         objects.forEach((obj: any) => {
@@ -85,6 +104,7 @@ export class TAnimation extends TWindow {
     public onRuntimeStop(): void {
         this.currentFrame = 0;
         this.elapsedMs = 0;
+        this.lastAppliedFrame = -1;
     }
 
     public toDTO(): any {

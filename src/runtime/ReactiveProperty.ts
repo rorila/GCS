@@ -1,6 +1,7 @@
 import { PropertyWatcher } from './PropertyWatcher';
 
 import { Logger } from '../utils/Logger';
+import { LogLevel } from '../utils/LogTypes';
 
 const logger = Logger.get('Proxy', 'Variable_Management');
 
@@ -110,10 +111,18 @@ export function makeReactive<T extends object>(
                 target[property] = newValue;
 
                 const propertyPath = path ? `${path}.${property}` : property;
-                const objName = actualRoot.name || actualRoot.id || 'Unknown';
-                logger.info(`Set ${objName}.${propertyPath} = ${newValue}`);
+
+                // PERF: Dies ist der heisseste Pfad im Spiel — der Game-Loop
+                // schreibt hier pro Sprite und Bild sechs Werte. Ohne die
+                // Level-Pruefung entstehen Template-String und Objektname auch
+                // dann, wenn die Ausgabe anschliessend verworfen wird.
+                if (logger.isEnabled(LogLevel.INFO)) {
+                    const objName = actualRoot.name || actualRoot.id || 'Unknown';
+                    logger.info(`Set ${objName}.${propertyPath} = ${newValue}`);
+                }
 
                 if (property === 'currentInterval') {
+                    const objName = actualRoot.name || actualRoot.id || 'Unknown';
                     logger.debug(`[TIMER-DEBUG] Proxy.set FIRED: objName="${objName}" path="${propertyPath}" newValue=${newValue} old=${oldValue} actualRoot.name="${actualRoot.name}" actualRoot.id="${actualRoot.id}"`);
                 }
 

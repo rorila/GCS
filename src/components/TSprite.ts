@@ -57,6 +57,12 @@ export class TSprite extends TWindow {
     private errorX: number = 0;
     private errorY: number = 0;
 
+    // Sub-frame interpolation for smooth rendering
+    public previousX: number = 0;
+    public previousY: number = 0;
+    public renderX: number | null = null;
+    public renderY: number | null = null;
+
     // Hitbox Properties
     public customHitbox: boolean = false;
     public hitboxShape: 'auto' | 'rect' | 'circle' = 'auto'; // 'auto' means fallback to this.shape
