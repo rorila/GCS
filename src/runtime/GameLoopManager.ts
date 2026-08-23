@@ -61,7 +61,7 @@ export class GameLoopManager {
 
     // Callbacks
     private renderCallback: (() => void) | null = null;
-    private spriteRenderCallback: ((objects: any[]) => void) | null = null;
+    private spriteRenderCallback: ((objects: any[], dirtyObjects?: any[]) => void) | null = null;
     private eventCallback: ((spriteId: string, eventName: string, data?: any) => void) | null = null;
 
     // Cooldowns and tracking
@@ -69,6 +69,7 @@ export class GameLoopManager {
     private boundaryCooldowns: Map<string, number> = new Map();
     private collidedThisFrame: Set<string> = new Set();
     private exitedSprites: Set<string> = new Set(); // Track sprites that already fired onStageExit
+    private dirtySprites: Set<any> = new Set(); // Sprites, deren Bild sich in diesem Frame geändert hat
     private readonly COLLISION_COOLDOWN_MS = 200;
     private readonly BOUNDARY_COOLDOWN_MS = 500;
 
@@ -141,7 +142,7 @@ export class GameLoopManager {
         gridConfig: GridConfig,
         renderCallback: () => void,
         eventCallback?: (spriteId: string, eventName: string, data?: any) => void,
-        spriteRenderCallback?: (sprites: any[]) => void
+        spriteRenderCallback?: (sprites: any[], dirtySprites?: any[]) => void
     ): void {
 
 
@@ -253,6 +254,7 @@ export class GameLoopManager {
         this.boundaryCooldowns.clear();
         this.exitedSprites.clear();
         this.collidedThisFrame.clear();
+        this.dirtySprites.clear();
         this.sprites = [];
         this.inputControllers = [];
         this.panels = [];
@@ -395,7 +397,7 @@ export class GameLoopManager {
         if (this.state === 'paused') {
             // Im Pause-Zustand nur einmalig zeichnen, den Loop aber nicht starten.
             if (this.spriteRenderCallback) {
-                this.spriteRenderCallback(this.sprites);
+                this.spriteRenderCallback(this.sprites, this.getAndClearDirtySprites());
             } else if (this.renderCallback) {
                 this.renderCallback();
             }
@@ -407,10 +409,27 @@ export class GameLoopManager {
         }
         this.idleFrameCount = 0;
         if (this.spriteRenderCallback) {
-            this.spriteRenderCallback(this.sprites);
+            this.spriteRenderCallback(this.sprites, this.getAndClearDirtySprites());
         } else if (this.renderCallback) {
             this.renderCallback();
         }
+    }
+
+    /**
+     * Markiert einen Sprite als dirty, weil sich dessen Bild (imageListId/imageIndex) geändert hat.
+     * Die Liste wird am Ende des Frames im dom-Teil des Loops in einem Schwung abgearbeitet.
+     */
+    public markSpriteDirty(sprite: any): void {
+        this.dirtySprites.add(sprite);
+    }
+
+    /**
+     * Liefert alle als dirty markierten Sprites und leert die Menge für den nächsten Frame.
+     */
+    public getAndClearDirtySprites(): any[] {
+        const sprites = Array.from(this.dirtySprites);
+        this.dirtySprites.clear();
+        return sprites;
     }
 
     /**
@@ -549,7 +568,7 @@ export class GameLoopManager {
             // Render: Fast-Path für Sprite-Positionen und animierte Objekte (kein volles DOM-Rebuild)
             PerfOverlay.phaseBegin('dom');
             if (this.spriteRenderCallback) {
-                this.spriteRenderCallback(this.collectRenderObjects());
+                this.spriteRenderCallback(this.collectRenderObjects(), this.getAndClearDirtySprites());
             } else if (this.renderCallback) {
                 this.renderCallback();
             }
@@ -683,11 +702,12 @@ export class GameLoopManager {
      * Update components that provide their own runtime loop hook.
      */
     private updateRuntimeUpdatables(deltaTime: number): void {
-        this.runtimeUpdatables.forEach(obj => {
+        for (let i = 0; i < this.runtimeUpdatables.length; i++) {
+            const obj = this.runtimeUpdatables[i];
             if (obj && typeof obj.onRuntimeUpdate === 'function') {
                 obj.onRuntimeUpdate(deltaTime);
             }
-        });
+        }
     }
 
     /**

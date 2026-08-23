@@ -414,7 +414,7 @@ class UniversalPlayer implements StageHost {
                     this.renderer.updateSingleObject(obj);
                 }
             },
-            onSpriteRender: (sprites: ComponentData[]) => this.renderSpritesOnly(sprites),
+            onSpriteRender: (sprites: any[], dirtySprites?: any[]) => this.renderSpritesOnly(sprites, dirtySprites),
             makeReactive: true,
             multiplayerManager: network,
             onNavigate: (target: string) => this.handleNavigation(target),
@@ -677,8 +677,11 @@ class UniversalPlayer implements StageHost {
      * Wird 60×/sec vom GameLoopManager aufgerufen (via onSpriteRender).
      * Delegiert direkt an den StageRenderer, damit GPU-Compositing (translate3d) genutzt wird.
      */
-    private renderSpritesOnly(sprites: ComponentData[]): void {
+    private renderSpritesOnly(sprites: any[], dirtySprites?: any[]): void {
         this.renderer.updateSpritePositions(sprites);
+        if (dirtySprites && dirtySprites.length > 0) {
+            this.renderer.updateSpriteFrames(dirtySprites);
+        }
     }
 
     private showOverlay(text: string, subtext?: string) {

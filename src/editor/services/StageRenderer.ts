@@ -7,6 +7,7 @@ import { TableRenderer } from './renderers/TableRenderer';
 
 import { IRenderContext } from './renderers/IRenderContext';
 import { SpriteRenderer } from './renderers/SpriteRenderer';
+import { SpriteGeometry } from '../../runtime/SpriteGeometry';
 import { ShapeRenderer } from './renderers/ShapeRenderer';
 import { InputRenderer } from './renderers/InputRenderer';
 import { SystemComponentRenderer } from './renderers/SystemComponentRenderer';
@@ -1389,6 +1390,104 @@ export class StageRenderer {
 
         SpriteRenderer.render(ctx, el, obj);
         return true;
+    }
+
+    /**
+     * DIRTY-FRAME FAST-PATH: Aktualisiert nur den Frame-Index (transform) für eine
+     * Liste von Sprites, ohne SpriteRenderer.render() pro Sprite aufzurufen.
+     */
+    public updateSpriteFrames(objects: any[]): void {
+        const ctx: IRenderContext = {
+            host: this.host,
+            scaleFontSize: this.scaleFontSize.bind(this),
+            updateSelectionState: this.updateSelectionState.bind(this)
+        };
+
+        for (const obj of objects) {
+            if (!obj || !obj.id) continue;
+            if (obj.className !== 'TSprite' && obj.className !== 'TSpriteTemplate') continue;
+
+            const el = this.getCachedElement(obj.id);
+            if (!el) continue;
+
+            const imgEl = el.querySelector('.sprite-image-layer') as HTMLElement;
+            const sheetEl = imgEl ? imgEl.querySelector('.sprite-sheet-layer') as HTMLElement : null;
+            if (!imgEl || !sheetEl) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            const appearanceMode = obj.appearanceMode || (obj.animationId ? 'animation' : (obj.imageListId ? 'spritesheet' : (obj.videoSource ? 'video' : (obj.backgroundImage ? 'simple' : 'simple'))));
+            if (appearanceMode !== 'animation' && appearanceMode !== 'spritesheet') {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            let imageListId = obj.imageListId || '';
+            if (appearanceMode === 'animation' && obj.animationId) {
+                const animObj = this.host.lastRenderedObjects.find((o: any) =>
+                    (o.name === obj.animationId || o.id === obj.animationId) &&
+                    (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation')
+                ) || projectObjectRegistry.getObjects().find((o: any) =>
+                    (o.name === obj.animationId || o.id === obj.animationId) &&
+                    (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation')
+                );
+                if (animObj) imageListId = animObj.imageListId || '';
+            }
+
+            if (!imageListId) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            const imageListObj = this.host.lastRenderedObjects.find((o: any) =>
+                (o.name === imageListId || o.id === imageListId) &&
+                (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+            ) || projectObjectRegistry.getObjects().find((o: any) =>
+                (o.name === imageListId || o.id === imageListId) &&
+                (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+            );
+
+            if (!imageListObj) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            const hCount = imageListObj.imageCountHorizontal || 1;
+            const vCount = imageListObj.imageCountVertical || 1;
+            const sheetKey = `${hCount}x${vCount}`;
+
+            const rawIndex = appearanceMode === 'animation'
+                ? (obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : 0)
+                : (obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : (imageListObj.currentImageNumber || 0));
+            const currentFrame = Math.max(0, Math.min(rawIndex, (hCount * vCount) - 1));
+            const col = currentFrame % hCount;
+            const row = Math.floor(currentFrame / hCount);
+
+            const { tx, ty } = SpriteGeometry.frameOffsetPercent(col, row, hCount, vCount);
+
+            const cache = sheetEl as any;
+            const poolSize = Number(obj.poolSize) || 1;
+            const promote = appearanceMode === 'animation' && hCount * vCount <= 12 && poolSize <= 8;
+            const transform = promote ? `translate3d(${tx}%, ${ty}%, 0)` : `translate(${tx}%, ${ty}%)`;
+
+            if (cache._imageListId !== imageListId && cache._imageListId !== undefined) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+            if (cache._sheetKey !== sheetKey && cache._sheetKey !== undefined) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            cache._imageListId = imageListId;
+            cache._sheetKey = sheetKey;
+
+            if (cache._transform !== transform) {
+                cache._transform = transform;
+                sheetEl.style.transform = transform;
+            }
+        }
     }
 
     public updateSingleObject(obj: any): void {

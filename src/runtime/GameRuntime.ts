@@ -26,7 +26,7 @@ export interface RuntimeOptions {
     makeReactive?: boolean;
     onRender?: () => void;
     onComponentUpdate?: (obj: any, prop?: string) => void;
-    onSpriteRender?: (sprites: any[]) => void;
+    onSpriteRender?: (sprites: any[], dirtySprites?: any[]) => void;
     startStageId?: string;
     onStageSwitch?: (stageId: string) => void;
     onRestartGame?: () => void;
@@ -184,7 +184,8 @@ export class GameRuntime implements IVariableHost {
                     const SPRITE_PROPS = new Set([
                         'x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY', 'visible',
                         'previousX', 'previousY', 'renderX', 'renderY',
-                        '_prevVelocityX', '_prevVelocityY', '_prevX', '_prevY'
+                        '_prevVelocityX', '_prevVelocityY', '_prevX', '_prevY',
+                        'imageListId', 'imageIndex'
                     ]);
                     let renderScheduled = false;
 
@@ -192,6 +193,9 @@ export class GameRuntime implements IVariableHost {
                         (obj: any, prop: string) => {
                             if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') {
                                 if (prop === 'x' || prop === 'y') {
+                                    GameLoopManager.getInstance().requestRender();
+                                } else if (prop === 'imageListId' || prop === 'imageIndex') {
+                                    GameLoopManager.getInstance().markSpriteDirty(obj);
                                     GameLoopManager.getInstance().requestRender();
                                 }
                                 return;
@@ -246,6 +250,15 @@ export class GameRuntime implements IVariableHost {
                                 }
                                 return; // Voll-Render zwingend umgehen!
                             }
+
+                            // PERF: Komponenten ohne sichtbares DOM (TAnimation, TTimer,
+                            // TImageList, TSpawner ...) haben zur Laufzeit nichts zu
+                            // zeichnen. Ohne diesen Ausstieg loeste JEDER Schreibzugriff
+                            // auf ihren internen Zustand ein vollstaendiges
+                            // updateSingleObject() aus — mit Theme-Merge, querySelector
+                            // und erzwungenem Layout, synchron mitten im Game-Loop.
+                            // Bei fuenf Animationen waren das ueber 150 ms pro Frame.
+                            if (obj?.isHiddenInRun || obj?.isService) return;
 
                             const isDialog = obj?.className === 'TDialogRoot' || obj?.className === 'TDialog' || obj?.className === 'TThemeDialog' || obj?.className === 'TSidePanel' || obj?.constructor?.name === 'TDialogRoot' || obj?.constructor?.name === 'TThemeDialog';
 
@@ -440,6 +453,7 @@ export class GameRuntime implements IVariableHost {
             contextVars: this.contextVars,
             spawnObject: (templateId: string, x?: number, y?: number) => this.spawnObject(templateId, x, y),
             destroyObject: (instanceId: string) => this.destroyObject(instanceId),
+            markSpriteDirty: (sprite: any) => GameLoopManager.getInstance().markSpriteDirty(sprite),
             // Feature C: TForEach-Callbacks für dynamisches Spawning/Destroying
             addObject: (obj: any) => {
                 this.objects.push(obj);
