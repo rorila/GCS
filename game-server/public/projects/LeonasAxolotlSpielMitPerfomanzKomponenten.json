@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "LeonasAxolotlSpiel",
+    "name": "LeonasAxolotlSpielMitPerfomanzKomponenten",
     "version": "1.0.0",
     "author": "GCS Agent",
     "description": "Endless Runner Demo mit Parallax, Object Pooling, Shake & Speedlines",
-    "_sourcePath": "projects/LeonasAxolotlSpiel.json"
+    "_sourcePath": "projects/LeonasAxolotlSpielMitPerfomanzKomponenten.json"
   },
   "stage": {
     "grid": {
@@ -268,8 +268,8 @@
             "onBoundaryHit": "BoundaryHit"
           },
           "visible": true,
-          "x": 21,
-          "y": 6,
+          "x": 0,
+          "y": 15,
           "width": 10,
           "height": 5,
           "zIndex": 10,
@@ -1315,6 +1315,435 @@
           "frameDuration": 250,
           "loop": true,
           "enabled": true
+        },
+        {
+          "className": "TSidePanel",
+          "id": "obj_1787213541056_o70nem0l1",
+          "name": "TestSidePanel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 15,
+          "height": 40,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "rgba(20, 20, 35, 0.97)",
+            "borderColor": "#4fc3f7",
+            "borderWidth": 1
+          },
+          "title": "Testeinstellungen",
+          "modal": true,
+          "closable": true,
+          "side": "left",
+          "resizable": false,
+          "overlayDimming": false,
+          "pauseGame": false,
+          "children": [
+            {
+              "className": "TButton",
+              "id": "obj_1787245252518_08qmomcu6",
+              "name": "ToggleAxolotlAnimationButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "ToggleAxolotlAnimation",
+                "onTouchStart": "ToggleAxolotlAnimation"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 3,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Axolotl Animation aus",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787250160092_2dchhnaqp",
+              "name": "ToggleSchwertfischAnimationButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "ToggleSchwertfischAnimation",
+                "onTouchStart": "ToggleSchwertfischAnimation"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 6,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Schwertfisch Animation aus",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787251213629_wfy8v605v",
+              "name": "ToggleSandhaiAnimationButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "ToggleSandhaiAnimation",
+                "onTouchStart": "ToggleSandhaiAnimation"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 9,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Sandhai Animation aus",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787251660264_4axsd39ok",
+              "name": "ToggleClownFischAnimationButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "ToggleClownfischAnimation",
+                "onTouchStart": "ToggleClownfischAnimation"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 12,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Clownfisch Animation aus",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787316907337_gloze2dyd",
+              "name": "AudioOnButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "AudionOn",
+                "onTouchStart": "AudionOn"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 14,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Audio on",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787317128831_k8f9hnutv",
+              "name": "AudioOffButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "AudioOff",
+                "onTouchStart": "AudioOff"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 17,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Audio off",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787317577165_k5rk2ilst",
+              "name": "VelocityOffButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "VelocityOff",
+                "onTouchStart": "VelocityOff"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 20,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Velocity off",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787317662401_bxy3s9iwq",
+              "name": "VelocityOnButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "VelocityOn",
+                "onTouchStart": "VelocityOn"
+              },
+              "visible": true,
+              "x": 2,
+              "y": 23,
+              "width": 11,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Velocity on",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787318026781_0t8sdgid6",
+              "name": "CollisionOffButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "CollisionOff",
+                "onTouchStart": "CollisionOff"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 26,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Collision off",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1787318438721_ibtyx5vuc",
+              "name": "CollisionOnButton",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "CollisionOn",
+                "onTouchStart": "CollisionOn"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 29,
+              "width": 12,
+              "height": 2,
+              "zIndex": 0,
+              "rotation": 0,
+              "align": "NONE",
+              "collisionEnabled": false,
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Collision on",
+              "icon": ""
+            }
+          ],
+          "draggableAtRuntime": false,
+          "centerOnShow": false,
+          "onShowTask": "",
+          "onCloseTask": "",
+          "onCancelTask": "",
+          "slideDirection": "right"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1787214000329_h7x3riiby",
+          "name": "Einstellungen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ShowSidePanel",
+            "onTouchStart": "ShowSidePanel"
+          },
+          "visible": true,
+          "x": 55,
+          "y": 37,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "neu 21.08.26 V1",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1787325298187_eyp344gnw",
+          "name": "CollisoinsLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 5,
+          "y": 1,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "CollisoinsLabel"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1787325336910_hnmndnzv0",
+          "name": "VelocityLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 14,
+          "y": 1,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "VelocityLabel"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1787325366914_236gjgbj4",
+          "name": "AudioLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 23,
+          "y": 1,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "AudioLabel"
         }
       ],
       "actions": [
@@ -1589,6 +2018,193 @@
           }
         },
         {
+          "id": "node-1787213607101",
+          "details": "",
+          "type": "action",
+          "name": "Act_SetAxolotlAnimationToFalse",
+          "showDetails": false,
+          "changes": {
+            "Axelotl_anim.enabled": false
+          },
+          "service": "Dialog",
+          "mode": "show"
+        },
+        {
+          "id": "node-1787245505867",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetAxolotlAnimationToTrue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Axelotl_anim.enabled": true
+          }
+        },
+        {
+          "id": "node-1787246858602",
+          "details": "",
+          "type": "toggle_dialog",
+          "name": "ShowSideTestSidePanel",
+          "showDetails": false,
+          "target": "TestSidePanel",
+          "changes": {},
+          "mode": "toggle"
+        },
+        {
+          "id": "node-1787247849194",
+          "details": "",
+          "type": "property",
+          "name": "Act_CangeAxolotlButtonTextToOff",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ToggleAxolotlAnimationButton.text": "Axolotl Animation an"
+          }
+        },
+        {
+          "id": "node-1787247920816",
+          "details": "",
+          "type": "property",
+          "name": "Act_CangeAxolotlButtonTextToOn",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ToggleAxolotlAnimationButton.text": "Axolotl Animation aus"
+          }
+        },
+        {
+          "id": "node-1787249408674",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSchwertfischAnimationToFalse",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Schwertfisch_anim.enabled": false
+          }
+        },
+        {
+          "id": "node-1787249419290",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSchwertfischAnimationToTrue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Schwertfisch_anim.enabled": true
+          }
+        },
+        {
+          "id": "node-1787249913761",
+          "details": "",
+          "type": "property",
+          "name": "Act_CangeSchwertfischButtonTextToOff",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ToggleSchwertfischAnimationButton.text": "Schwertfisch Animation an"
+          }
+        },
+        {
+          "id": "node-1787249982131",
+          "details": "",
+          "type": "property",
+          "name": "Act_CangeSchwertfischButtonTextToOn",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ToggleSchwertfischAnimationButton.text": "Schwertfisch Animation aus"
+          }
+        },
+        {
+          "id": "node-1787250561687",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSandhaiAnimationToFalse",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Sandhai_anim.enabled": false
+          }
+        },
+        {
+          "id": "node-1787250648481",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSandhaiAnimationToTrue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Sandhai_anim.enabled": true
+          }
+        },
+        {
+          "id": "node-1787250702087",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSandhaiAnimationButtonToOff",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ToggleSandhaiAnimationButton.text": "Axolotl Animation an"
+          }
+        },
+        {
+          "id": "node-1787250702087",
+          "details": "",
+          "name": "Act_CangeSandhaiButtonTextToOff",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ToggleSandhaiAnimationButton.text": "Axolotl Animation aus"
+          }
+        },
+        {
+          "id": "node-1787251817059",
+          "details": "",
+          "type": "property",
+          "name": "Act_CangeSandhaiButtonTextToOn",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ToggleSandhaiAnimationButton.text": "Sandhai Animation an"
+          }
+        },
+        {
+          "id": "node-1787251864219",
+          "details": "",
+          "type": "property",
+          "name": "Act_CangeClownfischButtonTextToOff",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ToggleClownFischAnimationButton.text": "Clownfisch Animation an"
+          }
+        },
+        {
+          "id": "node-1787251817059",
+          "details": "",
+          "name": "Act_SetClownfischAnimationToFalse",
+          "type": "property",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Clownfisch_anim.enabled": false
+          }
+        },
+        {
+          "id": "node-1787252695032",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetClownfischAnimationToTrue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Clownfisch_anim.enabled": true
+          }
+        },
+        {
           "id": "node-1787316799183",
           "details": "",
           "type": "property",
@@ -1601,6 +2217,79 @@
             "Audio_PlayerJump.active": true,
             "Audio_UfoTreffer.active": true,
             "AudioLabel.text": "Audio= on"
+          }
+        },
+        {
+          "id": "node-1787317043318",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetAllAudioOff",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Audio_BalloonBums.active": false,
+            "Audio_CherryTreffer.active": false,
+            "Audio_PlayerJump.active": false,
+            "Audio_UfoTreffer.active": false,
+            "AudioLabel.text": "Audion= off"
+          }
+        },
+        {
+          "id": "node-1787317414477",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetAllVelocityOff",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "BalloonTemplate.velocityX": 0,
+            "CherryTemplate.velocityX": 0,
+            "ObstacleTemplate.velocityX": 0,
+            "VelocityLabel.text": "Velocity= off"
+          }
+        },
+        {
+          "id": "node-1787317709145",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetAllVelocityOn",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "BalloonTemplate.velocityX": -0.3,
+            "CherryTemplate.velocityX": -0.3,
+            "ObstacleTemplate.velocityX": -0.3,
+            "VelocityLabel.text": "Velocity= on"
+          }
+        },
+        {
+          "id": "node-1787318092062",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetAllColisionsOff",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "BalloonTemplate.collisionEnabled": false,
+            "CherryTemplate.collisionEnabled": false,
+            "ObstacleTemplate.collisionEnabled": false,
+            "Player.collisionEnabled": false,
+            "CollisoinsLabel.text": "Colision= off"
+          }
+        },
+        {
+          "id": "node-1787318328291",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetAllCollisionsOn",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "BalloonTemplate.collisionEnabled": true,
+            "CherryTemplate.collisionEnabled": true,
+            "ObstacleTemplate.collisionEnabled": true,
+            "Player.collisionEnabled": true,
+            "CollisoinsLabel.text": "Collison= on"
           }
         }
       ],
@@ -1851,7 +2540,7 @@
               "y": 40
             },
             "IncrementCherryScore": {
-              "x": 500,
+              "x": 480,
               "y": 40
             },
             "Aud_CherryTreffer": {
@@ -1997,6 +2686,430 @@
             },
             "Act_IncUfoOcity": {
               "x": 380,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "6f172c24-c1e5-4050-aa17-2f72d385d549",
+          "name": "ShowSidePanel",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "ShowSideTestSidePanel",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowSidePanel": {
+              "x": 40,
+              "y": 40
+            },
+            "ShowSideTestSidePanel": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "77859937-f58a-436a-9cc9-83cd18f6cd51",
+          "name": "ToggleAxolotlAnimation",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftType": "property",
+                "leftValue": "Axelotl_anim.enabled",
+                "rightValue": true
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_SetAxolotlAnimationToFalse",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_CangeAxolotlButtonTextToOff",
+                  "type": "action",
+                  "layout": "horizontal"
+                }
+              ],
+              "elseBody": [
+                {
+                  "name": "Act_SetAxolotlAnimationToTrue",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_CangeAxolotlButtonTextToOn",
+                  "type": "action"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ToggleAxolotlAnimation": {
+              "x": 40,
+              "y": 40
+            },
+            "Axelotl_anim.enabled == true": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_SetAxolotlAnimationToFalse": {
+              "x": 380,
+              "y": 140
+            },
+            "Act_CangeAxolotlButtonTextToOff": {
+              "x": 700,
+              "y": 140
+            },
+            "Act_SetAxolotlAnimationToTrue": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_CangeAxolotlButtonTextToOn": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "id": "7d4706fa-5e63-47b9-9abd-59c140457aa6",
+          "name": "ToggleSchwertfischAnimation",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftType": "property",
+                "leftValue": "Schwertfisch_anim.enabled",
+                "rightValue": true
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_SetSchwertfischAnimationToFalse",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_CangeSchwertfischButtonTextToOff",
+                  "type": "action",
+                  "layout": "horizontal"
+                }
+              ],
+              "elseBody": [
+                {
+                  "name": "Act_SetSchwertfischAnimationToTrue",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_CangeSchwertfischButtonTextToOn",
+                  "type": "action"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ToggleSchwertfischAnimation": {
+              "x": 40,
+              "y": 40
+            },
+            "Schwertfisch_anim.enabled == true": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_SetSchwertfischAnimationToFalse": {
+              "x": 420,
+              "y": 140
+            },
+            "Act_CangeSchwertfischButtonTextToOff": {
+              "x": 780,
+              "y": 140
+            },
+            "Act_SetSchwertfischAnimationToTrue": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_CangeSchwertfischButtonTextToOn": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "id": "869d41fa-d748-4c9b-b576-c778e0f21a9f",
+          "name": "ToggleSandhaiAnimation",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftType": "property",
+                "leftValue": "Sandhai_anim.enabled",
+                "rightValue": true
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_SetSandhaiAnimationToFalse",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_CangeSandhaiButtonTextToOn",
+                  "type": "action",
+                  "layout": "horizontal"
+                }
+              ],
+              "elseBody": [
+                {
+                  "name": "Act_SetSandhaiAnimationToTrue",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_CangeSandhaiButtonTextToOff",
+                  "type": "action"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ToggleSandhaiAnimation": {
+              "x": 40,
+              "y": 40
+            },
+            "Sandhai_anim.enabled == true": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_SetSandhaiAnimationToFalse": {
+              "x": 400,
+              "y": 140
+            },
+            "Act_CangeSandhaiButtonTextToOn": {
+              "x": 740,
+              "y": 140
+            },
+            "Act_SetSandhaiAnimationToTrue": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_CangeSandhaiButtonTextToOff": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "id": "fb0028a5-fcdb-4ba2-ba8d-58daddaf31cc",
+          "name": "ToggleClownfischAnimation",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftType": "property",
+                "leftValue": "Clownfisch_anim.enabled",
+                "rightValue": true
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_SetClownfischAnimationToFalse",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_CangeClownfischButtonTextToOff",
+                  "type": "action",
+                  "layout": "horizontal"
+                }
+              ],
+              "elseBody": [
+                {
+                  "name": "Act_SetClownfischAnimationToTrue",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_CangeSandhaiButtonTextToOn",
+                  "type": "action"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ToggleClownfischAnimation": {
+              "x": 40,
+              "y": 40
+            },
+            "Clownfisch_anim.enabled == true": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_SetClownfischAnimationToFalse": {
+              "x": 380,
+              "y": 140
+            },
+            "Act_CangeClownfischButtonTextToOff": {
+              "x": 740,
+              "y": 140
+            },
+            "Act_SetClownfischAnimationToTrue": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_CangeSandhaiButtonTextToOn": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "id": "97ba1a78-da57-4957-8632-5c64b4c9e869",
+          "name": "AudionOn",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SetAllAudiosToAcive",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "AudionOn": {
+              "x": 40,
+              "y": 40
+            },
+            "SetAllAudiosToAcive": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "34a00728-18a3-41cd-97c8-9be866ed1d7c",
+          "name": "AudioOff",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetAllAudioOff",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "AudioOff": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetAllAudioOff": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "99dec32d-94da-495e-ae8d-8169394c1249",
+          "name": "VelocityOff",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetAllVelocityOff",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "VelocityOff": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetAllVelocityOff": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "8ed9e2ca-cc92-417e-9750-6b9f022378ed",
+          "name": "VelocityOn",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetAllVelocityOn",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "VelocityOn": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetAllVelocityOn": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "6d44b273-77c1-4c0a-bffe-db9088750e0b",
+          "name": "CollisionOff",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetAllColisionsOff",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CollisionOff": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetAllColisionsOff": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "f1e389d9-3d93-4a06-a988-3d483835cec1",
+          "name": "CollisionOn",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetAllCollisionsOn",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CollisionOn": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetAllCollisionsOn": {
+              "x": 220,
               "y": 40
             }
           }

@@ -3,7 +3,6 @@ import { PropertyHelper } from '../../PropertyHelper';
 import { AnimationManager } from '../../AnimationManager';
 import { resolveTarget } from '../ActionHelper';
 import { Logger } from '../../../utils/Logger';
-import { PerfOverlay } from '../../../utils/PerfOverlay';
 
 const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 
@@ -40,27 +39,47 @@ export function registerAnimationActions() {
 
             atLeastOneAnimated = true;
 
-            // DIAGNOSE: Effekte wie 'explode' erzeugen DOM-Elemente und erzwingen
-            // Layout — ein einzelner Aufruf kann einen sichtbaren Aussetzer
-            // verursachen. Weil das Ereignis selten auftritt, ist es in den
-            // Sekundenmittelwerten des Overlays nicht auffindbar.
-            const tEffectStart = performance.now();
-
             try {
                 // Effekt-spezifische Parameter auslesen
                 switch (effect) {
-                    case 'grow':
-                        animManager.grow(targetObj, Number(action.targetScale) || 2.0, duration);
+                    case 'grow': {
+                        const growScale = Number(action.targetScale);
+                        animManager.grow(targetObj, (isNaN(growScale) || growScale <= 0) ? 2.0 : growScale, duration);
                         break;
-                    case 'shrink':
-                        animManager.shrink(targetObj, Number(action.targetScale) || 0.3, duration);
+                    }
+                    case 'shrink': {
+                        let shrinkScale: number;
+                        if (action.targetScale === undefined || action.targetScale === null || String(action.targetScale).trim() === '') {
+                            shrinkScale = 0.3;
+                        } else {
+                            const raw = Number(action.targetScale);
+                            if (isNaN(raw) || raw >= 1) {
+                                shrinkScale = 0.3;
+                            } else {
+                                shrinkScale = raw;
+                            }
+                        }
+                        animManager.shrink(targetObj, shrinkScale, duration);
                         break;
+                    }
                     case 'explode':
                         animManager.explode(targetObj, Number(action.fragments) || 9, Number(action.spread) || 120, duration);
                         break;
                     case 'pop':
                         animManager.pop(targetObj, Number(action.fragments) || 9, duration);
                         break;
+                    case 'implode': {
+                        let sourceObj: any = null;
+                        const rawSource = action.source || '';
+                        const rawSourceStr = PropertyHelper.interpolate(String(rawSource), combinedContext, context.objects);
+                        if (rawSourceStr) {
+                            sourceObj = resolveTarget(rawSourceStr, context.objects, context.vars, context.eventData);
+                        } else if (context.eventData?.contactX !== undefined && context.eventData?.contactY !== undefined) {
+                            sourceObj = { x: context.eventData.contactX, y: context.eventData.contactY, width: 0, height: 0 };
+                        }
+                        animManager.implode(targetObj, sourceObj, duration);
+                        break;
+                    }
                     case 'fadeIn':
                         animManager.fadeIn(targetObj, duration);
                         break;
@@ -108,17 +127,6 @@ export function registerAnimationActions() {
                  runtimeLogger.error(`[Action: animate] Fehler beim Ausführen von ${effect}:`, err);
             }
 
-            const jsMs = performance.now() - tEffectStart;
-            PerfOverlay.markEvent(effect, jsMs);
-
-            if (effect === 'explode' && AnimationManager.lastExplodeTimings) {
-                const t = AnimationManager.lastExplodeTimings;
-                PerfOverlay.markEvent('exp:find', t.find);
-                PerfOverlay.markEvent('exp:bg', t.bg);
-                PerfOverlay.markEvent('exp:style', t.style);
-                PerfOverlay.markEvent('exp:append', t.append);
-                PerfOverlay.markEvent('exp:reflow', t.reflow);
-            }
         }
         return atLeastOneAnimated;
     }, {
@@ -129,10 +137,11 @@ export function registerAnimationActions() {
             { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', defaultValue: '', placeholder: '--- Komponente auswählen ---', hint: 'Das zu animierende Objekt ("self" = das auslösende Objekt)' },
             { name: 'effect', label: 'Effekt', type: 'select', options: [
                 'shake', 'pulse', 'bounce', 'fade', 
-                'grow', 'shrink', 'explode', 'pop',
+                'grow', 'shrink', 'explode', 'pop', 'implode',
                 'fadeIn', 'fadeOut', 'spin', 'wobble', 'flip'
             ], defaultValue: 'shake' },
             { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500, hint: 'Zeit in Millisekunden' },
+            { name: 'source', label: 'Quell-Objekt (Saug-Ziel)', type: 'select', source: 'objects', allowVariableBinding: true, defaultValue: '', placeholder: '--- Objekt auswählen ---', hint: 'Optional: Objekt, auf das eingesaugt wird (self/other/Name). Leer = Kollisionskontaktpunkt (contactX/contactY) bzw. eigene Mitte.', visibleWhen: { field: 'effect', values: ['implode'] } },
             { name: 'targetScale', label: 'Ziel-Skalierung', type: 'number', defaultValue: 2.0, hint: 'Für grow/shrink', visibleWhen: { field: 'effect', values: ['grow', 'shrink', 'pulse'] } },
             { name: 'fragments', label: 'Fragmente', type: 'number', defaultValue: 9, hint: 'Für explode/pop', visibleWhen: { field: 'effect', values: ['explode', 'pop'] } },
             { name: 'spread', label: 'Ausbreitung (px)', type: 'number', defaultValue: 120, hint: 'Für explode', visibleWhen: { field: 'effect', values: ['explode'] } },

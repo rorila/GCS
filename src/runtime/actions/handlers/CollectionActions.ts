@@ -44,33 +44,65 @@ function resolveCollection(name: string, context: any): any {
         name = PropertyHelper.interpolate(name, { ...context.contextVars, ...context.vars }, context.objects);
     }
 
+    // resolveValue kennt alle Ablage-Slots: items (TListVariable), data (TObjectList),
+    // entries (TStringMap) und value (skalare Variablen). Der Aufruf ist auch fuer
+    // vars/contextVars noetig, weil GameRuntime jedes Objekt zusaetzlich unter seinem
+    // Namen in die Event-Vars legt — dort steckt also die Komponente, kein Array.
     // 1. Lokale Vars
-    if (context.vars[name] !== undefined) return context.vars[name];
+    if (context.vars[name] !== undefined) return PropertyHelper.resolveValue(context.vars[name]);
     // 2. Globale Vars
-    if (context.contextVars[name] !== undefined) return context.contextVars[name];
+    if (context.contextVars[name] !== undefined) return PropertyHelper.resolveValue(context.contextVars[name]);
     // 3. TVariable-Objekt
-    const varObj = context.objects?.find((o: any) =>
+    const varObj = findVariableObject(name, context);
+    if (varObj) return PropertyHelper.resolveValue(varObj);
+
+    return undefined;
+}
+
+/** Sucht das Variablen-Objekt zu einem Namen bzw. einer ID. */
+function findVariableObject(name: string, context: any): any {
+    return context.objects?.find((o: any) =>
         (o.name === name || o.id === name) &&
         (o.isVariable === true || o.className?.includes('Variable'))
     );
-    if (varObj) return varObj.value;
+}
 
-    return undefined;
+/**
+ * Entfernt eine umschliessende ${...}-Bindung aus einem Variablen-NAMEN.
+ * Der Variablen-Picker im Inspector traegt Bindungen auch in Namensfelder ein.
+ */
+function cleanVariableName(name: string): string {
+    return String(name).replace(/^\$\{\s*/, '').replace(/\s*\}$/, '').trim();
 }
 
 /**
  * Schreibt einen Wert zurück in eine Variable (lokal, global und TVariable-Objekt).
  */
 function writeVariable(name: string, value: any, context: any): void {
-    context.vars[name] = value;
-    context.contextVars[name] = value;
+    const clean = cleanVariableName(name);
+    if (!clean) return;
+
+    context.vars[clean] = value;
+    context.contextVars[clean] = value;
 
     // TVariable-Objekt synchronisieren
-    const varObj = context.objects?.find((o: any) =>
-        (o.name === name || o.id === name) &&
-        (o.isVariable === true || o.className?.includes('Variable'))
-    );
-    if (varObj) {
+    const varObj = findVariableObject(clean, context);
+    if (!varObj) {
+        runtimeLogger.warn(`Ergebnis-Variable "${clean}" ist kein bekanntes Variablen-Objekt`);
+        DebugLogService.getInstance().log('Event',
+            `[collection] Ergebnis-Variable "${clean}" existiert nicht als Variablen-Objekt`,
+            { data: { rawName: name, cleanName: clean } }
+        );
+        return;
+    }
+
+    // In den Slot zurueckschreiben, aus dem resolveCollection auch liest.
+    const isPlainObject = typeof value === 'object' && value !== null && !Array.isArray(value);
+    if (Array.isArray(value) && Array.isArray(varObj.items)) {
+        varObj.items = value;
+    } else if (isPlainObject && varObj.entries !== undefined) {
+        varObj.entries = value;
+    } else {
         varObj.value = value;
     }
 }

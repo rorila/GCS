@@ -307,7 +307,7 @@ export class SchemaMigrator {
             if (!params) return;
 
             for (const param of params) {
-                if (param.defaultValue !== undefined && action[param.name] === undefined) {
+                if (param.defaultValue !== undefined && SchemaMigrator.isMissingValue(action[param.name])) {
                     action[param.name] = param.defaultValue;
                     filledCount++;
                 }
@@ -354,9 +354,20 @@ export class SchemaMigrator {
         if (!params) return;
 
         for (const param of params) {
-            if (param.defaultValue !== undefined && action[param.name] === undefined) {
+            if (param.defaultValue !== undefined && SchemaMigrator.isMissingValue(action[param.name])) {
                 action[param.name] = param.defaultValue;
             }
         }
+    }
+
+    /**
+     * Gilt ein Parameterwert als "nicht gesetzt"?
+     *
+     * Ein Leerstring zaehlt bewusst mit: Selects im Inspector speichern beim
+     * Anlegen einer Action haeufig "", zeigen aber die erste Option an. Ohne
+     * diese Behandlung liefen Anzeige und gespeicherter Wert auseinander.
+     */
+    private static isMissingValue(value: any): boolean {
+        return value === undefined || value === null || value === '';
     }
 }

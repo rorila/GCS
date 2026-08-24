@@ -15,6 +15,7 @@ import { PerfOverlay } from './utils/PerfOverlay';
 import { ViewportDiagnose } from './utils/ViewportDiagnose';
 import { ImageMetaCache } from './runtime/ImageMetaCache';
 import { applyTouchHardening } from './runtime/TouchHardening';
+import { LOADING_SVG } from './loading-overlay-svg';
 installTauriFSAdapter();
 
 // PERF: Im ausgelieferten Spiel ist Logging per Default aus. console.*-Aufrufe in den
@@ -299,6 +300,7 @@ class UniversalPlayer implements StageHost {
     }
 
     private async loadProjectFromUrl(url: string) {
+        this.showLoadingOverlay();
         try {
             const resp = await fetch(url);
             if (resp.ok) {
@@ -324,6 +326,7 @@ class UniversalPlayer implements StageHost {
             }
         } catch (e) {
             logger.error('[UniversalPlayer] Error fetching project:', e);
+            this.hideLoadingOverlay();
         }
     }
 
@@ -387,6 +390,7 @@ class UniversalPlayer implements StageHost {
     public async startProject(project: GameProject): Promise<void> {
         if (this.isStarted && this.currentProject === project) return;
         this.isStarted = true;
+        this.showLoadingOverlay();
 
         // 1. Stop previous runtime if any
         if (this.runtime) {
@@ -433,6 +437,7 @@ class UniversalPlayer implements StageHost {
         // 3. Update Visuals
         this.setupScaling();
         this.render();
+        this.hideLoadingOverlay();
 
         // 4. Start Game (if runtime was successfully created)
         if (this.runtime) {
@@ -708,6 +713,34 @@ class UniversalPlayer implements StageHost {
     private hideOverlay() {
         const overlay = document.getElementById('player-overlay');
         if (overlay) overlay.style.display = 'none';
+    }
+
+    private showLoadingOverlay() {
+        if (document.getElementById('loading-overlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'loading-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000000; color: white; z-index: 30000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 300ms ease;
+        `;
+        overlay.innerHTML = LOADING_SVG;
+        const svg = overlay.querySelector('svg') as SVGSVGElement | null;
+        if (svg) {
+            svg.style.width = '80vw';
+            svg.style.maxWidth = '400px';
+            svg.style.height = 'auto';
+            svg.style.maxHeight = '40vh';
+        }
+        document.body.appendChild(overlay);
+    }
+
+    private hideLoadingOverlay() {
+        const overlay = document.getElementById('loading-overlay');
+        if (!overlay) return;
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 300);
     }
 
     // ─────────────────────────────────────────────

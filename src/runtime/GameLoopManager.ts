@@ -817,7 +817,9 @@ export class GameLoopManager {
                         this.eventCallback(spriteA.id, 'onCollision', {
                             other: spriteB.name,
                             otherSprite: spriteB,
-                            hitSide: overlap.side
+                            hitSide: overlap.side,
+                            contactX: overlap.contactX,
+                            contactY: overlap.contactY
                         });
 
                         const oppositeSide = {
@@ -830,7 +832,9 @@ export class GameLoopManager {
                         this.eventCallback(spriteB.id, 'onCollision', {
                             other: spriteA.name,
                             otherSprite: spriteA,
-                            hitSide: oppositeSide
+                            hitSide: oppositeSide,
+                            contactX: overlap.contactX,
+                            contactY: overlap.contactY
                         });
 
                         // Trigger specific side events – mit vollständigen Daten,
@@ -838,12 +842,16 @@ export class GameLoopManager {
                         this.eventCallback(spriteA.id, `onCollision${this.capitalize(overlap.side)}`, {
                             other: spriteB.name,
                             otherSprite: spriteB,
-                            hitSide: overlap.side
+                            hitSide: overlap.side,
+                            contactX: overlap.contactX,
+                            contactY: overlap.contactY
                         });
                         this.eventCallback(spriteB.id, `onCollision${this.capitalize(oppositeSide)}`, {
                             other: spriteA.name,
                             otherSprite: spriteA,
-                            hitSide: oppositeSide
+                            hitSide: oppositeSide,
+                            contactX: overlap.contactX,
+                            contactY: overlap.contactY
                         });
 
                         // Track collision
@@ -968,12 +976,21 @@ export class GameLoopManager {
                     }
                     logger.debug(`[PHYSICS] pre-resolution y: ${sprite.y}, hitSide: ${hitSide}`);
 
+                    const contactLeft = Math.max(spriteHb.x, panelHitbox.x);
+                    const contactTop = Math.max(spriteHb.y, panelHitbox.y);
+                    const contactRight = Math.min(spriteHb.x + spriteHb.w, panelHitbox.x + panelHitbox.w);
+                    const contactBottom = Math.min(spriteHb.y + spriteHb.h, panelHitbox.y + panelHitbox.h);
+                    const contactX = contactLeft + (contactRight - contactLeft) / 2;
+                    const contactY = contactTop + (contactBottom - contactTop) / 2;
+
                     // Trigger Events (Sprite is the one triggering it)
                     if (this.eventCallback) {
                         this.eventCallback(sprite.id, 'onCollision', {
                             other: panel.name,
                             otherSprite: panel,
-                            hitSide: hitSide
+                            hitSide: hitSide,
+                            contactX,
+                            contactY
                         });
                         this.eventCallback(sprite.id, `onCollision${this.capitalize(hitSide)}`, { other: panel });
                         this.collidedThisFrame.add(sprite.id);
@@ -1135,8 +1152,25 @@ export class GameLoopManager {
         if (now - lastHit < this.BOUNDARY_COOLDOWN_MS) return;
         this.boundaryCooldowns.set(cooldownKey, now);
 
+        const hb = sprite.getHitbox();
+        let contactX = 0;
+        let contactY = 0;
+        if (side === 'left') {
+            contactX = 0;
+            contactY = hb.y + hb.h / 2;
+        } else if (side === 'right') {
+            contactX = bWidth;
+            contactY = hb.y + hb.h / 2;
+        } else if (side === 'top') {
+            contactX = hb.x + hb.w / 2;
+            contactY = bOffTop;
+        } else if (side === 'bottom') {
+            contactX = hb.x + hb.w / 2;
+            contactY = bHeight - bOffBottom;
+        }
+
         if (this.eventCallback) {
-            this.eventCallback(sprite.id, 'onBoundaryHit', { hitSide: side });
+            this.eventCallback(sprite.id, 'onBoundaryHit', { hitSide: side, contactX, contactY });
         }
     }
     /**

@@ -103,8 +103,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -330,7 +330,8 @@
           "intensity": 15,
           "height": 20,
           "targetOpacity": 0,
-          "midpointTask": "SetBackCard"
+          "midpointTask": "SetBackCard",
+          "source": ""
         },
         {
           "id": "node-1786957972513",
@@ -349,7 +350,8 @@
           "intensity": 15,
           "height": 20,
           "targetOpacity": 0,
-          "midpointTask": "SetBackCard"
+          "midpointTask": "SetBackCard",
+          "source": ""
         },
         {
           "id": "node-1786961285502",
@@ -932,7 +934,8 @@
           "intensity": 15,
           "height": 20,
           "targetOpacity": 0,
-          "midpointTask": "SetBackCardImage"
+          "midpointTask": "SetBackCardImage",
+          "source": ""
         },
         {
           "id": "node-1786900658249",
@@ -962,7 +965,8 @@
           "intensity": 15,
           "height": 20,
           "targetOpacity": 0,
-          "midpointTask": "SetFrontCardImage"
+          "midpointTask": "SetFrontCardImage",
+          "source": ""
         },
         {
           "id": "node-1786903281525",
@@ -1078,17 +1082,6 @@
           ]
         },
         {
-          "id": "node-1786909999007",
-          "details": "",
-          "type": "call_method",
-          "name": "Act_GetCardKeys",
-          "showDetails": false,
-          "target": "KeyStore_18",
-          "method": "keys",
-          "params": [],
-          "resultVariable": "CardKeys"
-        },
-        {
           "id": "node-1786909999008",
           "details": "",
           "type": "call_method",
@@ -1184,7 +1177,8 @@
           "intensity": 15,
           "height": 20,
           "targetOpacity": 0,
-          "midpointTask": "SetBackCardToFirstCard"
+          "midpointTask": "SetBackCardToFirstCard",
+          "source": ""
         },
         {
           "id": "node-1786979611068",
@@ -1203,7 +1197,8 @@
           "intensity": 15,
           "height": 20,
           "targetOpacity": 0,
-          "midpointTask": "SetBackCardToSecondCard"
+          "midpointTask": "SetBackCardToSecondCard",
+          "source": ""
         },
         {
           "id": "node-1786979648826",
@@ -1222,7 +1217,8 @@
           "intensity": 15,
           "height": 20,
           "targetOpacity": 0,
-          "midpointTask": "SetBackCardToThirdCard"
+          "midpointTask": "SetBackCardToThirdCard",
+          "source": ""
         },
         {
           "id": "node-1786980372525",
@@ -1333,7 +1329,7 @@
                 "leftValue": "${Var_IsFirstCardSelected}",
                 "rightValue": false
               },
-              "type": "condition",
+              "type": "SelectionTest",
               "body": [
                 {
                   "name": "Act_FlippAndShowFrontCard",
@@ -1361,7 +1357,7 @@
                     "leftValue": "${Var_IsSecondCardSelected}",
                     "rightValue": false
                   },
-                  "type": "condition",
+                  "type": "SelectionTest",
                   "body": [
                     {
                       "name": "Act_FlippAndShowFrontCard",
@@ -1445,7 +1441,7 @@
                 "leftSelfClass": "TImage",
                 "rightValue": 0
               },
-              "type": "condition",
+              "type": "SelectionTest",
               "body": [
                 {
                   "name": "Act_SetFrontCardImage_0_ToSelectedCard",
@@ -1460,7 +1456,7 @@
                     "leftSelfClass": "TImage",
                     "rightValue": 1
                   },
-                  "type": "condition",
+                  "type": "SelectionTest",
                   "body": [
                     {
                       "name": "Act_SetFrontCardImage_1_ToSelectedCard",
@@ -1475,7 +1471,7 @@
                         "leftSelfClass": "TImage",
                         "rightValue": 2
                       },
-                      "type": "condition",
+                      "type": "SelectionTest",
                       "body": [
                         {
                           "name": "Act_SetFrontCardImage_0_ToSelectedCard",
@@ -1529,7 +1525,7 @@
                 "rightType": "variable",
                 "rightValue": "${Var_SecondValue}"
               },
-              "type": "condition",
+              "type": "SelectionTest",
               "body": [
                 {
                   "name": "Act_ShowCoupleInfo",
@@ -1793,9 +1789,2023 @@
         "onTouchMove",
         "onTouchEnd"
       ]
+    },
+    {
+      "id": "stage_ffca09da-6c7a-47a6-b98d-53bf50a6891d",
+      "name": "DataListLesson",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TListVariable",
+          "id": "obj_import_1787575018821_git4",
+          "name": "List_15",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 23,
+          "y": 14,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": [
+            "./images/Avatars_allgemein/Affe.png",
+            "./images/Avatars_allgemein/Elefant.png",
+            "./images/Avatars_allgemein/Krokodil.png",
+            "./images/Avatars_allgemein/Löwe.png",
+            "./images/Mathildr/bird_button/bird_button-01.svg"
+          ]
+        },
+        {
+          "className": "TImage",
+          "id": "obj_import_1787575018821_r7x7",
+          "name": "CardImage1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GetCardValues"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 5,
+          "width": 8,
+          "height": 8,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#44b027",
+            "borderWidth": 15,
+            "borderRadius": 15
+          },
+          "src": "${List_15[4]}",
+          "objectFit": "cover",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 2
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_import_1787575018821_85jo",
+          "name": "Var_IsFrontCardViewing",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 32,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1787575018821_qrnl",
+          "name": "InffoLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 27,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#0d0c0c",
+            "fontSize": 24,
+            "fontWeight": "bold",
+            "textAlign": "center",
+            "backgroundColor": "#e11414",
+            "borderColor": "#0b0909",
+            "borderWidth": 2
+          },
+          "text": "Übung: DataList integration"
+        },
+        {
+          "className": "TImage",
+          "id": "obj_import_1787575018821_6cvo",
+          "name": "CardImage2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GetCardValues"
+          },
+          "visible": true,
+          "x": 11,
+          "y": 5,
+          "width": 8,
+          "height": 8,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#44b027",
+            "borderWidth": 15,
+            "borderRadius": 15
+          },
+          "src": "${List_15[4]}",
+          "objectFit": "cover",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 1
+        },
+        {
+          "className": "TImage",
+          "id": "obj_import_1787575018821_e2ut",
+          "name": "CardImage3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GetCardValues"
+          },
+          "visible": true,
+          "x": 21,
+          "y": 5,
+          "width": 8,
+          "height": 8,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#44b027",
+            "borderWidth": 15,
+            "borderRadius": 15
+          },
+          "src": "${List_15[4]}",
+          "objectFit": "cover",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 2
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_import_1787575018821_on24",
+          "name": "Var_IsCardSelected",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_import_1787575018821_5lpc",
+          "name": "Var_IsSecondCardSelected",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 27,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TTimer",
+          "id": "obj_import_1787575018821_jjv2",
+          "name": "CardTimer",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "SetAllCardsBack"
+          },
+          "visible": true,
+          "x": 19,
+          "y": 14,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 2000,
+          "enabled": false,
+          "maxInterval": 1,
+          "currentInterval": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_import_1787575018821_sf7z",
+          "name": "Var_FirstValue",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 22,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 99,
+          "value": 99,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_import_1787575018821_7vpx",
+          "name": "Var_SecondValue",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 24,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 99,
+          "value": "99]",
+          "objectModel": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1787575018821_3m2d",
+          "name": "ErgebnisLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 14,
+          "width": 18,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Klicke auf eine Karte"
+        },
+        {
+          "className": "TObjectList",
+          "id": "obj_1787578162282_4zfi4h9n4",
+          "name": "MemoryCardsList",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 18,
+          "width": 25,
+          "height": 10,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "data": [
+            {
+              "index": 0,
+              "objectId": "obj_import_1787575018821_r7x7",
+              "name": "CardImage1",
+              "feld1": false,
+              "isSelected": false,
+              "feld2": false,
+              "isMatched": false,
+              "feld3": false,
+              "isBlaBla": false,
+              "matchIndex": 0
+            },
+            {
+              "index": 1,
+              "objectId": "obj_import_1787575018821_6cvo",
+              "name": "CardImage2",
+              "feld1": false,
+              "isSelected": false,
+              "feld2": false,
+              "isMatched": false,
+              "feld3": false,
+              "isBlaBla": false,
+              "matchIndex": 1
+            },
+            {
+              "index": 2,
+              "objectId": "obj_import_1787575018821_e2ut",
+              "name": "CardImage3",
+              "feld1": false,
+              "isSelected": false,
+              "feld2": false,
+              "isMatched": false,
+              "feld3": false,
+              "isBlaBla": false,
+              "matchIndex": 2
+            }
+          ],
+          "columns": [
+            {
+              "field": "index",
+              "label": "#",
+              "width": "40px"
+            },
+            {
+              "field": "name",
+              "label": "Name",
+              "width": "1fr"
+            },
+            {
+              "field": "isSelected",
+              "label": "isSelected",
+              "width": "80px"
+            },
+            {
+              "field": "isMatched",
+              "label": "isMatched",
+              "width": "80px"
+            },
+            {
+              "field": "matchIndex",
+              "label": "matchIndex",
+              "width": "80px"
+            }
+          ],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "fields": [
+            {
+              "name": "isSelected",
+              "type": "boolean",
+              "defaultValue": false
+            },
+            {
+              "name": "isMatched",
+              "type": "boolean",
+              "defaultValue": false
+            },
+            {
+              "name": "matchIndex",
+              "type": "number",
+              "defaultValue": 0
+            }
+          ],
+          "items": [
+            "obj_import_1787575018821_r7x7",
+            "obj_import_1787575018821_6cvo",
+            "obj_import_1787575018821_e2ut"
+          ],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "recordData": {
+            "obj_import_1787575018821_r7x7": {
+              "feld1": false,
+              "isSelected": false,
+              "feld2": false,
+              "isMatched": false,
+              "feld3": false,
+              "isBlaBla": false,
+              "matchIndex": 0
+            },
+            "obj_import_1787575018821_6cvo": {
+              "feld1": false,
+              "isSelected": false,
+              "feld2": false,
+              "isMatched": false,
+              "feld3": false,
+              "isBlaBla": false,
+              "matchIndex": 1
+            },
+            "obj_import_1787575018821_e2ut": {
+              "feld1": false,
+              "isSelected": false,
+              "feld2": false,
+              "isMatched": false,
+              "feld3": false,
+              "isBlaBla": false,
+              "matchIndex": 2
+            }
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1787580901181_5913k74tx",
+          "name": "Label_21",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 30,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "CardSelected: ${Var_IsCardSelected}"
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1787583067034_1okutp17a",
+          "name": "Var_IsCardMatched",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "4f6345df-f129-4605-b945-d58a384bb968",
+          "name": "Label_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 32,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "CardMatched: ${Var_IsCardMatched}"
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1787583518325_dyuh73l9t",
+          "name": "Var_IsFirstCardShown",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 7,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "f145f24e-e763-4341-bb9b-1c764378d30c",
+          "name": "Label_2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 36,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "SecondCardShown: ${Var_IsSecondCardShown}"
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1787583707323_t8igrdt41",
+          "name": "Var_IsSecondCardShown",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "a4ea15b3-3c54-4f3b-8a10-c807ee59e196",
+          "name": "Label_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 34,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "FirstCardShown: ${Var_IsFirstCardShown}"
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1787587806834_ocj8og4md",
+          "name": "Var_CurrCardMatchValue",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 30,
+          "y": 13,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1787588826619_9d7ickovi",
+          "name": "Var_CurrImagePath",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 30,
+          "y": 16,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "${List_15[4]}",
+          "value": "${List_15[4]}",
+          "objectModel": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "5c3b4bd3-b19d-4eae-9396-ee6845de8451",
+          "name": "Label_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 11,
+          "y": 30,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "MatchIndex: ${Var_CurrCardMatchValue}"
+        },
+        {
+          "className": "TLabel",
+          "id": "b47c527f-9b9c-4963-833a-7bc1f1460445",
+          "name": "Label_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 11,
+          "y": 33,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "CurrPath :${Var_CurrImagePath}"
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1786900518853",
+          "details": "",
+          "type": "animate",
+          "name": "Act_FlippAndShowBackCard",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "effect": "flip",
+          "duration": 1000,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetBackCardImage",
+          "source": ""
+        },
+        {
+          "id": "node-1786900658249",
+          "details": "",
+          "type": "action",
+          "name": "Act_SetBackCardImageToSelectedCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.backgroundImage": "${List_15[0]}"
+          }
+        },
+        {
+          "id": "node-1786902999362",
+          "details": "",
+          "type": "animate",
+          "name": "Act_FlippAndShowFrontCard",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "effect": "flip",
+          "duration": 1000,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetFrontCardImage",
+          "source": ""
+        },
+        {
+          "id": "node-1786903281525",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetFrontCardImage_0_ToSelectedCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.backgroundImage": "${List_15[0]}"
+          }
+        },
+        {
+          "id": "node-1786903480935",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetFrontCardImage_1_ToSelectedCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.src": "${List_15[1]}"
+          }
+        },
+        {
+          "id": "node-1786903639689",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetFrontCardImage_2_ToSelectedCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.backgroundImage": "${List_15[0]}"
+          }
+        },
+        {
+          "id": "node-1786904665649",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetIsFirstCardSeletedToTrue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Var_IsFirstCardSelected": true
+          }
+        },
+        {
+          "id": "node-1786904824322",
+          "details": "",
+          "type": "property",
+          "name": "Action1",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1786904865105",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetIsSecondCardSeletedToTrue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Var_IsSecondCardSelected": true
+          }
+        },
+        {
+          "id": "node-1786905839206",
+          "details": "",
+          "type": "action",
+          "name": "Act_SetFirstValue",
+          "showDetails": false,
+          "changes": {
+            "Var_FirstValue": "${self.matchValue}"
+          }
+        },
+        {
+          "id": "node-1786909999001",
+          "details": "",
+          "type": "call_method",
+          "name": "Act_InitCardState1",
+          "showDetails": false,
+          "target": "KeyStore_18",
+          "method": "set",
+          "params": [
+            "CardImage1",
+            "{\"flipped\":false,\"matched\":false,\"matchValue\":0}"
+          ]
+        },
+        {
+          "id": "node-1786909999002",
+          "details": "",
+          "type": "call_method",
+          "name": "Act_InitCardState2",
+          "showDetails": false,
+          "target": "KeyStore_18",
+          "method": "set",
+          "params": [
+            "CardImage2",
+            "{\"flipped\":false,\"matched\":false,\"matchValue\":1}"
+          ]
+        },
+        {
+          "id": "node-1786909999003",
+          "details": "",
+          "type": "call_method",
+          "name": "Act_InitCardState3",
+          "showDetails": false,
+          "target": "KeyStore_18",
+          "method": "set",
+          "params": [
+            "CardImage3",
+            "{\"flipped\":false,\"matched\":false,\"matchValue\":2}"
+          ]
+        },
+        {
+          "id": "node-1786909999008",
+          "details": "",
+          "type": "call_method",
+          "name": "Act_GetCardInfo",
+          "showDetails": false,
+          "target": "KeyStore_18",
+          "method": "get",
+          "params": [
+            "${cardKey}"
+          ],
+          "resultVariable": "CardInfo"
+        },
+        {
+          "id": "node-1786909999009",
+          "details": "",
+          "type": "property",
+          "name": "Act_ShowCardInfo",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "InffoLabel.text": "Karte ${cardKey}: flipped=${CardInfo.flipped}, match=${CardInfo.matchValue}"
+          }
+        },
+        {
+          "id": "node-1786949722477",
+          "details": "",
+          "type": "property",
+          "name": "Act_setSecondValue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Var_SecondValue": "${self.matchValue}"
+          }
+        },
+        {
+          "id": "node-1786949932464",
+          "details": "",
+          "type": "property",
+          "name": "Act_ShowCoupleInfo",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ErgebnisLabel.text": "Hurra"
+          }
+        },
+        {
+          "id": "node-1786949993200",
+          "details": "",
+          "type": "property",
+          "name": "Act_ShowErrorInfo",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ErgebnisLabel.text": "Daneben!!"
+          }
+        },
+        {
+          "id": "node-1786978874715",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetSecondCardInfo",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ErgebnisLabel.text": "Klicke auf eine 2. Karte"
+          }
+        },
+        {
+          "id": "node-1786979390827",
+          "details": "",
+          "type": "property",
+          "name": "Act_StartBackCardTimer",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardTimer.enabled": true
+          }
+        },
+        {
+          "id": "node-1786979524878",
+          "details": "",
+          "type": "animate",
+          "name": "Act_SetFirstCardBack",
+          "showDetails": false,
+          "target": "CardImage1",
+          "changes": {},
+          "effect": "flip",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetBackCardToFirstCard",
+          "source": ""
+        },
+        {
+          "id": "node-1786979611068",
+          "details": "",
+          "type": "animate",
+          "name": "Act_SetSecondCardBack",
+          "showDetails": false,
+          "target": "CardImage2",
+          "changes": {},
+          "effect": "flip",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetBackCardToSecondCard",
+          "source": ""
+        },
+        {
+          "id": "node-1786979648826",
+          "details": "",
+          "type": "animate",
+          "name": "Act_SetThirdCardBack",
+          "showDetails": false,
+          "target": "CardImage3",
+          "changes": {},
+          "effect": "flip",
+          "duration": 500,
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetBackCardToThirdCard",
+          "source": ""
+        },
+        {
+          "id": "node-1786980372525",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBackCardToFirstCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardImage1.src": "${List_15[4]}"
+          }
+        },
+        {
+          "id": "node-1786988997411",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBackCardToSecondCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardImage2.src": "${List_15[4]}"
+          }
+        },
+        {
+          "id": "node-1786989057430",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetBackCardToThirdCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "CardImage3.src": "${List_15[4]}"
+          }
+        },
+        {
+          "id": "node-1786989232534",
+          "details": "",
+          "type": "property",
+          "name": "Act_InitGame",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Var_IsFrontCardViewing": false,
+            "Var_IsFirstCardSelected": false,
+            "Var_IsSecondCardSelected": false,
+            "CardTimer.enabled": false,
+            "Var_FirstValue": 99,
+            "Var_SecondValue": 99
+          }
+        },
+        {
+          "name": "Act_GetSelectionInfo",
+          "type": "record_get",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "list": "MemoryCardsList",
+          "field": "isSelected",
+          "resultVariable": "${Var_IsCardSelected}"
+        },
+        {
+          "id": "node-1787582987151",
+          "details": "",
+          "type": "record_get",
+          "name": "Act_GetMatchedInfo",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "list": "MemoryCardsList",
+          "field": "isMatched",
+          "resultVariable": "${Var_IsCardMatched}"
+        },
+        {
+          "id": "node-1787584008944",
+          "details": "",
+          "type": "record_set",
+          "name": "Act_SetCardToSelected",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "list": "MemoryCardsList",
+          "field": "isSelected",
+          "value": true
+        },
+        {
+          "id": "node-1787584692334",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetIsThirdCardInfo",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "ErgebnisLabel.text": "Es dürfen nur 2 Karten aufgedeckt werden"
+          }
+        },
+        {
+          "id": "node-1787584888107",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetIsMatchedInfo",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "InffoLabel.text": "Karte ist schon gematched"
+          }
+        },
+        {
+          "id": "node-1787585069064",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetIsFirstCardShownToTrue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Var_IsFirstCardShown": true
+          }
+        },
+        {
+          "id": "node-1787586370932",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetIs",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        },
+        {
+          "id": "node-1787586575615",
+          "details": "",
+          "type": "animate",
+          "name": "Act_LetTheCardFlip",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "effect": "flip",
+          "duration": 1000,
+          "source": "",
+          "targetScale": 2,
+          "fragments": 9,
+          "spread": 120,
+          "degrees": 360,
+          "intensity": 15,
+          "height": 20,
+          "targetOpacity": 0,
+          "midpointTask": "SetFrontImage"
+        },
+        {
+          "id": "node-1787586658661",
+          "details": "",
+          "type": "record_get",
+          "name": "Act_GetMatchIndex",
+          "showDetails": false,
+          "target": "self",
+          "changes": {},
+          "list": "MemoryCardsList",
+          "field": "matchIndex",
+          "resultVariable": "${Var_CurrCardMatchValue}"
+        },
+        {
+          "id": "auto_SelectionTest_0_1787586990804",
+          "details": "",
+          "condition": {
+            "leftType": "property",
+            "leftValue": "self.matchValue",
+            "leftSelfClass": "TImage",
+            "rightValue": 0
+          },
+          "type": "SelectionTest",
+          "body": [
+            {
+              "name": "Act_SetFrontCardImage_0_ToSelectedCard",
+              "type": "action"
+            }
+          ],
+          "elseBody": [
+            {
+              "condition": {
+                "leftType": "property",
+                "leftValue": "self.matchValue",
+                "leftSelfClass": "TImage",
+                "rightValue": 1
+              },
+              "type": "SelectionTest",
+              "body": [
+                {
+                  "name": "Act_SetFrontCardImage_1_ToSelectedCard",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftType": "property",
+                    "leftValue": "self.matchValue",
+                    "leftSelfClass": "TImage",
+                    "rightValue": 2
+                  },
+                  "type": "SelectionTest",
+                  "body": [
+                    {
+                      "name": "Act_SetFrontCardImage_0_ToSelectedCard",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ]
+            }
+          ],
+          "name": "SelectionTest",
+          "showDetails": false
+        },
+        {
+          "id": "node-1787587015760",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetFrontImage",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.src": "${Var_CurrImagePath}"
+          }
+        },
+        {
+          "id": "node-1787587698694",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetFirstCardValue",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "Var_FirstValue": "${Var_CurrCardMatchValue}"
+          }
+        },
+        {
+          "id": "node-1787588016286",
+          "details": "",
+          "type": "property",
+          "name": "ActionSetTheFrontCard",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.src": "${Var_CurrImagePath}"
+          }
+        },
+        {
+          "id": "node-1787588738968",
+          "details": "",
+          "type": "list_get",
+          "name": "Act_GetImagePath",
+          "showDetails": false,
+          "target": "List_15",
+          "changes": {
+            "Var_CurrImagePath": "${List_15[$Var_CurrCardMatchValue]}"
+          },
+          "variableName": "List_15",
+          "value": "index",
+          "source": "Var_CurrImagePath",
+          "index": "${Var_CurrCardMatchValue}",
+          "resultVariable": "Var_CurrImagePath"
+        },
+        {
+          "id": "node-1787590849151",
+          "details": "",
+          "type": "property",
+          "name": "Act_SetTheFrontImate",
+          "showDetails": false,
+          "target": "",
+          "changes": {
+            "self.src": "${Var_CurrImagePath}"
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "id": "cb9c8c6e-583f-4205-8060-6ae5ec21a99e",
+          "name": "ShowBackCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_FlippAndShowBackCard",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowBackCard": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_FlippAndShowBackCard": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "bef06d9c-e0a7-433d-bffc-55e9c6242d88",
+          "name": "SetBackCardImage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBackCardImageToSelectedCard",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetBackCardImage": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetBackCardImageToSelectedCard": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "573e3d8f-eb00-4dab-9813-712c0cfccc3c",
+          "name": "ShowFrontCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftValue": "${Var_IsFirstCardSelected}",
+                "rightValue": false
+              },
+              "type": "SelectionTest",
+              "body": [
+                {
+                  "name": "Act_FlippAndShowFrontCard",
+                  "type": "action"
+                },
+                {
+                  "name": "Act_SetIsFirstCardSeletedToTrue",
+                  "type": "action",
+                  "layout": "horizontal"
+                },
+                {
+                  "name": "Act_SetFirstValue",
+                  "type": "action",
+                  "layout": "horizontal"
+                },
+                {
+                  "name": "Act_SetSecondCardInfo",
+                  "type": "action",
+                  "layout": "horizontal"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${Var_IsSecondCardSelected}",
+                    "rightValue": false
+                  },
+                  "type": "SelectionTest",
+                  "body": [
+                    {
+                      "name": "Act_FlippAndShowFrontCard",
+                      "type": "action"
+                    },
+                    {
+                      "name": "Act_SetIsSecondCardSeletedToTrue",
+                      "type": "action",
+                      "layout": "horizontal"
+                    },
+                    {
+                      "name": "Act_setSecondValue",
+                      "type": "action",
+                      "layout": "horizontal"
+                    },
+                    {
+                      "type": "task",
+                      "name": "CheckSelectedCards",
+                      "layout": "horizontal"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowFrontCard": {
+              "x": 40,
+              "y": 40
+            },
+            "${Var_IsFirstCardSelected} == false": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_FlippAndShowFrontCard": {
+              "x": 360,
+              "y": 240
+            },
+            "Act_SetIsFirstCardSeletedToTrue": {
+              "x": 660,
+              "y": 140
+            },
+            "Act_SetFirstValue": {
+              "x": 980,
+              "y": 140
+            },
+            "Act_SetSecondCardInfo": {
+              "x": 1200,
+              "y": 140
+            },
+            "${Var_IsSecondCardSelected} == false": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_SetIsSecondCardSeletedToTrue": {
+              "x": 660,
+              "y": 240
+            },
+            "Act_setSecondValue": {
+              "x": 1000,
+              "y": 240
+            },
+            "CheckSelectedCards": {
+              "x": 1240,
+              "y": 240
+            }
+          }
+        },
+        {
+          "id": "15aea11d-4eb9-4deb-9f81-d6a27fc7addb",
+          "name": "CheckSelectedCards",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SelectionTest",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckSelectedCards": {
+              "x": 40,
+              "y": 40
+            },
+            "SelectionTest": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "id": "1abf8c74-202c-463c-9ea0-f817b4032b7e",
+          "name": "SetCardsBackToBackCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_StartBackCardTimer",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetCardsBackToBackCard": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_StartBackCardTimer": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "9629c34f-bb5c-496e-a036-dd06d97e5413",
+          "name": "SetAllCardsBack",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetFirstCardBack",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_SetSecondCardBack",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_SetThirdCardBack",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "type": "task",
+              "name": "InitGame",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetAllCardsBack": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetFirstCardBack": {
+              "x": 260,
+              "y": 40
+            },
+            "Act_SetSecondCardBack": {
+              "x": 500,
+              "y": 40
+            },
+            "Act_SetThirdCardBack": {
+              "x": 760,
+              "y": 40
+            },
+            "InitGame": {
+              "x": 1020,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "8902ec74-2d2b-40f8-9bbd-968ace2ffa38",
+          "name": "StartBackCardTimer",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_StartBackCardTimer",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StartBackCardTimer": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_StartBackCardTimer": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "d2d97be2-eeee-40ca-a1dd-d0edf23f54de",
+          "name": "SetBackCardToFirstCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBackCardToFirstCard",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetBackCardToFirstCard": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetBackCardToFirstCard": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "b9c2b820-56cb-481f-935e-c52dd87d02e8",
+          "name": "SetBackCardToSecondCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBackCardToSecondCard",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetBackCardToSecondCard": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 340,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "c63aa33d-729b-4dbe-92b3-20983370320f",
+          "name": "SetBackCardToThirdCard",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SetBackCardToThirdCard",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetBackCardToThirdCard": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SetBackCardToThirdCard": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "e4c1a9cd-a1bd-4d33-9959-59bcea666c33",
+          "name": "InitGame",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_InitGame",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "InitGame": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_InitGame": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "39aa4a9d-4bd5-410f-b6d0-9735b5035c9d",
+          "name": "GetCardValues",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_GetSelectionInfo",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_GetMatchedInfo",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_GetMatchIndex",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "type": "task",
+              "name": "CheckTheSelection",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "GetCardValues": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_GetSelectionInfo": {
+              "x": 240,
+              "y": 40
+            },
+            "Act_GetMatchedInfo": {
+              "x": 480,
+              "y": 40
+            },
+            "Act_GetMatchIndex": {
+              "x": 720,
+              "y": 40
+            },
+            "CheckTheSelection": {
+              "x": 960,
+              "y": 40
+            }
+          }
+        },
+        {
+          "id": "e48f1111-71ac-4f66-a334-05b9f4d9b633",
+          "name": "CheckTheSelection",
+          "description": "",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftValue": "${Var_IsSecondCardShown}",
+                "rightValue": true
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_SetIsThirdCardInfo",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${Var_IsCardMatched}",
+                    "rightValue": true
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Act_SetIsMatchedInfo",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "leftValue": "${Var_IsFirstCardShown}",
+                        "rightValue": false
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "Act_SetIsFirstCardShownToTrue",
+                          "type": "action"
+                        },
+                        {
+                          "name": "Act_SetFirstCardValue",
+                          "type": "action",
+                          "layout": "horizontal"
+                        },
+                        {
+                          "name": "Act_LetTheCardFlip",
+                          "type": "action",
+                          "layout": "horizontal"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${Var_IsCardSelected}",
+                            "rightValue": false
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "Act_SetCardToSelected",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "CheckTheSelection": {
+              "x": 40,
+              "y": 40
+            },
+            "${Var_IsSecondCardShown} == true": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_SetIsThirdCardInfo": {
+              "x": 360,
+              "y": 140
+            },
+            "${Var_IsCardMatched} == true": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_SetIsMatchedInfo": {
+              "x": 360,
+              "y": 240
+            },
+            "${Var_IsFirstCardShown} == false": {
+              "x": 40,
+              "y": 340
+            },
+            "Act_SetIsFirstCardShownToTrue": {
+              "x": 360,
+              "y": 340
+            },
+            "Act_SetFirstCardValue": {
+              "x": 680,
+              "y": 340
+            },
+            "Act_LetTheCardFlip": {
+              "x": 940,
+              "y": 340
+            },
+            "${Var_IsCardSelected} == false": {
+              "x": 40,
+              "y": 440
+            },
+            "Act_SetCardToSelected": {
+              "x": 360,
+              "y": 440
+            }
+          }
+        },
+        {
+          "id": "c54e55a3-baa0-4326-93bc-37ae5cf8e103",
+          "name": "SetFrontImage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_GetImagePath",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_SetFrontImage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "SetFrontImage": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_GetImagePath": {
+              "x": 240,
+              "y": 40
+            },
+            "Act_SetFrontImage": {
+              "x": 460,
+              "y": 40
+            }
+          }
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 40,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#c05959",
+        "gridColor": "#e59a9a"
+      },
+      "backgroundImage": "${Var_CardImage}",
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
     }
   ],
-  "activeStageId": "stage_bc83afa0-3b13-45ff-9b08-7a3ef4b81f96",
+  "activeStageId": "stage_ffca09da-6c7a-47a6-b98d-53bf50a6891d",
   "userStories": {
     "userStories": []
   },

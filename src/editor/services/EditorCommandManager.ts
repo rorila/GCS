@@ -68,25 +68,20 @@ export class EditorCommandManager {
             return cn === 'TDialogRoot' || cn === 'TThemeDialog' || cn === 'TSplashScreen';
         }) as any[];
 
-        // Spezifische Logik für TDataList (Phase 22): 
-        // Generiere beim Erstellen sofort ein inneres Row-Panel als Template-Container
+        // Spezifische Logik für TDataList (Phase 22):
+        // Der TDataList-Konstruktor legt bereits ein Row-Template als erstes Kind an.
+        // Wir stylen es hier nur noch passend und benennen es eindeutig.
         if (type === 'DataList') {
-            const rowPanel = this.createObjectInstance('Panel', `${name}_RowTemplate`, 0, 0);
+            const rowPanel: any = (newObj as any).children?.[0];
             if (rowPanel) {
+                rowPanel.name = `${name}_RowTemplate`;
                 rowPanel.width = newObj.width;
                 rowPanel.height = 3; // Default Row Height (3 Cells = z.B. 60px)
                 rowPanel.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
                 rowPanel.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 rowPanel.style.borderWidth = 1;
-                (rowPanel as any).className = 'TPanel';
-                (rowPanel as any).scope = newObj.scope;
-
-                // Wir betten es direkt als Child in die DataList ein
-                if (!newObj.children) newObj.children = [];
-                newObj.children.push(rowPanel);
-
-                // WICHTIG: Child-Element auch dem Editor bekannt machen
-                this.editor.currentObjects.push(rowPanel);
+                rowPanel.className = 'TPanel';
+                rowPanel.scope = newObj.scope;
             }
         }
 

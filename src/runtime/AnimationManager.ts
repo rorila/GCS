@@ -48,20 +48,6 @@ export class AnimationManager {
     private activeTweens: Tween[] = [];
     private static instance: AnimationManager | null = null;
 
-    // Temporaere Feinmessung fuer explode() — wird nach der Analyse entfernt.
-    public static lastExplodeTimings: Record<string, number> | null = null;
-
-    /**
-     * Gegenproben fuer die explode()-Diagnose, per URL schaltbar:
-     *   ?expNoWill=1  ohne will-change  → zeigt die Kosten der Compositor-Ebenen
-     *   ?expNoImg=1   ohne Hintergrundbild → zeigt die Kosten des Sheet-Resamplings
-     * Beide Schalter veraendern nur das Aussehen des Effekts, nicht seine Logik.
-     */
-    private static readonly diagNoWillChange: boolean =
-        typeof location !== 'undefined' && new URLSearchParams(location.search).get('expNoWill') === '1';
-    private static readonly diagNoImage: boolean =
-        typeof location !== 'undefined' && new URLSearchParams(location.search).get('expNoImg') === '1';
-
     private constructor() { }
 
     public static getInstance(): AnimationManager {
@@ -408,6 +394,36 @@ export class AnimationManager {
     }
 
     /**
+     * Zieht das Zielobjekt in Richtung einer (optionalen) Quelle zusammen
+     * und blendet es aus. Ohne Quelle kollabiert es in die eigene Mitte.
+     */
+    public implode(target: any, source: any = null, duration: number = 500): void {
+        if (!target) return;
+        const startW = target.width || 1;
+        const startH = target.height || 1;
+        const targetCenterX = (target.x || 0) + startW / 2;
+        const targetCenterY = (target.y || 0) + startH / 2;
+
+        let toX = targetCenterX;
+        let toY = targetCenterY;
+        if (source) {
+            const sourceW = source.width ?? startW;
+            const sourceH = source.height ?? startH;
+            toX = (source.x ?? 0) + sourceW / 2;
+            toY = (source.y ?? 0) + sourceH / 2;
+        }
+
+        if (target.style.opacity === undefined) target.style.opacity = 1;
+        this.addTween(target, 'x', toX, duration, 'easeInOut');
+        this.addTween(target, 'y', toY, duration, 'easeInOut');
+        this.addTween(target, 'width', 0, duration, 'easeInOut');
+        this.addTween(target, 'height', 0, duration, 'easeInOut');
+        this.addTween(target, 'style.opacity', 0, duration, 'linear', () => {
+            target.visible = false;
+        });
+    }
+
+    /**
      * Wandelt einen CSS-Bildwert der Form url("data:image/png;base64,...") in
      * eine Blob-URL um.
      *
@@ -459,8 +475,6 @@ export class AnimationManager {
      * Unterstützt: Direktbilder, Sprite-Sheet-Frames und einfarbige Sprites.
      */
     public explode(target: any, fragments: number = 9, spread: number = 120, duration: number = 600): void {
-        const t0 = performance.now();
-
         if (!target) {
             logger.warn(`[AnimationManager.explode] Ziel-Objekt ist undefined oder null.`);
             return;
@@ -493,12 +507,9 @@ export class AnimationManager {
         }
 
         const rect = spriteEl.getBoundingClientRect();
-        const tFind = performance.now() - t0;
         const gridSize = Math.max(2, Math.round(Math.sqrt(fragments)));
         const fragW = rect.width / gridSize;
         const fragH = rect.height / gridSize;
-
-        const tBgStart = performance.now();
 
         // Bild-Quelle ermitteln
         const imgLayer = spriteEl.querySelector('.sprite-image-layer') as HTMLElement;
@@ -545,8 +556,6 @@ export class AnimationManager {
                 listId: target.imageListId, image: bgImage, color: bgColor
             };
         }
-        const tBg = performance.now() - tBgStart;
-
         // Container: Stage-Ebene
         const stageEl = spriteEl.closest('.stage-container') || spriteEl.parentElement;
         if (!stageEl) return;
@@ -554,11 +563,6 @@ export class AnimationManager {
         // Sprite sofort unsichtbar
         target.visible = false;
         spriteEl.style.display = 'none';
-
-        // Aufgeteilt in zwei Schleifen, damit die reine JS-/Style-Arbeit von den
-        // DOM-Einhaengungen getrennt messbar wird. Nur so laesst sich entscheiden,
-        // ob die Kosten im Skript oder erst im Compositor entstehen.
-        const tStyleStart = performance.now();
 
         const fragmentEls: HTMLElement[] = [];
 
@@ -575,13 +579,9 @@ export class AnimationManager {
                 frag.style.pointerEvents = 'none';
                 frag.style.zIndex = '999999'; // Erhöht auf maximales Level
                 frag.style.transition = `transform ${duration}ms ease-out, opacity ${duration}ms ease-in`;
-                if (!AnimationManager.diagNoWillChange) {
-                    frag.style.willChange = 'transform, opacity';
-                }
+                frag.style.willChange = 'transform, opacity';
 
-                if (AnimationManager.diagNoImage) {
-                    frag.style.backgroundColor = bgColor || '#ff6b6b';
-                } else if (bgImage && frame) {
+                if (bgImage && frame) {
                     // Sheet so skalieren, dass ein Frame genau der Sprite-Groesse
                     // entspricht, und auf das aktuelle Frame versetzen.
                     frag.style.backgroundImage = bgImage;
@@ -605,19 +605,10 @@ export class AnimationManager {
                 fragmentEls.push(frag);
             }
         }
-        const tStyle = performance.now() - tStyleStart;
 
-        const tAppendStart = performance.now();
         for (let i = 0; i < fragmentEls.length; i++) {
             document.body.appendChild(fragmentEls[i]);
         }
-        const tAppend = performance.now() - tAppendStart;
-
-        const tReflowStart = performance.now();
-
-        // Force Layout Reflow synchron, damit die CSS Transition garantiert auslöst
-        void document.body.offsetHeight;
-        const tReflow = performance.now() - tReflowStart;
 
         // Animation starten: Ein kurzes Timeout stellt sicher, dass der Browser die 
         // Elemente im DOM gerendert hat, BEVOR die Ziel-Eigenschaften gesetzt werden.
@@ -634,9 +625,6 @@ export class AnimationManager {
         }, 30);
 
         // Aufräumen nach Ablauf
-        AnimationManager.lastExplodeTimings = {
-            find: tFind, bg: tBg, style: tStyle, append: tAppend, reflow: tReflow
-        };
         setTimeout(() => {
             fragmentEls.forEach(f => f.remove());
             logger.info(`[AnimationManager.explode] Animation für "${target.name}" abgeschlossen. DOM aufgeräumt.`);

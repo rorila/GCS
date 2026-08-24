@@ -311,6 +311,12 @@ export class PropertyHelper {
                         const resolved = this.resolveValue(obj);
                         if (traceEnabled) logger.info(`Interpolate "${trimmedPath}" found Object. ID: ${obj.id}, Name: ${obj.name}, Value: "${resolved}"`);
                         if (resolved !== obj) return String(resolved ?? '');
+                        // Variable ohne Wert: der Name waere ein irrefuehrender Ersatzwert
+                        // (er landete sonst z.B. als Datei-Pfad in einem src-Attribut).
+                        if (this.isVarLike(obj)) {
+                            logger.warn(`Interpolation "${trimmedPath}": Variable hat keinen Wert (value === undefined).`);
+                            return '';
+                        }
                         // Otherwise return the name or [object]
                         return obj.name || obj.id || String(obj);
                     }

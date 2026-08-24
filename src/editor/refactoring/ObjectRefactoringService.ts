@@ -164,15 +164,62 @@ export class ObjectRefactoringService {
      */
     public static getObjectUsageReport(project: GameProject, objectName: string): UsageReport {
         const report: UsageReport = { totalCount: 0, locations: [] };
-        const searchPattern = new RegExp(`(?:"${objectName}")|(?:'${objectName}')|(?:\\$\\{${objectName}\\})`, 'g');
+        if (!objectName) return report;
+
+        const refPropertyKeys = new Set([
+            'target', 'source', 'referenceObject', 'reference', 'spawnObject', 'parent',
+            'component', 'object', 'dialog', 'nextDialog', 'midpointTask', 'template',
+            'sprite', 'other', 'self', 'stage', 'task', 'action'
+        ]);
+
+        const isObjectNameMatch = (val: string): boolean => {
+            return val === objectName || val.startsWith(`${objectName}.`) || val.startsWith(`${objectName}_`);
+        };
+
+        const hasObjectInterpolation = (val: string): boolean => {
+            const prefix = `\${${objectName}`;
+            const idx = val.indexOf(prefix);
+            if (idx === -1) return false;
+            const nextChar = val[idx + prefix.length];
+            return nextChar === '}' || nextChar === '.';
+        };
+
+        const countRefs = (obj: any, visited: WeakSet<object> = new WeakSet<object>()): number => {
+            if (obj === null || obj === undefined || typeof obj !== 'object') return 0;
+            if (visited.has(obj)) return 0;
+            visited.add(obj);
+
+            let count = 0;
+            if (Array.isArray(obj)) {
+                for (const item of obj) {
+                    count += countRefs(item, visited);
+                }
+            } else {
+                for (const key of Object.keys(obj)) {
+                    if (key === '__cachedProxy' || key === '__proxy' || key === '__ref' || key.startsWith('__')) continue;
+                    const val = obj[key];
+                    if (typeof val === 'string') {
+                        const isRefKey = refPropertyKeys.has(key);
+                        const isNameKey = key === 'name';
+                        if ((isRefKey || isNameKey) && isObjectNameMatch(val)) {
+                            count++;
+                        } else if (isRefKey && hasObjectInterpolation(val)) {
+                            count++;
+                        }
+                    } else if (typeof val === 'object') {
+                        count += countRefs(val, visited);
+                    }
+                }
+            }
+            return count;
+        };
 
         const scan = (obj: any, type: any, name: string) => {
             if (!obj) return;
-            const str = JSON.stringify(obj);
-            const matches = str.match(searchPattern);
-            if (matches) {
-                report.totalCount += matches.length;
-                report.locations.push({ type, name, details: `${matches.length} Referenzen` });
+            const count = countRefs(obj);
+            if (count > 0) {
+                report.totalCount += count;
+                report.locations.push({ type, name, details: `${count} Referenzen` });
             }
         };
 

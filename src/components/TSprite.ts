@@ -270,7 +270,7 @@ export class TSprite extends TWindow {
     /**
      * Get the side and depth of collision with another sprite
      */
-    public getCollisionOverlap(other: TSprite): { side: 'left' | 'right' | 'top' | 'bottom', depth: number } | null {
+    public getCollisionOverlap(other: TSprite): { side: 'left' | 'right' | 'top' | 'bottom', depth: number, contactX: number, contactY: number } | null {
         if (!this.checkCollision(other)) return null;
 
         const hbA = this.getHitbox();
@@ -284,15 +284,26 @@ export class TSprite extends TWindow {
         const overlapX = combinedHalfWidths - Math.abs(dx);
         const overlapY = combinedHalfHeights - Math.abs(dy);
 
+        const overlapLeft = Math.max(hbA.x, hbB.x);
+        const overlapTop = Math.max(hbA.y, hbB.y);
+        const overlapRight = Math.min(hbA.x + hbA.w, hbB.x + hbB.w);
+        const overlapBottom = Math.min(hbA.y + hbA.h, hbB.y + hbB.h);
+        const contactX = overlapLeft + (overlapRight - overlapLeft) / 2;
+        const contactY = overlapTop + (overlapBottom - overlapTop) / 2;
+
         if (overlapX < overlapY) {
             return {
                 side: dx > 0 ? 'left' : 'right', // 'left' of THIS means 'right' of OTHER
-                depth: overlapX
+                depth: overlapX,
+                contactX,
+                contactY
             };
         } else {
             return {
                 side: dy > 0 ? 'top' : 'bottom',
-                depth: overlapY
+                depth: overlapY,
+                contactX,
+                contactY
             };
         }
     }

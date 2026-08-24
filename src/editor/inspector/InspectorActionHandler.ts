@@ -569,6 +569,13 @@ export class InspectorActionHandler {
             if (target !== obj) {
                 PropertyHelper.setPropertyValue(obj, 'items', result);
             }
+            // Record-Schema auf die neue Auswahl ausrollen und die abgeleitete Tabelle neu bauen
+            const allStageObjects = projectObjectRegistry.getObjects();
+            for (const candidate of [target, obj]) {
+                if (candidate && typeof (candidate as any).rebuildData === 'function') {
+                    (candidate as any).rebuildData(allStageObjects);
+                }
+            }
             this.host.update(obj);
         }
     }
