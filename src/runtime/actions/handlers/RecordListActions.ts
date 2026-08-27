@@ -214,6 +214,32 @@ export function registerRecordListActions() {
         ]
     });
 
+    // ─── record_index: Index eines bestimmten Objekts ermitteln ───
+    actionRegistry.register('record_index', (action, context) => {
+        const list = resolveList(action.list, context);
+        if (!list) return;
+
+        const rowId = resolveRowId(action.target, list, context);
+        const items: string[] = Array.isArray(list.items) ? list.items : [];
+
+        let index = -1;
+        if (rowId) {
+            index = items.indexOf(rowId);
+        }
+
+        writeResult(action.resultVariable, index, context);
+        DebugLogService.getInstance().log('Action', `record_index: ${list.name}[${rowId}] -> index ${index}`);
+    }, {
+        type: 'record_index',
+        label: 'Record: Index ermitteln',
+        description: 'Liefert den 0-basierten Listenindex eines Objekts in einer TObjectList.',
+        parameters: [
+            LIST_PARAM,
+            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, defaultValue: 'self', placeholder: 'self / Objektname / Zeilenindex' },
+            { name: 'resultVariable', label: 'Ergebnis in Variable', type: 'variable', source: 'variables' }
+        ]
+    });
+
     // ─── record_find: Alle Objekt-IDs mit passendem Feldwert ───
     actionRegistry.register('record_find', (action, context) => {
         const list = resolveList(action.list, context);

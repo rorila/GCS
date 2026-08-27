@@ -1,3 +1,14 @@
+/**
+ * Prueft, ob ein Wert ausschliesslich aus einer einzelnen ${...}-Bindung besteht.
+ *
+ * Solche Werte duerfen NICHT vorab interpoliert werden, wenn sie als Ziel-Objekt
+ * dienen: Haelt die Variable ein Objekt, wuerde daraus "[object Object]".
+ * resolveTarget() entpackt den Wert stattdessen selbst.
+ */
+export function isPureBinding(value: any): boolean {
+    return typeof value === 'string' && /^\$\{[^}]+\}$/.test(value.trim());
+}
+
 export function resolveTarget(targetName: string, objects: any[], vars: Record<string, any>, eventData?: any): any {
     if (!targetName) return null;
 
@@ -36,10 +47,17 @@ export function resolveTarget(targetName: string, objects: any[], vars: Record<s
         const varName = cleanTargetName.substring(2, cleanTargetName.length - 1);
         const v = vars[varName];
         // TVariable-Objekte ({ name, type, value, className: 'TVariable' }) korrekt entpacken.
-        if (v && typeof v === 'object' && 'value' in (v as any)) {
-            actualName = String((v as any).value);
-        } else if (v !== undefined && v !== null) {
-            actualName = String(v);
+        let raw: any = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any).value : v;
+
+        // Der Wert kann eine ganze Record-Zeile einer TObjectList sein
+        // ({ index, objectId, name, ... }) — z.B. als Ergebnis von list_get.
+        // Gemeint ist dann das darin referenzierte Objekt, nicht die Zeile.
+        if (raw && typeof raw === 'object') {
+            raw = raw.objectId ?? raw.id ?? raw.name ?? raw;
+        }
+
+        if (raw !== undefined && raw !== null && typeof raw !== 'object') {
+            actualName = String(raw);
         }
     }
     let foundObj = objects.find(o => o.name === actualName || o.id === actualName);

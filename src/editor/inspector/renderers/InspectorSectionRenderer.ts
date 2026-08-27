@@ -9,6 +9,7 @@ import { mediatorService } from '../../../services/MediatorService';
 import { NotificationToast } from '../../ui/NotificationToast';
 import { MediaPickerDialog } from '../MediaPickerDialog';
 import { Logger } from '../../../utils/Logger';
+import { REFERENCE_SOURCES, refFieldName, isReplaceableValue } from '../../../runtime/actions/ActionReferences';
 
 const logger = Logger.get('InspectorSectionRenderer');
 
@@ -22,6 +23,30 @@ export class InspectorSectionRenderer {
         }, 'inspector');
         if (event && context.onObjectUpdate) {
             context.onObjectUpdate(event);
+        }
+    }
+
+    /**
+     * Haelt das ID-Begleitfeld einer Objektreferenz aktuell (z.B. target -> target_ref).
+     *
+     * Objektnamen sind projektweit nicht eindeutig; die ID ist es. Der Name bleibt
+     * fuer Anzeige und Lesbarkeit erhalten, die Laufzeit loest ueber die ID auf.
+     */
+    private static syncReferenceId(propDef: any, selectedName: string, obj: any, isFlowNode: boolean): void {
+        if (!propDef?.source || !REFERENCE_SOURCES.has(propDef.source)) return;
+
+        let refId = '';
+        if (isReplaceableValue(selectedName) && selectedName) {
+            const target = projectObjectRegistry.getObjects().find((o: any) => o.name === selectedName)
+                || projectVariableRegistry.getVariables().find((v: any) => v.name === selectedName);
+            refId = (target as any)?.id || '';
+        }
+
+        const field = refFieldName(propDef.name);
+        if (isFlowNode && typeof obj.applyChange === 'function') {
+            obj.applyChange(field, refId);
+        } else {
+            PropertyHelper.setPropertyValue(obj, field, refId);
         }
     }
 
@@ -711,6 +736,7 @@ export class InspectorSectionRenderer {
             const selectName = propDef.controlName || propDef.name || '';
             if (selectName) select.name = selectName;
             select.onchange = async () => {
+                InspectorSectionRenderer.syncReferenceId(propDef, select.value, obj, isFlowNode);
                 // Phase 3 (SYNC_REFACTOR): Kein Doppel-Dispatch mehr.
                 // FlowNodes nutzen NUR applyChange als einzigen Writer.
                 if (isFlowNode && typeof obj.applyChange === 'function') {

@@ -66,7 +66,7 @@ export function registerDialogActions() {
         label: 'Dialog ein-/ausblenden',
         description: 'Blendet einen TDialogRoot per Slide-Animation ein oder aus.',
         parameters: [
-            { name: 'target', label: 'Dialog (TDialogRoot)', type: 'object', source: 'objects', hint: 'Name des Dialog-Objekts' },
+            { name: 'target', label: 'Dialog (TDialogRoot)', type: 'object', source: 'objects', allowVariableBinding: true, hint: 'Name des Dialog-Objekts (auch ${Var} mit Objekt-ID/Name)' },
             { name: 'mode', label: 'Modus', type: 'select', options: ['toggle', 'show', 'hide'], defaultValue: 'toggle' }
         ]
     });

@@ -197,10 +197,14 @@ export class PropertyHelper {
     /**
      * Resolves a binding expression to a concrete value using the given context.
      */
-    static resolveBinding(expression: string, context?: Record<string, any>, objects?: any[]): any {
+    static resolveBinding(expression: string, context?: Record<string, any>, objects?: any[], depth = 3): any {
         if (!this.isBinding(expression)) return expression;
         if (!context) return expression;
+        if (depth <= 0) return expression;
         const interpolated = this.interpolate(expression, context, objects);
+        if (this.isBinding(interpolated)) {
+            return this.resolveBinding(interpolated, context, objects, depth - 1);
+        }
         return this.autoConvert(interpolated);
     }
 

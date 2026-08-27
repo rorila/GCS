@@ -3,8 +3,11 @@ import { ScopedAction } from './RegistryTypes';
 import { projectReferenceTracker } from './ReferenceTracker';
 import { GameAction } from '../../model/types';
 import { projectTaskRegistry } from './TaskRegistry';
+import { Logger } from '../../utils/Logger';
 
 class ActionRegistry {
+    private static logger = Logger.get('ActionRegistry', 'Action_Management');
+
     public getActions(stageId: string | 'all' | 'active' = 'active', resolveUsage: boolean = true): ScopedAction[] {
         const project = coreStore.project;
         if (!project) return [];
@@ -49,7 +52,17 @@ class ActionRegistry {
         }));
     }
 
-    public findOriginalAction(nameOrId: string): GameAction | null {
+    /**
+     * Sucht die Original-Definition einer Action.
+     *
+     * Action-Namen sind projektweit NICHT eindeutig: Beim Duplizieren einer Stage
+     * entstehen gleichnamige Actions (sogar mit identischer id). Eindeutig ist nur
+     * die Kombination Stage + Name. Deshalb wird in dieser Reihenfolge gesucht:
+     * angeforderte Stage → aktive Stage → Root → Blueprint → uebrige Stages.
+     *
+     * @param stageId Stage, zu der die Referenz gehoert (Default: aktive Stage)
+     */
+    public findOriginalAction(nameOrId: string, stageId?: string): GameAction | null {
         const project = coreStore.project;
         if (!project) return null;
 
@@ -60,13 +73,44 @@ class ActionRegistry {
             (a.data && (a.data.name === nameOrId || a.data.actionName === nameOrId)) ||
             (a.properties && (a.properties.name === nameOrId || a.properties.text === nameOrId));
 
+        const findInStage = (id?: string | null) => {
+            if (!id) return null;
+            const stage = project.stages?.find(s => s.id === id);
+            return (stage?.actions || []).find(isMatch) || null;
+        };
+
+        // 1. Explizit angeforderte Stage
+        const requested = findInStage(stageId);
+        if (requested) return requested;
+
+        // 2. Aktive Stage — ein Action-Knoten meint die Action seiner eigenen Stage
+        if (!stageId || stageId !== coreStore.activeStageId) {
+            const active = findInStage(coreStore.activeStageId);
+            if (active) return active;
+        }
+
+        // 3. Projektweite Actions
         const globalAction = (project.actions || []).find(isMatch);
         if (globalAction) return globalAction;
 
+        // 4. Blueprint (gilt fuer alle Stages)
+        const blueprint = project.stages?.find(s => s.type === 'blueprint');
+        const blueprintAction = (blueprint?.actions || []).find(isMatch);
+        if (blueprintAction) return blueprintAction;
+
+        // 5. Fallback: uebrige Stages. Ein Treffer hier bedeutet, dass die Referenz
+        //    aus einer fremden Stage bedient wird — das ist meldenswert.
         if (project.stages) {
             for (const stage of project.stages) {
+                if (stage.id === stageId || stage.id === coreStore.activeStageId) continue;
                 const stageAction = (stage.actions || []).find(isMatch);
-                if (stageAction) return stageAction;
+                if (stageAction) {
+                    ActionRegistry.logger.warn(
+                        `Action "${nameOrId}" wurde nicht in der eigenen Stage gefunden — ` +
+                        `es wird die Definition aus "${stage.name || stage.id}" verwendet.`
+                    );
+                    return stageAction;
+                }
             }
         }
 

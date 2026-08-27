@@ -1149,13 +1149,19 @@ export class StageRenderer {
         if (bgImg && typeof bgImg === 'string') {
             const vars = this.getVariableContext();
             const objects = [...(this.host.lastRenderedObjects || []), ...projectObjectRegistry.getObjects()];
-            bgImg = PropertyHelper.interpolate(bgImg, vars, objects);
+            // Verschachtelte Bindings (z.B. ${BackCardImage} -> ${List_15[9]} -> Pfad)
+            // aufloesen, bis kein ${...} mehr uebrig ist.
+            for (let i = 0; i < 3 && typeof bgImg === 'string' && bgImg.includes('${'); i++) {
+                bgImg = PropertyHelper.interpolate(bgImg, vars, objects);
+            }
 
             if (typeof bgImg !== 'string') {
                 logger.warn(`[StageRenderer] Resolved image src is not a string for ${objId} (${className}): ${bgImg}`);
                 bgImg = String(bgImg ?? '');
             }
-            if (bgImg.includes(',')) {
+            // Base64-Data-URLs enthalten immer ein Komma ("data:image/png;base64,...")
+            // und darf deshalb nicht als Liste behandelt werden.
+            if (bgImg.includes(',') && !bgImg.startsWith('data:')) {
                 const first = bgImg.split(',')[0].trim();
                 logger.warn(`[StageRenderer] Resolved image src is a list for ${objId} (${className}); using first entry: ${first}`);
                 bgImg = first;
@@ -1756,7 +1762,9 @@ export class StageRenderer {
         if (src && typeof src === 'string') {
             const vars = this.getVariableContext();
             const objects = this.host.lastRenderedObjects || [];
-            src = PropertyHelper.interpolate(src, vars, objects);
+            for (let i = 0; i < 3 && typeof src === 'string' && src.includes('${'); i++) {
+                src = PropertyHelper.interpolate(src, vars, objects);
+            }
         }
 
         if (!src) {

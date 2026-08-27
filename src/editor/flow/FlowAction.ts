@@ -1,5 +1,6 @@
 import { actionRegistry } from '../../runtime/ActionRegistry';
 import { projectActionRegistry } from '../../services/registry/ActionRegistry';
+import { coreStore } from '../../services/registry/CoreStore';
 
 import { FlowElement } from './FlowElement';
 import { GameAction, GameProject } from '../../model/types';
@@ -204,7 +205,12 @@ export class FlowAction extends FlowElement {
 
         // 1. Resolve from project/stage via ProjectRegistry (Single Source of Truth)
         // We match by name even if 'isLinked' is not yet set (e.g. for newly renamed nodes)
-        const action = projectActionRegistry.findOriginalAction(this.Name);
+        //
+        // Stage-Kontext: Action-Namen sind projektweit nicht eindeutig. Ein Knoten meint
+        // die Action seiner eigenen Stage — data.stageId nur, wenn er bewusst auf eine
+        // andere Stage verweist (Auswahl im Kontextmenue).
+        const stageId = (this.data as any)?.stageId || coreStore.activeStageId || undefined;
+        const action = projectActionRegistry.findOriginalAction(this.Name, stageId);
 
         if (action) {
             // FIX: Ensure the node data reflects the linked state so toJSON saves only the reference

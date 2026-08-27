@@ -116,7 +116,7 @@ export function registerPropertyActions() {
         label: 'Kind-Eigenschaft ändern',
         description: 'Sucht ein Kind-Element im TGroupPanel über dessen Namen und ändert dessen Eigenschaften.',
         parameters: [
-            { name: 'target', label: 'Eltern-Objekt (TGroupPanel)', type: 'object', source: 'objects', hint: 'Oft %Self% oder ID des gespawnten Templates' },
+            { name: 'target', label: 'Eltern-Objekt (TGroupPanel)', type: 'object', source: 'objects', allowVariableBinding: true, hint: 'Oft %Self% oder ${Var} mit der ID des gespawnten Templates' },
             { name: 'childName', label: 'Kind Name', type: 'string', hint: 'Name des zu modifizierenden Kind-Elements im Template' },
             { name: 'changes', label: 'Änderungen (JSON)', type: 'json', hint: 'Beispiel: { "text": "Neuer Text" }' }
         ]

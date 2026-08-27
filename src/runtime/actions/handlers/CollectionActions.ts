@@ -105,6 +105,26 @@ function writeVariable(name: string, value: any, context: any): void {
     } else {
         varObj.value = value;
     }
+
+    // Abgeleitete Ansichten aktualisieren: Eine TObjectList berechnet data/columns
+    // aus items. Ohne Rebuild zeigt die Tabelle nach z.B. list_shuffle weiterhin
+    // die alte Reihenfolge — die record_*-Actions machen das schon so.
+    if (typeof varObj.rebuildData === 'function') {
+        varObj.rebuildData(context.objects || []);
+    }
+}
+
+/**
+ * Lesbare Bezeichnung einer Collection fuer das DebugLog.
+ *
+ * Zur Laufzeit steht im Action-Feld die eindeutige Objekt-ID (siehe ActionReferences).
+ * Fuer die Diagnose ist aber der Name entscheidend — daher "Name (ID)".
+ */
+function describeCollection(nameOrId: string, context: any): string {
+    const obj = findVariableObject(nameOrId, context)
+        || (context.vars?.[nameOrId] && typeof context.vars[nameOrId] === 'object' ? context.vars[nameOrId] : null);
+    const name = obj?.name;
+    return name && name !== nameOrId ? `${name} (${nameOrId})` : String(nameOrId);
 }
 
 function interpolateValue(value: any, context: any): any {
@@ -150,7 +170,7 @@ export function registerCollectionActions() {
         list.push(value);
         writeVariable(listName, list, context);
 
-        DebugLogService.getInstance().log('Action', `list_push: "${listName}" += ${JSON.stringify(value)} (len=${list.length})`);
+        DebugLogService.getInstance().log('Action', `list_push: ${describeCollection(listName, context)} += ${JSON.stringify(value)} (len=${list.length})`);
     }, {
         type: 'list_push',
         label: 'Liste: Element hinzufügen',
@@ -181,7 +201,7 @@ export function registerCollectionActions() {
             writeVariable(action.resultVariable, value, context);
         }
 
-        DebugLogService.getInstance().log('Action', `list_pop: "${listName}" → ${JSON.stringify(value)} (len=${list.length})`);
+        DebugLogService.getInstance().log('Action', `list_pop: ${describeCollection(listName, context)} → ${JSON.stringify(value)} (len=${list.length})`);
     }, {
         type: 'list_pop',
         label: 'Liste: Letztes Element entfernen',
@@ -197,8 +217,14 @@ export function registerCollectionActions() {
         const listName = action.target || action.listName;
         const list = resolveCollection(listName, context);
 
+        const label = describeCollection(listName, context);
+
         if (!Array.isArray(list)) {
             runtimeLogger.warn(`list_get: "${listName}" ist kein Array`);
+            DebugLogService.getInstance().log('Event',
+                `list_get FEHLER: ${label} ist keine Liste (${typeof list})`,
+                { data: { listName, resolved: list } }
+            );
             if (action.resultVariable) {
                 writeVariable(action.resultVariable, action.defaultValue ?? undefined, context);
             }
@@ -210,18 +236,48 @@ export function registerCollectionActions() {
 
         if (isNaN(index) || index < 0 || index >= list.length) {
             runtimeLogger.warn(`list_get: Index ${index} out of bounds (len=${list.length})`);
+            DebugLogService.getInstance().log('Event',
+                `list_get FEHLER: ${label} — Index ${index} liegt ausserhalb von 0..${list.length - 1}`,
+                { data: { listName, rawIndex: action.index, index, length: list.length } }
+            );
             if (action.resultVariable) {
                 writeVariable(action.resultVariable, action.defaultValue ?? undefined, context);
             }
             return;
         }
 
-        const value = list[index];
+        let value = list[index];
+
+        // Optional nur ein Feld der Zeile uebernehmen. Eine TObjectList liefert
+        // ganze Datensaetze ({ index, objectId, name, ... }); fuer Ziel-Felder
+        // anderer Actions wird meist nur die objectId gebraucht.
+        const field = String(action.field || '').trim();
+        if (field) {
+            if (value && typeof value === 'object') {
+                value = (value as any)[field];
+                if (value === undefined) {
+                    runtimeLogger.warn(`list_get: Feld "${field}" existiert nicht in ${label}[${index}]`);
+                    DebugLogService.getInstance().log('Event',
+                        `list_get: Feld "${field}" fehlt in ${label}[${index}]`,
+                        { data: { listName, index, field, row: list[index] } }
+                    );
+                    value = action.defaultValue ?? undefined;
+                }
+            } else {
+                runtimeLogger.warn(`list_get: Feld "${field}" angegeben, aber ${label}[${index}] ist kein Objekt`);
+            }
+        }
+
+        // Vor dem Schreiben loggen: sonst erscheinen erst die reaktiven
+        // [Variable]-Eintraege und die Herkunft des Wertes bleibt unklar.
+        DebugLogService.getInstance().log('Action',
+            `list_get: ${label}[${index}]${field ? '.' + field : ''} = ${JSON.stringify(value)}`,
+            { data: { listName, index, field, value, length: list.length } }
+        );
+
         if (action.resultVariable) {
             writeVariable(action.resultVariable, value, context);
         }
-
-        DebugLogService.getInstance().log('Action', `list_get: "${listName}"[${index}] = ${JSON.stringify(value)}`);
     }, {
         type: 'list_get',
         label: 'Liste: Element lesen',
@@ -229,6 +285,7 @@ export function registerCollectionActions() {
         parameters: [
             { name: 'target', label: 'Listen-Variable', type: 'variable', source: 'variables' },
             { name: 'index', label: 'Index (0-basiert)', type: 'string', placeholder: '0 oder ${var}' },
+            { name: 'field', label: 'Feld (optional)', type: 'string', placeholder: 'z.B. objectId — leer = ganze Zeile' },
             { name: 'resultVariable', label: 'Ergebnis-Variable', type: 'variable', source: 'variables' },
             { name: 'defaultValue', label: 'Standard-Wert (bei Fehler)', type: 'string' }
         ]
@@ -256,7 +313,7 @@ export function registerCollectionActions() {
         list[index] = value;
         writeVariable(listName, list, context);
 
-        DebugLogService.getInstance().log('Action', `list_set: "${listName}"[${index}] = ${JSON.stringify(value)}`);
+        DebugLogService.getInstance().log('Action', `list_set: ${describeCollection(listName, context)}[${index}] = ${JSON.stringify(value)}`);
     }, {
         type: 'list_set',
         label: 'Liste: Element setzen',
@@ -293,7 +350,7 @@ export function registerCollectionActions() {
             writeVariable(action.resultVariable, removed, context);
         }
 
-        DebugLogService.getInstance().log('Action', `list_remove: "${listName}"[${index}] entfernt (len=${list.length})`);
+        DebugLogService.getInstance().log('Action', `list_remove: ${describeCollection(listName, context)}[${index}] entfernt (len=${list.length})`);
     }, {
         type: 'list_remove',
         label: 'Liste: Element entfernen (Index)',
@@ -309,7 +366,7 @@ export function registerCollectionActions() {
     actionRegistry.register('list_clear', (action, context) => {
         const listName = action.target || action.listName;
         writeVariable(listName, [], context);
-        DebugLogService.getInstance().log('Action', `list_clear: "${listName}" geleert`);
+        DebugLogService.getInstance().log('Action', `list_clear: ${describeCollection(listName, context)} geleert`);
     }, {
         type: 'list_clear',
         label: 'Liste: Leeren',
@@ -338,7 +395,7 @@ export function registerCollectionActions() {
         const shuffled = shuffleArray(list, seed);
         writeVariable(listName, shuffled, context);
 
-        DebugLogService.getInstance().log('Action', `list_shuffle: "${listName}" gemischt (seed=${seed ?? 'random'}, len=${shuffled.length})`);
+        DebugLogService.getInstance().log('Action', `list_shuffle: ${describeCollection(listName, context)} gemischt (seed=${seed ?? 'random'}, len=${shuffled.length})`);
     }, {
         type: 'list_shuffle',
         label: 'Liste: Mischen',
@@ -374,7 +431,7 @@ export function registerCollectionActions() {
             writeVariable(action.resultVariable, found, context);
         }
 
-        DebugLogService.getInstance().log('Action', `list_contains: "${listName}" contains ${JSON.stringify(value)} → ${found}`);
+        DebugLogService.getInstance().log('Action', `list_contains: ${describeCollection(listName, context)} contains ${JSON.stringify(value)} → ${found}`);
     }, {
         type: 'list_contains',
         label: 'Liste: Enthält Element?',
@@ -397,7 +454,7 @@ export function registerCollectionActions() {
             writeVariable(action.resultVariable, length, context);
         }
 
-        DebugLogService.getInstance().log('Action', `list_length: "${listName}" → ${length}`);
+        DebugLogService.getInstance().log('Action', `list_length: ${describeCollection(listName, context)} → ${length}`);
     }, {
         type: 'list_length',
         label: 'Liste: Länge',
@@ -432,7 +489,7 @@ export function registerCollectionActions() {
             writeVariable(action.resultVariable, value, context);
         }
 
-        DebugLogService.getInstance().log('Action', `map_get: "${mapName}"["${key}"] = ${JSON.stringify(value)}`);
+        DebugLogService.getInstance().log('Action', `map_get: ${describeCollection(mapName, context)}["${key}"] = ${JSON.stringify(value)}`);
     }, {
         type: 'map_get',
         label: 'Map: Wert lesen',
@@ -465,7 +522,7 @@ export function registerCollectionActions() {
         map[key] = value;
         writeVariable(mapName, map, context);
 
-        DebugLogService.getInstance().log('Action', `map_set: "${mapName}"["${key}"] = ${JSON.stringify(value)}`);
+        DebugLogService.getInstance().log('Action', `map_set: ${describeCollection(mapName, context)}["${key}"] = ${JSON.stringify(value)}`);
     }, {
         type: 'map_set',
         label: 'Map: Wert setzen',
@@ -491,7 +548,7 @@ export function registerCollectionActions() {
         delete map[key];
         writeVariable(mapName, map, context);
 
-        DebugLogService.getInstance().log('Action', `map_delete: "${mapName}"["${key}"] entfernt`);
+        DebugLogService.getInstance().log('Action', `map_delete: ${describeCollection(mapName, context)}["${key}"] entfernt`);
     }, {
         type: 'map_delete',
         label: 'Map: Schlüssel löschen',
@@ -517,7 +574,7 @@ export function registerCollectionActions() {
             writeVariable(action.resultVariable, exists, context);
         }
 
-        DebugLogService.getInstance().log('Action', `map_has: "${mapName}" has "${key}" → ${exists}`);
+        DebugLogService.getInstance().log('Action', `map_has: ${describeCollection(mapName, context)} has "${key}" → ${exists}`);
     }, {
         type: 'map_has',
         label: 'Map: Schlüssel vorhanden?',
@@ -545,7 +602,7 @@ export function registerCollectionActions() {
             writeVariable(action.resultVariable, keys, context);
         }
 
-        DebugLogService.getInstance().log('Action', `map_keys: "${mapName}" → [${keys.join(', ')}]`);
+        DebugLogService.getInstance().log('Action', `map_keys: ${describeCollection(mapName, context)} → [${keys.join(', ')}]`);
     }, {
         type: 'map_keys',
         label: 'Map: Alle Schlüssel',

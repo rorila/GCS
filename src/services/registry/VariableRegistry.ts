@@ -47,7 +47,10 @@ class VariableRegistry {
             'TVariable', 'TIntegerVariable', 'TBooleanVariable', 'TStringVariable',
             'TRealVariable', 'TObjectVariable', 'TListVariable', 'TRandomVariable',
             'TTimerVariable', 'TTriggerVariable', 'TThresholdVariable', 'TRangeVariable',
-            'TStringMap'
+            'TStringMap',
+            // TObjectList ist ueber items/value ebenfalls eine Listen-Variable und muss
+            // daher in Listen-Actions (list_shuffle, list_length, ...) auswaehlbar sein.
+            'TObjectList'
         ]);
         const stagesToProcess = (scopeFilter === 'all' || !coreStore.activeStageId)
             ? (project.stages || [])

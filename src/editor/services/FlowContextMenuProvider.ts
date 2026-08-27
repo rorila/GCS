@@ -3,6 +3,7 @@ import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 import { projectActionRegistry } from '../../services/registry/ActionRegistry';
 import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
 import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
+import { coreStore } from '../../services/registry/CoreStore';
 import { GameProject } from '../../model/types';
 import { FlowElement } from '../flow/FlowElement';
 import { FlowConnection } from '../flow/FlowConnection';
@@ -542,13 +543,23 @@ export class FlowContextMenuProvider {
         this.host.importTaskGraph(node, task, true);
     }
 
-    private linkActionToNode(node: FlowElement, action: any): void {
+    /**
+     * Verknuepft einen Knoten mit einer Action-Definition.
+     *
+     * @param stageId Stage, aus der die Action stammt. Wird nur gespeichert, wenn sie
+     *                von der aktiven Stage abweicht — dann ist der Name allein nicht
+     *                eindeutig (gleichnamige Actions in mehreren Stages).
+     */
+    private linkActionToNode(node: FlowElement, action: any, stageId?: string): void {
         // SSoT: Reine Referenz — KEIN Spread des bestehenden node.data, weil dort
         // Default-Felder (type='property', target='', changes={}) aus createNode liegen,
         // die sonst eine Phantom-Hülle in stage.actions[] erzeugen wuerden.
         // Der `isMinimalLink`-Check in FlowRegistrySync greift nur, wenn weder
         // type noch target noch service gesetzt sind.
         node.data = { name: action.name, isLinked: true };
+        if (stageId && stageId !== coreStore.activeStageId) {
+            (node.data as any).stageId = stageId;
+        }
         node.setText(action.name);
         node.setDetailed(true);
         node.setLinked(true);
@@ -757,7 +768,7 @@ export class FlowContextMenuProvider {
                 } else {
                     if (proj) {
                         if (type === 'task') RefactoringManager.renameTask(proj, originalName, newName);
-                        else RefactoringManager.renameAction(proj, originalName, newName);
+                        else RefactoringManager.renameAction(proj, originalName, newName, coreStore.activeStageId || undefined);
                     }
                 }
             }
@@ -877,7 +888,7 @@ export class FlowContextMenuProvider {
                     label,
                     action: async () => {
                         const node = await this.host.createNode('Action', x, y, name);
-                        if (node) this.linkActionToNode(node, loc.action);
+                        if (node) this.linkActionToNode(node, loc.action, loc.stageId);
                     }
                 });
             } else {
@@ -897,7 +908,7 @@ export class FlowContextMenuProvider {
                         label,
                         action: async () => {
                             const node = await this.host.createNode('Action', x, y, name);
-                            if (node) this.linkActionToNode(node, locations[0].action);
+                            if (node) this.linkActionToNode(node, locations[0].action, locations[0].stageId);
                         }
                     });
                 } else {
@@ -908,7 +919,7 @@ export class FlowContextMenuProvider {
                             label,
                             action: async () => {
                                 const node = await this.host.createNode('Action', x, y, name);
-                                if (node) this.linkActionToNode(node, loc.action);
+                                if (node) this.linkActionToNode(node, loc.action, loc.stageId);
                             }
                         });
                     });

@@ -1,5 +1,6 @@
 import { GameProject, ComponentData, StageDefinition } from '../model/types';
 import { DebugLogService } from '../services/DebugLogService';
+import { applyReferenceIds } from './actions/ActionReferences';
 
 export interface ActionContext {
     vars: Record<string, any>;
@@ -83,8 +84,11 @@ function collectBindings(action: any, vars: Record<string, any>): Binding[] {
     return out;
 }
 
-function withDiagnostics(type: string, handler: ActionHandler): ActionHandler {
-    return async (action: any, context: ActionContext) => {
+function withDiagnostics(type: string, handler: ActionHandler, meta?: ActionMetadata): ActionHandler {
+    return async (rawAction: any, context: ActionContext) => {
+        // Namensreferenzen auf eindeutige Objekt-IDs normalisieren, bevor irgendein
+        // Handler aufloest. Zentral hier, damit die Handler unveraendert bleiben.
+        const action = applyReferenceIds(rawAction, meta, context.objects || []);
         const bindings = collectBindings(action, context.vars || {});
         const unresolved = bindings.filter(b => b.resolved === undefined);
 
@@ -141,7 +145,7 @@ export class ActionRegistry {
     public register(type: string, handler: ActionHandler, meta?: ActionMetadata): void {
         // Wrapper transparent vorschalten, damit ALLE Actions automatisch
         // Diagnose-Eintraege ins DebugLog-Panel schreiben und Fehler gefangen werden.
-        this.handlers.set(type, withDiagnostics(type, handler));
+        this.handlers.set(type, withDiagnostics(type, handler, meta));
         if (meta) {
             this.metadata.set(type, meta);
         }

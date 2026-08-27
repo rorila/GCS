@@ -584,12 +584,67 @@ ${pwaHead}
             return (/(^|\/)(images|audio|video|assets)\//i).test(s) || mediaExtensions.test(s);
         };
 
+        // Build a map of known variables and lists for resolving ${...} bindings
+        const varMap = new Map<string, any>();
+        const collectVariables = (obj: any) => {
+            if (Array.isArray(obj)) {
+                obj.forEach(collectVariables);
+                return;
+            }
+            if (!obj || typeof obj !== 'object') return;
+            if ((obj.className === 'TVariable' || obj.className === 'Variable') && typeof obj.name === 'string') {
+                varMap.set(obj.name, obj.value);
+            }
+            if ((obj.className === 'TListVariable' || obj.className === 'ListVariable') && typeof obj.name === 'string' && Array.isArray(obj.items)) {
+                varMap.set(obj.name, obj.items);
+            }
+            Object.values(obj).forEach(collectVariables);
+        };
+        collectVariables(project);
+
+        const resolveBinding = (s: string, depth = 3): string | undefined => {
+            if (typeof s !== 'string') return undefined;
+            const m = s.match(/^\s*\$\{([^}]+)\}\s*$/);
+            if (!m || depth <= 0) return undefined;
+            const expr = m[1].trim();
+
+            // Array index access: List_15[0]
+            const idxMatch = expr.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*\[\s*(\d+)\s*\]$/);
+            if (idxMatch) {
+                const list = varMap.get(idxMatch[1]);
+                if (Array.isArray(list)) {
+                    const resolved = list[parseInt(idxMatch[2], 10)];
+                    if (typeof resolved === 'string' && resolved) {
+                        return resolveBinding(resolved, depth - 1) ?? resolved;
+                    }
+                    return typeof resolved === 'string' ? resolved : undefined;
+                }
+                return undefined;
+            }
+
+            const val = varMap.get(expr);
+            if (typeof val === 'string' && val) return resolveBinding(val, depth - 1) ?? val;
+            if (typeof val === 'string') return val;
+            if (val !== undefined && val !== null) return String(val);
+            return undefined;
+        };
+
         // 1. Collect all unique media paths from the project recursively
         const collectPaths = (obj: any) => {
+            const tryCollect = (s: string) => {
+                if (isMediaPath(s)) {
+                    mediaRefs.set(s, '');
+                } else {
+                    const resolved = resolveBinding(s);
+                    if (typeof resolved === 'string' && isMediaPath(resolved)) {
+                        mediaRefs.set(resolved, '');
+                    }
+                }
+            };
             if (Array.isArray(obj)) {
                 obj.forEach((item: any) => {
-                    if (typeof item === 'string' && isMediaPath(item)) {
-                        mediaRefs.set(item, '');
+                    if (typeof item === 'string') {
+                        tryCollect(item);
                     } else if (item && typeof item === 'object') {
                         collectPaths(item);
                     }
@@ -598,16 +653,13 @@ ${pwaHead}
             }
             if (!obj || typeof obj !== 'object') return;
 
-            // Common media properties (includes TImage, TAudio, TVideo, TParallaxBackground layers)
-            const props = ['backgroundImage', 'src', 'icon', 'videoSource', 'image'];
-            props.forEach(p => {
-                const val = obj[p];
-                if (typeof val === 'string' && isMediaPath(val)) {
-                    mediaRefs.set(val, '');
+            Object.values(obj).forEach((val: any) => {
+                if (typeof val === 'string') {
+                    tryCollect(val);
+                } else if (val && typeof val === 'object') {
+                    collectPaths(val);
                 }
             });
-
-            Object.values(obj).forEach(val => collectPaths(val));
         };
 
         collectPaths(project);
@@ -624,7 +676,8 @@ ${pwaHead}
                 if (relativePath.startsWith('/')) {
                     relativePath = relativePath.substring(1);
                 }
-                const url = new URL(relativePath, window.location.href).href;
+                const baseUrl = project.meta?.baseUrl || window.location.href;
+                const url = new URL(relativePath, baseUrl).href;
 
                 logger.info(`[GameExporter] Fetching media: ${url}`);
                 const resp = await fetch(url);
@@ -656,16 +709,15 @@ ${pwaHead}
             }
             if (!obj || typeof obj !== 'object') return;
 
-            const props = ['backgroundImage', 'src', 'icon', 'videoSource', 'image'];
-            props.forEach(p => {
-                const val = obj[p];
+            Object.keys(obj).forEach(key => {
+                const val = obj[key];
                 if (typeof val === 'string' && mediaRefs.has(val)) {
                     const dataUrl = mediaRefs.get(val);
-                    if (dataUrl) obj[p] = dataUrl;
+                    if (dataUrl) obj[key] = dataUrl;
+                } else if (val && typeof val === 'object') {
+                    replacePaths(val);
                 }
             });
-
-            Object.values(obj).forEach(val => replacePaths(val));
         };
 
         replacePaths(project);

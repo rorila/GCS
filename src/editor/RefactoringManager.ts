@@ -40,7 +40,11 @@ export class RefactoringManager {
      * Renames an action project-wide
      */
     public static renameAction(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
-        ActionRefactoringService.renameAction(project, oldName, newName, activeStageId);
+        // Ohne Stage-Angabe wuerde ActionRefactoringService alle Stages umbenennen.
+        // Bei gleichnamigen Actions in mehreren Stages ist das falsch — daher wie bei
+        // renameTask auf die aktive Stage zurueckfallen.
+        const stageId = activeStageId || coreStore.activeStageId || undefined;
+        ActionRefactoringService.renameAction(project, oldName, newName, stageId);
         // Wir könnten hier auch ACTION_RENAMED hinzufügen, falls nötig. 
         // Für den FlowEditor ist TASK_RENAMED am wichtigsten.
     }

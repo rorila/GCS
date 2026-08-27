@@ -12,8 +12,18 @@ import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { DialogDomainHelper } from '../dialogs/utils/DialogDomainHelper';
 import { componentRegistry } from '../../services/ComponentRegistry';
 import { Logger } from '../../utils/Logger';
+import { REFERENCE_SOURCES, refFieldName, isReplaceableValue } from '../../runtime/actions/ActionReferences';
 
 const logger = Logger.get('InspectorRenderer');
+
+/** Ermittelt die eindeutige ID zu einem ausgewaehlten Objekt-/Variablennamen. */
+function lookupReferenceId(source: string | undefined, selectedName: string): string {
+    if (!source || !REFERENCE_SOURCES.has(source)) return '';
+    if (!selectedName || !isReplaceableValue(selectedName)) return '';
+    const target = projectObjectRegistry.getObjects().find((o: any) => o.name === selectedName)
+        || projectVariableRegistry.getVariables().find((v: any) => v.name === selectedName);
+    return (target as any)?.id || '';
+}
 
 /**
  * InspectorRenderer - Handles the visual generation of Inspector UI components.
@@ -788,6 +798,10 @@ export class InspectorRenderer {
                         const sel = this.renderSelect(options, currentValue, '--- wählen ---');
                         sel.name = param.name; // Technical name for E2E
                         sel.onchange = () => {
+                            // Eindeutige ID mitfuehren: Namen sind projektweit nicht eindeutig.
+                            if (param.source && REFERENCE_SOURCES.has(param.source)) {
+                                onUpdate(refFieldName(param.name), lookupReferenceId(param.source, sel.value));
+                            }
                             onUpdate(param.name, sel.value);
                             // Bei Ziel-Wechsel muss die Methoden-Liste aktualisiert werden
                             if (param.name === 'target' || param.name === 'service') {

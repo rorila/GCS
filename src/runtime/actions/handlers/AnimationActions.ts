@@ -1,7 +1,7 @@
 import { actionRegistry } from '../../ActionRegistry';
 import { PropertyHelper } from '../../PropertyHelper';
 import { AnimationManager } from '../../AnimationManager';
-import { resolveTarget } from '../ActionHelper';
+import { resolveTarget, isPureBinding } from '../ActionHelper';
 import { Logger } from '../../../utils/Logger';
 
 const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
@@ -16,7 +16,12 @@ export function registerAnimationActions() {
         // für Actions, die von einem anderen Typ (z.B. spawn_object) umkonfiguriert wurden
         // und noch das alte Feld-Schema mitbringen.
         const rawTarget = action.target || action.referenceObject || '';
-        const rawTargetStr = PropertyHelper.interpolate(String(rawTarget), combinedContext, context.objects);
+        // Eine reine ${Var}-Bindung wird NICHT vorab interpoliert: Haelt die Variable
+        // ein Objekt (z.B. eine Record-Zeile aus list_get), ergaebe das "[object Object]".
+        // resolveTarget entpackt solche Werte selbst.
+        const rawTargetStr = isPureBinding(rawTarget)
+            ? String(rawTarget).trim()
+            : PropertyHelper.interpolate(String(rawTarget), combinedContext, context.objects);
         const effect = action.effect || 'shake';
         const duration = Number(action.duration) || 500;
         
@@ -134,7 +139,7 @@ export function registerAnimationActions() {
         label: 'Komponente animieren',
         description: 'Startet eine Animation/Effekt auf einer Komponente.',
         parameters: [
-            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', defaultValue: '', placeholder: '--- Komponente auswählen ---', hint: 'Das zu animierende Objekt ("self" = das auslösende Objekt)' },
+            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, defaultValue: '', placeholder: '--- Komponente auswählen ---', hint: 'Das zu animierende Objekt ("self" = das auslösende Objekt, oder ${Var} mit Objekt-ID/Name)' },
             { name: 'effect', label: 'Effekt', type: 'select', options: [
                 'shake', 'pulse', 'bounce', 'fade', 
                 'grow', 'shrink', 'explode', 'pop', 'implode',
@@ -172,7 +177,7 @@ export function registerAnimationActions() {
         label: 'Bewegen zu',
         description: 'Bewegt ein Objekt an eine bestimmte Position.',
         parameters: [
-            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
+            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects', allowVariableBinding: true, hint: 'Objektname, "self" oder ${Var} mit Objekt-ID/Name' },
             { name: 'x', label: 'Ziel-X', type: 'number' },
             { name: 'y', label: 'Ziel-Y', type: 'number' },
             { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500 },
@@ -200,7 +205,7 @@ export function registerAnimationActions() {
         label: 'Sprite-Frame Animation',
         description: 'Durchläuft die Frames einer TImageList von Start bis Ende (einmalig).',
         parameters: [
-            { name: 'target', label: 'Ziel-Sprite', type: 'select', source: 'objects', hint: 'Das Sprite mit einer TImageList' },
+            { name: 'target', label: 'Ziel-Sprite', type: 'select', source: 'objects', allowVariableBinding: true, hint: 'Das Sprite mit einer TImageList (auch ${Var} mit Objekt-ID/Name)' },
             { name: 'fromFrame', label: 'Start-Frame', type: 'number', defaultValue: 0 },
             { name: 'toFrame', label: 'End-Frame', type: 'number', defaultValue: 7 },
             { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 1000 }

@@ -14,6 +14,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { PromptDialog } from '../ui/PromptDialog';
 import { NotificationToast } from '../ui/NotificationToast';
 import { SchemaMigrator } from '../../services/SchemaMigrator';
+import { ProjectIntegrityValidator } from '../../services/ProjectIntegrityValidator';
 import { actionRegistry } from '../../runtime/ActionRegistry';
 import { AgentController } from '../../services/AgentController';
 
@@ -523,6 +524,24 @@ export class EditorDataManager {
             });
         } catch (e) {
             EditorDataManager.logger.warn('[SchemaMigrator] Registry-Defaults konnten nicht angewendet werden:', e);
+        }
+
+        // Referenz-IDs auffüllen: Objektnamen sind projektweit nicht eindeutig,
+        // die zusätzlich gespeicherte ID macht die Auflösung zur Laufzeit eindeutig.
+        try {
+            SchemaMigrator.applyReferenceIds(data, (type: string) => {
+                const meta = actionRegistry.getMetadata(type);
+                return meta?.parameters || null;
+            });
+        } catch (e) {
+            EditorDataManager.logger.warn('[SchemaMigrator] Referenz-IDs konnten nicht aufgefüllt werden:', e);
+        }
+
+        // Integritätsprüfung: doppelte Objektnamen über Stages hinweg melden
+        try {
+            ProjectIntegrityValidator.validate(data);
+        } catch (e) {
+            EditorDataManager.logger.warn('[Integrity] Projektprüfung fehlgeschlagen:', e);
         }
 
         // Hydrate objects in legacy lists if present

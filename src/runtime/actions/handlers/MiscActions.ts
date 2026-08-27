@@ -188,7 +188,7 @@ export function registerMiscActions() {
         label: 'Audio abspielen',
         description: 'Spielt ein TAudio-Element (zerolatenz via WebAudio) ab.',
         parameters: [
-            { name: 'target', label: 'Audio-Objekt', type: 'select', source: 'objects', hint: 'Das TAudio Element' }
+            { name: 'target', label: 'Audio-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, hint: 'Das TAudio Element (auch ${Var} mit Objekt-ID/Name)' }
         ]
     });
 
@@ -204,7 +204,7 @@ export function registerMiscActions() {
         label: 'Audio stoppen',
         description: 'Stoppt ein laufendes TAudio-Element.',
         parameters: [
-            { name: 'target', label: 'Audio-Objekt', type: 'select', source: 'objects', hint: 'Das TAudio Element' }
+            { name: 'target', label: 'Audio-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, hint: 'Das TAudio Element (auch ${Var} mit Objekt-ID/Name)' }
         ]
     });
 

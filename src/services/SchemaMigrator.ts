@@ -10,6 +10,7 @@
  */
 
 import { Logger } from '../utils/Logger';
+import { isReferenceParameter, refFieldName, isReplaceableValue } from '../runtime/actions/ActionReferences';
 
 const logger = Logger.get('SchemaMigrator');
 
@@ -358,6 +359,103 @@ export class SchemaMigrator {
                 action[param.name] = param.defaultValue;
             }
         }
+    }
+
+    /**
+     * Fuellt fehlende ID-Referenzfelder (z.B. target_ref) aus dem gespeicherten Namen auf.
+     *
+     * Objektnamen sind projektweit nicht eindeutig — dieselbe Vorlage existiert oft in
+     * mehreren Stages. Deshalb wird der Name zuerst innerhalb der eigenen Stage gesucht,
+     * danach in Blueprint/Main und zuletzt global. Bleibt der Name mehrdeutig, wird kein
+     * Referenzfeld geschrieben und stattdessen gewarnt.
+     *
+     * @returns Anzahl gesetzter Referenzfelder
+     */
+    public static applyReferenceIds(
+        project: any,
+        registryLookup: (type: string) => Array<{ name: string; source?: string }> | null
+    ): number {
+        if (!project) return 0;
+
+        let filledCount = 0;
+
+        const globalScope: any[] = [];
+        SchemaMigrator.collectObjects(project.objects, globalScope);
+        SchemaMigrator.collectObjects(project.variables, globalScope);
+
+        const stages: any[] = Array.isArray(project.stages) ? project.stages : [];
+        const sharedScope: any[] = [];
+        stages
+            .filter(s => s?.type === 'blueprint' || s?.type === 'main')
+            .forEach(s => {
+                SchemaMigrator.collectObjects(s.objects, sharedScope);
+                SchemaMigrator.collectObjects(s.variables, sharedScope);
+            });
+
+        const fillAction = (action: any, scopes: any[][]): void => {
+            if (!action || typeof action !== 'object' || !action.type) return;
+            const params = registryLookup(action.type);
+            if (!params) return;
+
+            for (const param of params) {
+                if (!isReferenceParameter(param)) continue;
+
+                const refKey = refFieldName(param.name);
+                if (action[refKey]) continue;
+
+                const name = action[param.name];
+                if (typeof name !== 'string' || !name || !isReplaceableValue(name)) continue;
+
+                const match = SchemaMigrator.findUniqueByName(name, scopes);
+                if (match?.id) {
+                    action[refKey] = match.id;
+                    filledCount++;
+                } else {
+                    logger.warn(`[Migration] Referenz "${name}" (${action.type}.${param.name}) ist nicht eindeutig aufloesbar — kein ${refKey} gesetzt.`);
+                }
+            }
+        };
+
+        for (const stage of stages) {
+            if (!Array.isArray(stage?.actions)) continue;
+            const localScope: any[] = [];
+            SchemaMigrator.collectObjects(stage.objects, localScope);
+            SchemaMigrator.collectObjects(stage.variables, localScope);
+            stage.actions.forEach((a: any) => fillAction(a, [localScope, sharedScope, globalScope]));
+        }
+
+        if (Array.isArray(project.actions)) {
+            project.actions.forEach((a: any) => fillAction(a, [globalScope, sharedScope]));
+        }
+
+        if (filledCount > 0) {
+            logger.info(`[Migration] Referenz-IDs: ${filledCount} Felder aufgefuellt.`);
+        }
+
+        return filledCount;
+    }
+
+    /** Sammelt Objekte inklusive verschachtelter Kinder in eine flache Liste. */
+    private static collectObjects(list: any, out: any[]): void {
+        if (!Array.isArray(list)) return;
+        for (const obj of list) {
+            if (!obj || typeof obj !== 'object') continue;
+            out.push(obj);
+            if (Array.isArray(obj.children)) SchemaMigrator.collectObjects(obj.children, out);
+        }
+    }
+
+    /**
+     * Sucht einen Namen scope-weise. Der erste Scope mit Treffern entscheidet:
+     * genau ein Treffer gewinnt, mehrere Treffer gelten als mehrdeutig.
+     */
+    private static findUniqueByName(name: string, scopes: any[][]): any | null {
+        for (const scope of scopes) {
+            const hits = scope.filter(o => o?.name === name);
+            if (hits.length === 1) return hits[0];
+            if (hits.length > 1) return null;
+        }
+        return null;
     }
 
     /**

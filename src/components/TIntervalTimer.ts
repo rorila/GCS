@@ -142,6 +142,7 @@ export class TIntervalTimer extends TWindow implements IRuntimeComponent {
                         total: this.count
                     });
                 }
+                this.enabled = false;
             } else {
                 // Nächstes Intervall planen
                 this.timerId = window.setTimeout(tick, this.duration);
