@@ -28,6 +28,11 @@ export interface ActionParameter {
     /** Aktiviert einen V-Button neben dem Eingabefeld, der den VariablePickerDialog oeffnet
      *  und den Wert als ${...}-Binding einfuegt. Aktuell vom select-Renderer ausgewertet. */
     allowVariableBinding?: boolean;
+    /** Ersetzt das Dropdown durch ein Eingabefeld, dessen Optionen als Datalist-Vorschlaege
+     *  erhalten bleiben. Fuer Felder, die auch Werte annehmen, die keine einzelne Auswahl
+     *  sind — z.B. eine Komma-Liste mehrerer Ziele oder ein zusammengesetzter Name wie
+     *  "Karte${i}" in einer Schleife. */
+    allowFreeText?: boolean;
 }
 
 export interface ActionMetadata {

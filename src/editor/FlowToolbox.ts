@@ -24,6 +24,7 @@ export class FlowToolbox {
             { label: 'Action', icon: '🎬', type: 'action' },
             { label: 'If Condition', icon: '❓', type: 'condition' },
             { label: 'For Loop', icon: '🔁', type: 'for' },
+            { label: 'ForEach Loop', icon: '🔄', type: 'foreach' },
             { label: 'While Loop', icon: '🔂', type: 'while' },
             { label: 'Repeat Loop', icon: '⏭️', type: 'repeat' },
             { label: 'Variable', icon: '📦', type: 'VariableDecl' },

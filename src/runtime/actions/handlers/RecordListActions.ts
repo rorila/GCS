@@ -179,7 +179,7 @@ export function registerRecordListActions() {
         description: 'Setzt ein Record-Feld fuer ein Objekt in einer TObjektliste.',
         parameters: [
             LIST_PARAM,
-            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, defaultValue: 'self', placeholder: 'self / Objektname / Zeilenindex' },
+            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, allowFreeText: true, defaultValue: 'self', placeholder: 'self / Objektname / Zeilenindex' },
             FIELD_PARAM,
             { name: 'value', label: 'Wert', type: 'string', placeholder: 'true / false / Zahl / ${var}' }
         ]
@@ -208,7 +208,7 @@ export function registerRecordListActions() {
         description: 'Liest ein Record-Feld eines Objekts in eine Variable.',
         parameters: [
             LIST_PARAM,
-            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, defaultValue: 'self', placeholder: 'self / Objektname / Zeilenindex' },
+            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, allowFreeText: true, defaultValue: 'self', placeholder: 'self / Objektname / Zeilenindex' },
             FIELD_PARAM,
             { name: 'resultVariable', label: 'Ergebnis in Variable', type: 'variable', source: 'variables' }
         ]
@@ -235,7 +235,7 @@ export function registerRecordListActions() {
         description: 'Liefert den 0-basierten Listenindex eines Objekts in einer TObjectList.',
         parameters: [
             LIST_PARAM,
-            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, defaultValue: 'self', placeholder: 'self / Objektname / Zeilenindex' },
+            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, allowFreeText: true, defaultValue: 'self', placeholder: 'self / Objektname / Zeilenindex' },
             { name: 'resultVariable', label: 'Ergebnis in Variable', type: 'variable', source: 'variables' }
         ]
     });

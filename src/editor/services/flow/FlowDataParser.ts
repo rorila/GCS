@@ -30,7 +30,7 @@ export class FlowDataParser {
             case 'condition': node = new FlowCondition(data.id, data.x, data.y, canvas, cellSize); break;
             case 'task': node = new FlowTask(data.id, data.x, data.y, canvas, cellSize); break;
             case 'variabledecl': node = this.restoreVariableNode(data); break;
-            case 'while': case 'for': case 'repeat': node = new FlowLoop(data.id, data.x, data.y, canvas, cellSize, type); break;
+            case 'while': case 'for': case 'foreach': case 'repeat': node = new FlowLoop(data.id, data.x, data.y, canvas, cellSize, type); break;
             case 'comment': node = new FlowCommentNode(data.id, data.x, data.y, canvas, cellSize); break;
         }
 

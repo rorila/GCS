@@ -157,6 +157,7 @@ export class FlowGraphManager {
             }
             case 'While':
             case 'For':
+            case 'Foreach':
             case 'Repeat': {
                 node = new FlowLoop(id, x, y, this.host.canvas, this.host.flowStage.cellSize, type as any);
                 node.Name = type;

@@ -514,6 +514,14 @@ export class PascalCodeGenerator {
                 lines.push(`${space}${this.span('FOR', '#c586c0', asHtml)} ${this.span(item.iteratorVar || 'i', '#9cdcfe', asHtml)} := ${this.span((item.from ?? 0).toString(), '#b5cea8', asHtml)} ${this.span('TO', '#c586c0', asHtml)} ${this.span((item.to ?? 10).toString(), '#b5cea8', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
                 if (item.body) this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                 lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
+            } else if (item.type === 'foreach') {
+                const anyItem = item as any;
+                const idxPart = anyItem.indexVar
+                    ? `, ${this.span(anyItem.indexVar, '#9cdcfe', asHtml)}`
+                    : '';
+                lines.push(`${space}${this.span('FOR EACH', '#c586c0', asHtml)} ${this.span(anyItem.itemVar || 'item', '#9cdcfe', asHtml)}${idxPart} ${this.span('IN', '#c586c0', asHtml)} ${this.span(anyItem.sourceArray || '?', '#9cdcfe', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
+                if (item.body) this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
+                lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
             }
         });
     }

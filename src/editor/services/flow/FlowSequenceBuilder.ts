@@ -166,12 +166,47 @@ export class FlowSequenceBuilder {
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet, nextConn.data?.startAnchorType);
             } else if (['while', 'for', 'repeat', 'foreach'].includes(nodeType)) {
                 const loop: any = { type: nodeType, body: [] };
-                if (nodeType === 'while') loop.condition = node.properties?.text || '';
-                if (nodeType === 'repeat') loop.count = parseInt(node.properties?.text) || 1;
+                if (nodeType === 'while') {
+                    // Bevorzugt das Objekt aus node.data, sonst Text parsen.
+                    loop.condition = node.data?.condition || this.parseConditionText(node.properties?.text);
+                } else if (nodeType === 'for') {
+                    const loopData = node.data?.loop || {};
+                    loop.iteratorVar = loopData.iterator || loopData.iteratorVar || 'i';
+                    loop.from = loopData.from !== undefined ? loopData.from : 0;
+                    loop.to = loopData.to !== undefined ? loopData.to : 10;
+                    loop.step = loopData.step || 1;
+                } else if (nodeType === 'repeat') {
+                    loop.count = parseInt(node.properties?.text) || 1;
+                } else if (nodeType === 'foreach') {
+                    loop.sourceArray = node.data?.sourceArray || '';
+                    loop.itemVar = node.data?.itemVar || 'item';
+                    if (node.data?.indexVar) loop.indexVar = node.data.indexVar;
+                }
+                // Stabiler Schluessel fuer die Layout-Persistenz (flowLayout wird
+                // ueber Namen indexiert, nicht ueber die generierte Node-ID).
+                const loopName = node.properties?.name || node.data?.name;
+                if (loopName) loop.name = loopName;
+
                 targetSeq.push(loop);
 
-                const bodyConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom'));
-                const nextConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'bottom');
+                // WICHTIG: FlowLoop erbt von FlowCondition. Der Schleifen-Body haengt
+                // deshalb am true-Anker, der Ausgang am false-Anker (siehe
+                // FlowInteractionManager.setupAnchor). Zuvor wurde hier nur nach
+                // 'output'/'bottom' gesucht — dadurch blieb loop.body immer leer und
+                // die Kette hinter der Schleife brach ab, sodass die Folge-Nodes als
+                // standaloneNodes abgelegt wurden.
+                const bodyConn = connections.find(c => c.startTargetId === nodeId && (
+                    c.data?.startAnchorType === 'true' ||
+                    c.data?.startAnchorType === 'body' ||
+                    c.data?.startAnchorType === 'output' ||
+                    c.data?.isTrueBranch === true
+                ));
+                const nextConn = connections.find(c => c.startTargetId === nodeId && (
+                    c.data?.startAnchorType === 'false' ||
+                    c.data?.startAnchorType === 'exit' ||
+                    c.data?.startAnchorType === 'bottom' ||
+                    c.data?.isFalseBranch === true
+                ));
 
                 if (bodyConn) buildSequence(bodyConn.endTargetId, loop.body, new Set([nodeId]));
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
@@ -384,19 +419,46 @@ export class FlowSequenceBuilder {
                     lastAnchor = 'bottom';
 
                 } else if (['while', 'for', 'repeat', 'foreach'].includes(item.type)) {
+                    const loopData: any = {};
+                    if (item.type === 'for') {
+                        loopData.loop = {
+                            iterator: item.iteratorVar || 'i',
+                            from: item.from !== undefined ? item.from : 0,
+                            to: item.to !== undefined ? item.to : 10,
+                            step: item.step || 1
+                        };
+                    } else if (item.type === 'while') {
+                        loopData.condition = typeof item.condition === 'object' ? { ...item.condition } : item.condition;
+                    } else if (item.type === 'foreach') {
+                        // Ohne diese Rueckuebertragung stehen Liste und
+                        // Element-Variable nach dem Neuladen wieder leer da.
+                        loopData.sourceArray = item.sourceArray || '';
+                        loopData.itemVar = item.itemVar || 'item';
+                        if (item.indexVar) loopData.indexVar = item.indexVar;
+                    } else if (item.type === 'repeat') {
+                        loopData.count = item.count !== undefined ? item.count : 1;
+                    }
                     elements.push({
                         id, type: item.type.charAt(0).toUpperCase() + item.type.slice(1) as any,
                         x: currentX, y: currentY,
                         width: NODE_WIDTH, height: NODE_HEIGHT,
-                        properties: { text: item.condition || item.count || item.name || '' }
+                        properties: {
+                            // name wird fuer die Layout-Zuordnung (flowLayout) benoetigt.
+                            name: item.name || '',
+                            text: item.condition || item.count || item.name || ''
+                        },
+                        data: loopData
                     });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
                         data: { startAnchorType: lastAnchor, endAnchorType: 'top' }
                     });
-                    const bodyRes = process(item.body || [], id, 'output', currentX, currentY + Y_SPACING);
-                    lastId = id; lastAnchor = 'bottom';
-                    currentY = bodyRes.endY + Y_SPACING;
+                    // Body am true-Anker (rechts), Ausgang am false-Anker (unten) —
+                    // passend zu FlowLoop (erbt von FlowCondition) und zum
+                    // Auslese-Pfad oben. Layout analog zur Condition-Verzweigung.
+                    const bodyRes = process(item.body || [], id, 'true', currentX + BRANCH_OFFSET, currentY, 'input');
+                    lastId = id; lastAnchor = 'false';
+                    currentY = Math.max(currentY + Y_SPACING, bodyRes.endY);
 
                 } else {
                     const isTask = item.type === 'execute_task' || item.type === 'task';
@@ -438,5 +500,26 @@ export class FlowSequenceBuilder {
             process(task.actionSequence, rootId);
         }
         return { elements, connections };
+    }
+
+    /**
+     * Versucht, einen einfachen Bedingungs-Text in das erwartete Objekt-Format
+     * { variable, operator, value } zu parsen. Fallback: ganzer Text als Variable
+     * mit true-Vergleich.
+     */
+    private parseConditionText(text: string = ''): any {
+        const trimmed = text?.trim() || '';
+        const match = trimmed.match(/^(.+?)\s*(=|<>|<|>|<=|>=)\s*(.+)$/);
+        if (match) {
+            let val: any = match[3].trim();
+            if (val.startsWith("'") && val.endsWith("'")) val = val.slice(1, -1);
+            else if (!isNaN(Number(val))) val = Number(val);
+            return {
+                variable: match[1].trim(),
+                operator: match[2] === '=' ? '==' : (match[2] === '<>' ? '!=' : match[2]),
+                value: val
+            };
+        }
+        return { variable: trimmed, operator: '==', value: true };
     }
 }

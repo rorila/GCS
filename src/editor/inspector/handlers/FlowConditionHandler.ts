@@ -10,8 +10,8 @@ export class FlowConditionHandler implements IInspectorHandler {
 
     canHandle(obj: any): boolean {
         const type = typeof obj?.getType === 'function' ? obj.getType() : null;
-        // FlowLoop (for/while/repeat) wird von FlowLoopHandler behandelt
-        if (type === 'for' || type === 'while' || type === 'repeat') {
+        // FlowLoop (for/foreach/while/repeat) wird von FlowLoopHandler behandelt
+        if (type === 'for' || type === 'foreach' || type === 'while' || type === 'repeat') {
             return false;
         }
 

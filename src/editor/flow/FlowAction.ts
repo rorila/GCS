@@ -581,6 +581,7 @@ export class FlowAction extends FlowElement {
                         hint: param.hint,
                         visibleWhen: param.visibleWhen, defaultValue: param.defaultValue,
                         allowVariableBinding: param.allowVariableBinding,
+                        allowFreeText: param.allowFreeText,
                         placeholder: param.placeholder
                     };
                     if (param.options) field.options = param.options.map((o: string) => ({ value: o, label: o }));

@@ -161,6 +161,7 @@ export class FlowNodeFactory {
             }
             case 'while':
             case 'for':
+            case 'foreach':
             case 'repeat':
                 node = new FlowLoop(id, x, y, this.host.canvas, cellSize, baseType as any);
                 node.Name = type;

@@ -187,6 +187,14 @@ export class EditorRunManager {
                         && renderer.updateSpriteFrame(obj)) {
                         return;
                     }
+                    // PERF: Animationen schreiben transform/opacity bis zu 60x/s auf
+                    // Ziel und Kinder — ohne Fast-Path jeweils mit Theme-Merge,
+                    // Align-Rechnung und Inhalts-Rebuild.
+                    if ((prop === 'style.transform' || prop === 'style.opacity')
+                        && typeof renderer.updateObjectTransform === 'function'
+                        && renderer.updateObjectTransform(obj)) {
+                        return;
+                    }
                     if (typeof renderer.updateSingleObject === 'function') {
                         renderer.updateSingleObject(obj);
                     }

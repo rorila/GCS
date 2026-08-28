@@ -1,4 +1,5 @@
 import { TaskConditionEvaluator } from './TaskConditionEvaluator';
+import { PropertyHelper } from '../PropertyHelper';
 import { Logger } from '../../utils/Logger';
 
 export class TaskLoopHandler {
@@ -75,11 +76,18 @@ export class TaskLoopHandler {
             return;
         }
 
-        const arrayName = item.sourceArray;
-        const arr = vars[arrayName] !== undefined ? vars[arrayName] : globalVars[arrayName];
+        // Der Variablen-Picker traegt Namen teils als ${Name} ein.
+        const arrayName = String(item.sourceArray).replace(/^\$\{\s*/, '').replace(/\s*\}$/, '').trim();
+
+        const raw = vars[arrayName] !== undefined ? vars[arrayName] : globalVars[arrayName];
+
+        // GameRuntime legt jede Komponente zusaetzlich unter ihrem Namen in die
+        // Vars — dort steckt also z.B. die TObjectList selbst, kein Array.
+        // resolveValue kennt alle Ablage-Slots (data/items/entries/value).
+        const arr = PropertyHelper.resolveValue(raw);
 
         if (!Array.isArray(arr)) {
-            TaskLoopHandler.logger.warn(`FOREACH: ${arrayName} is not an array`);
+            TaskLoopHandler.logger.warn(`FOREACH: "${arrayName}" ist keine Liste (${typeof arr}).`);
             return;
         }
 

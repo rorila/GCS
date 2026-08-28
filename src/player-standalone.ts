@@ -414,6 +414,14 @@ class UniversalPlayer implements StageHost {
                 // PERF: Reine Frame-Wechsel (Animation, bis zu 60x/s) brauchen keinen
                 // vollständigen Objekt-Update mit Theme-Merge und Layout-Neuberechnung.
                 if (prop === 'imageIndex' && this.renderer.updateSpriteFrame(obj)) return;
+                // PERF: Animationen (flip, fade, spin ...) schreiben transform/opacity
+                // bis zu 60x/s auf Ziel und Kinder. Der Fast-Path spart dabei
+                // Theme-Merge, Align-Rechnung und den Inhalts-Rebuild.
+                if ((prop === 'style.transform' || prop === 'style.opacity')
+                    && typeof this.renderer.updateObjectTransform === 'function'
+                    && this.renderer.updateObjectTransform(obj)) {
+                    return;
+                }
                 if (typeof this.renderer.updateSingleObject === 'function') {
                     this.renderer.updateSingleObject(obj);
                 }

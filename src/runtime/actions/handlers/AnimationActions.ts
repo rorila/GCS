@@ -139,7 +139,7 @@ export function registerAnimationActions() {
         label: 'Komponente animieren',
         description: 'Startet eine Animation/Effekt auf einer Komponente.',
         parameters: [
-            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, defaultValue: '', placeholder: '--- Komponente auswählen ---', hint: 'Das zu animierende Objekt ("self" = das auslösende Objekt, oder ${Var} mit Objekt-ID/Name)' },
+            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', allowVariableBinding: true, allowFreeText: true, defaultValue: '', placeholder: '--- Komponente auswählen ---', hint: 'Das zu animierende Objekt ("self" = das auslösende Objekt, oder ${Var} mit Objekt-ID/Name). Mehrere Ziele durch Komma trennen, z.B. "Karte1, Karte2".' },
             { name: 'effect', label: 'Effekt', type: 'select', options: [
                 'shake', 'pulse', 'bounce', 'fade', 
                 'grow', 'shrink', 'explode', 'pop', 'implode',

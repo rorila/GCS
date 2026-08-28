@@ -728,22 +728,18 @@ export class InspectorSectionRenderer {
             // Phase 2 (SYNC_REFACTOR): wasMissing-Writer ENTFERNT.
             // Defaults werden beim Laden geschrieben, nicht zur Render-Zeit.
 
-            const select = context.renderer.renderSelect(
-                Array.isArray(options) ? options : [],
-                effectiveValue,
-                placeholderText
-            );
             const selectName = propDef.controlName || propDef.name || '';
-            if (selectName) select.name = selectName;
-            select.onchange = async () => {
-                InspectorSectionRenderer.syncReferenceId(propDef, select.value, obj, isFlowNode);
+
+            // Uebernahme-Logik, die Dropdown und Freitext-Feld gemeinsam nutzen.
+            const commitValue = async (newValue: string) => {
+                InspectorSectionRenderer.syncReferenceId(propDef, newValue, obj, isFlowNode);
                 // Phase 3 (SYNC_REFACTOR): Kein Doppel-Dispatch mehr.
                 // FlowNodes nutzen NUR applyChange als einzigen Writer.
                 if (isFlowNode && typeof obj.applyChange === 'function') {
-                    const needsReRender = obj.applyChange(propDef.name, select.value, currentValue);
+                    const needsReRender = obj.applyChange(propDef.name, newValue, currentValue);
                     mediatorService.notifyDataChanged({
                         property: propDef.name,
-                        value: select.value,
+                        value: newValue,
                         oldValue: currentValue,
                         object: obj
                     }, 'inspector');
@@ -753,7 +749,7 @@ export class InspectorSectionRenderer {
                 } else if (context.eventHandler) {
                     // Nicht-FlowNodes: Legacy-Pfad via handleControlChange
                     const event = context.eventHandler.handleControlChange(
-                        selectName, select.value, obj,
+                        selectName, newValue, obj,
                         { ...propDef, property: propDef.name }
                     );
                     if (event) {
@@ -767,13 +763,51 @@ export class InspectorSectionRenderer {
                     }
                     // Bei Ziel-Wechsel: Inspector neu rendern damit Methoden-Liste sich aktualisiert
                     if (propDef.name === 'target' || propDef.name === 'service') {
-                        PropertyHelper.setPropertyValue(obj, propDef.name, select.value);
+                        PropertyHelper.setPropertyValue(obj, propDef.name, newValue);
                         context.update(obj);
                     }
                 }
             };
-            select.style.flex = '1';
-            container.appendChild(select);
+
+            // Bei allowFreeText tritt ein Eingabefeld an die Stelle des Dropdowns.
+            // Die Optionen bleiben als Datalist-Vorschlaege erhalten, zusaetzlich sind
+            // Werte moeglich, die keine einzelne Auswahl sind — etwa eine Komma-Liste
+            // mehrerer Ziele oder ein zusammengesetzter Name wie "Karte${i}".
+            let selectEl: HTMLSelectElement | null = null;
+            if (propDef.allowFreeText) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'inspector-input';
+                input.value = String(currentValue ?? '');
+                if (placeholderText) input.placeholder = placeholderText;
+                if (propDef.hint) input.title = propDef.hint;
+                if (selectName) input.name = selectName;
+                input.style.cssText = 'flex:1;background:#222;color:#fff;border:1px solid #444;border-radius:3px;padding:4px 6px;font-size:12px;outline:none;box-sizing:border-box;';
+
+                const datalist = document.createElement('datalist');
+                datalist.id = `dl-${selectName || 'opt'}-${Math.random().toString(36).slice(2, 8)}`;
+                (Array.isArray(options) ? options : []).forEach((o: any) => {
+                    const opt = document.createElement('option');
+                    opt.value = typeof o === 'object' && o !== null ? o.value : o;
+                    datalist.appendChild(opt);
+                });
+                input.setAttribute('list', datalist.id);
+
+                input.onchange = () => commitValue(input.value.trim());
+                container.appendChild(input);
+                container.appendChild(datalist);
+            } else {
+                const select = context.renderer.renderSelect(
+                    Array.isArray(options) ? options : [],
+                    effectiveValue,
+                    placeholderText
+                );
+                if (selectName) select.name = selectName;
+                select.onchange = () => commitValue(select.value);
+                select.style.flex = '1';
+                container.appendChild(select);
+                selectEl = select;
+            }
 
             // Optional: V-Button fuer Variable-Binding via VariablePickerDialog.
             // Ermoeglicht Stage-/Task-Variablen, Repeater-Felder und Pfade wie ${obj.prop},
@@ -781,14 +815,15 @@ export class InspectorSectionRenderer {
             if (propDef.allowVariableBinding) {
                 // Falls aktueller Wert ein ${...}-Binding ist und nicht in den Optionen
                 // vorkommt, als Zusatz-Option einblenden, damit das Select ihn anzeigt.
-                if (typeof currentValue === 'string' && currentValue.includes('${')) {
-                    const exists = Array.from(select.options).some(o => o.value === currentValue);
+                // Im Freitext-Feld ist das nicht noetig: dort steht der Wert direkt drin.
+                if (selectEl && typeof currentValue === 'string' && currentValue.includes('${')) {
+                    const exists = Array.from(selectEl.options).some((o: HTMLOptionElement) => o.value === currentValue);
                     if (!exists) {
                         const opt = document.createElement('option');
                         opt.value = currentValue;
                         opt.text = currentValue + ' (Variable)';
                         opt.selected = true;
-                        select.appendChild(opt);
+                        selectEl.appendChild(opt);
                     }
                 }
 

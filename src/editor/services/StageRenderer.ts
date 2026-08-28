@@ -17,6 +17,7 @@ import { TextObjectRenderer } from './renderers/TextObjectRenderer';
 import { themeRegistry } from '../../runtime/ThemeRegistry';
 import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 import { getDialogSlideOffset } from './renderers/DialogSlide';
+import { dataUrlToBlobUrl } from '../../utils/BlobUrlCache';
 const logger = Logger.get('StageRenderer', 'Component_Manipulation');
 
 /**
@@ -1186,6 +1187,10 @@ export class StageRenderer {
             // Nur Hintergrundfarbe setzen; das Bild wird als <img> Child gerendert
             el.style.background = bgColor;
             el.style.backgroundImage = 'none';
+            // Die background-Kurzform loescht backgroundImage: Diff-Cache verwerfen,
+            // sonst wuerde ein spaeter wieder identischer Pfad nicht neu gesetzt.
+            const spriteFp = (el as any)._fp;
+            if (spriteFp) spriteFp.bgImage = undefined;
             return;
         }
 
@@ -1214,16 +1219,33 @@ export class StageRenderer {
                 src = [...parts, encodeURIComponent(lastPart)].join('/');
             }
 
+            // PERF: Eingebettete Base64-Bilder sind mehrere hundert Kilobyte lang.
+            // Als kurze Blob-URL wird die CSSOM-Zuweisung praktisch kostenlos und
+            // der Browser dekodiert das Bild nur einmal — unabhaengig davon, wie
+            // viele Komponenten es nutzen.
+            src = dataUrlToBlobUrl(src);
+
             if ((el as any).lastLoggedSrc !== src) {
                 logger.info(`%c[BG-PATH-DIAG] "${objId}" (${className}) FINAL path: "${src.substring(0, 150)}" runMode=${this.host.runMode}`, 'color: #ffa500; font-weight: bold');
                 (el as any).lastLoggedSrc = src;
             }
 
             const fit = obj.objectFit || 'contain';
-            el.style.backgroundImage = `url("${src}")`;
-            el.style.backgroundPosition = 'center';
-            el.style.backgroundSize = fit;
-            el.style.backgroundRepeat = 'no-repeat';
+            // PERF: Bei eingebetteten Base64-Bildern ist `src` mehrere hundert
+            // Kilobyte gross. Ohne den Diff-Cache wurde die komplette url(...)
+            // pro Aufruf neu zusammengesetzt und ins CSSOM geschrieben — bei
+            // Animationen 60x pro Sekunde und Objekt.
+            const bgFp = ((el as any)._fp ||= {});
+            if (bgFp.bgImage !== src) {
+                bgFp.bgImage = src;
+                el.style.backgroundImage = `url("${src}")`;
+            }
+            if (bgFp.bgFit !== fit) {
+                bgFp.bgFit = fit;
+                el.style.backgroundSize = fit;
+                el.style.backgroundPosition = 'center';
+                el.style.backgroundRepeat = 'no-repeat';
+            }
             el.style.backgroundColor = bgColor;
         } else {
             // TGroupPanel: Im Editor-Modus hellgrau hinterlegen damit es sichtbar bleibt,
@@ -1237,6 +1259,10 @@ export class StageRenderer {
             } else {
                 el.style.background = bgColor;
             }
+            // Die background-Kurzform loescht backgroundImage: Diff-Cache verwerfen,
+            // sonst wuerde ein spaeter wieder identischer Pfad nicht neu gesetzt.
+            const clearedFp = (el as any)._fp;
+            if (clearedFp) clearedFp.bgImage = undefined;
         }
     }
 
@@ -1363,7 +1389,11 @@ export class StageRenderer {
                     el.style.pointerEvents = 'none';
                 }
             } else {
-                el.style.transition = '';
+                // Die Transition gehoert waehrend einer CSS-Animation dem
+                // AnimationManager; ein Reset wuerde sie sofort beenden.
+                if (!(el as any)._cssAnimActive) {
+                    el.style.transition = '';
+                }
                 (el.style as any).translate = `${finalX}px ${finalY}px`;
             }
         } else {
@@ -1372,6 +1402,62 @@ export class StageRenderer {
             el.style.width = `${finalW}px`;
             el.style.height = `${finalH}px`;
         }
+    }
+
+    /**
+     * PERF-FAST-PATH: Schreibt ausschliesslich transform/opacity ins DOM.
+     *
+     * Animationen (z.B. der flip-Effekt) setzen diese beiden Werte bis zu 60x pro
+     * Sekunde — und zwar auf dem Ziel UND allen seinen Kindern. Ueber
+     * `updateSingleObject` haenge daran jedes Mal Theme-Merge, Align-Rechnung,
+     * `applyBackground` und ein kompletter Inhalts-Rebuild.
+     *
+     * Bewusst NICHT an den Tween-Zustand gekoppelt: Der letzte Schreibzugriff einer
+     * Animation (Reset auf '') erfolgt erst, wenn der Tween bereits entfernt ist.
+     * Eine Kopplung wuerde genau diesen Reset verschlucken und das Objekt sichtbar
+     * im Zwischenzustand stehen lassen.
+     *
+     * @returns true, wenn der Fast-Path angewendet wurde.
+     */
+    public updateObjectTransform(obj: any): boolean {
+        if (!this.host || !this.host.element || !obj || !obj.id) return false;
+
+        const el = this.getCachedElement(obj.id);
+        if (!el) return false;
+
+        const fp = ((el as any)._fp ||= {});
+
+        // Waehrend einer CSS-Animation gehoert der Transform dem AnimationManager.
+        if (!(el as any)._cssAnimActive) {
+            let transformStr = (obj.style && obj.style.transform !== undefined) ? obj.style.transform : '';
+            if (obj.rotation) {
+                transformStr += ` rotate(${obj.rotation}deg)`;
+            }
+            transformStr = transformStr.trim();
+            if (fp.transform !== transformStr) {
+                fp.transform = transformStr;
+                el.style.transform = transformStr;
+            }
+        }
+
+        if (obj.style && obj.style.opacity !== undefined) {
+            const resolved = this.getResolvedStyleValue(obj, 'opacity');
+            if (resolved !== undefined) {
+                const opacityValue = String(resolved);
+                if (fp.opacity !== opacityValue) {
+                    fp.opacity = opacityValue;
+                    el.style.opacity = opacityValue;
+                }
+            }
+        } else if (obj.opacity !== undefined) {
+            const opacityValue = String(obj.opacity);
+            if (fp.opacity !== opacityValue) {
+                fp.opacity = opacityValue;
+                el.style.opacity = opacityValue;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -1573,9 +1659,14 @@ export class StageRenderer {
             if (obj.style.fontWeight !== undefined) el.style.fontWeight = obj.style.fontWeight;
             if (obj.style.textShadow !== undefined) el.style.textShadow = obj.style.textShadow;
             if (obj.style.fontSize !== undefined) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
-            let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
-            if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
-            el.style.transform = tStr.trim();
+            // Waehrend einer CSS-Animation (siehe AnimationManager.runCssTransform)
+            // liegt der aktuelle Transform nur am DOM, nicht im Modell. Ein
+            // Zurueckschreiben wuerde die laufende Animation abbrechen.
+            if (!(el as any)._cssAnimActive) {
+                let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
+                if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
+                el.style.transform = tStr.trim();
+            }
 
             // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor, Prio 3 = strukturierte Shadow-Parameter
             if (obj.style.boxShadow) {

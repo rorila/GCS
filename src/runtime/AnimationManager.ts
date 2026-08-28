@@ -3,6 +3,7 @@
  * Ermöglicht die weiche Animation beliebiger numerischer Eigenschaften.
  */
 import { Logger } from '../utils/Logger';
+import { cssUrlToBlobUrl } from '../utils/BlobUrlCache';
 
 const logger = Logger.get('AnimationManager');
 
@@ -307,49 +308,60 @@ export class AnimationManager {
      * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt via CSS Transform.
      */
     public shake(target: any, intensity: number = 5, duration: number = 500): void {
-        if (!target || !target.style) return;
-        this.addTween(target, '_virtual', 1, duration, 'linear', () => {
-            target.style.transform = ''; // reset
-        }, (val) => {
-            if (val < 1) {
-                const offsetX = (Math.random() - 0.5) * intensity * 2;
-                const offsetY = (Math.random() - 0.5) * intensity * 2;
-                target.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-            }
-        });
+        if (!target) return;
+        const el = this.findVisibleElement(target.id);
+        if (!el) return;
+
+        // Der Zufalls-Versatz wird in diskrete Schritte vorberechnet, statt ihn
+        // pro Frame neu zu ziehen. Bei einem Ruettel-Effekt ist das optisch nicht
+        // unterscheidbar, kostet aber statt ~30 reaktiver Schreibzugriffe nur
+        // einen DOM-Zugriff je Schritt.
+        const stepCount = Math.max(2, Math.round(duration / 50));
+        const stepDuration = Math.max(1, Math.round(duration / stepCount));
+        const steps = [];
+        for (let i = 0; i < stepCount; i++) {
+            const offsetX = (Math.random() - 0.5) * intensity * 2;
+            const offsetY = (Math.random() - 0.5) * intensity * 2;
+            steps.push({
+                transform: `translate(${offsetX}px, ${offsetY}px)`,
+                duration: stepDuration,
+                easing: 'linear'
+            });
+        }
+        this.runCssTransform(el, steps);
     }
 
     /**
      * Lässt ein Objekt kurzzeitig aufpumpen und wieder schrumpfen (Pulse).
      */
     public pulse(target: any, scale: number = 1.15, duration: number = 500): void {
-        if (!target || !target.style) return;
-        this.addTween(target, '_virtual', 1, duration / 2, 'easeOut', () => {
-            // Zurück animieren
-            this.addTween(target, '_virtual', 0, duration / 2, 'easeIn', () => {
-                target.style.transform = ''; // reset
-            }, (val) => {
-                const currentScale = 1 + (scale - 1) * val;
-                target.style.transform = `scale(${currentScale})`;
-            });
-        }, (val) => {
-            const currentScale = 1 + (scale - 1) * val;
-            target.style.transform = `scale(${currentScale})`;
-        });
+        if (!target) return;
+        const el = this.findVisibleElement(target.id);
+        if (!el) return;
+
+        const half = Math.max(1, duration / 2);
+        this.runCssTransform(el, [
+            { transform: `scale(${scale})`, duration: half, easing: 'ease-out' },
+            { transform: 'scale(1)', duration: half, easing: 'ease-in' }
+        ]);
     }
 
     /**
      * Lässt ein Objekt einmal nach oben hüpfen (Bounce).
      */
     public bounce(target: any, heightPx: number = 20, duration: number = 500): void {
-        if (!target || !target.style) return;
-        this.addTween(target, '_virtual', 1, duration, 'linear', () => {
-            target.style.transform = ''; // reset
-        }, (val) => {
-            // Parabel-Funktion für einen Sprung: 4 * x * (1 - x)
-            const jumpProgress = 4 * val * (1 - val); 
-            target.style.transform = `translateY(-${jumpProgress * heightPx}px)`;
-        });
+        if (!target) return;
+        const el = this.findVisibleElement(target.id);
+        if (!el) return;
+
+        // Die fruehere Parabel 4x(1-x) entspricht einem Hoch- und einem
+        // Runter-Bogen. Als zwei Transitions mit ease-out/ease-in ergibt sich
+        // derselbe Sprungverlauf.
+        const half = Math.max(1, duration / 2);
+        this.runCssTransform(el, [
+            { transform: `translateY(-${heightPx}px)`, duration: half, easing: 'ease-out' },
+            { transform: 'translateY(0px)', duration: half, easing: 'ease-in' }
+        ]);
     }
 
     /**
@@ -427,45 +439,102 @@ export class AnimationManager {
      * Wandelt einen CSS-Bildwert der Form url("data:image/png;base64,...") in
      * eine Blob-URL um.
      *
-     * Hintergrund: Sprite-Bilder liegen als Base64-Data-URL vor und sind damit
-     * mehrere hundert Kilobyte lang. Jede Zuweisung an style.backgroundImage
-     * laesst den CSS-Parser die komplette Nutzlast durchlaufen. In explode()
-     * geschieht das einmal je Fragment. Eine Blob-URL ist rund 45 Zeichen kurz,
-     * wodurch die Zuweisungen kostenlos werden und der Browser das Bild nur
-     * einmal dekodiert.
-     *
-     * Bewusst ohne regulaeren Ausdruck: Backtracking auf einem so langen String
-     * waere selbst wieder teuer. Bei unerwartetem Format bleibt der Originalwert
-     * unveraendert, der Effekt funktioniert dann wie bisher.
+     * Die Umwandlung liegt jetzt zentral in BlobUrlCache und wird dort global
+     * zwischengespeichert: dasselbe Bild teilt sich ueber alle Komponenten und
+     * Animationen hinweg eine einzige Blob-URL. Zuvor erzeugte jeder explode()
+     * einen neuen Blob, der bis zum Seitenwechsel im Speicher blieb.
      */
     private static toBlobUrl(cssUrl: string): string {
-        if (!cssUrl) return cssUrl;
+        return cssUrlToBlobUrl(cssUrl);
+    }
 
-        let inner = cssUrl.trim();
-        if (!inner.startsWith('url(') || !inner.endsWith(')')) return cssUrl;
-
-        inner = inner.slice(4, -1).trim();
-        if (inner.startsWith('"') || inner.startsWith("'")) inner = inner.slice(1, -1);
-        if (!inner.startsWith('data:')) return cssUrl;
-
-        const comma = inner.indexOf(',');
-        if (comma < 0) return cssUrl;
-
-        const meta = inner.slice(5, comma);
-        if (!meta.endsWith(';base64')) return cssUrl;
-
-        try {
-            const binary = atob(inner.slice(comma + 1));
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
+    /**
+     * Sucht das sichtbare DOM-Element einer Komponente.
+     *
+     * Objekte koennen in mehreren Stages (z.B. Blueprint) gerendert und dort
+     * versteckt sein. Entscheidend ist das Element mit echter Ausdehnung — sonst
+     * animiert der Effekt eine unsichtbare Kopie.
+     */
+    private findVisibleElement(id: string): HTMLElement | null {
+        if (!id) return null;
+        const elements = document.querySelectorAll(`[data-id="${id}"]`);
+        for (let i = 0; i < elements.length; i++) {
+            const el = elements[i] as HTMLElement;
+            if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+                return el;
             }
-            const blob = new Blob([bytes], { type: meta.slice(0, -7) });
-            return `url("${URL.createObjectURL(blob)}")`;
-        } catch (err) {
-            logger.warn(`[AnimationManager.toBlobUrl] Umwandlung fehlgeschlagen, nutze Original.`, err);
-            return cssUrl;
         }
+        // Fallback, falls alle unsichtbar sind (z.B. wenn es vorher schon hidden war)
+        return elements.length > 0 ? (elements[0] as HTMLElement) : null;
+    }
+
+    /**
+     * Fuehrt eine Transform-Animation ueber eine CSS-Transition aus, statt den
+     * Wert pro Frame zu setzen.
+     *
+     * Hintergrund: Ein Tween schreibt bis zu 60x pro Sekunde auf
+     * target.style.transform. Da Komponenten reaktive Proxies sind, loest jeder
+     * dieser Schreibzugriffe die komplette PropertyWatcher-Kette und darueber
+     * einen Renderer-Update aus — pro Frame und pro betroffenem Objekt. Eine
+     * CSS-Transition dagegen wird vom Browser auf dem Compositor-Thread
+     * abgearbeitet: es fallen genau zwei Zuweisungen an, ganz ohne JavaScript
+     * pro Frame. Denselben Weg nutzt explode() bereits fuer seine Fragmente.
+     *
+     * Geschrieben wird direkt am DOM-Element, nicht am Modell. Ein vollstaendiger
+     * Re-Render mitten in der Animation setzt den Transform daher zurueck — das
+     * Verhalten entspricht explode().
+     *
+     * @param steps Liste der Zwischenziele, die nacheinander angefahren werden.
+     * @param onDone Wird nach dem letzten Schritt aufgerufen.
+     */
+    private runCssTransform(
+        el: HTMLElement,
+        steps: Array<{ transform: string; duration: number; easing: string; onStart?: () => void }>,
+        onDone?: () => void
+    ): void {
+        el.style.willChange = 'transform';
+        // Schutzmarkierung: Der Renderer fuehrt transform aus dem Modell. Da wir
+        // hier direkt am DOM animieren, steht dort ''. Ein Renderer-Update mitten
+        // in der Animation — etwa ausgeloest durch den Bildwechsel im
+        // Midpoint-Task — wuerde den Transform sonst zurueckschreiben und die
+        // Animation abbrechen.
+        (el as any)._cssAnimActive = true;
+
+        const runStep = (index: number): void => {
+            if (index >= steps.length) {
+                el.style.transition = '';
+                el.style.transform = '';
+                el.style.willChange = '';
+                delete (el as any)._cssAnimActive;
+                if (onDone) {
+                    try {
+                        onDone();
+                    } catch (e) {
+                        logger.error('[AnimationManager.runCssTransform] Fehler im onDone-Callback:', e);
+                    }
+                }
+                return;
+            }
+
+            const step = steps[index];
+            if (step.onStart) {
+                try {
+                    step.onStart();
+                } catch (e) {
+                    logger.error('[AnimationManager.runCssTransform] Fehler im onStart-Callback:', e);
+                }
+            }
+
+            el.style.transition = `transform ${step.duration}ms ${step.easing}`;
+            el.style.transform = step.transform;
+
+            window.setTimeout(() => runStep(index + 1), step.duration);
+        };
+
+        // Ein Frame Vorlauf: Ohne ihn verrechnet der Browser Start- und Zielwert
+        // im selben Frame und es entsteht keine Transition. Dieselbe Vorkehrung
+        // trifft explode() mit seinem Timeout.
+        requestAnimationFrame(() => runStep(0));
     }
 
     /**
@@ -482,23 +551,9 @@ export class AnimationManager {
 
 
 
-        // DOM-Element des Sprites finden. Da Objekte in mehreren Stages (z.B. Blueprint) 
+        // DOM-Element des Sprites finden. Da Objekte in mehreren Stages (z.B. Blueprint)
         // gerendert, aber versteckt sein können, müssen wir das SICHTBARE Element finden!
-        const elements = document.querySelectorAll(`[data-id="${target.id}"]`);
-        let spriteEl: HTMLElement | null = null;
-
-        for (let i = 0; i < elements.length; i++) {
-            const el = elements[i] as HTMLElement;
-            if (el.offsetWidth > 0 && el.offsetHeight > 0) {
-                spriteEl = el;
-                break;
-            }
-        }
-
-        // Fallback, falls alle unsichtbar sind (z.B. wenn es vorher schon hidden war)
-        if (!spriteEl && elements.length > 0) {
-            spriteEl = elements[0] as HTMLElement;
-        }
+        const spriteEl = this.findVisibleElement(target.id);
 
         if (!spriteEl) {
             logger.warn(`[AnimationManager.explode] DOM-Element für "${target.name}" nicht gefunden. Gesuchter Selektor: [data-id="${target.id}"]`);
@@ -673,25 +728,40 @@ export class AnimationManager {
      * Rotation um die eigene Achse.
      */
     public spin(target: any, degrees: number = 360, duration: number = 500): void {
-        if (!target || !target.style) return;
-        this.addTween(target, '_virtual', 1, duration, 'easeInOut', () => {
-            target.style.transform = '';
-        }, (val) => {
-            target.style.transform = `rotate(${val * degrees}deg)`;
-        });
+        if (!target) return;
+        const el = this.findVisibleElement(target.id);
+        if (!el) return;
+
+        // Eine einzige Transition genuegt: der Browser interpoliert die Rotation.
+        this.runCssTransform(el, [
+            { transform: `rotate(${degrees}deg)`, duration: Math.max(1, duration), easing: 'ease-in-out' }
+        ]);
     }
 
     /**
      * Wackel-Effekt: Leichtes Hin-und-Her-Rotieren via Sinus-Funktion.
      */
     public wobble(target: any, intensity: number = 15, duration: number = 500): void {
-        if (!target || !target.style) return;
-        this.addTween(target, '_virtual', 1, duration, 'linear', () => {
-            target.style.transform = '';
-        }, (val) => {
+        if (!target) return;
+        const el = this.findVisibleElement(target.id);
+        if (!el) return;
+
+        // Die abklingende Sinus-Kurve wird an ihren Umkehrpunkten abgetastet.
+        // Zwischen diesen Punkten interpoliert der Browser, sodass der Verlauf
+        // dem fruheren Pro-Frame-Sinus entspricht — bei 12 statt ~30 Zugriffen.
+        const stepCount = 12;
+        const stepDuration = Math.max(1, Math.round(duration / stepCount));
+        const steps = [];
+        for (let i = 1; i <= stepCount; i++) {
+            const val = i / stepCount;
             const angle = Math.sin(val * Math.PI * 6) * intensity * (1 - val);
-            target.style.transform = `rotate(${angle}deg)`;
-        });
+            steps.push({
+                transform: `rotate(${angle}deg)`,
+                duration: stepDuration,
+                easing: 'linear'
+            });
+        }
+        this.runCssTransform(el, steps);
     }
 
     /**
@@ -719,23 +789,10 @@ export class AnimationManager {
      * Feuert bei exakt 50% der Dauer den optionalen onMidpoint-Callback,
      * damit Inhalte (Bilder/Texte) gewechselt werden können.
      */
-    public flip(target: any, duration: number = 600, onMidpoint?: () => void, children?: any[]): void {
+    public flip(target: any, duration: number = 600, onMidpoint?: () => void, _children?: any[]): void {
         if (!target) return;
 
-        // Kinder ermitteln, die zum Target gehören (per parentId)
-        const childObjects = (children || []).filter(c => c && (c.parentId === target.id || c.parentId === target.name));
-
         let midpointFired = false;
-
-        const setAllTransforms = (value: string) => {
-            if (!target.style) target.style = {};
-            target.style.transform = value;
-            for (const child of childObjects) {
-                if (!child.style) child.style = {};
-                child.style.transform = value;
-            }
-        };
-
         const fireMidpoint = () => {
             if (midpointFired) return;
             midpointFired = true;
@@ -748,19 +805,24 @@ export class AnimationManager {
             }
         };
 
-        this.addTween(target, '_virtual', 1, duration, 'easeInOut', () => {
-            setAllTransforms(''); // Reset am Ende
-            fireMidpoint(); // Sicherstellen, dass der Callback spätestens am Ende ausgeführt wurde
-        }, (val) => {
-            // Bei exakt 50% oder knapp drüber feuern wir den Midpoint-Callback
-            if (val >= 0.5) {
-                fireMidpoint();
-            }
+        const el = this.findVisibleElement(target.id);
+        if (!el) {
+            // Ohne DOM-Element laesst sich nichts animieren. Der Midpoint-Callback
+            // muss trotzdem laufen, sonst bleibt die Spiellogik (z.B. der
+            // Bildwechsel einer Memory-Karte) haengen.
+            logger.warn(`[AnimationManager.flip] DOM-Element für "${target.name}" nicht gefunden. Führe nur den Midpoint-Task aus.`);
+            fireMidpoint();
+            return;
+        }
 
-            // Visueller 3D-Flip über Skalierung (Absolutwert verhindert spiegelverkehrte Darstellung)
-            const scale = Math.abs(Math.cos(val * Math.PI));
-            setAllTransforms(`scaleX(${scale})`);
-        });
+        // Die Kinder brauchen keine eigene Transformation: Sie liegen im
+        // transformierten Eltern-Element und werden vom Browser mitskaliert.
+        // Zuvor wurde jedes Kind einzeln pro Frame beschrieben.
+        const half = Math.max(1, duration / 2);
+        this.runCssTransform(el, [
+            { transform: 'scaleX(0)', duration: half, easing: 'ease-in' },
+            { transform: 'scaleX(1)', duration: half, easing: 'ease-out', onStart: fireMidpoint }
+        ], fireMidpoint);
     }
 }
 

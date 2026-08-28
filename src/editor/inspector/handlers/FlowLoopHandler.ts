@@ -6,7 +6,7 @@ export class FlowLoopHandler implements IInspectorHandler {
     canHandle(obj: any): boolean {
         const type = typeof obj?.getType === 'function' ? obj.getType() : null;
         const name = obj?.constructor?.name;
-        return obj && (name === 'FlowLoop' || ['for', 'while', 'repeat'].includes(type));
+        return obj && (name === 'FlowLoop' || ['for', 'foreach', 'while', 'repeat'].includes(type));
     }
 
     getInspectorTemplate(): string | null {

@@ -40,6 +40,40 @@ export class PropertyHelper {
     }
 
     /**
+     * Wandelt Klammer-Zugriffe eines Bindungspfades in Punkt-Segmente um.
+     *
+     * Unterstuetzt drei Formen:
+     *   [0]      → .0        (numerisches Literal)
+     *   ['name'] → .name     (quotierter Schluessel)
+     *   [i]      → .3        (Variable; Wert wird aus `vars` aufgeloest)
+     *
+     * Die Variablen-Form ist z.B. fuer FOR-Schleifen wichtig, deren
+     * Zaehlervariable in `vars` liegt: `${MeineListe[i].name}`.
+     * Laesst sich eine Variable nicht aufloesen, bleibt der Name als Segment
+     * stehen — der anschliessende Lookup schlaegt dann sichtbar fehl statt
+     * stillschweigend einen falschen Index zu verwenden.
+     */
+    private static normalizeIndexAccess(path: string, vars?: Record<string, any>): string {
+        if (!path.includes('[')) return path;
+
+        return path.replace(/\[([^\]]+)\]/g, (_match, rawKey) => {
+            const key = String(rawKey).trim();
+
+            if (/^\d+$/.test(key)) return '.' + key;
+
+            const quoted = key.match(/^['"](.*)['"]$/);
+            if (quoted) return '.' + quoted[1];
+
+            const resolved = this.resolveValue(vars?.[key]);
+            if (resolved === undefined || resolved === null || resolved === '') {
+                logger.warn(`Index-Variable "${key}" in "${path}" konnte nicht aufgeloest werden.`);
+                return '.' + key;
+            }
+            return '.' + String(resolved);
+        });
+    }
+
+    /**
      * Reads a property value using a dot-path (e.g., "style.backgroundColor")
      */
     static getPropertyValue(obj: any, propPath: string): any {
@@ -271,7 +305,7 @@ export class PropertyHelper {
         const traceEnabled = logger.isEnabled(LogLevel.INFO);
 
         return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
-            const trimmedPath = path.trim().replace(/\[(\d+)\]/g, '.$1');
+            const trimmedPath = this.normalizeIndexAccess(path.trim(), vars);
             if (traceEnabled) logger.info(`Starting interpolation for path: "${trimmedPath}"`);
             // 0. Try literals first
             if (trimmedPath === 'true') return 'true';
