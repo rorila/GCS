@@ -28,6 +28,9 @@ export class PropertyWatcher {
     /** Hochfrequente Animations-Eigenschaften (fade, shake, shrink/grow). */
     private static readonly HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity', 'transform', 'style.transform', 'width', 'height', 'style.width', 'style.height']);
 
+    /** Render-Koordinaten, die der GameLoop jeden Frame aktualisiert. */
+    private static readonly HIGH_FREQ_RENDER_PROPS = new Set(['renderX', 'renderY']);
+
     // Map: Object -> Map: PropertyPath -> Set of Callbacks
     private watchers = new Map<any, Map<string, Set<(newValue: any, oldValue: any) => void>>>();
 
@@ -150,12 +153,13 @@ export class PropertyWatcher {
             const objName = target.name || target.id || 'Unknown';
             const isInternal = PropertyWatcher.INTERNAL_PROPERTIES.has(propertyPath) || propertyPath.startsWith('_');
             const isHighFreqSprite = PropertyWatcher.HIGH_FREQ_SPRITE_PROPS.has(propertyPath) && target?.className === 'TSprite';
+            const isHighFreqRender = PropertyWatcher.HIGH_FREQ_RENDER_PROPS.has(propertyPath);
 
             // Bei Animations-Eigenschaften loggen wir nur die ALLERERSTE Änderung (wenn oldValue undefined ist),
             // damit im Log sichtbar ist, DASS eine Animation gestartet wurde. Das 60fps-Spamming danach wird ignoriert.
             const isHighFreqAnimSpam = PropertyWatcher.HIGH_FREQ_ANIM_PROPS.has(propertyPath) && oldValue !== undefined;
 
-            if (!isInternal && !isHighFreqSprite && !isHighFreqAnimSpam) {
+            if (!isInternal && !isHighFreqSprite && !isHighFreqAnimSpam && !isHighFreqRender) {
                 const safeStringify = (v: any): string | undefined => {
                     if (typeof v !== 'object' || v === null) return v;
                     try {
