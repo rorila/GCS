@@ -3,6 +3,7 @@ import { TWindow } from './TWindow';
 import { Logger } from '../utils/Logger';
 import { ExpressionParser } from '../runtime/ExpressionParser';
 import { GameLoopManager } from '../runtime/GameLoopManager';
+import { PerfOverlay } from '../utils/PerfOverlay';
 
 const logger = Logger.get('TTimer');
 
@@ -16,6 +17,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
     private timerId: number | null = null;
     private onTimerCallback: (() => void) | null = null;
     public onEvent: ((eventName: string) => void) | null = null;
+    public watcherQuery: ((prop: string) => boolean) | null = null;
     private runtimeContextVars: Record<string, any> | null = null;
     private isRunning: boolean = false;
 
@@ -143,18 +145,20 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         // Re-check in case the timer was stopped/restarted before the queued tick fires
         if (this.timerId !== tickId || !this.enabled) return;
 
-        // Direkt auf this schreiben — falls this selbst im Proxy registriert ist,
-        // feuert der set-Trap korrekt. Falls __proxy__ auf ein anderes Objekt zeigt
-        // (sameTarget=false), schreiben wir zusätzlich über den Proxy um den
-        // richtigen Watcher zu notifizieren.
+        PerfOverlay.phaseBegin('timer');
+        try {
+        // PERF: Der Proxy-Schreibpfad löst den kompletten Notify-Apparat aus
+        // (Watcher + globale Render-Listener). Das ist nur nötig, wenn tatsächlich
+        // jemand currentInterval beobachtet (z.B. ein UI-Binding). Sonst direkt schreiben.
         const proxy = (this as any).__proxy__;
-        if (proxy && (proxy as any).__target__ === this) {
-            // Proxy referenziert this korrekt — normaler Pfad
+        const needsNotify = !this.watcherQuery || this.watcherQuery('currentInterval');
+        if (needsNotify && proxy && (proxy as any).__target__ === this) {
+            // Proxy referenziert this korrekt — normaler Pfad mit Notify
             proxy.currentInterval++;
         } else {
-            // Fallback: Direkt schreiben + Proxy des clone aktuell halten
+            // Direkt schreiben (kein Notify) + Proxy des clone aktuell halten
             this.currentInterval++;
-            if (proxy) proxy.currentInterval = this.currentInterval;
+            if (proxy && (proxy as any).__target__ !== this) proxy.currentInterval = this.currentInterval;
         }
 
         // Fire onTimer event. Prefer onEvent if present (runtime/editor),
@@ -173,6 +177,11 @@ export class TTimer extends TWindow implements IRuntimeComponent {
             if (this.onEvent) {
                 this.onEvent('onMaxIntervalReached');
             }
+        }
+        } finally {
+            PerfOverlay.markTimerTick();
+            const ms = PerfOverlay.phaseEnd('timer');
+            if (ms && ms > 16) PerfOverlay.markSlowEvent('onTimer', ms);
         }
     }
 

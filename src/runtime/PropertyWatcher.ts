@@ -17,7 +17,7 @@ export class PropertyWatcher {
     // gebraucht werden.
 
     /** Interne Eigenschaften, die im Benutzer-Log nichts verloren haben. */
-    private static readonly INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className', 'timerId', 'onTimerCallback', 'interval', 'runtimeCallbacks', 'onEventCallback']);
+    private static readonly INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className', 'timerId', 'onTimerCallback', 'interval', 'currentInterval', 'runtimeCallbacks', 'onEventCallback']);
 
     /**
      * Sprite-Eigenschaften, die der Game-Loop 60x pro Sekunde schreibt.
@@ -59,10 +59,6 @@ export class PropertyWatcher {
         if (!target || typeof target !== 'object') {
             PropertyWatcher.logger.warn(`Cannot watch non-object: ${target}`);
             return;
-        }
-
-        if (target?.name === 'StageTimer' || propertyPath === 'currentInterval') {
-            PropertyWatcher.logger.debug(`[TIMER-DEBUG] watch() called: object="${target?.name || target?.id}", path="${propertyPath}", watcherMapKey=${target === this.watchers.keys().next().value ? 'first-key' : 'other'}, isProxy=${!!(object as any).__isProxy__}`);
         }
 
         // Initialize watchers for this object if needed
@@ -144,11 +140,6 @@ export class PropertyWatcher {
      */
     notify(object: any, propertyPath: string, newValue: any, oldValue?: any): void {
         const target = this.unwrap(object);
-
-        if (target?.name === 'StageTimer' || propertyPath === 'currentInterval') {
-            const hasWatcher = this.watchers.has(target);
-            PropertyWatcher.logger.debug(`[TIMER-DEBUG] notify() called: object="${target?.name || target?.id}", path="${propertyPath}", newValue=${newValue}, watcherFound=${hasWatcher}, totalWatchedObjects=${this.watchers.size}`);
-        }
 
         const objectWatchers = this.watchers.get(target);
 

@@ -61,6 +61,15 @@ export class ReactiveRuntime {
     }
 
     /**
+     * Prueft, ob fuer ein Objekt/Property ein spezifischer Watcher registriert ist.
+     * Erlaubt Hot-Path-Komponenten (z.B. TTimer.currentInterval), den teuren
+     * Proxy-Notify-Pfad zu ueberspringen, wenn niemand zuhoert.
+     */
+    hasWatcher(obj: any, propertyPath: string): boolean {
+        return this.watcher.getWatcherCount(obj, propertyPath) > 0;
+    }
+
+    /**
      * Registers a variable
      * @param name Variable name
      * @param value Initial value

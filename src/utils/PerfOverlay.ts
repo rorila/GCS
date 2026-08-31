@@ -38,7 +38,7 @@ interface HeapInfo {
  *  coll   - Kollision, Boundaries, Stage-Exits
  *  dom    - Schreiben der Positionen in den DOM
  */
-export type PerfPhase = 'spr' | 'upd' | 'anim' | 'interp' | 'coll' | 'dom';
+export type PerfPhase = 'spr' | 'upd' | 'anim' | 'interp' | 'coll' | 'dom' | 'timer' | 'ev';
 
 export class PerfOverlay {
     private static instance: PerfOverlay | null = null;
@@ -79,9 +79,9 @@ export class PerfOverlay {
     private shownWorkAvgMs: number = 0;
 
     // Phasen-Aufschluesselung der Loop-Arbeit (Summen der laufenden Sekunde)
-    private phaseStart: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0 };
-    private phaseSum: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0 };
-    private shownPhase: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0 };
+    private phaseStart: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0, timer: 0, ev: 0 };
+    private phaseSum: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0, timer: 0, ev: 0 };
+    private shownPhase: Record<PerfPhase, number> = { spr: 0, upd: 0, anim: 0, interp: 0, coll: 0, dom: 0, timer: 0, ev: 0 };
 
     // Kontext, ohne den die Phasenzeiten nicht einzuordnen sind: Wie viele
     // Physikschritte lief die Fixed-Step-Schleife, und wie viele Sprites
@@ -89,6 +89,13 @@ export class PerfOverlay {
     private stepsSum: number = 0;
     private shownStepsAvg: number = 0;
     private spriteCount: number = 0;
+
+    private timerTickCount: number = 0;
+    private shownTimerTickCount: number = 0;
+
+    private lastSlowEvent: { name: string; ms: number } | null = null;
+    private shownSlowEvent: string = '-';
+    private readonly SLOW_EVENT_MS = 16;
 
     // Anzeigewerte der letzten abgeschlossenen Sekunde
     private fps: number = 0;
@@ -224,14 +231,30 @@ export class PerfOverlay {
         inst.phaseStart[phase] = performance.now();
     }
 
-    /** Beendet die Messung eines Loop-Abschnitts und summiert die Dauer. */
-    public static phaseEnd(phase: PerfPhase): void {
+    /** Beendet die Messung eines Loop-Abschnitts und summiert die Dauer. Liefert die Dauer zurück. */
+    public static phaseEnd(phase: PerfPhase): number | undefined {
+        const inst = PerfOverlay.instance;
+        if (!inst || !inst.running) return undefined;
+        const start = inst.phaseStart[phase];
+        if (start === 0) return undefined;
+        inst.phaseStart[phase] = 0;
+        const ms = performance.now() - start;
+        inst.phaseSum[phase] += ms;
+        return ms;
+    }
+
+    public static markTimerTick(): void {
         const inst = PerfOverlay.instance;
         if (!inst || !inst.running) return;
-        const start = inst.phaseStart[phase];
-        if (start === 0) return;
-        inst.phaseStart[phase] = 0;
-        inst.phaseSum[phase] += performance.now() - start;
+        inst.timerTickCount++;
+    }
+
+    public static markSlowEvent(name: string, ms: number): void {
+        const inst = PerfOverlay.instance;
+        if (!inst || !inst.running) return;
+        if (ms > inst.SLOW_EVENT_MS) {
+            inst.lastSlowEvent = { name, ms };
+        }
     }
 
     /**
@@ -255,6 +278,8 @@ export class PerfOverlay {
         this.phaseSum.interp = 0;
         this.phaseSum.coll = 0;
         this.phaseSum.dom = 0;
+        this.phaseSum.timer = 0;
+        this.phaseSum.ev = 0;
     }
 
     public start(): void {
@@ -354,7 +379,14 @@ export class PerfOverlay {
             this.shownPhase.interp = this.phaseSum.interp / loopFrames;
             this.shownPhase.coll = this.phaseSum.coll / loopFrames;
             this.shownPhase.dom = this.phaseSum.dom / loopFrames;
+            this.shownPhase.timer = this.phaseSum.timer / loopFrames;
+            this.shownPhase.ev = this.phaseSum.ev / loopFrames;
             this.shownStepsAvg = this.stepsSum / loopFrames;
+
+            this.shownTimerTickCount = this.timerTickCount;
+            this.timerTickCount = 0;
+            this.shownSlowEvent = this.lastSlowEvent ? `${this.lastSlowEvent.name} ${this.lastSlowEvent.ms.toFixed(1)}ms` : '-';
+            this.lastSlowEvent = null;
 
             this.frameCount = 0;
             this.worstFrameMs = 0;
@@ -462,7 +494,8 @@ export class PerfOverlay {
             `FPS ${this.fps}   target ${targetStr}   worst ${this.shownWorstMs.toFixed(0)}ms\n` +
             `js ø${this.shownWorkAvgMs.toFixed(1)} / max ${this.shownWorkMs.toFixed(1)}ms   rest ${this.shownRestMs.toFixed(0)}ms\n` +
             `spr ${this.shownPhase.spr.toFixed(1)}  upd ${this.shownPhase.upd.toFixed(1)}  anim ${this.shownPhase.anim.toFixed(1)}  interp ${this.shownPhase.interp.toFixed(1)}\n` +
-            `coll ${this.shownPhase.coll.toFixed(1)}  dom ${this.shownPhase.dom.toFixed(1)}   (øms)\n` +
+            `coll ${this.shownPhase.coll.toFixed(1)}  dom ${this.shownPhase.dom.toFixed(1)}  timer ${this.shownPhase.timer.toFixed(1)}  ev ${this.shownPhase.ev.toFixed(1)} (øms)\n` +
+            `ticks ${this.shownTimerTickCount}  slow ${this.shownSlowEvent}\n` +
             `steps ø${this.shownStepsAvg.toFixed(2)}   sprites ${this.spriteCount}\n` +
             `hitches ${this.hitchCount}  (max ${this.worstEverMs.toFixed(0)}ms)\n` +
             frozenLine +

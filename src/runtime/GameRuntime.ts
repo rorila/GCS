@@ -17,6 +17,7 @@ import { AudioManager } from './AudioManager';
 import { buildEventContext } from './EventContext';
 import { themeRegistry } from './ThemeRegistry';
 import { Logger } from '../utils/Logger';
+import { PerfOverlay } from '../utils/PerfOverlay';
 
 const logger = Logger.get('GameRuntime', 'Runtime_Execution');
 export interface RuntimeOptions {
@@ -415,6 +416,9 @@ export class GameRuntime implements IVariableHost {
                 if ('onEvent' in obj) {
                     (obj as any).onEvent = (eventName: string) => this.handleEvent(obj.id, eventName);
                 }
+            }
+            if (obj.className === 'TTimer') {
+                (obj as any).watcherQuery = (prop: string) => this.reactiveRuntime.hasWatcher(obj, prop);
             }
         });
 
@@ -934,6 +938,8 @@ export class GameRuntime implements IVariableHost {
         const obj = this.objects.find(o => o.id === objectId);
         if (!obj) return;
 
+        PerfOverlay.phaseBegin('ev');
+
         const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
         
         let hasTaskMap: any = undefined;
@@ -1006,7 +1012,10 @@ export class GameRuntime implements IVariableHost {
                 this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
             }
         } finally {
-            // Auto-Sleep: GameLoop aufwecken, falls Event zu Aktivität geführt hat
+            const evMs = PerfOverlay.phaseEnd('ev');
+            if (evMs && evMs > 16) PerfOverlay.markSlowEvent(eventName, evMs);
+
+            // Auto-Sleep: GameLoop aufwecken, falls Event zu Aktivitaet gefuehrt hat
             // (z.B. PhysikAktivieren setzt spritesMoving=true, Countdown startet Animationen)
             GameLoopManager.getInstance().wakeUp();
 
