@@ -2,6 +2,7 @@ import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
 import { Logger } from '../utils/Logger';
 import { ExpressionParser } from '../runtime/ExpressionParser';
+import { GameLoopManager } from '../runtime/GameLoopManager';
 
 const logger = Logger.get('TTimer');
 
@@ -127,41 +128,51 @@ export class TTimer extends TWindow implements IRuntimeComponent {
                     return;
                 }
 
-                // Direkt auf this schreiben — falls this selbst im Proxy registriert ist,
-                // feuert der set-Trap korrekt. Falls __proxy__ auf ein anderes Objekt zeigt
-                // (sameTarget=false), schreiben wir zusätzlich über den Proxy um den
-                // richtigen Watcher zu notifizieren.
-                const proxy = (this as any).__proxy__;
-                if (proxy && (proxy as any).__target__ === this) {
-                    // Proxy referenziert this korrekt — normaler Pfad
-                    proxy.currentInterval++;
+                const glm = GameLoopManager.getInstance();
+                if (glm.isRunning()) {
+                    glm.enqueueTimerTick(() => this.fireTick(currentId));
                 } else {
-                    // Fallback: Direkt schreiben + Proxy des clone aktuell halten
-                    this.currentInterval++;
-                    if (proxy) proxy.currentInterval = this.currentInterval;
-                }
-
-                // Fire onTimer event via callback (legacy)
-                if (this.onTimerCallback) {
-                    this.onTimerCallback();
-                }
-
-                // Fire onTimer event via onEvent (for call_method initiated timers)
-                if (this.onEvent) {
-                    this.onEvent('onTimer');
-                }
-
-                // Check if max interval reached
-                const maxInt = Number(this.maxInterval);
-                if (maxInt > 0 && this.currentInterval >= maxInt) {
-                    logger.info(`[TTimer] "${this.name}": MaxInterval reached (${maxInt})`);
-                    this.stop();
-                    if (this.onEvent) {
-                        this.onEvent('onMaxIntervalReached');
-                    }
+                    this.fireTick(currentId);
                 }
             }, this.interval);
             this.timerId = currentId;
+        }
+    }
+
+    private fireTick(tickId: number): void {
+        // Re-check in case the timer was stopped/restarted before the queued tick fires
+        if (this.timerId !== tickId || !this.enabled) return;
+
+        // Direkt auf this schreiben — falls this selbst im Proxy registriert ist,
+        // feuert der set-Trap korrekt. Falls __proxy__ auf ein anderes Objekt zeigt
+        // (sameTarget=false), schreiben wir zusätzlich über den Proxy um den
+        // richtigen Watcher zu notifizieren.
+        const proxy = (this as any).__proxy__;
+        if (proxy && (proxy as any).__target__ === this) {
+            // Proxy referenziert this korrekt — normaler Pfad
+            proxy.currentInterval++;
+        } else {
+            // Fallback: Direkt schreiben + Proxy des clone aktuell halten
+            this.currentInterval++;
+            if (proxy) proxy.currentInterval = this.currentInterval;
+        }
+
+        // Fire onTimer event. Prefer onEvent if present (runtime/editor),
+        // otherwise fall back to the legacy callback (call_method initiated timers).
+        if (this.onEvent) {
+            this.onEvent('onTimer');
+        } else if (this.onTimerCallback) {
+            this.onTimerCallback();
+        }
+
+        // Check if max interval reached
+        const maxInt = Number(this.maxInterval);
+        if (maxInt > 0 && this.currentInterval >= maxInt) {
+            logger.info(`[TTimer] "${this.name}": MaxInterval reached (${maxInt})`);
+            this.stop();
+            if (this.onEvent) {
+                this.onEvent('onMaxIntervalReached');
+            }
         }
     }
 

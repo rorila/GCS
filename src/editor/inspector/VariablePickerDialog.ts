@@ -13,13 +13,16 @@ export class VariablePickerDialog {
     /**
      * Öffnet den Variablen-Auswahl-Dialog und gibt den gewählten Variablennamen zurück.
      * @param context Optional: Zusätzlicher Kontext (z.B. für Repeater-Daten)
-     * @param mode Modus: 'all' für alles (default), 'variable' für nur Variablen, 'component' für nur Komponenten
+     * @param mode Modus: 'all' für alles (default), 'variable' für nur Variablen, 'component' für nur Komponenten, 'list_element' für Listeneinträge, 'component_reference' für Objektreferenzen, 'special' für Laufzeitwerte
      * @returns Promise<string | null> - Gewählter Wert oder null bei Abbruch
      *   - Im 'variable'-Modus: "${VariablenName}" (z.B. "${score}")
      *   - Im 'component'-Modus: "Komponente.Eigenschaft" (z.B. "Sprite1.x")
+     *   - Im 'list_element'-Modus: "myList[0]"
+     *   - Im 'component_reference'-Modus: "Ufo" (reine Referenz)
+     *   - Im 'special'-Modus: "StageTimer"
      *   - Im 'all'-Modus: wie bisher (je nach Auswahl)
      */
-    public static show(context?: { objectId?: string, repeaterFields?: string[] }, mode: 'all' | 'variable' | 'component' | 'pure_variable' = 'all'): Promise<string | null> {
+    public static show(context?: { objectId?: string, repeaterFields?: string[] }, mode: 'all' | 'variable' | 'component' | 'pure_variable' | 'list_element' | 'component_reference' | 'special' = 'all'): Promise<string | null> {
         return new Promise((resolve) => {
             const overlay = VariablePickerDialog.createOverlay();
             const dialog = VariablePickerDialog.createDialog();
@@ -42,8 +45,8 @@ export class VariablePickerDialog {
 
             // Modus-Auswahl (Radio-Buttons)
             const modeRow = document.createElement('div');
-            modeRow.style.cssText = 'padding:12px 16px; border-bottom:1px solid #333; display:flex; gap:16px; align-items:center;';
-            
+            modeRow.style.cssText = 'padding:12px 16px; border-bottom:1px solid #333; display:flex; gap:16px; align-items:center; flex-wrap:wrap;';
+
             const allRadio = document.createElement('label');
             allRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
             const allRadioInput = document.createElement('input');
@@ -56,7 +59,7 @@ export class VariablePickerDialog {
             allLabel.innerText = '📋 Alles';
             allRadio.appendChild(allRadioInput);
             allRadio.appendChild(allLabel);
-            
+
             const variableRadio = document.createElement('label');
             variableRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
             const variableRadioInput = document.createElement('input');
@@ -66,10 +69,10 @@ export class VariablePickerDialog {
             variableRadioInput.checked = mode === 'variable' || mode === 'pure_variable';
             variableRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
             const variableLabel = document.createElement('span');
-            variableLabel.innerText = '📦 Nur Variablen';
+            variableLabel.innerText = '📦 Variablen';
             variableRadio.appendChild(variableRadioInput);
             variableRadio.appendChild(variableLabel);
-            
+
             const componentRadio = document.createElement('label');
             componentRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
             const componentRadioInput = document.createElement('input');
@@ -79,13 +82,55 @@ export class VariablePickerDialog {
             componentRadioInput.checked = mode === 'component';
             componentRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
             const componentLabel = document.createElement('span');
-            componentLabel.innerText = '🔧 Nur Komponenten';
+            componentLabel.innerText = '🔧 Eigenschaft';
             componentRadio.appendChild(componentRadioInput);
             componentRadio.appendChild(componentLabel);
-            
+
+            const listRadio = document.createElement('label');
+            listRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const listRadioInput = document.createElement('input');
+            listRadioInput.type = 'radio';
+            listRadioInput.name = 'pickerMode';
+            listRadioInput.value = 'list_element';
+            listRadioInput.checked = mode === 'list_element';
+            listRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const listLabel = document.createElement('span');
+            listLabel.innerText = '📋 Listenelement';
+            listRadio.appendChild(listRadioInput);
+            listRadio.appendChild(listLabel);
+
+            const compRefRadio = document.createElement('label');
+            compRefRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const compRefRadioInput = document.createElement('input');
+            compRefRadioInput.type = 'radio';
+            compRefRadioInput.name = 'pickerMode';
+            compRefRadioInput.value = 'component_reference';
+            compRefRadioInput.checked = mode === 'component_reference';
+            compRefRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const compRefLabel = document.createElement('span');
+            compRefLabel.innerText = '🔗 Referenz';
+            compRefRadio.appendChild(compRefRadioInput);
+            compRefRadio.appendChild(compRefLabel);
+
+            const specialRadio = document.createElement('label');
+            specialRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const specialRadioInput = document.createElement('input');
+            specialRadioInput.type = 'radio';
+            specialRadioInput.name = 'pickerMode';
+            specialRadioInput.value = 'special';
+            specialRadioInput.checked = mode === 'special';
+            specialRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const specialLabel = document.createElement('span');
+            specialLabel.innerText = '✨ Sonderwert';
+            specialRadio.appendChild(specialRadioInput);
+            specialRadio.appendChild(specialLabel);
+
             modeRow.appendChild(allRadio);
             modeRow.appendChild(variableRadio);
             modeRow.appendChild(componentRadio);
+            modeRow.appendChild(listRadio);
+            modeRow.appendChild(compRefRadio);
+            modeRow.appendChild(specialRadio);
             dialog.appendChild(modeRow);
 
             // Suchfeld
@@ -104,7 +149,7 @@ export class VariablePickerDialog {
             dialog.appendChild(content);
 
             // Aktuellen Modus tracken
-            let currentMode: 'all' | 'variable' | 'component' | 'pure_variable' = mode;
+            let currentMode: 'all' | 'variable' | 'component' | 'pure_variable' | 'list_element' | 'component_reference' | 'special' = mode;
 
             // self-Klasse (für Property-Picker) aus dem Kontext oder Default
             let selectedSelfClass = 'TSprite';
@@ -119,14 +164,58 @@ export class VariablePickerDialog {
                     currentMode = 'all';
                 } else if (variableRadioInput.checked) {
                     currentMode = mode === 'pure_variable' ? 'pure_variable' : 'variable';
-                } else {
+                } else if (componentRadioInput.checked) {
                     currentMode = 'component';
+                } else if (listRadioInput.checked) {
+                    currentMode = 'list_element';
+                } else if (compRefRadioInput.checked) {
+                    currentMode = 'component_reference';
+                } else if (specialRadioInput.checked) {
+                    currentMode = 'special';
+                } else {
+                    currentMode = 'all';
                 }
                 renderList(searchInput.value);
             };
             allRadioInput.onchange = updateMode;
             variableRadioInput.onchange = updateMode;
             componentRadioInput.onchange = updateMode;
+            listRadioInput.onchange = updateMode;
+            compRefRadioInput.onchange = updateMode;
+            specialRadioInput.onchange = updateMode;
+
+            // Warnung für Komponenten-Referenzen
+            const warningPanel = document.createElement('div');
+            warningPanel.style.cssText = 'display:none; margin:8px 16px 0; padding:12px 16px; background:#3a2e05; border:1px solid #e67e22; border-radius:6px; color:#e67e22; font-size:13px;';
+            const warningText = document.createElement('div');
+            warningText.innerText = 'Achtung: Eine Komponentenreferenz wird ungültig, wenn die Komponente zerstört oder recycelt wird.';
+            warningText.style.marginBottom = '8px';
+            const warningBtnRow = document.createElement('div');
+            warningBtnRow.style.cssText = 'display:flex; gap:8px;';
+            const confirmBtn = document.createElement('button');
+            confirmBtn.innerText = 'Trotzdem verwenden';
+            confirmBtn.style.cssText = 'padding:4px 8px; background:#e67e22; color:#fff; border:none; border-radius:3px; cursor:pointer; font-size:12px;';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.innerText = 'Abbrechen';
+            cancelBtn.style.cssText = 'padding:4px 8px; background:#444; color:#fff; border:1px solid #555; border-radius:3px; cursor:pointer; font-size:12px;';
+            warningBtnRow.appendChild(confirmBtn);
+            warningBtnRow.appendChild(cancelBtn);
+            warningPanel.appendChild(warningText);
+            warningPanel.appendChild(warningBtnRow);
+            dialog.appendChild(warningPanel);
+
+            let pendingValue: string | null = null;
+            confirmBtn.onclick = () => {
+                if (pendingValue) {
+                    overlay.remove();
+                    document.removeEventListener('keydown', keyHandler);
+                    resolve(pendingValue);
+                }
+            };
+            cancelBtn.onclick = () => {
+                warningPanel.style.display = 'none';
+                pendingValue = null;
+            };
 
             // Variablen sammeln
             const variables = projectVariableRegistry.getVariables().map(v => ({ ...v, _isVar: true }));
@@ -153,79 +242,94 @@ export class VariablePickerDialog {
                 }
             }
 
+            const formatValue = (varName: string): string => {
+                if (currentMode === 'variable') return `\${${varName}}`;
+                if (currentMode === 'pure_variable') return varName;
+                return varName;
+            };
+
             const selectVar = (varName: string) => {
-                overlay.remove();
-                
-                // Rückgabewert je nach Modus
-                if (currentMode === 'variable') {
-                    // Nur-Variablen-Modus: "${VariablenName}"
-                    resolve(`\${${varName}}`);
-                } else if (currentMode === 'pure_variable') {
-                    // Reiner Variablenname ohne Wrapper
-                    resolve(varName);
-                } else if (currentMode === 'component') {
-                    // Nur-Komponenten-Modus: "Komponente.Eigenschaft" (bereits im varName enthalten)
-                    resolve(varName);
-                } else {
-                    // All-Modus: wie bisher
-                    resolve(varName);
+                // Komponenten-Referenzen: Warnung anzeigen, erst bei Bestätigung auflösen
+                if (currentMode === 'component_reference') {
+                    pendingValue = varName;
+                    warningPanel.style.display = 'block';
+                    return;
                 }
+                overlay.remove();
+                document.removeEventListener('keydown', keyHandler);
+                resolve(formatValue(varName));
             };
 
             // Render-Funktion
+            const isListLike = (v: any) => v.type === 'list' || v.type === 'object_list' || v.className === 'TListVariable' || v.className === 'TList';
+
             const renderList = (filter: string = '') => {
                 content.innerHTML = '';
                 const filterLower = filter.toLowerCase();
 
-                // Filter je nach Modus
                 const showVariables = currentMode === 'all' || currentMode === 'variable' || currentMode === 'pure_variable';
-                const showComponents = currentMode === 'all' || currentMode === 'component';
+                const showListElements = currentMode === 'list_element';
+                const showComponents = currentMode === 'all' || currentMode === 'component' || currentMode === 'component_reference';
+                const showSpecial = currentMode === 'special';
 
-                const hideSub = currentMode === 'variable' || currentMode === 'pure_variable';
+                const hideSub = currentMode === 'variable' || currentMode === 'pure_variable' || currentMode === 'component_reference';
 
-                // Globale Variablen
-                if (showVariables && globalVars.length > 0) {
-                    const filtered = VariablePickerDialog.filterVars(globalVars, filterLower);
+                // Variablen (gilt auch für list_element, aber nur Listen-Variablen)
+                const sourceGlobal = showListElements ? globalVars.filter(isListLike) : globalVars;
+                const sourceStage = showListElements ? stageVars.filter(isListLike) : stageVars;
+                const sourceTask = showListElements ? taskVars.filter(isListLike) : taskVars;
+
+                if ((showVariables || showListElements) && sourceGlobal.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(sourceGlobal, filterLower);
                     if (filtered.length > 0) {
                         content.appendChild(VariablePickerDialog.createSection('🌐 Globale Variablen', filtered, selectVar, filterLower, hideSub));
                     }
                 }
 
-                // Stage Variablen
-                if (showVariables && stageVars.length > 0) {
-                    const filtered = VariablePickerDialog.filterVars(stageVars, filterLower);
+                if ((showVariables || showListElements) && sourceStage.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(sourceStage, filterLower);
                     if (filtered.length > 0) {
                         content.appendChild(VariablePickerDialog.createSection('🎭 Stage-Variablen', filtered, selectVar, filterLower, hideSub));
                     }
                 }
 
-                // Task Variablen
-                if (showVariables && taskVars.length > 0) {
-                    const filtered = VariablePickerDialog.filterVars(taskVars, filterLower);
+                if ((showVariables || showListElements) && sourceTask.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(sourceTask, filterLower);
                     if (filtered.length > 0) {
                         content.appendChild(VariablePickerDialog.createSection('⚡ Task-Variablen (Lokal)', filtered, selectVar, filterLower, hideSub));
                     }
                 }
 
-                // Globale Komponenten
+                // Komponenten
                 if (showComponents && globalComps.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(globalComps, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('🧩 Globale Komponenten', filtered, selectVar, filterLower));
+                        content.appendChild(VariablePickerDialog.createSection('🧩 Globale Komponenten', filtered, selectVar, filterLower, currentMode === 'component_reference'));
                     }
                 }
 
-                // Stage Komponenten
                 if (showComponents && stageComps.length > 0) {
                     const filtered = VariablePickerDialog.filterVars(stageComps, filterLower);
                     if (filtered.length > 0) {
-                        content.appendChild(VariablePickerDialog.createSection('📦 Stage-Komponenten', filtered, selectVar, filterLower, false, (cls) => {
+                        content.appendChild(VariablePickerDialog.createSection('📦 Stage-Komponenten', filtered, selectVar, filterLower, currentMode === 'component_reference', (cls) => {
                             selectedSelfClass = cls;
                             if (stageComps[0] && stageComps[0].name === 'self') {
                                 stageComps[0].className = cls;
                             }
                             renderList(searchInput.value);
                         }));
+                    }
+                }
+
+                // Sonderwerte
+                if (showSpecial) {
+                    const specials = [
+                        { name: 'StageTimer', label: 'Stage Timer (ms)', uiEmoji: '⏱️' },
+                        { name: 'currentInterval', label: 'Aktuelles Intervall', uiEmoji: '🕐' },
+                        { name: 'currentStage', label: 'Aktuelle Stage', uiEmoji: '🎭' }
+                    ].filter(s => !filterLower || s.name.toLowerCase().includes(filterLower) || s.label.toLowerCase().includes(filterLower));
+                    if (specials.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('✨ Sonderwerte', specials, selectVar, '', false));
                     }
                 }
 

@@ -49,6 +49,12 @@
       "Icon GameToolbox.png",
       "Logo GameToolbox.png"
     ],
+    "Geschosse": [
+      "KanonenGeschossKlein.png",
+      "KanonenGeschoss_optimized.png",
+      "UfoGeschossKlein.png",
+      "UfoGeschoss_optimized.png"
+    ],
     "LadeBildschirme": [
       "Spielekonsole.svg"
     ],
@@ -781,11 +787,13 @@
       "Axelotl.png",
       "Clownfisch.png",
       "KaeheFliegt.png",
+      "KanonenGeschoss_transparent.png",
       "KirscheTransparent.png",
       "KraehenFlugTransparent.png",
       "NewWalkingManImageList.png",
       "Sandhai.png",
       "Schwertfisch.png",
+      "UfoGeschoss_transparent.png",
       "WalkingManImageList.png",
       "WalkingManImageListNo2.png",
       "spritesheet_1786193388727.png",

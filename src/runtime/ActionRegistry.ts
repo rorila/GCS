@@ -23,6 +23,7 @@ export interface ActionParameter {
     options?: string[]; // Hardcoded options for select
     hint?: string;
     placeholder?: string;
+    multiline?: boolean;
     defaultValue?: any;
     visibleWhen?: { field: string; values: any[] };
     /** Aktiviert einen V-Button neben dem Eingabefeld, der den VariablePickerDialog oeffnet

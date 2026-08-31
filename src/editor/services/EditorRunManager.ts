@@ -199,7 +199,7 @@ export class EditorRunManager {
                         renderer.updateSingleObject(obj);
                     }
                 },
-                onSpriteRender: (sprites: any[]) => this.renderSpritesOnly(sprites),
+                onSpriteRender: (sprites: any[], dirtySprites?: any[]) => this.renderSpritesOnly(sprites, dirtySprites),
                 startStageId: startStageId,
                 onStageSwitch: (stageId: string) => this.handleStageSwitch(stageId),
                 onRestartGame: () => {
@@ -339,10 +339,16 @@ export class EditorRunManager {
      * Empfängt die aktuellen Sprite-Objekte DIREKT vom GameLoopManager
      * (nicht die stale Deep-Copy aus runtimeObjects).
      */
-    private renderSpritesOnly(sprites: any[]): void {
-        if (!this.runStage || sprites.length === 0) return;
-        
-        this.runStage.updateSpritePositions(sprites);
+    private renderSpritesOnly(sprites: any[], dirtySprites?: any[]): void {
+        if (!this.runStage) return;
+
+        if (sprites.length > 0) {
+            this.runStage.updateSpritePositions(sprites);
+        }
+
+        if (dirtySprites && dirtySprites.length > 0) {
+            this.runStage.renderer.updateSpriteFrames(dirtySprites);
+        }
     }
 
     public startAnimationTicker() {
@@ -454,10 +460,10 @@ export class EditorRunManager {
                     // GameLoop fortsetzen
                     GameLoopManager.getInstance().resume();
 
-                    // Timer fortsetzen
+                    // Timer fortsetzen (onEvent ist bereits auf handleRuntimeEvent gesetzt)
                     this.activeTimers.forEach(timer => {
                         if (timer && typeof timer.start === 'function') {
-                            timer.start(() => this.handleRuntimeEvent(timer.id, 'onTimer'));
+                            timer.start(() => {});
                         }
                     });
                 }

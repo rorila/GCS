@@ -561,33 +561,40 @@ export class FlowAction extends FlowElement {
             konfProps.push({ name: 'eventPayload', label: 'Payload (JSON/Token)', type: 'string' });
         } else {
             // Registry-basierte Action-Typen (http, service, navigate_stage, etc.)
-            const meta = actionRegistry.getMetadata(effectiveType);
-            if (meta?.parameters) {
-                const methodName = this.getActionDefinition()?.method || '';
-                meta.parameters.forEach((param: any) => {
-                    // call_method: params nur anzeigen wenn Methode Parameter hat
-                    if (effectiveType === 'call_method' && param.name === 'params') {
-                        const knownMethod = methodName in MethodRegistry;
-                        const signature = knownMethod ? MethodRegistry[methodName] : null;
-                        if (!signature || signature.length === 0) return;
-                    }
-                    // call_method: resultVariable nur anzeigen wenn Methode Rückgabewert hat
-                    if (effectiveType === 'call_method' && param.name === 'resultVariable') {
-                        if (!MethodReturnMap[methodName]) return;
-                    }
-                    const field: any = {
-                        name: param.name, label: param.label,
-                        type: this.mapParameterTypeToInspector(param.type),
-                        hint: param.hint,
-                        visibleWhen: param.visibleWhen, defaultValue: param.defaultValue,
-                        allowVariableBinding: param.allowVariableBinding,
-                        allowFreeText: param.allowFreeText,
-                        placeholder: param.placeholder
-                    };
-                    if (param.options) field.options = param.options.map((o: string) => ({ value: o, label: o }));
-                    else if (param.source) field.source = param.source;
-                    konfProps.push(field);
-                });
+            if (effectiveType === 'calculate') {
+                konfProps.push({ name: 'resultVariable', label: 'Ziel', type: 'string', placeholder: 'z.B. myVar', hint: 'Variable, Komponente oder Listenelement' });
+                konfProps.push({ name: 'assignSeparator', label: ':=', type: 'label', style: { textAlign: 'center', fontSize: '16px', color: '#6c63ff', margin: '4px 0' } });
+                konfProps.push({ name: 'formula', label: 'Wert', type: 'string', multiline: true, placeholder: 'z.B. 5 + score', hint: 'Zahl, String, Variable, Komponente oder Ausdruck' });
+            } else {
+                const meta = actionRegistry.getMetadata(effectiveType);
+                if (meta?.parameters) {
+                    const methodName = this.getActionDefinition()?.method || '';
+                    meta.parameters.forEach((param: any) => {
+                        // call_method: params nur anzeigen wenn Methode Parameter hat
+                        if (effectiveType === 'call_method' && param.name === 'params') {
+                            const knownMethod = methodName in MethodRegistry;
+                            const signature = knownMethod ? MethodRegistry[methodName] : null;
+                            if (!signature || signature.length === 0) return;
+                        }
+                        // call_method: resultVariable nur anzeigen wenn Methode Rückgabewert hat
+                        if (effectiveType === 'call_method' && param.name === 'resultVariable') {
+                            if (!MethodReturnMap[methodName]) return;
+                        }
+                        const field: any = {
+                            name: param.name, label: param.label,
+                            type: this.mapParameterTypeToInspector(param.type),
+                            hint: param.hint,
+                            visibleWhen: param.visibleWhen, defaultValue: param.defaultValue,
+                            allowVariableBinding: param.allowVariableBinding,
+                            allowFreeText: param.allowFreeText,
+                            multiline: param.multiline,
+                            placeholder: param.placeholder
+                        };
+                        if (param.options) field.options = param.options.map((o: string) => ({ value: o, label: o }));
+                        else if (param.source) field.source = param.source;
+                        konfProps.push(field);
+                    });
+                }
             }
         }
 

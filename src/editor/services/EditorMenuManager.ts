@@ -16,7 +16,7 @@ import { AgentScriptLibrary } from '../dialogs/AgentScriptLibrary';
 import { AgentScript, ImportOptions } from '../../services/agent/AgentScriptTypes';
 import { AgentController } from '../../services/AgentController';
 import { VideoToSpriteSheetTool } from '../tools/VideoToSpriteSheetTool';
-import { ImageTransparencyTool } from '../tools/ImageTransparencyTool';
+import { ImageOptimizerTool } from '../tools/ImageTransparencyTool';
 import { AudioSequenceTool } from '../tools/AudioSequenceTool';
 import { AssetAnalyzerTool } from '../tools/AssetAnalyzerTool';
 import { invalidateMediaManifestCache } from '../inspector/MediaPickerDialog';
@@ -225,8 +225,8 @@ export class EditorMenuManager {
                 this.openVideoToSpriteSheetTool();
                 break;
             }
-            case 'open-image-transparency': {
-                this.openImageTransparencyTool();
+            case 'open-image-optimizer': {
+                this.openImageOptimizerTool();
                 break;
             }
             case 'open-audio-sequence': {
@@ -362,8 +362,8 @@ export class EditorMenuManager {
         }
     }
 
-    private openImageTransparencyTool(): void {
-        const tool = new ImageTransparencyTool(document.body, 'http://localhost:8080/api/upload/spritesheet');
+    private openImageOptimizerTool(): void {
+        const tool = new ImageOptimizerTool(document.body, 'http://localhost:8080/api/upload/spritesheet');
         tool.onExport = (result) => {
             invalidateMediaManifestCache();
             NotificationToast.show(`Bild '${result.fileName}' gespeichert.`, 'success');

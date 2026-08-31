@@ -1,40 +1,60 @@
 /**
- * ImageTransparencyTool
+ * ImageOptimizerTool (Bild-Optimierer)
  *
- * Macht den Hintergrund eines einzelnen Bilds transparent.
- * Verwendet denselben YCbCr-Chroma-Key wie das VideoToSpriteSheetTool.
+ * Erweitertes Tool für Spiel-Images:
+ * - Hintergrund entfernen (YCbCr-Chroma-Key)
+ * - Auto-Trim (transparente Ränder entfernen)
+ * - Auf Zielgröße skalieren
+ * - Mehrere Bilder zu einem Sprite-Sheet zusammenfügen
+ * - Spiel-Checks (max. Texturgröße, Potenzen von 2)
  *
- * Features:
- * - Bild laden (Datei-Input)
- * - Hintergrundfarbe per Farbwähler oder Pipette auswählen
- * - Toleranz-Einstellung
- * - Live-Vorschau (Original vs. verarbeitet) mit Schachbrett-Hintergrund
- * - Download als PNG
- * - Optionaler Upload ins game-server/public/images
+ * Verwendet denselben Chroma-Key wie das VideoToSpriteSheetTool.
  */
 
-import { removeBackgroundFromImageData } from './ImageUtils';
+import {
+    removeBackgroundFromImageData,
+    trimImageData,
+    resizeImageData,
+    generateSpriteSheet,
+    getTextureWarnings
+} from './ImageUtils';
 import { PromptDialog } from '../ui/PromptDialog';
 
-interface ImageTransparencySettings {
+interface ImageOptimizerSettings {
     backgroundColors: string[];
     tolerance: number;
+    autoTrim: boolean;
+    targetWidth: number | null;
+    targetHeight: number | null;
+    keepAspect: boolean;
+    spriteSheetColumns: number;
+    spriteSheetPadding: number;
 }
 
-export interface ImageTransparencyResult {
+export interface ImageOptimizerResult {
     fileName: string;
     url: string;
     imageBase64: string;
 }
 
-export class ImageTransparencyTool {
+export class ImageOptimizerTool {
     private parent: HTMLElement;
     private uploadUrl: string;
     private container: HTMLElement;
-    private settings: ImageTransparencySettings = {
+    private settings: ImageOptimizerSettings = {
         backgroundColors: ['#00FF00'],
-        tolerance: 30
+        tolerance: 30,
+        autoTrim: false,
+        targetWidth: null,
+        targetHeight: null,
+        keepAspect: true,
+        spriteSheetColumns: 4,
+        spriteSheetPadding: 0
     };
+
+    private frames: { name: string; imageData: ImageData }[] = [];
+    private spriteSheetData: ImageData | null = null;
+    private warningsEl: HTMLElement | null = null;
 
     private originalCanvas: HTMLCanvasElement | null = null;
     private previewCanvas: HTMLCanvasElement | null = null;
@@ -44,7 +64,7 @@ export class ImageTransparencyTool {
     private fileName: string = 'transparent';
     private pasteHandler: ((e: ClipboardEvent) => void) | null = null;
 
-    public onExport: ((result: ImageTransparencyResult) => void) | null = null;
+    public onExport: ((result: ImageOptimizerResult) => void) | null = null;
     public onError: ((msg: string) => void) | null = null;
 
     constructor(parent: HTMLElement, uploadUrl = 'http://localhost:8080/api/upload/spritesheet') {
@@ -89,7 +109,7 @@ export class ImageTransparencyTool {
         for (const file of data.files) {
             if (file.type.startsWith('image/')) {
                 e.preventDefault();
-                this.loadImageFromFile(file);
+                this.loadImagesFromFiles([file]);
                 return;
             }
         }
@@ -101,7 +121,7 @@ export class ImageTransparencyTool {
             if (item.type.startsWith('image/')) {
                 e.preventDefault();
                 const file = item.getAsFile();
-                if (file) this.loadImageFromFile(file);
+                if (file) this.loadImagesFromFiles([file]);
                 return;
             }
         }
@@ -119,7 +139,7 @@ export class ImageTransparencyTool {
         dialog.style.cssText = this.getDialogStyles();
 
         const title = document.createElement('h2');
-        title.textContent = 'Bild-Hintergrund entfernen';
+        title.textContent = 'Bild-Optimierer';
         title.style.cssText = 'margin:0 0 12px 0;font-size:18px;color:#e0d4f5;';
 
         const closeBtn = document.createElement('button');
@@ -135,6 +155,9 @@ export class ImageTransparencyTool {
         this.logEl = document.createElement('div');
         this.logEl.style.cssText = 'font-size:12px;color:#aaa;min-height:18px;';
 
+        this.warningsEl = document.createElement('div');
+        this.warningsEl.style.cssText = 'font-size:12px;color:#ff9f43;min-height:18px;white-space:pre-wrap;';
+
         dialog.appendChild(closeBtn);
         dialog.appendChild(title);
         dialog.appendChild(fileRow);
@@ -142,6 +165,7 @@ export class ImageTransparencyTool {
         dialog.appendChild(previewRow);
         dialog.appendChild(actions);
         dialog.appendChild(this.logEl);
+        dialog.appendChild(this.warningsEl);
 
         this.container.appendChild(dialog);
     }
@@ -156,13 +180,14 @@ export class ImageTransparencyTool {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
+        input.multiple = true;
         input.style.cssText = 'color:#e0d4f5;';
-        input.onchange = () => this.loadFile(input);
+        input.onchange = () => this.loadFiles(input);
 
         row.appendChild(input);
 
         const hint = document.createElement('div');
-        hint.textContent = 'Tipp: Bild auch per Strg+V aus der Zwischenablage einfügen.';
+        hint.textContent = 'Tipp: Mehrere Bilder laden, um ein Sprite-Sheet zu erzeugen. Bilder auch per Strg+V einfügbar.';
         hint.style.cssText = 'font-size:11px;color:#888;';
 
         col.appendChild(row);
@@ -226,8 +251,112 @@ export class ImageTransparencyTool {
         tolWrap.appendChild(tolLabel);
         tolWrap.appendChild(this.toleranceInput);
 
+        const trimWrap = document.createElement('div');
+        trimWrap.style.cssText = 'display:flex;align-items:center;gap:8px;';
+        const trimCheck = document.createElement('input');
+        trimCheck.type = 'checkbox';
+        trimCheck.checked = this.settings.autoTrim;
+        trimCheck.onchange = () => {
+            this.settings.autoTrim = trimCheck.checked;
+            this.updatePreview();
+        };
+        const trimLabel = document.createElement('label');
+        trimLabel.textContent = 'Auto-Trim';
+        trimLabel.style.cssText = 'color:#e0d4f5;font-size:12px;';
+        trimWrap.appendChild(trimCheck);
+        trimWrap.appendChild(trimLabel);
+
+        const sizeWrap = document.createElement('div');
+        sizeWrap.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+        const sizeLabel = document.createElement('label');
+        sizeLabel.textContent = 'Zielgröße:';
+        sizeLabel.style.cssText = 'color:#e0d4f5;font-size:12px;';
+
+        const widthInput = document.createElement('input');
+        widthInput.type = 'number';
+        widthInput.placeholder = 'Breite';
+        widthInput.min = '1';
+        widthInput.value = this.settings.targetWidth ? String(this.settings.targetWidth) : '';
+        widthInput.style.cssText = 'width:70px;padding:4px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:4px;';
+        widthInput.onchange = () => {
+            const v = parseInt(widthInput.value, 10);
+            this.settings.targetWidth = isNaN(v) || v <= 0 ? null : v;
+            this.updatePreview();
+        };
+
+        const heightInput = document.createElement('input');
+        heightInput.type = 'number';
+        heightInput.placeholder = 'Höhe';
+        heightInput.min = '1';
+        heightInput.value = this.settings.targetHeight ? String(this.settings.targetHeight) : '';
+        heightInput.style.cssText = 'width:70px;padding:4px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:4px;';
+        heightInput.onchange = () => {
+            const v = parseInt(heightInput.value, 10);
+            this.settings.targetHeight = isNaN(v) || v <= 0 ? null : v;
+            this.updatePreview();
+        };
+
+        const keepAspectCheck = document.createElement('input');
+        keepAspectCheck.type = 'checkbox';
+        keepAspectCheck.checked = this.settings.keepAspect;
+        keepAspectCheck.onchange = () => {
+            this.settings.keepAspect = keepAspectCheck.checked;
+            this.updatePreview();
+        };
+        const keepAspectLabel = document.createElement('label');
+        keepAspectLabel.textContent = 'Seitenverhältnis';
+        keepAspectLabel.style.cssText = 'color:#e0d4f5;font-size:12px;';
+
+        sizeWrap.appendChild(sizeLabel);
+        sizeWrap.appendChild(widthInput);
+        sizeWrap.appendChild(heightInput);
+        sizeWrap.appendChild(keepAspectCheck);
+        sizeWrap.appendChild(keepAspectLabel);
+
+        const spriteWrap = document.createElement('div');
+        spriteWrap.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+        const spriteLabel = document.createElement('label');
+        spriteLabel.textContent = 'Sprite-Sheet';
+        spriteLabel.style.cssText = 'color:#e0d4f5;font-size:12px;';
+
+        const colInput = document.createElement('input');
+        colInput.type = 'number';
+        colInput.value = String(this.settings.spriteSheetColumns);
+        colInput.min = '1';
+        colInput.style.cssText = 'width:60px;padding:4px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:4px;';
+        colInput.onchange = () => {
+            const v = parseInt(colInput.value, 10);
+            this.settings.spriteSheetColumns = isNaN(v) || v <= 0 ? 1 : v;
+        };
+
+        const padInput = document.createElement('input');
+        padInput.type = 'number';
+        padInput.value = String(this.settings.spriteSheetPadding);
+        padInput.min = '0';
+        padInput.style.cssText = 'width:60px;padding:4px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:4px;';
+        padInput.onchange = () => {
+            const v = parseInt(padInput.value, 10);
+            this.settings.spriteSheetPadding = isNaN(v) || v < 0 ? 0 : v;
+        };
+
+        const colLabel = document.createElement('span');
+        colLabel.textContent = 'Cols';
+        colLabel.style.cssText = 'color:#aaa;font-size:11px;';
+        const padLabel = document.createElement('span');
+        padLabel.textContent = 'Pad';
+        padLabel.style.cssText = 'color:#aaa;font-size:11px;';
+
+        spriteWrap.appendChild(spriteLabel);
+        spriteWrap.appendChild(colInput);
+        spriteWrap.appendChild(colLabel);
+        spriteWrap.appendChild(padInput);
+        spriteWrap.appendChild(padLabel);
+
         section.appendChild(colorWrap);
         section.appendChild(tolWrap);
+        section.appendChild(trimWrap);
+        section.appendChild(sizeWrap);
+        section.appendChild(spriteWrap);
         return section;
     }
 
@@ -274,6 +403,11 @@ export class ImageTransparencyTool {
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;';
 
+        const buildSheetBtn = document.createElement('button');
+        buildSheetBtn.textContent = 'Sprite-Sheet erzeugen';
+        buildSheetBtn.style.cssText = this.getBtnStyles(true);
+        buildSheetBtn.onclick = () => this.buildSpriteSheet();
+
         const downloadBtn = document.createElement('button');
         downloadBtn.textContent = '💾 Herunterladen';
         downloadBtn.style.cssText = this.getBtnStyles();
@@ -289,6 +423,7 @@ export class ImageTransparencyTool {
         closeBtn.style.cssText = this.getBtnStyles();
         closeBtn.onclick = () => this.close();
 
+        row.appendChild(buildSheetBtn);
         row.appendChild(downloadBtn);
         row.appendChild(uploadBtn);
         row.appendChild(closeBtn);
@@ -314,23 +449,54 @@ export class ImageTransparencyTool {
         return 'background-image:linear-gradient(45deg,#555 25%,transparent 25%),linear-gradient(-45deg,#555 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#555 75%),linear-gradient(-45deg,transparent 75%,#555 75%);background-size:12px 12px;background-position:0 0,0 6px,6px -6px,-6px 0;background-color:#888;';
     }
 
-    private loadFile(input: HTMLInputElement): void {
-        const file = input.files?.[0];
-        if (file) this.loadImageFromFile(file);
+    private loadFiles(input: HTMLInputElement): void {
+        const files = input.files;
+        if (!files || files.length === 0) return;
+        this.loadImagesFromFiles(Array.from(files));
     }
 
-    private loadImageFromFile(file: File): void {
-        this.fileName = file.name.replace(/\.[^/.]+$/, '');
-        this.log('Bild wird geladen...');
+    private loadImagesFromFiles(files: File[]): void {
+        if (files.length === 0) return;
+        this.frames = [];
+        this.spriteSheetData = null;
+        this.fileName = files[0].name.replace(/\.[^/.]+$/, '');
+        this.log('Bilder werden geladen...');
+        let pending = files.length;
 
-        const img = new Image();
-        img.onload = () => {
-            this.drawImageToCanvas(img);
+        const finish = () => {
+            this.frames = this.frames.filter(f => f !== null);
+            this.log(`${this.frames.length} Bild(er) geladen.`);
             this.updatePreview();
-            this.log(`Bild geladen: ${img.width}x${img.height}px`);
         };
-        img.onerror = () => this.log('Bild konnte nicht geladen werden.');
-        img.src = URL.createObjectURL(file);
+
+        files.forEach((file, idx) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    pending--;
+                    if (pending === 0) finish();
+                    return;
+                }
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                this.frames[idx] = { name: file.name.replace(/\.[^/.]+$/, ''), imageData };
+                if (idx === 0) {
+                    this.drawImageToCanvas(img);
+                }
+                pending--;
+                if (pending === 0) finish();
+            };
+            img.onerror = () => {
+                this.log(`Bild ${file.name} konnte nicht geladen werden.`);
+                pending--;
+                if (pending === 0) finish();
+            };
+            img.src = URL.createObjectURL(file);
+        });
     }
 
     private drawImageToCanvas(img: HTMLImageElement): void {
@@ -349,19 +515,88 @@ export class ImageTransparencyTool {
     }
 
     private updatePreview(): void {
-        if (!this.originalCanvas || !this.previewCanvas) return;
+        if (!this.frames.length || !this.previewCanvas) return;
 
-        const ctx = this.originalCanvas.getContext('2d');
-        const outCtx = this.previewCanvas.getContext('2d');
-        if (!ctx || !outCtx) return;
+        if (this.spriteSheetData) {
+            this.showImageData(this.spriteSheetData);
+            this.log(`Sprite-Sheet: ${this.previewCanvas.width}x${this.previewCanvas.height}px, ${this.countTransparent(this.spriteSheetData)}`);
+            this.updateWarnings();
+            return;
+        }
 
-        const imageData = ctx.getImageData(0, 0, this.originalCanvas.width, this.originalCanvas.height);
-        const processed = removeBackgroundFromImageData(imageData, this.settings.backgroundColors, this.settings.tolerance);
-
-        outCtx.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
-        outCtx.putImageData(processed, 0, 0);
-
+        const processed = this.processImageData(this.frames[0].imageData);
+        this.showImageData(processed);
         this.log(`Vorschau aktualisiert. ${this.countTransparent(processed)}`);
+        this.updateWarnings();
+    }
+
+    private processImageData(imageData: ImageData): ImageData {
+        let processed = removeBackgroundFromImageData(imageData, this.settings.backgroundColors, this.settings.tolerance);
+        if (this.settings.autoTrim) {
+            processed = trimImageData(processed);
+        }
+        const { width, height } = this.computeTargetSize(processed.width, processed.height);
+        if (width !== processed.width || height !== processed.height) {
+            processed = resizeImageData(processed, width, height);
+        }
+        return processed;
+    }
+
+    private computeTargetSize(srcWidth: number, srcHeight: number): { width: number; height: number } {
+        let width = this.settings.targetWidth ?? srcWidth;
+        let height = this.settings.targetHeight ?? srcHeight;
+
+        if (this.settings.keepAspect && (this.settings.targetWidth || this.settings.targetHeight)) {
+            const srcRatio = srcWidth / srcHeight;
+            if (this.settings.targetWidth && !this.settings.targetHeight) {
+                height = Math.max(1, Math.round(width / srcRatio));
+            } else if (this.settings.targetHeight && !this.settings.targetWidth) {
+                width = Math.max(1, Math.round(height * srcRatio));
+            } else if (this.settings.targetWidth && this.settings.targetHeight) {
+                const fitW = Math.max(1, Math.round(height * srcRatio));
+                const fitH = Math.max(1, Math.round(width / srcRatio));
+                if (fitW <= width) {
+                    width = fitW;
+                } else {
+                    height = fitH;
+                }
+            }
+        }
+
+        return { width, height };
+    }
+
+    private showImageData(imageData: ImageData): void {
+        if (!this.previewCanvas) return;
+        this.previewCanvas.width = imageData.width;
+        this.previewCanvas.height = imageData.height;
+        const ctx = this.previewCanvas.getContext('2d');
+        if (!ctx) return;
+        ctx.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    private buildSpriteSheet(): void {
+        if (this.frames.length === 0) {
+            this.log('Keine Bilder geladen.');
+            return;
+        }
+
+        const processedFrames = this.frames.map(f => this.processImageData(f.imageData));
+        try {
+            const sheet = generateSpriteSheet(processedFrames, this.settings.spriteSheetColumns, this.settings.spriteSheetPadding);
+            this.spriteSheetData = sheet.imageData;
+            this.updatePreview();
+            this.log(`Sprite-Sheet erzeugt: ${sheet.columns}x${sheet.rows} Frames, ${sheet.imageData.width}x${sheet.imageData.height}px`);
+        } catch (e: any) {
+            this.log(`Fehler: ${e.message}`);
+        }
+    }
+
+    private updateWarnings(): void {
+        if (!this.warningsEl || !this.previewCanvas) return;
+        const warnings = getTextureWarnings(this.previewCanvas.width, this.previewCanvas.height);
+        this.warningsEl.textContent = warnings.length ? warnings.join('\\n') : 'Checks: OK';
     }
 
     private countTransparent(imageData: ImageData): string {
@@ -440,9 +675,10 @@ export class ImageTransparencyTool {
             return;
         }
 
+        const suffix = this.spriteSheetData ? 'spritesheet' : 'optimized';
         const a = document.createElement('a');
         a.href = dataUrl;
-        a.download = `${this.fileName}_transparent.png`;
+        a.download = `${this.fileName}_${suffix}.png`;
         a.click();
     }
 
@@ -453,7 +689,8 @@ export class ImageTransparencyTool {
             return;
         }
 
-        const defaultName = `${this.fileName}_transparent_${Date.now()}.png`;
+        const suffix = this.spriteSheetData ? 'spritesheet' : 'optimized';
+        const defaultName = `${this.fileName}_${suffix}_${Date.now()}.png`;
         const inputName = await PromptDialog.show('Name für das Bild:', defaultName);
         if (!inputName || !inputName.trim()) {
             this.log('Speichern abgebrochen.');

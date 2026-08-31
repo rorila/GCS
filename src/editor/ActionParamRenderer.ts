@@ -163,11 +163,18 @@ export class ActionParamRenderer {
                     } else if (type === 'call_method' && param.name === 'resultVariable') {
                         if (!MethodReturnMap[ctx.dialogData.method]) return;
                     } else {
-                        const edit = document.createElement('input');
-                        edit.type = 'text';
+                        let edit: HTMLInputElement | HTMLTextAreaElement;
+                        if (param.multiline) {
+                            edit = document.createElement('textarea');
+                            edit.style.cssText = 'width: 100%; min-height: 80px; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px; font-family: monospace; font-size: 13px; resize: vertical; box-sizing: border-box;';
+                        } else {
+                            const inp = document.createElement('input');
+                            inp.type = 'text';
+                            edit = inp;
+                            edit.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
+                        }
                         edit.setAttribute('data-name', param.name);
                         edit.value = ctx.dialogData[param.name] !== undefined ? (typeof ctx.dialogData[param.name] === 'object' ? JSON.stringify(ctx.dialogData[param.name]) : ctx.dialogData[param.name]) : (param.defaultValue || '');
-                        edit.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
 
                         edit.onchange = () => {
                             let val: any = edit.value;

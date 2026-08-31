@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tier-Memory-Spiel</title>
+    <style>
+        /* CSS für das Design */
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #e0f7fa;
+        }
+
+        h1 {
+            color: #004d40;
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .card {
+            width: 100px;
+            height: 120px;
+            border-radius: 8px;
+            background-color: #4caf50;
+            border: 3px solid #4caf50;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s;
+            transform-style: preserve-3d;
+        }
+
+        /* Die Rückseite der Karte (verdeckter Zustand) */
+        .card-front {
+            width: 100%;
+            height: 100%;
+            background-color: #43a047; /* Grüne Rückseite */
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: white;
+            backface-visibility: hidden;
+            font-weight: bold;
+        }
+
+        /* Die Vorderseite der Karte (geöffnet) */
+        .card-back {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            background-size: cover;
+            background-position: center;
+            backface-visibility: hidden;
+        }
+
+        .card.flipped {
+            transform: rotate(180deg);
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        #restart-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🐘 Tier-Speicher-Test</h1>
+    <div id="game-board">
+        <!-- Karten werden hier durch JavaScript eingefügt -->
+    </div>
+    <p id="message"></p>
+    <button id="restart-button">Neues Spiel starten</button>
+
+    <script>
+        // JavaScript für die Spiel-Logik
+        const gameBoard = document.getElementById('game-board');
+        const messageDisplay = document.getElementById('message');
+        const restartButton = document.getElementById('restart-button');
+
+        // Die 6 verschiedenen Tiere (die Paare)
+        const animals = ['🐶', '🐱', '🐘', '🐦', '🐠', '🐼'];
+
+        // Verdoppelung der Tiere für die 12 Karten
+        let cardsArray = [...animals, ...animals];
+
+        let flippedCards = []; // Aktuell aufgedeckte Karten
+        let matchesFound = 0; // Zähler für die gefundenen Paare
+        let lockBoard = false; // Verhindert das Klicken, während der Vergleich läuft
+        let timeoutId = null;
+
+        // Funktion zum Mischen (Shuffle) des Arrays
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Spiel initialisieren und Board füllen
+        function initGame() {
+            cardsArray = [...animals, ...animals]; // Zurücksetzen
+            shuffle(cardsArray);
+
+            gameBoard.innerHTML = '';
+            flippedCards = [];
+            matchesFound = 0;
+            lockBoard = false;
+            messageDisplay.textContent = 'Finde alle Paare!';
+
+            cardsArray.forEach((animal, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.animal = animal;
+                card.dataset.index = index;
+
+                card.innerHTML = `
+                    <div class="card-front">?</div>
+                    <div class="card-back">${animal}</div>
+                `;
+
+                card.addEventListener('click', handleCardClick);
+                gameBoard.appendChild(card);
+            });
+        }
+
+        // Event-Handler beim Klicken auf eine Karte
+        function handleCardClick(e) {
+            if (lockBoard || e.currentTarget.classList.contains('flipped')) {
+                return;
+            }
+
+            const card = e.currentTarget;
+            card.classList.add('flipped');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                lockBoard = true; // Spiel pausieren, während wir vergleichen
+                checkForMatch();
+            }
+        }
+
+        // Logik zum Vergleich der beiden aufgedeckten Karten
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            const animal1 = card1.dataset.animal;
+            const animal2 = card2.dataset.animal;
+
+            if (animal1 === animal2) {
+                // PASST: Paare dauerhaft sichtbar machen
+                matchesFound++;
+                card1.style.opacity = '0.5'; // Kann man die Karten auch dauerhaft anders gestalten
+                card2.style.opacity = '0.5';
+
+                // Optional: Karten als "gehört" markieren
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+
+                // Paare entfernen (oder nur das Verdeckungs-Timing überspringen)
+                if (matchesFound === 6) {
+                    setTimeout(() => {
+                        messageDisplay.textContent = '🏆 Herzlichen Glückwunsch! Du hast gewonnen!';
+                        gameBoard.innerHTML = ''; // Oder die Karten im "sieg" Zustand lassen
+                    }, 500);
+                }
+
+                flippedCards = [];
+                lockBoard = false;
+
+            } else {
+                // PASST NICHT: Karten nach kurzer Verzögerung verdeckbar machen
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    lockBoard = false;
+                }, 1000); // 1 Sekunde warten
+            }
+        }
+
+        // Start des Spiels und Button-Event
+        initGame();
+        restartButton.addEventListener('click', initGame);
+    </script>
+
+</body>
+</html>

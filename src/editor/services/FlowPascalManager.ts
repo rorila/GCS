@@ -50,13 +50,13 @@ export class FlowPascalManager {
 
         if (this.pascalVisible) {
             wrapper.style.flexDirection = 'row';
+            const savedWidth = localStorage.getItem('gcs_flow_pascal_width') || '400px';
             this.pascalPanel.style.cssText = `
-                direction: rtl; /* Trick: Resize handle on the left side */
-                resize: horizontal;
+                position: relative;
                 overflow: auto;
-                width: 400px;
+                width: ${savedWidth};
                 min-width: 250px;
-                max-width: 900px;
+                max-width: 90vw;
                 background: rgba(25, 25, 25, 0.85);
                 backdrop-filter: blur(12px);
                 border-left: 1px solid rgba(255, 255, 255, 0.1);
@@ -73,6 +73,27 @@ export class FlowPascalManager {
         } else {
             this.pascalPanel.style.display = 'none';
         }
+    }
+
+    private startResize(e: MouseEvent) {
+        e.preventDefault();
+        const startX = e.clientX;
+        const startWidth = this.pascalPanel.offsetWidth;
+
+        const onMove = (ev: MouseEvent) => {
+            const dx = startX - ev.clientX;
+            const newWidth = Math.min(Math.max(startWidth + dx, 250), window.innerWidth * 0.9);
+            this.pascalPanel.style.width = `${newWidth}px`;
+        };
+
+        const onUp = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            localStorage.setItem('gcs_flow_pascal_width', this.pascalPanel.style.width);
+        };
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
     }
 
     public updatePascalPanel() {
@@ -93,6 +114,7 @@ export class FlowPascalManager {
         }
 
         this.pascalPanel.innerHTML = `
+            <div class="pascal-resizer" style="position:absolute;left:0;top:0;bottom:0;width:6px;cursor:ew-resize;background:rgba(108,99,255,0.3);transition:background 0.2s;z-index:1000;"></div>
             <div style="direction: ltr; display: flex; flex-direction: column; min-width: 100%; height: 100%;">
                 <div class="pascal-header" style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
                     <span style="color: #4ec9b0; font-family: sans-serif;">${title}</span>
@@ -105,6 +127,13 @@ export class FlowPascalManager {
         const closeBtn = this.pascalPanel.querySelector('.pascal-close-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.togglePascalPanel());
+        }
+
+        const resizer = this.pascalPanel.querySelector('.pascal-resizer') as HTMLElement | null;
+        if (resizer) {
+            resizer.addEventListener('mousedown', (e) => this.startResize(e as MouseEvent));
+            resizer.addEventListener('mouseenter', () => resizer.style.background = 'rgba(108,99,255,0.8)');
+            resizer.addEventListener('mouseleave', () => resizer.style.background = 'rgba(108,99,255,0.3)');
         }
     }
 }

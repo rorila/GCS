@@ -817,7 +817,14 @@ export class InspectorRenderer {
                         if (typeof finalValue === 'object' && finalValue !== null) {
                             finalValue = JSON.stringify(finalValue);
                         }
-                        const edit = this.renderEdit(finalValue, param.placeholder || '');
+                        let edit: HTMLInputElement | HTMLTextAreaElement;
+                        if (param.multiline) {
+                            edit = this.renderTextArea(String(finalValue ?? ''), param.placeholder || '');
+                            edit.style.minHeight = '60px';
+                            edit.style.fontFamily = 'monospace';
+                        } else {
+                            edit = this.renderEdit(finalValue, param.placeholder || '');
+                        }
                         edit.name = param.name; // Technical name for E2E
                         edit.onchange = () => onUpdate(param.name, edit.value);
                         edit.style.flex = '1';
@@ -826,6 +833,7 @@ export class InspectorRenderer {
                         cont.style.display = 'flex';
                         cont.style.gap = '4px';
                         cont.style.width = '100%';
+                        if (param.multiline) cont.style.alignItems = 'flex-start';
                         cont.appendChild(edit);
 
                         if (onAction && param.type !== 'boolean') {

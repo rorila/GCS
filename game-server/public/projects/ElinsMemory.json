@@ -1447,10 +1447,11 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onClick": "KatenMischen"
+            "onClick": "KatenMischen",
+            "onTouchStart": "KatenMischen"
           },
           "visible": true,
-          "x": 49,
+          "x": 48,
           "y": 37,
           "width": 6,
           "height": 2,
@@ -1973,6 +1974,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -2065,7 +2067,7 @@
           "changes": {},
           "list": "MemoryCardsList",
           "field": "isSelected",
-          "resultVariable": "${Var_IsCardSelected}",
+          "resultVariable": "Var_IsCardSelected",
           "list_ref": "obj_1787578162282_4zfi4h9n4"
         },
         {
@@ -2078,8 +2080,9 @@
           "changes": {},
           "list": "MemoryCardsList",
           "field": "isMatched",
-          "resultVariable": "${Var_IsCardMatched}",
-          "list_ref": "obj_1787578162282_4zfi4h9n4"
+          "resultVariable": "Var_IsCardMatched",
+          "list_ref": "obj_1787578162282_4zfi4h9n4",
+          "resultVariable_ref": "obj_1787583067034_1okutp17a"
         },
         {
           "id": "node-1787584008944",
@@ -2422,7 +2425,7 @@
           "id": "node-1787757977065",
           "details": "",
           "type": "list_get",
-          "name": "Act_GetFirsCardObject",
+          "name": "Act_GetFirstCardObject",
           "showDetails": false,
           "target": "MemoryCardsList",
           "changes": {},
@@ -2720,10 +2723,14 @@
           "id": "node-1787912527522",
           "details": "",
           "type": "property",
-          "name": "action",
+          "name": "Act_SetResetScores",
           "showDetails": false,
           "target": "",
-          "changes": {}
+          "changes": {
+            "Player1Score.value": 0,
+            "Player2Score.value": 0,
+            "Var_MatchCounter": 0
+          }
         }
       ],
       "tasks": [
@@ -3130,7 +3137,7 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_GetFirsCardObject",
+              "name": "Act_GetFirstCardObject",
               "type": "action"
             },
             {
@@ -3203,7 +3210,7 @@
               "x": 40,
               "y": 40
             },
-            "Act_GetFirsCardObject": {
+            "Act_GetFirstCardObject": {
               "x": 40,
               "y": 140
             },
@@ -3287,10 +3294,6 @@
               "type": "action"
             },
             {
-              "name": "Act_SetIsMatchedToFalse",
-              "type": "action"
-            },
-            {
               "name": "Act_InitGame",
               "type": "action"
             }
@@ -3306,13 +3309,9 @@
               "x": 40,
               "y": 140
             },
-            "Act_SetIsMatchedToFalse": {
-              "x": 40,
-              "y": 240
-            },
             "Act_InitGame": {
               "x": 40,
-              "y": 340
+              "y": 240
             }
           }
         },
@@ -3324,6 +3323,16 @@
             {
               "type": "task",
               "name": "SetAllVariableBack",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_SetIsMatchedToFalse",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_SetResetScores",
+              "type": "action",
               "layout": "horizontal"
             },
             {
@@ -3371,28 +3380,36 @@
               "x": 240,
               "y": 40
             },
-            "SetBackCardToAllCards": {
+            "Act_SetIsMatchedToFalse": {
               "x": 480,
               "y": 40
             },
+            "Act_SetResetScores": {
+              "x": 760,
+              "y": 40
+            },
+            "SetBackCardToAllCards": {
+              "x": 1000,
+              "y": 40
+            },
             "Act_ImagesMischen": {
-              "x": 740,
+              "x": 1260,
               "y": 40
             },
             "Act_MatchIndexMischen": {
-              "x": 980,
+              "x": 1500,
               "y": 40
             },
             "foreach": {
-              "x": 1020,
+              "x": 1260,
               "y": 160
             },
             "Act_SetNewMatchIndexToVar_NewMatchIndex": {
-              "x": 1200,
+              "x": 1440,
               "y": 160
             },
             "Act_SetANewMatchValueToCard": {
-              "x": 1640,
+              "x": 1880,
               "y": 160
             }
           }

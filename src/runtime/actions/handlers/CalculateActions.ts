@@ -202,8 +202,8 @@ export function registerCalculateActions() {
         label: 'Berechnung',
         description: 'Führt eine mathematische Berechnung aus.',
         parameters: [
-            { name: 'resultVariable', label: 'Ziel-Variable', type: 'variable', source: 'variables' },
-            { name: 'formula', label: 'Formel', type: 'string', placeholder: 'z.B. score + 10' }
+            { name: 'resultVariable', label: 'Ziel', type: 'variable', source: 'variables' },
+            { name: 'formula', label: 'Wert', type: 'string', multiline: true, placeholder: 'z.B. myVar := score + 10', hint: 'Ziel := Ausdruck, z.B. myVar := 5 + score' }
         ]
     });
 

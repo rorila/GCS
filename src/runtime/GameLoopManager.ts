@@ -58,6 +58,7 @@ export class GameLoopManager {
     private inputControllers: any[] = [];
     private panels: any[] = [];
     private runtimeUpdatables: any[] = [];
+    private pendingTimerTicks: (() => void)[] = [];
 
     // Callbacks
     private renderCallback: (() => void) | null = null;
@@ -264,6 +265,7 @@ export class GameLoopManager {
         this.eventCallback = null;
         this.gameState = null;
         this.gridConfig = null;
+        this.pendingTimerTicks.length = 0;
     }
 
     /**
@@ -373,6 +375,26 @@ export class GameLoopManager {
             this.resyncClock = true;
             logger.debug(`Woke up from sleep`);
             this.animationFrameId = requestAnimationFrame(this.loop);
+        }
+    }
+
+    public enqueueTimerTick(tick: () => void): void {
+        this.pendingTimerTicks.push(tick);
+        if (this.state === 'sleeping') {
+            this.wakeUp();
+        }
+    }
+
+    private flushPendingTimerTicks(): void {
+        if (this.pendingTimerTicks.length === 0) return;
+        const ticks = this.pendingTimerTicks;
+        this.pendingTimerTicks = [];
+        for (const tick of ticks) {
+            try {
+                tick();
+            } catch (e) {
+                logger.error('Error executing timer tick:', e);
+            }
         }
     }
 
@@ -506,7 +528,8 @@ export class GameLoopManager {
         const hasRuntimeUpdatables = this.runtimeUpdatables.length > 0;
 
         // Only do work if something is active
-        const needsUpdate = hasActiveAnimations || hasMovingSprites || hasRuntimeUpdatables;
+        const hasPendingTimerTicks = this.pendingTimerTicks.length > 0;
+        const needsUpdate = hasActiveAnimations || hasMovingSprites || hasRuntimeUpdatables || hasPendingTimerTicks;
 
         if (needsUpdate) {
             // DIAGNOSE: Klammert die eigene Loop-Arbeit ein, damit sich in der
@@ -519,6 +542,9 @@ export class GameLoopManager {
             this.isLoopUpdating = true;
 
             this.idleFrameCount = 0;
+
+            // Timer-Ticks im Loop verarbeiten, damit isLoopUpdating Folge-Renders bündelt
+            this.flushPendingTimerTicks();
 
             // Feste Zeitschritte abarbeiten
             let steps = 0;

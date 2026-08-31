@@ -41,6 +41,9 @@ export class GameRuntime implements IVariableHost {
     private stageManager: RuntimeStageManager;
 
     private objects: any[] = [];
+    private objectNameCache: Record<string, any> = {};
+    private objectNameCacheRef: any[] | null = null;
+    private objectNameCacheCount: number = -1;
     public spritePool: SpritePool = new SpritePool();
     private isSplashActive: boolean = false;
     private splashTimerId: any = null;
@@ -907,6 +910,20 @@ export class GameRuntime implements IVariableHost {
         }
     }
 
+    private getObjectNameMap(): Record<string, any> {
+        if (this.objectNameCacheRef !== this.objects || this.objectNameCacheCount !== this.objects.length) {
+            const map: Record<string, any> = {};
+            for (let i = 0, len = this.objects.length; i < len; i++) {
+                const o = this.objects[i];
+                if (o?.name) map[o.name] = o;
+            }
+            this.objectNameCache = map;
+            this.objectNameCacheRef = this.objects;
+            this.objectNameCacheCount = this.objects.length;
+        }
+        return this.objectNameCache;
+    }
+
     public handleEvent(objectId: string, eventName: string, data: any = {}) {
         // Intercept System Navigation Events (e.g. from TRichText links)
         if (eventName === '__SYSTEM_NAVIGATE__' && data?.target && this.options.onNavigate) {
@@ -969,10 +986,14 @@ export class GameRuntime implements IVariableHost {
             if (this.taskExecutor && hasTaskMap) {
                 // Priority 1: Explicit mapping (string), Priority 2: Convention (ObjectName.EventName)
                 const taskName = (typeof hasTaskMap === 'string') ? hasTaskMap : `${obj.name}.${eventName}`;
-                // Ensure eventData is available in vars even when 'data' is not an object (e.g., a string like an emoji)
-                const eventVars: Record<string, any> = typeof data === 'object' && data !== null
-                    ? { ...data, eventData: data, sender: obj }
-                    : { eventData: data, sender: obj };
+                // Object names are provided via prototype, event-specific fields as own properties.
+                const objectNameMap = this.getObjectNameMap();
+                const eventVars: Record<string, any> = Object.create(objectNameMap);
+                if (typeof data === 'object' && data !== null) {
+                    Object.assign(eventVars, data);
+                }
+                eventVars['eventData'] = data;
+                eventVars['sender'] = obj;
 
                 // ─── FEATURE A: Event-Context ($event + self) ───
                 const $event = buildEventContext(
@@ -982,10 +1003,6 @@ export class GameRuntime implements IVariableHost {
                 );
                 eventVars['$event'] = $event;
                 eventVars['self'] = obj;  // Live-Referenz auf das Source-Objekt
-
-                // Komponentenobjekte injizieren, damit Property-Conditions (z.B. Button_36.visible)
-                // vom TaskConditionEvaluator aufgelöst werden können.
-                this.objects.forEach(o => { if (o.name && !(o.name in eventVars)) eventVars[o.name] = o; });
                 this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
             }
         } finally {

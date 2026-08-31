@@ -210,6 +210,21 @@ export class InspectorSectionRenderer {
         // Hidden-Properties sind nur für die Serialisierung (toDTO), nicht für die UI
         if (propDef.type === 'hidden') return null;
 
+        // ─── Label: Nur anzeigen, keine Eingabe ───
+        if (propDef.type === 'label') {
+            const container = document.createElement('div');
+            const label = document.createElement('div');
+            label.textContent = propDef.label;
+            label.style.cssText = 'width:100%;text-align:center;font-size:14px;color:#6c63ff;padding:2px 0;';
+            const style = propDef.style || {};
+            if (style.textAlign) label.style.textAlign = style.textAlign;
+            if (style.fontSize) label.style.fontSize = style.fontSize;
+            if (style.color) label.style.color = style.color;
+            if (style.margin) label.style.margin = style.margin;
+            container.appendChild(label);
+            return container;
+        }
+
         // ─── TObjectList: Liste ausgewählter Objekte mit Index anzeigen ───
         if (propDef.type === 'object_list') {
             const container = document.createElement('div');
@@ -1364,8 +1379,8 @@ export class InspectorSectionRenderer {
             container.appendChild(wrapper);
         } else {
             let input: HTMLInputElement | HTMLTextAreaElement;
-            if (propDef.type === 'textarea') {
-                input = context.renderer.renderTextArea(String(currentValue));
+            if (propDef.type === 'textarea' || propDef.multiline) {
+                input = context.renderer.renderTextArea(String(currentValue), propDef.placeholder || '');
             } else if (propDef.type === 'number') {
                 // VALIDIERUNG: Number-Inputs bekommen nativen type='number' + Constraints
                 // FIX: Bei Binding-Werten auf type='text' umschalten
@@ -1516,7 +1531,7 @@ export class InspectorSectionRenderer {
 
             input.onchange = submitChange;
             
-            if (propDef.type === 'textarea') {
+            if (propDef.type === 'textarea' || propDef.multiline) {
                 const wrapper = document.createElement('div');
                 wrapper.style.display = 'flex';
                 wrapper.style.flexDirection = 'column';

@@ -199,9 +199,9 @@
                     "icon": "🎬"
                 },
                 {
-                    "id": "image-transparency",
-                    "label": "Bild transparenzieren",
-                    "action": "open-image-transparency",
+                    "id": "image-optimizer",
+                    "label": "Bild-Optimierer",
+                    "action": "open-image-optimizer",
                     "icon": "🖼️"
                 },
                 {

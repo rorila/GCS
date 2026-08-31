@@ -268,8 +268,8 @@
             "onBoundaryHit": "BoundaryHit"
           },
           "visible": true,
-          "x": 21,
-          "y": 6,
+          "x": 26,
+          "y": 7,
           "width": 10,
           "height": 5,
           "zIndex": 10,
@@ -699,7 +699,7 @@
           "volume": 1,
           "loop": false,
           "preload": true,
-          "active": false
+          "active": true
         },
         {
           "className": "TAudio",
@@ -732,7 +732,7 @@
           "volume": 1,
           "loop": false,
           "preload": true,
-          "active": false
+          "active": true
         },
         {
           "className": "TAudio",
@@ -765,7 +765,7 @@
           "volume": 1,
           "loop": false,
           "preload": true,
-          "active": false
+          "active": true
         },
         {
           "className": "TSpawner",
@@ -988,7 +988,7 @@
           "volume": 1,
           "loop": false,
           "preload": true,
-          "active": false
+          "active": true
         },
         {
           "className": "TVirtualGamepad",
@@ -1000,8 +1000,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 54,
-          "y": 32,
+          "x": 57,
+          "y": 33,
           "width": 4,
           "height": 4,
           "zIndex": 0,
@@ -1099,7 +1099,6 @@
           "name": "Axelotl_anim",
           "scope": "stage",
           "isHiddenInRun": true,
-          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1164,6 +1163,7 @@
           "name": "Schwertfisch_anim",
           "scope": "stage",
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1228,6 +1228,7 @@
           "name": "Sandhai_anim",
           "scope": "stage",
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -1451,7 +1452,8 @@
           "name": "Aud_CherryTreffer",
           "showDetails": false,
           "target": "Audio_CherryTreffer",
-          "changes": {}
+          "changes": {},
+          "target_ref": "obj_1786374682271_55fpaeebx"
         },
         {
           "id": "node-1786375041353",
@@ -1460,7 +1462,8 @@
           "name": "Act_UfoTreffer",
           "showDetails": false,
           "target": "Audio_UfoTreffer",
-          "changes": {}
+          "changes": {},
+          "target_ref": "obj_1786375054051_4bswb77no"
         },
         {
           "id": "node-1786375205821",
@@ -1469,7 +1472,8 @@
           "name": "Act_AudioPlayerJump",
           "showDetails": false,
           "target": "Audio_PlayerJump",
-          "changes": {}
+          "changes": {},
+          "target_ref": "obj_1786375162153_zl2b5rb7m"
         },
         {
           "id": "node-1786376559553",
@@ -1521,7 +1525,8 @@
           "name": "Act_Aud_BallonBumms",
           "showDetails": false,
           "target": "Audio_BalloonBums",
-          "changes": {}
+          "changes": {},
+          "target_ref": "obj_1786455699327_xf2cig7r1"
         },
         {
           "id": "node-1786457985240",
@@ -1541,7 +1546,8 @@
           "height": 20,
           "targetOpacity": 0,
           "midpointTask": "",
-          "source": "Axelotl"
+          "source": "Axelotl",
+          "source_ref": "obj_1787026214790_xfjzi5c4z"
         },
         {
           "id": "node-1786458039773",
