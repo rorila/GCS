@@ -93,7 +93,7 @@ export function registerCalculateActions() {
                                 operandValue = NaN;
                             }
                         } else {
-                            const v = evalContext[step.variable];
+                            const v = PropertyHelper.resolveValue(evalContext[step.variable]);
                             operandValue = v !== undefined ? Number(v) : NaN;
                         }
                     } else if (step.operandType === 'objectProperty' && step.source && step.property) {
