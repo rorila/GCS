@@ -46,25 +46,23 @@ export function registerCalculateActions() {
         // Prototyp-Kette: objectMap liefert die aktuellen Objekte (z.B. Variablen).
         // Aus contextVars/vars nur AUFGELOESTE Werte übernehmen. Unaufgelöste
         // Variablen-Objekte (value === undefined) sollen objectMap nicht überschatten.
-        const isUnresolvedVarObj = (v: any, resolved: any) =>
-            v && typeof v === 'object' &&
-            (v.isVariable === true || v.className?.includes('Variable')) &&
-            resolved === v;
+        const isVariableLike = (obj: any) =>
+            obj && typeof obj === 'object' &&
+            (obj.isVariable === true || obj.className?.includes('Variable'));
 
         const evalContext: Record<string, any> = Object.create(objectMap);
         for (const [k, v] of Object.entries(context.contextVars || {})) {
             if (v === undefined) continue;
+            // Live-Variable-Objekte aus objectMap haben Vorrang vor Binding-Strings in contextVars.
+            if (objectMap[k] && isVariableLike(objectMap[k])) continue;
             const resolved = PropertyHelper.resolveValue(v);
-            if (resolved === undefined) continue;
-            if (isUnresolvedVarObj(v, resolved)) continue;
-            evalContext[k] = resolved;
+            if (resolved !== undefined) evalContext[k] = resolved;
         }
         for (const [k, v] of Object.entries(context.vars || {})) {
             if (v === undefined) continue;
+            if (objectMap[k] && isVariableLike(objectMap[k])) continue;
             const resolved = PropertyHelper.resolveValue(v);
-            if (resolved === undefined) continue;
-            if (isUnresolvedVarObj(v, resolved)) continue;
-            evalContext[k] = resolved;
+            if (resolved !== undefined) evalContext[k] = resolved;
         }
         evalContext.$eventData = context.eventData;
 
