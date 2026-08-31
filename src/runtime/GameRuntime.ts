@@ -219,7 +219,12 @@ export class GameRuntime implements IVariableHost {
                                 if (!(this as any)._pendingVarProps) {
                                     (this as any)._pendingVarProps = new Set<string>();
                                 }
-                                (this as any)._pendingVarProps.add(prop);
+                                // Bei echten Variablen-Objekten den Objektnamen verwenden,
+                                // nicht die Property "value", damit getObjectsDependingOn
+                                // die Labels findet, die diese Variable anzeigen.
+                                const isVariableObject = obj?.isVariable || obj?.className?.includes('Variable');
+                                const varName = isVariableObject && obj?.name ? obj.name : prop;
+                                (this as any)._pendingVarProps.add(varName);
 
                                 if (!(this as any)._softRenderScheduled) {
                                     (this as any)._softRenderScheduled = true;
@@ -229,20 +234,12 @@ export class GameRuntime implements IVariableHost {
                                         (this as any)._pendingVarProps = new Set<string>();
 
                                         const targets = new Set<any>();
-                                        let unbound = false;
                                         props.forEach(p => {
                                             const deps = this.reactiveRuntime.getObjectsDependingOn(p);
-                                            if (deps.length === 0) unbound = true;
                                             deps.forEach(d => targets.add(d));
                                         });
 
-                                        // Sicherheitsnetz: Ist zu einer Variable keine
-                                        // Bindung bekannt, kann sie ueber einen anderen Weg
-                                        // angezeigt werden. Dann bleibt es beim bisherigen
-                                        // Verhalten, damit nichts stehen bleibt.
-                                        const objs: any[] = unbound
-                                            ? (this.objects || [])
-                                            : Array.from(targets);
+                                        const objs = Array.from(targets);
 
                                         for (let i = 0; i < objs.length; i++) {
                                             const o = objs[i];

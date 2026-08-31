@@ -835,7 +835,7 @@
             "onTimer": "PlaceTheBackUpShooters"
           },
           "visible": true,
-          "x": 10,
+          "x": 9,
           "y": 35,
           "width": 6,
           "height": 2,
@@ -1195,7 +1195,7 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "Act_CalcBackUpShooterDistance",
+              "name": "action",
               "type": "action",
               "layout": "horizontal"
             }
@@ -1208,11 +1208,11 @@
               "y": 40
             },
             "Act_CalcBackUpShooterDistance": {
-              "x": 320,
+              "x": 540,
               "y": 40
             },
             "action": {
-              "x": 640,
+              "x": 320,
               "y": 40
             },
             "Act_SpawnBackUpShooter": {
@@ -1222,20 +1222,20 @@
           },
           "standaloneNodes": [
             {
-              "id": "auto_action_1_1788188525635",
+              "id": "auto_action_0_1788190200795",
               "type": "action",
-              "x": 640,
+              "x": 540,
               "y": 40,
-              "width": 140,
+              "width": 280,
               "height": 60,
               "properties": {
-                "name": "action",
+                "name": "Act_CalcBackUpShooterDistance",
                 "details": "",
                 "description": ""
               },
               "data": {
-                "name": "action",
-                "type": "action",
+                "name": "Act_CalcBackUpShooterDistance",
+                "type": "calculate",
                 "isLinked": true
               }
             },
