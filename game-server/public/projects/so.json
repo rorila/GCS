@@ -1195,6 +1195,16 @@
           "description": "",
           "actionSequence": [
             {
+              "name": "Act_CalcBackUpShooterDistance",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
+              "name": "Act_SpawnBackUpShooter",
+              "type": "action",
+              "layout": "horizontal"
+            },
+            {
               "name": "action",
               "type": "action",
               "layout": "horizontal"
@@ -1207,57 +1217,19 @@
               "x": 40,
               "y": 40
             },
-            "Act_CalcBackUpShooterDistance": {
-              "x": 540,
+            "action": {
+              "x": 920,
               "y": 40
             },
-            "action": {
+            "Act_CalcBackUpShooterDistance": {
               "x": 320,
               "y": 40
             },
             "Act_SpawnBackUpShooter": {
-              "x": 480,
-              "y": 180
+              "x": 640,
+              "y": 40
             }
-          },
-          "standaloneNodes": [
-            {
-              "id": "auto_action_0_1788190200795",
-              "type": "action",
-              "x": 540,
-              "y": 40,
-              "width": 280,
-              "height": 60,
-              "properties": {
-                "name": "Act_CalcBackUpShooterDistance",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "Act_CalcBackUpShooterDistance",
-                "type": "calculate",
-                "isLinked": true
-              }
-            },
-            {
-              "id": "auto_action_1_1788188456568",
-              "type": "action",
-              "x": 480,
-              "y": 180,
-              "width": 240,
-              "height": 60,
-              "properties": {
-                "name": "Act_SpawnBackUpShooter",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "Act_SpawnBackUpShooter",
-                "type": "spawn_object",
-                "isLinked": true
-              }
-            }
-          ]
+          }
         }
       ],
       "variables": [],

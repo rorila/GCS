@@ -323,7 +323,7 @@
             "borderWidth": 1
           },
           "type": "integer",
-          "value": 3,
+          "value": 7,
           "objectModel": ""
         },
         {
@@ -805,7 +805,7 @@
             "onCollision": "KanoneWirdGetroffen"
           },
           "visible": true,
-          "x": 31,
+          "x": 29,
           "y": 33,
           "width": 4,
           "height": 4,
@@ -922,7 +922,7 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 50,
+          "x": 49,
           "y": 31,
           "width": 10,
           "height": 4,
@@ -940,8 +940,8 @@
           "splitVerticalAlignment": "bottom",
           "autoHideOnDesktop": true,
           "scale": 1,
-          "pressDelay": 150,
-          "keyCooldown": 120
+          "pressDelay": 50,
+          "keyCooldown": 20
         },
         {
           "className": "TPanel",
@@ -2207,7 +2207,7 @@
               "y": 340
             },
             "SetCollisonEventToNewSprite": {
-              "x": 300,
+              "x": 280,
               "y": 440
             },
             "Act_ShowLooserStage": {

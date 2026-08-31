@@ -43,12 +43,16 @@ export function registerCalculateActions() {
             return acc;
         }, {});
 
-        const evalContext: Record<string, any> = {
-            ...objectMap,
-            ...context.contextVars,
-            ...context.vars,
-            $eventData: context.eventData
-        };
+        // Prototyp-Kette: objectMap liefert die Variablen-Objekte, ohne dass
+        // undefined-Einträge aus contextVars/vars sie überschatten.
+        const evalContext: Record<string, any> = Object.create(objectMap);
+        for (const [k, v] of Object.entries(context.contextVars || {})) {
+            if (v !== undefined) evalContext[k] = v;
+        }
+        for (const [k, v] of Object.entries(context.vars || {})) {
+            if (v !== undefined) evalContext[k] = v;
+        }
+        evalContext.$eventData = context.eventData;
 
         if (context.eventData && typeof context.eventData === 'object') {
             if (!evalContext['self'] || typeof evalContext['self'] !== 'object') {
