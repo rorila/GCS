@@ -175,6 +175,12 @@ export function registerCalculateActions() {
                 const result = ExpressionParser.evaluate(formula, evalContext);
                 runtimeLogger.info(`Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`);
 
+                const rawVal = evalContext[action.resultVariable];
+                const resolvedVal = PropertyHelper.resolveValue(rawVal);
+                DebugLogService.getInstance().log('Variable', `CalcDebug ${action.resultVariable}: raw=${typeof rawVal} class=${rawVal?.className} resolved=${resolvedVal}`, {
+                    data: { raw: rawVal, resolved: resolvedVal, formula, result }
+                });
+
                 if (action.resultVariable) {
                     if (action.resultVariable.includes('.')) {
                         const parts = action.resultVariable.split('.');
