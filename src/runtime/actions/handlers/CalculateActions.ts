@@ -43,14 +43,28 @@ export function registerCalculateActions() {
             return acc;
         }, {});
 
-        // Prototyp-Kette: objectMap liefert die Variablen-Objekte, ohne dass
-        // undefined-Einträge aus contextVars/vars sie überschatten.
+        // Prototyp-Kette: objectMap liefert die aktuellen Objekte (z.B. Variablen).
+        // Aus contextVars/vars nur AUFGELOESTE Werte übernehmen. Unaufgelöste
+        // Variablen-Objekte (value === undefined) sollen objectMap nicht überschatten.
+        const isUnresolvedVarObj = (v: any, resolved: any) =>
+            v && typeof v === 'object' &&
+            (v.isVariable === true || v.className?.includes('Variable')) &&
+            resolved === v;
+
         const evalContext: Record<string, any> = Object.create(objectMap);
         for (const [k, v] of Object.entries(context.contextVars || {})) {
-            if (v !== undefined) evalContext[k] = v;
+            if (v === undefined) continue;
+            const resolved = PropertyHelper.resolveValue(v);
+            if (resolved === undefined) continue;
+            if (isUnresolvedVarObj(v, resolved)) continue;
+            evalContext[k] = resolved;
         }
         for (const [k, v] of Object.entries(context.vars || {})) {
-            if (v !== undefined) evalContext[k] = v;
+            if (v === undefined) continue;
+            const resolved = PropertyHelper.resolveValue(v);
+            if (resolved === undefined) continue;
+            if (isUnresolvedVarObj(v, resolved)) continue;
+            evalContext[k] = resolved;
         }
         evalContext.$eventData = context.eventData;
 
