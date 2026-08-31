@@ -29,7 +29,7 @@ export class PropertyWatcher {
     private static readonly HIGH_FREQ_ANIM_PROPS = new Set(['opacity', 'style.opacity', 'transform', 'style.transform', 'width', 'height', 'style.width', 'style.height']);
 
     /** Render-Koordinaten, die der GameLoop jeden Frame aktualisiert. */
-    private static readonly HIGH_FREQ_RENDER_PROPS = new Set(['renderX', 'renderY']);
+    private static readonly HIGH_FREQ_RENDER_PROPS = new Set(['renderX', 'renderY', 'previousX', 'previousY']);
 
     // Map: Object -> Map: PropertyPath -> Set of Callbacks
     private watchers = new Map<any, Map<string, Set<(newValue: any, oldValue: any) => void>>>();
