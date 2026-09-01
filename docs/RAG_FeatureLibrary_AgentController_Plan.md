@@ -131,6 +131,29 @@ Erkannte Features sollen direkt in ausführbare `AgentController`-Aufrufe übers
 
 ---
 
+## Phase 6 – User Story Tab: Tasks per Drag & Drop zu Features zusammenfassen
+
+Ziel: Im User-Story-Tab einzelne Tasks, Interactions und deren zugehörige Objekte/Variablen auswählen und als wiederverwendbares Feature-Template in der RAG-Library speichern.
+
+1. **`src/editor/userstories/UserStoryTypes.ts`**: User Story optional um `featureIds` erweitern, um Verknüpfung zu gespeicherten Features zu ermöglichen.
+2. **`src/editor/userstories/UserStoriesViewManager.ts`**: Drag-Quelle erweitern.
+   - Tasks und Interactions aus der User-Story-Liste können gezogen werden.
+   - Drag-Data enthält IDs/Names der gewählten Items plus zugehörige Objekte/Variablen.
+3. **`src/editor/userstories/UserStoryDetailManager.ts`**: Drop-Target / Feature-Builder Panel.
+   - Anzeige der gesammelten Items.
+   - Eingabe: Feature-Name, Feature-ID, Tags.
+   - Button „Als Feature speichern“.
+4. **`FeatureSelectionExporter` (neue Hilfsklasse in `src/ai/rag/` oder `src/services/agent/`)**:
+   - Sammelt `tasks`, `objects`, `variables` aus der Auswahl.
+   - Ruft `AgentScriptIO.exportScript({ scope: 'selection', selection: { tasks, objects, variables } })` auf.
+   - Der Export wird zum `oneShotExample` des FeatureTemplates.
+5. **`FeatureChunker.fromSelection(selection, projectContext, agentScript)`** (optionale Erweiterung von `FeatureChunker.ts`):
+   - Erzeugt `FeatureTemplate` aus der Auswahl + User-Story-Text + AgentScript.
+6. **`KnowledgeBase.addFeature(template)`**: Speichert das Template in RAG.
+7. **UI-Feedback**: Toast/Badge „Feature gespeichert“.
+
+---
+
 ## Nächster Schritt
 
 Nach Freigabe dieses Plans mit **Phase 1** beginnen: RAG-Optimierung und Synonym-Nachrüstung.
