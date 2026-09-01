@@ -530,4 +530,47 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mssen zwingen
 - **Performance-Budgets (`PERF`)**: Bilddateien belegen entpackt im VRAM 4 Byte pro Pixel. Sprite-Sheets müssen harte GPU-Kantenlängen (`MAX_TEXTURE_EDGE = 8192`, `MAX_SHEET_EDGE = 2048`) und Pixel-Budgets (`MAX_SHEET_PIXELS = 4_000_000`) einhalten. Wenn ein Sheet diese Limits überschreitet, müssen Frame-Größen oder Spaltenzahlen (`calculateLimitedFrameSize`, `computeSheetColumns`) angepasst werden.
 - **Modularisierung (<1000 Zeilen)**: Komplexe Medien-Tools wie `VideoToSpriteSheetTool` werden in fokussierte Untermodule aufgeteilt (`VideoToSpriteSheetTypes`, `VideoToSpriteSheetCrop`, `VideoToSpriteSheetUI`), um die 1000-Zeilen-Regel strikt einzuhalten.
 
+### 29. AgentController Loop-API — Muster & DO NOTs
+
+#### Muster: Schleifen programmatisch erstellen
+Alle drei Loop-Methoden folgen demselben Muster wie `addBranch()`:
+1. Task-Besitzer ermitteln (`projectTaskRegistry.getTaskContainer`)
+2. `BranchBuilder` für den Body erzeugen (mit Stage-Kontext)
+3. `ensureActionsExistGlobally(body)` – globale Action-Prüfung
+4. SequenceItem mit `type: 'foreach'|'while'|'for'` + `body`-Array erstellen
+5. FlowChart invalidieren + `notifyChange()`
+
+```typescript
+// Beispiel: ForEach über eine Spieler-Liste
+agent.addForeach('RenderTask', 'playerList', 'player',
+    (b) => b.addAction('RenderPlayerAction'),
+    'idx'
+);
+
+// Beispiel: While-Schleife
+agent.addWhile('GameLoop', 'lives', '>', 0,
+    (b) => b.addAction('UpdateScoreAction')
+);
+
+// Beispiel: For-Schleife mit Variablen-Grenzen
+agent.addFor('SpawnLoop', 'i', '${spawnStart}', '${spawnEnd}',
+    (b) => b.addAction('SpawnEnemyAction'),
+    2
+);
+```
+
+#### DO NOT:
+- **DO NOT** Loop-Bodies als `then`/`else` anlegen — Loop-Items nutzen `body`, nicht `then`/`else`.
+- **DO NOT** vergessen, beim Hinzufügen neuer SequenceItem-Typen alle vier Traversierungs-Stellen zu aktualisieren: `generateTaskFlow/processItems`, `validate/checkInlineActions`, `validate/collectRefs`, `ensureActionsExistGlobally`.
+- **DO NOT** `step = 0` bei `addFor()` übergeben — führt zu Endlosschleifen in der Runtime.
+- **DO NOT** `sourceArray` leer lassen bei `addForeach()` — führt zu einem Validierungsfehler.
+- **DO NOT** `iterationMode='entries'` ohne `keyVar` übergeben — der AgentController und die Runtime erwarten dann die Schlüssel-Variable explizit.
+- **DO NOT** bei Map-Iteration `'values'` als Standard annehmen — Standard für Map-Objekte in der Runtime ist `'keys'`. Arrays nutzen immer Werte-Iteration unabhängig vom Mode.
+
+#### Wo ist was implementiert:
+- **Loop-API:** `src/services/AgentController.ts`, Methoden `addForeach` (Z. ~680), `addWhile` (Z. ~750), `addFor` (Z. ~810)
+- **Body-Traversierung:** `src/services/AgentController.ts`, `ensureActionsExistGlobally` (Z. ~860), `processItems` in `generateTaskFlow` (Z. ~1005), `checkInlineActions` (Z. ~1546), `collectRefs` (Z. ~1557)
+- **Tests:** `tests/agent_controller.test.ts` ab Z. ~698
+
+
 

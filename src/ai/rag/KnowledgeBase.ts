@@ -1,4 +1,5 @@
 import { KnowledgeChunk } from './KnowledgeChunk';
+import { FeatureTemplate } from './FeatureTemplate';
 import { MarkdownChunker } from './MarkdownChunker';
 import { EmbeddingProvider } from './EmbeddingProvider';
 import { RagStore } from './RagStore';
@@ -174,6 +175,92 @@ export class KnowledgeBase {
 
     public addChunk(chunk: KnowledgeChunk): void {
         this.chunks.push(chunk);
+    }
+
+    public addFeature(feature: FeatureTemplate): KnowledgeChunk {
+        const content = this.buildFeatureContent(feature);
+        const chunk: KnowledgeChunk = {
+            id: `feature-${feature.featureId}`,
+            title: `Feature: ${feature.name}`,
+            sectionPath: ['features', feature.featureId],
+            content,
+            tags: feature.tags,
+            entities: feature.entities,
+            chunkType: 'feature',
+            contentHash: this.simpleHash(content),
+            oneShotExample: feature.oneShotExample,
+        };
+        this.chunks.push(chunk);
+        this.loaded = true;
+        this.store.save(this.chunks);
+        return chunk;
+    }
+
+    private buildFeatureContent(feature: FeatureTemplate): string {
+        const lines: string[] = [];
+        lines.push(`# ${feature.name}`);
+        lines.push('');
+        lines.push(feature.description);
+        lines.push('');
+
+        if (feature.prerequisites.length > 0) {
+            lines.push('Prerequisites:');
+            for (const p of feature.prerequisites) {
+                const namePart = p.name ? ` "${p.name}"` : '';
+                const rolePart = p.role ? ` (role: ${p.role})` : '';
+                lines.push(`- ${p.className || 'Object'}${namePart}${rolePart}`);
+            }
+            lines.push('');
+        }
+
+        if (feature.components.length > 0) {
+            lines.push('Components:');
+            for (const c of feature.components) {
+                lines.push(`- ${c.name}: ${c.className}`);
+            }
+            lines.push('');
+        }
+
+        if (feature.variables.length > 0) {
+            lines.push('Variables:');
+            for (const v of feature.variables) {
+                const initPart = v.initialValue !== undefined ? ` = ${JSON.stringify(v.initialValue)}` : '';
+                lines.push(`- ${v.name}: ${v.type}${initPart}`);
+            }
+            lines.push('');
+        }
+
+        if (feature.tasks.length > 0) {
+            lines.push('Tasks:');
+            for (const t of feature.tasks) {
+                lines.push(`- ${t.name}: ${t.description || ''}`);
+            }
+            lines.push('');
+        }
+
+        if (feature.narrative) {
+            lines.push('Narrative:');
+            lines.push(feature.narrative);
+            lines.push('');
+        }
+
+        if (feature.oneShotExample) {
+            lines.push('One-Shot Example:');
+            lines.push('```json');
+            lines.push(feature.oneShotExample);
+            lines.push('```');
+        }
+
+        return lines.join('\n');
+    }
+
+    private simpleHash(input: string): string {
+        let h = 0x811c9dc5;
+        for (let i = 0; i < input.length; i++) {
+            h ^= input.charCodeAt(i);
+            h = Math.imul(h, 0x01000193);
+        }
+        return (h >>> 0).toString(16).padStart(8, '0');
     }
 
     public getAllChunks(): KnowledgeChunk[] {

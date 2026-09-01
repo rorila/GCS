@@ -1,3 +1,28 @@
+## [3.34.0] - 2026-09-01
+### Hinzugefügt
+- **AgentController – Loop-API (`addForeach`, `addWhile`, `addFor`):**
+  Drei neue Methoden ermöglichen das programmatische Erstellen von Schleifen-Sequenz-Items in Task-Flows.
+  - `addForeach(taskName, sourceArray, itemVar, bodyBuilder, indexVar?, iterationMode?, keyVar?)` – iteriert über List- **und Map-Variablen**
+    - `iterationMode='keys'` (Standard für Maps): itemVar erhält den Schlüssel
+    - `iterationMode='values'`: itemVar erhält den Wert
+    - `iterationMode='entries'`: itemVar = Wert, keyVar = Schlüssel (keyVar erforderlich)
+    - Arrays: immer Werte-Iteration (iterationMode wird ignoriert)
+  - `addWhile(taskName, conditionVar, operator, value, bodyBuilder)` – Schleife mit Bedingung
+  - `addFor(taskName, iteratorVar, from, to, bodyBuilder, step?)` – numerische Zählschleife; `from`/`to` akzeptieren Variablennamen (`${var}`)
+  Alle drei Methoden nutzen `BranchBuilder` für den Body, erzwingen globale Action-Registrierung und invalidieren den FlowChart.
+- **`TaskLoopHandler.handleForeach` – Map/Object-Unterstützung:**
+  Wenn `sourceArray` auf ein Plain-Object (Map) zeigt, wird es je nach `iterationMode` über Keys, Values oder Entries iteriert.
+- **`SequenceItem` – neue Felder `iterationMode` und `keyVar`** für Map-Iteration.
+- **`validate()` + `collectRefs()` + `checkInlineActions()` – `body`-Traversierung:**
+  Loop-Bodies werden korrekt rekursiv traversiert. Actions in Loop-Bodies gelten nicht mehr als verwaist.
+- **`generateTaskFlow()` – Loop-Node-Visualisierung:**
+  Loop-Items erzeugen einen eigenen `loop`-Node im FlowLayout.
+- **`addAction()` – `requiredParams` für Record-Actions:**
+  `record_get`, `record_set`, `record_delete` auf Pflicht-Parameter validiert.
+
+### Tests
+- 12 neue Tests in `tests/agent_controller.test.ts` (Gut-/Schlechtfälle für alle Loop-Typen + 4 Map-Iterations-Tests).
+
 ## [3.33.0] - 2026-08-10
 ### Hinzugefügt & Refaktoriert
 - **VideoToSpriteSheet Modularisierung (<1000 Zeilen):** `VideoToSpriteSheetTool.ts` (1517 Zeilen) wurde in 4 spezialisierte Untermodule in `src/editor/tools/spritesheet/` aufgeteilt:

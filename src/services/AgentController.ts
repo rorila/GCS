@@ -389,7 +389,13 @@ export class AgentController {
             'map_set': ['target', 'key', 'value'],
             'map_delete': ['target', 'key'],
             'map_has': ['target', 'key'],
-            'map_keys': ['target']
+            'map_keys': ['target'],
+            // Record-Actions (stabilisiert in Commit 5c1294d)
+            // 'target' optional – leeres Ziel wird als 'self' behandelt (Runtime-Konvention)
+            'record_get': ['key'],
+            'record_set': ['key', 'value'],
+            'record_delete': ['key'],
+            // record_create hat keine zwingenden Pflicht-Params (nur optionale Felder)
         };
 
         if (requiredParams[actionType]) {
@@ -677,9 +683,181 @@ export class AgentController {
         this.notifyChange();
     }
 
+    // ─────────────────────────────────────────────
+    // 3b. Loop Management
+    // ─────────────────────────────────────────────
+
     /**
-     * Stellt sicher, dass alle in einer Branch-Sequenz referenzierten Actions
-     * global im Projekt definiert sind.
+     * Fügt eine FOREACH-Schleife zur actionSequence eines Tasks hinzu.
+     * Unterstützt sowohl List-Variablen (Arrays) als auch Map-Variablen (Objekte).
+     *
+     * Invarianten:
+     * - Actions im Loop-Body müssen global definiert sein.
+     * - Flow wird nach Änderung invalidiert.
+     *
+     * @param taskName       - Name des Ziel-Tasks
+     * @param sourceArray    - Name der List- oder Map-Variable (z.B. 'players', 'scoreMap')
+     * @param itemVar        - Variablenname für das aktuelle Element/Value (z.B. 'player', 'score')
+     * @param bodyBuilder    - Callback, das den Schleifenrumpf aufbaut
+     * @param indexVar       - Optionaler Name für den Zähler (z.B. 'idx')
+     * @param iterationMode  - Nur für Map-Variablen: 'keys' (Standard), 'values', 'entries'
+     *                         - 'keys':    itemVar = Schlüssel (z.B. 'spielerName')
+     *                         - 'values':  itemVar = Wert      (z.B. 'punktzahl')
+     *                         - 'entries': itemVar = Wert, keyVar = Schlüssel
+     * @param keyVar         - Nur bei iterationMode='entries': Variable für den Schlüssel
+     */
+    public addForeach(
+        taskName: string,
+        sourceArray: string,
+        itemVar: string,
+        bodyBuilder: (branch: BranchBuilder) => void,
+        indexVar?: string,
+        iterationMode?: 'values' | 'keys' | 'entries',
+        keyVar?: string
+    ): void {
+        this.validateProjectLoaded();
+
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+        if (!sourceArray) throw new Error('addForeach: sourceArray darf nicht leer sein.');
+        if (!itemVar) throw new Error('addForeach: itemVar darf nicht leer sein.');
+        if (iterationMode === 'entries' && !keyVar) {
+            throw new Error('addForeach: keyVar ist bei iterationMode="entries" erforderlich.');
+        }
+
+        const taskOwner = projectTaskRegistry.getTaskContainer(taskName);
+        const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
+
+        const bodyBranch = new BranchBuilder(this, stageId);
+        bodyBuilder(bodyBranch);
+
+        this.ensureActionsExistGlobally(bodyBranch.getItems());
+
+        // Name spiegelt den Modus wider für bessere Lesbarkeit im Flow-Editor
+        const modeSuffix = iterationMode && iterationMode !== 'values'
+            ? ` (${iterationMode})`
+            : '';
+        const loopItem: SequenceItem = {
+            type: 'foreach',
+            name: `ForEach: ${itemVar} in ${sourceArray}${modeSuffix}`,
+            sourceArray,
+            itemVar,
+            body: bodyBranch.getItems(),
+            ...(indexVar ? { indexVar } : {}),
+            ...(iterationMode ? { iterationMode } : {}),
+            ...(keyVar ? { keyVar } : {})
+        };
+
+        task.actionSequence.push(loopItem);
+
+        this.invalidateTaskFlow(taskName);
+        AgentController.logger.info(`addForeach: '${itemVar} in ${sourceArray}' (${iterationMode ?? 'auto'}) zu Task '${taskName}' hinzugefügt.`);
+        this.notifyChange();
+    }
+
+    /**
+     * Fügt eine WHILE-Schleife zur actionSequence eines Tasks hinzu.
+     * Führt den Body aus, solange die Bedingung wahr ist.
+     *
+     * @param taskName          - Name des Ziel-Tasks
+     * @param conditionVariable - Variable, die geprüft wird (z.B. 'isRunning')
+     * @param operator          - Vergleichsoperator ('==', '!=', '>', '<', '>=', '<=')
+     * @param conditionValue    - Vergleichswert
+     * @param bodyBuilder       - Callback, das den Schleifenrumpf aufbaut
+     */
+    public addWhile(
+        taskName: string,
+        conditionVariable: string,
+        operator: ConditionOperator,
+        conditionValue: string | number,
+        bodyBuilder: (branch: BranchBuilder) => void
+    ): void {
+        this.validateProjectLoaded();
+
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+        if (!conditionVariable) throw new Error('addWhile: conditionVariable darf nicht leer sein.');
+
+        const taskOwner = projectTaskRegistry.getTaskContainer(taskName);
+        const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
+
+        const bodyBranch = new BranchBuilder(this, stageId);
+        bodyBuilder(bodyBranch);
+
+        this.ensureActionsExistGlobally(bodyBranch.getItems());
+
+        const loopItem: SequenceItem = {
+            type: 'while',
+            name: `While: ${conditionVariable} ${operator} ${conditionValue}`,
+            condition: {
+                variable: conditionVariable,
+                operator,
+                value: conditionValue
+            },
+            body: bodyBranch.getItems()
+        };
+
+        task.actionSequence.push(loopItem);
+
+        this.invalidateTaskFlow(taskName);
+        AgentController.logger.info(`addWhile: '${conditionVariable} ${operator} ${conditionValue}' zu Task '${taskName}' hinzugefügt.`);
+        this.notifyChange();
+    }
+
+    /**
+     * Fügt eine numerische FOR-Schleife zur actionSequence eines Tasks hinzu.
+     * Zählt von `from` bis `to` in `step`-Schritten.
+     *
+     * @param taskName    - Name des Ziel-Tasks
+     * @param iteratorVar - Name der Zählvariable (z.B. 'i')
+     * @param from        - Startwert (Zahl oder Variablenname, z.B. '${startIndex}')
+     * @param to          - Endwert (Zahl oder Variablenname, z.B. '${endIndex}')
+     * @param bodyBuilder - Callback, das den Schleifenrumpf aufbaut
+     * @param step        - Schrittweite (Standard: 1, negativ für Abwärtszählung)
+     */
+    public addFor(
+        taskName: string,
+        iteratorVar: string,
+        from: number | string,
+        to: number | string,
+        bodyBuilder: (branch: BranchBuilder) => void,
+        step: number = 1
+    ): void {
+        this.validateProjectLoaded();
+
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+        if (!iteratorVar) throw new Error('addFor: iteratorVar darf nicht leer sein.');
+        if (step === 0) throw new Error('addFor: step darf nicht 0 sein.');
+
+        const taskOwner = projectTaskRegistry.getTaskContainer(taskName);
+        const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
+
+        const bodyBranch = new BranchBuilder(this, stageId);
+        bodyBuilder(bodyBranch);
+
+        this.ensureActionsExistGlobally(bodyBranch.getItems());
+
+        const loopItem: SequenceItem = {
+            type: 'for',
+            name: `For: ${iteratorVar} = ${from} to ${to}${step !== 1 ? ` step ${step}` : ''}`,
+            iteratorVar,
+            from,
+            to,
+            step,
+            body: bodyBranch.getItems()
+        };
+
+        task.actionSequence.push(loopItem);
+
+        this.invalidateTaskFlow(taskName);
+        AgentController.logger.info(`addFor: '${iteratorVar} = ${from}..${to}' zu Task '${taskName}' hinzugefügt.`);
+        this.notifyChange();
+    }
+
+    /**
+     * Stellt sicher, dass alle in einer Branch/Body-Sequenz referenzierten Actions
+     * global im Projekt definiert sind. Traversiert rekursiv then/else/body.
      */
     private ensureActionsExistGlobally(items: SequenceItem[]) {
         for (const item of items) {
@@ -692,9 +870,10 @@ export class AgentController {
                     );
                 }
             }
-            // Recursively check nested branches
+            // Rekursiv: Condition-Zweige und Loop-Bodies prüfen
             if (item.then) this.ensureActionsExistGlobally(item.then);
             if (item.else) this.ensureActionsExistGlobally(item.else);
+            if (item.body) this.ensureActionsExistGlobally(item.body);
         }
     }
 
@@ -864,6 +1043,20 @@ export class AgentController {
                         elseMaxY = processItems(item.else, branchY, centerX + BRANCH_OFFSET);
                     }
                     y = Math.max(thenMaxY, elseMaxY) + Y_SPACING;
+                } else if (item.type === 'foreach' || item.type === 'while' || item.type === 'for') {
+                    // Loop-Node: als eigener Typ 'loop' im Flow rendern
+                    elements.push({
+                        id: getId(), type: 'loop',
+                        x: centerX, y,
+                        width: NODE_WIDTH, height: NODE_HEIGHT,
+                        properties: { name: item.name, text: item.name, loopType: item.type }
+                    });
+                    const bodyY = y + Y_SPACING;
+                    // Body-Items leicht eingerückt darstellen
+                    const bodyEndY = item.body?.length > 0
+                        ? processItems(item.body, bodyY, centerX + Math.round(BRANCH_OFFSET / 2))
+                        : bodyY;
+                    y = bodyEndY + Y_SPACING;
                 } else {
                     elements.push({
                         id: getId(), type: item.type === 'task' ? 'task' : 'action',
@@ -1374,6 +1567,8 @@ export class AgentController {
                 }
                 if (item.then) checkInlineActions(item.then, taskName);
                 if (item.else) checkInlineActions(item.else, taskName);
+                // Loop-Bodies ebenfalls traversieren
+                if (item.body) checkInlineActions(item.body, taskName);
             }
         };
 
@@ -1386,6 +1581,8 @@ export class AgentController {
                 if (item.type === 'action' && item.name) referencedActions.add(item.name);
                 if (item.then) collectRefs(item.then);
                 if (item.else) collectRefs(item.else);
+                // Loop-Bodies ebenfalls traversieren
+                if (item.body) collectRefs(item.body);
             }
         };
         allTasks.forEach(t => collectRefs(t.actionSequence));

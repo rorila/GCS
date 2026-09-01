@@ -18,7 +18,10 @@ export interface KnowledgeChunk {
         | 'component'
         | 'workflow'
         | 'antiPattern'
-        | 'validator';
+        | 'validator'
+        | 'feature';
     contentHash: string;
     embedding?: number[];
+    /** Optional: One-Shot-Beispiel für feature-Chunks. */
+    oneShotExample?: string;
 }

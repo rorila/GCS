@@ -272,10 +272,12 @@ export interface SequenceItem {
     to?: number | string;           // End value (number or ${variable})
     step?: number;                  // Step increment (default: 1)
 
-    // For type: 'foreach' - iterate over array
-    sourceArray?: string;           // Variable name containing array (e.g., 'players')
-    itemVar?: string;               // Variable name for current item (e.g., 'player')
+    // For type: 'foreach' - iterate over array or map/object
+    sourceArray?: string;           // Variable name containing array or map (e.g., 'players', 'scoreMap')
+    itemVar?: string;               // Variable name for current item/value (e.g., 'player')
     indexVar?: string;              // Variable name for current index (e.g., 'idx')
+    iterationMode?: 'values' | 'keys' | 'entries'; // Map-Iteration: 'values' (Standard), 'keys', 'entries'
+    keyVar?: string;                // Nur bei iterationMode='entries': Variable für den Map-Schlüssel
 }
 
 export interface GameTask {

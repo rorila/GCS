@@ -1,3 +1,20 @@
+### 2026-09-01
+[UC-2026-09-01-AgentController-Loop-API]
+Beschreibung: AgentController auf den Stand der letzten 20 Commits gebracht. Drei neue Loop-Methoden hinzugefügt (addForeach, addWhile, addFor), Traversierung von Loop-Bodies in validate() und generateTaskFlow() implementiert, requiredParams für Record-Actions ergänzt. addForeach um Map-Variablen-Unterstützung erweitert (iterationMode: keys/values/entries).
+Beteiligte Dateien:
+- src/model/types.ts (Z. 275–281): [GEÄNDERT] `SequenceItem` — neue Felder `iterationMode?: 'values'|'keys'|'entries'` und `keyVar?: string` für Map-Iteration
+- src/runtime/executor/TaskLoopHandler.ts (Z. 65–162): [GEÄNDERT] `handleForeach()` — Array-Pfad unverändert; neuer Map/Object-Pfad mit iterationMode='keys'|'values'|'entries' und keyVar-Unterstützung
+- src/services/AgentController.ts (Z. 690–757): [GEÄNDERT] `addForeach()` — erweitert um Parameter `iterationMode` und `keyVar`; Validierung: entries ohne keyVar wirft Fehler
+- src/services/AgentController.ts (Z. 758–820): [NEU] `addWhile()` — WHILE-Loop-Item erstellen
+- src/services/AgentController.ts (Z. 820–870): [NEU] `addFor()` — FOR-Loop-Item erstellen; from/to als Zahl oder ${variable}
+- src/services/AgentController.ts (Z. 870–900): [GEÄNDERT] `ensureActionsExistGlobally()` — traversiert auch item.body
+- src/services/AgentController.ts (Z. 1005–1055): [GEÄNDERT] `generateTaskFlow() / processItems()` — Loop-Items erzeugen 'loop'-Node
+- src/services/AgentController.ts (Z. 1546–1555): [GEÄNDERT] `validate() / checkInlineActions()` — traversiert item.body
+- src/services/AgentController.ts (Z. 1557–1568): [GEÄNDERT] `validate() / collectRefs()` — traversiert item.body
+- src/services/AgentController.ts (Z. 378–402): [GEÄNDERT] `addAction() / requiredParams` — record_get/set/delete ergänzt
+- tests/agent_controller.test.ts (Z. 698–1030): [GEÄNDERT] 12 neue Tests: addForeach (Array+Map), addWhile, addFor, validate, generateTaskFlow, Map iterationMode=keys/values/entries, entries ohne keyVar
+Ergebnis: Alle 12 neuen Tests grün. Alle bestehenden AgentController-Tests weiterhin grün.
+
 ### 2026-08-10
 [UC-2026-08-10-VideoToSpriteSheet]
 Beschreibung: Refactoring und Qualitätssicherung des `VideoToSpriteSheetTool` — Modularisierung zur Einhaltung der 1000-Zeilen-Regel (Aufteilung von 1517 Zeilen auf 4 fokussierte Untermodule), Implementierung umfassender Unit-Tests für YCbCr Chroma-Keying & Bounding-Box-Berechnungen sowie Aktualisierung des Testrunners und der Integritäts-Hashes.

@@ -1,69 +1,69 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 21.8.2026, 14:25:18
+**Generiert am**: 1.9.2026, 09:43:40
 **Status**: ❌ FEHLER GEFUNDEN
-**Gesamtlauf**: 112.4s
+**Gesamtlauf**: 97.4s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 308)
-    "Bestanden ✅" : 300
-    "Fehlgeschlagen ❌" : 8
+pie title Test-Status (Gesamt: 320)
+    "Bestanden ✅" : 310
+    "Fehlgeschlagen ❌" : 10
 ```
 
 ## ⏱ Timing-Übersicht (sortiert nach Dauer)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 111424ms 🐌 | ✅ |
-| Code Quality & Security Guards | 875ms | ✅ |
-| AgentController | 25ms | ✅ |
-| Coordinate Binding | 13ms | ✅ |
-| Stage-Transition Regression | 11ms | ✅ |
-| Mathe-Quiz | 10ms | ✅ |
-| Export Integrity | 9ms | ✅ |
+| Playwright E2E | 96065ms 🐌 | ✅ |
+| Code Quality & Security Guards | 1208ms | ✅ |
+| AgentController | 21ms | ✅ |
+| Coordinate Binding | 10ms | ✅ |
+| Mathe-Quiz | 9ms | ✅ |
+| Stage-Transition Regression | 9ms | ✅ |
+| Export Integrity | 8ms | ✅ |
 | TTimer/TIntervalTimer Reactive Properties | 5ms | ✅ |
-| RefactoringManager | 4ms | ✅ |
-| Project Integrity | 4ms | ✅ |
 | TaskExecutor | 4ms | ✅ |
-| VideoToSpriteSheet Tool | 3ms | ✅ |
+| RefactoringManager | 4ms | ✅ |
+| Project Integrity | 3ms | ✅ |
 | Stage-Import | 3ms | ✅ |
-| ProjectStore | 3ms | ✅ |
+| FlowDataAction Inspector | 3ms | ✅ |
+| ProjectStore | 2ms | ✅ |
 | SyncValidator | 2ms | ✅ |
 | Serialization | 2ms | ✅ |
 | SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
-| FlowDataAction Inspector | 2ms | ✅ |
+| VideoToSpriteSheet Tool | 2ms | ✅ |
+| Login-Logic | 2ms | ✅ |
+| Smart-Mapping & Discovery | 1ms | ✅ |
 | Jump & Run Components | 1ms | ✅ |
-| GameLoopManager Physics | 1ms | ✅ |
-| Raketen-Countdown | 1ms | ✅ |
-| Pascal Code Generator | 1ms | ✅ |
 | Action Stage Routing & Duplicates | 1ms | ✅ |
-| Action CRUD | 1ms | ✅ |
-| Login-Logic | 1ms | ✅ |
+| Pascal Code Generator | 1ms | ✅ |
+| GameLoopManager Physics | 1ms | ✅ |
 | Event Actions (bind/unbind) | 1ms | ✅ |
+| Action CRUD | 1ms | ✅ |
+| Raketen-Countdown | 1ms | ✅ |
 | SpawnObject Variable Support | 1ms | ✅ |
+| Unification & Auto-Unwrap | 1ms | ✅ |
 | SnapshotManager | 1ms | ✅ |
 | SidePanel | 1ms | ✅ |
-| Unification & Auto-Unwrap | 1ms | ✅ |
 | Action Registration | 1ms | ✅ |
 | Virtual Gamepad | 1ms | ✅ |
-| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
-| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
 | SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
-| Sprite-Geometrie | 1ms | ✅ |
-| Electron Security | 1ms | ✅ |
-| Smart-Mapping & Discovery | 1ms | ✅ |
+| SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
 | FlowSync | 1ms | ✅ |
+| Sprite-Geometrie | 1ms | ✅ |
+| SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
 | TTimer Variable Resolution | 1ms | ✅ |
-| Gezieltes Auffrischen | 1ms | ✅ |
-| Renaming Robustness | 1ms | ✅ |
+| Renaming Robustness | 0ms | ✅ |
 | SyncRefactor P0: Inspector Writeback | 0ms | ✅ |
+| Gezieltes Auffrischen | 0ms | ✅ |
 | Component Events | 0ms | ✅ |
-| TTable Smart-Unwrap | 0ms | ✅ |
+| Electron Security | 0ms | ✅ |
 | SELECT COUNT(*) | 0ms | ✅ |
+| TTable Smart-Unwrap | 0ms | ✅ |
 
-**Summe Suiten**: 112423ms
-**Gesamtlauf inkl. Setup/Report**: 112447ms
+**Summe Suiten**: 97382ms
+**Gesamtlauf inkl. Setup/Report**: 97404ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -145,6 +145,18 @@ pie title Test-Status (Gesamt: 308)
 | createThresholdVariable<br><small>Stage-Threshold-Variable korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | addAction — Neue Action-Typen<br><small>Neue Action-Typen korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | validate — keine fehlenden Referenzen<br><small>Validierung ohne Fehler.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addForeach — Gutfall<br><small>ForEach-Sequenzitem korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addForeach — Schlechtfall (leere sourceArray)<br><small>Fehler korrekt geworfen.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addWhile — Gutfall<br><small>While-Sequenzitem korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addWhile — Schlechtfall (leere conditionVariable)<br><small>Fehler korrekt geworfen.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addFor — Gutfall<br><small>For-Sequenzitem korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addFor — Schlechtfall (step = 0)<br><small>Fehler korrekt geworfen.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| validate — Loop-Body-Actions nicht als verwaist markiert<br><small>Validierung korrekt: keine Fehler, keine false-positiven Warnungen.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| generateTaskFlow — Loop-Node in flowLayout<br><small>Loop-Node 'ForEach: el in list' korrekt im flowLayout.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addForeach — Map iterationMode=keys<br><small>Map-Keys-Iteration korrekt konfiguriert.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addForeach — Map iterationMode=values<br><small>Map-Values-Iteration korrekt konfiguriert.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addForeach — Map iterationMode=entries<br><small>Map-Entries-Iteration korrekt konfiguriert.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| addForeach — Schlechtfall (entries ohne keyVar)<br><small>Fehler korrekt geworfen.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Integration: Raketen-Countdown via Batch<br><small>Vollständiges Raketen-Demo: 20 Batch-Ops, 4 Objekte, 2 Blueprint-Objekte (GameLoop+GameState), 3 Tasks, 6 Actions, 1 Variable, 3 Events, Binding OK. Validierung: 3 Warnungen, 0 Fehler.</small> | RaketenCountdown | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Struktur: Sprite + Task + Action<br><small>Sprite mit velocityY=0, Task mit set_property Action korrekt erstellt.</small> | RaketenCountdown | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | JumpAndRun Komponenten registriert | JumpAndRunComponents | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -179,11 +191,11 @@ pie title Test-Status (Gesamt: 308)
 | Guard: Component Registrierung (Barrel + Registry)<br><small>Alle 76 Komponenten korrekt registriert</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: DTO-to-Registry Compliance (T-11b)<br><small>Alle serialisierbaren Klassen haben eine Factory</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 0</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/components/TDebugLog.ts (1024), src/editor/Editor.ts (1400), src/editor/inspector/InspectorRenderer.ts (1342), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1377), src/editor/services/EditorDataManager.ts (1006), src/editor/services/FlowContextMenuProvider.ts (1031), src/editor/services/StageInteractionManager.ts (1023), src/editor/services/StageRenderer.ts (2290), src/runtime/GameLoopManager.ts (1004), src/runtime/GameRuntime.ts (1320), src/services/AgentController.ts (1607)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Guard: bundle:runtime Freshness<br><small>Bundle 16012s veraltet (juengste Quelle: src/runtime/GameLoopManager.ts). Bitte "npm run bundle:runtime" ausfuehren!</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Zu gross: src/components/TDebugLog.ts (1024), src/editor/Editor.ts (1400), src/editor/inspector/InspectorRenderer.ts (1364), src/editor/inspector/renderers/InspectorSectionRenderer.ts (1645), src/editor/services/EditorDataManager.ts (1025), src/editor/services/FlowContextMenuProvider.ts (1042), src/editor/services/StageInteractionManager.ts (1023), src/editor/services/StageRenderer.ts (2518), src/runtime/GameLoopManager.ts (1274), src/runtime/GameRuntime.ts (1364), src/services/AgentController.ts (1804)</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: bundle:runtime Freshness<br><small>Bundle 1187s veraltet (juengste Quelle: src/runtime/executor/TaskLoopHandler.ts). Bitte "npm run bundle:runtime" ausfuehren!</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=false, Event=false, ObjEvent=false, FlowChart=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Rename Action: ValidatePin → CheckPinCode<br><small>Action=true, Sequence=true, Flow=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Rename Action: ValidatePin → CheckPinCode<br><small>Action=false, Sequence=false, Flow=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Rename Variable: currentUser → activeUser<br><small>Var=true, Formula=true, ResultVar=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Object: LoginButton → SignInButton<br><small>Object=true, ActionTarget=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Delete Task: AttemptLogin<br><small>TaskGone=false, EventCleared=true, FlowChartGone=true, ObjEventCleared=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
@@ -236,11 +248,11 @@ pie title Test-Status (Gesamt: 308)
 | resultVariable in INTO-Sektion<br><small>Sektion: INTO / Ergebnis</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | GROUP_COLORS Mapping<br><small>Einträge: 29, FROM: true, WHERE: true</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Erweiterte Operatoren (CONTAINS, IN)<br><small>CONTAINS: true, IN: true</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: GameExporter.ts<br><small>Hash geändert! Erwartet: D121B32E4481E2B0..., Aktuell: 0DC597356F790884... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Export-Integrität: GameExporter.ts<br><small>Hash geändert! Erwartet: D121B32E4481E2B0..., Aktuell: 382E3AB14A5B23E5... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Export-Integrität: ProjectPersistenceService.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: player-standalone.ts<br><small>Hash geändert! Erwartet: C926F046F7154441..., Aktuell: 148E878B574E4FF2... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Export-Integrität: GameRuntime.ts<br><small>Hash geändert! Erwartet: D131EE11055427BB..., Aktuell: E8C2E46725680AAA... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| Export-Integrität: GameLoopManager.ts<br><small>Hash geändert! Erwartet: B60171A87D0034EF..., Aktuell: 1313A984E3F91269... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Export-Integrität: player-standalone.ts<br><small>Hash geändert! Erwartet: C926F046F7154441..., Aktuell: 460E3A6E61CB20EC... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Export-Integrität: GameRuntime.ts<br><small>Hash geändert! Erwartet: D131EE11055427BB..., Aktuell: DA4EB93C093CE14C... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Export-Integrität: GameLoopManager.ts<br><small>Hash geändert! Erwartet: B60171A87D0034EF..., Aktuell: 2C1353DE511CCEC4... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Nested Task Declaration Generation<br><small>Recursive Tasks successfully output</small> | Pascal Generator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Basis-Import (Objekte, Tasks, Actions, Variables)<br><small>2 Objekte, 1 Task, 2 Actions, 1 Variable korrekt kopiert</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | ID-Remap (keine Original-IDs)<br><small>Alle IDs neu generiert</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -249,7 +261,7 @@ pie title Test-Status (Gesamt: 308)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1787315006715_fg (erwartet: stage_import_1787315006715_fg), BackToLobby.stageId=stage_import_1787315006715_am (erwartet: stage_import_1787315006715_am)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1788248524330_vg (erwartet: stage_import_1788248524330_vg), BackToLobby.stageId=stage_import_1788248524330_mf (erwartet: stage_import_1788248524330_mf)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
@@ -258,7 +270,7 @@ pie title Test-Status (Gesamt: 308)
 | A1: handleStageChange enthält glm.init()<br><small>GameLoopManager wird bei Stage-Wechsel korrekt re-initialisiert.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | A2: slide-up nutzt cellSize-Division<br><small>slide-up Offset wird korrekt durch cellSize geteilt (Grid-Zellen statt Pixel).</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | A3: handleStageChange KEIN eigener triggerStartAnimation<br><small>Korrekt: Animation wird nur über start() → initMainGame() ausgelöst.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| A4: updateSpritePositions dedupliziert via Map<br><small>Map-basierte Deduplizierung vorhanden → kein Rubber-Banding.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| A4: updateSpritePositions dedupliziert via Map<br><small>REGRESSION! Map=false, has/set=true → Rubber-Banding möglich!</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | A5: shouldAnimate filtert parentId-Kinder<br><small>parentId-Filter aktiv → Kinder reiten auf dem Parent mit (kein Drift).</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | A6: initMainGame enthält triggerStartAnimation<br><small>Animation wird korrekt in initMainGame ausgelöst (einziger Aufrufpunkt).</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | B1: TDialogRoot Default-Werte<br><small>Alle Defaults korrekt: modal=true, closable=true, draggable=true, centerOnShow=true, visible=false</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

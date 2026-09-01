@@ -1085,7 +1085,7 @@
         {
           "className": "TSpriteTemplate",
           "id": "obj_import_1778766554175_14zs",
-          "name": "ShooterTemplate",
+          "name": "KanonenTemplate",
           "scope": "stage",
           "isHiddenInRun": true,
           "draggable": false,
@@ -1373,7 +1373,7 @@
           "target": "",
           "changes": {},
           "variableName": "${KanonenTemplateHoehe}",
-          "source": "ShooterTemplate",
+          "source": "KanonenTemplate",
           "sourceProperty": "height",
           "source_ref": "obj_import_1778766554175_14zs"
         },
@@ -1493,7 +1493,7 @@
           "type": "calculate",
           "name": "Act_CalcNextSpriteName",
           "showDetails": false,
-          "target": "ShooterTemplate",
+          "target": "KanonenTemplate",
           "changes": {},
           "event": "",
           "task": "",
@@ -2086,7 +2086,7 @@
               "y": 140
             },
             "SetANewCannon": {
-              "x": 920,
+              "x": 900,
               "y": 140
             }
           }
