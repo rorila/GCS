@@ -6,6 +6,10 @@ import { FeatureChunker } from '../../ai/rag/FeatureChunker';
 import { KnowledgeBase } from '../../ai/rag/KnowledgeBase';
 import type { AIGenerationRequest } from '../../ai/config/AIConfig';
 import type { AgentScript } from '../../services/agent/AgentScriptTypes';
+import { AgentScriptGenerator } from '../../ai/generation/AgentScriptGenerator';
+import { AIConfigStore } from '../../ai/config/AIConfigStore';
+import { AgentController } from '../../services/AgentController';
+import { AgentScriptIO } from '../../services/agent/AgentScriptIO';
 
 export class UserStoriesViewManager {
     private host: IViewHost;
@@ -233,6 +237,7 @@ export class UserStoriesViewManager {
                                 ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Flow-Editor öffnen</button>` : ''}
                                 <button onclick="window.showInteractionDiagram('', '${interaction.id}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Diagramm anzeigen</button>
                                 <button onclick="window.editUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
+                                <button onclick="window.sendUseCaseToAI('${interaction.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🤖 KI</button>
                                 <button onclick="window.saveUseCaseAsFeature('${interaction.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">+ Feature</button>
                                 ${hasManual ? `<button onclick="window.deleteUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>` : ''}
                             </div>
@@ -305,6 +310,7 @@ export class UserStoriesViewManager {
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
                                 <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
+                                <button onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🤖 KI</button>
                                 <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">+ Feature</button>
                                 <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>
                             </div>
@@ -350,7 +356,9 @@ export class UserStoriesViewManager {
         (window as any).editUserStory = (userStoryId: string) => this.editUserStory(userStoryId);
         (window as any).deleteUserStory = (userStoryId: string) => this.deleteUserStory(userStoryId);
         (window as any).saveUserStoryAsFeature = (userStoryId: string) => this.saveUserStoryAsFeature(userStoryId);
+        (window as any).sendUserStoryToAI = (userStoryId: string) => this.sendUserStoryToAI(userStoryId);
         (window as any).saveUseCaseAsFeature = (interactionId: string) => this.saveUseCaseAsFeature(interactionId);
+        (window as any).sendUseCaseToAI = (interactionId: string) => this.sendUseCaseToAI(interactionId);
         (window as any).toggleUserStoryForFeature = (userStoryId: string, checked: boolean) => this.toggleUserStoryForFeature(userStoryId, checked);
         (window as any).toggleAllPlannedForFeature = (checked: boolean) => this.toggleAllPlannedForFeature(checked);
         (window as any).clearFeatureSelection = () => this.clearFeatureSelection();
@@ -859,5 +867,62 @@ export class UserStoriesViewManager {
         this.selectedInteractions.clear();
         this.host.renderUserStoriesList();
         window.alert(`Feature "${featureName}" wurde der Library hinzugefügt.`);
+    }
+
+    public async sendUserStoryToAI(userStoryId: string) {
+        await this.generateAndApplyForUserStory(userStoryId);
+    }
+
+    public async sendUseCaseToAI(interactionId: string) {
+        const project = this.host.project;
+        const userStory = (project.userStories?.userStories || []).find((us: any) =>
+            (us.interactions || []).some((it: any) => it.id === interactionId)
+        );
+        if (!userStory) {
+            window.alert('Keine zugehörige User Story für diesen Use Case gefunden.');
+            return;
+        }
+        await this.generateAndApplyForUserStory(userStory.id);
+    }
+
+    private async generateAndApplyForUserStory(userStoryId: string) {
+        const project = this.host.project;
+        const userStory = (project.userStories?.userStories || []).find((us: any) => us.id === userStoryId);
+        if (!userStory) {
+            window.alert('User Story nicht gefunden.');
+            return;
+        }
+
+        const instruction = window.prompt('Zusätzliche Anweisung für die KI:', userStory.description || userStory.title || '')?.trim();
+        const request: AIGenerationRequest = {
+            instruction: instruction || userStory.title || 'Feature umsetzen',
+            scope: 'selectedUserStory',
+            conflictStrategy: 'overwrite',
+            selectedUserStoryIds: [userStoryId],
+        };
+
+        const config = AIConfigStore.load();
+        const generator = new AgentScriptGenerator(project);
+        const result = await generator.generate(request, config);
+
+        if (!result.success || !result.agentScript) {
+            window.alert(`KI-Generierung fehlgeschlagen:\n${result.validation?.errors?.join('\n') || 'Unbekannter Fehler'}`);
+            return;
+        }
+
+        const controller = AgentController.getInstance();
+        controller.setProject(project);
+        const io = new AgentScriptIO(controller);
+        const targetStageId = this.host.getActiveStage()?.id || project.stages?.[0]?.id;
+        const importResult = io.importScript(result.agentScript, { conflictStrategy: 'overwrite', targetStageId });
+
+        if (!importResult.success) {
+            window.alert(`Import fehlgeschlagen:\n${importResult.errors.join('\n')}`);
+            return;
+        }
+
+        this.host.isProjectDirty = true;
+        this.host.render();
+        window.alert('KI hat das Feature generiert und ins Projekt übernommen.');
     }
 }

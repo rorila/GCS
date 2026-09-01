@@ -93,6 +93,8 @@ export class KnowledgeBase {
     }
 
     private async doLoad(urls: string[]): Promise<void> {
+        this.loadStoredChunks();
+
         try {
             const responses = await Promise.all(
                 urls.map(async (url) => {
@@ -121,6 +123,23 @@ export class KnowledgeBase {
             this.logger.warn('Laden fehlgeschlagen:', err);
         } finally {
             this.loading = null;
+        }
+    }
+
+    private loadStoredChunks(): void {
+        const storedChunks = this.store.loadChunks();
+        const storedEmbeddings = this.store.loadEmbeddings();
+        const features = storedChunks.filter(c => c.chunkType === 'feature');
+
+        for (const chunk of features) {
+            if (storedEmbeddings[chunk.id]) {
+                chunk.embedding = storedEmbeddings[chunk.id];
+            }
+            this.chunks.push(chunk);
+        }
+
+        if (this.chunks.length > 0) {
+            this.loaded = true;
         }
     }
 
