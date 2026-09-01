@@ -17,6 +17,7 @@ export class UserStoriesViewManager {
     private selectedForFeature: Set<string> = new Set();
     private selectedInteractions: Set<string> = new Set();
     private aiReachable: boolean | null = null;
+    private aiChecking: boolean = false;
 
     constructor(host: IViewHost) {
         this.host = host;
@@ -60,10 +61,10 @@ export class UserStoriesViewManager {
         const projAudience = projectDesc.targetAudience ? `Zielgruppe: ${projectDesc.targetAudience}` : '';
         const projInfo = [projGenre, projAudience].filter(Boolean).join(' | ');
 
-        const aiDisabled = this.aiReachable !== true;
-        const aiDisabledTitle = this.aiReachable === false ? "KI nicht erreichbar" : "KI-Status muss zuerst getestet werden";
-        const aiStatusText = this.aiReachable === true ? "✓ KI erreichbar" : this.aiReachable === false ? "✗ KI nicht erreichbar" : "– KI ungetestet";
-        const aiStatusColor = this.aiReachable === true ? "#4caf50" : this.aiReachable === false ? "#f44336" : "#9090b0";
+        const aiDisabled = this.aiReachable !== true || this.aiChecking;
+        const aiDisabledTitle = this.aiChecking ? "KI-Test läuft..." : this.aiReachable === false ? "KI nicht erreichbar" : "KI-Status muss zuerst getestet werden";
+        const aiStatusText = this.aiChecking ? "⏳ KI wird getestet..." : this.aiReachable === true ? "✓ KI erreichbar" : this.aiReachable === false ? "✗ KI nicht erreichbar" : "– KI ungetestet";
+        const aiStatusColor = this.aiChecking ? "#607d8b" : this.aiReachable === true ? "#4caf50" : this.aiReachable === false ? "#f44336" : "#9090b0";
         const projectRow = `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background-color: #16213e; border: 1px solid #3a3a6a; border-radius: 6px; margin-bottom: 4px;">
                 <div>
@@ -937,9 +938,21 @@ export class UserStoriesViewManager {
     }
 
     public async testAIReachability() {
-        const config = AIConfigStore.load();
-        const reachable = await AIReachability.check(config);
-        this.aiReachable = reachable;
-        this.host.render();
+        this.aiChecking = true;
+        this.aiReachable = null;
+        this.host.renderUserStoriesList();
+        try {
+            const config = AIConfigStore.load();
+            const reachable = await AIReachability.check(config);
+            this.aiReachable = reachable;
+            this.aiChecking = false;
+            this.host.renderUserStoriesList();
+            window.alert(reachable ? 'KI ist erreichbar.' : 'KI ist nicht erreichbar. Prüfe den konfigurierten Endpoint.');
+        } catch (e: any) {
+            this.aiReachable = false;
+            this.aiChecking = false;
+            this.host.renderUserStoriesList();
+            window.alert(`KI-Test fehlgeschlagen: ${e.message || e}`);
+        }
     }
 }
