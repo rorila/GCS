@@ -13,6 +13,13 @@ export class AIReachability {
     public static async check(config?: AIConfig): Promise<boolean> {
         const cfg = config ?? AIConfigStore.load();
         const provider = cfg.provider === 'ollama' ? new OllamaProvider(cfg) : new LMStudioProvider(cfg);
-        return provider.healthCheck();
+        const maxAttempts = 3;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            const result = await provider.healthCheck();
+            if (result) {
+                return true;
+            }
+        }
+        return false;
     }
 }
