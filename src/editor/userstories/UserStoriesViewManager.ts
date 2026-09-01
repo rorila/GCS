@@ -4,7 +4,7 @@ import type { UserStory } from './UserStoryTypes';
 import { ProjectContextBuilder } from '../../ai/context/ProjectContextBuilder';
 import { FeatureChunker } from '../../ai/rag/FeatureChunker';
 import { KnowledgeBase } from '../../ai/rag/KnowledgeBase';
-import type { AIGenerationRequest } from '../../ai/config/AIConfig';
+import type { AIGenerationRequest, AIGenerationResult } from '../../ai/config/AIConfig';
 import type { AgentScript } from '../../services/agent/AgentScriptTypes';
 import { AgentScriptGenerator } from '../../ai/generation/AgentScriptGenerator';
 import { AIConfigStore } from '../../ai/config/AIConfigStore';
@@ -899,6 +899,36 @@ export class UserStoriesViewManager {
         await this.generateAndApplyForUserStory(userStory.id);
     }
 
+    private showAIGeneratingOverlay(text: string) {
+        const existing = document.getElementById('ai-generating-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'ai-generating-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;display:flex;align-items:center;justify-content:center;pointer-events:all;';
+
+        const box = document.createElement('div');
+        box.style.cssText = 'background:#1a2744;border:1px solid #3a3a6a;border-radius:8px;padding:24px 32px;color:#e0e0e0;text-align:center;';
+
+        const spinner = document.createElement('div');
+        spinner.textContent = '⏳';
+        spinner.style.cssText = 'font-size:32px;margin-bottom:12px;';
+
+        const msg = document.createElement('div');
+        msg.style.cssText = 'font-size:16px;font-weight:bold;';
+        msg.textContent = text;
+
+        box.appendChild(spinner);
+        box.appendChild(msg);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    }
+
+    private hideAIGeneratingOverlay() {
+        const existing = document.getElementById('ai-generating-overlay');
+        if (existing) existing.remove();
+    }
+
     private async generateAndApplyForUserStory(userStoryId: string) {
         const project = this.host.project;
         const userStory = (project.userStories?.userStories || []).find((us: any) => us.id === userStoryId);
@@ -917,9 +947,16 @@ export class UserStoriesViewManager {
 
         const config = AIConfigStore.load();
         const generator = new AgentScriptGenerator(project);
-        const result = await generator.generate(request, config);
 
-        if (!result.success || !result.agentScript) {
+        this.showAIGeneratingOverlay('KI generiert...');
+        let result: AIGenerationResult | undefined;
+        try {
+            result = await generator.generate(request, config);
+        } finally {
+            this.hideAIGeneratingOverlay();
+        }
+
+        if (!result || !result.success || !result.agentScript) {
             window.alert(`KI-Generierung fehlgeschlagen:\n${result.validation?.errors?.join('\n') || 'Unbekannter Fehler'}`);
             return;
         }
