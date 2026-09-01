@@ -200,6 +200,10 @@ export class UserStoryDetailManager {
 
     private navigateToFlowChart(flowChartId: string) {
         this.host.switchView('flow');
+        if (this.host.flowEditor) {
+            this.host.flowEditor.navigationManager.switchActionFlow(flowChartId);
+            this.host.flowEditor.selectionManager.selectNodeById(flowChartId);
+        }
         const notification = document.createElement('div');
         notification.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #9c27b0; color: white; padding: 12px 24px; border-radius: 4px; z-index: 1000;';
         notification.textContent = `Zum Flow-Editor gewechselt. Task: ${flowChartId}`;
