@@ -38,7 +38,7 @@ export class AgentScriptGenerator {
         context.relevantApiDocs = await stepRagResolver.resolve(
             plan.steps ?? [],
             config,
-            2,
+            1,
         );
 
         const provider = this.createProvider(config);
@@ -151,6 +151,7 @@ Regeln:
 13. Für Event-Parameter in Tasks (z.B. 'key' bei onKeyDown) verwende addTaskParam, nicht addVariable.
 14. Für Positionsänderungen verwende setProperty oder addAction mit einem gültigen ActionType. Verwende keine erfundenen ActionTypes.
 15. Das explanation-Feld muss das tatsächlich verwendete Event (z.B. onKeyDown) nennen, nicht ein anderes.
+16. Wenn ein API-Chunk den chunkType 'feature' enthält und dessen Tags/Entitäten zur Aufgabe passen, verwende das beigefügte One-Shot Example als Bauplan. Ersetze dabei nur Platzhalter wie Namen, Stage und Positionen.
 
 Erlaubte Methoden: ${allowedMethods}
 
@@ -264,6 +265,14 @@ AUSGABEREGELN
         return docs.map(doc => {
             const title = doc.title ?? doc.id ?? 'Unbekannt';
             const type = doc.chunkType ?? 'doc';
+
+            if (type === 'feature' && doc.oneShotExample) {
+                const description = typeof doc.content === 'string'
+                    ? doc.content.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 200)
+                    : JSON.stringify(doc.content);
+                return `- [feature] ${title}: ${description}\n  One-Shot Example (Vorlage):\n${doc.oneShotExample}`;
+            }
+
             const content = typeof doc.content === 'string'
                 ? doc.content.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
                 : JSON.stringify(doc.content);
