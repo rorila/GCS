@@ -1,6 +1,7 @@
 import { AIConfig } from '../config/AIConfig';
 import { LLMCompletionRequest, LLMCompletionResponse, LLMMessage } from './LLMTypes';
 import { LLMProvider } from './LLMProvider';
+import { AIPromptLogger } from './AIPromptLogger';
 
 /**
  * OllamaProvider
@@ -25,9 +26,13 @@ export class OllamaProvider implements LLMProvider {
     }
 
     public async complete(request: LLMCompletionRequest): Promise<LLMCompletionResponse> {
-        const body = this.buildBody(request);
+        const logger = AIPromptLogger.getInstance();
+        logger.logRequest(request);
 
-        const response = await this.fetchWithTimeout(`${this.config.endpoint}/api/chat`, {
+        try {
+            const body = this.buildBody(request);
+
+            const response = await this.fetchWithTimeout(`${this.config.endpoint}/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -37,15 +42,21 @@ export class OllamaProvider implements LLMProvider {
             throw new Error(`Ollama request failed: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json();
-        const content = typeof data.message?.content === 'string' ? data.message.content : '';
+            const data = await response.json();
+            const content = typeof data.message?.content === 'string' ? data.message.content : '';
 
-        return {
-            content,
-            model: data.model,
-            promptTokens: data.prompt_eval_count,
-            completionTokens: data.eval_count,
-        };
+            const result: LLMCompletionResponse = {
+                content,
+                model: data.model,
+                promptTokens: data.prompt_eval_count,
+                completionTokens: data.eval_count,
+            };
+            logger.logResponse(result);
+            return result;
+        } catch (err) {
+            logger.logError(err);
+            throw err;
+        }
     }
 
     private buildBody(request: LLMCompletionRequest) {

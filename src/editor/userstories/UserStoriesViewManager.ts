@@ -9,6 +9,7 @@ import type { AgentScript } from '../../services/agent/AgentScriptTypes';
 import { AgentScriptGenerator } from '../../ai/generation/AgentScriptGenerator';
 import { AIConfigStore } from '../../ai/config/AIConfigStore';
 import { AIReachability } from '../../ai/llm/AIReachability';
+import { AIPromptLogger } from '../../ai/llm/AIPromptLogger';
 import { AgentController } from '../../services/AgentController';
 import { AgentScriptIO } from '../../services/agent/AgentScriptIO';
 
@@ -78,6 +79,7 @@ export class UserStoriesViewManager {
                     <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Projektbeschreibung bearbeiten'>Bearbeiten</button>
                     <button ${aiDisabled ? 'disabled ' : ''}onclick="window.generateWithAI()" style="padding: 4px 12px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; ${aiDisabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'} font-size: 13px;" title='${aiDisabled ? aiDisabledTitle : "KI-gestützte Generierung für das gesamte Projekt starten"}'>🤖 KI generieren</button>
                     <button onclick="window.testAIReachability()" style="padding: 4px 12px; background-color: #607d8b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Verbindung zum konfigurierten KI-Endpoint testen'>🔌 KI testen</button>
+                    <button onclick="window.showAIPromptMonitor()" style="padding: 4px 12px; background-color: #455a64; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Letzte an die KI gesendete Prompts anzeigen'>📝 Prompt-Monitor</button>
                     <span style="font-size: 12px; color: ${aiStatusColor}; margin-left: 8px;">${aiStatusText}</span>
                 </div>
             </div>
@@ -349,6 +351,7 @@ export class UserStoriesViewManager {
         (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
         (window as any).configureProject = () => this.host.showConfigureProjectDialog();
         (window as any).testAIReachability = () => this.testAIReachability();
+        (window as any).showAIPromptMonitor = () => this.showAIPromptMonitor();
         (window as any).addStage = () => {
             const editor: any = this.host;
             if (typeof editor.createStageFromWizard === 'function') {
@@ -954,5 +957,105 @@ export class UserStoriesViewManager {
             this.host.renderUserStoriesList();
             window.alert(`KI-Test fehlgeschlagen: ${e.message || e}`);
         }
+    }
+
+    public showAIPromptMonitor() {
+        const logger = AIPromptLogger.getInstance();
+        const history = logger.getHistory();
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+        const dialog = document.createElement('div');
+        dialog.style.cssText = 'background:#1a1a2e;border:1px solid #3a3a6a;border-radius:8px;padding:24px;width:80%;height:80%;max-width:900px;display:flex;flex-direction:column;color:#e0e0e0;';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;';
+
+        const title = document.createElement('h2');
+        title.textContent = '📝 KI-Prompt-Monitor';
+        title.style.cssText = 'margin:0;color:#fff;font-size:18px;';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style.cssText = 'padding:4px 12px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;';
+        closeBtn.onclick = () => overlay.remove();
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = 'Log löschen';
+        clearBtn.style.cssText = 'padding:4px 12px;background:#b71c1c;color:#fff;border:none;border-radius:4px;cursor:pointer;';
+        clearBtn.onclick = () => { logger.clear(); overlay.remove(); this.showAIPromptMonitor(); };
+
+        const headerButtons = document.createElement('div');
+        headerButtons.style.cssText = 'display:flex;gap:6px;';
+        headerButtons.appendChild(clearBtn);
+        headerButtons.appendChild(closeBtn);
+
+        header.appendChild(title);
+        header.appendChild(headerButtons);
+
+        const content = document.createElement('div');
+        content.style.cssText = 'flex:1;overflow-y:auto;background:#0d0d1f;border:1px solid #2a2a4a;border-radius:4px;padding:16px;font-family:monospace;';
+
+        if (history.length === 0) {
+            const empty = document.createElement('div');
+            empty.textContent = 'Noch keine Prompts aufgezeichnet.';
+            empty.style.cssText = 'color:#9090b0;';
+            content.appendChild(empty);
+        } else {
+            history.forEach((entry, index) => {
+                const entryDiv = document.createElement('div');
+                entryDiv.style.cssText = 'margin-bottom:24px;border-left:3px solid #607d8b;padding-left:12px;';
+
+                const meta = document.createElement('div');
+                meta.style.cssText = 'color:#60a0e0;font-size:12px;margin-bottom:8px;';
+                const date = new Date(entry.timestamp).toLocaleString();
+                const tokens = entry.promptTokens !== undefined && entry.completionTokens !== undefined
+                    ? ` | Tokens: ${entry.promptTokens} / ${entry.completionTokens}`
+                    : '';
+                const model = entry.model ? ` | Modell: ${entry.model}` : '';
+                meta.textContent = `#${history.length - index} – ${date}${model}${tokens}${entry.error ? ' | FEHLER' : ''}`;
+                entryDiv.appendChild(meta);
+
+                entry.messages.forEach(m => {
+                    const msg = document.createElement('div');
+                    msg.style.cssText = 'margin-bottom:12px;';
+
+                    const role = document.createElement('div');
+                    role.style.cssText = 'color:#5080c0;font-size:11px;text-transform:uppercase;margin-bottom:4px;';
+                    role.textContent = m.role;
+
+                    const text = document.createElement('pre');
+                    text.style.cssText = 'white-space:pre-wrap;word-break:break-word;background:#16213e;border:1px solid #3a3a6a;border-radius:4px;padding:8px;margin:0;color:#e0e0e0;font-size:12px;';
+                    text.textContent = m.content;
+
+                    msg.appendChild(role);
+                    msg.appendChild(text);
+                    entryDiv.appendChild(msg);
+                });
+
+                if (entry.response) {
+                    const resp = document.createElement('pre');
+                    resp.style.cssText = 'white-space:pre-wrap;word-break:break-word;background:#1b3a1b;border:1px solid #4caf50;border-radius:4px;padding:8px;margin:0;color:#a5d6a7;font-size:12px;';
+                    resp.textContent = `=== Antwort ===\n${entry.response}`;
+                    entryDiv.appendChild(resp);
+                }
+
+                if (entry.error) {
+                    const err = document.createElement('pre');
+                    err.style.cssText = 'white-space:pre-wrap;word-break:break-word;background:#3a1010;border:1px solid #f44336;border-radius:4px;padding:8px;margin:0;color:#ef9a9a;font-size:12px;';
+                    err.textContent = `=== Fehler ===\n${entry.error}`;
+                    entryDiv.appendChild(err);
+                }
+
+                content.appendChild(entryDiv);
+            });
+        }
+
+        dialog.appendChild(header);
+        dialog.appendChild(content);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
     }
 }

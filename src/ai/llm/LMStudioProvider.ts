@@ -1,6 +1,7 @@
 import { AIConfig } from '../config/AIConfig';
 import { LLMCompletionRequest, LLMCompletionResponse, LLMMessage } from './LLMTypes';
 import { LLMProvider } from './LLMProvider';
+import { AIPromptLogger } from './AIPromptLogger';
 
 /**
  * LMStudioProvider
@@ -25,9 +26,13 @@ export class LMStudioProvider implements LLMProvider {
     }
 
     public async complete(request: LLMCompletionRequest): Promise<LLMCompletionResponse> {
-        const body = this.buildBody(request);
+        const logger = AIPromptLogger.getInstance();
+        logger.logRequest(request);
 
-        const response = await this.fetchWithTimeout(`${this.config.endpoint}/chat/completions`, {
+        try {
+            const body = this.buildBody(request);
+
+            const response = await this.fetchWithTimeout(`${this.config.endpoint}/chat/completions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -37,16 +42,22 @@ export class LMStudioProvider implements LLMProvider {
             throw new Error(`LM Studio request failed: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json();
-        const choice = data.choices?.[0];
-        const content = typeof choice?.message?.content === 'string' ? choice.message.content : '';
+            const data = await response.json();
+            const choice = data.choices?.[0];
+            const content = typeof choice?.message?.content === 'string' ? choice.message.content : '';
 
-        return {
-            content,
-            model: data.model,
-            promptTokens: data.usage?.prompt_tokens,
-            completionTokens: data.usage?.completion_tokens,
-        };
+            const result: LLMCompletionResponse = {
+                content,
+                model: data.model,
+                promptTokens: data.usage?.prompt_tokens,
+                completionTokens: data.usage?.completion_tokens,
+            };
+            logger.logResponse(result);
+            return result;
+        } catch (err) {
+            logger.logError(err);
+            throw err;
+        }
     }
 
     private buildBody(request: LLMCompletionRequest) {
