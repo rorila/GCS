@@ -10,6 +10,7 @@ import type { AgentScript } from '../../services/agent/AgentScriptTypes';
 export class UserStoriesViewManager {
     private host: IViewHost;
     private selectedForFeature: Set<string> = new Set();
+    private selectedInteractions: Set<string> = new Set();
 
     constructor(host: IViewHost) {
         this.host = host;
@@ -133,6 +134,19 @@ export class UserStoriesViewManager {
             </div>
         `;
 
+        const useCaseSelectionBar = `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background-color: #0d0d1f; border: 1px solid #2a2a4a; border-radius: 6px; margin-bottom: 4px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size: 11px; font-weight: bold; color: #60a0e0; text-transform: uppercase; letter-spacing: 1px;">Use Cases</span>
+                    <span id="userstories-usecase-feature-count" style="color: #b0b0d0; font-size: 13px;">(0 ausgewählt)</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button onclick="window.clearInteractionSelection()" style="padding: 4px 10px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 12px;">Auswahl leeren</button>
+                    <button onclick="window.saveSelectedInteractionsAsFeature()" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Als Feature speichern</button>
+                </div>
+            </div>
+        `;
+
         const rowStyle = 'display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #0f3460; border: 1px solid #1a1a4a; border-radius: 6px; margin-bottom: 4px;';
         const descStyle = 'color: #9090c0; font-size: 12px; margin-top: 2px;';
 
@@ -205,12 +219,15 @@ export class UserStoriesViewManager {
                     const badgeStyle = (bg: string) => `display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff;background:${bg};margin-left:6px;`;
                     return `
                         <div style="${rowStyle}">
-                            <div>
-                                <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${displayTitle}</span>
-                                <span style="${badgeStyle(sBadge.color)}">${sBadge.label}</span>
-                                <span style="${badgeStyle(pBadge.color)}">${pBadge.label}</span>
-                                ${taskName ? `<span style="${badgeStyle('#1a6b8a')}">⚡ ${taskName}</span>` : ''}
-                                ${displayDesc ? `<div style="${descStyle}">${displayDesc}</div>` : ''}
+                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                <input type="checkbox" onchange="window.toggleInteractionForFeature('${interaction.id}', this.checked)" ${this.selectedInteractions.has(interaction.id) ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer; flex-shrink: 0;">
+                                <div>
+                                    <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${displayTitle}</span>
+                                    <span style="${badgeStyle(sBadge.color)}">${sBadge.label}</span>
+                                    <span style="${badgeStyle(pBadge.color)}">${pBadge.label}</span>
+                                    ${taskName ? `<span style="${badgeStyle('#1a6b8a')}">⚡ ${taskName}</span>` : ''}
+                                    ${displayDesc ? `<div style="${descStyle}">${displayDesc}</div>` : ''}
+                                </div>
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
                                 ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Flow-Editor öffnen</button>` : ''}
@@ -311,7 +328,7 @@ export class UserStoriesViewManager {
         })();
 
         lastExtractedRef.value = allExtracted;
-        listElement.innerHTML = projectRow + filterBar + stageBlocks + plannedBlock;
+        listElement.innerHTML = projectRow + filterBar + useCaseSelectionBar + stageBlocks + plannedBlock;
 
         (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
         (window as any).configureProject = () => this.host.showConfigureProjectDialog();
@@ -338,6 +355,9 @@ export class UserStoriesViewManager {
         (window as any).toggleAllPlannedForFeature = (checked: boolean) => this.toggleAllPlannedForFeature(checked);
         (window as any).clearFeatureSelection = () => this.clearFeatureSelection();
         (window as any).saveSelectedUserStoriesAsFeature = () => this.saveSelectedUserStoriesAsFeature();
+        (window as any).toggleInteractionForFeature = (interactionId: string, checked: boolean) => this.toggleInteractionForFeature(interactionId, checked);
+        (window as any).clearInteractionSelection = () => this.clearInteractionSelection();
+        (window as any).saveSelectedInteractionsAsFeature = () => this.saveSelectedInteractionsAsFeature();
 
         this.bindFilterBarListeners();
     }
@@ -741,6 +761,102 @@ export class UserStoriesViewManager {
 
         KnowledgeBase.getInstance().addFeature(template);
         this.selectedForFeature.clear();
+        this.host.renderUserStoriesList();
+        window.alert(`Feature "${featureName}" wurde der Library hinzugefügt.`);
+    }
+
+    public toggleInteractionForFeature(interactionId: string, checked: boolean) {
+        if (checked) {
+            this.selectedInteractions.add(interactionId);
+        } else {
+            this.selectedInteractions.delete(interactionId);
+        }
+        this.updateInteractionSelectionCount();
+    }
+
+    public clearInteractionSelection() {
+        this.selectedInteractions.clear();
+        this.host.renderUserStoriesList();
+    }
+
+    private updateInteractionSelectionCount() {
+        const count = document.getElementById('userstories-usecase-feature-count');
+        if (count) {
+            count.textContent = `(${this.selectedInteractions.size} ausgewählt)`;
+        }
+    }
+
+    public async saveSelectedInteractionsAsFeature() {
+        if (this.selectedInteractions.size === 0) {
+            window.alert('Bitte mindestens einen Use Case auswählen.');
+            return;
+        }
+
+        const project = this.host.project;
+        const manualStories = new Map<string, any>();
+        (project.userStories?.userStories || []).forEach((us: any) => {
+            (us.interactions || []).forEach((it: any) => { manualStories.set(it.id, us); });
+        });
+
+        const userStoryIds = new Set<string>();
+        const missing: string[] = [];
+        for (const interactionId of this.selectedInteractions) {
+            const us = manualStories.get(interactionId);
+            if (us) userStoryIds.add(us.id);
+            else missing.push(interactionId);
+        }
+
+        if (userStoryIds.size === 0) {
+            window.alert('Für die gewählten Use Cases wurde keine User Story gefunden.');
+            return;
+        }
+
+        if (missing.length > 0) {
+            console.warn('Einige Use Cases haben keine zugehörige User Story:', missing);
+        }
+
+        const userStories = (project.userStories?.userStories || []).filter((us: any) => userStoryIds.has(us.id));
+        const firstTitle = userStories[0]?.title || 'Neues Feature';
+        const featureName = window.prompt('Feature-Name:', firstTitle)?.trim();
+        if (!featureName) return;
+
+        const featureId = featureName.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
+
+        const request: AIGenerationRequest = {
+            instruction: userStories.map((us: any) => us.title).filter(Boolean).join(', ') || featureName,
+            scope: 'selectedUserStory',
+            conflictStrategy: 'error',
+            selectedUserStoryIds: Array.from(userStoryIds),
+        };
+
+        const projectContext = new ProjectContextBuilder(project).build(request);
+
+        let example: AgentScript | undefined;
+        for (const us of userStories) {
+            if (us.agentControllerScript) {
+                try {
+                    example = JSON.parse(us.agentControllerScript) as AgentScript;
+                    break;
+                } catch {
+                    // Kein valides AgentScript
+                }
+            }
+        }
+
+        await KnowledgeBase.getInstance().loadFromUrl();
+
+        const template = FeatureChunker.fromUserStories(
+            featureId,
+            featureName,
+            projectContext.selectedUserStories,
+            projectContext,
+            example
+        );
+
+        KnowledgeBase.getInstance().addFeature(template);
+        this.selectedInteractions.clear();
         this.host.renderUserStoriesList();
         window.alert(`Feature "${featureName}" wurde der Library hinzugefügt.`);
     }
