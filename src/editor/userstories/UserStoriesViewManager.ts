@@ -976,6 +976,7 @@ export class UserStoriesViewManager {
         userStory.updatedAt = new Date().toISOString();
         this.host.isProjectDirty = true;
         this.host.render();
+        this.host.renderUserStoriesList();
         window.alert('KI hat das Feature generiert und ins Projekt übernommen.');
     }
 
