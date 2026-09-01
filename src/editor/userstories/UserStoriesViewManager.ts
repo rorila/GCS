@@ -306,6 +306,8 @@ export class UserStoriesViewManager {
                     const componentLabel = us.plannedComponent?.name || us.plannedComponent?.type || '(keine Komponente)';
                     const eventLabel = us.plannedEvent ? `🎯 ${us.plannedEvent}` : '';
                     const taskLabel = us.plannedTask ? `⚙️ ${us.plannedTask}` : '';
+                    const flowChartId = us.plannedTask || '';
+                    const interactionId = us.interactions?.[0]?.id || '';
                     return `
                         <div style="${rowStyle}">
                             <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
@@ -321,6 +323,8 @@ export class UserStoriesViewManager {
                                 </div>
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                                ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Ablaufdiagramm dieses Use Cases im Flow-Editor öffnen'>Flow-Editor öffnen</button>` : ''}
+                                ${interactionId ? `<button onclick="window.showInteractionDiagram('${us.id}', '${interactionId}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Interaktionsdiagramm dieses Use Cases anzeigen'>Diagramm anzeigen</button>` : ''}
                                 <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='User Story bearbeiten'>Bearbeiten</button>
                                 <button ${aiDisabled ? 'disabled ' : ''}onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; ${aiDisabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'} font-size: 12px;" title='${aiDisabled ? aiDisabledTitle : "KI soll diese User Story generieren und ins Projekt übernehmen"}'>🤖 KI</button>
                                 <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story als wiederverwendbares Feature speichern'>+ Feature</button>
@@ -970,6 +974,13 @@ export class UserStoriesViewManager {
         if (!importResult.success) {
             window.alert(`Import fehlgeschlagen:\n${importResult.errors.join('\n')}`);
             return;
+        }
+
+        const createOp = result.agentScript.operations.find((op: any) => op.method === 'createTask');
+        let generatedTask = createOp?.params?.[1] as string | undefined;
+        if (generatedTask) {
+            generatedTask = importResult.renamedItems?.[generatedTask] ?? generatedTask;
+            userStory.plannedTask = generatedTask;
         }
 
         userStory.status = 'completed';

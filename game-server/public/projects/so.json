@@ -447,7 +447,7 @@
           "dragMode": "move",
           "events": {
             "onBoundaryHit": "StopComponent",
-            "onCollision": "ShooterBulletTrifftStein"
+            "onCollision": "ExplodeStoneOnCollision"
           },
           "visible": true,
           "x": 29,
@@ -1021,13 +1021,10 @@
           "id": "3c009a2b-1f0e-46e9-8e05-fda987c9127a",
           "name": "ExplodeStone",
           "type": "property",
-          "target": "TargetTemplate",
           "changes": {
-            "style.backgroundColor": "red",
-            "style.glowColor": "red",
-            "style.glowBlur": 10,
-            "style.glowSpread": 5
-          }
+            "SpriteTemplate_4.style.backgroundColor": "red"
+          },
+          "target": ""
         }
       ],
       "tasks": [
@@ -1267,6 +1264,39 @@
             "ExplodeStone": {
               "x": 40,
               "y": 240
+            }
+          }
+        },
+        {
+          "name": "ExplodeStoneOnCollision",
+          "description": "Reagiert auf Collision zwischen Shooter und Stein",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "ExplodeStone"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [
+            {
+              "name": "objectName",
+              "type": "string",
+              "defaultValue": "Shooter"
+            },
+            {
+              "name": "otherObjectName",
+              "type": "string",
+              "defaultValue": "SpriteTemplate_4"
+            }
+          ],
+          "flowLayout": {
+            "ExplodeStoneOnCollision": {
+              "x": 400,
+              "y": 50
+            },
+            "ExplodeStone": {
+              "x": 400,
+              "y": 130
             }
           }
         }
@@ -3033,7 +3063,7 @@
         "projectId": "so",
         "title": "StoneExplore",
         "description": "",
-        "status": "idea",
+        "status": "completed",
         "priority": "medium",
         "acceptanceCriteria": [],
         "relatedComponents": [],
@@ -3067,7 +3097,7 @@
         },
         "agentHints": "wenn die Shooterkugel auf den stein trifft, explodiert der Stein. ",
         "createdAt": "2026-09-01T15:31:21.804Z",
-        "updatedAt": "2026-09-01T15:32:29.859Z"
+        "updatedAt": "2026-09-01T17:48:27.164Z"
       }
     ]
   },
