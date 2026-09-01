@@ -65,10 +65,10 @@ export class UserStoriesViewManager {
                     ${projInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${projInfo}</span>` : ''}
                 </div>
                 <div style="display:flex;gap:6px;">
-                    <button onclick="window.configureProject()" style="padding: 4px 12px; background-color: #7b1fa2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">🧙 Projekt konfigurieren</button>
-                    <button onclick="window.addStage()" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">+ Stage hinzufügen</button>
-                    <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
-                    <button onclick="window.generateWithAI()" style="padding: 4px 12px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">🤖 KI generieren</button>
+                    <button onclick="window.configureProject()" style="padding: 4px 12px; background-color: #7b1fa2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Projekt-Metadaten und Einstellungen bearbeiten'>🧙 Projekt konfigurieren</button>
+                    <button onclick="window.addStage()" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Neue Stage dem Projekt hinzufügen'>+ Stage hinzufügen</button>
+                    <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Projektbeschreibung bearbeiten'>Bearbeiten</button>
+                    <button onclick="window.generateWithAI()" style="padding: 4px 12px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='KI-gestützte Generierung für das gesamte Projekt starten'>🤖 KI generieren</button>
                 </div>
             </div>
         `;
@@ -134,7 +134,7 @@ export class UserStoriesViewManager {
                     <option value="medium" ${filterPriority === 'medium' ? 'selected' : ''}>🟡 Mittel</option>
                     <option value="low" ${filterPriority === 'low' ? 'selected' : ''}>🟢 Niedrig</option>
                 </select>
-                <button id="userstories-reset-filter" style="padding: 6px 12px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 13px;">✕ Zurücksetzen</button>
+                <button id="userstories-reset-filter" style="padding: 6px 12px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Alle Filter zurücksetzen'>✕ Zurücksetzen</button>
             </div>
         `;
 
@@ -145,8 +145,8 @@ export class UserStoriesViewManager {
                     <span id="userstories-usecase-feature-count" style="color: #b0b0d0; font-size: 13px;">(0 ausgewählt)</span>
                 </div>
                 <div style="display:flex; gap:6px;">
-                    <button onclick="window.clearInteractionSelection()" style="padding: 4px 10px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 12px;">Auswahl leeren</button>
-                    <button onclick="window.saveSelectedInteractionsAsFeature()" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Als Feature speichern</button>
+                    <button onclick="window.clearInteractionSelection()" style="padding: 4px 10px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Alle Haken bei Use Cases entfernen'>Auswahl leeren</button>
+                    <button onclick="window.saveSelectedInteractionsAsFeature()" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Markierte Use Cases als Feature in der Library speichern'>Als Feature speichern</button>
                 </div>
             </div>
         `;
@@ -169,8 +169,8 @@ export class UserStoriesViewManager {
                         ${sInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${sInfo}</span>` : ''}
                     </div>
                     <div style="display:flex;gap:6px;">
-                        <button onclick="window.addUseCase('${stage.id}')" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">+ UseCase hinzufügen</button>
-                        <button onclick="window.editStageDescription('${stage.id}')" style="padding: 4px 12px; background-color: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Bearbeiten</button>
+                        <button onclick="window.addUseCase('${stage.id}')" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Neuen Use Case zu dieser Stage hinzufügen'>+ UseCase hinzufügen</button>
+                        <button onclick="window.editStageDescription('${stage.id}')" style="padding: 4px 12px; background-color: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Stage-Beschreibung bearbeiten'>Bearbeiten</button>
                     </div>
                 </div>
             `;
@@ -234,12 +234,12 @@ export class UserStoriesViewManager {
                                 </div>
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                                ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Flow-Editor öffnen</button>` : ''}
-                                <button onclick="window.showInteractionDiagram('', '${interaction.id}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Diagramm anzeigen</button>
-                                <button onclick="window.editUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
-                                <button onclick="window.sendUseCaseToAI('${interaction.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🤖 KI</button>
-                                <button onclick="window.saveUseCaseAsFeature('${interaction.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">+ Feature</button>
-                                ${hasManual ? `<button onclick="window.deleteUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>` : ''}
+                                ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Ablaufdiagramm dieses Use Cases im Flow-Editor öffnen'>Flow-Editor öffnen</button>` : ''}
+                                <button onclick="window.showInteractionDiagram('', '${interaction.id}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Interaktionsdiagramm dieses Use Cases anzeigen'>Diagramm anzeigen</button>
+                                <button onclick="window.editUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diesen Use Case manuell bearbeiten'>Bearbeiten</button>
+                                <button onclick="window.sendUseCaseToAI('${interaction.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='KI soll diesen Use Case generieren und ins Projekt übernehmen'>🤖 KI</button>
+                                <button onclick="window.saveUseCaseAsFeature('${interaction.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diesen Use Case als wiederverwendbares Feature speichern'>+ Feature</button>
+                                ${hasManual ? `<button onclick="window.deleteUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diesen Use Case löschen'>Löschen</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -309,10 +309,10 @@ export class UserStoriesViewManager {
                                 </div>
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                                <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
-                                <button onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🤖 KI</button>
-                                <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">+ Feature</button>
-                                <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>
+                                <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='User Story bearbeiten'>Bearbeiten</button>
+                                <button onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='KI soll diese User Story generieren und ins Projekt übernehmen'>🤖 KI</button>
+                                <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story als wiederverwendbares Feature speichern'>+ Feature</button>
+                                <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story löschen'>Löschen</button>
                             </div>
                         </div>
                     `;
@@ -326,8 +326,8 @@ export class UserStoriesViewManager {
                                     <span id="userstories-feature-count" style="margin-left: 12px; color: #b0b0d0; font-size: 12px;">(${this.selectedForFeature.size} ausgewählt)</span>
                                 </div>
                                 <div style="display:flex; gap:6px;">
-                                    <button onclick="window.clearFeatureSelection()" style="padding: 4px 10px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 12px;">Auswahl leeren</button>
-                                    <button onclick="window.saveSelectedUserStoriesAsFeature()" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Als Feature speichern</button>
+                                    <button onclick="window.clearFeatureSelection()" style="padding: 4px 10px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Alle Haken bei User Stories entfernen'>Auswahl leeren</button>
+                                    <button onclick="window.saveSelectedUserStoriesAsFeature()" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Markierte User Stories als Feature in der Library speichern'>Als Feature speichern</button>
                                 </div>
                             </div>`;
             return header + plannedRows;
@@ -414,8 +414,8 @@ export class UserStoriesViewManager {
                     <div style="margin-bottom: 16px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Beschreibung</label>
                         <textarea id="sd-description" rows="4" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;">${sd.description || ''}</textarea></div>
                     <div style="display:flex;gap:8px;justify-content:flex-end;">
-                        <button id="sd-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
-                        <button id="sd-save" style="padding:6px 16px;background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
+                        <button id="sd-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;" title='Änderungen verwerfen und Dialog schliessen'>Abbrechen</button>
+                        <button id="sd-save" style="padding:6px 16px;background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;" title='Stage-Beschreibung speichern'>Speichern</button>
                     </div>
                 </div>
             </div>
@@ -454,8 +454,8 @@ export class UserStoriesViewManager {
                     <div style="margin-bottom: 16px;"><label style="display:block;margin-bottom:4px;font-size:13px;">Zielgruppe</label>
                         <input id="pd-audience" type="text" value="${pd.targetAudience || ''}" style="width:100%;padding:6px;background:#0f3460;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;"></div>
                     <div style="display:flex;gap:8px;justify-content:flex-end;">
-                        <button id="pd-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
-                        <button id="pd-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
+                        <button id="pd-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;" title='Änderungen verwerfen und Dialog schliessen'>Abbrechen</button>
+                        <button id="pd-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;" title='Projektbeschreibung speichern'>Speichern</button>
                     </div>
                 </div>
             </div>
@@ -520,8 +520,8 @@ export class UserStoriesViewManager {
                             </select></div>
                     </div>
                     <div style="display:flex;gap:8px;justify-content:flex-end;">
-                        <button id="uc-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
-                        <button id="uc-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
+                        <button id="uc-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;" title='Änderungen verwerfen und Dialog schliessen'>Abbrechen</button>
+                        <button id="uc-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;" title='Use Case speichern'>Speichern</button>
                     </div>
                 </div>
             </div>
@@ -605,8 +605,8 @@ export class UserStoriesViewManager {
                             </select></div>
                     </div>
                     <div style="display:flex;gap:8px;justify-content:flex-end;">
-                        <button id="us-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;">Abbrechen</button>
-                        <button id="us-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;">Speichern</button>
+                        <button id="us-cancel" style="padding:6px 16px;background:#3a3a5a;color:#e0e0e0;border:none;border-radius:4px;cursor:pointer;" title='Änderungen verwerfen und Dialog schliessen'>Abbrechen</button>
+                        <button id="us-save" style="padding:6px 16px;background:#2196f3;color:white;border:none;border-radius:4px;cursor:pointer;" title='User Story speichern'>Speichern</button>
                     </div>
                 </div>
             </div>
