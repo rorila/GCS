@@ -1,6 +1,11 @@
 import type { IViewHost } from '../EditorViewManager';
 import { UserStoryExtractor } from './UserStoryExtractor';
 import type { UserStory } from './UserStoryTypes';
+import { ProjectContextBuilder } from '../../ai/context/ProjectContextBuilder';
+import { FeatureChunker } from '../../ai/rag/FeatureChunker';
+import { KnowledgeBase } from '../../ai/rag/KnowledgeBase';
+import type { AIGenerationRequest } from '../../ai/config/AIConfig';
+import type { AgentScript } from '../../services/agent/AgentScriptTypes';
 
 export class UserStoriesViewManager {
     private host: IViewHost;
@@ -278,6 +283,7 @@ export class UserStoriesViewManager {
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
                                 <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
+                                <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">+ Feature</button>
                                 <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>
                             </div>
                         </div>
@@ -312,6 +318,7 @@ export class UserStoriesViewManager {
         (window as any).deleteUseCaseManual = (interactionId: string) => this.deleteUseCaseManual(interactionId);
         (window as any).editUserStory = (userStoryId: string) => this.editUserStory(userStoryId);
         (window as any).deleteUserStory = (userStoryId: string) => this.deleteUserStory(userStoryId);
+        (window as any).saveUserStoryAsFeature = (userStoryId: string) => this.saveUserStoryAsFeature(userStoryId);
 
         this.bindFilterBarListeners();
     }
@@ -577,5 +584,49 @@ export class UserStoriesViewManager {
         project.userStories.userStories = project.userStories.userStories.filter((us: any) => us.id !== userStoryId);
         this.host.isProjectDirty = true;
         this.host.renderUserStoriesList();
+    }
+
+    public async saveUserStoryAsFeature(userStoryId: string) {
+        const project = this.host.project;
+        const userStory = (project.userStories?.userStories || []).find((us: any) => us.id === userStoryId);
+        if (!userStory) return;
+
+        const featureName = window.prompt('Feature-Name:', userStory.title || 'Neues Feature')?.trim();
+        if (!featureName) return;
+
+        const featureId = featureName.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
+
+        const request: AIGenerationRequest = {
+            instruction: userStory.title || featureName,
+            scope: 'selectedUserStory',
+            conflictStrategy: 'error',
+            selectedUserStoryIds: [userStoryId],
+        };
+
+        const projectContext = new ProjectContextBuilder(project).build(request);
+
+        let example: AgentScript | undefined;
+        if (userStory.agentControllerScript) {
+            try {
+                example = JSON.parse(userStory.agentControllerScript) as AgentScript;
+            } catch {
+                // Kein valides AgentScript vorhanden
+            }
+        }
+
+        await KnowledgeBase.getInstance().loadFromUrl();
+
+        const template = FeatureChunker.fromUserStories(
+            featureId,
+            featureName,
+            projectContext.selectedUserStories,
+            projectContext,
+            example
+        );
+
+        KnowledgeBase.getInstance().addFeature(template);
+        window.alert(`Feature "${featureName}" wurde der Library hinzugefügt.`);
     }
 }
