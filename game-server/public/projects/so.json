@@ -446,7 +446,8 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onBoundaryHit": "StopComponent"
+            "onBoundaryHit": "StopComponent",
+            "onCollision": "ShooterBulletTrifftStein"
           },
           "visible": true,
           "x": 29,
@@ -1015,6 +1016,18 @@
           "changes": {
             "BackUpShooterLbl.value": "${BackUpShooterTimer.currentInterval}"
           }
+        },
+        {
+          "id": "3c009a2b-1f0e-46e9-8e05-fda987c9127a",
+          "name": "ExplodeStone",
+          "type": "property",
+          "target": "TargetTemplate",
+          "changes": {
+            "style.backgroundColor": "red",
+            "style.glowColor": "red",
+            "style.glowBlur": 10,
+            "style.glowSpread": 5
+          }
         }
       ],
       "tasks": [
@@ -1217,10 +1230,6 @@
               "x": 40,
               "y": 40
             },
-            "action": {
-              "x": 920,
-              "y": 40
-            },
             "Act_CalcBackUpShooterDistance": {
               "x": 320,
               "y": 40
@@ -1228,6 +1237,36 @@
             "Act_SpawnBackUpShooter": {
               "x": 640,
               "y": 40
+            },
+            "action": {
+              "x": 920,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShooterBulletTrifftStein",
+          "description": "Wenn die Shooterkugel auf den Stein trifft, soll der Stein explodieren.",
+          "actionSequence": [
+            {
+              "name": "ExplodeStone",
+              "type": "action"
+            },
+            {
+              "name": "ExplodeStone",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShooterBulletTrifftStein": {
+              "x": 40,
+              "y": 40
+            },
+            "ExplodeStone": {
+              "x": 40,
+              "y": 240
             }
           }
         }
@@ -2988,7 +3027,49 @@
   ],
   "activeStageId": "main",
   "userStories": {
-    "userStories": []
+    "userStories": [
+      {
+        "id": "us_1788276681804",
+        "projectId": "so",
+        "title": "StoneExplore",
+        "description": "",
+        "status": "idea",
+        "priority": "medium",
+        "acceptanceCriteria": [],
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "relatedStages": [
+          "main"
+        ],
+        "interactions": [],
+        "plannedComponent": {
+          "type": "TSprite",
+          "name": "Shooter"
+        },
+        "plannedEvent": "onCollision",
+        "plannedEventParam": "Stein",
+        "plannedTask": "ShooterBulletTrifftStein",
+        "plannedActions": [
+          {
+            "name": "",
+            "type": "increment",
+            "params": {
+              "target": "MeineVariable",
+              "formula": "MeineVariable + 1"
+            }
+          }
+        ],
+        "agentControllerScript": "// -- 1. UseCase speichern ----------------------\nagentController.addUseCase('main', {\n  title: '',\n  description: '',\n  priority: 'medium',\n  compType: 'TSprite', compName: 'Shooter',\n  eventName: 'onCollision',\n  eventParam: 'Stein',\n  taskName: 'ShooterBulletTrifftStein',\n  agentHints: 'wenn die Shooterkugel auf den stein trifft, explodiert der Stein. ',\n});\n\n// -- 2. Task erstellen --------------------------\nagentController.createTask('main', 'ShooterBulletTrifftStein', '');\nagentController.addTaskParam('ShooterBulletTrifftStein', 'key', 'string', 'Stein');\n\n// -- 3. Actions hinzufügen ---------------------\nagentController.addAction('ShooterBulletTrifftStein', 'increment', 'increment', {\n  \"target\": \"MeineVariable\",\n  \"formula\": \"MeineVariable + 1\"\n});\n\n// -- 3b. Bedingung ----------------------------\nagentController.addBranch('ShooterBulletTrifftStein',\n  '', '==', '',\n  (then) => { then.addAction('...'); },\n  (els) => { els.addAction('...'); }\n);\n\n// -- 4. Event verknüpfen -----------------------\nagentController.connectEvent('main', 'Shooter', 'onCollision', 'ShooterBulletTrifftStein');\n\n// -- 5. Flow generieren ────────────────────────\nagentController.generateTaskFlow('ShooterBulletTrifftStein');\n\n// -- 6. Status auf \"in_progress\" setzen ───────\n// agentController.updateUseCaseStatus('<id>', 'in_progress');\n\n// Hinweise: wenn die Shooterkugel auf den stein trifft, explodiert der Stein. ",
+        "plannedCondition": {
+          "leftValue": "",
+          "op": "==",
+          "rightValue": ""
+        },
+        "agentHints": "wenn die Shooterkugel auf den stein trifft, explodiert der Stein. ",
+        "createdAt": "2026-09-01T15:31:21.804Z",
+        "updatedAt": "2026-09-01T15:32:29.859Z"
+      }
+    ]
   },
   "schemaVersion": "4.0.0"
 }
