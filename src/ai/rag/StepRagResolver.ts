@@ -26,6 +26,11 @@ export class StepRagResolver {
         createStage:   ['createStage type main blueprint'],
         addVariable:   ['addVariable TVariable TRandomVariable random min max isInteger scope'],
         addTaskCall:   ['addTaskCall subtask sequence'],
+        forEach:       ['forEach collection record list map iterate', 'addAction forEach'],
+        collection:    ['collection record list map iterate actions', 'list_ map_ actions'],
+        record:        ['record map key value actions', 'collection record map'],
+        theme:         ['theme themeMap load_theme_map style', 'addAction property style'],
+        calculate:     ['calculate action formula expression', 'negate action'],
     };
 
     public async resolve(

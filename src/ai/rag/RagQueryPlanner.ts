@@ -113,6 +113,36 @@ const SYNONYM_MAP: Array<{ terms: string[]; queries: string[]; label: string }> 
         queries: ['TGameState onGameOver stage navigation', 'connectEvent'],
         label: 'Spielende erkannt',
     },
+    // Iteration / Collections
+    {
+        terms: ['für jedes', 'foreach', 'for each', 'alle objekte', 'jeder eintrag', 'liste durchlaufen', 'collection', 'record', 'datensätze'],
+        queries: ['forEach collection record list map iterate', 'addAction forEach'],
+        label: 'Iteration/Collection erkannt',
+    },
+    // Berechnung / Verneinung
+    {
+        terms: ['rechne', 'berechne', 'berechnung', 'calculate', 'minus', 'subtrahiere', 'vermindere', 'negieren', 'negate', 'wechsel', 'toggle'],
+        queries: ['calculate action formula expression', 'negate action'],
+        label: 'Berechnung/Negation erkannt',
+    },
+    // Theme / Stil
+    {
+        terms: ['theme', 'thema', 'farbschema', 'stil', 'style', 'skins', 'farbwechsel'],
+        queries: ['theme themeMap load_theme_map style', 'addAction property style'],
+        label: 'Theme/Stil erkannt',
+    },
+    // Variablen-Binding
+    {
+        terms: ['bindung', 'binden', 'gebunden', 'binding', 'verknüpfung', 'variable verknüpfen'],
+        queries: ['bindVariable expression binding', 'addVariable scope'],
+        label: 'Variablen-Binding erkannt',
+    },
+    // Animation / Timer
+    {
+        terms: ['animation', 'animieren', 'ablauf', 'tween', 'timer', 'intervall', 'interval', 'verzögerung'],
+        queries: ['TAnimation sprite_animate', 'TTimer TIntervalTimer interval onTimer'],
+        label: 'Animation/Timer erkannt',
+    },
 ];
 
 export class RagQueryPlanner {
@@ -206,14 +236,11 @@ export class RagQueryPlanner {
             reasoning.push('Sound/Audio erkannt');
         }
 
-        // --- Fallback: immer mindestens die wichtigsten Grundlagen ---
+        // --- Fallback: rohe Anweisung nur wenn keine technischen Queries gefunden ---
         if (queries.length === 0) {
-            queries.push('connectEvent addAction property ActionType');
-            reasoning.push('Keine spezifischen Muster erkannt – allgemeine Grundlagen');
+            queries.push(instruction.trim());
+            reasoning.push('Keine spezifischen Muster erkannt – rohe Anweisung als Fallback');
         }
-
-        // Basis-Anfrage als letzte Option, falls topK noch nicht erreicht
-        queries.push(instruction.trim());
 
         return { queries: this.deduplicate(queries), reasoning };
     }

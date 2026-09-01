@@ -97,7 +97,7 @@ export class ProjectContextBuilder {
             selectedUserStories: selectedUserStories.map(s => this.summarizeUserStory(s)),
             activeStage: activeStageId ? this.summarizeActiveStage(activeStageId) : undefined,
             globalInventory: this.buildGlobalInventory(),
-            relevantApiDocs: KnowledgeBase.getInstance().getRelevantChunks(request.instruction, 5),
+            relevantApiDocs: KnowledgeBase.getInstance().getRelevantChunks(request.instruction, 3, undefined, { maxTotalChars: 12000 }),
         };
     }
 

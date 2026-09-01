@@ -421,10 +421,10 @@ export class KnowledgeBase {
             const keywordScore = this.keywordScore(query, chunk);
             const metadataScore = this.metadataScore(query, chunk);
 
-            const finalScore =
-                vectorScore * 0.65 +
-                keywordScore * 0.25 +
-                metadataScore * 0.10;
+            const useVector = queryEmbedding && chunk.embedding;
+            const finalScore = useVector
+                ? vectorScore * 0.65 + keywordScore * 0.25 + metadataScore * 0.10
+                : keywordScore * 0.70 + metadataScore * 0.30;
 
             return { chunk, finalScore };
         });
@@ -478,7 +478,7 @@ export class KnowledgeBase {
             }
         }
 
-        if (chunk.chunkType === 'method' || chunk.chunkType === 'actionType') {
+        if (chunk.chunkType === 'method' || chunk.chunkType === 'actionType' || chunk.chunkType === 'feature') {
             score += 0.1;
         }
 
