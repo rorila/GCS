@@ -113,6 +113,9 @@ export type ActionType =
     | 'list_remove' | 'list_clear' | 'list_shuffle'
     | 'list_contains' | 'list_length'
     | 'map_get' | 'map_set' | 'map_delete' | 'map_has' | 'map_keys'
+    // Iteration / Records
+    | 'forEach'
+    | 'record_get' | 'record_set' | 'record_delete' | 'record_create'
     // HTTP / API
     | 'http' | 'respond_http' | 'execute_login_request'
     | 'data_action' | 'handle_api_request'

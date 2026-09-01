@@ -18,6 +18,14 @@ export const AI_ALLOWED_METHODS = new Set<string>([
     'connectEvent',
     'setProperty',
     'bindVariable',
+    'connectVariableEvent',
+    'createTimer',
+    'createIntervalTimer',
+    'createThresholdVariable',
+    'createInputController',
+    'createButton',
+    'createLabel',
+    'createSprite',
 ]);
 
 // Konsistenz-Check: KI-Allowlist muss Teilmenge der Basis-Allowlist sein.
