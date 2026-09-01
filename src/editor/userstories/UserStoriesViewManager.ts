@@ -8,6 +8,7 @@ import type { AIGenerationRequest } from '../../ai/config/AIConfig';
 import type { AgentScript } from '../../services/agent/AgentScriptTypes';
 import { AgentScriptGenerator } from '../../ai/generation/AgentScriptGenerator';
 import { AIConfigStore } from '../../ai/config/AIConfigStore';
+import { AIReachability } from '../../ai/llm/AIReachability';
 import { AgentController } from '../../services/AgentController';
 import { AgentScriptIO } from '../../services/agent/AgentScriptIO';
 
@@ -15,6 +16,7 @@ export class UserStoriesViewManager {
     private host: IViewHost;
     private selectedForFeature: Set<string> = new Set();
     private selectedInteractions: Set<string> = new Set();
+    private aiReachable: boolean | null = null;
 
     constructor(host: IViewHost) {
         this.host = host;
@@ -57,6 +59,11 @@ export class UserStoriesViewManager {
         const projGenre = projectDesc.genre ? `Genre: ${projectDesc.genre}` : '';
         const projAudience = projectDesc.targetAudience ? `Zielgruppe: ${projectDesc.targetAudience}` : '';
         const projInfo = [projGenre, projAudience].filter(Boolean).join(' | ');
+
+        const aiDisabled = this.aiReachable !== true;
+        const aiDisabledTitle = this.aiReachable === false ? "KI nicht erreichbar" : "KI-Status muss zuerst getestet werden";
+        const aiStatusText = this.aiReachable === true ? "✓ KI erreichbar" : this.aiReachable === false ? "✗ KI nicht erreichbar" : "– KI ungetestet";
+        const aiStatusColor = this.aiReachable === true ? "#4caf50" : this.aiReachable === false ? "#f44336" : "#9090b0";
         const projectRow = `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background-color: #16213e; border: 1px solid #3a3a6a; border-radius: 6px; margin-bottom: 4px;">
                 <div>
@@ -64,11 +71,13 @@ export class UserStoriesViewManager {
                     <span style="font-weight: bold; font-size: 15px; color: #ffffff;">${projTitle}</span>
                     ${projInfo ? `<span style="color: #9090b0; font-size: 13px; margin-left: 12px;">${projInfo}</span>` : ''}
                 </div>
-                <div style="display:flex;gap:6px;">
+                <div style="display:flex;gap:6px;align-items:center;">
                     <button onclick="window.configureProject()" style="padding: 4px 12px; background-color: #7b1fa2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Projekt-Metadaten und Einstellungen bearbeiten'>🧙 Projekt konfigurieren</button>
                     <button onclick="window.addStage()" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Neue Stage dem Projekt hinzufügen'>+ Stage hinzufügen</button>
                     <button onclick="window.editProjectDescription()" style="padding: 4px 12px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Projektbeschreibung bearbeiten'>Bearbeiten</button>
-                    <button onclick="window.generateWithAI()" style="padding: 4px 12px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='KI-gestützte Generierung für das gesamte Projekt starten'>🤖 KI generieren</button>
+                    <button ${aiDisabled ? 'disabled ' : ''}onclick="window.generateWithAI()" style="padding: 4px 12px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; ${aiDisabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'} font-size: 13px;" title='${aiDisabled ? aiDisabledTitle : "KI-gestützte Generierung für das gesamte Projekt starten"}'>🤖 KI generieren</button>
+                    <button onclick="window.testAIReachability()" style="padding: 4px 12px; background-color: #607d8b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Verbindung zum konfigurierten KI-Endpoint testen'>🔌 KI testen</button>
+                    <span style="font-size: 12px; color: ${aiStatusColor}; margin-left: 8px;">${aiStatusText}</span>
                 </div>
             </div>
         `;
@@ -237,7 +246,7 @@ export class UserStoriesViewManager {
                                 ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Ablaufdiagramm dieses Use Cases im Flow-Editor öffnen'>Flow-Editor öffnen</button>` : ''}
                                 <button onclick="window.showInteractionDiagram('', '${interaction.id}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Interaktionsdiagramm dieses Use Cases anzeigen'>Diagramm anzeigen</button>
                                 <button onclick="window.editUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diesen Use Case manuell bearbeiten'>Bearbeiten</button>
-                                <button onclick="window.sendUseCaseToAI('${interaction.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='KI soll diesen Use Case generieren und ins Projekt übernehmen'>🤖 KI</button>
+                                <button ${aiDisabled ? 'disabled ' : ''}onclick="window.sendUseCaseToAI('${interaction.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; ${aiDisabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'} font-size: 12px;" title='${aiDisabled ? aiDisabledTitle : "KI soll diesen Use Case generieren und ins Projekt übernehmen"}'>🤖 KI</button>
                                 <button onclick="window.saveUseCaseAsFeature('${interaction.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diesen Use Case als wiederverwendbares Feature speichern'>+ Feature</button>
                                 ${hasManual ? `<button onclick="window.deleteUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diesen Use Case löschen'>Löschen</button>` : ''}
                             </div>
@@ -310,7 +319,7 @@ export class UserStoriesViewManager {
                             </div>
                             <div style="display: flex; gap: 6px; flex-shrink: 0;">
                                 <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='User Story bearbeiten'>Bearbeiten</button>
-                                <button onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='KI soll diese User Story generieren und ins Projekt übernehmen'>🤖 KI</button>
+                                <button ${aiDisabled ? 'disabled ' : ''}onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; ${aiDisabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'} font-size: 12px;" title='${aiDisabled ? aiDisabledTitle : "KI soll diese User Story generieren und ins Projekt übernehmen"}'>🤖 KI</button>
                                 <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story als wiederverwendbares Feature speichern'>+ Feature</button>
                                 <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story löschen'>Löschen</button>
                             </div>
@@ -338,6 +347,7 @@ export class UserStoriesViewManager {
 
         (window as any).editProjectDescription = () => this.showProjectDescriptionEditor();
         (window as any).configureProject = () => this.host.showConfigureProjectDialog();
+        (window as any).testAIReachability = () => this.testAIReachability();
         (window as any).addStage = () => {
             const editor: any = this.host;
             if (typeof editor.createStageFromWizard === 'function') {
@@ -924,5 +934,12 @@ export class UserStoriesViewManager {
         this.host.isProjectDirty = true;
         this.host.render();
         window.alert('KI hat das Feature generiert und ins Projekt übernommen.');
+    }
+
+    public async testAIReachability() {
+        const config = AIConfigStore.load();
+        const reachable = await AIReachability.check(config);
+        this.aiReachable = reachable;
+        this.host.render();
     }
 }
