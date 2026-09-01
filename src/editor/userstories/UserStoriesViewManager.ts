@@ -215,6 +215,7 @@ export class UserStoriesViewManager {
                                 ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Flow-Editor öffnen</button>` : ''}
                                 <button onclick="window.showInteractionDiagram('', '${interaction.id}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Diagramm anzeigen</button>
                                 <button onclick="window.editUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bearbeiten</button>
+                                <button onclick="window.saveUseCaseAsFeature('${interaction.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">+ Feature</button>
                                 ${hasManual ? `<button onclick="window.deleteUseCaseManual('${interaction.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Löschen</button>` : ''}
                             </div>
                         </div>
@@ -319,6 +320,7 @@ export class UserStoriesViewManager {
         (window as any).editUserStory = (userStoryId: string) => this.editUserStory(userStoryId);
         (window as any).deleteUserStory = (userStoryId: string) => this.deleteUserStory(userStoryId);
         (window as any).saveUserStoryAsFeature = (userStoryId: string) => this.saveUserStoryAsFeature(userStoryId);
+        (window as any).saveUseCaseAsFeature = (interactionId: string) => this.saveUseCaseAsFeature(interactionId);
 
         this.bindFilterBarListeners();
     }
@@ -628,5 +630,17 @@ export class UserStoriesViewManager {
 
         KnowledgeBase.getInstance().addFeature(template);
         window.alert(`Feature "${featureName}" wurde der Library hinzugefügt.`);
+    }
+
+    public async saveUseCaseAsFeature(interactionId: string) {
+        const project = this.host.project;
+        const userStory = (project.userStories?.userStories || []).find((us: any) =>
+            (us.interactions || []).some((it: any) => it.id === interactionId)
+        );
+        if (!userStory) {
+            window.alert('Keine zugehörige User Story für diesen Use Case gefunden.');
+            return;
+        }
+        await this.saveUserStoryAsFeature(userStory.id);
     }
 }
