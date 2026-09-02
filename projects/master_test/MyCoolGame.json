@@ -17,6 +17,14 @@
     }
   },
   "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
     "elements": [],
     "connections": []
   },
@@ -125,7 +133,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1788248552876_e1vdtg9np",
+          "id": "obj_1788370391182_pcp08hgca",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -149,70 +157,21 @@
           "icon": ""
         }
       ],
-      "actions": [
-        {
-          "id": "node-1788248539493",
-          "details": "",
-          "type": "navigate_stage",
-          "name": "ShowTheHighscoreStage_Unique",
-          "showDetails": false,
-          "target": "",
-          "changes": {},
-          "reset": false
-        },
-        {
-          "id": "node-1788248542492",
-          "details": "",
-          "type": "property",
-          "name": "Action1",
-          "showDetails": false,
-          "target": "",
-          "changes": {}
-        }
-      ],
+      "actions": [],
       "tasks": [
         {
-          "id": "4e6ece3c-aec9-4cb3-9438-8cfb16517d8f",
+          "id": "f65a1ebf-5f3d-4cc3-9e6e-c5d188bf43ee",
           "name": "SwitchToTheHighscoreStage",
           "description": "",
-          "actionSequence": [
-            {
-              "name": "ShowTheHighscoreStage_Unique",
-              "type": "action"
-            }
-          ],
+          "actionSequence": [],
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
             "SwitchToTheHighscoreStage": {
-              "x": 40,
-              "y": 40
-            },
-            "ShowTheHighscoreStage_Unique": {
-              "x": 300,
-              "y": 300
+              "x": 400,
+              "y": 200
             }
-          },
-          "standaloneNodes": [
-            {
-              "id": "node-1788248542492",
-              "type": "action",
-              "x": 300,
-              "y": 300,
-              "width": 300,
-              "height": 60,
-              "properties": {
-                "name": "ShowTheHighscoreStage_Unique",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "ShowTheHighscoreStage_Unique",
-                "type": "navigate_stage",
-                "isLinked": true
-              }
-            }
-          ]
+          }
         }
       ],
       "variables": [],

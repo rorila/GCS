@@ -125,7 +125,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1788248552876_e1vdtg9np",
+          "id": "obj_1788370084577_0fb07qn2b",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -151,7 +151,7 @@
       ],
       "actions": [
         {
-          "id": "node-1788248539493",
+          "id": "node-1788370071111",
           "details": "",
           "type": "navigate_stage",
           "name": "ShowTheHighscoreStage_Unique",
@@ -161,7 +161,7 @@
           "reset": false
         },
         {
-          "id": "node-1788248542492",
+          "id": "node-1788370074127",
           "details": "",
           "type": "property",
           "name": "Action1",
@@ -172,7 +172,7 @@
       ],
       "tasks": [
         {
-          "id": "4e6ece3c-aec9-4cb3-9438-8cfb16517d8f",
+          "id": "cceaafd8-779e-4a10-a947-1a98c8c21c95",
           "name": "SwitchToTheHighscoreStage",
           "description": "",
           "actionSequence": [
@@ -195,7 +195,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1788248542492",
+              "id": "node-1788370074127",
               "type": "action",
               "x": 300,
               "y": 300,

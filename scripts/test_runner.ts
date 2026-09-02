@@ -50,6 +50,7 @@ import { runTimerVariableTests } from '../tests/timer_variable.test.js';
 import { runSpawnObjectVariableTests } from '../tests/spawn_object_variable.test.js';
 import { runTimerReactiveTests } from '../tests/timer_reactive.test.js';
 import { runVideoToSpriteSheetTests } from '../tests/video_to_spritesheet.test.js';
+import { runTests as runAgentScriptIOTests } from '../tests/agent_script_io.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -233,6 +234,11 @@ async function main() {
         await timer.measure('AgentController', async () => {
             console.log('🏃 Starte AgentController Tests...');
             allResults.push(...await runAgentControllerTests());
+        });
+
+        await timer.measure('AgentScriptIO', async () => {
+            console.log('🏃 Starte AgentScriptIO Tests (Feature-Gruppierung)...');
+            allResults.push(...await runAgentScriptIOTests());
         });
 
         await timer.measure('Raketen-Countdown', async () => {

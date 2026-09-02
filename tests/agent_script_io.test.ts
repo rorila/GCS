@@ -497,5 +497,143 @@ export async function runTests(): Promise<TestResult[]> {
         addResult('Repository', false, e.message);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Feature-Gruppierung (Commit f8b5ead2)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // --- createFeature: Gutfall – Feature wird in Stage angelegt ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createFeature('stage_main', {
+            id: 'feat-jump',
+            name: 'JumpMechanic',
+            description: 'Spieler springt bei Leertaste',
+            userStoryIds: ['us-1'],
+            blueprintTaskNames: [],
+        });
+        const stage = (agent as any).project.stages.find((s: any) => s.id === 'stage_main');
+        const feat = stage?.features?.find((f: any) => f.id === 'feat-jump');
+        const ok = !!feat && feat.name === 'JumpMechanic' && Array.isArray(feat.userStoryIds);
+        addResult('createFeature — Gutfall', ok, ok ? undefined : JSON.stringify(stage?.features));
+    } catch (e: any) {
+        addResult('createFeature — Gutfall', false, e.message);
+    }
+
+    // --- createFeature: Update – bestehendes Feature wird aktualisiert ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createFeature('stage_main', { id: 'feat-a', name: 'FeatureA', userStoryIds: ['us-1'] });
+        agent.createFeature('stage_main', { id: 'feat-a', name: 'FeatureA v2', description: 'Aktualisiert', userStoryIds: ['us-1', 'us-2'] });
+        const stage = (agent as any).project.stages.find((s: any) => s.id === 'stage_main');
+        const allFeats = stage?.features?.filter((f: any) => f.id === 'feat-a') ?? [];
+        const feat = allFeats[0];
+        const ok = allFeats.length === 1 && feat.name === 'FeatureA v2' && feat.userStoryIds.length === 2;
+        addResult('createFeature — Update (kein Duplikat)', ok, ok ? undefined : JSON.stringify(stage?.features));
+    } catch (e: any) {
+        addResult('createFeature — Update (kein Duplikat)', false, e.message);
+    }
+
+    // --- createFeature: featureId-Sync auf User Stories ---
+    try {
+        const proj = createTestProject() as any;
+        proj.userStories = { userStories: [{ id: 'us-1', title: 'Hüpfen' }] };
+        agent.setProject(proj);
+        agent.createFeature('stage_main', { id: 'feat-sync', name: 'SyncTest', userStoryIds: ['us-1'] });
+        const us = (agent as any).project.userStories.userStories.find((u: any) => u.id === 'us-1');
+        const ok = us?.featureId === 'feat-sync';
+        addResult('createFeature — featureId-Sync', ok, ok ? undefined : `featureId=${us?.featureId}`);
+    } catch (e: any) {
+        addResult('createFeature — featureId-Sync', false, e.message);
+    }
+
+    // --- createFeature: featureId-Entfernung bei User Story, die nicht mehr im Feature ist ---
+    try {
+        const proj = createTestProject() as any;
+        proj.userStories = { userStories: [{ id: 'us-1', title: 'Story', featureId: 'feat-old' }] };
+        agent.setProject(proj);
+        // Gleiche Feature-ID, aber us-1 nicht mehr enthalten
+        agent.createFeature('stage_main', { id: 'feat-old', name: 'OldFeat', userStoryIds: [] });
+        const us = (agent as any).project.userStories.userStories.find((u: any) => u.id === 'us-1');
+        const ok = us?.featureId === undefined;
+        addResult('createFeature — featureId-Entfernung', ok, ok ? undefined : `featureId=${us?.featureId}`);
+    } catch (e: any) {
+        addResult('createFeature — featureId-Entfernung', false, e.message);
+    }
+
+    // --- createFeature: Schlechtfall – fehlende id ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createFeature('stage_main', { name: 'OhneId' });
+        addResult('createFeature — Schlechtfall (fehlende id)', false, 'Kein Fehler geworfen');
+    } catch (e: any) {
+        const ok = /id/i.test(e.message);
+        addResult('createFeature — Schlechtfall (fehlende id)', ok, e.message);
+    }
+
+    // --- createFeature: Schlechtfall – Stage existiert nicht ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createFeature('stage_ghost', { id: 'f1', name: 'Ghost' });
+        addResult('createFeature — Schlechtfall (Stage nicht gefunden)', false, 'Kein Fehler geworfen');
+    } catch (e: any) {
+        const ok = /stage/i.test(e.message);
+        addResult('createFeature — Schlechtfall (Stage nicht gefunden)', ok, e.message);
+    }
+
+    // --- deleteFeature: Gutfall – Feature wird gelöscht, featureId entfernt ---
+    try {
+        const proj = createTestProject() as any;
+        proj.userStories = { userStories: [{ id: 'us-1', title: 'Test', featureId: 'feat-del' }] };
+        agent.setProject(proj);
+        agent.createFeature('stage_main', { id: 'feat-del', name: 'Zu löschen', userStoryIds: ['us-1'] });
+        agent.deleteFeature('stage_main', 'feat-del');
+        const stage = (agent as any).project.stages.find((s: any) => s.id === 'stage_main');
+        const featGone = !stage?.features?.some((f: any) => f.id === 'feat-del');
+        const us = (agent as any).project.userStories.userStories.find((u: any) => u.id === 'us-1');
+        const featureIdCleared = us?.featureId === undefined;
+        const ok = featGone && featureIdCleared;
+        addResult('deleteFeature — Gutfall', ok, ok ? undefined : `features=${JSON.stringify(stage?.features)}, featureId=${us?.featureId}`);
+    } catch (e: any) {
+        addResult('deleteFeature — Gutfall', false, e.message);
+    }
+
+    // --- exportFeature: Gutfall – Feature-Export erzeugt createFeature + createTask + connectEvent ---
+    try {
+        const proj = createTestProject() as any;
+        proj.userStories = {
+            userStories: [{ id: 'us-jump', title: 'Spieler springt', plannedTask: 'JumpTask' }]
+        };
+        agent.setProject(proj);
+        agent.createFeature('stage_main', {
+            id: 'feat-jump-export',
+            name: 'JumpExport',
+            userStoryIds: ['us-jump'],
+            blueprintTaskNames: [],
+        });
+        agent.createTask('stage_main', 'JumpTask', 'Spieler springt');
+        agent.addAction('JumpTask', 'property', 'SetJump', { target: '', changes: { 'Player.y': -5 } });
+
+        const script = agent.exportScript({ scope: 'feature', targetId: 'feat-jump-export', featureStageId: 'stage_main' });
+
+        const hasCreateFeature = script.operations.some(o => o.method === 'createFeature' && o.params[1]?.id === 'feat-jump-export');
+        const hasCreateTask = script.operations.some(o => o.method === 'createTask' && o.params[1] === 'JumpTask');
+        const hasAddAction = script.operations.some(o => o.method === 'addAction' && o.params[0] === 'JumpTask');
+        const ok = hasCreateFeature && hasCreateTask && hasAddAction;
+        addResult('exportFeature — Gutfall', ok, ok ? undefined : JSON.stringify(script.operations.map(o => o.method)));
+    } catch (e: any) {
+        addResult('exportFeature — Gutfall', false, e.message);
+    }
+
+    // --- exportFeature: Schlechtfall – keine Tasks für Feature gefunden ---
+    try {
+        agent.setProject(createTestProject());
+        agent.createFeature('stage_main', { id: 'feat-empty', name: 'Leer', userStoryIds: [] });
+        agent.exportScript({ scope: 'feature', targetId: 'feat-empty', featureStageId: 'stage_main' });
+        addResult('exportFeature — Schlechtfall (keine Tasks)', false, 'Kein Fehler geworfen');
+    } catch (e: any) {
+        const ok = /task/i.test(e.message) || /feature/i.test(e.message);
+        addResult('exportFeature — Schlechtfall (keine Tasks)', ok, e.message);
+    }
+
     return results;
 }

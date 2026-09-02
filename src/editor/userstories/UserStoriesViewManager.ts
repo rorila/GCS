@@ -182,6 +182,7 @@ export class UserStoriesViewManager {
                     </div>
                     <div style="display:flex;gap:6px;">
                         <button onclick="window.addUseCase('${stage.id}')" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Neuen Use Case zu dieser Stage hinzufügen'>+ UseCase hinzufügen</button>
+                        <button onclick="window.createEmptyFeature('${stage.id}')" style="padding: 4px 12px; background-color: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Neues leeres Feature in dieser Stage erzeugen'>+ Feature</button>
                         <button onclick="window.editStageDescription('${stage.id}')" style="padding: 4px 12px; background-color: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Stage-Beschreibung bearbeiten'>Bearbeiten</button>
                     </div>
                 </div>
@@ -399,6 +400,7 @@ export class UserStoriesViewManager {
                             ${isActive ? `<span style="font-size: 11px; color: #4caf50; margin-left: 8px;">(aktiv)</span>` : ''}
                         </div>
                         <button onclick="window.addUseCase('${stageId}')" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Neuen Use Case zu dieser Stage hinzufügen'>+ UseCase</button>
+                        <button onclick="window.createEmptyFeature('${stageId}')" style="padding: 4px 12px; background-color: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Neues leeres Feature in dieser Stage erzeugen'>+ Feature</button>
                     </div>
                 `;
 
@@ -494,6 +496,7 @@ export class UserStoriesViewManager {
         (window as any).toggleInteractionForFeature = (interactionId: string, checked: boolean) => this.toggleInteractionForFeature(interactionId, checked);
         (window as any).clearInteractionSelection = () => this.clearInteractionSelection();
         (window as any).saveSelectedInteractionsAsFeature = () => this.saveSelectedInteractionsAsFeature();
+        (window as any).createEmptyFeature = (stageId: string) => this.createEmptyFeature(stageId);
         (window as any).groupSelectedUserStoriesAsFeature = () => this.groupSelectedUserStoriesAsFeature();
         (window as any).renameFeature = (stageId: string, featureId: string) => this.renameFeature(stageId, featureId);
         (window as any).deleteFeature = (stageId: string, featureId: string) => this.deleteFeature(stageId, featureId);
@@ -1154,6 +1157,26 @@ export class UserStoriesViewManager {
             controller.setProject(project);
             controller.createFeature(stage.id, { ...feature, userStoryIds: newIds });
             this.host.renderUserStoriesList();
+        } catch (e: any) {
+            window.alert(`Fehler: ${e.message || e}`);
+        }
+    }
+
+    public async createEmptyFeature(stageId: string) {
+        const featureName = window.prompt('Feature-Name:', 'Neues Feature')?.trim();
+        if (!featureName) return;
+        const description = window.prompt('Feature-Beschreibung (optional):', '')?.trim() || undefined;
+
+        const featureId = featureName.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
+
+        try {
+            const controller = AgentController.getInstance();
+            controller.setProject(this.host.project);
+            controller.createFeature(stageId, { id: featureId, name: featureName, description, userStoryIds: [], blueprintTaskNames: [] });
+            this.host.renderUserStoriesList();
+            window.alert(`Feature "${featureName}" erstellt.`);
         } catch (e: any) {
             window.alert(`Fehler: ${e.message || e}`);
         }
