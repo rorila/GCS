@@ -1,4 +1,24 @@
+### 2026-09-02
+[UC-2026-09-02-Feature-Gruppierung]
+Beschreibung: Feature-Gruppierung implementiert. User Stories können Features zugeordnet werden. Features können als ganzes exportiert werden (Tasks, Objekte, Variablen, Events über mehrere Stages).
+Beteiligte Dateien:
+- src/model/types.ts (Z. 444–452): [NEU] `Feature`-Interface (id, name, description, userStoryIds, blueprintTaskNames)
+- src/model/types.ts (Z. 491): [GEÄNDERT] `StageDefinition.features?: Feature[]`
+- src/editor/userstories/UserStoryTypes.ts: [GEÄNDERT] featureId-Feld hinzugefügt
+- src/services/AgentController.ts (Z. 193–252): [NEU] `createFeature(stageId, featureData)` — anlegen/aktualisieren + featureId-Sync auf User Stories
+- src/services/AgentController.ts (Z. 254–272): [NEU] `deleteFeature(stageId, featureId)` — löschen + featureId-Bereinigung
+- src/services/agent/AgentScriptIO.ts (Z. 59–61): [GEÄNDERT] `exportScript()` — neuer Scope `'feature'`
+- src/services/agent/AgentScriptIO.ts (Z. 315–453): [NEU] `exportFeature(taskNameOrFeatureId, explicitStageId, ops)` — 8-Schritt-Export: Feature auflösen, Tasks sammeln, Objekte/Variablen, createFeature-Op, Tasks, Actions, Events
+- src/services/agent/AgentScriptIO.ts (Z. 455–464): [NEU] `findTaskStage(taskName, project)` — Hilfsmethode
+- src/services/agent/AgentScriptTypes.ts (Z. 92): [GEÄNDERT] `ExportOptions.featureStageId?: string`
+- src/services/agent/AgentScriptValidator.ts: [GEÄNDERT] createFeature in Allowlist
+- src/editor/userstories/UserStoriesViewManager.ts: [GEÄNDERT] Feature-Builder-UI (Drag&Drop, Speichern, KI-Senden)
+- tests/agent_script_io.test.ts (Z. 500–640): [NEU] 9 Tests: createFeature (Gutfall, Update, featureId-Sync, featureId-Entfernung, 2 Schlechtfälle), deleteFeature (Gutfall), exportFeature (Gutfall, Schlechtfall)
+- scripts/test_runner.ts (Z. 53, Z. 237–241): [GEÄNDERT] AgentScriptIO-Suite registriert
+Ergebnis: Alle 9 neuen Tests grün. Bekannte Pre-Exist-Fehlschläge unverändert.
+
 ### 2026-09-01
+
 [UC-2026-09-01-AgentController-Loop-API]
 Beschreibung: AgentController auf den Stand der letzten 20 Commits gebracht. Drei neue Loop-Methoden hinzugefügt (addForeach, addWhile, addFor), Traversierung von Loop-Bodies in validate() und generateTaskFlow() implementiert, requiredParams für Record-Actions ergänzt. addForeach um Map-Variablen-Unterstützung erweitert (iterationMode: keys/values/entries).
 Beteiligte Dateien:

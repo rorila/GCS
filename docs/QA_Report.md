@@ -1,69 +1,70 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 2.9.2026, 19:29:13
+**Generiert am**: 2.9.2026, 19:34:27
 **Status**: ❌ FEHLER GEFUNDEN
-**Gesamtlauf**: 98.4s
+**Gesamtlauf**: 146.1s
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 320)
-    "Bestanden ✅" : 311
-    "Fehlgeschlagen ❌" : 9
+pie title Test-Status (Gesamt: 352)
+    "Bestanden ✅" : 334
+    "Fehlgeschlagen ❌" : 18
 ```
 
 ## ⏱ Timing-Übersicht (sortiert nach Dauer)
 
 | Suite | Dauer | Status |
 |:---|---:|:---:|
-| Playwright E2E | 97739ms 🐌 | ✅ |
-| Code Quality & Security Guards | 502ms | ✅ |
-| AgentController | 22ms | ✅ |
-| Coordinate Binding | 10ms | ✅ |
-| Mathe-Quiz | 9ms | ✅ |
+| Playwright E2E | 145327ms 🐌 | ❌ |
+| Code Quality & Security Guards | 586ms | ✅ |
+| AgentController | 31ms | ✅ |
+| Coordinate Binding | 12ms | ✅ |
+| Mathe-Quiz | 10ms | ✅ |
+| AgentScriptIO | 9ms | ✅ |
 | Stage-Transition Regression | 7ms | ✅ |
 | Export Integrity | 6ms | ✅ |
 | TTimer/TIntervalTimer Reactive Properties | 5ms | ✅ |
-| TaskExecutor | 4ms | ✅ |
 | RefactoringManager | 4ms | ✅ |
+| TaskExecutor | 4ms | ✅ |
 | Project Integrity | 3ms | ✅ |
-| FlowDataAction Inspector | 3ms | ✅ |
 | ProjectStore | 3ms | ✅ |
 | Stage-Import | 3ms | ✅ |
+| Serialization | 3ms | ✅ |
+| SyncRefactor P1: SchemaMigrator | 3ms | ✅ |
 | SyncValidator | 2ms | ✅ |
-| Serialization | 2ms | ✅ |
-| SyncRefactor P1: SchemaMigrator | 2ms | ✅ |
+| FlowDataAction Inspector | 2ms | ✅ |
+| Jump & Run Components | 2ms | ✅ |
+| Raketen-Countdown | 2ms | ✅ |
 | VideoToSpriteSheet Tool | 2ms | ✅ |
-| Smart-Mapping & Discovery | 2ms | ✅ |
 | Login-Logic | 2ms | ✅ |
-| Action Stage Routing & Duplicates | 1ms | ✅ |
-| Jump & Run Components | 1ms | ✅ |
-| Event Actions (bind/unbind) | 1ms | ✅ |
+| Smart-Mapping & Discovery | 1ms | ✅ |
 | Pascal Code Generator | 1ms | ✅ |
-| GameLoopManager Physics | 1ms | ✅ |
-| SidePanel | 1ms | ✅ |
-| Raketen-Countdown | 1ms | ✅ |
-| SpawnObject Variable Support | 1ms | ✅ |
-| Action CRUD | 1ms | ✅ |
 | SnapshotManager | 1ms | ✅ |
+| Action Stage Routing & Duplicates | 1ms | ✅ |
+| GameLoopManager Physics | 1ms | ✅ |
+| Event Actions (bind/unbind) | 1ms | ✅ |
+| Action CRUD | 1ms | ✅ |
+| SpawnObject Variable Support | 1ms | ✅ |
 | Unification & Auto-Unwrap | 1ms | ✅ |
 | Virtual Gamepad | 1ms | ✅ |
+| SidePanel | 1ms | ✅ |
 | Action Registration | 1ms | ✅ |
 | SyncRefactor P0: Store SET_PROPERTY | 1ms | ✅ |
 | SyncRefactor P0: SyncValidator Strict | 1ms | ✅ |
-| FlowSync | 1ms | ✅ |
 | TTimer Variable Resolution | 1ms | ✅ |
 | SyncRefactor P0: FlowAction Aliases | 1ms | ✅ |
 | Sprite-Geometrie | 1ms | ✅ |
-| Renaming Robustness | 0ms | ✅ |
-| SyncRefactor P0: Inspector Writeback | 0ms | ✅ |
+| FlowSync | 1ms | ✅ |
+| SyncRefactor P0: Inspector Writeback | 1ms | ✅ |
 | Gezieltes Auffrischen | 0ms | ✅ |
-| Component Events | 0ms | ✅ |
+| Renaming Robustness | 0ms | ✅ |
 | Electron Security | 0ms | ✅ |
+| Component Events | 0ms | ✅ |
 | SELECT COUNT(*) | 0ms | ✅ |
 | TTable Smart-Unwrap | 0ms | ✅ |
 
-**Summe Suiten**: 98350ms
-**Gesamtlauf inkl. Setup/Report**: 98371ms
+**Summe Suiten**: 146048ms
+**Gesamtlauf inkl. Setup/Report**: 146070ms
 **Budget-Warnschwelle**: 180000ms (Einzelsuite 🐌 ab 5000ms)
 
 ## 🧪 Test-Details
@@ -157,6 +158,38 @@ pie title Test-Status (Gesamt: 320)
 | addForeach — Map iterationMode=values<br><small>Map-Values-Iteration korrekt konfiguriert.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | addForeach — Map iterationMode=entries<br><small>Map-Entries-Iteration korrekt konfiguriert.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | addForeach — Schlechtfall (entries ohne keyVar)<br><small>Fehler korrekt geworfen.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Export Objekt (backgroundImage) | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Export Task | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Export Task (Stage-Action) | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Export Scope<br><small>Task 'Tick' nicht gefunden.</small> | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Export Stage Config<br><small>Cannot set properties of undefined (setting 'backgroundColor')</small> | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Import Stage Config | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Stage-Config Roundtrip (generisch) | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| ID-Mismatch Fallback | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Condition Roundtrip (Array-Form) | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Condition Roundtrip (Shortcut-Form) | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Condition Roundtrip (body/elseBody-Form) | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Variablen-Scope Roundtrip (global bleibt global) | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Import Variable | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Konflikt Error-Modus<br><small>[]</small> | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Konflikt Rename-Modus | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| DryRun | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Asset Export | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Asset Warnung | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Validator Methode | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Asset Remap | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Konflikt Override | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Selection Export | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Repository<br><small>require is not defined</small> | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| createFeature — Gutfall | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| createFeature — Update (kein Duplikat) | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| createFeature — featureId-Sync | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| createFeature — featureId-Entfernung | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| createFeature — Schlechtfall (fehlende id)<br><small>Feature requires an id.</small> | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| createFeature — Schlechtfall (Stage nicht gefunden)<br><small>Stage 'stage_ghost' not found.</small> | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| deleteFeature — Gutfall | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| exportFeature — Gutfall | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| exportFeature — Schlechtfall (keine Tasks)<br><small>Keine Tasks für Feature 'feat-empty' gefunden.</small> | AgentScriptIO | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Integration: Raketen-Countdown via Batch<br><small>Vollständiges Raketen-Demo: 20 Batch-Ops, 4 Objekte, 2 Blueprint-Objekte (GameLoop+GameState), 3 Tasks, 6 Actions, 1 Variable, 3 Events, Binding OK. Validierung: 3 Warnungen, 0 Fehler.</small> | RaketenCountdown | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Struktur: Sprite + Task + Action<br><small>Sprite mit velocityY=0, Task mit set_property Action korrekt erstellt.</small> | RaketenCountdown | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | JumpAndRun Komponenten registriert | JumpAndRunComponents | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -261,7 +294,7 @@ pie title Test-Status (Gesamt: 320)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1788370055665_70 (erwartet: stage_import_1788370055665_70), BackToLobby.stageId=stage_import_1788370055665_xd (erwartet: stage_import_1788370055665_xd)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1788370322312_6e (erwartet: stage_import_1788370322312_6e), BackToLobby.stageId=stage_import_1788370322312_is (erwartet: stage_import_1788370322312_is)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
@@ -359,36 +392,68 @@ pie title Test-Status (Gesamt: 320)
 | TTimer: currentInterval Tick-Updates lösen reaktiv Watcher aus<br><small>Intervals: 2 (erwartet: 2), Watcher-Triggers: 2 (erwartet: 2)</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | TTimer: TLabel Binding an StageTimer.currentInterval wird reaktiv aktualisiert<br><small>Initial: "2" (erwartet: 0), Tick 1: "2" (erwartet: 1), Tick 2: "2" (erwartet: 2)</small> | TimerReactive | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | VideoToSpriteSheet Tool | Media-Tool | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Action-Typ auf navigate_stage ändern<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: MyCoolGame.json auf Disk vollständig validieren<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Roundtrip: Werte bleiben nach Speichern und Laden konsistent<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte den Run-Modus starten und stoppen können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte den Run-Modus erneut starten können (Restart)<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte das Stages-Menü anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte zur Blueprint-Stage wechseln können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte das Themes-Menü mit allen JSON-Themes anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte ein Theme aktivieren und im Menü als aktiv markieren<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte den Theme-Editor über das Stages-Menü öffnen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Szenario 1: JSON Import Injection wird vom StageRenderer blockiert<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Szenario 2: Inspector UI (Rich-Text Dialog) Injection wird gefiltert<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Szenario 3: Laden einer manipulierten externen JSON-Datei (Drag Drop Simulation)<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kein Overlay-Leak nach Dialog-Schließen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Fokus-Restore: Input bleibt editierbar nach Dialog<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Delete-Taste in Input löscht keine Stage-Objekte<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: 3x Dialog-Zyklus: Fokus bleibt stabil<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: E1: Run-Modus zeigt Objekte innerhalb der Bühne<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: E2: Objekt-Positionen korrekt nach Animations-Ende<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: E3: Stage-Wechsel im Run-Modus friert nicht ein<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte den Editor korrekt laden<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte das Movement der Kanone loggen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Memory Game Cards Visible<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('.glass-node-action').first()
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 5000ms[22m
+[2m  - waiting for locator('.glass-node-action').first()[22m
+</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Kompletter Flow: Action-Typ auf navigate_stage ändern<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('.glass-node-action').filter({ hasText: 'ShowTheHighscoreStage_Unique' }).first()
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 5000ms[22m
+[2m  - waiting for locator('.glass-node-action').filter({ hasText: 'ShowTheHighscoreStage_Unique' }).first()[22m
+</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: MyCoolGame.json auf Disk vollständig validieren<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeDefined[2m()[22m
+
+Received: [31mundefined[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Roundtrip: Werte bleiben nach Speichern und Laden konsistent<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('.glass-node-action').filter({ hasText: 'ShowTheHighscoreStage_Unique' }).first()
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 5000ms[22m
+[2m  - waiting for locator('.glass-node-action').filter({ hasText: 'ShowTheHighscoreStage_Unique' }).first()[22m
+</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: sollte den Run-Modus starten und stoppen können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Run-Modus erneut starten können (Restart)<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte das Stages-Menü anzeigen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte zur Blueprint-Stage wechseln können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte das Themes-Menü mit allen JSON-Themes anzeigen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte ein Theme aktivieren und im Menü als aktiv markieren<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Theme-Editor über das Stages-Menü öffnen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 1: JSON Import Injection wird vom StageRenderer blockiert<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 2: Inspector UI (Rich-Text Dialog) Injection wird gefiltert<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Szenario 3: Laden einer manipulierten externen JSON-Datei (Drag Drop Simulation)<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kein Overlay-Leak nach Dialog-Schließen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Fokus-Restore: Input bleibt editierbar nach Dialog<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Delete-Taste in Input löscht keine Stage-Objekte<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: 3x Dialog-Zyklus: Fokus bleibt stabil<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E1: Run-Modus zeigt Objekte innerhalb der Bühne<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E2: Objekt-Positionen korrekt nach Animations-Ende<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: E3: Stage-Wechsel im Run-Modus friert nicht ein<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Editor korrekt laden<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte das Movement der Kanone loggen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Memory Game Cards Visible<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 
 ---
 *Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*

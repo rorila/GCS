@@ -1,4 +1,20 @@
+## [3.35.0] - 2026-09-02
+### Hinzugefügt
+- **Feature-Gruppierung (`createFeature`, `deleteFeature`, `exportFeature`):**
+  - `Feature`-Interface in `src/model/types.ts` — Felder: `id`, `name`, `description?`, `userStoryIds?`, `blueprintTaskNames?`
+  - `StageDefinition.features?: Feature[]` — Stage speichert Feature-Gruppen
+  - `AgentController.createFeature(stageId, featureData)` — legt Feature an oder aktualisiert es; synchronisiert `featureId` auf alle verknüpften User Stories
+  - `AgentController.deleteFeature(stageId, featureId)` — entfernt Feature und löscht `featureId` bei betroffenen User Stories
+  - `AgentScriptIO.exportFeature()` — neuer Export-Scope `'feature'`; sammelt alle Tasks (aus User Stories `plannedTask` + `blueprintTaskNames`), Objekte, Variablen und Event-Verbindungen über mehrere Stages hinweg; emittiert `createFeature`-Operation an erster Stelle
+  - `AgentScriptIO.findTaskStage()` — Hilfsmethode zum Auffinden der Stage eines Tasks
+  - `ExportOptions.featureStageId?` (in `AgentScriptTypes.ts`) — explizite Ziel-Stage für Feature-Export
+
+### Tests
+- 9 neue Tests in `tests/agent_script_io.test.ts` für `createFeature`, `deleteFeature`, `exportFeature` (Gut- und Schlechtfälle)
+- Test-Runner (`scripts/test_runner.ts`) um Suite `AgentScriptIO` erweitert
+
 ## [3.34.0] - 2026-09-01
+
 ### Hinzugefügt
 - **AgentController – Loop-API (`addForeach`, `addWhile`, `addFor`):**
   Drei neue Methoden ermöglichen das programmatische Erstellen von Schleifen-Sequenz-Items in Task-Flows.

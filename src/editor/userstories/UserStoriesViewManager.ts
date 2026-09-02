@@ -323,6 +323,19 @@ export class UserStoriesViewManager {
             type StageGroup = { stage: any; features: Map<string, FeatureGroup>; unassigned: any[] };
             const groups = new Map<string, StageGroup>();
 
+            // Stages mit Features vorab anlegen, damit leere Features sichtbar sind
+            const relevantStages = filterStage === 'all'
+                ? allStages
+                : allStages.filter((s: any) => s.id === filterStage);
+            for (const s of relevantStages) {
+                if ((s.features || []).length === 0) continue;
+                const group: StageGroup = { stage: s, features: new Map<string, FeatureGroup>(), unassigned: [] };
+                for (const f of s.features || []) {
+                    group.features.set(f.id, { feature: f, userStories: [] });
+                }
+                groups.set(s.id, group);
+            }
+
             for (const us of filteredPlanned) {
                 const featureStage = us.featureId ? featureStageMap.get(us.featureId) : undefined;
                 const stageId = featureStage || (us.relatedStages || [])[0] || activeStage?.id || allStages[0]?.id;
