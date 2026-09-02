@@ -1089,6 +1089,8 @@ export class UserStoriesViewManager {
             controller.createFeature(stageId, { id: featureId, name: featureName, userStoryIds: ids });
             this.selectedForFeature.clear();
             this.host.renderUserStoriesList();
+            this.host.autoSaveToLocalStorage();
+            this.host.refreshJSONView();
             window.alert(`Feature "${featureName}" erstellt.`);
         } catch (e: any) {
             window.alert(`Fehler: ${e.message || e}`);
@@ -1109,6 +1111,8 @@ export class UserStoriesViewManager {
             controller.setProject(project);
             controller.createFeature(stageId, { ...feature, name: newName });
             this.host.renderUserStoriesList();
+            this.host.autoSaveToLocalStorage();
+            this.host.refreshJSONView();
         } catch (e: any) {
             window.alert(`Fehler: ${e.message || e}`);
         }
@@ -1122,6 +1126,8 @@ export class UserStoriesViewManager {
             controller.setProject(this.host.project);
             controller.deleteFeature(stageId, featureId);
             this.host.renderUserStoriesList();
+            this.host.autoSaveToLocalStorage();
+            this.host.refreshJSONView();
         } catch (e: any) {
             window.alert(`Fehler: ${e.message || e}`);
         }
@@ -1156,6 +1162,8 @@ export class UserStoriesViewManager {
         if (!feature) {
             delete (userStory as any).featureId;
             this.host.renderUserStoriesList();
+            this.host.autoSaveToLocalStorage();
+            this.host.refreshJSONView();
             return;
         }
 
@@ -1163,6 +1171,8 @@ export class UserStoriesViewManager {
         if (!stage) {
             delete (userStory as any).featureId;
             this.host.renderUserStoriesList();
+            this.host.autoSaveToLocalStorage();
+            this.host.refreshJSONView();
             return;
         }
         try {
@@ -1170,6 +1180,8 @@ export class UserStoriesViewManager {
             controller.setProject(project);
             controller.createFeature(stage.id, { ...feature, userStoryIds: newIds });
             this.host.renderUserStoriesList();
+            this.host.autoSaveToLocalStorage();
+            this.host.refreshJSONView();
         } catch (e: any) {
             window.alert(`Fehler: ${e.message || e}`);
         }
@@ -1189,6 +1201,8 @@ export class UserStoriesViewManager {
             controller.setProject(this.host.project);
             controller.createFeature(stageId, { id: featureId, name: featureName, description, userStoryIds: [], blueprintTaskNames: [] });
             this.host.renderUserStoriesList();
+            this.host.autoSaveToLocalStorage();
+            this.host.refreshJSONView();
             window.alert(`Feature "${featureName}" erstellt.`);
         } catch (e: any) {
             window.alert(`Fehler: ${e.message || e}`);

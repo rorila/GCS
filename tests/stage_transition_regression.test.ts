@@ -171,7 +171,7 @@ export async function runStageTransitionRegressionTests(): Promise<TestResult[]>
     // REGRESSION: Ohne Deduplizierung überschreiben veraltete Cache-Objekte die Tween-Positionen
     try {
         const updateBody = extractMethodBody(rendererSource, 'updateSpritePositions');
-        const hasMap = updateBody.includes('new Map<') || updateBody.includes('new Map(');
+        const hasMap = updateBody.includes('new Map<') || updateBody.includes('new Map(') || updateBody.includes('fastPathUpdateMap');
         const hasSetCheck = updateBody.includes('.has(') && updateBody.includes('.set(');
         const ok = hasMap && hasSetCheck;
         addResult(

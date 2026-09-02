@@ -104,6 +104,7 @@ export async function runTests(): Promise<TestResult[]> {
     // --- Export enthält Scope ---
     try {
         agent.setProject(createTestProject());
+        agent.createTask('stage_main', 'Tick', 'Score erhöhen');
         const taskScript = agent.exportScript({ scope: 'task', targetId: 'Tick' });
         const projectScript = agent.exportScript({ scope: 'project' });
         const ok = taskScript.scope === 'task' && projectScript.scope === 'project';
@@ -117,8 +118,8 @@ export async function runTests(): Promise<TestResult[]> {
         agent.setProject(createTestProject());
         const bg = '#10102d';
         const grid = { cols: 80, rows: 50, cellSize: 10, snapToGrid: false, visible: true, backgroundColor: '#1a1a1a' };
-        (agent as any).project.stages[1].backgroundColor = bg;
-        (agent as any).project.stages[1].grid = grid;
+        (agent as any).project.stages[0].backgroundColor = bg;
+        (agent as any).project.stages[0].grid = grid;
         const script = agent.exportScript({ scope: 'project' });
         const createOp = script.operations.find(o => o.method === 'createStage' && o.params[0] === 'stage_main');
         const exportedConfig = createOp?.params[3] as any;

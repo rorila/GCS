@@ -572,5 +572,20 @@ agent.addFor('SpawnLoop', 'i', '${spawnStart}', '${spawnEnd}',
 - **Body-Traversierung:** `src/services/AgentController.ts`, `ensureActionsExistGlobally` (Z. ~860), `processItems` in `generateTaskFlow` (Z. ~1005), `checkInlineActions` (Z. ~1546), `collectRefs` (Z. ~1557)
 - **Tests:** `tests/agent_controller.test.ts` ab Z. ~698
 
+---
+
+### Muster 30: Test-Hygiene, Refactoring-Isolation & ESM-Kompatibilität (v3.35.1)
+
+#### Anforderungen
+- **Projekt-Isolation:** Statische Refactoring-Operationen dürfen niemals auf globale Store-Zustände (`coreStore.activeStageId`) zurückgreifen, wenn diese nicht zu den Stages des übergebenen `GameProject` gehören.
+- **ESM-Kompatibilität:** In reinen ESM-Setups (`"type": "module"`) darf kein CommonJS `require()` genutzt werden (`require is not defined`).
+- **Performance-Cache vs. Source-Code-Checks:** Wenn Performance-Optimierungen Methoden umbauen (z.B. vorallokierte `fastPathUpdateMap` statt `new Map()` pro Frame), müssen Regressions-Checks diese Cache-Felder anerkennen.
+
+#### DO NOT:
+- **DO NOT** `coreStore.activeStageId` ungeprüft in Services nutzen: Immer via `project.stages.some(s => s.id === ...)` verifizieren oder auf `project.activeStageId` zurückfallen.
+- **DO NOT** `require('fs')` oder `require('path')` in Services verwenden. Nutze `import * as fs from 'fs'` (Vite externalisiert fs/path im Browser automatisch).
+- **DO NOT** in Quelltext-Regressions-Tests starr nach temporären Allokationen (`new Map<`) suchen, wenn diese aus Performance-Gründen als Instanz-Felder gepuffert werden.
+
+
 
 

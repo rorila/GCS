@@ -13,6 +13,19 @@ import { coreStore } from '../services/registry/CoreStore';
  * It delegates to specific services to maintain clean code and avoid monolithic files.
  */
 export class RefactoringManager {
+    private static resolveStageId(project: GameProject, activeStageId?: string): string | undefined {
+        if (activeStageId && project.stages?.some(s => s.id === activeStageId)) {
+            return activeStageId;
+        }
+        if (coreStore.activeStageId && project.stages?.some(s => s.id === coreStore.activeStageId)) {
+            return coreStore.activeStageId;
+        }
+        if (project.activeStageId && project.stages?.some(s => s.id === project.activeStageId)) {
+            return project.activeStageId;
+        }
+        return undefined;
+    }
+
     /**
      * Renames a variable project-wide
      */
@@ -24,7 +37,7 @@ export class RefactoringManager {
      * Renames a task project-wide
      */
     public static renameTask(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
-        const stageId = activeStageId || coreStore.activeStageId || undefined;
+        const stageId = this.resolveStageId(project, activeStageId);
         TaskRefactoringService.renameTask(project, oldName, newName, stageId);
         mediatorService.notify(MediatorEvents.TASK_RENAMED, { oldName, newName });
     }
@@ -40,10 +53,7 @@ export class RefactoringManager {
      * Renames an action project-wide
      */
     public static renameAction(project: GameProject, oldName: string, newName: string, activeStageId?: string): void {
-        // Ohne Stage-Angabe wuerde ActionRefactoringService alle Stages umbenennen.
-        // Bei gleichnamigen Actions in mehreren Stages ist das falsch — daher wie bei
-        // renameTask auf die aktive Stage zurueckfallen.
-        const stageId = activeStageId || coreStore.activeStageId || undefined;
+        const stageId = this.resolveStageId(project, activeStageId);
         ActionRefactoringService.renameAction(project, oldName, newName, stageId);
         // Wir könnten hier auch ACTION_RENAMED hinzufügen, falls nötig. 
         // Für den FlowEditor ist TASK_RENAMED am wichtigsten.
@@ -104,8 +114,9 @@ export class RefactoringManager {
         ActionRefactoringService.deleteAction(project, actionName);
     }
 
-    public static deleteTask(project: GameProject, taskName: string): void {
-        TaskRefactoringService.deleteTask(project, taskName, coreStore.activeStageId || undefined);
+    public static deleteTask(project: GameProject, taskName: string, activeStageId?: string): void {
+        const stageId = this.resolveStageId(project, activeStageId);
+        TaskRefactoringService.deleteTask(project, taskName, stageId);
     }
 
     public static deleteVariable(project: GameProject, variableNameOrId: string): string[] {

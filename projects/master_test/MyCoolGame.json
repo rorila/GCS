@@ -17,14 +17,6 @@
     }
   },
   "flow": {
-    "stage": {
-      "cols": 100,
-      "rows": 100,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#1e1e1e"
-    },
     "elements": [],
     "connections": []
   },
@@ -133,7 +125,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1788370391182_pcp08hgca",
+          "id": "obj_1788371793308_xm2sr4l7s",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -157,21 +149,70 @@
           "icon": ""
         }
       ],
-      "actions": [],
+      "actions": [
+        {
+          "id": "node-1788371779878",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "ShowTheHighscoreStage_Unique",
+          "showDetails": false,
+          "target": "",
+          "changes": {},
+          "reset": false
+        },
+        {
+          "id": "node-1788371782925",
+          "details": "",
+          "type": "property",
+          "name": "Action1",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        }
+      ],
       "tasks": [
         {
-          "id": "f65a1ebf-5f3d-4cc3-9e6e-c5d188bf43ee",
+          "id": "9461c13c-164a-4e8e-a4a5-6243973a8824",
           "name": "SwitchToTheHighscoreStage",
           "description": "",
-          "actionSequence": [],
+          "actionSequence": [
+            {
+              "name": "ShowTheHighscoreStage_Unique",
+              "type": "action"
+            }
+          ],
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
             "SwitchToTheHighscoreStage": {
-              "x": 400,
-              "y": 200
+              "x": 40,
+              "y": 40
+            },
+            "ShowTheHighscoreStage_Unique": {
+              "x": 300,
+              "y": 300
             }
-          }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1788371782925",
+              "type": "action",
+              "x": 300,
+              "y": 300,
+              "width": 300,
+              "height": 60,
+              "properties": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "type": "navigate_stage",
+                "isLinked": true
+              }
+            }
+          ]
         }
       ],
       "variables": [],

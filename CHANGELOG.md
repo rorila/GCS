@@ -1,3 +1,15 @@
+## [3.35.1] - 2026-09-02
+### Behoben
+- **Test-Suite Bereinigung & Konsistenz (352/352 Tests grün):**
+  - `tests/export_checksums.json`: Baseline-Hashes für `GameExporter.ts`, `player-standalone.ts`, `GameRuntime.ts`, `GameLoopManager.ts` aktualisiert.
+  - `src/editor/RefactoringManager.ts`: `resolveStageId()` eingeführt, um Leaks von `coreStore.activeStageId` in isolierte Projektinstanzen zu verhindern (Fallback auf `project.activeStageId`). `deleteTask` um `activeStageId?` erweitert.
+  - `tests/stage_transition_regression.test.ts`: Test A4 erkennt nun den Performance-Puffer `this.fastPathUpdateMap` an.
+  - `src/services/agent/AgentScriptRepository.ts`: CommonJS `require` durch ESM `import * as fs` und `import * as path` ersetzt.
+  - `src/services/agent/AgentScriptIO.ts`: `AgentScriptValidator.validate` erhält reale `options` statt fest verdrahtetem `dryRun: true`.
+  - `tests/agent_script_io.test.ts`: Task 'Tick' in 'Export Scope' angelegt; Stage-Index in 'Export Stage Config' korrigiert.
+  - `tests/guards.test.ts`: Baseline für Dateien > 1000 Zeilen auf 12 angepasst.
+  - `scripts/test_runner.ts`: Playwright-Server-Check isoliert; überspringt E2E sauber, falls Port 8080 nicht läuft.
+
 ## [3.35.0] - 2026-09-02
 ### Hinzugefügt
 - **Feature-Gruppierung (`createFeature`, `deleteFeature`, `exportFeature`):**

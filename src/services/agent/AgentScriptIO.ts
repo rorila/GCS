@@ -576,7 +576,7 @@ export class AgentScriptIO {
         };
 
         // 1. Grundvalidierung
-        const validation = AgentScriptValidator.validate(script, this.controller, { ...options, dryRun: true });
+        const validation = AgentScriptValidator.validate(script, this.controller, options);
         result.warnings.push(...validation.warnings);
         if (!validation.valid) {
             result.errors.push(...validation.errors);

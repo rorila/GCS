@@ -1,4 +1,6 @@
 import { AgentScript } from './AgentScriptTypes';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * AgentScriptRepository
@@ -10,10 +12,6 @@ export class AgentScriptRepository {
     constructor(private baseDirectory: string = './snippets') {}
 
     public save(script: AgentScript, filename?: string): string {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const fs = require('fs');
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const path = require('path');
         const name = (filename || script.name).replace(/[^a-z0-9_-]/gi, '_');
         const filePath = path.join(this.baseDirectory, `${name}.agent.json`);
 
@@ -26,8 +24,6 @@ export class AgentScriptRepository {
     }
 
     public load(filePath: string): AgentScript {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const fs = require('fs');
         if (!fs.existsSync(filePath)) {
             throw new Error(`Skript nicht gefunden: ${filePath}`);
         }
@@ -36,10 +32,6 @@ export class AgentScriptRepository {
     }
 
     public list(): { name: string; path: string; script?: AgentScript }[] {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const fs = require('fs');
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const path = require('path');
         if (!fs.existsSync(this.baseDirectory)) {
             return [];
         }
@@ -58,3 +50,4 @@ export class AgentScriptRepository {
             });
     }
 }
+
