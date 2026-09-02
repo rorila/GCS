@@ -152,6 +152,11 @@ Regeln:
 14. Für Positionsänderungen verwende setProperty oder addAction mit einem gültigen ActionType. Verwende keine erfundenen ActionTypes.
 15. Das explanation-Feld muss das tatsächlich verwendete Event (z.B. onKeyDown) nennen, nicht ein anderes.
 16. Wenn ein API-Chunk den chunkType 'feature' enthält und dessen Tags/Entitäten zur Aufgabe passen, verwende das beigefügte One-Shot Example als Bauplan. Ersetze dabei nur Platzhalter wie Namen, Stage und Positionen.
+17. Respektiere 'plan.entitiesToCreate': Ist eine Kategorie (stages, objects, tasks, actions) leer, darf keine Operation erzeugt werden, die eine Entität dieser Kategorie erstellt (z.B. kein createTask, wenn tasks leer ist).
+18. Bevor 'connectEvent' verwendet wird, prüfe, ob 'objectName' in 'project-context.activeStage.objects' existiert. Verwende keine Namen aus 'plannedEventParam' oder dem Freitext als objectName.
+19. Der Wert 'plannedEventParam' (z.B. ein Kollisionspartner) ist ein Event-Parameter-Wert, kein Objekt-Name und kein Task-Name. Verwende ihn nicht in 'connectEvent', 'addObject', 'changes' oder als 'target'.
+20. Wenn der Plan leer ist, aber der <task> einen 'plannedTask', ein Zielobjekt und ein Event nennt, erzeuge nur 'connectEvent', sofern diese Verbindung noch nicht korrekt besteht. Erfinde keine zusätzlichen Objekte oder Tasks.
+21. Namen aus 'BEREITS VORHANDENE NAMEN' dürfen nicht als neue taskName oder actionName verwendet werden. Ist der geplante Name dort aufgeführt, erstelle keinen neuen Task/Action, sondern verwende den existierenden Eintrag.
 
 Erlaubte Methoden: ${allowedMethods}
 
@@ -200,6 +205,15 @@ Beispiel 2 – Farbänderung bei Mausklick:
   }
 }
 
+Beispiel 3 – Kollision mit bereits existierendem Task (nur Event verbinden):
+{
+  "agentScript": {
+    "operations": [
+      { "method": "connectEvent", "params": ["main", "Shooter", "onCollision", "ShooterBulletTrifftStein"] }
+    ]
+  }
+}
+
 Kritische Regeln für params:
 - connectEvent benötigt IMMER genau 4 Parameter: [stageId, objectName, eventName, taskName]
 - addAction benötigt IMMER genau 4 Parameter: [taskName, actionType, actionName, paramsObject]
@@ -216,8 +230,10 @@ Kritische Regeln für params:
         const existingActionNames: string[] = (context.globalInventory?.actions ?? []).map((a: any) => a.name).filter(Boolean);
         const existingTaskNames: string[] = (context.globalInventory?.tasks ?? []).map((t: any) => t.name).filter(Boolean);
         const reservedNamesBlock = (existingActionNames.length > 0 || existingTaskNames.length > 0)
-            ? `\nBEREITS VORHANDENE NAMEN (diese Namen NICHT als neue actionName oder taskName verwenden):\n- Actions: ${existingActionNames.join(', ') || 'keine'}\n- Tasks: ${existingTaskNames.join(', ') || 'keine'}\n`
+            ? `\nBEREITS VORHANDENE NAMEN (diese Namen NICHT als neue actionName oder taskName verwenden):\n- Actions: ${existingActionNames.join(', ') || 'keine'}\n- Tasks: ${existingTaskNames.join(', ')}\n`
             : '';
+
+        const taskBlock = this.buildTaskBlock(request, context);
 
         const userPrompt = `PROJEKTKONTEXT
 
@@ -237,7 +253,7 @@ ${this.formatApiDocs(apiDocs)}
 
 AKTUELLE AUFGABE
 
-${request.instruction}
+${taskBlock}
 
 AUSGABEREGELN
 
@@ -279,5 +295,32 @@ AUSGABEREGELN
             const snippet = content.length > 300 ? content.substring(0, 300) + '...' : content;
             return `- [${type}] ${title}: ${snippet}`;
         }).join('\n');
+    }
+
+    private buildTaskBlock(request: AIGenerationRequest, context: any): string {
+        const stories: any[] = context.selectedUserStories ?? [];
+        const lines: string[] = [];
+
+        if (stories.length > 0) {
+            const story = stories[0];
+            if (story.title) lines.push(`Titel: ${story.title}`);
+            if (story.description) {
+                lines.push(`Beschreibung: ${story.description}`);
+                if (request.instruction && request.instruction !== story.description) {
+                    lines.push(`Zusätzliche Anweisung: ${request.instruction}`);
+                }
+            } else if (request.instruction) {
+                lines.push(`Beschreibung: ${request.instruction}`);
+            }
+            if (story.plannedTask) lines.push(`Geplanter Taskname: ${story.plannedTask}`);
+            if (story.plannedComponentName) lines.push(`Vorhandenes Zielobjekt: ${story.plannedComponentName}`);
+            if (story.plannedEvent) lines.push(`Geplantes Event: ${story.plannedEvent}`);
+            if (story.plannedEventParam) lines.push(`Geplanter Event-Parameter: ${story.plannedEventParam} (Wert/Kollisionspartner, kein Objektname)`);
+            if (story.agentHints) lines.push(`Hinweise: ${story.agentHints}`);
+        } else if (request.instruction) {
+            lines.push(`Beschreibung: ${request.instruction}`);
+        }
+
+        return lines.join('\n');
     }
 }

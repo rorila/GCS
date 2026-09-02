@@ -207,9 +207,11 @@ Erzeuge keinen Task-Parameter, wenn er für die fachliche Anforderung nicht ben�
 
 connectEvent verbindet ein Event eines Objekts mit einem Task.
 
-connectEvent darf nur geplant werden, wenn diese Verbindung noch nicht vorhanden ist.
+connectEvent darf nur geplant werden, wenn diese Verbindung noch nicht korrekt vorhanden ist.
 
-Beispiel:
+Wichtig: Für die Prüfung verwende den im <task> genannten "Geplanter Taskname" bzw. 'plannedTask'. Eine bestehende Event-Verbindung zu einem anderen Task zählt nicht als erfüllt. Wenn 'configuredEvents' das Event mit einem anderen Task verbindet, ist die Verbindung noch nicht korrekt und ein 'connectEvent'-Schritt ist nötig, um sie auf den geplanten Task umzubinden.
+
+Beispiel "bereits korrekt":
 
 Wenn im Projektkontext bereits steht:
 
@@ -217,7 +219,21 @@ Wenn im Projektkontext bereits steht:
 "onCollision": "ShooterBulletTrifftStein"
 }
 
+und im <task> "Geplanter Taskname: ShooterBulletTrifftStein" genannt ist,
 dann darf NICHT erneut geplant werden:
+
+"onCollision mit ShooterBulletTrifftStein verbinden."
+
+Beispiel "falscher Task":
+
+Wenn im Projektkontext steht:
+
+"configuredEvents": {
+"onCollision": "ExplodeStoneOnCollision"
+}
+
+und im <task> "Geplanter Taskname: ShooterBulletTrifftStein" genannt ist,
+muss geplant werden:
 
 "onCollision mit ShooterBulletTrifftStein verbinden."
 
@@ -317,7 +333,8 @@ Prüfe vor der Ausgabe jeden Step:
 5. Erzeuge ich unnötig einen Task?
 6. Erzeuge ich unnötig einen Task-Parameter?
 7. Füge ich eine vorhandene Action erneut hinzu?
-8. Verbinde ich ein bereits verbundenes Event erneut?
+8. Verbinde ich ein Event erneut, das bereits mit dem im <task> geplanten Task verbunden ist?
+9. Wenn ein geplanter Task ('plannedTask' / "Geplanter Taskname") im <task> angegeben ist: Ist das geplante Event des Zielobjekts mit diesem Task verbunden (nicht mit einem anderen)?
 
 Wenn ein Step eine dieser Prüfungen nicht besteht:
 ENTFERNE oder KORRIGIERE ihn.
@@ -509,6 +526,7 @@ ${taskBlock}
             if (story.plannedTask) lines.push(`Geplanter Taskname: ${story.plannedTask}`);
             if (story.plannedComponentName) lines.push(`Vorhandenes Zielobjekt: ${story.plannedComponentName}`);
             if (story.plannedEvent) lines.push(`Geplantes Event: ${story.plannedEvent}`);
+            if (story.plannedEventParam) lines.push(`Geplanter Event-Parameter: ${story.plannedEventParam} (Wert/Kollisionspartner, kein Objektname)`);
             if (story.agentHints) lines.push(`Hinweise: ${story.agentHints}`);
         } else {
             lines.push(`Beschreibung: ${request.instruction}`);
