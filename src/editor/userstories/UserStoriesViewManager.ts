@@ -329,6 +329,7 @@ export class UserStoriesViewManager {
                                 <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='User Story bearbeiten'>Bearbeiten</button>
                                 <button ${aiDisabled ? 'disabled ' : ''}onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; ${aiDisabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'} font-size: 12px;" title='${aiDisabled ? aiDisabledTitle : "KI soll diese User Story generieren und ins Projekt übernehmen"}'>🤖 KI</button>
                                 <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story als wiederverwendbares Feature speichern'>+ Feature</button>
+                                ${us.plannedTask ? `<button onclick="window.exportUserStoryAsFeatureScript('${us.id}')" style="padding: 4px 10px; background-color: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Feature als AgentScript in die Zwischenablage exportieren'>📤 Export</button>` : ''}
                                 <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story löschen'>Löschen</button>
                             </div>
                         </div>
@@ -375,6 +376,7 @@ export class UserStoriesViewManager {
         (window as any).editUserStory = (userStoryId: string) => this.editUserStory(userStoryId);
         (window as any).deleteUserStory = (userStoryId: string) => this.deleteUserStory(userStoryId);
         (window as any).saveUserStoryAsFeature = (userStoryId: string) => this.saveUserStoryAsFeature(userStoryId);
+        (window as any).exportUserStoryAsFeatureScript = (userStoryId: string) => this.exportUserStoryAsFeatureScript(userStoryId);
         (window as any).sendUserStoryToAI = (userStoryId: string) => this.sendUserStoryToAI(userStoryId);
         (window as any).saveUseCaseAsFeature = (interactionId: string) => this.saveUseCaseAsFeature(interactionId);
         (window as any).sendUseCaseToAI = (interactionId: string) => this.sendUseCaseToAI(interactionId);
@@ -694,6 +696,41 @@ export class UserStoriesViewManager {
 
         KnowledgeBase.getInstance().addFeature(template);
         window.alert(`Feature "${featureName}" wurde der Library hinzugefügt.`);
+    }
+
+    public async exportUserStoryAsFeatureScript(userStoryId: string) {
+        const project = this.host.project;
+        const userStory = (project.userStories?.userStories || []).find((us: any) => us.id === userStoryId);
+        if (!userStory) {
+            window.alert('User Story nicht gefunden.');
+            return;
+        }
+        if (!userStory.plannedTask) {
+            window.alert('Kein geplanter Task vorhanden. Bitte zuerst per KI generieren lassen.');
+            return;
+        }
+
+        const stageId = this.host.getActiveStage()?.id || project.stages?.[0]?.id;
+        if (!stageId) {
+            window.alert('Keine Stage zum Exportieren gefunden.');
+            return;
+        }
+
+        try {
+            const controller = AgentController.getInstance();
+            controller.setProject(project);
+            const io = new AgentScriptIO(controller);
+            const script = io.exportScript({
+                scope: 'feature',
+                targetId: userStory.plannedTask,
+                featureStageId: stageId,
+                withPlaceholders: true,
+            });
+            await navigator.clipboard.writeText(JSON.stringify(script, null, 2));
+            window.alert(`Feature-Script für "${userStory.title || userStory.plannedTask}" wurde in die Zwischenablage kopiert.`);
+        } catch (e: any) {
+            window.alert(`Export fehlgeschlagen: ${e.message || e}`);
+        }
     }
 
     public async saveUseCaseAsFeature(interactionId: string) {

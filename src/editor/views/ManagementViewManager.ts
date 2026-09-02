@@ -3,6 +3,8 @@ import { mediatorService } from '../../services/MediatorService';
 import { NotificationToast } from '../ui/NotificationToast';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { AIGenerationDialog } from '../dialogs/AIGenerationDialog';
+import { AgentController } from '../../services/AgentController';
+import { AgentScriptIO } from '../../services/agent/AgentScriptIO';
 
 /**
  * ManagementViewManager - Rendert die Management-Ansicht des Editors.
@@ -442,10 +444,49 @@ export class ManagementViewManager {
         btnRow.appendChild(copyBtn);
 
         wrapper.appendChild(btnRow);
+
+        const featureDivider = document.createElement('hr');
+        featureDivider.style.cssText = 'border:0;border-top:1px solid #444;margin:8px 0;';
+        wrapper.appendChild(featureDivider);
+
+        const featureTitle = document.createElement('h2');
+        featureTitle.textContent = '📥 Feature / AgentScript importieren';
+        featureTitle.style.cssText = 'margin:0;color:#fff;font-size:16px;';
+        wrapper.appendChild(featureTitle);
+
+        const featureHint = document.createElement('div');
+        featureHint.textContent = 'Füge ein AgentScript-JSON (Feature-Export) ein, um es in die aktuelle Stage zu importieren.';
+        featureHint.style.cssText = 'font-size:12px;color:#888;margin-bottom:4px;';
+        wrapper.appendChild(featureHint);
+
+        const featureTextarea = document.createElement('textarea');
+        featureTextarea.placeholder = 'AgentScript-JSON hier einfügen (Ctrl+V)...\n\n{\n  "version": "...",\n  "operations": [...]\n}';
+        featureTextarea.style.cssText = 'flex:1;min-height:200px;background:#1a1a2e;color:#e0e0e0;border:1px solid #444;border-radius:8px;padding:12px;font-family:Consolas,Monaco,monospace;font-size:12px;resize:none;outline:none;transition:border-color 0.2s;';
+        featureTextarea.onfocus = () => { featureTextarea.style.borderColor = '#89b4fa'; };
+        featureTextarea.onblur = () => { featureTextarea.style.borderColor = '#444'; };
+        wrapper.appendChild(featureTextarea);
+
+        const featureStatusBar = document.createElement('div');
+        featureStatusBar.style.cssText = 'padding:10px 14px;border-radius:6px;font-size:12px;transition:all 0.2s;';
+        this.updateImportStatus(featureStatusBar, 'waiting');
+        wrapper.appendChild(featureStatusBar);
+
+        const featureBtnRow = document.createElement('div');
+        featureBtnRow.style.cssText = 'display:flex;gap:10px;';
+
+        const importFeatureBtn = document.createElement('button');
+        importFeatureBtn.textContent = '📥 Feature importieren';
+        importFeatureBtn.disabled = true;
+        importFeatureBtn.style.cssText = 'flex:1;padding:10px 16px;background:#1e3a5f;color:#4fc3f7;border:1px solid #2a5a8f;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;transition:all 0.2s;opacity:0.5;';
+        featureBtnRow.appendChild(importFeatureBtn);
+
+        wrapper.appendChild(featureBtnRow);
         parent.appendChild(wrapper);
 
         let parsedProject: any = null;
+        let parsedFeature: any = null;
         let validationTimer: number | undefined;
+        let featureValidationTimer: number | undefined;
 
         textarea.oninput = () => {
             clearTimeout(validationTimer);
@@ -509,6 +550,78 @@ export class ManagementViewManager {
                 parsedProject = null;
             } catch (e: any) {
                 this.updateImportStatus(statusBar, 'error', `Fehler beim Laden: ${e.message}`);
+            }
+        };
+
+        featureTextarea.oninput = () => {
+            clearTimeout(featureValidationTimer);
+            featureValidationTimer = window.setTimeout(() => {
+                const text = featureTextarea.value.trim();
+                if (!text) {
+                    this.updateImportStatus(featureStatusBar, 'waiting');
+                    importFeatureBtn.disabled = true;
+                    importFeatureBtn.style.opacity = '0.5';
+                    parsedFeature = null;
+                    return;
+                }
+
+                try {
+                    const parsed = JSON.parse(text);
+
+                    if (!parsed.operations || !Array.isArray(parsed.operations)) {
+                        this.updateImportStatus(featureStatusBar, 'error', 'Kein gültiges AgentScript: "operations" Array fehlt.');
+                        importFeatureBtn.disabled = true;
+                        importFeatureBtn.style.opacity = '0.5';
+                        parsedFeature = null;
+                        return;
+                    }
+
+                    const taskCount = parsed.operations.filter((op: any) => op.method === 'createTask').length;
+                    const objectCount = parsed.operations.filter((op: any) => op.method === 'addObject').length;
+                    const actionCount = parsed.operations.filter((op: any) => op.method === 'addAction').length;
+
+                    parsedFeature = parsed;
+                    this.updateImportStatus(featureStatusBar, 'valid',
+                        `Gültiges Feature-Script (${taskCount} Task${taskCount !== 1 ? 's' : ''}, ${objectCount} Objekt${objectCount !== 1 ? 'e' : ''}, ${actionCount} Action${actionCount !== 1 ? 's' : ''})`
+                    );
+                    importFeatureBtn.disabled = false;
+                    importFeatureBtn.style.opacity = '1';
+
+                } catch (e: any) {
+                    this.updateImportStatus(featureStatusBar, 'error', `JSON-Syntaxfehler: ${e.message}`);
+                    importFeatureBtn.disabled = true;
+                    importFeatureBtn.style.opacity = '0.5';
+                    parsedFeature = null;
+                }
+            }, 300);
+        };
+
+        importFeatureBtn.onclick = async () => {
+            if (!parsedFeature) return;
+            const project = this.host.project;
+            const targetStageId = this.host.getActiveStage()?.id || project?.stages?.[0]?.id;
+            if (!targetStageId) {
+                this.updateImportStatus(featureStatusBar, 'error', 'Keine Ziel-Stage gefunden.');
+                return;
+            }
+
+            try {
+                const controller = AgentController.getInstance();
+                controller.setProject(project);
+                const io = new AgentScriptIO(controller);
+                const importResult = io.importScript(parsedFeature, { conflictStrategy: 'rename', targetStageId });
+                if (importResult.success) {
+                    this.updateImportStatus(featureStatusBar, 'loaded', `Feature erfolgreich importiert. ${importResult.appliedOperations} Operationen angewendet.`);
+                    featureTextarea.value = '';
+                    parsedFeature = null;
+                    importFeatureBtn.disabled = true;
+                    importFeatureBtn.style.opacity = '0.5';
+                    this.host.render();
+                } else {
+                    this.updateImportStatus(featureStatusBar, 'error', `Import fehlgeschlagen: ${importResult.errors.join(', ')}`);
+                }
+            } catch (e: any) {
+                this.updateImportStatus(featureStatusBar, 'error', `Fehler beim Import: ${e.message}`);
             }
         };
     }

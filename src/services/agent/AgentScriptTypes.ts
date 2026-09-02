@@ -73,7 +73,7 @@ export interface ImportResult {
     canUndo: boolean;
 }
 
-export type ExportScope = 'project' | 'stage' | 'task' | 'selection';
+export type ExportScope = 'project' | 'stage' | 'task' | 'selection' | 'feature';
 
 export interface ExportSelection {
     tasks?: string[];             // Task-Namen
@@ -89,4 +89,5 @@ export interface ExportOptions {
     exclude?: string[];           // Auszuschließende Methoden
     withPlaceholders?: boolean;   // Konkrete Namen durch ${PLACEHOLDER} ersetzen
     defaultStagePlaceholder?: string; // z.B. "STAGE"
+    featureStageId?: string;      // Explizite Ziel-Stage fuer Feature-Export
 }

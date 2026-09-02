@@ -56,6 +56,9 @@ export class AgentScriptIO {
                 if (!options.selection) throw new Error('Für scope "selection" muss options.selection angegeben werden.');
                 this.exportSelection(options.selection, ops);
                 break;
+            case 'feature':
+                this.exportFeature(options.targetId, options.featureStageId, ops);
+                break;
             default:
                 throw new Error(`Unbekannter Export-Scope: ${(options as any).scope}`);
         }
@@ -303,6 +306,152 @@ export class AgentScriptIO {
         for (const v of project?.variables || []) {
             if (selection.variables?.includes(v.name)) {
                 ops.push({ method: 'addVariable', params: [v.name, v.type, v.initialValue ?? v.defaultValue, 'global'] });
+            }
+        }
+    }
+
+    private exportFeature(taskName: string | undefined, explicitStageId: string | undefined, ops: AgentScriptOperation[]): void {
+        if (!taskName) throw new Error('Für Feature-Export muss targetId (Task-Name) angegeben werden.');
+        const task = this.controller['getTaskByName'](taskName) as any;
+        if (!task) throw new Error(`Task '${taskName}' nicht gefunden.`);
+
+        const project = this.controller['project'];
+        let stageId = explicitStageId;
+        if (!stageId) {
+            const stage = project?.stages?.find((s: any) => s.tasks?.some((t: any) => t.name === taskName));
+            stageId = stage?.id;
+            if (!stageId && project?.tasks?.some((t: any) => t.name === taskName)) {
+                stageId = project.stages?.find((s: any) => s.type === 'blueprint')?.id || project.stages?.[0]?.id;
+            }
+        }
+        if (!stageId) throw new Error(`Keine Stage für Task '${taskName}' gefunden.`);
+        const fullStage = project?.stages?.find((s: any) => s.id === stageId || s.name === stageId);
+        if (!fullStage) throw new Error(`Stage '${stageId}' nicht gefunden.`);
+
+        const stageObjectNames = new Set<string>((fullStage.objects || []).map((o: any) => o.name));
+        const allVariableNames = new Set<string>();
+        for (const v of project?.variables || []) if (v?.name) allVariableNames.add(v.name);
+        for (const s of project?.stages || []) for (const v of s?.variables || []) if (v?.name) allVariableNames.add(v.name);
+
+        const referencedObjectNames = new Set<string>();
+        const referencedVariableNames = new Set<string>();
+        const sourceObjectNames = new Set<string>();
+        const connectEventOps: AgentScriptOperation[] = [];
+
+        for (const obj of fullStage.objects || []) {
+            for (const [eventName, connectedTaskName] of Object.entries(obj.events || {})) {
+                if (connectedTaskName === taskName) {
+                    sourceObjectNames.add(obj.name);
+                    referencedObjectNames.add(obj.name);
+                    connectEventOps.push({ method: 'connectEvent', params: [stageId, obj.name, eventName, taskName] });
+                }
+            }
+        }
+
+        if (task.actionSequence) {
+            this.collectReferencedEntities(task.actionSequence, stageObjectNames, allVariableNames, referencedObjectNames, referencedVariableNames);
+        }
+
+        const objectsToExport = new Map<string, any>();
+        for (const obj of fullStage.objects || []) {
+            if (sourceObjectNames.has(obj.name) || referencedObjectNames.has(obj.name)) {
+                objectsToExport.set(obj.name, obj);
+            }
+        }
+
+        for (const obj of objectsToExport.values()) {
+            const { name, className, ...rest } = this.serializeObject(obj);
+            ops.push({ method: 'addObject', params: [stageId, { name, className, ...rest }] });
+        }
+
+        for (const vName of referencedVariableNames) {
+            let variable: any;
+            let scope: any = 'global';
+            variable = (project?.variables || []).find((v: any) => v.name === vName);
+            if (!variable) {
+                variable = (fullStage?.variables || []).find((v: any) => v.name === vName);
+                scope = stageId;
+            }
+            if (variable) {
+                ops.push({ method: 'addVariable', params: [variable.name, variable.type, variable.defaultValue ?? variable.initialValue, scope] });
+            }
+        }
+
+        this.exportTask(taskName, stageId, ops);
+
+        ops.push(...connectEventOps);
+    }
+
+    private collectReferencedEntities(
+        sequence: any[],
+        stageObjectNames: Set<string>,
+        allVariableNames: Set<string>,
+        objectNames: Set<string>,
+        variableNames: Set<string>
+    ): void {
+        if (!sequence) return;
+        for (const item of sequence) {
+            if (!item || typeof item !== 'object') continue;
+
+            if (item.type === 'action' || item.type === 'data_action') {
+                const action = this.controller['getActionByName']?.(item.name);
+                if (action) {
+                    this.scanValueForReferences(action, stageObjectNames, allVariableNames, objectNames, variableNames);
+                }
+            } else if (item.type === 'condition') {
+                if (item.condition?.variable && allVariableNames.has(item.condition.variable)) {
+                    variableNames.add(item.condition.variable);
+                }
+                this.collectReferencedEntities(item.then, stageObjectNames, allVariableNames, objectNames, variableNames);
+                this.collectReferencedEntities(item.else, stageObjectNames, allVariableNames, objectNames, variableNames);
+                this.collectReferencedEntities(item.body, stageObjectNames, allVariableNames, objectNames, variableNames);
+                this.collectReferencedEntities(item.elseBody, stageObjectNames, allVariableNames, objectNames, variableNames);
+                this.collectReferencedEntities(item.successBody, stageObjectNames, allVariableNames, objectNames, variableNames);
+                this.collectReferencedEntities(item.errorBody, stageObjectNames, allVariableNames, objectNames, variableNames);
+            } else if (item.type === 'foreach' || item.type === 'for' || item.type === 'while') {
+                if (item.iteratorVar && allVariableNames.has(item.iteratorVar)) variableNames.add(item.iteratorVar);
+                if (item.sourceArray && allVariableNames.has(item.sourceArray)) variableNames.add(item.sourceArray);
+                if (item.itemVar && allVariableNames.has(item.itemVar)) variableNames.add(item.itemVar);
+                if (item.indexVar && allVariableNames.has(item.indexVar)) variableNames.add(item.indexVar);
+                if (item.keyVar && allVariableNames.has(item.keyVar)) variableNames.add(item.keyVar);
+                this.collectReferencedEntities(item.body, stageObjectNames, allVariableNames, objectNames, variableNames);
+            }
+        }
+    }
+
+    private scanValueForReferences(
+        value: any,
+        stageObjectNames: Set<string>,
+        allVariableNames: Set<string>,
+        objectNames: Set<string>,
+        variableNames: Set<string>
+    ): void {
+        if (value === null || value === undefined) return;
+        if (typeof value === 'string') {
+            if (stageObjectNames.has(value)) objectNames.add(value);
+            else if (allVariableNames.has(value)) variableNames.add(value);
+        } else if (Array.isArray(value)) {
+            for (const v of value) this.scanValueForReferences(v, stageObjectNames, allVariableNames, objectNames, variableNames);
+        } else if (typeof value === 'object') {
+            const skipKeys = new Set(['id', 'name', 'type', 'description', 'sync', 'scope', 'className']);
+            for (const [key, val] of Object.entries(value)) {
+                if (skipKeys.has(key)) continue;
+                if (key === 'changes' && val && typeof val === 'object') {
+                    for (const objProp of Object.keys(val as any)) {
+                        const [objName] = objProp.split('.');
+                        if (stageObjectNames.has(objName)) objectNames.add(objName);
+                        this.scanValueForReferences((val as any)[objProp], stageObjectNames, allVariableNames, objectNames, variableNames);
+                    }
+                } else if (['variableName', 'resultVariable', 'sourceArray', 'itemVar', 'indexVar', 'keyVar', 'iteratorVar'].includes(key)) {
+                    if (typeof val === 'string' && allVariableNames.has(val)) variableNames.add(val);
+                } else if (['target', 'source', 'object'].includes(key)) {
+                    if (typeof val === 'string') {
+                        if (stageObjectNames.has(val)) objectNames.add(val);
+                        else if (allVariableNames.has(val)) variableNames.add(val);
+                    }
+                } else {
+                    this.scanValueForReferences(val, stageObjectNames, allVariableNames, objectNames, variableNames);
+                }
             }
         }
     }
