@@ -17,6 +17,7 @@ export class AgentScriptValidator {
         'addVariable',
         'addObject',
         'createStage',
+        'createFeature',
 
         // Tasks & Actions
         'createTask',

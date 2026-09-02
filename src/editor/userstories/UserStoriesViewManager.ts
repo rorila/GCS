@@ -274,8 +274,28 @@ export class UserStoriesViewManager {
             };
             const badgeStyle = (bg: string) => `display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff;background:${bg};margin-left:6px;`;
 
+            // Feature-ID -> Stage-ID
+            const featureStageMap = new Map<string, string>();
+            for (const s of allStages) {
+                for (const f of s.features || []) {
+                    featureStageMap.set(f.id, s.id);
+                }
+            }
+            const blueprintStageId = allStages.find((s: any) => s.type === 'blueprint')?.id;
+
+            const isTaskFromBlueprint = (taskName?: string) => {
+                if (!taskName) return false;
+                for (const s of allStages) {
+                    if (s.tasks?.some((t: any) => t.name === taskName)) {
+                        return s.type === 'blueprint' || s.id === blueprintStageId;
+                    }
+                }
+                return false;
+            };
+
             const filteredPlanned = (plannedStories as any[]).filter((us: any) => {
-                const matchStage = filterStage === 'all' || (us.relatedStages || []).includes(filterStage);
+                const featureStage = us.featureId ? featureStageMap.get(us.featureId) : undefined;
+                const matchStage = filterStage === 'all' || (featureStage ? featureStage === filterStage : (us.relatedStages || []).includes(filterStage));
                 const matchComponent = filterComponent === 'all' ||
                     (us.plannedComponent?.name === filterComponent) ||
                     (us.plannedComponent?.type === filterComponent);
@@ -298,43 +318,129 @@ export class UserStoriesViewManager {
                 return cmpC !== 0 ? cmpC : eventA.localeCompare(eventB);
             });
 
-            const plannedRows = filteredPlanned.length === 0
-                ? `<div style="padding: 8px 16px; color: #9090b0; font-size: 13px; font-style: italic;">Keine geplanten Use Cases gefunden.</div>`
-                : filteredPlanned.map((us: any) => {
-                    const sBadge = statusCfg[us.status || 'idea'] || statusCfg['idea'];
-                    const pBadge = priorityCfg[us.priority || 'medium'] || priorityCfg['medium'];
-                    const componentLabel = us.plannedComponent?.name || us.plannedComponent?.type || '(keine Komponente)';
-                    const eventLabel = us.plannedEvent ? `🎯 ${us.plannedEvent}` : '';
-                    const taskLabel = us.plannedTask ? `⚙️ ${us.plannedTask}` : '';
-                    const flowChartId = us.plannedTask || '';
-                    const generatedInteraction = allExtractedFull.find((i: any) => i.task?.taskName === us.plannedTask);
-                    const interactionId = generatedInteraction?.id || us.interactions?.[0]?.id || '';
-                    return `
-                        <div style="${rowStyle}">
-                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                                <input type="checkbox" onchange="window.toggleUserStoryForFeature('${us.id}', this.checked)" ${this.selectedForFeature.has(us.id) ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer; flex-shrink: 0;">
-                                <div>
-                                    <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${us.title || '(kein Titel)'}</span>
-                                    <span style="${badgeStyle(sBadge.color)}">${sBadge.label}</span>
-                                    <span style="${badgeStyle(pBadge.color)}">${pBadge.label}</span>
-                                    ${taskLabel ? `<span style="${badgeStyle('#1a6b8a')}">${taskLabel}</span>` : ''}
-                                    <div style="color: #9090c0; font-size: 12px; margin-top: 2px;">${componentLabel} ${eventLabel}</div>
-                                    ${us.description ? `<div style="${descStyle}">${us.description}</div>` : ''}
-                                    ${us.agentHints ? `<div style="${descStyle}">💡 Agent-Hinweis: ${us.agentHints}</div>` : ''}
-                                </div>
+            type FeatureGroup = { feature?: any; userStories: any[] };
+            type StageGroup = { stage: any; features: Map<string, FeatureGroup>; unassigned: any[] };
+            const groups = new Map<string, StageGroup>();
+
+            for (const us of filteredPlanned) {
+                const featureStage = us.featureId ? featureStageMap.get(us.featureId) : undefined;
+                const stageId = featureStage || (us.relatedStages || [])[0] || activeStage?.id || allStages[0]?.id;
+                if (!stageId) continue;
+
+                if (!groups.has(stageId)) {
+                    groups.set(stageId, {
+                        stage: allStages.find((s: any) => s.id === stageId),
+                        features: new Map<string, FeatureGroup>(),
+                        unassigned: []
+                    });
+                }
+                const g = groups.get(stageId)!;
+
+                if (us.featureId) {
+                    if (!g.features.has(us.featureId)) {
+                        const feature = g.stage?.features?.find((f: any) => f.id === us.featureId);
+                        g.features.set(us.featureId, { feature, userStories: [] });
+                    }
+                    g.features.get(us.featureId)!.userStories.push(us);
+                } else {
+                    g.unassigned.push(us);
+                }
+            }
+
+            const renderStoryRow = (us: any) => {
+                const sBadge = statusCfg[us.status || 'idea'] || statusCfg['idea'];
+                const pBadge = priorityCfg[us.priority || 'medium'] || priorityCfg['medium'];
+                const componentLabel = us.plannedComponent?.name || us.plannedComponent?.type || '(keine Komponente)';
+                const eventLabel = us.plannedEvent ? `🎯 ${us.plannedEvent}` : '';
+                const taskLabel = us.plannedTask ? `⚙️ ${us.plannedTask}` : '';
+                const blueprintBadge = (us.plannedTask && isTaskFromBlueprint(us.plannedTask)) ? `<span style="${badgeStyle('#607d8b')}">Blueprint</span>` : '';
+                const flowChartId = us.plannedTask || '';
+                const generatedInteraction = allExtractedFull.find((i: any) => i.task?.taskName === us.plannedTask);
+                const interactionId = generatedInteraction?.id || us.interactions?.[0]?.id || '';
+                const removeFromFeature = us.featureId ? `<button onclick="window.removeUserStoryFromFeature('${us.id}')" style="padding: 4px 10px; background-color: #795548; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='User Story aus Feature lösen'>Lösen</button>` : '';
+                return `
+                    <div style="${rowStyle}">
+                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                            <input type="checkbox" onchange="window.toggleUserStoryForFeature('${us.id}', this.checked)" ${this.selectedForFeature.has(us.id) ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer; flex-shrink: 0;">
+                            <div>
+                                <span style="font-weight: bold; font-size: 14px; color: #e0e0ff;">${us.title || '(kein Titel)'}</span>
+                                <span style="${badgeStyle(sBadge.color)}">${sBadge.label}</span>
+                                <span style="${badgeStyle(pBadge.color)}">${pBadge.label}</span>
+                                ${taskLabel ? `<span style="${badgeStyle('#1a6b8a')}">${taskLabel}</span>` : ''}
+                                ${blueprintBadge}
+                                <div style="color: #9090c0; font-size: 12px; margin-top: 2px;">${componentLabel} ${eventLabel}</div>
+                                ${us.description ? `<div style="${descStyle}">${us.description}</div>` : ''}
+                                ${us.agentHints ? `<div style="${descStyle}">💡 Agent-Hinweis: ${us.agentHints}</div>` : ''}
                             </div>
-                            <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                                ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Ablaufdiagramm dieses Use Cases im Flow-Editor öffnen'>Flow-Editor öffnen</button>` : ''}
-                                ${interactionId ? `<button onclick="window.showInteractionDiagram('', '${interactionId}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Interaktionsdiagramm dieses Use Cases anzeigen'>Diagramm anzeigen</button>` : ''}
-                                <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='User Story bearbeiten'>Bearbeiten</button>
-                                <button ${aiDisabled ? 'disabled ' : ''}onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; ${aiDisabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'} font-size: 12px;" title='${aiDisabled ? aiDisabledTitle : "KI soll diese User Story generieren und ins Projekt übernehmen"}'>🤖 KI</button>
-                                <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story als wiederverwendbares Feature speichern'>+ Feature</button>
-                                ${us.plannedTask ? `<button onclick="window.exportUserStoryAsFeatureScript('${us.id}')" style="padding: 4px 10px; background-color: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Feature als AgentScript in die Zwischenablage exportieren'>📤 Export</button>` : ''}
-                                <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story löschen'>Löschen</button>
+                        </div>
+                        <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                            ${flowChartId ? `<button onclick="window.navigateToFlowChart('${flowChartId}')" style="padding: 4px 10px; background-color: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Ablaufdiagramm dieses Use Cases im Flow-Editor öffnen'>Flow-Editor öffnen</button>` : ''}
+                            ${interactionId ? `<button onclick="window.showInteractionDiagram('', '${interactionId}')" style="padding: 4px 10px; background-color: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Interaktionsdiagramm dieses Use Cases anzeigen'>Diagramm anzeigen</button>` : ''}
+                            <button onclick="window.editUserStory('${us.id}')" style="padding: 4px 10px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='User Story bearbeiten'>Bearbeiten</button>
+                            <button ${aiDisabled ? 'disabled ' : ''}onclick="window.sendUserStoryToAI('${us.id}')" style="padding: 4px 10px; background-color: #6a1b9a; color: white; border: none; border-radius: 4px; ${aiDisabled ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;'} font-size: 12px;" title='${aiDisabled ? aiDisabledTitle : "KI soll diese User Story generieren und ins Projekt übernehmen"}'>🤖 KI</button>
+                            <button onclick="window.saveUserStoryAsFeature('${us.id}')" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story als wiederverwendbares Feature speichern'>+ Feature</button>
+                            ${us.plannedTask ? `<button onclick="window.exportUserStoryAsFeatureScript('${us.id}')" style="padding: 4px 10px; background-color: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Feature als AgentScript in die Zwischenablage exportieren'>📤 Export</button>` : ''}
+                            ${removeFromFeature}
+                            <button onclick="window.deleteUserStory('${us.id}')" style="padding: 4px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Diese User Story löschen'>Löschen</button>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const stageBlocks: string[] = [];
+            for (const [stageId, g] of groups) {
+                const sName = g.stage?.name || stageId;
+                const isActive = stageId === activeStage?.id;
+                const stageHeader = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #1a2744; border: 1px solid #2a3a6a; border-radius: 6px; margin-bottom: 4px; margin-top: 12px;">
+                        <div>
+                            <span style="font-size: 11px; font-weight: bold; color: #60a0e0; text-transform: uppercase; letter-spacing: 1px; margin-right: 10px;">Stage</span>
+                            <span style="font-weight: bold; font-size: 14px; color: #d0e0ff;">${sName}</span>
+                            ${isActive ? `<span style="font-size: 11px; color: #4caf50; margin-left: 8px;">(aktiv)</span>` : ''}
+                        </div>
+                        <button onclick="window.addUseCase('${stageId}')" style="padding: 4px 12px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title='Neuen Use Case zu dieser Stage hinzufügen'>+ UseCase</button>
+                    </div>
+                `;
+
+                const featureEntries = Array.from(g.features.entries()).sort((a, b) => {
+                    const nameA = (a[1].feature?.name || a[0]) as string;
+                    const nameB = (b[1].feature?.name || b[0]) as string;
+                    return nameA.localeCompare(nameB);
+                });
+
+                const featureBlocks = featureEntries.map(([fid, f]) => {
+                    const fName = f.feature?.name || 'Unbekanntes Feature';
+                    const fDesc = f.feature?.description ? `<span style="color: #9090b0; font-size: 12px; margin-left: 8px;">${f.feature.description}</span>` : '';
+                    const fHeader = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px 8px 36px; background-color: #1e2a4a; border: 1px solid #2a3a6a; border-radius: 6px; margin: 4px 0 0 12px;">
+                            <div>
+                                <span style="font-size: 11px; font-weight: bold; color: #ff9800; text-transform: uppercase; letter-spacing: 1px; margin-right: 8px;">Feature</span>
+                                <span style="font-weight: bold; font-size: 13px; color: #ffffff;">${fName}</span>
+                                ${fDesc}
+                                <span style="font-size: 11px; color: #9090b0; margin-left: 8px;">(${f.userStories.length} User Stories)</span>
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button onclick="window.renameFeature('${stageId}', '${fid}')" style="padding: 3px 8px; background-color: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Feature umbenennen'>Bearbeiten</button>
+                                <button onclick="window.exportFeatureScript('${stageId}', '${fid}')" style="padding: 3px 8px; background-color: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Feature als AgentScript exportieren'>📤 Export</button>
+                                <button onclick="window.deleteFeature('${stageId}', '${fid}')" style="padding: 3px 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Feature auflösen (User Stories bleiben)'>Auflösen</button>
                             </div>
                         </div>
                     `;
+                    const rows = f.userStories.map(renderStoryRow).join('');
+                    return fHeader + rows;
                 }).join('');
+
+                const unassignedHeader = g.unassigned.length > 0 ? `
+                    <div style="padding: 8px 12px 8px 36px; margin: 4px 0 0 12px; color: #9090b0; font-size: 12px; font-style: italic; border: 1px dashed #2a3a6a; border-radius: 6px;">Kein Feature</div>
+                ` : '';
+                const unassignedRows = g.unassigned.map(renderStoryRow).join('');
+
+                stageBlocks.push(stageHeader + featureBlocks + unassignedHeader + unassignedRows);
+            }
+
+            const plannedRows = groups.size === 0
+                ? `<div style="padding: 8px 16px; color: #9090b0; font-size: 13px; font-style: italic;">Keine geplanten Use Cases gefunden.</div>`
+                : stageBlocks.join('');
 
             const header = `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #1a2744; border: 1px solid #2a3a6a; border-radius: 6px; margin-bottom: 4px; margin-top: 12px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -346,6 +452,7 @@ export class UserStoriesViewManager {
                                 <div style="display:flex; gap:6px;">
                                     <button onclick="window.clearFeatureSelection()" style="padding: 4px 10px; background-color: #2a2a4a; color: #e0e0e0; border: 1px solid #3a3a5a; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Alle Haken bei User Stories entfernen'>Auswahl leeren</button>
                                     <button onclick="window.saveSelectedUserStoriesAsFeature()" style="padding: 4px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Markierte User Stories als Feature in der Library speichern'>Als Feature speichern</button>
+                                    <button onclick="window.groupSelectedUserStoriesAsFeature()" style="padding: 4px 10px; background-color: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Markierte User Stories zu einem Projekt-Feature gruppieren'>+ Projekt-Feature</button>
                                 </div>
                             </div>`;
             return header + plannedRows;
@@ -387,6 +494,11 @@ export class UserStoriesViewManager {
         (window as any).toggleInteractionForFeature = (interactionId: string, checked: boolean) => this.toggleInteractionForFeature(interactionId, checked);
         (window as any).clearInteractionSelection = () => this.clearInteractionSelection();
         (window as any).saveSelectedInteractionsAsFeature = () => this.saveSelectedInteractionsAsFeature();
+        (window as any).groupSelectedUserStoriesAsFeature = () => this.groupSelectedUserStoriesAsFeature();
+        (window as any).renameFeature = (stageId: string, featureId: string) => this.renameFeature(stageId, featureId);
+        (window as any).deleteFeature = (stageId: string, featureId: string) => this.deleteFeature(stageId, featureId);
+        (window as any).exportFeatureScript = (stageId: string, featureId: string) => this.exportFeatureScript(stageId, featureId);
+        (window as any).removeUserStoryFromFeature = (userStoryId: string) => this.removeUserStoryFromFeature(userStoryId);
 
         this.bindFilterBarListeners();
     }
@@ -927,6 +1039,124 @@ export class UserStoriesViewManager {
 
     public async sendUserStoryToAI(userStoryId: string) {
         await this.generateAndApplyForUserStory(userStoryId);
+    }
+
+    public async groupSelectedUserStoriesAsFeature() {
+        const ids = Array.from(this.selectedForFeature);
+        if (ids.length === 0) {
+            window.alert('Bitte mindestens eine User Story auswählen.');
+            return;
+        }
+
+        const project = this.host.project;
+        const activeStage = this.host.getActiveStage();
+        let stageId = activeStage?.id;
+        if (!stageId) {
+            const firstUs = project.userStories?.userStories?.find((us: any) => ids.includes(us.id));
+            stageId = (firstUs?.relatedStages || [])[0] || project.stages?.[0]?.id;
+        }
+        if (!stageId) {
+            window.alert('Keine Stage gefunden.');
+            return;
+        }
+
+        const featureName = window.prompt('Feature-Name:', 'Neues Feature')?.trim();
+        if (!featureName) return;
+
+        const featureId = featureName.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
+
+        try {
+            const controller = AgentController.getInstance();
+            controller.setProject(project);
+            controller.createFeature(stageId, { id: featureId, name: featureName, userStoryIds: ids });
+            this.selectedForFeature.clear();
+            this.host.renderUserStoriesList();
+            window.alert(`Feature "${featureName}" erstellt.`);
+        } catch (e: any) {
+            window.alert(`Fehler: ${e.message || e}`);
+        }
+    }
+
+    public async renameFeature(stageId: string, featureId: string) {
+        const project = this.host.project;
+        const stage = project.stages?.find((s: any) => s.id === stageId);
+        const feature = stage?.features?.find((f: any) => f.id === featureId);
+        if (!feature) return;
+
+        const newName = window.prompt('Neuer Feature-Name:', feature.name)?.trim();
+        if (!newName) return;
+
+        try {
+            const controller = AgentController.getInstance();
+            controller.setProject(project);
+            controller.createFeature(stageId, { ...feature, name: newName });
+            this.host.renderUserStoriesList();
+        } catch (e: any) {
+            window.alert(`Fehler: ${e.message || e}`);
+        }
+    }
+
+    public async deleteFeature(stageId: string, featureId: string) {
+        if (!window.confirm('Feature auflösen? User Stories bleiben erhalten.')) return;
+
+        try {
+            const controller = AgentController.getInstance();
+            controller.setProject(this.host.project);
+            controller.deleteFeature(stageId, featureId);
+            this.host.renderUserStoriesList();
+        } catch (e: any) {
+            window.alert(`Fehler: ${e.message || e}`);
+        }
+    }
+
+    public async exportFeatureScript(stageId: string, featureId: string) {
+        try {
+            const controller = AgentController.getInstance();
+            controller.setProject(this.host.project);
+            const io = new AgentScriptIO(controller);
+            const script = io.exportScript({
+                scope: 'feature',
+                targetId: featureId,
+                featureStageId: stageId,
+                withPlaceholders: true,
+            });
+            await navigator.clipboard.writeText(JSON.stringify(script, null, 2));
+            window.alert('Feature-Script in Zwischenablage kopiert.');
+        } catch (e: any) {
+            window.alert(`Export fehlgeschlagen: ${e.message || e}`);
+        }
+    }
+
+    public async removeUserStoryFromFeature(userStoryId: string) {
+        const project = this.host.project;
+        const userStory = project.userStories?.userStories?.find((us: any) => us.id === userStoryId);
+        if (!userStory || !userStory.featureId) return;
+
+        const featureId = userStory.featureId;
+        const stage = (project.stages || []).find((s: any) => s.features?.some((f: any) => f.id === featureId));
+        const feature = stage?.features?.find((f: any) => f.id === featureId);
+        if (!feature) {
+            delete (userStory as any).featureId;
+            this.host.renderUserStoriesList();
+            return;
+        }
+
+        const newIds = (feature.userStoryIds || []).filter((id: string) => id !== userStoryId);
+        if (!stage) {
+            delete (userStory as any).featureId;
+            this.host.renderUserStoriesList();
+            return;
+        }
+        try {
+            const controller = AgentController.getInstance();
+            controller.setProject(project);
+            controller.createFeature(stage.id, { ...feature, userStoryIds: newIds });
+            this.host.renderUserStoriesList();
+        } catch (e: any) {
+            window.alert(`Fehler: ${e.message || e}`);
+        }
     }
 
     public async sendUseCaseToAI(interactionId: string) {

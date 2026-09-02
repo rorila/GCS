@@ -190,6 +190,67 @@ export class AgentController {
         this.notifyChange();
     }
 
+    /** Erstellt oder aktualisiert ein Feature in einer Stage und verknüpft User Stories. */
+    public createFeature(stageId: string, featureData: any): void {
+        this.validateProjectLoaded();
+        const stage = this.project!.stages?.find(s => s.id === stageId);
+        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
+
+        if (!stage.features) stage.features = [];
+
+        const { id, name, description, userStoryIds = [], blueprintTaskNames = [] } = featureData || {};
+        if (!id) throw new Error('Feature requires an id.');
+        if (!name) throw new Error('Feature requires a name.');
+
+        let feature = (stage.features as any[]).find((f: any) => f.id === id);
+        if (feature) {
+            feature.name = name;
+            if (description !== undefined) feature.description = description;
+            feature.userStoryIds = userStoryIds;
+            feature.blueprintTaskNames = blueprintTaskNames;
+        } else {
+            feature = { id, name, description, userStoryIds, blueprintTaskNames };
+            stage.features.push(feature);
+        }
+
+        // User Story featureId synchronisieren
+        const userStories = this.project!.userStories?.userStories || [];
+        for (const us of userStories) {
+            if (us.featureId === id && !userStoryIds.includes(us.id)) {
+                delete (us as any).featureId;
+            }
+        }
+        for (const usId of userStoryIds) {
+            const us = userStories.find((u: any) => u.id === usId);
+            if (us) (us as any).featureId = id;
+        }
+
+        AgentController.logger.info(`Feature '${name}' (${id}) in stage '${stageId}' created/updated.`);
+        this.notifyChange();
+    }
+
+    /** Löscht ein Feature aus einer Stage und entfernt featureId bei User Stories. */
+    public deleteFeature(stageId: string, featureId: string): void {
+        this.validateProjectLoaded();
+        const stage = this.project!.stages?.find(s => s.id === stageId);
+        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
+
+        if (stage.features) {
+            const idx = stage.features.findIndex((f: any) => f.id === featureId);
+            if (idx >= 0) stage.features.splice(idx, 1);
+        }
+
+        const userStories = this.project!.userStories?.userStories || [];
+        for (const us of userStories) {
+            if ((us as any).featureId === featureId) {
+                delete (us as any).featureId;
+            }
+        }
+
+        AgentController.logger.info(`Feature '${featureId}' removed from stage '${stageId}'.`);
+        this.notifyChange();
+    }
+
     /** Fügt ein Objekt zu einer Stage hinzu. */
     public addObject(stageId: string, objectData: any): void {
         this.validateProjectLoaded();

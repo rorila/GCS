@@ -444,6 +444,14 @@ export interface InputConfig {
 // ─────────────────────────────────────────────
 export type StageType = 'standard' | 'splash' | 'main' | 'template' | 'blueprint' | 'theme-editor';
 
+export interface Feature {
+    id: string;                   // Eindeutige Feature-ID
+    name: string;                 // Anzeigename
+    description?: string;         // Optionale Beschreibung
+    userStoryIds?: string[];      // IDs der zugehörigen User Stories
+    blueprintTaskNames?: string[]; // Tasks aus der Blueprint-Stage (zur Kennzeichnung)
+}
+
 export interface StageDefinition {
     id: string;               // Eindeutige ID der Stage
     name: string;             // Anzeigename
@@ -480,6 +488,9 @@ export interface StageDefinition {
     input?: InputConfig;       // Stage-lokale Input-Konfiguration
     events?: Record<string, string>; // Event-Handler (z.B. onRuntimeStart -> TaskName)
     excludedBlueprintIds?: string[]; // IDs von Blueprint-Objekten, die auf dieser Stage ausgeblendet sind
+
+    // Feature-Gruppierungen innerhalb der Stage
+    features?: Feature[];
 }
 
 // ─────────────────────────────────────────────

@@ -135,13 +135,15 @@ export class AgentScriptIO {
         return obj;
     }
 
-    private exportTask(taskName: string | undefined, stageId: string | undefined, ops: AgentScriptOperation[]): void {
+    private exportTask(taskName: string | undefined, stageId: string | undefined, ops: AgentScriptOperation[], emitCreateTask = true): void {
         if (!taskName) throw new Error('Für Task-Export muss targetId (Task-Name) angegeben werden.');
         const details = this.controller.getTaskDetails(taskName);
         if (!details) throw new Error(`Task '${taskName}' nicht gefunden.`);
 
         const stageParam = stageId || '${STAGE}';
-        ops.push({ method: 'createTask', params: [stageParam, details.name, details.description] });
+        if (emitCreateTask) {
+            ops.push({ method: 'createTask', params: [stageParam, details.name, details.description] });
+        }
 
         // Bereits als global definiert exportierte Actions (Dedup für ensureActionDefined)
         const definedActions = new Set<string>();
@@ -310,76 +312,155 @@ export class AgentScriptIO {
         }
     }
 
-    private exportFeature(taskName: string | undefined, explicitStageId: string | undefined, ops: AgentScriptOperation[]): void {
-        if (!taskName) throw new Error('Für Feature-Export muss targetId (Task-Name) angegeben werden.');
-        const task = this.controller['getTaskByName'](taskName) as any;
-        if (!task) throw new Error(`Task '${taskName}' nicht gefunden.`);
-
+    private exportFeature(taskNameOrFeatureId: string | undefined, explicitStageId: string | undefined, ops: AgentScriptOperation[]): void {
+        if (!taskNameOrFeatureId) throw new Error('Für Feature-Export muss targetId (Task-Name oder Feature-ID) angegeben werden.');
         const project = this.controller['project'];
+
+        // 1. Feature auflösen (falls targetId eine Feature-ID ist)
+        let feature: any;
+        let featureStage: any;
         let stageId = explicitStageId;
-        if (!stageId) {
-            const stage = project?.stages?.find((s: any) => s.tasks?.some((t: any) => t.name === taskName));
-            stageId = stage?.id;
-            if (!stageId && project?.tasks?.some((t: any) => t.name === taskName)) {
-                stageId = project.stages?.find((s: any) => s.type === 'blueprint')?.id || project.stages?.[0]?.id;
+
+        if (stageId) {
+            featureStage = project?.stages?.find((s: any) => s.id === stageId || s.name === stageId);
+            feature = featureStage?.features?.find((f: any) => f.id === taskNameOrFeatureId);
+        }
+        if (!feature) {
+            for (const s of project?.stages || []) {
+                const f = s.features?.find((f: any) => f.id === taskNameOrFeatureId);
+                if (f) { feature = f; featureStage = s; stageId = s.id; break; }
             }
         }
-        if (!stageId) throw new Error(`Keine Stage für Task '${taskName}' gefunden.`);
-        const fullStage = project?.stages?.find((s: any) => s.id === stageId || s.name === stageId);
-        if (!fullStage) throw new Error(`Stage '${stageId}' nicht gefunden.`);
 
-        const stageObjectNames = new Set<string>((fullStage.objects || []).map((o: any) => o.name));
+        // 2. Tasks sammeln
+        const taskEntries: { name: string; stageId: string; blueprint: boolean }[] = [];
+        if (feature) {
+            const blueprintStageId = project?.stages?.find((s: any) => s.type === 'blueprint')?.id;
+            const storyIds = new Set<string>(feature.userStoryIds || []);
+            for (const us of project?.userStories?.userStories || []) {
+                if (storyIds.has(us.id) && us.plannedTask) {
+                    const tStage = this.findTaskStage(us.plannedTask, project);
+                    taskEntries.push({ name: us.plannedTask, stageId: tStage?.id || stageId, blueprint: tStage?.id === blueprintStageId || tStage?.type === 'blueprint' });
+                }
+            }
+            for (const tName of feature.blueprintTaskNames || []) {
+                if (!taskEntries.some(e => e.name === tName)) {
+                    const tStage = this.findTaskStage(tName, project);
+                    taskEntries.push({ name: tName, stageId: tStage?.id || stageId, blueprint: true });
+                }
+            }
+        } else {
+            const tStage = this.findTaskStage(taskNameOrFeatureId, project);
+            stageId = explicitStageId || tStage?.id;
+            if (!stageId) throw new Error(`Keine Stage für Task '${taskNameOrFeatureId}' gefunden.`);
+            featureStage = project?.stages?.find((s: any) => s.id === stageId || s.name === stageId);
+            taskEntries.push({ name: taskNameOrFeatureId, stageId, blueprint: featureStage?.type === 'blueprint' || tStage?.type === 'blueprint' });
+        }
+
+        if (taskEntries.length === 0) throw new Error(`Keine Tasks für Feature '${taskNameOrFeatureId}' gefunden.`);
+        if (!featureStage) {
+            featureStage = project?.stages?.find((s: any) => s.id === stageId || s.name === stageId);
+            if (!featureStage) throw new Error(`Stage '${stageId}' nicht gefunden.`);
+        }
+
+        const exportStageId = stageId || taskEntries[0].stageId;
+
+        // 3. Referenzierte Objekte, Variablen und Events über alle Tasks sammeln
+        const stageObjectNamesMap = new Map<string, Set<string>>();
         const allVariableNames = new Set<string>();
         for (const v of project?.variables || []) if (v?.name) allVariableNames.add(v.name);
         for (const s of project?.stages || []) for (const v of s?.variables || []) if (v?.name) allVariableNames.add(v.name);
 
-        const referencedObjectNames = new Set<string>();
-        const referencedVariableNames = new Set<string>();
-        const sourceObjectNames = new Set<string>();
+        const objectMap = new Map<string, { obj: any; stageId: string }>();
+        const variableMap = new Map<string, { variable: any; scope: any }>();
         const connectEventOps: AgentScriptOperation[] = [];
 
-        for (const obj of fullStage.objects || []) {
-            for (const [eventName, connectedTaskName] of Object.entries(obj.events || {})) {
-                if (connectedTaskName === taskName) {
-                    sourceObjectNames.add(obj.name);
-                    referencedObjectNames.add(obj.name);
-                    connectEventOps.push({ method: 'connectEvent', params: [stageId, obj.name, eventName, taskName] });
+        for (const entry of taskEntries) {
+            const task = this.controller['getTaskByName'](entry.name) as any;
+            if (!task) continue;
+            const stage = project?.stages?.find((s: any) => s.id === entry.stageId || s.name === entry.stageId);
+            if (!stage) continue;
+
+            if (!stageObjectNamesMap.has(stage.id)) {
+                stageObjectNamesMap.set(stage.id, new Set<string>((stage.objects || []).map((o: any) => o.name)));
+            }
+            const stageObjectNames = stageObjectNamesMap.get(stage.id)!;
+
+            for (const obj of stage.objects || []) {
+                for (const [eventName, connectedTaskName] of Object.entries(obj.events || {})) {
+                    if (connectedTaskName === entry.name) {
+                        objectMap.set(obj.name, { obj, stageId: stage.id });
+                        connectEventOps.push({ method: 'connectEvent', params: [entry.stageId, obj.name, eventName, entry.name] });
+                    }
+                }
+            }
+
+            if (task.actionSequence) {
+                const referencedObjectNames = new Set<string>();
+                const referencedVariableNames = new Set<string>();
+                this.collectReferencedEntities(task.actionSequence, stageObjectNames, allVariableNames, referencedObjectNames, referencedVariableNames);
+
+                for (const on of referencedObjectNames) {
+                    const obj = (stage.objects || []).find((o: any) => o.name === on);
+                    if (obj) objectMap.set(on, { obj, stageId: stage.id });
+                }
+
+                for (const vn of referencedVariableNames) {
+                    let variable: any = (project?.variables || []).find((v: any) => v.name === vn);
+                    let scope: any = 'global';
+                    if (!variable) {
+                        variable = (stage?.variables || []).find((v: any) => v.name === vn);
+                        scope = stage.id;
+                    }
+                    if (variable) variableMap.set(vn, { variable, scope });
                 }
             }
         }
 
-        if (task.actionSequence) {
-            this.collectReferencedEntities(task.actionSequence, stageObjectNames, allVariableNames, referencedObjectNames, referencedVariableNames);
+        // 4. createFeature für Feature-Gruppen
+        if (feature) {
+            ops.push({
+                method: 'createFeature',
+                params: [exportStageId, { id: feature.id, name: feature.name, description: feature.description, userStoryIds: feature.userStoryIds, blueprintTaskNames: feature.blueprintTaskNames }]
+            });
         }
 
-        const objectsToExport = new Map<string, any>();
-        for (const obj of fullStage.objects || []) {
-            if (sourceObjectNames.has(obj.name) || referencedObjectNames.has(obj.name)) {
-                objectsToExport.set(obj.name, obj);
-            }
-        }
-
-        for (const obj of objectsToExport.values()) {
+        // 5. Objekte und Variablen exportieren
+        for (const { obj, stageId: objStageId } of objectMap.values()) {
             const { name, className, ...rest } = this.serializeObject(obj);
-            ops.push({ method: 'addObject', params: [stageId, { name, className, ...rest }] });
+            ops.push({ method: 'addObject', params: [objStageId, { name, className, ...rest }] });
         }
 
-        for (const vName of referencedVariableNames) {
-            let variable: any;
-            let scope: any = 'global';
-            variable = (project?.variables || []).find((v: any) => v.name === vName);
-            if (!variable) {
-                variable = (fullStage?.variables || []).find((v: any) => v.name === vName);
-                scope = stageId;
-            }
-            if (variable) {
-                ops.push({ method: 'addVariable', params: [variable.name, variable.type, variable.defaultValue ?? variable.initialValue, scope] });
+        for (const { variable, scope } of variableMap.values()) {
+            ops.push({ method: 'addVariable', params: [variable.name, variable.type, variable.defaultValue ?? variable.initialValue, scope] });
+        }
+
+        // 6. createTask-Skeletons für alle Tasks
+        for (const entry of taskEntries) {
+            const task = this.controller['getTaskByName'](entry.name) as any;
+            if (task) {
+                ops.push({ method: 'createTask', params: [entry.stageId, task.name, task.description || ''] });
             }
         }
 
-        this.exportTask(taskName, stageId, ops);
+        // 7. Actions / Conditions / Task-Calls für alle Tasks
+        for (const entry of taskEntries) {
+            this.exportTask(entry.name, entry.stageId, ops, false);
+        }
 
+        // 8. Event-Verbindungen
         ops.push(...connectEventOps);
+    }
+
+    /** Findet die Stage, in der ein Task definiert ist. */
+    private findTaskStage(taskName: string, project: any): any {
+        for (const s of project?.stages || []) {
+            if (s.tasks?.some((t: any) => t.name === taskName)) return s;
+        }
+        if (project?.tasks?.some((t: any) => t.name === taskName)) {
+            return project?.stages?.find((s: any) => s.type === 'blueprint') || project?.stages?.[0];
+        }
+        return undefined;
     }
 
     private collectReferencedEntities(

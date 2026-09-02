@@ -67,6 +67,7 @@ export interface UserStory {
     plannedActions?: PlannedAction[];
     agentControllerScript?: string;
     plannedCondition?: string;
+    featureId?: string;       // Zugehöriges Feature innerhalb einer Stage
     agentHints?: string;
 }
 
