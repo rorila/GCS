@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" id="svg3533" x="0px" y="0px" width="321.7px" height="100.8px" viewBox="0 0 321.7 100.8" style="enable-background:new 0 0 321.7 100.8;" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="pattern-0" x="0" y="0" width="25" height="25" patternUnits="userSpaceOnUse" viewBox="0 0 100 100">
+      <rect x="0" y="0" width="50" height="100" style="fill: black;"/>
+    </pattern>
+  </defs>
+  <style type="text/css">
+	.st0{opacity:0.6;fill:#E6E6E6;stroke:#F2F2F2;stroke-miterlimit:10;enable-background:new    ;}
+</style>
+  <g id="layer1" transform="translate(266.76424,-335.07646)">
+    <path id="menue_x5F_bg" d="M-266.9,434.5h305c8.7,0,15.8-7,15.8-15.8v-84.2h-320.9 L-266.9,434.5z" style="paint-order: stroke; fill: rgb(255, 255, 255); fill-opacity: 0.75;"/>
+  </g>
+</svg>

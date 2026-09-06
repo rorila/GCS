@@ -1,0 +1,42 @@
+[
+    {
+        "className": "TPanel",
+        "style": "display: flex; flex-direction: column; gap: 8px;",
+        "children": [
+            {
+                "className": "TPanel",
+                "forEach": "selectedObject._supportedEvents",
+                "style": {
+                    "padding": "8px",
+                    "background": "rgba(255,255,255,0.05)",
+                    "borderRadius": "4px",
+                    "border": "1px solid rgba(255,255,255,0.1)",
+                    "marginBottom": "8px"
+                },
+                "children": [
+                    {
+                        "className": "TLabel",
+                        "text": "${value}",
+                        "style": {
+                            "fontWeight": "bold",
+                            "marginBottom": "4px",
+                            "display": "block",
+                            "color": "#aaa",
+                            "fontSize": "11px"
+                        }
+                    },
+                    {
+                        "className": "TSelect",
+                        "name": "event_${value}",
+                        "label": "",
+                        "property": "events.${value}",
+                        "placeholder": "Task auswählen...",
+                        "options": "${availableTasks}",
+                        "selectedValue": "${selectedObject.events.${value} || ''}",
+                        "action": "map_event"
+                    }
+                ]
+            }
+        ]
+    }
+]

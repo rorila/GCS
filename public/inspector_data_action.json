@@ -1,0 +1,367 @@
+{
+    "objects": [
+        {
+            "name": "generalGroup",
+            "className": "TPanel",
+            "style": {
+                "borderLeft": "3px solid #64b5f6",
+                "paddingLeft": "10px",
+                "marginBottom": "15px"
+            },
+            "children": [
+                {
+                    "name": "nameLabel",
+                    "className": "TLabel",
+                    "text": "Name",
+                    "style": {
+                        "color": "#64b5f6",
+                        "fontSize": "11px",
+                        "fontWeight": "bold",
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "nameInput",
+                    "className": "TEdit",
+                    "property": "Name",
+                    "text": "${selectedObject.Name}",
+                    "style": {
+                        "width": "100%",
+                        "marginBottom": "10px"
+                    }
+                },
+                {
+                    "name": "descriptionLabel",
+                    "className": "TLabel",
+                    "text": "Beschreibung",
+                    "style": {
+                        "color": "#777",
+                        "fontSize": "11px",
+                        "marginTop": "8px",
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "DescriptionInput",
+                    "className": "TEdit",
+                    "property": "Description",
+                    "text": "${selectedObject.Description}",
+                    "placeholder": "Optionale Beschreibung..."
+                }
+            ]
+        },
+        {
+            "name": "sqlTitle",
+            "className": "TLabel",
+            "text": "SQL Abfrage Konfiguration",
+            "style": {
+                "fontSize": "14px",
+                "fontWeight": "bold",
+                "marginBottom": "10px",
+                "color": "#fff"
+            }
+        },
+        {
+            "name": "selectGroup",
+            "className": "TPanel",
+            "style": {
+                "borderLeft": "3px solid #ffca28",
+                "paddingLeft": "10px",
+                "marginBottom": "15px"
+            },
+            "children": [
+                {
+                    "name": "selectLabel",
+                    "className": "TLabel",
+                    "text": "SELECT (Felder)",
+                    "style": {
+                        "color": "#ffca28",
+                        "fontWeight": "bold",
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "selectFields",
+                    "className": "TChips",
+                    "value": "${selectedObject.selectFields}"
+                },
+                {
+                    "name": "AddFieldDropdown",
+                    "className": "TDropdown",
+                    "selectedValue": "",
+                    "options": "${availableResourceProperties}",
+                    "placeholder": "Feld hinzufügen...",
+                    "style": {
+                        "marginTop": "4px"
+                    },
+                    "action": "appendField"
+                }
+            ]
+        },
+        {
+            "name": "fromGroup",
+            "className": "TPanel",
+            "style": {
+                "borderLeft": "3px solid #4fc3f7",
+                "paddingLeft": "10px",
+                "marginBottom": "15px"
+            },
+            "children": [
+                {
+                    "name": "fromLabel",
+                    "className": "TLabel",
+                    "text": "FROM (Data Store)",
+                    "style": {
+                        "color": "#4fc3f7",
+                        "fontWeight": "bold",
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "dataStoreInput",
+                    "className": "TDropdown",
+                    "property": "dataStore",
+                    "selectedValue": "${selectedObject.dataStore}",
+                    "source": "objects",
+                    "placeholder": "Datenquelle wählen..."
+                }
+            ]
+        },
+        {
+            "name": "whereGroup",
+            "className": "TPanel",
+            "style": {
+                "borderLeft": "3px solid #81c784",
+                "paddingLeft": "10px",
+                "marginBottom": "15px"
+            },
+            "children": [
+                {
+                    "name": "whereLabel",
+                    "className": "TLabel",
+                    "text": "WHERE",
+                    "style": {
+                        "color": "#81c784",
+                        "fontWeight": "bold",
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "whereRow",
+                    "className": "TPanel",
+                    "style": {
+                        "display": "flex",
+                        "gap": "8px",
+                        "alignItems": "center"
+                    },
+                    "children": [
+                        {
+                            "name": "queryPropertyInput",
+                            "className": "TDropdown",
+                            "property": "queryProperty",
+                            "selectedValue": "${selectedObject.queryProperty}",
+                            "options": "${availableResourceProperties}",
+                            "placeholder": "Suchfeld...",
+                            "style": {
+                                "flex": "1"
+                            }
+                        },
+                        {
+                            "name": "queryOperatorInput",
+                            "className": "TDropdown",
+                            "property": "queryOperator",
+                            "selectedValue": "${selectedObject.queryOperator}",
+                            "options": [
+                                {
+                                    "value": "==",
+                                    "label": "=="
+                                },
+                                {
+                                    "value": "CONTAINS",
+                                    "label": "CONTAINS (Enthält)"
+                                },
+                                {
+                                    "value": "IN",
+                                    "label": "IN (Einer von)"
+                                },
+                                {
+                                    "value": ">",
+                                    "label": ">"
+                                },
+                                {
+                                    "value": ">=",
+                                    "label": ">="
+                                },
+                                {
+                                    "value": "<",
+                                    "label": "<"
+                                },
+                                {
+                                    "value": "<=",
+                                    "label": "<="
+                                }
+                            ],
+                            "style": {
+                                "width": "60px"
+                            }
+                        },
+                        {
+                            "name": "queryValueInput",
+                            "className": "TEdit",
+                            "property": "queryValue",
+                            "text": "${selectedObject.queryValue}",
+                            "placeholder": "Wert oder ${Var}",
+                            "style": {
+                                "flex": "1"
+                            }
+                        },
+                        {
+                            "name": "pickVarBtn",
+                            "className": "TButton",
+                            "caption": "📦",
+                            "action": "pickVariable",
+                            "actionData": {
+                                "property": "queryValue"
+                            },
+                            "style": {
+                                "width": "30px",
+                                "padding": "4px",
+                                "fontSize": "14px",
+                                "marginLeft": "4px"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "intoGroup",
+            "className": "TPanel",
+            "style": {
+                "borderLeft": "3px solid #f06292",
+                "paddingLeft": "10px",
+                "marginBottom": "15px"
+            },
+            "children": [
+                {
+                    "name": "intoLabel",
+                    "className": "TLabel",
+                    "text": "INTO (Ziel-Variable)",
+                    "style": {
+                        "color": "#f06292",
+                        "fontWeight": "bold",
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "resultVariableInput",
+                    "className": "TDropdown",
+                    "property": "resultVariable",
+                    "selectedValue": "${selectedObject.resultVariable}",
+                    "source": "variables",
+                    "placeholder": "Variable wählen..."
+                }
+            ]
+        },
+        {
+            "name": "advancedTitle",
+            "className": "TLabel",
+            "text": "Erweitert",
+            "style": {
+                "fontSize": "12px",
+                "color": "#777",
+                "marginTop": "10px",
+                "marginBottom": "5px"
+            }
+        },
+        {
+            "name": "advancedGroup",
+            "className": "TPanel",
+            "style": {
+                "padding": "10px",
+                "backgroundColor": "rgba(255,255,255,0.05)",
+                "borderRadius": "4px"
+            },
+            "children": [
+                {
+                    "name": "requestJWTInput",
+                    "className": "TCheckbox",
+                    "property": "requestJWT",
+                    "label": "JWT / Login Modus",
+                    "checked": "${selectedObject.requestJWT}"
+                },
+                {
+                    "name": "methodInput",
+                    "className": "TDropdown",
+                    "property": "method",
+                    "selectedValue": "${selectedObject.method}",
+                    "options": [
+                        {
+                            "value": "GET",
+                            "label": "Laden (GET)"
+                        },
+                        {
+                            "value": "POST",
+                            "label": "Senden (POST)"
+                        }
+                    ],
+                    "style": {
+                        "marginTop": "4px"
+                    }
+                },
+                {
+                    "name": "routeLabel",
+                    "className": "TLabel",
+                    "text": "Interne Route",
+                    "style": {
+                        "fontSize": "11px",
+                        "color": "#777",
+                        "marginTop": "8px"
+                    }
+                },
+                {
+                    "name": "urlInput",
+                    "className": "TEdit",
+                    "text": "${selectedObject.url}",
+                    "style": {
+                        "opacity": "0.6",
+                        "fontSize": "11px"
+                    },
+                    "enabled": false
+                }
+            ]
+        }
+    ],
+    "footer": [
+        {
+            "name": "DeleteBtn",
+            "className": "TButton",
+            "caption": "Löschen",
+            "action": "delete",
+            "style": {
+                "backgroundColor": "#d11a2a",
+                "flex": "0 1 auto"
+            }
+        },
+        {
+            "name": "CancelBtn",
+            "className": "TButton",
+            "caption": "Abbrechen",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#444",
+                "flex": "0 1 auto"
+            }
+        },
+        {
+            "name": "SaveBtn",
+            "className": "TButton",
+            "caption": "Speichern",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "flex": "1"
+            }
+        }
+    ]
+}

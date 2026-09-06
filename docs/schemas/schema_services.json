@@ -1,0 +1,77 @@
+{
+  "$module": "services",
+  "description": "Infrastruktur- und Service-Komponenten (GameLoop, GameState, Controller)",
+  "components": {
+
+    "TGameLoop": {
+      "description": "Konfigurations-Container für den Game-Loop. Pflicht für Spiele mit Sprites!",
+      "stage": "blueprint",
+      "category": "infrastructure",
+      "isService": true,
+      "isHiddenInRun": true,
+      "required": true,
+      "properties": {
+        "targetFPS":          { "type": "number", "default": 60, "description": "Ziel-Framerate" },
+        "boundsOffsetTop":    { "type": "number", "default": 0, "description": "Oberer Rand-Offset für Spielbereich" },
+        "boundsOffsetBottom": { "type": "number", "default": 0, "description": "Unterer Rand-Offset" }
+      },
+      "methods": [],
+      "events": [],
+      "example": {
+        "className": "TGameLoop", "name": "GameLoop", "x": 2, "y": 2, "width": 3, "height": 1,
+        "isService": true, "isHiddenInRun": true, "targetFPS": 60,
+        "style": { "backgroundColor": "#2196f3", "borderColor": "#1565c0", "borderWidth": 2, "color": "#ffffff" }
+      },
+      "warnings": ["⚠️ PFLICHT für Spiele mit bewegten Sprites! Ohne TGameLoop keine Physik."]
+    },
+
+    "TGameState": {
+      "description": "Zentraler Spielzustand: state, spritesMoving, collisionsEnabled",
+      "stage": "blueprint",
+      "category": "infrastructure",
+      "isService": true,
+      "isHiddenInRun": true,
+      "required": true,
+      "properties": {
+        "state":             { "type": "select",  "default": "idle", "options": ["menu", "playing", "paused", "gameover"] },
+        "spritesMoving":     { "type": "boolean", "default": false, "description": "Sprites werden vom GameLoop bewegt" },
+        "collisionsEnabled": { "type": "boolean", "default": false, "description": "Kollisionserkennung aktiv" }
+      },
+      "methods": [],
+      "events": [],
+      "example": {
+        "className": "TGameState", "name": "GameState", "x": 6, "y": 2, "width": 4, "height": 1,
+        "isVariable": true, "isService": true, "isHiddenInRun": true,
+        "state": "idle", "spritesMoving": false, "collisionsEnabled": false,
+        "style": { "backgroundColor": "#4caf50", "color": "#ffffff" }
+      }
+    },
+
+    "TInputController": {
+      "description": "Tastatur-Eingabe-Controller. Feuert Events bei Tastendruck/Loslass",
+      "stage": "blueprint",
+      "category": "infrastructure",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true }
+      },
+      "methods": [],
+      "events": [
+        "onKeyDown_KeyW", "onKeyDown_KeyS", "onKeyDown_KeyA", "onKeyDown_KeyD",
+        "onKeyDown_ArrowUp", "onKeyDown_ArrowDown", "onKeyDown_ArrowLeft", "onKeyDown_ArrowRight",
+        "onKeyDown_Space", "onKeyDown_Enter",
+        "onKeyUp_KeyW", "onKeyUp_KeyS", "onKeyUp_KeyA", "onKeyUp_KeyD",
+        "onKeyUp_ArrowUp", "onKeyUp_ArrowDown", "onKeyUp_ArrowLeft", "onKeyUp_ArrowRight",
+        "onKeyUp_Space", "onKeyUp_Enter"
+      ],
+      "example": {
+        "className": "TInputController", "name": "InputController", "x": 11, "y": 2, "width": 3, "height": 1,
+        "isService": true, "isHiddenInRun": true, "enabled": true,
+        "style": { "backgroundColor": "#9c27b0", "borderColor": "#6a1b9a", "borderWidth": 2, "color": "#ffffff" }
+      },
+      "warnings": ["⚠️ Event-Format: onKeyDown_{KeyCode} — z.B. onKeyDown_ArrowUp, onKeyDown_KeyW"]
+    }
+
+  }
+}

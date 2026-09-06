@@ -1,0 +1,72 @@
+{
+  "$module": "media",
+  "description": "Media-Komponenten (Audio, Video, ImageList)",
+  "components": {
+
+    "TAudio": {
+      "description": "Audio-Player. Spielt Soundeffekte oder Musik ab.",
+      "stage": "main",
+      "category": "media",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "src":      { "type": "string",  "default": "", "description": "Audio-Datei URL" },
+        "autoplay": { "type": "boolean", "default": false, "description": "Automatisch abspielen" },
+        "loop":     { "type": "boolean", "default": false, "description": "Endlosschleife" },
+        "volume":   { "type": "number",  "default": 1.0, "min": 0, "max": 1, "step": 0.1, "description": "Lautstärke" }
+      },
+      "methods": [
+        { "name": "play",  "description": "Abspielen starten" },
+        { "name": "pause", "description": "Abspielen pausieren" },
+        { "name": "stop",  "description": "Abspielen stoppen und zurücksetzen" }
+      ],
+      "events": ["onEnded"],
+      "example": {
+        "className": "TAudio", "name": "BgMusic", "x": 2, "y": 2, "width": 4, "height": 2,
+        "isService": true, "isHiddenInRun": true,
+        "src": "./audio/background.mp3", "autoplay": false, "loop": true, "volume": 0.5
+      }
+    },
+
+    "TVideo": {
+      "description": "Video-Player. Zeigt eingebettete Videos an.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "src":      { "type": "string",  "default": "", "description": "Video-URL" },
+        "autoplay": { "type": "boolean", "default": false },
+        "loop":     { "type": "boolean", "default": false },
+        "muted":    { "type": "boolean", "default": false },
+        "controls": { "type": "boolean", "default": true }
+      },
+      "methods": [
+        { "name": "play",  "description": "Video abspielen" },
+        { "name": "pause", "description": "Video pausieren" }
+      ],
+      "events": ["onEnded", "onPlay", "onPause"],
+      "example": {
+        "className": "TVideo", "name": "IntroVideo", "x": 5, "y": 5, "width": 20, "height": 12,
+        "src": "./videos/intro.mp4", "autoplay": false, "controls": true
+      }
+    },
+
+    "TImageList": {
+      "description": "Sammlung von Bildern (Sprite-Sheet Ersatz). Verwaltet mehrere Bilder unter einem Namen.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "images":       { "type": "array",  "default": [], "description": "Array von Bild-URLs" },
+        "currentIndex": { "type": "number", "default": 0, "description": "Aktuell angezeigter Index" }
+      },
+      "methods": [
+        { "name": "next",     "description": "Nächstes Bild zeigen" },
+        { "name": "previous", "description": "Vorheriges Bild zeigen" }
+      ],
+      "events": ["onChange"],
+      "example": {
+        "className": "TImageList", "name": "WalkCycle", "x": 1, "y": 1, "width": 4, "height": 4,
+        "images": ["./images/walk1.png", "./images/walk2.png", "./images/walk3.png"]
+      }
+    }
+  }
+}

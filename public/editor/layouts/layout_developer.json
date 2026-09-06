@@ -1,0 +1,206 @@
+{
+    "version": "1.0",
+    "name": "Entwickler",
+    "description": "Zeigt alle Properties für erfahrene Benutzer",
+    "groups": [
+        {
+            "id": "identity",
+            "label": "Identity",
+            "order": 0,
+            "collapsed": false
+        },
+        {
+            "id": "geometry",
+            "label": "Geometry",
+            "order": 1,
+            "collapsed": false
+        },
+        {
+            "id": "style",
+            "label": "Style",
+            "order": 2,
+            "collapsed": false
+        },
+        {
+            "id": "display",
+            "label": "Display",
+            "order": 3,
+            "collapsed": false
+        },
+        {
+            "id": "content",
+            "label": "Content",
+            "order": 4,
+            "collapsed": false
+        },
+        {
+            "id": "service",
+            "label": "Service Binding",
+            "order": 5,
+            "collapsed": true
+        }
+    ],
+    "properties": {
+        "name": {
+            "name": "name",
+            "label": "name",
+            "type": "string",
+            "visible": true,
+            "groupId": "identity",
+            "order": 0
+        },
+        "id": {
+            "name": "id",
+            "label": "id",
+            "type": "string",
+            "visible": true,
+            "groupId": "identity",
+            "order": 1,
+            "style": {
+                "color": "#666"
+            }
+        },
+        "x": {
+            "name": "x",
+            "label": "x",
+            "type": "number",
+            "visible": true,
+            "groupId": "geometry",
+            "order": 0
+        },
+        "y": {
+            "name": "y",
+            "label": "y",
+            "type": "number",
+            "visible": true,
+            "groupId": "geometry",
+            "order": 1
+        },
+        "width": {
+            "name": "width",
+            "label": "width",
+            "type": "number",
+            "visible": true,
+            "groupId": "geometry",
+            "order": 2
+        },
+        "height": {
+            "name": "height",
+            "label": "height",
+            "type": "number",
+            "visible": true,
+            "groupId": "geometry",
+            "order": 3
+        },
+        "backgroundColor": {
+            "name": "backgroundColor",
+            "label": "backgroundColor",
+            "type": "color",
+            "visible": true,
+            "groupId": "style",
+            "order": 0
+        },
+        "borderColor": {
+            "name": "borderColor",
+            "label": "borderColor",
+            "type": "color",
+            "visible": true,
+            "groupId": "style",
+            "order": 1
+        },
+        "fontFamily": {
+            "name": "fontFamily",
+            "label": "fontFamily",
+            "type": "select",
+            "visible": true,
+            "groupId": "style",
+            "order": 2
+        },
+        "fontSize": {
+            "name": "fontSize",
+            "label": "fontSize",
+            "type": "number",
+            "visible": true,
+            "groupId": "style",
+            "order": 3
+        },
+        "visible": {
+            "name": "visible",
+            "label": "visible",
+            "type": "boolean",
+            "visible": true,
+            "groupId": "display",
+            "order": 0
+        },
+        "enabled": {
+            "name": "enabled",
+            "label": "enabled",
+            "type": "boolean",
+            "visible": true,
+            "groupId": "display",
+            "order": 1
+        },
+        "text": {
+            "name": "text",
+            "label": "text",
+            "type": "string",
+            "visible": true,
+            "groupId": "content",
+            "order": 0
+        },
+        "caption": {
+            "name": "caption",
+            "label": "caption",
+            "type": "string",
+            "visible": true,
+            "groupId": "content",
+            "order": 1
+        },
+        "service": {
+            "name": "service",
+            "label": "service",
+            "type": "string",
+            "visible": true,
+            "groupId": "service",
+            "order": 0,
+            "style": {
+                "color": "#4fc3f7"
+            }
+        },
+        "serviceMethod": {
+            "name": "serviceMethod",
+            "label": "method",
+            "type": "string",
+            "visible": true,
+            "groupId": "service",
+            "order": 1
+        },
+        "serviceParams": {
+            "name": "serviceParams",
+            "label": "params",
+            "type": "string",
+            "visible": true,
+            "groupId": "service",
+            "order": 2,
+            "style": {
+                "color": "#888"
+            }
+        },
+        "onSuccessToast": {
+            "name": "onSuccessToast",
+            "label": "successToast",
+            "type": "string",
+            "visible": true,
+            "groupId": "service",
+            "order": 3
+        },
+        "onErrorToast": {
+            "name": "onErrorToast",
+            "label": "errorToast",
+            "type": "string",
+            "visible": true,
+            "groupId": "service",
+            "order": 4
+        }
+    }
+}

@@ -1,0 +1,64 @@
+/* Task Editor Modal */
+.task-editor-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.task-editor-window {
+    background: #252526;
+    border: 1px solid #454545;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    color: #cccccc;
+}
+
+.task-editor-header {
+    padding: 10px;
+    background: #333;
+    border-bottom: 1px solid #454545;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+.task-editor-body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.task-editor-footer {
+    padding: 10px;
+    border-top: 1px solid #454545;
+    background: #333;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.action-item {
+    background: #333;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.action-row {
+    display: flex;
+    gap: 8px;
+}

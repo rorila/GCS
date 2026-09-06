@@ -1,0 +1,531 @@
+import { ExpressionParser } from './ExpressionParser';
+import { PropertyWatcher } from './PropertyWatcher';
+import { makeReactive } from './ReactiveProperty';
+import { DESIGN_VALUES } from '../components/TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('ReactiveRuntime', 'Runtime_Execution');
+
+/**
+ * ReactiveRuntime - Manages reactive bindings between objects and UI
+ * 
+ * Combines ExpressionParser and PropertyWatcher to create automatic
+ * bidirectional data binding:
+ * - Data changes → UI updates automatically
+ * - UI changes → Data updates via actions
+ */
+export class ReactiveRuntime {
+    private watcher: PropertyWatcher;
+    private bindings: Map<string, ReactiveBinding[]> = new Map();
+    private objectsById: Map<string, any> = new Map();
+    private objectsByName: Map<string, any> = new Map();
+    private variables: Map<string, any> = new Map();
+
+    constructor() {
+        this.watcher = new PropertyWatcher();
+    }
+
+    /**
+     * Registers an object to be tracked
+     * @param name Object name
+     * @param obj Object to track
+     * @param makeReactiveFlag Whether to wrap in Proxy (default: true)
+     */
+    registerObject(name: string, obj: any, makeReactiveFlag: boolean = true): any {
+        logger.info(`[BIND-DEBUG] Registering object "${name}" (ID: ${obj?.id}, Type: ${obj?.className || obj?.constructor?.name}, makeReactive: ${makeReactiveFlag})`);
+        // CRITICAL: Exclude certain components from Proxy wrapping
+        // These components use arrow functions with internal state that breaks when proxied
+        const excludeFromProxy = ['TGameLoop', 'TGameState', 'TInputController'];
+        const shouldProxy = makeReactiveFlag && !excludeFromProxy.includes(obj.className || obj.constructor?.name);
+
+        const reactiveObj = shouldProxy ? makeReactive(obj, this.watcher) : obj;
+        
+        // Zuweisung des Proxys an das rohe Objekt zur Kontext-Erhaltung bei internen Aktionen
+        if (shouldProxy && obj && typeof obj === 'object') {
+            obj.__proxy__ = reactiveObj;
+        }
+
+        const id = obj.id || name;
+        this.objectsById.set(id, reactiveObj);
+        this.objectsByName.set(name, reactiveObj);
+
+        if (name === 'currentRooms' || obj.name === 'currentRooms') {
+            logger.debug(`Registered currentRooms:`, {
+                scope: obj.scope,
+                isVariable: obj.isVariable,
+                className: obj.className
+            });
+        }
+
+        return reactiveObj;
+    }
+
+    /**
+     * Prueft, ob fuer ein Objekt/Property ein spezifischer Watcher registriert ist.
+     * Erlaubt Hot-Path-Komponenten (z.B. TTimer.currentInterval), den teuren
+     * Proxy-Notify-Pfad zu ueberspringen, wenn niemand zuhoert.
+     */
+    hasWatcher(obj: any, propertyPath: string): boolean {
+        return this.watcher.getWatcherCount(obj, propertyPath) > 0;
+    }
+
+    /**
+     * Registers a variable
+     * @param name Variable name
+     * @param value Initial value
+     */
+    registerVariable(name: string, value: any): void {
+        this.variables.set(name, value);
+    }
+
+    /**
+     * Gets a registered object
+     */
+    getObject(idOrName: string): any {
+        return this.objectsById.get(idOrName) || this.objectsByName.get(idOrName);
+    }
+
+    /**
+     * Gets a variable value
+     */
+    getVariable(name: string): any {
+        return this.variables.get(name);
+    }
+
+    /**
+     * Sets a variable value and triggers updates
+     */
+    setVariable(name: string, value: any): void {
+        this.variables.set(name, value);
+
+        // Trigger bindings that depend on this variable
+        this.updateBindingsForVariable(name);
+    }
+
+    /**
+     * Creates a reactive binding
+     * @param targetObj Target object to update
+     * @param targetProp Property to update
+     * @param expression Expression to evaluate (e.g., "${player.score}")
+     * @param once If true, the expression is evaluated exactly once and no
+     *             dependency watchers are registered. Used for pool instances that
+     *             inherit template expressions but must keep their spawn-time value.
+     * @returns Binding ID for later removal
+     */
+    bind(targetObj: any, targetProp: string, expression: string, once: boolean = false): string {
+        const bindingId = `${Date.now()}_${Math.random()}`;
+
+        // Extract dependencies from expression
+        const deps = ExpressionParser.findExpressions(expression);
+
+
+        logger.info(`[BIND-DEBUG] Binding property "${targetProp}" on target "${targetObj.name || targetObj.id}" (Type: ${targetObj.className || 'Unknown'}) to expression: "${expression}". Dependencies: ${JSON.stringify(deps)}`);
+
+        // Create binding
+        const binding: ReactiveBinding = {
+            id: bindingId,
+            targetObj,
+            targetProp,
+            expression,
+            dependencies: deps,
+            update: () => {
+                // Pre-update: Store expression as design value to protect it from SSoT loss
+                if (!targetObj[DESIGN_VALUES]) targetObj[DESIGN_VALUES] = {};
+                targetObj[DESIGN_VALUES][targetProp] = expression;
+
+                const context = this.getContext();
+                const newValue = ExpressionParser.interpolate(expression, context);
+                
+                logger.info(`[BIND-DEBUG] Evaluating "${expression}" on "${targetObj.name || targetObj.id}.${targetProp}". Result: "${newValue}". StageTimer in Context: ${context['StageTimer'] !== undefined} (Value: ${context['StageTimer'] ? JSON.stringify({ className: context['StageTimer'].className, currentInterval: context['StageTimer'].currentInterval }) : 'none'})`);
+
+                // [GCS-TRACE] Log für StringMap-Auswertung in Bindings
+                if (expression.includes('StringMap_BluePrintStage') || expression.includes('MainThemes')) {
+                    const ctxMap = context['StringMap_BluePrintStage'] || context['MainThemes'];
+                    logger.debug(`[STYLE-BINDING-TRACE] ID:${targetObj.id} Prop:${targetProp} Expr:${expression} => RawNewValue:`, newValue, ' Kontext für Map:', ctxMap);
+                    if (expression.includes('StringMap_BluePrintStage') && ctxMap) {
+                        try {
+                            const keys = Object.keys(ctxMap);
+                            logger.debug(`  -> GCS-DEEP-TRACE: Type: ${typeof ctxMap}, IsProxy: ${ctxMap.__isProxy__}, Keys:`, keys);
+                            logger.debug(`  -> GCS-DEEP-TRACE: BackToDirectory direct:`, ctxMap['BackToDirectory']);
+                            if (ctxMap.__target__) {
+                                logger.debug(`  -> GCS-DEEP-TRACE: Target Keys:`, Object.keys(ctxMap.__target__));
+                                logger.debug(`  -> GCS-DEEP-TRACE: Target BackToDirectory:`, ctxMap.__target__['BackToDirectory']);
+                            }
+                        } catch (e) {
+                             logger.debug("  -> GCS-DEEP-TRACE Error:", e);
+                        }
+                    }
+                }
+
+
+
+                // [GCS-FEATURE] Type Coercion für Bind-Variablen (String -> Number)
+                // Wenn die Variable z.B. aus einer TStringMap kommt, ist sie ein String ("5").
+                // Wenn die Zieleigenschaft aber eine Zahl erwartet, casten wir sie hier automatisch.
+                let finalValue = newValue;
+                if (typeof finalValue === 'string' && finalValue.trim() !== '' && !isNaN(Number(finalValue))) {
+                    let targetType = 'undefined';
+                    let currentVal;
+                    
+                    if (targetProp.includes('.')) {
+                        currentVal = ExpressionParser.getNestedProperty(targetProp, targetObj);
+                    } else {
+                        currentVal = targetObj[targetProp];
+                    }
+                    targetType = typeof currentVal;
+
+                    // Typische numerische Eigenschaften als Fallback, falls der Initialwert undefined ist
+                    const numericProps = [
+                        'x', 'y', 'width', 'height', 'alpha', 'rotation', 'scaleX', 'scaleY',
+                        'borderWidth', 'borderRadius', 'cornerRadius', 'strokeWidth', 'opacity',
+                        'padding', 'margin', 'fontSize', 'lineHeight', 'zIndex'
+                    ];
+                    
+                    const propName = targetProp.includes('.') ? targetProp.split('.').pop()! : targetProp;
+                    // Sonderfall für deutsche Eigenschaften, die der User nutzt
+                    const germanNumericProps = ['Rahmenbreite', 'Abrundung', 'Deckkraft'];
+
+                    if (targetType === 'number' || numericProps.includes(propName) || germanNumericProps.includes(propName)) {
+                        finalValue = Number(finalValue);
+                    }
+                }
+
+                logger.debug(`[BIND-UPDATE] Evaluating "${expression}" on "${targetObj.name || targetObj.id}.${targetProp}". Result: "${finalValue}"`);
+
+                // Update target property
+                if (targetProp.includes('.')) {
+                    ExpressionParser.setNestedProperty(targetProp, finalValue, targetObj);
+                } else {
+                    targetObj[targetProp] = finalValue;
+                }
+            }
+        };
+
+        // ONCE-MODE: Evaluate a single time, skip watchers and do not store the binding
+        // so updateBindingsForVariable() cannot revive it later.
+        if (once) {
+            binding.update();
+            return bindingId;
+        }
+
+        // Watch all dependencies
+        deps.forEach(dep => {
+            const parts = dep.split('.');
+            let objName = parts[0];
+            let propPath = parts.slice(1).join('.');
+
+            // NEW: Handle namespace prefixes (global., stage.)
+            if ((objName === 'global' || objName === 'stage') && parts.length > 1) {
+                objName = parts[1];
+                propPath = parts.slice(2).join('.');
+            }
+
+            const sourceObj = this.objectsByName.get(objName) || this.variables;
+
+            if (sourceObj) {
+                // Initial watch
+                const watchPath = propPath || objName;
+                logger.info(`[BIND-DEBUG] Setting up dependency watcher for "${dep}" (Source object: "${objName}", property path: "${watchPath}") on target "${targetObj.name || targetObj.id}.${targetProp}"`);
+                this.watcher.watch(sourceObj, watchPath, () => {
+                    logger.info(`[BIND-DEBUG] Dependency "${dep}" triggered update for "${targetObj.name || targetObj.id}.${targetProp}"`);
+                    binding.update();
+                });
+
+                // SPECIAL CASE: If we depend on a Variable Component (objName) 
+                // but didn't specify a property (like .value), automatically watch .value
+                // because we intelligently stringify variables by their value.
+                if (!propPath) {
+                    if ((sourceObj as any).isVariable === true) {
+                        this.watcher.watch(sourceObj, 'value', () => binding.update());
+                        this.watcher.watch(sourceObj, 'items', () => binding.update());
+                        this.watcher.watch(sourceObj, 'data', () => binding.update());
+                    }
+                }
+            } else {
+                logger.warn(`[REACTIVE-RUNTIME] Dependency source missing: "${objName}" for expression "${expression}" (Binding ${targetObj.name || targetObj.id}.${targetProp}). Known objects: [${Array.from(this.objectsByName.keys()).join(',')}]`);
+            }
+        });
+
+        // Store binding
+        if (!this.bindings.has(bindingId)) {
+            this.bindings.set(bindingId, []);
+        }
+        this.bindings.get(bindingId)!.push(binding);
+
+        // Initial update
+        binding.update();
+
+        return bindingId;
+    }
+
+    /**
+     * Removes a binding
+     */
+    unbind(bindingId: string): void {
+        this.bindings.delete(bindingId);
+    }
+
+    /**
+     * Prueft, ob eine Abhaengigkeit zu einem Variablennamen gehoert.
+     *
+     * Bewusst dieselbe Bedingung fuer updateBindingsForVariable und
+     * getObjectsDependingOn: Wuerden beide unterschiedlich urteilen, koennte eine
+     * Bindung ihren Wert erhalten, ohne dass das Objekt neu gezeichnet wird.
+     */
+    private static matchesVariable(dependency: string, varName: string): boolean {
+        return dependency.startsWith(varName);
+    }
+
+    /**
+     * Updates all bindings that depend on a variable
+     */
+    private updateBindingsForVariable(varName: string): void {
+        this.bindings.forEach(bindingList => {
+            bindingList.forEach(binding => {
+                if (binding.dependencies.some(dep => ReactiveRuntime.matchesVariable(dep, varName))) {
+                    binding.update();
+                }
+            });
+        });
+    }
+
+    /**
+     * Objekte, deren Bindungen von dieser Variable abhaengen.
+     *
+     * Erlaubt gezieltes Auffrischen statt eines Rundumschlags ueber alle Objekte
+     * der Buehne. Eine leere Liste bedeutet: keine Bindung bekannt -- der Aufrufer
+     * muss dann auf das bisherige Verhalten zurueckfallen, weil die Variable auf
+     * einem anderen Weg angezeigt werden koennte.
+     */
+    public getObjectsDependingOn(varName: string): any[] {
+        const out: any[] = [];
+        const seen = new Set<any>();
+
+        this.bindings.forEach(bindingList => {
+            bindingList.forEach(binding => {
+                if (!binding.dependencies.some(dep => ReactiveRuntime.matchesVariable(dep, varName))) return;
+                const target = binding.targetObj;
+                if (target && !seen.has(target)) {
+                    seen.add(target);
+                    out.push(target);
+                }
+            });
+        });
+
+        return out;
+    }
+
+    private _contextCache: any = null;
+    private _globalProxyCache: any = null;
+    private _stageProxyCache: any = null;
+
+    /**
+     * Gets the evaluation context (all objects + variables)
+     */
+    public getContext(): Record<string, any> {
+        if (this._contextCache) return this._contextCache;
+
+        // Root context Proxy
+        const context = new Proxy({}, {
+            get: (_target, prop: string) => {
+                // SPECIAL: Namespaces
+                // SPECIAL: Namespaces
+                if (prop === 'global') {
+                    if (!this._globalProxyCache) {
+                        this._globalProxyCache = new Proxy({}, {
+                            get: (_t, subProp: string) => {
+                                const obj = this.objectsByName.get(subProp);
+                                if (obj && obj.scope === 'global') return obj;
+                                return this.variables.get(subProp);
+                            },
+                            has: (_t, subProp: string) => this.objectsByName.has(subProp) || this.variables.has(subProp),
+                            ownKeys: () => Array.from(new Set([...this.objectsByName.keys(), ...this.variables.keys()])),
+                            getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
+                        });
+                    }
+                    return this._globalProxyCache;
+                }
+                
+                if (prop === 'stage') {
+                    if (!this._stageProxyCache) {
+                        this._stageProxyCache = new Proxy({}, {
+                            get: (_t, subProp: string) => {
+                                const obj = this.objectsByName.get(subProp);
+                                if (obj && obj.scope === 'stage') return obj;
+                                return this.variables.get(subProp);
+                            },
+                            has: (_t, subProp: string) => this.objectsByName.has(subProp) || this.variables.has(subProp),
+                            ownKeys: () => Array.from(new Set([...this.objectsByName.keys(), ...this.variables.keys()])),
+                            getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
+                        });
+                    }
+                    return this._stageProxyCache;
+                }
+
+                // Normal access (Root)
+                // Priority 1: Registered Object (Proxy/Component)
+                const obj = this.objectsByName.get(prop);
+                if (obj !== undefined) {
+                    // CRITICAL FIX: TTimer und TIntervalTimer sind Service-Komponenten,
+                    // KEINE Datenvariablen! Auch wenn isVariable=true gesetzt ist (Legacy),
+                    // muss immer die echte Proxy-Instanz zurückgegeben werden, damit
+                    // Bindings wie ${StageTimer.currentInterval} korrekt aufgelöst werden.
+                    const TIMER_CLASSES = new Set(['TTimer', 'TIntervalTimer']);
+                    const isRealVariable = (obj.isVariable === true || obj.className?.includes('Variable'))
+                        && !TIMER_CLASSES.has(obj.className);
+
+                    if (isRealVariable) {
+                        const varValue = this.variables.get(prop);
+                        // IMMER den echten Component-Wert für TStringMap nutzen (dies umgeht den Empty-Proxy-Bug völlig!)
+                        if (obj.className === 'TStringMap' && obj.value !== undefined) {
+                            return obj.value;
+                        }
+
+                        // Falls 'varValue' existiert UND kein Default 0 für Strukturvariablen ist
+                        if (varValue !== undefined && !(typeof varValue === 'number' && typeof obj.value === 'object')) {
+                            return varValue;
+                        }
+                        // ULTIMATE FALLBACK:
+                        if (obj.value !== undefined) return obj.value;
+                    }
+                    return obj;
+                }
+
+                // Priority 2: Variable Value
+                const variable = this.variables.get(prop);
+                if (variable !== undefined) return variable;
+
+                // Priority 3: ID lookup
+                return this.objectsById.get(prop);
+            },
+            has: (_target, prop: string) => {
+                return prop === 'global' || prop === 'stage' || this.objectsByName.has(prop) || this.variables.has(prop) || this.objectsById.has(prop);
+            },
+            ownKeys: () => {
+                const keys = new Set(['global', 'stage', ...this.objectsByName.keys(), ...this.variables.keys(), ...this.objectsById.keys()]);
+                return Array.from(keys);
+            },
+            getOwnPropertyDescriptor: (_target, _unused) => {
+                return { enumerable: true, configurable: true };
+            }
+        });
+
+        return context;
+    }
+
+    /**
+     * Evaluates an expression with current context
+     */
+    evaluate(expression: string): any {
+        return ExpressionParser.interpolate(expression, this.getContext());
+    }
+
+    /**
+     * Sets up bidirectional binding for a UI component
+     * @param component UI component (e.g., TEdit)
+     * @param componentProp Property to bind (e.g., "text")
+     * @param dataExpression Data expression (e.g., "${player.name}")
+     * @param onChange Optional callback when component changes
+     */
+    bindComponent(
+        component: any,
+        componentProp: string,
+        dataExpression: string,
+        onChange?: (newValue: any) => void,
+        once: boolean = false
+    ): string {
+        // Bind data → component (one-way)
+        const bindingId = this.bind(component, componentProp, dataExpression, once);
+
+        // Bind component → data (reverse direction)
+        if (onChange) {
+            this.watcher.watch(component, componentProp, (newValue) => {
+                onChange(newValue);
+            });
+        }
+
+        return bindingId;
+    }
+
+    /**
+     * Debug: Shows all active bindings
+     */
+    debug(): void {
+        if (this.bindings.size === 0) {
+            logger.debug('Keine BindVariablen gefunden');
+            return;
+        }
+
+        logger.debug('=== BIND-DUMP: Active Bindings ===');
+        this.bindings.forEach(bindingList => {
+            bindingList.forEach(binding => {
+                const targetName = binding.targetObj.name || 'Unknown';
+                logger.debug(`  Binding: ${targetName}.${binding.targetProp} ← ${binding.expression}`);
+                logger.debug(`    Dependencies: ${JSON.stringify(binding.dependencies)}`);
+            });
+        });
+        logger.debug('==================================');
+    }
+
+    /**
+     * Clears all bindings and watchers
+     * @param clearVariables Whether to also clear the variables map (default: true)
+     */
+    clear(clearVariables: boolean = true): void {
+        this.bindings.clear();
+        this.objectsById.clear();
+        this.objectsByName.clear();
+        if (clearVariables) {
+            this.variables.clear();
+        }
+        this.watcher.clear();
+    }
+
+    /**
+     * Gets statistics
+     */
+    getStats(): ReactiveStats {
+        return {
+            bindingCount: this.bindings.size,
+            objectCount: this.objectsById.size,
+            variableCount: this.variables.size,
+            watcherCount: this.watcher.getTotalWatchers()
+        };
+    }
+
+    /**
+     * Returns the property watcher instance
+     */
+    public getWatcher(): PropertyWatcher {
+        return this.watcher;
+    }
+
+    /**
+     * Returns all registered objects (proxies)
+     */
+    getObjects(): any[] {
+        return Array.from(this.objectsById.values());
+    }
+}
+
+/**
+ * Reactive binding definition
+ */
+interface ReactiveBinding {
+    id: string;
+    targetObj: any;
+    targetProp: string;
+    expression: string;
+    dependencies: string[];
+    update: () => void;
+}
+
+/**
+ * Statistics about reactive system
+ */
+interface ReactiveStats {
+    bindingCount: number;
+    objectCount: number;
+    variableCount: number;
+    watcherCount: number;
+}

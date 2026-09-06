@@ -1,0 +1,1748 @@
+{
+  "meta": {
+    "name": "Mockup Inspector Sections",
+    "version": "1.0.0",
+    "author": "Generator",
+    "description": "Exakter Nachbau aller Inspector Sections via Stages"
+  },
+  "activeStageId": "stage_glow",
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": false,
+      "visible": true,
+      "backgroundColor": "#000000"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {},
+  "objects": [],
+  "splashObjects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#1e1e1e"
+      },
+      "objects": [],
+      "variables": [],
+      "actions": [],
+      "tasks": []
+    },
+    {
+      "id": "stage_overview",
+      "name": "Übersicht (Gesamt)",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#1e1e1e"
+      },
+      "objects": [
+        {
+          "id": "obj_jwu5jvaxn",
+          "className": "TPanel",
+          "name": "Overview_IDENTITÄT_Base",
+          "x": 2,
+          "y": 2,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#88b4f8",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_khguunim4",
+          "className": "TPanel",
+          "name": "Overview_IDENTITÄT_Main",
+          "x": 2.3,
+          "y": 2,
+          "width": 15.7,
+          "height": 2,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#222",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_m17djtkno",
+          "className": "TLabel",
+          "text": "🏷️",
+          "x": 3,
+          "y": 2.5,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_cy9v89cu3",
+          "className": "TLabel",
+          "text": "IDENTITÄT",
+          "x": 5,
+          "y": 2.5,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#88b4f8",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_9j80sugng",
+          "className": "TLabel",
+          "text": "▶",
+          "x": 16.5,
+          "y": 2.5,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_ipt8unq9z",
+          "className": "TPanel",
+          "name": "Overview_INTERAKTION_Base",
+          "x": 2,
+          "y": 4.5,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#ffb74d",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_vekazwrn7",
+          "className": "TPanel",
+          "name": "Overview_INTERAKTION_Main",
+          "x": 2.3,
+          "y": 4.5,
+          "width": 15.7,
+          "height": 2,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#222",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_ultkgsqwj",
+          "className": "TLabel",
+          "text": "🖱️",
+          "x": 3,
+          "y": 5,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_llw7zuk3j",
+          "className": "TLabel",
+          "text": "INTERAKTION",
+          "x": 5,
+          "y": 5,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#ffb74d",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_2loxf0ys0",
+          "className": "TLabel",
+          "text": "▶",
+          "x": 16.5,
+          "y": 5,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_a7yntbj7g",
+          "className": "TPanel",
+          "name": "Overview_GEOMETRIE_Base",
+          "x": 2,
+          "y": 7,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#a5d6a7",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_i0kztmjbz",
+          "className": "TPanel",
+          "name": "Overview_GEOMETRIE_Main",
+          "x": 2.3,
+          "y": 7,
+          "width": 15.7,
+          "height": 2,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#222",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_gez5e6gw4",
+          "className": "TLabel",
+          "text": "📐",
+          "x": 3,
+          "y": 7.5,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_6o1q2194o",
+          "className": "TLabel",
+          "text": "GEOMETRIE",
+          "x": 5,
+          "y": 7.5,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#a5d6a7",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_bamszvqh7",
+          "className": "TLabel",
+          "text": "▶",
+          "x": 16.5,
+          "y": 7.5,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_v58393m94",
+          "className": "TPanel",
+          "name": "Overview_TYPOGRAFIE_Base",
+          "x": 2,
+          "y": 9.5,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#b39ddb",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_rf70vedk3",
+          "className": "TPanel",
+          "name": "Overview_TYPOGRAFIE_Main",
+          "x": 2.3,
+          "y": 9.5,
+          "width": 15.7,
+          "height": 2,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#222",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_rxhzqj8c4",
+          "className": "TLabel",
+          "text": "🔤",
+          "x": 3,
+          "y": 10,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_p64gg7eu7",
+          "className": "TLabel",
+          "text": "TYPOGRAFIE",
+          "x": 5,
+          "y": 10,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#b39ddb",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_u76aoj7rr",
+          "className": "TLabel",
+          "text": "▶",
+          "x": 16.5,
+          "y": 10,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_iw4mjfuwt",
+          "className": "TPanel",
+          "name": "Overview_STIL_Base",
+          "x": 2,
+          "y": 12,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#f48fb1",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_72yajqz7m",
+          "className": "TPanel",
+          "name": "Overview_STIL_Main",
+          "x": 2.3,
+          "y": 12,
+          "width": 15.7,
+          "height": 2,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#222",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_lp1bhzh41",
+          "className": "TLabel",
+          "text": "🎨",
+          "x": 3,
+          "y": 12.5,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_6oy9b7z1a",
+          "className": "TLabel",
+          "text": "STIL",
+          "x": 5,
+          "y": 12.5,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#f48fb1",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_b9g0fguay",
+          "className": "TLabel",
+          "text": "▶",
+          "x": 16.5,
+          "y": 12.5,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_800u2fgjj",
+          "className": "TPanel",
+          "name": "Overview_GLOW-EFFEKT_Base",
+          "x": 2,
+          "y": 14.5,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#ce93d8",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_x3ntl6rty",
+          "className": "TPanel",
+          "name": "Overview_GLOW-EFFEKT_Main",
+          "x": 2.3,
+          "y": 14.5,
+          "width": 15.7,
+          "height": 2,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#222",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_gvrhpwdvp",
+          "className": "TLabel",
+          "text": "📋",
+          "x": 3,
+          "y": 15,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_lmpi9ocak",
+          "className": "TLabel",
+          "text": "GLOW-EFFEKT",
+          "x": 5,
+          "y": 15,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#ce93d8",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_jm0ihft9w",
+          "className": "TLabel",
+          "text": "▶",
+          "x": 16.5,
+          "y": 15,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_03rhwyx0w",
+          "className": "TPanel",
+          "name": "Overview_INHALT_Base",
+          "x": 2,
+          "y": 17,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#80cbc4",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_peaupk0ud",
+          "className": "TPanel",
+          "name": "Overview_INHALT_Main",
+          "x": 2.3,
+          "y": 17,
+          "width": 15.7,
+          "height": 2,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#222",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_o83e6mid4",
+          "className": "TLabel",
+          "text": "📝",
+          "x": 3,
+          "y": 17.5,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_2wzko9cfw",
+          "className": "TLabel",
+          "text": "INHALT",
+          "x": 5,
+          "y": 17.5,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#80cbc4",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_hnu7z8loq",
+          "className": "TLabel",
+          "text": "▶",
+          "x": 16.5,
+          "y": 17.5,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        }
+      ],
+      "variables": [],
+      "actions": [],
+      "tasks": []
+    },
+    {
+      "id": "stage_glow",
+      "name": "Sektion Glow",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#1e1e1e"
+      },
+      "objects": [
+        {
+          "id": "obj_ybckv92aq",
+          "className": "TPanel",
+          "name": "Base_Glow_Edge",
+          "x": 2,
+          "y": 2,
+          "width": 16,
+          "height": 10.5,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#f48fb1",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_bgmf406xs",
+          "className": "TPanel",
+          "name": "Base_Glow_Main",
+          "x": 2.2,
+          "y": 2,
+          "width": 15.8,
+          "height": 10.5,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#333333",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_lslfbbqsc",
+          "className": "TLabel",
+          "text": "📋",
+          "x": 2.8,
+          "y": 2.6,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_walq1ozi3",
+          "className": "TLabel",
+          "text": "GLOW-EFFEKT",
+          "x": 4.2,
+          "y": 2.6,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#f48fb1",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_i0q5gm12p",
+          "className": "TLabel",
+          "text": "▼",
+          "x": 16.5,
+          "y": 2.6,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_3zmf168v9",
+          "className": "TLabel",
+          "text": "Glow Farbe",
+          "x": 3,
+          "y": 4.5,
+          "width": 5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_8a92ak0eh",
+          "className": "TColorPicker",
+          "color": "#000000",
+          "x": 7.5,
+          "y": 4.3,
+          "width": 1.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#000000",
+            "borderColor": "#666666",
+            "borderWidth": "1px",
+            "cursor": "pointer"
+          }
+        },
+        {
+          "id": "obj_p93d5wx57",
+          "className": "TEdit",
+          "text": "#000000",
+          "placeholder": "",
+          "x": 9.3,
+          "y": 4.3,
+          "width": 7.7,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_udzldlu1e",
+          "className": "TLabel",
+          "text": "Glow Unschärfe",
+          "x": 3,
+          "y": 6.5,
+          "width": 5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_i3qhuetct",
+          "className": "TEdit",
+          "text": "",
+          "placeholder": "",
+          "x": 7.5,
+          "y": 6.3,
+          "width": 9.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_ax4uo7u35",
+          "className": "TLabel",
+          "text": "Glow Ausbreitung",
+          "x": 3,
+          "y": 8.5,
+          "width": 5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_l62o7tegf",
+          "className": "TEdit",
+          "text": "",
+          "placeholder": "",
+          "x": 7.5,
+          "y": 8.3,
+          "width": 9.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_sfd93l0vj",
+          "className": "TLabel",
+          "text": "Box-Shadow (CSS)",
+          "x": 3,
+          "y": 10.5,
+          "width": 5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_4p9sxf7tf",
+          "className": "TEdit",
+          "text": "",
+          "placeholder": "",
+          "x": 7.5,
+          "y": 10.3,
+          "width": 9.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        }
+      ],
+      "variables": [],
+      "actions": [],
+      "tasks": []
+    },
+    {
+      "id": "stage_stil",
+      "name": "Sektion Stil",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#1e1e1e"
+      },
+      "objects": [
+        {
+          "id": "obj_mr9dlemdz",
+          "className": "TPanel",
+          "name": "Base_Stil_Edge",
+          "x": 2,
+          "y": 2,
+          "width": 16,
+          "height": 12.5,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#ef9a9a",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_kp9s77f1a",
+          "className": "TPanel",
+          "name": "Base_Stil_Main",
+          "x": 2.2,
+          "y": 2,
+          "width": 15.8,
+          "height": 12.5,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#333333",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_lghwpq6os",
+          "className": "TLabel",
+          "text": "🎨",
+          "x": 2.8,
+          "y": 2.6,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_l0rgazvgn",
+          "className": "TLabel",
+          "text": "STIL",
+          "x": 4.2,
+          "y": 2.6,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#ef9a9a",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_r97zftcqq",
+          "className": "TLabel",
+          "text": "▼",
+          "x": 16.5,
+          "y": 2.6,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_fk8srqkmx",
+          "className": "TLabel",
+          "text": "Hintergrund",
+          "x": 3,
+          "y": 4.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_3nypfqteo",
+          "className": "TColorPicker",
+          "color": "#1e1e1e",
+          "x": 7,
+          "y": 4.3,
+          "width": 1.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#666666",
+            "borderWidth": "1px",
+            "cursor": "pointer"
+          }
+        },
+        {
+          "id": "obj_yrfbchi65",
+          "className": "TEdit",
+          "text": "transparent",
+          "placeholder": "",
+          "x": 8.8,
+          "y": 4.3,
+          "width": 8.2,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_ek5ww6sd3",
+          "className": "TLabel",
+          "text": "Rahmenfarbe",
+          "x": 3,
+          "y": 6.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_otpved8vy",
+          "className": "TColorPicker",
+          "color": "#1e1e1e",
+          "x": 7,
+          "y": 6.3,
+          "width": 1.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#666666",
+            "borderWidth": "1px",
+            "cursor": "pointer"
+          }
+        },
+        {
+          "id": "obj_riy7465sx",
+          "className": "TEdit",
+          "text": "transparent",
+          "placeholder": "",
+          "x": 8.8,
+          "y": 6.3,
+          "width": 8.2,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_m4ysqghvv",
+          "className": "TLabel",
+          "text": "Rahmenbreite",
+          "x": 3,
+          "y": 8.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_riee0nt7h",
+          "className": "TEdit",
+          "text": "0",
+          "placeholder": "",
+          "x": 7,
+          "y": 8.3,
+          "width": 10,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_j1hnkjtbf",
+          "className": "TLabel",
+          "text": "Abrundung",
+          "x": 3,
+          "y": 10.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_az7ywxjzd",
+          "className": "TEdit",
+          "text": "",
+          "placeholder": "",
+          "x": 7,
+          "y": 10.3,
+          "width": 10,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_y7m1ncu0s",
+          "className": "TLabel",
+          "text": "Deckkraft",
+          "x": 3,
+          "y": 12.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_lyxnhq0bu",
+          "className": "TEdit",
+          "text": "",
+          "placeholder": "",
+          "x": 7,
+          "y": 12.3,
+          "width": 10,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        }
+      ],
+      "variables": [],
+      "actions": [],
+      "tasks": []
+    },
+    {
+      "id": "stage_typo",
+      "name": "Sektion Typografie",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#1e1e1e"
+      },
+      "objects": [
+        {
+          "id": "obj_8znyko2hl",
+          "className": "TPanel",
+          "name": "Base_Typo_Edge",
+          "x": 2,
+          "y": 2,
+          "width": 16,
+          "height": 12.5,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#90caf9",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_09b3j6fwh",
+          "className": "TPanel",
+          "name": "Base_Typo_Main",
+          "x": 2.2,
+          "y": 2,
+          "width": 15.8,
+          "height": 12.5,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#333333",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_27rw1q94i",
+          "className": "TLabel",
+          "text": "🔤",
+          "x": 2.8,
+          "y": 2.6,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_yeydm0h0f",
+          "className": "TLabel",
+          "text": "TYPOGRAFIE",
+          "x": 4.2,
+          "y": 2.6,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#90caf9",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_6cyynsrhi",
+          "className": "TLabel",
+          "text": "▼",
+          "x": 16.5,
+          "y": 2.6,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_kn4vbjpgd",
+          "className": "TLabel",
+          "text": "Textfarbe",
+          "x": 3,
+          "y": 4.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_fhnxx2ra1",
+          "className": "TColorPicker",
+          "color": "#cccccc",
+          "x": 7,
+          "y": 4.3,
+          "width": 1.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#cccccc",
+            "borderColor": "#666666",
+            "borderWidth": "1px",
+            "cursor": "pointer"
+          }
+        },
+        {
+          "id": "obj_s6btpp88o",
+          "className": "TEdit",
+          "text": "#cccccc",
+          "placeholder": "",
+          "x": 8.8,
+          "y": 4.3,
+          "width": 8.2,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_8s6jw2rpt",
+          "className": "TLabel",
+          "text": "Schriftgröße",
+          "x": 3,
+          "y": 6.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_frwcf1re0",
+          "className": "TEdit",
+          "text": "11px",
+          "placeholder": "",
+          "x": 7,
+          "y": 6.3,
+          "width": 10,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_z0b5rumuj",
+          "className": "TLabel",
+          "text": "Schriftart",
+          "x": 3,
+          "y": 8.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_qk7aqzd9k",
+          "className": "TDropdown",
+          "selectedValue": "Segoe UI, sans-serif (nicht in Stage)",
+          "options": [
+            "Segoe UI, sans-serif (nicht in Stage)"
+          ],
+          "x": 7,
+          "y": 8.3,
+          "width": 10,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_21htorw5q",
+          "className": "TLabel",
+          "text": "Fett",
+          "x": 3,
+          "y": 10.5,
+          "width": 3,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_rnuxyvty0",
+          "className": "TCheckbox",
+          "checked": false,
+          "label": "",
+          "x": 5.5,
+          "y": 10.5,
+          "width": 0.8,
+          "height": 0.8,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#444",
+            "borderWidth": "1px"
+          }
+        },
+        {
+          "id": "obj_cpyrqfrmv",
+          "className": "TLabel",
+          "text": "Kursiv",
+          "x": 10,
+          "y": 10.5,
+          "width": 3,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_wgxrd2zcw",
+          "className": "TCheckbox",
+          "checked": false,
+          "label": "",
+          "x": 12.5,
+          "y": 10.5,
+          "width": 0.8,
+          "height": 0.8,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#444",
+            "borderWidth": "1px"
+          }
+        },
+        {
+          "id": "obj_z9xzrnzkk",
+          "className": "TLabel",
+          "text": "Ausrichtung",
+          "x": 3,
+          "y": 12.5,
+          "width": 4.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_nwjzn1jjg",
+          "className": "TDropdown",
+          "selectedValue": "left",
+          "options": [
+            "left",
+            "center",
+            "right"
+          ],
+          "x": 7,
+          "y": 12.3,
+          "width": 10,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        }
+      ],
+      "variables": [],
+      "actions": [],
+      "tasks": []
+    },
+    {
+      "id": "stage_geo",
+      "name": "Sektion Geometrie",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#1e1e1e"
+      },
+      "objects": [
+        {
+          "id": "obj_5tjoe8vbe",
+          "className": "TPanel",
+          "name": "Base_Geo_Edge",
+          "x": 2,
+          "y": 2,
+          "width": 16,
+          "height": 8.5,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#a5d6a7",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_r2vtv66la",
+          "className": "TPanel",
+          "name": "Base_Geo_Main",
+          "x": 2.2,
+          "y": 2,
+          "width": 15.8,
+          "height": 8.5,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#333333",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_23ev0hlie",
+          "className": "TLabel",
+          "text": "📐",
+          "x": 2.8,
+          "y": 2.6,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_di68e0ntu",
+          "className": "TLabel",
+          "text": "GEOMETRIE",
+          "x": 4.2,
+          "y": 2.6,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#a5d6a7",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_66cbghayp",
+          "className": "TLabel",
+          "text": "▼",
+          "x": 16.5,
+          "y": 2.6,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_rcsa72n00",
+          "className": "TLabel",
+          "text": "X",
+          "x": 3,
+          "y": 4.5,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_5fltvvyh3",
+          "className": "TEdit",
+          "text": "3",
+          "placeholder": "",
+          "x": 4.5,
+          "y": 4.3,
+          "width": 5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_t83iprcba",
+          "className": "TLabel",
+          "text": "Y",
+          "x": 10.5,
+          "y": 4.5,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_1eoxh5cso",
+          "className": "TEdit",
+          "text": "4.5",
+          "placeholder": "",
+          "x": 12,
+          "y": 4.3,
+          "width": 5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_mrysna156",
+          "className": "TLabel",
+          "text": "Breite",
+          "x": 3,
+          "y": 6.5,
+          "width": 2.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_0ozc946ns",
+          "className": "TEdit",
+          "text": "4",
+          "placeholder": "",
+          "x": 5.5,
+          "y": 6.3,
+          "width": 4,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_0fmtzdnbk",
+          "className": "TLabel",
+          "text": "Höhe",
+          "x": 10.5,
+          "y": 6.5,
+          "width": 2.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_oi1btwzzx",
+          "className": "TEdit",
+          "text": "1",
+          "placeholder": "",
+          "x": 13,
+          "y": 6.3,
+          "width": 4,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_vbxp85xq7",
+          "className": "TLabel",
+          "text": "Z-Index",
+          "x": 3,
+          "y": 8.5,
+          "width": 3,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_86131tph5",
+          "className": "TEdit",
+          "text": "2",
+          "placeholder": "",
+          "x": 6,
+          "y": 8.3,
+          "width": 3.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_pekoisxr3",
+          "className": "TLabel",
+          "text": "Ausrichtung",
+          "x": 10.5,
+          "y": 8.5,
+          "width": 4,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_sianmaf2t",
+          "className": "TDropdown",
+          "selectedValue": "NONE",
+          "options": [
+            "NONE",
+            "CLIENT",
+            "TOP",
+            "BOTTOM",
+            "LEFT",
+            "RIGHT"
+          ],
+          "x": 14.5,
+          "y": 8.3,
+          "width": 2.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        }
+      ],
+      "variables": [],
+      "actions": [],
+      "tasks": []
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+﻿import { TWindow } from './TWindow';
+import { TPropertyDef } from './TComponent';
+
+export class TListVariable extends TWindow {
+    public className: string = 'TListVariable';
+    public items: any[] = [];
+
+    constructor(name: string, x: number, y: number) {
+        super(name, x, y, 4, 2);
+        this.isVariable = true;
+        this.isHiddenInRun = true; // Wie alle Variablen-Komponenten: nur im Edit-Mode sichtbar
+        this.style.backgroundColor = '#9c27b0'; // Purple for List
+        this.style.borderColor = '#7b1fa2';
+        this.style.borderWidth = 2;
+    }
+
+    public getInspectorProperties(): TPropertyDef[] {
+        const props = super.getInspectorProperties();
+        return [
+            ...props,
+            { name: 'items', label: 'Werte', type: 'value_list', group: 'List' }
+        ];
+    }
+
+    public getEvents(): string[] {
+        return [
+            ...super.getEvents(),
+            'onItemAdded',
+            'onItemRemoved',
+            'onCleared'
+        ];
+    }
+
+    public toDTO(): any {
+        return {
+            ...super.toDTO(),
+            items: this.items
+        };
+    }
+}
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TListVariable', (objData: any) => new TListVariable(objData.name, objData.x, objData.y));

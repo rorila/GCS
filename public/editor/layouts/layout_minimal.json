@@ -1,0 +1,93 @@
+{
+    "version": "1.0",
+    "name": "Minimal",
+    "description": "Zeigt nur die wichtigsten Properties",
+    "groups": [
+        {
+            "id": "identity",
+            "label": "Objekt",
+            "order": 0,
+            "collapsed": false
+        },
+        {
+            "id": "position",
+            "label": "Position",
+            "order": 1,
+            "collapsed": false
+        }
+    ],
+    "properties": {
+        "name": {
+            "name": "name",
+            "label": "Name",
+            "type": "string",
+            "visible": true,
+            "groupId": "identity",
+            "order": 0
+        },
+        "id": {
+            "name": "id",
+            "label": "ID",
+            "type": "string",
+            "visible": false,
+            "groupId": "identity",
+            "order": 1
+        },
+        "x": {
+            "name": "x",
+            "label": "X",
+            "type": "number",
+            "visible": true,
+            "groupId": "position",
+            "order": 0
+        },
+        "y": {
+            "name": "y",
+            "label": "Y",
+            "type": "number",
+            "visible": true,
+            "groupId": "position",
+            "order": 1
+        },
+        "width": {
+            "name": "width",
+            "label": "W",
+            "type": "number",
+            "visible": true,
+            "groupId": "position",
+            "order": 2
+        },
+        "height": {
+            "name": "height",
+            "label": "H",
+            "type": "number",
+            "visible": true,
+            "groupId": "position",
+            "order": 3
+        },
+        "backgroundColor": {
+            "visible": false
+        },
+        "borderColor": {
+            "visible": false
+        },
+        "fontFamily": {
+            "visible": false
+        },
+        "fontSize": {
+            "visible": false
+        },
+        "visible": {
+            "visible": false
+        },
+        "enabled": {
+            "visible": false
+        },
+        "text": {
+            "visible": false
+        },
+        "caption": {
+            "visible": false
+        }
+    }
+}

@@ -1,0 +1,204 @@
+{
+    "meta": {
+        "name": "Variable Events Inspector",
+        "version": "1.0.1",
+        "description": "Context-aware Event Inspector for Variables"
+    },
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "GeneralHeader",
+            "text": "ALLGEMEINE EVENTS",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "onValueChanged",
+            "label": "Bei Wertänderung",
+            "property": "events.onValueChanged",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onValueChanged || selectedObject.onValueChanged || ''}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "onValueEmpty",
+            "label": "Wenn Wert leer",
+            "property": "events.onValueEmpty",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onValueEmpty || selectedObject.onValueEmpty || ''}"
+        },
+        {
+            "className": "TLabel",
+            "name": "TimerHeader",
+            "visible": "${selectedObject.type === 'timer' || selectedObject.className === 'TTimer'}",
+            "text": "TIMER EVENTS",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "onTimer",
+            "label": "Bei Intervall (onTimer)",
+            "property": "events.onTimer",
+            "visible": "${selectedObject.type === 'timer' || selectedObject.className === 'TTimer'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onTimer || selectedObject.onTimer || ''}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "onMaxIntervalReached",
+            "label": "Bei Abschluss (Max Interval)",
+            "property": "events.onMaxIntervalReached",
+            "visible": "${selectedObject.type === 'timer' || selectedObject.className === 'TTimer'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onMaxIntervalReached || selectedObject.onMaxIntervalReached || selectedObject.onFinished || ''}"
+        },
+        {
+            "className": "TLabel",
+            "name": "RangeHeader",
+            "visible": "${selectedObject.type === 'range' || selectedObject.className === 'TRangeVariable'}",
+            "text": "RANGE/LIMIT EVENTS",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "onMinReached",
+            "label": "Minimum erreicht",
+            "property": "events.onMinReached",
+            "visible": "${selectedObject.type === 'range' || selectedObject.className === 'TRangeVariable'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onMinReached || selectedObject.onMinReached || ''}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "onMaxReached",
+            "label": "Maximum erreicht",
+            "property": "events.onMaxReached",
+            "visible": "${selectedObject.type === 'range' || selectedObject.className === 'TRangeVariable'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onMaxReached || selectedObject.onMaxReached || ''}"
+        },
+        {
+            "className": "TLabel",
+            "name": "TriggerHeader",
+            "visible": "${selectedObject.type === 'trigger' || selectedObject.className === 'TTriggerVariable'}",
+            "text": "TRIGGER EVENTS",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "onTriggerEnter",
+            "label": "Bei Übereinstimmung",
+            "property": "events.onTriggerEnter",
+            "visible": "${selectedObject.type === 'trigger' || selectedObject.className === 'TTriggerVariable'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onTriggerEnter || selectedObject.onTriggerEnter || ''}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "onTriggerExit",
+            "label": "Bei Verlassen",
+            "property": "events.onTriggerExit",
+            "visible": "${selectedObject.type === 'trigger' || selectedObject.className === 'TTriggerVariable'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onTriggerExit || selectedObject.onTriggerExit || ''}"
+        },
+        {
+            "className": "TLabel",
+            "name": "RandomHeader",
+            "visible": "${selectedObject.type === 'random' || selectedObject.className === 'TRandomVariable'}",
+            "text": "RANDOM EVENTS",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "onGenerated",
+            "label": "Nach Generierung",
+            "property": "events.onGenerated",
+            "visible": "${selectedObject.type === 'random' || selectedObject.className === 'TRandomVariable'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onGenerated || selectedObject.onGenerated || ''}"
+        },
+        {
+            "className": "TLabel",
+            "name": "ThresholdHeader",
+            "visible": "${selectedObject.type === 'threshold' || selectedObject.className === 'TThresholdVariable'}",
+            "text": "SCHWELLWERT EVENTS",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "onThresholdReached",
+            "label": "Schwellwert erreicht",
+            "property": "events.onThresholdReached",
+            "visible": "${selectedObject.type === 'threshold' || selectedObject.className === 'TThresholdVariable'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onThresholdReached || selectedObject.onThresholdReached || ''}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "onThresholdLeft",
+            "label": "Schwellwert verlassen",
+            "property": "events.onThresholdLeft",
+            "visible": "${selectedObject.type === 'threshold' || selectedObject.className === 'TThresholdVariable'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onThresholdLeft || selectedObject.onThresholdLeft || ''}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "onThresholdExceeded",
+            "label": "Schwellwert überschritten",
+            "property": "events.onThresholdExceeded",
+            "visible": "${selectedObject.type === 'threshold' || selectedObject.className === 'TThresholdVariable'}",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events?.onThresholdExceeded || selectedObject.onThresholdExceeded || ''}"
+        }
+    ]
+}

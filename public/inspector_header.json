@@ -1,0 +1,22 @@
+{
+    "meta": {
+        "name": "Inspector Header",
+        "version": "1.0.0",
+        "description": "Minimal Header for objects with dynamic properties"
+    },
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "TitleLabel",
+            "x": 0,
+            "y": 0,
+            "text": "${selectedObject.name || selectedObject.meta?.name || 'No Selection'}",
+            "style": {
+                "fontSize": 16,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 16
+            }
+        }
+    ]
+}

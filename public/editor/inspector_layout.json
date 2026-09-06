@@ -1,0 +1,224 @@
+{
+    "version": "1.1",
+    "groups": [
+        {
+            "id": "identity",
+            "label": "Identität",
+            "order": 0,
+            "collapsed": false
+        },
+        {
+            "id": "position",
+            "label": "Position & Größe",
+            "order": 1,
+            "collapsed": false
+        },
+        {
+            "id": "style",
+            "label": "Darstellung",
+            "order": 2,
+            "collapsed": true
+        },
+        {
+            "id": "display",
+            "label": "Sichtbarkeit",
+            "order": 3,
+            "collapsed": true
+        },
+        {
+            "id": "content",
+            "label": "Inhalt",
+            "order": 4,
+            "collapsed": true
+        },
+        {
+            "id": "multiplayer",
+            "label": "📶 Multiplayer",
+            "order": 10,
+            "collapsed": true
+        }
+    ],
+    "properties": {
+        "name": {
+            "name": "name",
+            "label": "Name",
+            "type": "string",
+            "visible": true,
+            "groupId": "identity",
+            "order": 0
+        },
+        "id": {
+            "name": "id",
+            "label": "ID",
+            "type": "string",
+            "visible": false,
+            "groupId": "identity",
+            "order": 1
+        },
+        "x": {
+            "name": "x",
+            "label": "X Position",
+            "type": "number",
+            "visible": true,
+            "groupId": "position",
+            "order": 0,
+            "style": {
+                "color": "#4fc3f7",
+                "fontSize": "12px"
+            }
+        },
+        "y": {
+            "name": "y",
+            "label": "Y Position",
+            "type": "number",
+            "visible": true,
+            "groupId": "position",
+            "order": 1,
+            "style": {
+                "color": "#f48fb1",
+                "fontSize": "12px"
+            }
+        },
+        "width": {
+            "name": "width",
+            "label": "Breite",
+            "type": "number",
+            "visible": true,
+            "groupId": "position",
+            "order": 2
+        },
+        "height": {
+            "name": "height",
+            "label": "Höhe",
+            "type": "number",
+            "visible": true,
+            "groupId": "position",
+            "order": 3
+        },
+        "backgroundColor": {
+            "name": "backgroundColor",
+            "label": "Hintergrund",
+            "type": "color",
+            "visible": true,
+            "groupId": "style",
+            "order": 0,
+            "style": {
+                "color": "#ffd54f"
+            }
+        },
+        "borderColor": {
+            "name": "borderColor",
+            "label": "Rahmenfarbe",
+            "type": "color",
+            "visible": true,
+            "groupId": "style",
+            "order": 1
+        },
+        "fontFamily": {
+            "name": "fontFamily",
+            "label": "Schriftart",
+            "type": "select",
+            "visible": true,
+            "groupId": "style",
+            "order": 2
+        },
+        "fontSize": {
+            "name": "fontSize",
+            "label": "Schriftgröße",
+            "type": "number",
+            "visible": true,
+            "groupId": "style",
+            "order": 3
+        },
+        "visible": {
+            "name": "visible",
+            "label": "Sichtbar",
+            "type": "boolean",
+            "visible": true,
+            "groupId": "display",
+            "order": 0
+        },
+        "enabled": {
+            "name": "enabled",
+            "label": "Aktiviert",
+            "type": "boolean",
+            "visible": true,
+            "groupId": "display",
+            "order": 1
+        },
+        "text": {
+            "name": "text",
+            "label": "Text",
+            "type": "string",
+            "visible": true,
+            "groupId": "content",
+            "order": 0
+        },
+        "caption": {
+            "name": "caption",
+            "label": "Beschriftung",
+            "type": "string",
+            "visible": true,
+            "groupId": "content",
+            "order": 1
+        },
+        "startValue": {
+            "name": "startValue",
+            "label": "Anfangswert",
+            "type": "number",
+            "visible": true,
+            "groupId": "content",
+            "order": 2
+        },
+        "value": {
+            "name": "value",
+            "label": "Aktueller Wert",
+            "type": "number",
+            "visible": true,
+            "groupId": "content",
+            "order": 3,
+            "style": {
+                "color": "#ffd54f"
+            }
+        },
+        "maxValue": {
+            "name": "maxValue",
+            "label": "Maximalwert",
+            "type": "number",
+            "visible": true,
+            "groupId": "content",
+            "order": 4
+        },
+        "step": {
+            "name": "step",
+            "label": "Schrittweite",
+            "type": "number",
+            "visible": true,
+            "groupId": "content",
+            "order": 5
+        },
+        "triggerMode": {
+            "name": "triggerMode",
+            "label": "Trigger-Modus",
+            "type": "select",
+            "options": [
+                {
+                    "value": "local",
+                    "label": "Lokal (nur diese Instanz)"
+                },
+                {
+                    "value": "local-sync",
+                    "label": "Lokal + Sync (Standard)"
+                },
+                {
+                    "value": "broadcast",
+                    "label": "Broadcast (via Host)"
+                }
+            ],
+            "visible": true,
+            "groupId": "multiplayer",
+            "order": 0,
+            "description": "Steuert wie dieser Task im Multiplayer-Modus ausgeführt wird"
+        }
+    }
+}

@@ -1,0 +1,47 @@
+
+import { IInspectorHandler, PropertyChangeEvent } from '../types';
+import { GameProject } from '../../../model/types';
+import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
+import { Logger } from '../../../utils/Logger';
+
+const logger = Logger.get('FlowConditionHandler');
+
+export class FlowConditionHandler implements IInspectorHandler {
+
+    canHandle(obj: any): boolean {
+        const type = typeof obj?.getType === 'function' ? obj.getType() : null;
+        // FlowLoop (for/foreach/while/repeat) wird von FlowLoopHandler behandelt
+        if (type === 'for' || type === 'foreach' || type === 'while' || type === 'repeat') {
+            return false;
+        }
+
+        const isCondition = obj && (
+            obj.constructor?.name === 'FlowCondition' ||
+            type === 'condition'
+        );
+        return !!isCondition;
+    }
+
+    getInspectorTemplate(_obj: any): string | null {
+        logger.info('[FlowConditionHandler] Loading ./inspector_condition.json');
+        return './inspector_condition.json';
+    }
+
+    handlePropertyChange(event: PropertyChangeEvent, _project: GameProject, _runtime: ReactiveRuntime): boolean {
+        const { propertyName, object } = event;
+
+        // If a type or value changes, we might need to refresh the whole property list 
+        // to show/hide conditional fields.
+        if (propertyName.includes('Type') || propertyName.includes('Value') || propertyName === 'Operator') {
+            // Let the InspectorHost know it should refresh the UI definitions
+            // This is usually done by returning false and letting the host call update()
+            // but we can also trigger a visual update on the node itself.
+            if (typeof object.updateText === 'function') {
+                object.updateText();
+            }
+        }
+
+        // Return false to allow default property assignment
+        return false;
+    }
+}

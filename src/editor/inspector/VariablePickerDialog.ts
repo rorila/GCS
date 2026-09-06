@@ -1,0 +1,639 @@
+import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
+import { componentRegistry } from '../../services/ComponentRegistry';
+import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
+import { dataService } from '../../services/DataService';
+
+/**
+ * VariablePickerDialog - Modaler Dialog zur Auswahl von Variablen
+ * Zeigt globale und Stage-Variablen mit Subeigenschaften als Baumstruktur.
+ */
+export class VariablePickerDialog {
+
+    /**
+     * Öffnet den Variablen-Auswahl-Dialog und gibt den gewählten Variablennamen zurück.
+     * @param context Optional: Zusätzlicher Kontext (z.B. für Repeater-Daten)
+     * @param mode Modus: 'all' für alles (default), 'variable' für nur Variablen, 'component' für nur Komponenten, 'list_element' für Listeneinträge, 'component_reference' für Objektreferenzen, 'special' für Laufzeitwerte
+     * @returns Promise<string | null> - Gewählter Wert oder null bei Abbruch
+     *   - Im 'variable'-Modus: "${VariablenName}" (z.B. "${score}")
+     *   - Im 'component'-Modus: "Komponente.Eigenschaft" (z.B. "Sprite1.x")
+     *   - Im 'list_element'-Modus: "myList[0]"
+     *   - Im 'component_reference'-Modus: "Ufo" (reine Referenz)
+     *   - Im 'special'-Modus: "StageTimer"
+     *   - Im 'all'-Modus: wie bisher (je nach Auswahl)
+     */
+    public static show(context?: { objectId?: string, repeaterFields?: string[] }, mode: 'all' | 'variable' | 'component' | 'pure_variable' | 'list_element' | 'component_reference' | 'special' = 'all'): Promise<string | null> {
+        return new Promise((resolve) => {
+            const overlay = VariablePickerDialog.createOverlay();
+            const dialog = VariablePickerDialog.createDialog();
+            overlay.appendChild(dialog);
+
+            // Header
+            const header = document.createElement('div');
+            header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #333; background:#1a1a2e;';
+            const title = document.createElement('span');
+            title.innerText = '📋 Datenquelle auswählen';
+            title.style.cssText = 'font-weight:bold; font-size:14px; color:#fff;';
+            header.appendChild(title);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.innerText = '✕';
+            closeBtn.style.cssText = 'background:none; border:none; color:#888; font-size:18px; cursor:pointer; padding:0 4px;';
+            closeBtn.onclick = () => { overlay.remove(); resolve(null); };
+            header.appendChild(closeBtn);
+            dialog.appendChild(header);
+
+            // Modus-Auswahl (Radio-Buttons)
+            const modeRow = document.createElement('div');
+            modeRow.style.cssText = 'padding:12px 16px; border-bottom:1px solid #333; display:flex; gap:16px; align-items:center; flex-wrap:wrap;';
+
+            const allRadio = document.createElement('label');
+            allRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const allRadioInput = document.createElement('input');
+            allRadioInput.type = 'radio';
+            allRadioInput.name = 'pickerMode';
+            allRadioInput.value = 'all';
+            allRadioInput.checked = mode === 'all';
+            allRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const allLabel = document.createElement('span');
+            allLabel.innerText = '📋 Alles';
+            allRadio.appendChild(allRadioInput);
+            allRadio.appendChild(allLabel);
+
+            const variableRadio = document.createElement('label');
+            variableRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const variableRadioInput = document.createElement('input');
+            variableRadioInput.type = 'radio';
+            variableRadioInput.name = 'pickerMode';
+            variableRadioInput.value = 'variable';
+            variableRadioInput.checked = mode === 'variable' || mode === 'pure_variable';
+            variableRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const variableLabel = document.createElement('span');
+            variableLabel.innerText = '📦 Variablen';
+            variableRadio.appendChild(variableRadioInput);
+            variableRadio.appendChild(variableLabel);
+
+            const componentRadio = document.createElement('label');
+            componentRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const componentRadioInput = document.createElement('input');
+            componentRadioInput.type = 'radio';
+            componentRadioInput.name = 'pickerMode';
+            componentRadioInput.value = 'component';
+            componentRadioInput.checked = mode === 'component';
+            componentRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const componentLabel = document.createElement('span');
+            componentLabel.innerText = '🔧 Eigenschaft';
+            componentRadio.appendChild(componentRadioInput);
+            componentRadio.appendChild(componentLabel);
+
+            const listRadio = document.createElement('label');
+            listRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const listRadioInput = document.createElement('input');
+            listRadioInput.type = 'radio';
+            listRadioInput.name = 'pickerMode';
+            listRadioInput.value = 'list_element';
+            listRadioInput.checked = mode === 'list_element';
+            listRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const listLabel = document.createElement('span');
+            listLabel.innerText = '📋 Listenelement';
+            listRadio.appendChild(listRadioInput);
+            listRadio.appendChild(listLabel);
+
+            const compRefRadio = document.createElement('label');
+            compRefRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const compRefRadioInput = document.createElement('input');
+            compRefRadioInput.type = 'radio';
+            compRefRadioInput.name = 'pickerMode';
+            compRefRadioInput.value = 'component_reference';
+            compRefRadioInput.checked = mode === 'component_reference';
+            compRefRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const compRefLabel = document.createElement('span');
+            compRefLabel.innerText = '🔗 Referenz';
+            compRefRadio.appendChild(compRefRadioInput);
+            compRefRadio.appendChild(compRefLabel);
+
+            const specialRadio = document.createElement('label');
+            specialRadio.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer; color:#e0e0e0; font-size:13px;';
+            const specialRadioInput = document.createElement('input');
+            specialRadioInput.type = 'radio';
+            specialRadioInput.name = 'pickerMode';
+            specialRadioInput.value = 'special';
+            specialRadioInput.checked = mode === 'special';
+            specialRadioInput.style.cssText = 'cursor:pointer; width:16px; height:16px; accent-color:#6c63ff;';
+            const specialLabel = document.createElement('span');
+            specialLabel.innerText = '✨ Sonderwert';
+            specialRadio.appendChild(specialRadioInput);
+            specialRadio.appendChild(specialLabel);
+
+            modeRow.appendChild(allRadio);
+            modeRow.appendChild(variableRadio);
+            modeRow.appendChild(componentRadio);
+            modeRow.appendChild(listRadio);
+            modeRow.appendChild(compRefRadio);
+            modeRow.appendChild(specialRadio);
+            dialog.appendChild(modeRow);
+
+            // Suchfeld
+            const searchRow = document.createElement('div');
+            searchRow.style.cssText = 'padding:8px 16px; border-bottom:1px solid #333;';
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = '🔍 Datenquellen durchsuchen...';
+            searchInput.style.cssText = 'width:100%; padding:8px 10px; background:#16162a; color:#fff; border:1px solid #333; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;';
+            searchRow.appendChild(searchInput);
+            dialog.appendChild(searchRow);
+
+            // Inhaltsbereich
+            const content = document.createElement('div');
+            content.style.cssText = 'flex:1; overflow-y:auto; padding:8px 0;';
+            dialog.appendChild(content);
+
+            // Aktuellen Modus tracken
+            let currentMode: 'all' | 'variable' | 'component' | 'pure_variable' | 'list_element' | 'component_reference' | 'special' = mode;
+
+            // self-Klasse (für Property-Picker) aus dem Kontext oder Default
+            let selectedSelfClass = 'TSprite';
+            if (context?.objectId) {
+                const selfObj = projectObjectRegistry.getObjects().find(o => o.id === context.objectId || o.name === context.objectId);
+                if (selfObj?.className) selectedSelfClass = selfObj.className;
+            }
+
+            // Event-Listener für Radio-Buttons
+            const updateMode = () => {
+                if (allRadioInput.checked) {
+                    currentMode = 'all';
+                } else if (variableRadioInput.checked) {
+                    currentMode = mode === 'pure_variable' ? 'pure_variable' : 'variable';
+                } else if (componentRadioInput.checked) {
+                    currentMode = 'component';
+                } else if (listRadioInput.checked) {
+                    currentMode = 'list_element';
+                } else if (compRefRadioInput.checked) {
+                    currentMode = 'component_reference';
+                } else if (specialRadioInput.checked) {
+                    currentMode = 'special';
+                } else {
+                    currentMode = 'all';
+                }
+                renderList(searchInput.value);
+            };
+            allRadioInput.onchange = updateMode;
+            variableRadioInput.onchange = updateMode;
+            componentRadioInput.onchange = updateMode;
+            listRadioInput.onchange = updateMode;
+            compRefRadioInput.onchange = updateMode;
+            specialRadioInput.onchange = updateMode;
+
+            // Warnung für Komponenten-Referenzen
+            const warningPanel = document.createElement('div');
+            warningPanel.style.cssText = 'display:none; margin:8px 16px 0; padding:12px 16px; background:#3a2e05; border:1px solid #e67e22; border-radius:6px; color:#e67e22; font-size:13px;';
+            const warningText = document.createElement('div');
+            warningText.innerText = 'Achtung: Eine Komponentenreferenz wird ungültig, wenn die Komponente zerstört oder recycelt wird.';
+            warningText.style.marginBottom = '8px';
+            const warningBtnRow = document.createElement('div');
+            warningBtnRow.style.cssText = 'display:flex; gap:8px;';
+            const confirmBtn = document.createElement('button');
+            confirmBtn.innerText = 'Trotzdem verwenden';
+            confirmBtn.style.cssText = 'padding:4px 8px; background:#e67e22; color:#fff; border:none; border-radius:3px; cursor:pointer; font-size:12px;';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.innerText = 'Abbrechen';
+            cancelBtn.style.cssText = 'padding:4px 8px; background:#444; color:#fff; border:1px solid #555; border-radius:3px; cursor:pointer; font-size:12px;';
+            warningBtnRow.appendChild(confirmBtn);
+            warningBtnRow.appendChild(cancelBtn);
+            warningPanel.appendChild(warningText);
+            warningPanel.appendChild(warningBtnRow);
+            dialog.appendChild(warningPanel);
+
+            let pendingValue: string | null = null;
+            confirmBtn.onclick = () => {
+                if (pendingValue) {
+                    overlay.remove();
+                    document.removeEventListener('keydown', keyHandler);
+                    resolve(pendingValue);
+                }
+            };
+            cancelBtn.onclick = () => {
+                warningPanel.style.display = 'none';
+                pendingValue = null;
+            };
+
+            // Variablen sammeln
+            const variables = projectVariableRegistry.getVariables().map(v => ({ ...v, _isVar: true }));
+            const globalVars = variables.filter(v => (v as any).uiScope === 'global' || (v as any).scope === 'global');
+            const stageVars = variables.filter(v => (v as any).uiScope !== 'global' && (v as any).scope !== 'global');
+
+            // Komponenten sammeln
+            const objects = projectObjectRegistry.getObjects().map(o => ({ ...o, _isComp: true }));
+            const globalComps = objects.filter(o => o.scope === 'global');
+            const stageComps = [
+                { name: 'self', className: selectedSelfClass, _isComp: true, scope: 'local', uiEmoji: '👤' },
+                ...objects.filter(o => o.scope !== 'global')
+            ];
+
+            // Task Variablen (aus dem aktuellen FlowContext)
+            const currentTaskName = localStorage.getItem('gcs_last_flow_context');
+            let taskVars: any[] = [];
+            if (currentTaskName && currentTaskName !== 'global' && currentTaskName !== 'event-map' && currentTaskName !== 'element-overview') {
+                const task = projectTaskRegistry.findOriginalTask(currentTaskName);
+                if (task && task.standaloneNodes) {
+                    taskVars = task.standaloneNodes
+                        .filter((n: any) => n.type === 'VariableDecl' && n.data?.variable)
+                        .map((n: any) => ({ ...n.data.variable, _isVar: true }));
+                }
+            }
+
+            const formatValue = (varName: string): string => {
+                if (currentMode === 'variable') return `\${${varName}}`;
+                if (currentMode === 'pure_variable') return varName;
+                return varName;
+            };
+
+            const selectVar = (varName: string) => {
+                // Komponenten-Referenzen: Warnung anzeigen, erst bei Bestätigung auflösen
+                if (currentMode === 'component_reference') {
+                    pendingValue = varName;
+                    warningPanel.style.display = 'block';
+                    return;
+                }
+                overlay.remove();
+                document.removeEventListener('keydown', keyHandler);
+                resolve(formatValue(varName));
+            };
+
+            // Render-Funktion
+            const isListLike = (v: any) => v.type === 'list' || v.type === 'object_list' || v.className === 'TListVariable' || v.className === 'TList';
+
+            const renderList = (filter: string = '') => {
+                content.innerHTML = '';
+                const filterLower = filter.toLowerCase();
+
+                const showVariables = currentMode === 'all' || currentMode === 'variable' || currentMode === 'pure_variable';
+                const showListElements = currentMode === 'list_element';
+                const showComponents = currentMode === 'all' || currentMode === 'component' || currentMode === 'component_reference';
+                const showSpecial = currentMode === 'special';
+
+                const hideSub = currentMode === 'variable' || currentMode === 'pure_variable' || currentMode === 'component_reference';
+
+                // Variablen (gilt auch für list_element, aber nur Listen-Variablen)
+                const sourceGlobal = showListElements ? globalVars.filter(isListLike) : globalVars;
+                const sourceStage = showListElements ? stageVars.filter(isListLike) : stageVars;
+                const sourceTask = showListElements ? taskVars.filter(isListLike) : taskVars;
+
+                if ((showVariables || showListElements) && sourceGlobal.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(sourceGlobal, filterLower);
+                    if (filtered.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('🌐 Globale Variablen', filtered, selectVar, filterLower, hideSub));
+                    }
+                }
+
+                if ((showVariables || showListElements) && sourceStage.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(sourceStage, filterLower);
+                    if (filtered.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('🎭 Stage-Variablen', filtered, selectVar, filterLower, hideSub));
+                    }
+                }
+
+                if ((showVariables || showListElements) && sourceTask.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(sourceTask, filterLower);
+                    if (filtered.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('⚡ Task-Variablen (Lokal)', filtered, selectVar, filterLower, hideSub));
+                    }
+                }
+
+                // Komponenten
+                if (showComponents && globalComps.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(globalComps, filterLower);
+                    if (filtered.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('🧩 Globale Komponenten', filtered, selectVar, filterLower, currentMode === 'component_reference'));
+                    }
+                }
+
+                if (showComponents && stageComps.length > 0) {
+                    const filtered = VariablePickerDialog.filterVars(stageComps, filterLower);
+                    if (filtered.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('📦 Stage-Komponenten', filtered, selectVar, filterLower, currentMode === 'component_reference', (cls) => {
+                            selectedSelfClass = cls;
+                            if (stageComps[0] && stageComps[0].name === 'self') {
+                                stageComps[0].className = cls;
+                            }
+                            renderList(searchInput.value);
+                        }));
+                    }
+                }
+
+                // Sonderwerte
+                if (showSpecial) {
+                    const specials = [
+                        { name: 'StageTimer', label: 'Stage Timer (ms)', uiEmoji: '⏱️' },
+                        { name: 'currentInterval', label: 'Aktuelles Intervall', uiEmoji: '🕐' },
+                        { name: 'currentStage', label: 'Aktuelle Stage', uiEmoji: '🎭' }
+                    ].filter(s => !filterLower || s.name.toLowerCase().includes(filterLower) || s.label.toLowerCase().includes(filterLower));
+                    if (specials.length > 0) {
+                        content.appendChild(VariablePickerDialog.createSection('✨ Sonderwerte', specials, selectVar, '', false));
+                    }
+                }
+
+                // Repeater-Daten (nur im all-Modus)
+                if (currentMode === 'all' && context?.repeaterFields && context.repeaterFields.length > 0) {
+                    const repeaterItems = context.repeaterFields
+                        .filter(f => !filterLower || f.toLowerCase().includes(filterLower) || 'row'.includes(filterLower));
+                    if (repeaterItems.length > 0) {
+                        content.appendChild(VariablePickerDialog.createRepeaterSection(repeaterItems, selectVar));
+                    }
+                }
+
+                // Leer-Zustand
+                if (content.children.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.style.cssText = 'padding:20px; text-align:center; color:#666; font-size:13px;';
+                    empty.innerText = filter ? 'Keine Datenquellen gefunden.' : 'Keine Datenquellen verfügbar.';
+                    content.appendChild(empty);
+                }
+            };
+
+            // Event-Listener
+            searchInput.oninput = () => renderList(searchInput.value);
+
+            // ESC zum Schließen
+            const keyHandler = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') { overlay.remove(); resolve(null); document.removeEventListener('keydown', keyHandler); }
+            };
+            document.addEventListener('keydown', keyHandler);
+
+            // Overlay-Klick schließt
+            overlay.onclick = (e) => {
+                if (e.target === overlay) { overlay.remove(); resolve(null); document.removeEventListener('keydown', keyHandler); }
+            };
+
+            // Initial rendern und anzeigen
+            renderList();
+            document.body.appendChild(overlay);
+            searchInput.focus();
+        });
+    }
+
+    private static filterVars(vars: any[], filter: string): any[] {
+        if (!filter) return vars;
+        const filterLower = filter.toLowerCase();
+        return vars.filter(v => {
+            const name = (v.name || '').toLowerCase();
+            const model = ((v as any).objectModel || '').toLowerCase();
+            if (name.includes(filterLower) || model.includes(filterLower)) return true;
+            // Subeigenschaften prüfen
+            const fields = VariablePickerDialog.getSubFields(v);
+            return fields.some(f => {
+                if (typeof f === 'string') return f.toLowerCase().includes(filterLower);
+                const text = ((f as any).fullLabel || (f as any).label || (f as any).key || '').toLowerCase();
+                return text.includes(filterLower);
+            });
+        });
+    }
+
+    private static getSubFields(v: any): any[] {
+        const className = (v.className || '') as string;
+        const VARIABLE_CLASSNAMES = [
+            'TVariable', 'TIntegerVariable', 'TBooleanVariable', 'TStringVariable',
+            'TRealVariable', 'TRandomVariable', 'TTimerVariable', 'TTriggerVariable',
+            'TThresholdVariable', 'TRangeVariable'
+        ];
+        if (VARIABLE_CLASSNAMES.includes(className)) {
+            return [];
+        }
+
+        let fields: any[] = [];
+
+        if (className === 'TListVariable' || className === 'TList') {
+            const itemArray = (Array.isArray(v.items) && v.items.length > 0)
+                ? v.items
+                : (Array.isArray(v.value) ? v.value : []);
+            if (itemArray.length > 0) {
+                return itemArray.map((item: any, i: number) => {
+                    const valueText = (typeof item === 'object' && item !== null)
+                        ? JSON.stringify(item)
+                        : String(item ?? '');
+                    return { key: `[${i}]`, label: valueText, fullLabel: `[${i}]  ${valueText}` };
+                });
+            }
+            return [];
+        }
+
+        if (v._isComp) {
+            // Für Komponenten: Lade Inspektor-Properties
+            const props = componentRegistry.getInspectorProperties({ className: v.className });
+            if (props && props.length > 0) {
+                // Filtere ungeeignete Felder (z.B. id, name) optional aus
+                fields = props
+                    .filter(p => p.name && p.name !== 'id' && p.name !== 'name')
+                    .map(p => p.name);
+            }
+            return fields;
+        }
+
+        const type = (v.type || '') as string;
+        // className ist bereits oben deklariert
+
+        if (type === 'object' || type === 'object_list' || type === 'json' || type === 'any' ||
+            className === 'TObjectVariable' || className === 'TVariable' || className === 'TStringMap') {
+            const model = ((v.objectModel || '') as string).toLowerCase();
+            if (model) {
+                fields = dataService.getModelFieldsSync('db.json', model);
+            }
+            if (fields.length === 0) {
+                // Versuche aus defaultValue Felder zu extrahieren
+                if (v.defaultValue && typeof v.defaultValue === 'object' && !Array.isArray(v.defaultValue)) {
+                    fields = Object.keys(v.defaultValue);
+                }
+                if (v.value && typeof v.value === 'object' && !Array.isArray(v.value)) {
+                    fields = Object.keys(v.value);
+                }
+                // TStringMap hat seine Felder in 'entries'
+                if (v.entries && typeof v.entries === 'object' && !Array.isArray(v.entries)) {
+                    fields = Object.keys(v.entries);
+                }
+                if (fields.length === 0 && className !== 'TStringMap') {
+                    fields = ['id', 'name', 'text', 'value'];
+                }
+            }
+        }
+        return fields;
+    }
+
+    private static createOverlay(): HTMLDivElement {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(2px);';
+        return overlay;
+    }
+
+    private static createDialog(): HTMLDivElement {
+        const dialog = document.createElement('div');
+        dialog.style.cssText = 'width:420px; max-height:70vh; background:#12122a; border:1px solid #333; border-radius:12px; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.5); overflow:hidden;';
+        return dialog;
+    }
+
+    private static createSection(title: string, vars: any[], onSelect: (name: string) => void, filter: string, hideSubFields: boolean = false, onSelfClassChange?: (className: string) => void): HTMLDivElement {
+        const section = document.createElement('div');
+        section.style.cssText = 'padding:4px 0;';
+
+        // Sektions-Header
+        const sectionHeader = document.createElement('div');
+        sectionHeader.style.cssText = 'padding:6px 16px; font-size:11px; font-weight:bold; color:#6c63ff; text-transform:uppercase; letter-spacing:0.5px;';
+        sectionHeader.innerText = title;
+        section.appendChild(sectionHeader);
+
+        vars.forEach(v => {
+            const subFields = VariablePickerDialog.getSubFields(v);
+            const hasSubFields = subFields.length > 0 && !hideSubFields; // Keine Subeigenschaften im Nur-Variablen-Modus
+            let isExpanded = filter.length > 0; // auto-expand bei Suche
+
+            // Variable-Zeile
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; align-items:center; padding:6px 16px; cursor:pointer; transition:background 0.15s;';
+            row.onmouseenter = () => row.style.background = '#1a1a3e';
+            row.onmouseleave = () => row.style.background = 'transparent';
+
+            // Expand-Arrow
+            const arrow = document.createElement('span');
+            arrow.style.cssText = `width:16px; font-size:10px; color:#666; flex-shrink:0; transition:transform 0.2s; transform:rotate(${isExpanded ? '90' : '0'}deg); cursor:pointer;`;
+            arrow.innerText = hasSubFields ? '▶' : ' ';
+            row.appendChild(arrow);
+
+            // Icon nach Typ
+            const icon = document.createElement('span');
+            icon.style.cssText = 'margin-right:8px; font-size:14px;';
+            icon.innerText = (v as any).uiEmoji || ((v.type === 'object' || v.type === 'object_list' || v.className === 'TStringMap') ? '📦' : '📄');
+            row.appendChild(icon);
+
+            // Name
+            const nameEl = document.createElement('span');
+            nameEl.style.cssText = 'flex:1; color:#e0e0e0; font-size:13px;';
+            nameEl.innerText = v.name;
+            row.appendChild(nameEl);
+
+            // Typ-Badge
+            const badge = document.createElement('span');
+            badge.style.cssText = 'font-size:10px; color:#888; background:#222; padding:2px 6px; border-radius:3px; margin-left:8px;';
+            badge.innerText = v.className === 'TStringMap' ? 'StringMap' : (v.type || 'string');
+            row.appendChild(badge);
+
+            // Klassen-Dropdown für self
+            if (v.name === 'self' && onSelfClassChange) {
+                const classSelect = document.createElement('select');
+                classSelect.style.cssText = 'margin-left:8px; padding:2px 4px; background:#1a1a3e; color:#fff; border:1px solid #333; border-radius:4px; font-size:11px; outline:none; cursor:pointer;';
+                classSelect.onmousedown = (e) => e.stopPropagation();
+                const classes = componentRegistry.getRegisteredClassNames().sort();
+                classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.innerText = c;
+                    if (c === v.className) opt.selected = true;
+                    classSelect.appendChild(opt);
+                });
+                classSelect.onchange = () => {
+                    onSelfClassChange(classSelect.value);
+                };
+                row.appendChild(classSelect);
+            }
+
+            // Model-Badge
+            if ((v as any).objectModel) {
+                const modelBadge = document.createElement('span');
+                modelBadge.style.cssText = 'font-size:9px; color:#6c63ff; background:#1a1a3e; padding:2px 6px; border-radius:3px; margin-left:4px;';
+                modelBadge.innerText = (v as any).objectModel;
+                row.appendChild(modelBadge);
+            }
+
+            section.appendChild(row);
+
+            // Sub-Fields Container
+            const subContainer = document.createElement('div');
+            subContainer.style.cssText = `overflow:hidden; transition:max-height 0.3s ease; max-height:${isExpanded ? '2500px' : '0'}; padding-left:24px;`;
+
+            if (hasSubFields) {
+                subFields.forEach(field => {
+                    const isStringField = typeof field === 'string';
+                    const key = isStringField ? field : ((field as any).key || '');
+                    const display = isStringField
+                        ? (key.startsWith('[') ? `${v.name}${key}` : `${v.name}.${key}`)
+                        : (`${v.name}${(field as any).key}`);
+                    const fullLabel = isStringField
+                        ? display
+                        : (`${display}  ${(field as any).fullLabel || (field as any).label || (field as any).key || ''}`);
+
+                    // Filter subfields if search is active
+                    const filterText = (isStringField ? field : ((field as any).fullLabel || (field as any).label || (field as any).key || '')).toLowerCase();
+                    if (filter && !filterText.includes(filter) && !v.name?.toLowerCase().includes(filter)) {
+                        return;
+                    }
+                    
+                    const subRow = document.createElement('div');
+                    subRow.style.cssText = 'display:flex; align-items:center; padding:4px 16px; cursor:pointer; transition:background 0.15s;';
+                    subRow.onmouseenter = () => subRow.style.background = '#1a1a3e';
+                    subRow.onmouseleave = () => subRow.style.background = 'transparent';
+
+                    const dot = document.createElement('span');
+                    dot.style.cssText = 'width:6px; height:6px; background:#6c63ff; border-radius:50%; margin-right:10px; flex-shrink:0;';
+                    subRow.appendChild(dot);
+
+                    const fieldName = document.createElement('span');
+                    fieldName.style.cssText = 'color:#bbb; font-size:12px; font-family:monospace;';
+                    fieldName.innerText = fullLabel;
+                    subRow.appendChild(fieldName);
+
+                    subRow.onclick = (e) => {
+                        e.stopPropagation();
+                        onSelect(display);
+                    };
+                    subContainer.appendChild(subRow);
+                });
+            }
+            section.appendChild(subContainer);
+
+            // Klick-Logik
+            row.onclick = () => {
+                if (hasSubFields) {
+                    isExpanded = !isExpanded;
+                    arrow.style.transform = `rotate(${isExpanded ? '90' : '0'}deg)`;
+                    subContainer.style.maxHeight = isExpanded ? '2500px' : '0';
+                } else {
+                    onSelect(v.name);
+                }
+            };
+
+            // Doppelklick auf Hauptvariable selektiert sie direkt
+            row.ondblclick = () => onSelect(v.name);
+        });
+
+        return section;
+    }
+
+    private static createRepeaterSection(fields: string[], onSelect: (name: string) => void): HTMLDivElement {
+        const section = document.createElement('div');
+        section.style.cssText = 'padding:4px 0;';
+
+        const sectionHeader = document.createElement('div');
+        sectionHeader.style.cssText = 'padding:6px 16px; font-size:11px; font-weight:bold; color:#e67e22; text-transform:uppercase; letter-spacing:0.5px;';
+        sectionHeader.innerText = '🔄 Repeater-Daten (row.*)';
+        section.appendChild(sectionHeader);
+
+        fields.forEach(field => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; align-items:center; padding:6px 16px 6px 40px; cursor:pointer; transition:background 0.15s;';
+            row.onmouseenter = () => row.style.background = '#1a1a3e';
+            row.onmouseleave = () => row.style.background = 'transparent';
+
+            const dot = document.createElement('span');
+            dot.style.cssText = 'width:6px; height:6px; background:#e67e22; border-radius:50%; margin-right:10px; flex-shrink:0;';
+            row.appendChild(dot);
+
+            const fieldName = document.createElement('span');
+            fieldName.style.cssText = 'color:#bbb; font-size:12px; font-family:monospace;';
+            fieldName.innerText = `row.${field}`;
+            row.appendChild(fieldName);
+
+            row.onclick = () => onSelect(`row.${field}`);
+            section.appendChild(row);
+        });
+
+        return section;
+    }
+}

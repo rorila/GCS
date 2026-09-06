@@ -1,0 +1,83 @@
+{
+  "id": "ocean-deep",
+  "name": "Ocean Deep",
+  "description": "Tiefes Blau mit leuchtendem Cyan für Unterwasser-Abenteuer.",
+  "components": {
+    "TButton": {
+      "backgroundColor": "#006064",
+      "borderColor": "#00e5ff",
+      "borderWidth": 2,
+      "color": "#e0f7fa",
+      "borderRadius": 14,
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "boxShadow": "0 0 10px #00e5ff, 0 0 18px rgba(0, 229, 255, 0.35)"
+    },
+    "TPanel": {
+      "backgroundColor": "#001e36",
+      "borderColor": "#00bcd4",
+      "borderWidth": 2,
+      "borderRadius": 16,
+      "boxShadow": "0 8px 32px rgba(0, 188, 212, 0.25)"
+    },
+    "TCard": {
+      "backgroundColor": "#004d5c",
+      "borderColor": "#00e5ff",
+      "borderWidth": 2,
+      "borderRadius": 18,
+      "boxShadow": "0 10px 20px rgba(0, 229, 255, 0.25)"
+    },
+    "TLabel": {
+      "color": "#00e5ff",
+      "fontSize": 14,
+      "fontFamily": "Verdana, sans-serif",
+      "fontWeight": "bold",
+      "textShadow": "0 0 6px #00bcd4"
+    },
+    "TNumberLabel": {
+      "color": "#00e5ff",
+      "fontSize": 14,
+      "fontFamily": "Verdana, sans-serif",
+      "fontWeight": "bold",
+      "textShadow": "0 0 6px #00bcd4"
+    },
+    "TDialogRoot": {
+      "backgroundColor": "#001e36",
+      "borderColor": "#00e5ff",
+      "borderWidth": 2,
+      "borderRadius": 20,
+      "boxShadow": "0 20px 40px rgba(0, 229, 255, 0.3)"
+    },
+    "TSidePanel": {
+      "backgroundColor": "#001e36",
+      "borderColor": "#00bcd4",
+      "borderWidth": 2,
+      "boxShadow": "-10px 0 30px rgba(0, 188, 212, 0.25)"
+    },
+    "TEdit": {
+      "backgroundColor": "#004d5c",
+      "borderColor": "#00e5ff",
+      "borderWidth": 2,
+      "color": "#e0f7fa",
+      "borderRadius": 10,
+      "boxShadow": "0 0 8px #00e5ff"
+    },
+    "TTextInput": {
+      "backgroundColor": "#004d5c",
+      "borderColor": "#00e5ff",
+      "borderWidth": 2,
+      "color": "#e0f7fa",
+      "borderRadius": 10,
+      "boxShadow": "0 0 8px #00e5ff"
+    },
+    "TStickyNote": {
+      "backgroundColor": "#e0f7fa",
+      "borderColor": "#00bcd4",
+      "borderWidth": 1,
+      "color": "#001e36",
+      "borderRadius": 4,
+      "boxShadow": "2px 4px 8px rgba(0,0,0,0.2)",
+      "fontFamily": "Verdana, sans-serif"
+    }
+  }
+}

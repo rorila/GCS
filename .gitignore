@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+
+# Lokale Konfiguration und erzeugte Laufzeitdaten
+.env
+.env.*
+!.env.example
+src-tauri/target/
+dist-runtime/
+public/runtime-standalone.js
+public/media-manifest.json
+game-server/dist/
+game-server/data/db.json
+game-server/runtimes/
+uploaded_games/
+docs/QA_Report.md
+
+# Build output
+dist/
+release/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+~$*.rtf
+~$*.docx
+~$*.doc
+
+# Logs
+*.log
+npm-debug.log*
+
+# Backup-Dateien (Projekt-Rotation)
+*.bak*
+
+# Laufzeit-Kopie (aktuell im Editor geladenes Projekt)
+game-server/public/projects/loaded_project.json
+
+# Debug-/Temp-Artefakte (Playwright, Test-Runner)
+out_debug.txt
+playwright_out.txt
+pw_report.json
+test-results/
+
+# Test-Output-Artefakte (sollten nicht ins Repo)
+*output*.txt
+*results*.json
+report*.json
+test_*.txt
+tmp_*.txt
+
+# Logs
+debug-log.txt
+*_errors.log
+
+# Binaries
+*.exe
+
+# Ad-hoc Scripts (Archive)
+patch*.cjs
+fix_*.cjs
+scratch.ts
+scratch.js

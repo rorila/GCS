@@ -1,0 +1,863 @@
+import { GameProject, StageType } from '../../model/types';
+import { MenuBar, MenuItem } from '../MenuBar';
+import { ViewType } from '../EditorViewManager';
+import { changeRecorder } from '../../services/ChangeRecorder';
+import { playbackEngine } from '../../services/PlaybackEngine';
+import { dataService } from '../../services/DataService';
+import { projectStore } from '../../services/ProjectStore';
+import { mediatorService } from '../../services/MediatorService';
+import { themeRegistry } from '../../runtime/ThemeRegistry';
+import { Logger } from '../../utils/Logger';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { PromptDialog } from '../ui/PromptDialog';
+import { NotificationToast } from '../ui/NotificationToast';
+import { AgentScriptDialog } from '../dialogs/AgentScriptDialog';
+import { AgentScriptLibrary } from '../dialogs/AgentScriptLibrary';
+import { AgentScript, ImportOptions } from '../../services/agent/AgentScriptTypes';
+import { AgentController } from '../../services/AgentController';
+import { VideoToSpriteSheetTool } from '../tools/VideoToSpriteSheetTool';
+import { ImageOptimizerTool } from '../tools/ImageTransparencyTool';
+import { AudioSequenceTool } from '../tools/AudioSequenceTool';
+import { AssetAnalyzerTool } from '../tools/AssetAnalyzerTool';
+import { invalidateMediaManifestCache } from '../inspector/MediaPickerDialog';
+
+export interface EditorMenuHost {
+    project: GameProject;
+    menuBar: MenuBar | null;
+    playbackControls: any;
+    inspector: any;
+
+    newProject(): void;
+    newProjectDirect(): void;
+    saveProject(): void;
+    saveProjectToFile(overwriteConfirmed?: boolean): Promise<{ success: boolean; message: string }>;
+    saveProjectAs(): Promise<{ success: boolean; message: string }>;
+    triggerLoad(): void;
+    exportHTML(): void;
+    exportHTMLCompressed(): void;
+    exportJSON(): void;
+    exportJSONCompressed(): void;
+    exportTheme(): void;
+    openThemeEditor(): void;
+    editActiveTheme(): void;
+    createStage(type: StageType): void;
+    deleteCurrentStage(): void;
+    createStageFromTemplate(): void;
+    saveStageAsTemplate(): void;
+    importStageFromFile(): void;
+    switchStage(stageId: string): void;
+    switchView(view: ViewType): void;
+    selectObject(id: string | null): void;
+    getActiveStage(): any;
+    loadFromServer(): void;
+    startMultiplayer(): void;
+    handleRewind(): void;
+    handleForward(): void;
+    render(): void;
+    updateStagesMenu(): void;
+    updateStageLabel(): void;
+    autoSaveToLocalStorage(): void;
+    createDefaultProject(): GameProject;
+    setProject(project: GameProject): void;
+}
+
+export class EditorMenuManager {
+    private static logger = Logger.get('EditorMenuManager', 'Inspector_Update');
+    private host: EditorMenuHost;
+
+    constructor(host: EditorMenuHost) {
+        this.host = host;
+    }
+
+    public async initMenuBar() {
+        try {
+            const menuBarContainer = document.getElementById('menu-bar');
+            if (!menuBarContainer) {
+                EditorMenuManager.logger.warn('menu-bar container not found');
+                return;
+            }
+
+            const menuBar = new MenuBar('menu-bar');
+            await menuBar.loadFromJSON('./editor/menu_bar.json');
+
+            this.host.menuBar = menuBar;
+
+            // Externe Theme-JSON-Dateien laden (z. B. AI-generierte Themes in public/themes/)
+            await themeRegistry.loadThemesFromIndex('./themes/index.json');
+
+            this.updateStagesMenu();
+            this.updateThemesMenu();
+
+            // Stage-Label initial setzen (initMenuBar ist async, daher wird
+            // updateStageLabel() beim ersten setProject() übersprungen weil menuBar noch null ist)
+            const activeStage = this.host.getActiveStage();
+            if (activeStage) {
+                menuBar.setStageLabel(activeStage.name || this.host.project.activeStageId || '–');
+            }
+
+            menuBar.onAction = (action: string) => {
+                this.handleMenuAction(action);
+            };
+
+            EditorMenuManager.logger.info('MenuBar initialized');
+        } catch (e) {
+            EditorMenuManager.logger.error('Failed to initialize MenuBar:', e);
+        }
+    }
+
+    public handleMenuAction(action: string) {
+        if (action.startsWith('switch-theme-')) {
+            this.switchTheme(action.replace('switch-theme-', ''));
+            return;
+        }
+
+        switch (action) {
+            case 'new-project': this.host.newProject(); break;
+            case 'new-project-direct': this.host.newProjectDirect(); break;
+            case 'project-properties': {
+                const editorVM = (this.host as any).viewManager;
+                if (editorVM && typeof editorVM.showEditProjectPropertiesDialog === 'function') {
+                    editorVM.showEditProjectPropertiesDialog();
+                } else {
+                    NotificationToast.show('Projekt-Eigenschaften-Dialog nicht verfügbar.', 'error');
+                }
+                break;
+            }
+            case 'save': this.host.saveProjectToFile(); break;
+            case 'save-as': this.host.saveProjectAs(); break;
+            case 'save-dev': this.host.saveProject(); break;
+            case 'load': this.host.triggerLoad(); break;
+            case 'undo': this.host.handleRewind(); break;
+            case 'redo': this.host.handleForward(); break;
+            case 'export-html': this.host.exportHTML(); break;
+            case 'export-html-gzip': this.host.exportHTMLCompressed(); break;
+            case 'export-json': this.host.exportJSON(); break;
+            case 'export-json-gzip': this.host.exportJSONCompressed(); break;
+            case 'export-theme': this.host.exportTheme(); break;
+            case 'open-theme-editor': this.host.openThemeEditor(); break;
+            case 'edit-active-theme': this.host.editActiveTheme(); break;
+            case 'export-agent-script': AgentScriptDialog.showExport(() => this.refreshAfterAgentScriptImport()); break;
+            case 'import-agent-script': AgentScriptDialog.showImport(
+                () => this.refreshAfterAgentScriptImport(),
+                (script, options) => this.replaceProjectWithAgentScript(script, options)
+            ); break;
+            case 'agent-script-library': AgentScriptLibrary.show(
+                () => this.refreshAfterAgentScriptImport(),
+                (script, options) => this.replaceProjectWithAgentScript(script, options)
+            ); break;
+            case 'export-exe': NotificationToast.show('Exe-Export ist für eine zukünftige Version geplant.', 'info'); break;
+            case 'multiplayer': {
+                const lobby = document.getElementById('multiplayer-lobby');
+                if (lobby) lobby.style.display = 'flex';
+                break;
+            }
+            case 'new-stage': {
+                EditorMenuManager.logger.info('[Menu] new-stage geklickt → createStageFromWizard');
+                const editor: any = this.host as any;
+                if (typeof editor.createStageFromWizard === 'function') {
+                    editor.createStageFromWizard().then(() => {
+                        this.host.selectObject(null);
+                        if (this.host.inspector) {
+                            const ns = this.host.getActiveStage();
+                            if (ns) this.host.inspector.update(ns);
+                        }
+                    });
+                } else {
+                    EditorMenuManager.logger.error('[Menu] createStageFromWizard nicht verfügbar, Fallback auf createStage');
+                    this.host.createStage('standard');
+                    this.host.selectObject(null);
+                    if (this.host.inspector) {
+                        const ns = this.host.getActiveStage();
+                        if (ns) this.host.inspector.update(ns);
+                    }
+                }
+                break;
+            }
+            case 'new-splash': {
+                this.host.createStage('splash');
+                this.host.selectObject(null);
+                if (this.host.inspector) {
+                    const ss = this.host.getActiveStage();
+                    if (ss) this.host.inspector.update(ss);
+                }
+                break;
+            }
+            case 'new-from-template': this.host.createStageFromTemplate(); break;
+            case 'save-as-template': this.host.saveStageAsTemplate(); break;
+            case 'import-stage': this.host.importStageFromFile(); break;
+            case 'manage-stages': this.showStageManagerDialog(); break;
+            case 'stage-duplicate':
+                if ((this.host as any).stageManager) (this.host as any).stageManager.duplicateStage();
+                break;
+            case 'stage-move-up':
+                if ((this.host as any).stageManager && this.host.project.activeStageId) 
+                    (this.host as any).stageManager.moveStage(this.host.project.activeStageId, 'up');
+                break;
+            case 'stage-move-down':
+                if ((this.host as any).stageManager && this.host.project.activeStageId) 
+                    (this.host as any).stageManager.moveStage(this.host.project.activeStageId, 'down');
+                break;
+            case 'show-excluded': this.showExcludedBlueprintDialog(); break;
+            case 'stage-settings': {
+                this.host.selectObject(null);
+                if (this.host.inspector) {
+                    const activeStage = this.host.getActiveStage();
+                    if (activeStage) this.host.inspector.update(activeStage);
+                }
+                break;
+            }
+            case 'force-reload': this.host.loadFromServer(); break;
+            case 'seed-data':
+                ConfirmDialog.show('Achtung: Dies überschreibt lokale Test-Daten (gcs_db_data.json) mit den Server-Daten. Fortfahren?').then(confirmed => {
+                    if (!confirmed) return;
+                    Promise.all([
+                        dataService.seedFromUrl('users.json', '/api/dev/data/users.json'),
+                        dataService.seedFromUrl('db.json', '/api/dev/data/db.json')
+                    ]).then(() => {
+                        NotificationToast.show('Daten erfolgreich geladen. Die Seite wird neu geladen.', 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    }).catch(err => {
+                        NotificationToast.show('Fehler beim Seeden: ' + err.message, 'error');
+                    });
+                });
+                break;
+            case 'open-video-to-spritesheet': {
+                this.openVideoToSpriteSheetTool();
+                break;
+            }
+            case 'open-image-optimizer': {
+                this.openImageOptimizerTool();
+                break;
+            }
+            case 'open-audio-sequence': {
+                this.openAudioSequenceTool();
+                break;
+            }
+            case 'open-asset-analyzer': {
+                this.openAssetAnalyzerTool();
+                break;
+            }
+            default: {
+                const normalizedAction = action.replace(/\s+/g, '');
+                if (normalizedAction.startsWith('switch-stage-')) {
+                    const stageId = normalizedAction.replace('switch-stage-', '');
+                    this.host.switchStage(stageId);
+                } else {
+                    this.handleRecordingAction(action);
+                }
+            }
+        }
+    }
+
+    private refreshAfterAgentScriptImport(): void {
+        this.host.render();
+        this.host.updateStagesMenu();
+        this.host.updateStageLabel();
+        this.host.autoSaveToLocalStorage();
+        projectStore.setProject(this.host.project);
+        mediatorService.notifyDataChanged(this.host.project, 'agent-script-import');
+    }
+
+    private async replaceProjectWithAgentScript(script: AgentScript, options: ImportOptions): Promise<boolean> {
+        const confirmed = await ConfirmDialog.show(
+            'Das aktuelle Projekt wird komplett ersetzt. Ungespeicherte Änderungen gehen verloren. Fortfahren?',
+            'Projekt ersetzen',
+            'Ersetzen',
+            'Abbrechen'
+        );
+        if (!confirmed) return false;
+
+        const previousProject = this.host.project;
+        const newProject = this.host.createDefaultProject();
+        // Voll-Ersetzung: Default-Stages ('Haupt-Level'/Blueprint) entfernen,
+        // damit ausschließlich die Stages aus dem Script entstehen.
+        const defaultStages = newProject.stages;
+        newProject.stages = [];
+        (newProject as any).activeStageId = undefined;
+
+        const agent = AgentController.getInstance();
+        agent.setProject(newProject);
+
+        const result = agent.importScript(script, options);
+        if (result.success) {
+            // Fallback: Liefert das Script keine Stage, Default-Stages wiederherstellen
+            if (!newProject.stages || newProject.stages.length === 0) {
+                newProject.stages = defaultStages;
+            }
+            (newProject as any).activeStageId = newProject.stages?.[0]?.id;
+            this.host.setProject(newProject);
+            this.host.autoSaveToLocalStorage();
+            projectStore.setProject(newProject);
+            mediatorService.notifyDataChanged(newProject, 'agent-script-import');
+            NotificationToast.show(`Projekt "${script.name || 'Import'}" erfolgreich ersetzt.`, 'success');
+            return true;
+        } else {
+            agent.setProject(previousProject);
+            NotificationToast.show('Projekt-Ersetzen fehlgeschlagen:\n' + result.errors.join('\n'), 'error');
+            return false;
+        }
+    }
+
+    public handleRecordingAction(action: string): void {
+        switch (action) {
+            case 'record-start':
+                PromptDialog.show('Name für das Recording:', `Tutorial_${new Date().toLocaleTimeString()}`).then(name => {
+                    if (name) changeRecorder.startRecording(name);
+                });
+                break;
+            case 'record-stop': {
+                const recording = changeRecorder.stopRecording();
+                if (recording) {
+                    NotificationToast.show(`Recording "${recording.name}" gestoppt. ${recording.actions.length} Aktionen aufgezeichnet.`);
+                    playbackEngine.load(recording);
+                    this.host.playbackControls?.show();
+                }
+                break;
+            }
+            case 'playback-show':
+                this.host.playbackControls?.show();
+                break;
+            case 'recording-export': {
+                const currentRec = (playbackEngine as any).currentRecording;
+                if (currentRec) {
+                    const json = JSON.stringify(currentRec, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${currentRec.name}.gcsrec`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } else {
+                    NotificationToast.show('Kein Recording zum Exportieren vorhanden.');
+                }
+                break;
+            }
+            case 'recording-import': {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.gcsrec, .json';
+                input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (re) => {
+                            try {
+                                const rec = JSON.parse(re.target?.result as string);
+                                playbackEngine.load(rec);
+                                this.host.playbackControls?.show();
+                                NotificationToast.show(`Recording "${rec.name}" erfolgreich importiert.`);
+                            } catch (err) {
+                                NotificationToast.show('Fehler beim Importieren des Recordings.');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                input.click();
+                break;
+            }
+            default:
+                EditorMenuManager.logger.warn('Unknown menu action:', action);
+        }
+    }
+
+    private openImageOptimizerTool(): void {
+        const tool = new ImageOptimizerTool(document.body, 'http://localhost:8080/api/upload/spritesheet');
+        tool.onExport = (result) => {
+            invalidateMediaManifestCache();
+            NotificationToast.show(`Bild '${result.fileName}' gespeichert.`, 'success');
+        };
+        tool.onError = (msg) => NotificationToast.show(msg, 'error');
+        tool.open();
+    }
+
+    private openAudioSequenceTool(): void {
+        const tool = new AudioSequenceTool(document.body);
+        tool.open();
+    }
+
+    /**
+     * Reine Diagnose: prueft alle Projektbilder auf ein sinnvolles Verhaeltnis
+     * zwischen Quell-Auflösung und Anzeigegroesse. Aendert nichts am Projekt.
+     */
+    private openAssetAnalyzerTool(): void {
+        const tool = new AssetAnalyzerTool(document.body, this.host.project);
+        tool.open();
+    }
+
+    private openVideoToSpriteSheetTool(): void {
+        const tool = new VideoToSpriteSheetTool(document.body, 'http://localhost:8080/api/upload/spritesheet');
+        tool.onExport = (result) => this.handleSpriteSheetExport(result);
+        tool.onError = (msg) => NotificationToast.show(msg, 'error');
+        tool.open();
+    }
+
+    private handleSpriteSheetExport(result: any): void {
+        const editor = this.host as any;
+        if (!editor || !editor.commandManager || typeof editor.getActiveStage !== 'function') return;
+
+        const activeStage = editor.getActiveStage();
+        if (!activeStage || !activeStage.objects) {
+            NotificationToast.show('Keine aktive Stage vorhanden.', 'error');
+            return;
+        }
+
+        // Neue Datei liegt jetzt in public/images — Picker-Cache verwerfen,
+        // damit sie ohne Editor-Reload im MediaPicker auftaucht.
+        invalidateMediaManifestCache();
+
+        const baseName = (result.metadata && result.metadata.name) ? result.metadata.name : 'spritesheet';
+        const objects: any[] = activeStage.objects;
+
+        const imageListName = this.makeUniqueName(objects, baseName);
+        const imageList = editor.commandManager.createObjectInstance('TImageList', imageListName, 2, 2);
+        if (imageList) {
+            // TImageList erbt von TImage und nutzt `src` als Bildquelle.
+            // `backgroundImage` wird zusätzlich gesetzt, weil der SpriteRenderer beide Wege unterstützt.
+            imageList.src = result.url;
+            imageList.backgroundImage = result.url;
+            imageList.imageCountHorizontal = result.metadata ? result.metadata.columns : 1;
+            imageList.imageCountVertical = result.metadata ? result.metadata.rows : 1;
+            imageList.currentImageNumber = 0;
+            imageList.scope = 'stage';
+            if (!(imageList as any).className) (imageList as any).className = 'TImageList';
+
+            // Sichtbare Größe anhand der Frame-Dimensionen skalieren (passt auf die Stage)
+            const grid = activeStage.grid || { cols: 20, rows: 15, cellSize: 32 };
+            const frameW = (result.metadata ? result.metadata.frameWidth : 32) / grid.cellSize;
+            const frameH = (result.metadata ? result.metadata.frameHeight : 32) / grid.cellSize;
+            const maxW = Math.max(2, grid.cols - 4);
+            const maxH = Math.max(2, grid.rows - 4);
+            const scale = Math.min(maxW / frameW, maxH / frameH, 1);
+            imageList.width = Math.max(2, Math.round(frameW * scale));
+            imageList.height = Math.max(2, Math.round(frameH * scale));
+            imageList.x = 2;
+            imageList.y = 2;
+
+            objects.push(imageList);
+        }
+
+        const animName = this.makeUniqueName(objects, `${baseName}_anim`);
+        const animation = editor.commandManager.createObjectInstance('TAnimation', animName, 12, 2);
+        if (animation) {
+            animation.imageListId = imageList ? imageList.name : '';
+            animation.imageCount = result.metadata ? result.metadata.frames : 1;
+            animation.frameDuration = Math.round(((result.metadata && result.metadata.frameInterval) || 0.1) * 1000);
+            animation.loop = true;
+            animation.enabled = true;
+            animation.scope = 'stage';
+            objects.push(animation);
+        }
+
+        EditorMenuManager.logger.info(
+            `SpriteSheet-Import: ImageList '${imageListName}' (${imageList ? 'ok' : 'FEHLER'}), ` +
+            `Animation '${animName}' (${animation ? 'ok' : 'FEHLER'}), ` +
+            `Raster ${result.metadata?.columns}x${result.metadata?.rows}, ` +
+            `Frames ${result.metadata?.frames}, URL ${result.url}, ` +
+            `Stage '${activeStage.name || activeStage.id}' hat jetzt ${objects.length} Objekte`
+        );
+
+        editor.render();
+        if (imageList) editor.selectObject(imageList.id);
+        NotificationToast.show(`ImageList '${imageListName}' (${result.metadata ? result.metadata.frames : 0} Frames, ${result.metadata ? result.metadata.frameWidth : 0}x${result.metadata ? result.metadata.frameHeight : 0}) erstellt.`, 'success');
+
+        this.host.autoSaveToLocalStorage();
+        projectStore.setProject(this.host.project);
+        mediatorService.notifyDataChanged(this.host.project, 'video-to-spritesheet');
+        Promise.resolve(this.host.saveProject()).catch(e => EditorMenuManager.logger.error('Speichern fehlgeschlagen:', e));
+    }
+
+    private makeUniqueName(objects: any[], base: string): string {
+        const names = new Set(objects.map(o => o.name));
+        if (!names.has(base)) return base;
+        let i = 2;
+        while (names.has(`${base}_${i}`)) i++;
+        return `${base}_${i}`;
+    }
+
+    public updateStagesMenu(): void {
+        if (!this.host.menuBar || !this.host.project.stages) return;
+
+        // Base items for stage management
+        const baseItems: MenuItem[] = [
+            { id: 'open-theme-editor', label: '🎨 Theme-Editor öffnen', action: 'open-theme-editor', icon: '🎨' },
+            { id: 'manage-stages', label: '📋 Stages verwalten...', action: 'manage-stages' },
+            { id: 'new-stage', label: 'Neue Stage', action: 'new-stage', icon: '📄' },
+            { id: 'new-splash', label: 'Neuer Splashscreen', action: 'new-splash', icon: '🚀' },
+            { id: 'show-excluded', label: 'Ausgeblendete Objekte einblenden', action: 'show-excluded', icon: '👁️' },
+            { id: 'import-stage', label: 'Stage importieren', action: 'import-stage', icon: '📥' }
+        ];
+
+        // Dynamic stage list (Theme-Editor-Stage ausblenden)
+        const visibleStages = this.host.project.stages.filter(s => s.type !== 'theme-editor');
+        const stageItems: MenuItem[] = visibleStages.map(s => ({
+            id: s.id,
+            label: s.type === 'blueprint' ? `🏗️ ${s.name} (Blueprint)` : `🎭 ${s.name}`,
+            action: `switch-stage-${s.id}`,
+            active: s.id === this.host.project.activeStageId
+        }));
+
+        this.host.menuBar.updateMenu('stages', [...baseItems, ...stageItems]);
+        this.updateThemesMenu();
+    }
+
+    /**
+     * Aktualisiert das Themes-Menü mit allen registrierten Themes.
+     */
+    public updateThemesMenu(): void {
+        if (!this.host.menuBar) return;
+
+        const activeThemeId = themeRegistry.getActiveThemeId();
+        const themeItems: MenuItem[] = themeRegistry.getAvailableThemes().map(t => ({
+            id: `theme-${t.id}`,
+            label: t.id === activeThemeId ? `✅ ${t.name}` : t.name,
+            action: `switch-theme-${t.id}`,
+            active: t.id === activeThemeId
+        }));
+
+        const activeTheme = themeRegistry.getAvailableThemes().find(t => t.id === activeThemeId);
+        const activeThemeName = activeTheme?.name || activeThemeId;
+
+        this.host.menuBar.updateMenu('themes', [
+            { id: 'open-theme-editor', label: '🎨 Theme-Editor öffnen', action: 'open-theme-editor', icon: '🎨' },
+            { id: 'edit-active-theme', label: `✏️ Aktives Theme bearbeiten (${activeThemeName})`, action: 'edit-active-theme', icon: '✏️' },
+            ...themeItems
+        ]);
+    }
+
+    private switchTheme(themeId: string): void {
+        const theme = themeRegistry.getAvailableThemes().find(t => t.id === themeId);
+        if (!theme) {
+            NotificationToast.show(`Theme "${themeId}" nicht gefunden.`, 'error');
+            return;
+        }
+
+        // Datei-basierte Themes in das Projekt übernehmen, damit sie beim Speichern/Export erhalten bleiben.
+        const projectThemes = this.host.project.themes || (this.host.project.themes = []);
+        if (!projectThemes.some(t => t.id === themeId)) {
+            projectThemes.push(JSON.parse(JSON.stringify(theme)));
+        }
+
+        themeRegistry.setActiveTheme(themeId);
+        this.host.project.activeThemeId = themeId;
+
+        // Theme-Stage-Stil auf die aktuelle Editor-Stage anwenden
+        const themeStage = themeRegistry.getStageStyle();
+        const activeStage = this.host.getActiveStage();
+        if (activeStage) {
+            if (!activeStage.grid) activeStage.grid = { cols: 64, rows: 40, cellSize: 20, visible: true, backgroundColor: themeStage.backgroundColor };
+            activeStage.grid.backgroundColor = themeStage.backgroundColor;
+            (activeStage.grid as any).gridColor = themeStage.gridColor;
+            const stage = (this.host as any).stage;
+            if (stage) {
+                stage.grid = activeStage.grid;
+            }
+        }
+
+        this.host.render();
+        this.updateThemesMenu();
+        NotificationToast.show(`Theme aktiviert: ${theme.name}`, 'info');
+    }
+
+    /**
+     * Zeigt einen Dark-Theme Modal-Dialog mit Checkboxen für alle ausgeblendeten
+     * Blueprint-Objekte der aktuellen Stage.
+     */
+    private showExcludedBlueprintDialog(): void {
+        const activeStage = this.host.getActiveStage();
+        if (!activeStage || !activeStage.excludedBlueprintIds || activeStage.excludedBlueprintIds.length === 0) {
+            NotificationToast.show('Keine ausgeblendeten Objekte auf dieser Stage.');
+            return;
+        }
+
+        const blueprintStage = this.host.project.stages?.find((s: any) => s.type === 'blueprint');
+        if (!blueprintStage) return;
+
+        const allBpObjs = [...(blueprintStage.objects || [])];
+
+        // Overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:20000;display:flex;align-items:center;justify-content:center;';
+
+        // Dialog
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background:#252526; border:1px solid #555; border-radius:8px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.6); min-width:340px; max-width:480px;
+            color:#ccc; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+        `;
+
+        // Header
+        const header = document.createElement('div');
+        header.style.cssText = 'padding:16px 20px 12px;border-bottom:1px solid #444;font-size:15px;font-weight:600;color:#fff;';
+        header.textContent = `👁️ Ausgeblendete Objekte — ${activeStage.name}`;
+        dialog.appendChild(header);
+
+        // Checkbox-Liste
+        const list = document.createElement('div');
+        list.style.cssText = 'padding:12px 20px;max-height:300px;overflow-y:auto;';
+
+        const checkboxes: { id: string, cb: HTMLInputElement }[] = [];
+        for (const excludedId of activeStage.excludedBlueprintIds) {
+            const obj = allBpObjs.find((o: any) => o.id === excludedId);
+            const name = obj?.name || obj?.caption || excludedId;
+            const className = obj?.className || '';
+            const icon = className === 'TGroupPanel' ? '📦' : className === 'TPanel' ? '🖼️' : className === 'TLabel' ? '🏷️' : className === 'TButton' ? '🔘' : className === 'TImage' ? '🖼️' : '📦';
+
+            const row = document.createElement('label');
+            row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-radius:4px;transition:background 0.15s;';
+            row.onmouseenter = () => row.style.background = '#333';
+            row.onmouseleave = () => row.style.background = 'transparent';
+
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.style.cssText = 'width:16px;height:16px;accent-color:#4fc3f7;cursor:pointer;';
+            row.appendChild(cb);
+
+            const iconEl = document.createElement('span');
+            iconEl.textContent = icon;
+            iconEl.style.fontSize = '16px';
+            row.appendChild(iconEl);
+
+            const label = document.createElement('span');
+            label.textContent = name;
+            label.style.cssText = 'flex:1;font-size:13px;';
+            row.appendChild(label);
+
+            const typeEl = document.createElement('span');
+            typeEl.textContent = className.replace('T', '');
+            typeEl.style.cssText = 'font-size:11px;color:#888;';
+            row.appendChild(typeEl);
+
+            list.appendChild(row);
+            checkboxes.push({ id: excludedId, cb });
+        }
+        dialog.appendChild(list);
+
+        // Footer mit Buttons
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:12px 20px;border-top:1px solid #444;display:flex;gap:8px;justify-content:flex-end;';
+
+        const btnAll = document.createElement('button');
+        btnAll.textContent = 'Alle einblenden';
+        btnAll.style.cssText = 'padding:6px 14px;border:1px solid #555;background:#333;color:#4fc3f7;border-radius:4px;cursor:pointer;font-size:13px;';
+        btnAll.onmouseenter = () => btnAll.style.background = '#444';
+        btnAll.onmouseleave = () => btnAll.style.background = '#333';
+
+        const btnApply = document.createElement('button');
+        btnApply.textContent = 'Markierte einblenden';
+        btnApply.style.cssText = 'padding:6px 14px;border:none;background:#094771;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;';
+        btnApply.onmouseenter = () => btnApply.style.background = '#0b5d99';
+        btnApply.onmouseleave = () => btnApply.style.background = '#094771';
+
+        const btnCancel = document.createElement('button');
+        btnCancel.textContent = 'Abbrechen';
+        btnCancel.style.cssText = 'padding:6px 14px;border:1px solid #555;background:#333;color:#ccc;border-radius:4px;cursor:pointer;font-size:13px;';
+        btnCancel.onmouseenter = () => btnCancel.style.background = '#444';
+        btnCancel.onmouseleave = () => btnCancel.style.background = '#333';
+
+        footer.appendChild(btnAll);
+        footer.appendChild(btnApply);
+        footer.appendChild(btnCancel);
+        dialog.appendChild(footer);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // Event-Handler
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        btnCancel.onclick = close;
+
+        btnAll.onclick = () => {
+            activeStage.excludedBlueprintIds = [];
+            close();
+            if ((this.host as any).render) (this.host as any).render();
+        };
+
+        btnApply.onclick = () => {
+            const toRestore = checkboxes.filter(c => c.cb.checked).map(c => c.id);
+            if (toRestore.length === 0) { close(); return; }
+            activeStage.excludedBlueprintIds = activeStage.excludedBlueprintIds!.filter(
+                (id: string) => !toRestore.includes(id)
+            );
+            close();
+            if ((this.host as any).render) (this.host as any).render();
+        };
+
+        // ESC schließt den Dialog
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { close(); window.removeEventListener('keydown', onKey); } };
+        window.addEventListener('keydown', onKey);
+    }
+
+    /**
+     * Zeigt einen Dark-Theme Modal-Dialog zur Verwaltung (Sortierung, Duplikation) 
+     * aller Stages im Projekt.
+     */
+    private showStageManagerDialog(): void {
+        const project = this.host.project;
+        if (!project || !project.stages) return;
+
+        // Overlay erstellen
+        const overlay = document.createElement('div');
+        overlay.id = 'stage-manager-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:20000;display:flex;align-items:center;justify-content:center;';
+
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background:#252526; border:1px solid #555; border-radius:8px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.6); width:500px; max-width:90%;
+            color:#ccc; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            display:flex; flex-direction:column; max-height:80vh;
+        `;
+
+        // Header
+        const header = document.createElement('div');
+        header.style.cssText = 'padding:16px 20px 12px;border-bottom:1px solid #444;font-size:15px;font-weight:600;color:#fff;display:flex;justify-content:space-between;align-items:center;';
+        header.innerHTML = '<span>📋 Stages verwalten</span>';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✖';
+        closeBtn.style.cssText = 'background:transparent;border:none;color:#aaa;cursor:pointer;font-size:16px;';
+        closeBtn.onmouseenter = () => closeBtn.style.color = '#fff';
+        closeBtn.onmouseleave = () => closeBtn.style.color = '#aaa';
+        closeBtn.onclick = () => close();
+        header.appendChild(closeBtn);
+        dialog.appendChild(header);
+
+        // List Container
+        const listContainer = document.createElement('div');
+        listContainer.style.cssText = 'padding:10px; overflow-y:auto; flex:1;';
+        dialog.appendChild(listContainer);
+
+        // Render Funktion für die Liste (Aufruf bei Start und nach Änderungen)
+        const renderList = () => {
+            listContainer.innerHTML = '';
+            const visibleStages = project.stages!.filter(s => s.type !== 'blueprint');
+            
+            visibleStages.forEach((stage, index) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;padding:8px 12px;background:#1e1e1e;border:1px solid #333;margin-bottom:6px;border-radius:4px;';
+                if (stage.id === project.activeStageId) {
+                    row.style.borderLeft = '3px solid #4fc3f7';
+                }
+
+                // Stage Info
+                const infoCol = document.createElement('div');
+                infoCol.style.cssText = 'flex:1;display:flex;flex-direction:column;';
+                
+                const nameLabel = document.createElement('span');
+                nameLabel.style.cssText = 'font-weight:600;color:#e0e0e0;font-size:13px;';
+                nameLabel.textContent = stage.name;
+                infoCol.appendChild(nameLabel);
+
+                const typeLabel = document.createElement('span');
+                typeLabel.style.cssText = 'font-size:11px;color:#888;margin-top:2px;';
+                typeLabel.textContent = `ID: ${stage.id} • Typ: ${stage.type}`;
+                infoCol.appendChild(typeLabel);
+                
+                row.appendChild(infoCol);
+
+                // Controls
+                const controlsCol = document.createElement('div');
+                controlsCol.style.cssText = 'display:flex;gap:4px;';
+
+                const btnStyle = 'background:#333;border:1px solid #444;color:#ccc;cursor:pointer;padding:4px 8px;border-radius:3px;font-size:12px;transition:background 0.2s;';
+
+                const createBtn = (icon: string, title: string, onClick: () => void, disabled = false) => {
+                    const btn = document.createElement('button');
+                    btn.innerHTML = icon;
+                    btn.title = title;
+                    btn.style.cssText = btnStyle;
+                    if (disabled) {
+                        btn.style.opacity = '0.3';
+                        btn.style.cursor = 'default';
+                    } else {
+                        btn.onmouseenter = () => btn.style.background = '#444';
+                        btn.onmouseleave = () => btn.style.background = '#333';
+                        btn.onclick = onClick;
+                    }
+                    return btn;
+                };
+
+                // Up
+                controlsCol.appendChild(createBtn('⬆️', 'Nach oben verschieben', () => {
+                    const sm = (this.host as any).stageManager;
+                    if (sm) { sm.moveStage(stage.id, 'up'); renderList(); }
+                }, index === 0));
+
+                // Down
+                controlsCol.appendChild(createBtn('⬇️', 'Nach unten verschieben', () => {
+                    const sm = (this.host as any).stageManager;
+                    if (sm) { sm.moveStage(stage.id, 'down'); renderList(); }
+                }, index === visibleStages.length - 1));
+
+                // Clone
+                controlsCol.appendChild(createBtn('📄+', 'Duplizieren', () => {
+                    const sm = (this.host as any).stageManager;
+                    if (sm) { 
+                        // duplicateStage() triggert onRefresh -> Editor baut alles neu.
+                        // Für ein flüssiges Erlebnis rendern wir den Dialog einfach neu nach kurzem Delay.
+                        sm.duplicateStage(stage.id); 
+                        setTimeout(renderList, 50);
+                    }
+                }));
+
+                // Delete
+                controlsCol.appendChild(createBtn('🗑️', 'Löschen', async () => {
+                    if (await ConfirmDialog.show(`Möchtest du Stage "${stage.name}" wirklich löschen?`)) {
+                        const sm = (this.host as any).stageManager;
+                        if (project.stages!.length <= 1) {
+                            NotificationToast.show('Das Projekt muss mindestens eine Stage enthalten.');
+                            return;
+                        }
+                        // Wenn es die aktive Stage ist: vor dem Löschen wechseln
+                        if (project.activeStageId === stage.id) {
+                            const fallback = project.stages!.find(s => s.id !== stage.id);
+                            if (fallback) sm.switchStage(fallback.id);
+                        }
+                        const idx = project.stages!.findIndex(s => s.id === stage.id);
+                        if (idx !== -1) {
+                            project.stages!.splice(idx, 1);
+                            if (sm.onRefresh) sm.onRefresh();
+                            renderList();
+                        }
+                    }
+                }));
+
+                row.appendChild(controlsCol);
+                listContainer.appendChild(row);
+            });
+        };
+
+        renderList();
+
+        // Footer
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:12px 20px;border-top:1px solid #444;display:flex;justify-content:flex-end;';
+        
+        const btnDone = document.createElement('button');
+        btnDone.textContent = 'Fertig';
+        btnDone.style.cssText = 'padding:6px 16px;border:none;background:#094771;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;';
+        btnDone.onmouseenter = () => btnDone.style.background = '#0b5d99';
+        btnDone.onmouseleave = () => btnDone.style.background = '#094771';
+        footer.appendChild(btnDone);
+        dialog.appendChild(footer);
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        const close = () => {
+            overlay.remove();
+            window.removeEventListener('keydown', onKey);
+            // Editor MenuBar Updates nach Schließen sicherstellen
+            this.updateStagesMenu();
+        };
+
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        btnDone.onclick = close;
+
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+        window.addEventListener('keydown', onKey);
+    }
+}

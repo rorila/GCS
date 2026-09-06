@@ -1,0 +1,143 @@
+[
+    {
+        "className": "TLabel",
+        "text": "DIAGNOSE: BaseVar='${selectedObject.LeftOperandBaseVar}' Type='${selectedObject.LeftOperandType}'",
+        "style": {
+            "fontSize": 10,
+            "color": "#f0f",
+            "marginBottom": 8
+        }
+    },
+    {
+        "className": "TLabel",
+        "text": "OPERAND 1 (LINKS)",
+        "style": {
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "color": "#888",
+            "marginTop": 10
+        }
+    },
+    {
+        "name": "LeftOperandTypeSelect",
+        "className": "TDropdown",
+        "label": "Typ",
+        "selectedValue": "${selectedObject.LeftOperandType}",
+        "options": [
+            {
+                "value": "literal",
+                "label": "Fester Wert"
+            },
+            {
+                "value": "variable",
+                "label": "Variable"
+            }
+        ],
+        "placeholder": "-- Typ wählen --"
+    },
+    {
+        "name": "LeftOperandBaseVar_VarInput",
+        "className": "TDropdown",
+        "label": "Variable wählen",
+        "selectedValue": "${selectedObject.LeftOperandBaseVar}",
+        "options": "${availableVariablesAsTokens}",
+        "visible": "${selectedObject.LeftOperandType === 'variable'}",
+        "placeholder": "-- Variable wählen --"
+    },
+    {
+        "name": "LeftOperandSubProp_Select",
+        "className": "TDropdown",
+        "label": "Eigenschaft",
+        "selectedValue": "${selectedObject.LeftOperandSubProp}",
+        "options": "${availableVariableFields[selectedObject.LeftOperandBaseVar]}",
+        "visible": "${selectedObject.LeftOperandType === 'variable' && availableVariableFields[selectedObject.LeftOperandBaseVar]}",
+        "placeholder": "-- Feld wählen --"
+    },
+    {
+        "name": "LeftOperandValueInput",
+        "className": "TEdit",
+        "label": "Wert eingeben",
+        "text": "${selectedObject.LeftOperandValue}",
+        "visible": "${selectedObject.LeftOperandType === 'literal'}",
+        "placeholder": "z.B. Admin"
+    },
+    {
+        "className": "TLabel",
+        "text": "OPERATOR",
+        "style": {
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "color": "#888",
+            "marginTop": 10
+        }
+    },
+    {
+        "name": "OperatorSelect",
+        "className": "TDropdown",
+        "selectedValue": "${selectedObject.Operator}",
+        "options": [
+            "==",
+            "!=",
+            ">",
+            "<",
+            ">=",
+            "<=",
+            "contains",
+            "startsWith"
+        ],
+        "placeholder": "-- Operator --"
+    },
+    {
+        "className": "TLabel",
+        "text": "OPERAND 2 (RECHTS)",
+        "style": {
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "color": "#888",
+            "marginTop": 10
+        }
+    },
+    {
+        "name": "RightOperandTypeSelect",
+        "className": "TDropdown",
+        "label": "Typ",
+        "selectedValue": "${selectedObject.RightOperandType}",
+        "options": [
+            {
+                "value": "literal",
+                "label": "Fester Wert"
+            },
+            {
+                "value": "variable",
+                "label": "Variable"
+            }
+        ],
+        "placeholder": "-- Typ wählen --"
+    },
+    {
+        "name": "RightOperandBaseVar_VarInput",
+        "className": "TDropdown",
+        "label": "Variable wählen",
+        "selectedValue": "${selectedObject.RightOperandBaseVar}",
+        "options": "${availableVariablesAsTokens}",
+        "visible": "${selectedObject.RightOperandType === 'variable'}",
+        "placeholder": "-- Variable wählen --"
+    },
+    {
+        "name": "RightOperandSubProp_Select",
+        "className": "TDropdown",
+        "label": "Eigenschaft",
+        "selectedValue": "${selectedObject.RightOperandSubProp}",
+        "options": "${availableVariableFields[selectedObject.RightOperandBaseVar]}",
+        "visible": "${selectedObject.RightOperandType === 'variable' && availableVariableFields[selectedObject.RightOperandBaseVar]}",
+        "placeholder": "-- Feld wählen --"
+    },
+    {
+        "name": "RightOperandValueInput",
+        "className": "TEdit",
+        "label": "Wert eingeben",
+        "text": "${selectedObject.RightOperandValue}",
+        "visible": "${selectedObject.RightOperandType === 'literal'}",
+        "placeholder": "z.B. true"
+    }
+]

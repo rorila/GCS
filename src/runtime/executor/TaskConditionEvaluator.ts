@@ -1,0 +1,134 @@
+import { PropertyHelper } from '../PropertyHelper';
+import { Logger } from '../../utils/Logger';
+
+export class TaskConditionEvaluator {
+    private static logger = Logger.get('TaskConditionEvaluator', 'Runtime_Execution');
+    public static evaluateCondition(condition: any, vars: Record<string, any>, globalVars: Record<string, any>): boolean {
+        if (!condition) return false;
+
+        let leftValue: any;
+        let rightValue: any;
+        let operator = '==';
+        let conditionStr = '';
+
+        if (typeof condition === 'string') {
+            conditionStr = condition;
+            const parts = condition.split(/\s*(==|!=|>|<|>=|<=)\s*/);
+            if (parts.length === 3) {
+                const left = parts[0].trim();
+                operator = parts[1];
+                const right = parts[2].trim();
+
+                leftValue = this.resolveValue(left, vars, globalVars);
+                rightValue = this.resolveValue(right, vars, globalVars);
+            } else {
+                return !!this.resolveValue(condition, vars, globalVars);
+            }
+        } else {
+            const leftType = condition.leftType || 'variable';
+            const rightType = condition.rightType || 'literal';
+            const leftValRaw = condition.leftValue !== undefined ? condition.leftValue : condition.variable;
+            const rightValRaw = condition.rightValue !== undefined ? condition.rightValue : condition.value;
+            operator = condition.operator || '==';
+
+            if (leftType === 'variable' || leftType === 'property') {
+                leftValue = this.resolveValue(leftValRaw, vars, globalVars);
+            } else {
+                leftValue = leftValRaw;
+            }
+
+            if (rightType === 'variable' || rightType === 'property') {
+                rightValue = this.resolveValue(rightValRaw, vars, globalVars);
+            } else {
+                rightValue = rightValRaw;
+            }
+
+            conditionStr = `${leftValRaw} (${leftType}) ${operator} ${rightValRaw} (${rightType})`;
+        }
+
+        TaskConditionEvaluator.logger.debug(`Evaluating Condition: "${conditionStr}"`);
+        TaskConditionEvaluator.logger.debug(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
+        TaskConditionEvaluator.logger.debug(`               Right: "${rightValue}" (type: ${typeof rightValue})`);
+        TaskConditionEvaluator.logger.debug(`               Op:    "${operator}"`);
+
+        switch (operator) {
+            case '==': return String(leftValue) === String(rightValue);
+            case '!=': return String(leftValue) !== String(rightValue);
+            case '>': return Number(leftValue) > Number(rightValue);
+            case '<': return Number(leftValue) < Number(rightValue);
+            case '>=': return Number(leftValue) >= Number(rightValue);
+            case '<=': return Number(leftValue) <= Number(rightValue);
+            default: return String(leftValue) === String(rightValue);
+        }
+    }
+
+    public static resolveValue(value: number | string | undefined, vars: Record<string, any>, globalVars: Record<string, any>): any {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'boolean') return value;
+        if (value === undefined || value === null) return value;
+
+        if (typeof value === 'string') {
+            // Check for quoted strings
+            if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
+                return value.substring(1, value.length - 1);
+            }
+
+            // Check for variable references
+            const match = value.match(/^\$\{(.+)\}$/);
+            if (match) {
+                return this.resolveVarPath(match[1], vars, globalVars);
+            }
+
+            // Try to parse as number (integer or float)
+            if (!isNaN(Number(value)) && value.trim() !== '') {
+                return Number(value);
+            }
+
+            // Otherwise treat as variable path
+            return this.resolveVarPath(value, vars, globalVars);
+        }
+        return value;
+    }
+
+    public static resolveVarPath(path: string, vars: Record<string, any>, globalVars: Record<string, any>): any {
+        let root = vars;
+        let lookup = path;
+
+        if (lookup.startsWith('${') && lookup.endsWith('}')) {
+            lookup = lookup.slice(2, -1);
+        }
+
+        if (lookup.startsWith('global.')) {
+            root = globalVars;
+            lookup = lookup.substring(7);
+        } else if (lookup.startsWith('stage.')) {
+            root = vars;
+            lookup = lookup.substring(6);
+        }
+
+        let val = PropertyHelper.getPropertyValue(root, lookup);
+        
+        // Auto-Fallback für Event-Variablen: Wenn nicht gefunden, suche in eventData
+        if (val === undefined && root && root.eventData && typeof root.eventData === 'object') {
+            val = PropertyHelper.getPropertyValue(root.eventData, lookup);
+        }
+
+        // Auto-Fallback auf globalVars: Für Pfade wie "Button_36.visible" die
+        // Komponenten-Objekte referenzieren. Die Objekte können in globalVars
+        // liegen, wenn sie dort registriert wurden.
+        if (val === undefined && root !== globalVars && globalVars) {
+            val = PropertyHelper.getPropertyValue(globalVars, lookup);
+        }
+
+        if (val === undefined && lookup.includes('templateName')) {
+            TaskConditionEvaluator.logger.warn(`[DEBUG] lookup "${lookup}" ist undefined! Root-Keys: ${Object.keys(root).join(', ')}`);
+            if (root.otherSprite) {
+                 TaskConditionEvaluator.logger.warn(`[DEBUG] otherSprite existiert: ID=${root.otherSprite.id}, Name=${root.otherSprite.name}, Class=${root.otherSprite.className}, templateName=${(root.otherSprite as any).templateName}`);
+            } else if (root.eventData && root.eventData.otherSprite) {
+                 TaskConditionEvaluator.logger.warn(`[DEBUG] eventData.otherSprite existiert: ID=${root.eventData.otherSprite.id}, Name=${root.eventData.otherSprite.name}, Class=${root.eventData.otherSprite.className}, templateName=${(root.eventData.otherSprite as any).templateName}`);
+            }
+        }
+
+        return val;
+    }
+}

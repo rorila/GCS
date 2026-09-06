@@ -1,0 +1,135 @@
+import { actionRegistry } from './ActionRegistry';
+import { registerStandardActions } from './actions/StandardActions';
+import { DebugLogService } from '../services/DebugLogService';
+import { Logger } from '../utils/Logger';
+
+/**
+ * ActionExecutor handles the execution of all action types,
+ * including core property changes and multiplayer/navigation actions.
+ */
+export class ActionExecutor {
+    private static logger = Logger.get('ActionExecutor', 'Runtime_Execution');
+    private taskExecutor: any;
+
+    constructor(
+        private objects: any[],
+        private multiplayerManager?: any,
+        private onNavigate?: (target: string, params?: any) => void,
+        private spawnCallback?: (templateId: string, x?: number, y?: number) => any,
+        private destroyCallback?: (instanceId: string) => void,
+        private onRestartGame?: () => void
+    ) {
+        // Registriere Standard-Aktionen
+        registerStandardActions();
+    }
+
+    public setObjects(objects: any[]) {
+        this.objects = objects;
+    }
+
+    public setTaskExecutor(taskExecutor: any): void {
+        this.taskExecutor = taskExecutor;
+    }
+
+    /**
+     * Executes a single action
+     */
+    async execute(action: any, vars: Record<string, any>, globalVars: Record<string, any> = {}, contextObj?: any, parentId?: string): Promise<any> {
+        if (!action) return;
+
+        // Typ-Inferenz: Actions aus dem Flow-Editor haben oft keinen expliziten type.
+        // Erkennung anhand vorhandener Felder:
+        if (!action.type) {
+            if (action.changes && typeof action.changes === 'object' && Object.keys(action.changes).length > 0) {
+                action.type = 'property';
+            } else if (action.target && action.changes) {
+                action.type = 'property';
+            } else if (action.variableName) {
+                action.type = 'variable';
+            } else {
+                ActionExecutor.logger.warn(`Action ohne type übersprungen:`, action);
+                return;
+            }
+        }
+
+        const actionName = action.name || this.getDescriptiveName(action);
+        const logId = DebugLogService.getInstance().log('Action', actionName, {
+            parentId,
+            data: action
+        });
+
+        ActionExecutor.logger.debug(`Executing: type="${action.type}"`, {
+            action,
+            localVars: vars,
+            globalVars,
+            eventData: contextObj
+        });
+
+        DebugLogService.getInstance().pushContext(logId);
+        try {
+            // 1. Check Registry first
+            const handler = actionRegistry.getHandler(action.type);
+            if (handler) {
+                return await handler(action, {
+                    vars,
+                    contextVars: globalVars,
+                    objects: this.objects,
+                    eventData: contextObj,
+                    multiplayerManager: this.multiplayerManager,
+                    onNavigate: this.onNavigate,
+                    spawnObject: this.spawnCallback,
+                    destroyObject: this.destroyCallback,
+                    onRestartGame: this.onRestartGame,
+                    runTask: (taskName: string, taskVars?: Record<string, any>, taskContextObj?: any) => {
+                        if (this.taskExecutor) {
+                            const mergedVars = { ...vars, ...taskVars };
+                            const ctx = taskContextObj ?? contextObj;
+                            if (ctx) {
+                                if (!mergedVars.self) mergedVars.self = ctx;
+                                if (!mergedVars.sender) mergedVars.sender = ctx;
+                            }
+                            return this.taskExecutor.execute(taskName, mergedVars, globalVars, ctx, 0, undefined);
+                        }
+                        ActionExecutor.logger.warn(`[ActionExecutor] runTask called but no taskExecutor available for task: ${taskName}`);
+                        return Promise.resolve();
+                    }
+                });
+            }
+
+            // 2. Legacy Fallback
+            if (!handler) {
+                ActionExecutor.logger.warn(`Unknown action type: ${action.type}`);
+            }
+        } finally {
+            DebugLogService.getInstance().popContext();
+        }
+    }
+
+    private getDescriptiveName(action: any): string {
+        const meta = actionRegistry.getMetadata(action.type);
+        if (meta) {
+            let name = meta.label;
+            if (action.target) name += ` auf ${action.target}`;
+            else if (action.variableName) name += ` (${action.variableName})`;
+            return name;
+        }
+
+        switch (action.type) {
+            case 'variable': return `Set ${action.variableName || 'var'}`;
+            case 'calculate': return `Calc ${action.resultVariable || 'result'}`;
+            case 'property': {
+                const keys = action.changes ? Object.keys(action.changes) : [];
+                const first = keys.length > 0 ? keys[0] : '';
+                return `Set ${action.target || 'target'}.${first}${keys.length > 1 ? '...' : ''}`;
+            }
+            case 'service': return `Call ${action.service}.${action.method}`;
+            case 'call_method': return `Method ${action.method} on ${action.target}`;
+            case 'increment': return `Inc ${action.variableName}`;
+            case 'negate': return `Toggle ${action.variableName}`;
+            case 'animate': return `Animate ${action.target}`;
+            case 'navigate': return `To page ${action.pageId}`;
+            case 'shake': return `Shake ${action.target}`;
+            default: return `Action: ${action.type || 'unknown'}`;
+        }
+    }
+}

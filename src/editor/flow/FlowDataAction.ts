@@ -1,0 +1,524 @@
+import { FlowAction } from './FlowAction';
+import { GameProject } from '../../model/types';
+import { actionRegistry } from '../../runtime/ActionRegistry';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowDataAction', 'Editor_Flow');
+
+export class FlowDataAction extends FlowAction {
+    public getType(): string { return 'data_action'; }
+
+    public getEvents(): string[] {
+        return ['onSuccess', 'onError'];
+    }
+
+    public successAnchor!: HTMLElement;
+    public errorAnchor!: HTMLElement;
+
+    constructor(id: string, x: number, y: number, container: HTMLElement, gridSize: number) {
+        super(id, x, y, container, gridSize);
+        this.element.classList.add('glass-node-data'); // Add special styling for data nodes
+
+        // Ensure it has a default action type if newly created
+        if (!this.data.type || this.data.type === 'property' || this.data.type === 'http') {
+            this.data.type = 'data_action';
+        }
+    }
+
+    // --- Inspector Proxies for DataAction ---
+
+    public get url(): string {
+        const action = this.getActionDefinition();
+        const fullUrl = action?.url || '';
+
+        // If it's a JWT request, we point to the platform login
+        if (action?.requestJWT) {
+            return `/api/platform/login`;
+        }
+
+        const res = action?.resource || this.getAutoResource();
+        const qProp = action?.queryProperty;
+        const qVal = action?.queryValue;
+
+        // If we have a resource and a defined query property, we manage the URL
+        if (res && qProp) {
+            return `/api/data/${res}?${qProp}=${qVal || ''}`;
+        }
+
+        // If no full URL but resource, show standard path
+        if (!fullUrl && res) {
+            return `/api/data/${res}`;
+        }
+
+        return fullUrl;
+    }
+    public set url(v: string) {
+        logger.info(`[FlowDataAction] Setter URL: ${v}`);
+
+        const updateObj = (obj: any) => {
+            if (!obj) return;
+            // Decouple from resource/queryProperty if user sets a manual absolute URL
+            const isAbsolute = v.startsWith('http://') || v.startsWith('https://');
+            const isPrefixed = v.startsWith('/api/data/');
+
+            if (isAbsolute || isPrefixed) {
+                obj.url = v;
+            } else {
+                const res = obj.resource || obj.dataStore || this.getAutoResource();
+                if (res) {
+                    const separator = (v.startsWith('?') || v.startsWith('/')) ? '' : '/';
+                    obj.url = `/api/data/${res}${separator}${v}`;
+                } else {
+                    obj.url = v;
+                }
+            }
+        };
+
+        updateObj(this.data); // Local mirror
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            updateObj(action); // Global definition
+        }
+        logger.info(`[FlowDataAction] Resulting URL in model: ${action?.url || this.data.url}`);
+    }
+
+    public getActionDefinition(): any | null {
+        if (!this.projectRef || !this.Name) return this.data;
+
+        // 1. Linked Mode: Get from project/stage (Single Source of Truth)
+        // Robust matching by name even if isLinked flag is missing
+        let action = (this.projectRef.actions || []).find((a: any) => a.name === this.Name);
+
+        // Search in stages if not found in global
+        if (!action && this.projectRef.stages) {
+            for (const s of this.projectRef.stages) {
+                if (s.actions) {
+                    action = s.actions.find((a: any) => a.name === this.Name);
+                    if (action) break;
+                }
+            }
+        }
+
+        if (action) {
+            // Ensure it has correct type if it was a legacy/corrupt action
+            if (!action.type || action.type === 'property' || action.type === 'http') {
+                action.type = 'data_action';
+            }
+
+            // Sync linked state to ensure clean persistence
+            if (this.data && !this.data.isLinked) {
+                this.data.isLinked = true;
+                this.data.name = action.name;
+            }
+
+            return action;
+        }
+
+        // 2. Embedded/Local Mode: Use local data copy
+        if (this.data) {
+            if (!this.data.type || this.data.type === 'property' || this.data.type === 'http') {
+                this.data.type = 'data_action';
+            }
+        }
+        return this.data;
+    }
+
+    public get queryProperty(): string {
+        const action = this.getActionDefinition();
+        return action?.queryProperty || action?.property || '';
+    }
+    public set queryProperty(v: string) {
+        logger.info(`[FlowDataAction] Setter queryProperty: ${v}`);
+        if (this.data) this.data.queryProperty = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            action.queryProperty = v;
+        }
+        this.updateAutoUrl();
+    }
+
+    public get queryValue(): string {
+        const action = this.getActionDefinition();
+        return action?.queryValue || '';
+    }
+    public set queryValue(v: string) {
+        logger.info(`[FlowDataAction] Setter queryValue: ${v}`);
+        if (this.data) this.data.queryValue = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            action.queryValue = v;
+        }
+        this.updateAutoUrl();
+    }
+
+    public get queryOperator(): string {
+        const action = this.getActionDefinition();
+        return action?.queryOperator || '==';
+    }
+    public set queryOperator(v: string) {
+        logger.info(`[FlowDataAction] Setter queryOperator: ${v}`);
+        if (this.data) this.data.queryOperator = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            action.queryOperator = v;
+        }
+        this.updateAutoUrl();
+    }
+
+    public get selectFields(): string {
+        const action = this.getActionDefinition();
+        return action?.selectFields || '';
+    }
+    public set selectFields(v: string) {
+        logger.info(`[FlowDataAction] Setter selectFields: ${v}`);
+        if (this.data) this.data.selectFields = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            action.selectFields = v;
+        }
+    }
+
+    private updateAutoUrl() {
+        const action = this.getActionDefinition();
+        if (action) {
+            if (action.requestJWT) {
+                action.url = `/api/platform/login`;
+                return;
+            }
+            const res = action.resource || this.getAutoResource();
+            if (res && action.queryProperty) {
+                const op = action.queryOperator || '==';
+                action.url = `/api/data/${res}?${action.queryProperty}=${action.queryValue || ''}&operator=${op}`;
+            }
+        }
+    }
+
+    public get dataStore(): string {
+        const action = this.getActionDefinition();
+        if (action?.dataStore) return action.dataStore;
+
+        // Fallback: If we have a resource but no dataStore, attempt to find the component name
+        if (action?.resource && this.projectRef) {
+            // This is a bit of a reverse lookup, might be imperfect but better than empty
+            for (const stage of this.projectRef.stages || []) {
+                const ds = stage.objects?.find((o: any) => o.defaultCollection === action.resource);
+                if (ds) return ds.name;
+            }
+            return action.resource; // Use resource name as a guess for component name
+        }
+        return '';
+    }
+    public set dataStore(v: string) {
+        logger.info(`[FlowDataAction] Setter dataStore: ${v}`);
+
+        const updateObj = (obj: any) => {
+            if (!obj) return;
+            obj.dataStore = v;
+            if (obj.resource) delete obj.resource;
+        };
+
+        updateObj(this.data);
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            updateObj(action);
+        }
+        this.updateAutoUrl();
+    }
+
+    public get requestJWT(): boolean {
+        const action = this.getActionDefinition();
+        return !!action?.requestJWT;
+    }
+    public set requestJWT(v: boolean) {
+        logger.info(`[FlowDataAction] Setter requestJWT: ${v}`);
+
+        // Always update local data as a fallback for the actionSequence in project.json
+        if (this.data) {
+            this.data.requestJWT = v;
+            if (v) this.data.method = 'POST';
+        }
+
+        const action = this.getActionDefinition();
+        if (action) {
+            action.requestJWT = v;
+            if (v) {
+                action.method = 'POST'; // JWT requests are always POST
+            } else {
+                action.method = 'GET';
+            }
+            this.updateAutoUrl();
+        }
+    }
+
+    private getAutoResource(): string {
+        const action = this.getActionDefinition();
+        const dsName = action?.dataStore;
+        if (!dsName || !this.projectRef) return '';
+
+        // Find DataStore component to get its default collection
+        let dsObj: any = null;
+        if (this.projectRef.stages) {
+            for (const stage of this.projectRef.stages) {
+                dsObj = stage.objects?.find((o: any) => o.name === dsName || o.id === dsName);
+                if (dsObj) break;
+            }
+        }
+
+        // Return default collection or name (as fallback)
+        return dsObj?.defaultCollection || (dsObj ? 'items' : '');
+    }
+
+    public get resource(): string {
+        const action = this.getActionDefinition();
+        return action?.resource || this.getAutoResource();
+    }
+    public set resource(v: string) {
+        logger.info(`[FlowDataAction] Setter resource: ${v}`);
+        if (this.data) {
+            this.data.resource = v;
+            if (v) this.data.url = `/api/data/${v}`;
+        }
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            action.resource = v;
+            if (v) action.url = `/api/data/${v}`;
+        }
+    }
+
+    public get method(): string {
+        const action = this.getActionDefinition();
+        return action?.method || 'GET';
+    }
+    public set method(v: string) {
+        logger.info(`[FlowDataAction] Setter method: ${v}`);
+        if (this.data) this.data.method = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) action.method = v;
+    }
+
+    public get body(): string {
+        const action = this.getActionDefinition();
+        const bodyValue = action?.body;
+        // We store body as string in the inspector for simplicity
+        return typeof bodyValue === 'object' ? JSON.stringify(bodyValue, null, 2) : (bodyValue || '');
+    }
+    public set body(v: string) {
+        logger.info(`[FlowDataAction] Setter body: ${v.substring(0, 50)}...`);
+        let val: any;
+        try {
+            val = JSON.parse(v);
+        } catch (e) {
+            val = v;
+        }
+
+        if (this.data) this.data.body = val;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) action.body = val;
+    }
+
+    public get resultVariable(): string {
+        const action = this.getActionDefinition();
+        return action?.resultVariable || '';
+    }
+    public set resultVariable(v: string) {
+        logger.info(`[FlowDataAction] Setter resultVariable: ${v}`);
+        if (this.data) this.data.resultVariable = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) action.resultVariable = v;
+    }
+
+    public get resultPath(): string {
+        const action = this.getActionDefinition();
+        return action?.resultPath || '';
+    }
+    public set resultPath(v: string) {
+        logger.info(`[FlowDataAction] Setter resultPath: ${v}`);
+        if (this.data) this.data.resultPath = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) action.resultPath = v;
+    }
+
+    /**
+     * Override: Liefert DataAction-spezifische Sektionen mit SQL-Gruppen.
+     * Überschreibt FlowAction.getInspectorSections() für farbige Karten.
+     */
+    public getInspectorSections(): import('../inspector/types').InspectorSection[] {
+        const isInternal = this.data?.isEmbeddedInternal;
+        const sections: import('../inspector/types').InspectorSection[] = [];
+
+        // ═══════════════ ALLGEMEIN ═══════════════
+        const allgemeinProps: any[] = [
+            { name: 'Name', label: 'Action Name', type: 'string', readonly: isInternal }
+        ];
+        if (!isInternal) {
+            allgemeinProps.push({
+                name: 'type',
+                controlName: 'ActionTypeSelect',
+                label: 'Aktions-Typ',
+                type: 'select',
+                options: actionRegistry.getVisibleActionTypes(this.projectRef)
+            });
+        }
+        sections.push({ id: 'allgemein', label: 'Allgemein', icon: '📋', properties: allgemeinProps });
+
+        // ═══════════════ FROM / Datenquelle ═══════════════
+        sections.push({
+            id: 'from', label: 'FROM / Datenquelle', icon: '📦',
+            properties: [
+                { name: 'dataStore', label: 'Data Store (Komponente)', type: 'select', source: 'dataStores' },
+                { name: 'resource', label: 'REST Ressource / Collection', type: 'string' }
+            ]
+        });
+
+        // ═══════════════ SELECT / Felder ═══════════════
+        sections.push({
+            id: 'select', label: 'SELECT / Felder', icon: '🔍',
+            properties: [
+                { name: 'selectFields', label: 'Felder (SELECT)', type: 'string', placeholder: '* (alle Felder)' }
+            ]
+        });
+
+        // ═══════════════ INTO / Ergebnis ═══════════════
+        sections.push({
+            id: 'into', label: 'INTO / Ergebnis', icon: '💾',
+            properties: [
+                { name: 'resultVariable', label: 'Speichern in Variable', type: 'select', source: 'variables' },
+                { name: 'resultPath', label: 'Pfad im Resultat (z.B. data.token)', type: 'string' }
+            ]
+        });
+
+        // ═══════════════ WHERE / Filter ═══════════════
+        sections.push({
+            id: 'where', label: 'WHERE / Filter', icon: '🔎',
+            properties: [
+                { name: 'queryProperty', label: 'Filter-Feld (WHERE)', type: 'select', source: 'dataStoreFields' },
+                {
+                    name: 'queryOperator', label: 'Operator', type: 'select',
+                    options: [
+                        { value: '==', label: 'Gleich (==)' },
+                        { value: '!=', label: 'Ungleich (!=)' },
+                        { value: '>', label: 'Größer (>)' },
+                        { value: '<', label: 'Kleiner (<)' },
+                        { value: '>=', label: 'Größer-Gleich (>=)' },
+                        { value: '<=', label: 'Kleiner-Gleich (<=)' },
+                        { value: 'CONTAINS', label: 'Enthält (CONTAINS)' },
+                        { value: 'IN', label: 'Ist einer von (IN)' }
+                    ]
+                },
+                { name: 'queryValue', label: 'Filter-Wert', type: 'string' },
+                {
+                    name: 'btn_var_query', label: 'Variable für Wert...', type: 'button',
+                    buttonType: 'secondary',
+                    actionData: { property: 'queryValue' },
+                    action: 'pickVariable'
+                }
+            ]
+        });
+
+        // ═══════════════ HTTP / Request ═══════════════
+        sections.push({
+            id: 'http', label: 'HTTP / Request', icon: '⚙️',
+            collapsed: true,
+            properties: [
+                {
+                    name: 'method', label: 'HTTP Methode', type: 'select',
+                    options: [
+                        { value: 'GET', label: 'GET (Lesen)' },
+                        { value: 'POST', label: 'POST (Erstellen)' },
+                        { value: 'PUT', label: 'PUT (Aktualisieren)' },
+                        { value: 'DELETE', label: 'DELETE (Löschen)' }
+                    ]
+                },
+                { name: 'requestJWT', label: 'Ist Login/JWT Request?', type: 'boolean' },
+                { name: 'url', label: 'Absolute URL (optional)', type: 'string' }
+            ]
+        });
+
+        // ═══════════════ Aktionen ═══════════════
+        sections.push({
+            id: 'aktionen', label: 'Aktionen', icon: '🗑️',
+            collapsed: true,
+            properties: [
+                { name: 'deleteBtn', label: 'Löschen', type: 'button', action: 'delete', style: { backgroundColor: '#d11a2a' } }
+            ]
+        });
+
+        return sections;
+    }
+
+    protected createRoot(): HTMLElement {
+        const el = super.createRoot();
+
+        // Remove standard output anchor if it exists (it's created by FlowElement.createRoot)
+        if (this.outputAnchor && this.outputAnchor.parentNode === el) {
+            el.removeChild(this.outputAnchor);
+        }
+
+        // Create specialized anchors
+        this.successAnchor = this.createAnchor('success');
+        this.errorAnchor = this.createAnchor('error');
+
+        el.appendChild(this.successAnchor);
+        el.appendChild(this.errorAnchor);
+
+        return el;
+    }
+
+    protected createAnchor(type: string): HTMLElement {
+        const anchor = super.createAnchor(type as any);
+
+        if (type === 'success') {
+            anchor.style.backgroundColor = '#4caf50'; // Green
+            anchor.style.right = '-5px';
+            anchor.style.top = '50%';
+            anchor.title = 'Erfolg (Success)';
+        } else if (type === 'error') {
+            anchor.style.backgroundColor = '#f44336'; // Red
+            anchor.style.bottom = '-5px';
+            anchor.style.left = '50%';
+            anchor.title = 'Fehler (Error)';
+        }
+
+        return anchor;
+    }
+
+    public getAnchorPosition(type: string): { x: number, y: number } {
+        const centerX = this.x + (this.width / 2);
+        const centerY = this.y + (this.height / 2);
+
+        if (type === 'success') {
+            return { x: this.x + this.width, y: centerY };
+        } else if (type === 'error') {
+            return { x: centerX, y: this.y + this.height };
+        }
+
+        return super.getAnchorPosition(type as any);
+    }
+
+    public setShowDetails(show: boolean, project: GameProject | null): void {
+        super.setShowDetails(show, project);
+
+        if (show) {
+            // Additional styling or indicators for data nodes in detailed view
+            const icon = document.createElement('div');
+            icon.innerHTML = '🗄️';
+            icon.style.cssText = 'position:absolute;top:5px;right:10px;font-size:12px;opacity:0.6';
+            this.content.appendChild(icon);
+
+            // Update details to show data-specific info
+            const method = this.method;
+            const url = this.url;
+            const result = this.resultVariable ? ` -> ${this.resultVariable} ` : '';
+
+            // We can manually update the content for better data visualization
+            const detailsEl = this.content.querySelector('div > div:nth-child(2)');
+            if (detailsEl) {
+                detailsEl.innerHTML = `
+    < div style = "color:#ffcc00" > ${this.resource ? '📦 ' + this.resource : method} </div>
+        < div title = "${url}" style = "white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px" > ${url} </div>
+            < div style = "color:#00ff00; font-size:9px" > ${result} </div>
+                `;
+            }
+        }
+    }
+}

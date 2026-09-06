@@ -1,0 +1,266 @@
+
+import { ReactiveRuntime } from '../../runtime/ReactiveRuntime';
+import { GameProject } from '../../model/types';
+import { InspectorRegistry } from './InspectorRegistry';
+import { PropertyChangeEvent } from './types';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { Logger } from '../../utils/Logger';
+import { projectStore } from '../../services/ProjectStore';
+
+export class InspectorEventHandler {
+    private static logger = Logger.get('InspectorEventHandler', 'Inspector_Update');
+
+    constructor(
+        private runtime: ReactiveRuntime,
+        private project: GameProject
+    ) { }
+
+    public setProject(project: GameProject): void {
+        this.project = project;
+    }
+
+    /**
+     * Handles a change from an inspector input/control
+     * @param controlName The 'name' property of the HTML control (e.g. "NameInput")
+     * @param newValue The new value from the control
+     * @param selectedObject The object being edited
+     * @param inspectorDef The original JSON definition for this property (optional)
+     */
+    public handleControlChange(controlName: string, newValue: any, selectedObject: any, inspectorDef?: any): PropertyChangeEvent | null {
+        if (!selectedObject) return null;
+
+        // 1. Resolve property path
+        let propertyPath = '';
+
+        // NEW: Prioritize explicit 'property' from JSON definition
+        if (inspectorDef?.property) {
+            propertyPath = inspectorDef.property;
+            if (propertyPath === 'none') {
+                return null; // Suppress property update for action-only controls
+            }
+
+            InspectorEventHandler.logger.debug(`Using explicit property path: ${propertyPath}`);
+        } else {
+            // LEGACY FALLBACK: Resolve from control name
+            propertyPath = controlName;
+            InspectorEventHandler.logger.warn(`Legacy property resolution for control "${controlName}". Please use "property" attribute in template.`);
+
+            // Strip specific suffixes used for differentiation
+            if (propertyPath.includes('_')) {
+                // Handle event_ prefix specifically
+                if (propertyPath.startsWith('event_')) {
+                    const parts = propertyPath.split('_');
+                    const eventName = parts[1].replace('Select', '').replace('Input', '');
+                    propertyPath = `events.${eventName}`;
+                } else if (propertyPath.startsWith('usecase_')) {
+                    // Specific fix for usecase checkboxes: redirect to 'none' to avoid corrupting selected object
+                    return null;
+                } else {
+                    // Default split behavior: take first part + suffix
+                    const parts = propertyPath.split('_');
+                    const suffix = (propertyPath.endsWith('Input') ? 'Input' : (propertyPath.endsWith('Select') ? 'Select' : ''));
+                    propertyPath = parts[0] + suffix;
+                }
+            }
+
+            if (propertyPath.endsWith('Input')) {
+                propertyPath = propertyPath.slice(0, -5);
+            } else if (propertyPath.endsWith('Select')) {
+                propertyPath = propertyPath.slice(0, -6);
+            } else if (propertyPath.endsWith('Label')) {
+                propertyPath = propertyPath.slice(0, -5);
+            }
+
+            // --- Specialized mappings ---
+            if (propertyPath === 'ActionType') propertyPath = 'type';
+            if (propertyPath === 'Aktions-Typ') propertyPath = 'type';
+        }
+
+        // CRITICAL FIX: Guard against event names that land as top-level properties
+        // instead of inside the events map. This happens when template expressions
+        // like "events.${value}" are not fully resolved, or when legacy controls
+        // use bare event names (e.g., "onTimer" instead of "events.onTimer").
+        // Without this guard, obj.onTimer = 'TaskName' is set instead of obj.events.onTimer.
+        if (propertyPath.startsWith('on') && !propertyPath.includes('.') && selectedObject.events !== undefined) {
+            // Check if this is actually a known event name for this object
+            const events = typeof selectedObject.getEvents === 'function' ? selectedObject.getEvents() : [];
+            if (events.includes(propertyPath) || (selectedObject._supportedEvents && selectedObject._supportedEvents.includes(propertyPath))) {
+                InspectorEventHandler.logger.debug(`Redirecting bare event property "${propertyPath}" → "events.${propertyPath}"`);
+                propertyPath = `events.${propertyPath}`;
+            }
+        }
+
+
+        // 2. Capture old value safely (vom selectedObject)
+        const oldValue = PropertyHelper.getPropertyValue(selectedObject, propertyPath);
+
+        // 3. Create event object
+        const event: PropertyChangeEvent = {
+            object: selectedObject,
+            propertyName: propertyPath,
+            newValue,
+            oldValue,
+            config: inspectorDef
+        };
+
+        InspectorEventHandler.logger.info(`[INSPECTOR-TRACE] Property change: ${propertyPath} = ${newValue} (was ${oldValue})`);
+
+        // DIAGNOSE: garantiert sichtbarer Konsolen-Block fuer Inspector→JSON Sync-Probleme.
+        const _diagOriginal = (selectedObject as any).__rawSource
+            || (selectedObject?.id || selectedObject?.name ? this.getOriginalObject(selectedObject.id || selectedObject.name) : null);
+        InspectorEventHandler.logger.debug('[INSPECTOR-SYNC] BEFORE', {
+            propertyPath,
+            newValue,
+            oldValue,
+            selectedObject: { id: selectedObject?.id, name: selectedObject?.name, className: selectedObject?.className, isPoolInstance: (selectedObject as any)?.isPoolInstance, templateId: (selectedObject as any)?.templateId },
+            hasRawSource: !!(selectedObject as any).__rawSource,
+            originalFound: !!_diagOriginal,
+            originalSameAsSelected: _diagOriginal === selectedObject,
+            originalIdentity: _diagOriginal ? { id: _diagOriginal.id, name: _diagOriginal.name } : null,
+            inspectorDef
+        });
+
+        // 3.5 Snapshot wird nun vom Store übernommen
+        // snapshotManager.pushSnapshot(this.project, `${propertyPath}: ${oldValue} → ${newValue}`);
+
+        // 4. Delegate to specialized handler if available
+        const handler = InspectorRegistry.getHandler(selectedObject);
+        let wasHandled = false;
+
+        if (handler) {
+            InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Delegating to specialized handler: ${handler.constructor.name}`);
+            wasHandled = handler.handlePropertyChange(event, this.project, this.runtime);
+            InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Handler wasHandled=${wasHandled}`);
+            InspectorEventHandler.logger.debug('[INSPECTOR-SYNC] handler', { handlerName: handler.constructor.name, wasHandled });
+        } else {
+            InspectorEventHandler.logger.debug('[INSPECTOR-SYNC] handler: <none>');
+        }
+
+        // 5. Default behavior if not handled by specialized logic
+        if (!wasHandled) {
+            InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Using default property update logic...`);
+            if (oldValue !== newValue) {
+                // NEW: Use autoConvert to handle JSON, numbers, booleans from UI inputs
+                let convertedValue = PropertyHelper.autoConvert(newValue);
+
+                // Binding persistence: if the property was bound and the user is not entering
+                // a new binding, remove the binding and restore the actual resolved value.
+                const designExpr = PropertyHelper.getDesignValue(selectedObject, propertyPath);
+                const isNewBinding = PropertyHelper.isBinding(convertedValue);
+                if (designExpr && !isNewBinding) {
+                    if (convertedValue === '' || convertedValue == null) {
+                        const ctx = this.buildContext(selectedObject);
+                        convertedValue = PropertyHelper.resolveBinding(designExpr, ctx.vars, ctx.objects) ?? convertedValue;
+                    }
+                    PropertyHelper.clearDesignValue(selectedObject, propertyPath);
+                }
+                if (isNewBinding) {
+                    PropertyHelper.setDesignValue(selectedObject, propertyPath, convertedValue);
+                }
+                
+                // Single Source of Truth via Store dispatch
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: selectedObject, path: propertyPath, value: convertedValue });
+
+                // ARC-FIX: Ensure original JSON object is also updated for persistence!
+                // Wenn das selectedObject nur ein Proxy/Clone in der Stage ist.
+                let originalObj = (selectedObject as any).__rawSource;
+                if (!originalObj) {
+                    const objectIdentifier = selectedObject?.id || selectedObject?.name;
+                    if (objectIdentifier) {
+                        originalObj = this.getOriginalObject(objectIdentifier);
+                    }
+                }
+
+                if (originalObj && originalObj !== selectedObject) {
+                    if (designExpr && !isNewBinding) PropertyHelper.clearDesignValue(originalObj, propertyPath);
+                    if (isNewBinding) PropertyHelper.setDesignValue(originalObj, propertyPath, convertedValue);
+                    projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: propertyPath, value: convertedValue });
+                    InspectorEventHandler.logger.debug(`Synchronized update with original project JSON object.`);
+                }
+                InspectorEventHandler.logger.debug('[INSPECTOR-SYNC] AFTER', {
+                    propertyPath,
+                    convertedValue,
+                    selectedObjectValue: PropertyHelper.getPropertyValue(selectedObject, propertyPath),
+                    originalObjValue: originalObj ? PropertyHelper.getPropertyValue(originalObj, propertyPath) : '<no original>',
+                    originalSameAsSelected: originalObj === selectedObject
+                });
+            } else {
+                InspectorEventHandler.logger.debug('[INSPECTOR-SYNC] SKIPPED (oldValue === newValue)', { propertyPath, value: newValue });
+            }
+        } else {
+            InspectorEventHandler.logger.debug('[INSPECTOR-SYNC] handler claimed wasHandled=true → default sync ueberSPRUNGEN', { propertyPath });
+        }
+
+        return event;
+    }
+
+    private getOriginalObject(objId: string): any {
+        if (!objId || !this.project) return null;
+
+        const matchIdOrName = (item: any) => item.id === objId || item.name === objId;
+
+        let original: any = this.project.stages?.find(matchIdOrName);
+        if (original) return original;
+
+        original = this.project.variables?.find(matchIdOrName);
+        if (original) return original;
+
+        original = this.project.objects?.find(matchIdOrName);
+        if (original) return original;
+
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                original = stage.variables?.find(matchIdOrName);
+                if (original) return original;
+
+                original = stage.objects?.find(matchIdOrName);
+                if (original) return original;
+
+                original = stage.tasks?.find(matchIdOrName);
+                if (original) return original;
+
+                original = stage.actions?.find(matchIdOrName);
+                if (original) return original;
+            }
+        }
+
+        original = this.project.tasks?.find(matchIdOrName);
+        if (original) return original;
+
+        original = this.project.actions?.find(matchIdOrName);
+        if (original) return original;
+
+        return null;
+    }
+
+    /**
+     * Builds a lightweight context for resolving binding expressions in the editor.
+     * Uses project variables and all objects (including the selected object) so that
+     * "${myVar}" can be evaluated when a binding is removed.
+     */
+    private buildContext(selectedObject?: any): { vars: Record<string, any>; objects: any[] } {
+        const vars: Record<string, any> = {};
+        const objects: any[] = [];
+        if (!this.project) return { vars, objects };
+
+        const addVars = (list: any[] | undefined) => {
+            if (!list) return;
+            for (const v of list) {
+                if (v.name) {
+                    vars[v.name] = v.value !== undefined ? v.value : v.defaultValue;
+                }
+            }
+        };
+
+        addVars(this.project.variables);
+        const activeStage = this.project.stages?.find((s: any) => s.id === (this.project as any).activeStageId);
+        if (activeStage) {
+            addVars(activeStage.variables);
+            if (activeStage.objects) objects.push(...activeStage.objects);
+        }
+        if (this.project.objects) objects.push(...this.project.objects);
+        if (selectedObject) objects.push(selectedObject);
+
+        return { vars, objects };
+    }
+}

@@ -1,0 +1,237 @@
+import { GameProject, UsageReport } from '../../model/types';
+import { RefactoringUtils } from './RefactoringUtils';
+import { ActionRefactoringService } from './ActionRefactoringService';
+
+export class ObjectRefactoringService {
+    /**
+     * Renames an object – stage- and ID-aware.
+     * Wenn eine objectId übergeben wird, wird nur das Objekt mit dieser ID umbenannt.
+     * Ansonsten Fallback auf den alten namensbasierten Modus (Rückwärtskompatibilität).
+     * activeStageId wird bei objectId automatisch auf die Stage des Objekts gesetzt.
+     */
+    public static renameObject(project: GameProject, oldName: string, newName: string, activeStageId?: string, objectId?: string): void {
+        if (!oldName || !newName || oldName === newName) return;
+
+        const findById = (objects: any[], targetId: string): any | null => {
+            if (!objects) return null;
+            for (const o of objects) {
+                if (o.id === targetId) return o;
+                if (o.children) {
+                    const found = findById(o.children, targetId);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        // Wenn eine Objekt-ID vorliegt, die Stage des Objekts ermitteln,
+        // damit nur diese Stage (plus Blueprint) verarbeitet wird.
+        if (objectId && project.stages) {
+            for (const stage of project.stages) {
+                if (findById(stage.objects, objectId)) {
+                    activeStageId = stage.id;
+                    break;
+                }
+            }
+        }
+
+        const stagesToProcess = RefactoringUtils.getStagesToProcess(project, activeStageId);
+
+        // 1. Rename the object itself – nur in den relevanten Stages
+        const renameInArray = (objects: any[]) => {
+            if (!objects) return;
+            if (objectId) {
+                const obj = findById(objects, objectId);
+                if (obj) obj.name = newName;
+            } else {
+                const obj = objects.find(o => o.name === oldName);
+                if (obj) obj.name = newName;
+            }
+            objects.forEach(parent => {
+                if (parent.children) renameInArray(parent.children);
+            });
+        };
+        renameInArray(project.objects);
+        stagesToProcess.forEach(stage => renameInArray(stage.objects));
+
+        // 2. Update related actions and their targets – nur in den relevanten Stages
+        const allActions = [...project.actions];
+        stagesToProcess.forEach(s => {
+            if (s.actions) allActions.push(...s.actions);
+        });
+
+        allActions.forEach(action => {
+            // Auto-rename actions that belong to this object
+            if (action.name.startsWith(oldName + '.') || action.name.startsWith(oldName + '_')) {
+                const newActionName = action.name.replace(oldName, newName);
+                ActionRefactoringService.renameAction(project, action.name, newActionName, activeStageId);
+                action.name = newActionName;
+            }
+
+            const anyAction = action as any;
+            if (anyAction.target === oldName) anyAction.target = newName;
+            if (anyAction.source === oldName) anyAction.source = newName;
+
+            if (anyAction.changes) {
+                const newChanges: any = {};
+                for (const key in anyAction.changes) {
+                    let val = anyAction.changes[key];
+                    
+                    let newKey = key;
+                    if (key === oldName || key.startsWith(`${oldName}.`)) {
+                        newKey = key === oldName ? newName : `${newName}.${key.slice(oldName.length + 1)}`;
+                    }
+
+                    if (typeof val === 'string') {
+                        if (val === oldName) {
+                            val = newName;
+                        } else if (val.includes(`\${${oldName}`)) {
+                            val = RefactoringUtils.replaceObjectInterpolation(val, oldName, newName);
+                        }
+                    }
+                    newChanges[newKey] = val;
+                }
+                anyAction.changes = newChanges;
+            }
+
+            if (anyAction.serviceParams) {
+                for (const key in anyAction.serviceParams) {
+                    let val = anyAction.serviceParams[key];
+                    if (typeof val === 'string') {
+                        if (val === oldName) {
+                            anyAction.serviceParams[key] = newName;
+                        } else if (val.includes(`\${${oldName}`)) {
+                            anyAction.serviceParams[key] = RefactoringUtils.replaceObjectInterpolation(val, oldName, newName);
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. Update task sequences – nur in den relevanten Stages
+        const allTasks = [...project.tasks];
+        stagesToProcess.forEach(s => {
+            if (s.tasks) allTasks.push(...s.tasks);
+        });
+
+        allTasks.forEach(task => {
+            RefactoringUtils.processSequenceItems(task.actionSequence, (item) => {
+                const str = JSON.stringify(item);
+                if (str.includes(`"${oldName}"`) || str.includes(`\${${oldName}`)) {
+                    RefactoringUtils.replaceInObjectRecursive(item, oldName, newName);
+                }
+            });
+        });
+
+        // 4. Update input targets (Projekt-Level – immer global)
+        if (project.input) {
+            if (project.input.player1Target === oldName) project.input.player1Target = newName;
+            if (project.input.player2Target === oldName) project.input.player2Target = newName;
+        }
+
+        // 5. Update Flow Charts – nur in den relevanten Stages
+        const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };
+        stagesToProcess.forEach(stage => {
+            if (stage.flowCharts) Object.assign(charts, stage.flowCharts);
+        });
+
+        Object.keys(charts).forEach(key => {
+            const chart = charts[key];
+            if (chart?.elements) {
+                chart.elements.forEach((el: any) => {
+                    if (el.data) {
+                        RefactoringUtils.replaceInObjectRecursive(el.data, oldName, newName);
+                    }
+                    if (el.properties) {
+                        RefactoringUtils.replaceInObjectRecursive(el.properties, oldName, newName);
+                    }
+                });
+            }
+        });
+
+        // 6. Update object properties – nur in den relevanten Stages
+        const allObjectsToScan = [...project.objects];
+        stagesToProcess.forEach(s => {
+            if (s.objects) allObjectsToScan.push(...s.objects);
+        });
+        allObjectsToScan.forEach(obj => {
+            RefactoringUtils.replaceInObjectRecursive(obj, oldName, newName, undefined, true, ['name', 'id', 'className', 'type']);
+        });
+    }
+
+    /**
+     * Returns a report on where an object is used project-wide
+     */
+    public static getObjectUsageReport(project: GameProject, objectName: string): UsageReport {
+        const report: UsageReport = { totalCount: 0, locations: [] };
+        if (!objectName) return report;
+
+        const refPropertyKeys = new Set([
+            'target', 'source', 'referenceObject', 'reference', 'spawnObject', 'parent',
+            'component', 'object', 'dialog', 'nextDialog', 'midpointTask', 'template',
+            'sprite', 'other', 'self', 'stage', 'task', 'action'
+        ]);
+
+        const isObjectNameMatch = (val: string): boolean => {
+            return val === objectName || val.startsWith(`${objectName}.`) || val.startsWith(`${objectName}_`);
+        };
+
+        const hasObjectInterpolation = (val: string): boolean => {
+            const prefix = `\${${objectName}`;
+            const idx = val.indexOf(prefix);
+            if (idx === -1) return false;
+            const nextChar = val[idx + prefix.length];
+            return nextChar === '}' || nextChar === '.';
+        };
+
+        const countRefs = (obj: any, visited: WeakSet<object> = new WeakSet<object>()): number => {
+            if (obj === null || obj === undefined || typeof obj !== 'object') return 0;
+            if (visited.has(obj)) return 0;
+            visited.add(obj);
+
+            let count = 0;
+            if (Array.isArray(obj)) {
+                for (const item of obj) {
+                    count += countRefs(item, visited);
+                }
+            } else {
+                for (const key of Object.keys(obj)) {
+                    if (key === '__cachedProxy' || key === '__proxy' || key === '__ref' || key.startsWith('__')) continue;
+                    const val = obj[key];
+                    if (typeof val === 'string') {
+                        const isRefKey = refPropertyKeys.has(key);
+                        const isNameKey = key === 'name';
+                        if ((isRefKey || isNameKey) && isObjectNameMatch(val)) {
+                            count++;
+                        } else if (isRefKey && hasObjectInterpolation(val)) {
+                            count++;
+                        }
+                    } else if (typeof val === 'object') {
+                        count += countRefs(val, visited);
+                    }
+                }
+            }
+            return count;
+        };
+
+        const scan = (obj: any, type: any, name: string) => {
+            if (!obj) return;
+            const count = countRefs(obj);
+            if (count > 0) {
+                report.totalCount += count;
+                report.locations.push({ type, name, details: `${count} Referenzen` });
+            }
+        };
+
+        if (project.stages) {
+            project.stages.forEach((s: any) => {
+                scan(s.tasks, 'stage', `Stage: ${s.name} (Tasks)`);
+                scan(s.actions, 'stage', `Stage: ${s.name} (Actions)`);
+            });
+        }
+        scan(project.tasks, 'task', 'Globale Tasks');
+        scan(project.actions, 'action', 'Globale Actions');
+
+        return report;
+    }
+}

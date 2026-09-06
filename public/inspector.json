@@ -1,0 +1,22 @@
+{
+    "meta": {
+        "name": "Inspector",
+        "version": "2.1.0",
+        "description": "JSON-based Inspector using Reactive Variables"
+    },
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "TitleLabel",
+            "x": 0,
+            "y": 0,
+            "text": "${selectedObject.name || selectedObject.meta?.name || 'No Selection'}",
+            "style": {
+                "fontSize": 16,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 16
+            }
+        }
+    ]
+}

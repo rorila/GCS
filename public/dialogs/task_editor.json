@@ -1,0 +1,67 @@
+{
+    "title": "Task Editor",
+    "width": 600,
+    "height": 500,
+    "modal": true,
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "TaskNameLabel",
+            "text": "Task Name:",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "TaskNameInput",
+            "text": "${dialogData.taskName}",
+            "placeholder": "Enter task name",
+            "style": {
+                "marginBottom": 16
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "StepsLabel",
+            "text": "Task Steps:",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "StepsHint",
+            "text": "Define the steps this task should execute:",
+            "style": {
+                "fontSize": 11,
+                "color": "#888",
+                "marginBottom": 12
+            }
+        }
+    ],
+    "buttons": [
+        {
+            "caption": "Save",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#28a745",
+                "color": "#fff"
+            }
+        },
+        {
+            "caption": "Cancel",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#6c757d",
+                "color": "#fff"
+            }
+        }
+    ]
+}

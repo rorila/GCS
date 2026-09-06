@@ -1,0 +1,81 @@
+{
+  "id": "pixel-adventure",
+  "name": "Pixel Adventure",
+  "description": "Retro-Block-Look in Grün und Braun für Abenteuer-Spiele.",
+  "components": {
+    "TButton": {
+      "backgroundColor": "#8d6e63",
+      "borderColor": "#5d4037",
+      "borderWidth": 4,
+      "color": "#ffffff",
+      "borderRadius": 0,
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "boxShadow": "4px 4px 0 #3e2723"
+    },
+    "TPanel": {
+      "backgroundColor": "#2e7d32",
+      "borderColor": "#1b5e20",
+      "borderWidth": 4,
+      "borderRadius": 0,
+      "boxShadow": "6px 6px 0 #1b5e20"
+    },
+    "TCard": {
+      "backgroundColor": "#4caf50",
+      "borderColor": "#2e7d32",
+      "borderWidth": 4,
+      "borderRadius": 0,
+      "boxShadow": "6px 6px 0 #2e7d32"
+    },
+    "TLabel": {
+      "color": "#fff9c4",
+      "fontSize": 14,
+      "fontFamily": "\"Press Start 2P\", cursive, monospace",
+      "fontWeight": "bold",
+      "textShadow": "2px 2px 0 #1b5e20"
+    },
+    "TNumberLabel": {
+      "color": "#fff9c4",
+      "fontSize": 14,
+      "fontFamily": "\"Press Start 2P\", cursive, monospace",
+      "fontWeight": "bold",
+      "textShadow": "2px 2px 0 #1b5e20"
+    },
+    "TDialogRoot": {
+      "backgroundColor": "#2e7d32",
+      "borderColor": "#8d6e63",
+      "borderWidth": 4,
+      "borderRadius": 0,
+      "boxShadow": "8px 8px 0 #5d4037"
+    },
+    "TSidePanel": {
+      "backgroundColor": "#2e7d32",
+      "borderColor": "#1b5e20",
+      "borderWidth": 4,
+      "boxShadow": "-6px 0 0 #1b5e20"
+    },
+    "TEdit": {
+      "backgroundColor": "#a1887f",
+      "borderColor": "#5d4037",
+      "borderWidth": 4,
+      "color": "#3e2723",
+      "borderRadius": 0
+    },
+    "TTextInput": {
+      "backgroundColor": "#a1887f",
+      "borderColor": "#5d4037",
+      "borderWidth": 4,
+      "color": "#3e2723",
+      "borderRadius": 0
+    },
+    "TStickyNote": {
+      "backgroundColor": "#fff9c4",
+      "borderColor": "#fbc02d",
+      "borderWidth": 1,
+      "color": "#3e2723",
+      "borderRadius": 0,
+      "boxShadow": "2px 4px 8px rgba(0,0,0,0.2)",
+      "fontFamily": "\"Press Start 2P\", cursive, monospace"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+program <Projektname>;  { 1. Programmkopf }
+
+USES crt;              { Einbinden von Bibliotheken }
+
+CONST                  { Deklaration von Konstanten }
+  PI_WERT = 3.1415;
+
+TYPE                   { Deklaration eigener Datentypen }
+  TNote = 1..6;
+
+VAR                    { DEKLARATION GLOBALER VARIABLEN }
+  ergebnis: real;
+  name: string;
+  alter: integer;
+
+PROCEDURE <Taskname>;   { Unterprogramme (Prozeduren/Funktionen) }
+BEGIN
+  { Kann auf die globalen Variablen zugreifen }
+  writeln('Name: ', name);
+END;
+
+BEGIN                  { 3. Hauptprogramm / Anweisungsteil }
+  clrscr;
+  name := 'Max';       { Zuweisung an globale Variable }
+  ZeigeInfo;
+END.                   { Der Punkt am Ende markiert das Programmende }
+
+program New_Game;
+
+USES crt; { Standard libraries }
+
+PROCEDURE myFirstTask;
+VAR
+  cond1: Integer;
+  cond2: Integer;
+  condResult: Integer;
+BEGIN
+  cond2 := Cond2Lable.text;
+  cond2 := Cond2Lable.text;
+  condResult := cond1 + cond2;
+  result.text := '${condResult}';
+END;
+
+BEGIN { Main Program }
+  clrscr;
+  // Entry point for game start could be here
+END.

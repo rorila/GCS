@@ -1,0 +1,222 @@
+{
+    "menus": [
+        {
+            "id": "file",
+            "label": "Datei",
+            "items": [
+                {
+                    "id": "new-project",
+                    "label": "Neues Projekt (angeleitet)",
+                    "action": "new-project",
+                    "icon": "📄"
+                },
+                {
+                    "id": "new-project-direct",
+                    "label": "Neues Projekt...",
+                    "action": "new-project-direct",
+                    "icon": "🆕"
+                },
+                {
+                    "id": "load",
+                    "label": "Projekt öffnen...",
+                    "action": "load",
+                    "icon": "📂"
+                },
+                {
+                    "id": "save",
+                    "label": "Projekt Speichern",
+                    "action": "save",
+                    "icon": "💾"
+                },
+                {
+                    "id": "save-as",
+                    "label": "Speichern unter...",
+                    "action": "save-as",
+                    "icon": "💾"
+                },
+                {
+                    "id": "force-reload",
+                    "label": "Vom Server neu laden (Force)",
+                    "action": "force-reload",
+                    "icon": "🔄"
+                },
+                {
+                    "id": "separator-props",
+                    "type": "separator"
+                },
+                {
+                    "id": "project-properties",
+                    "label": "Projekteigenschaften...",
+                    "action": "project-properties",
+                    "icon": "📁"
+                },
+                {
+                    "id": "export-theme",
+                    "label": "Theme aus Stage exportieren",
+                    "action": "export-theme",
+                    "icon": "🎨"
+                },
+                {
+                    "id": "separator-agent-script",
+                    "type": "separator"
+                },
+                {
+                    "id": "export-agent-script",
+                    "label": "AgentScript exportieren...",
+                    "action": "export-agent-script",
+                    "icon": "📤"
+                },
+                {
+                    "id": "import-agent-script",
+                    "label": "AgentScript importieren...",
+                    "action": "import-agent-script",
+                    "icon": "📥"
+                },
+                {
+                    "id": "agent-script-library",
+                    "label": "AgentScript Bibliothek...",
+                    "action": "agent-script-library",
+                    "icon": "📚"
+                }
+            ]
+        },
+        {
+            "id": "edit",
+            "label": "Bearbeiten",
+            "items": [
+                {
+                    "id": "undo",
+                    "label": "Rückgängig (Strg+Z)",
+                    "action": "undo",
+                    "icon": "↩️"
+                },
+                {
+                    "id": "redo",
+                    "label": "Wiederholen (Strg+Y)",
+                    "action": "redo",
+                    "icon": "↪️"
+                }
+            ]
+        },
+        {
+            "id": "platform",
+            "label": "Plattform",
+            "items": [
+                {
+                    "id": "multiplayer",
+                    "label": "Plattform-Lobby",
+                    "action": "multiplayer",
+                    "icon": "🌐"
+                },
+                {
+                    "id": "export-html",
+                    "label": "Export als HTML",
+                    "action": "export-html",
+                    "icon": "🌐"
+                },
+                {
+                    "id": "export-html-gzip",
+                    "label": "Export als HTML (komprimiert)",
+                    "action": "export-html-gzip",
+                    "icon": "📦"
+                },
+                {
+                    "id": "export-json",
+                    "label": "Export als JSON",
+                    "action": "export-json",
+                    "icon": "📄"
+                },
+                {
+                    "id": "export-json-gzip",
+                    "label": "Export als JSON (komprimiert)",
+                    "action": "export-json-gzip",
+                    "icon": "📦"
+                }
+            ]
+        },
+        {
+            "id": "themes",
+            "label": "Themes",
+            "items": [
+                {
+                    "id": "open-theme-editor",
+                    "label": "Theme-Editor öffnen",
+                    "action": "open-theme-editor",
+                    "icon": "🎨"
+                }
+            ]
+        },
+        {
+            "id": "stages",
+            "label": "Stages",
+            "items": [
+                {
+                    "id": "new-stage",
+                    "label": "Neue Stage",
+                    "action": "new-stage",
+                    "icon": "📄"
+                },
+                {
+                    "id": "new-splash",
+                    "label": "Neuer Splashscreen",
+                    "action": "new-splash",
+                    "icon": "🚀"
+                },
+                {
+                    "id": "duplicate-stage",
+                    "label": "Aktuelle Stage duplizieren",
+                    "action": "stage-duplicate",
+                    "icon": "📄"
+                },
+                {
+                    "id": "delete-stage",
+                    "label": "Stage löschen",
+                    "action": "delete-stage",
+                    "icon": "🗑️"
+                }
+            ]
+        },
+        {
+            "id": "tools",
+            "label": "Werkzeuge",
+            "items": [
+                {
+                    "id": "playback-show",
+                    "label": "Recording-Aktionen",
+                    "action": "playback-show",
+                    "icon": "🎬"
+                },
+                {
+                    "id": "seed-data",
+                    "label": "Seed Test Data (Dev)",
+                    "action": "seed-data",
+                    "icon": "🌱"
+                },
+                {
+                    "id": "video-to-spritesheet",
+                    "label": "Video → SpriteSheet",
+                    "action": "open-video-to-spritesheet",
+                    "icon": "🎬"
+                },
+                {
+                    "id": "image-optimizer",
+                    "label": "Bild-Optimierer",
+                    "action": "open-image-optimizer",
+                    "icon": "🖼️"
+                },
+                {
+                    "id": "audio-sequence",
+                    "label": "Audio Sequenzen",
+                    "action": "open-audio-sequence",
+                    "icon": "🎵"
+                },
+                {
+                    "id": "asset-analyzer",
+                    "label": "Bild-Analyse (Performance)",
+                    "action": "open-asset-analyzer",
+                    "icon": "🔍"
+                }
+            ]
+        }
+    ]
+}

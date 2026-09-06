@@ -1,0 +1,288 @@
+{
+  "meta": {
+    "name": "Mockup Identität",
+    "version": "1.0.0",
+    "author": "Generator",
+    "description": "Exakter Nachbau der Identität Section",
+    "_sourcePath": "projects/Mockup_Identität.json"
+  },
+  "activeStageId": "stage_identitaet",
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": false,
+      "visible": true,
+      "backgroundColor": "#000000"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {},
+  "objects": [],
+  "splashObjects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#000000"
+      },
+      "objects": [],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "obj_1774889764729_8hlpd9lp4",
+          "name": "MyGlobalValue",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7.22723478426956,
+          "y": 5.648509471100406,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "Variable",
+          "objectModel": ""
+        },
+        {
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "isGlobal": true,
+          "description": "System internal flag to track unsaved changes"
+        }
+      ],
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_identitaet",
+      "name": "Identität",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#1e1e1e"
+      },
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_1774892769381_z64g3b2vm",
+          "name": "Button_36",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 22.81146607145492,
+          "y": 14.346092796841964,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Button_36",
+          "icon": ""
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_1775060108132_mrf0qn4fs",
+          "name": "GroupPanel_5",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 5.217164694950905,
+          "y": 3.2991570928230516,
+          "width": 12.748650000000001,
+          "height": 7.9483500000000005,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TButton",
+              "id": "obj_1775060115422_tnfy92nvz",
+              "name": "Button_6",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1.7496966145641188,
+              "y": 3.0991410122485377,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Button_6",
+              "icon": ""
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "obj_1774889742858_yts4kd5ue",
+          "name": "MyStageValue",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 25.924015215730435,
+          "y": 5.6985198896650155,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "Variable",
+          "objectModel": ""
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1774892846547",
+          "details": "",
+          "name": "SwitchButtonOff",
+          "showDetails": false,
+          "changes": {
+            "visible": false
+          },
+          "target": "Button_36"
+        },
+        {
+          "id": "node-1774892868554",
+          "details": "",
+          "name": "SwitchButtonOn",
+          "showDetails": false,
+          "target": "Button_36",
+          "changes": {
+            "visible": true
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Task",
+          "description": "",
+          "params": [],
+          "actionSequence": [
+            {
+              "condition": {
+                "leftType": "property",
+                "leftValue": "Button_36.visible",
+                "rightValue": true
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "SwitchButtonOff",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "name": "SwitchButtonOn",
+                  "type": "action"
+                }
+              ]
+            }
+          ],
+          "flowLayout": {
+            "Task": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchButtonOff": {
+              "x": 300,
+              "y": 140
+            },
+            "SwitchButtonOn": {
+              "x": 40,
+              "y": 240
+            },
+            "condition": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        }
+      ],
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop"
+      ]
+    }
+  ]
+}

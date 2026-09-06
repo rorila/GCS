@@ -1,0 +1,330 @@
+{
+  "meta": {
+    "name": "Spawning Shooter Demo",
+    "version": "1.0",
+    "author": "Antigravity",
+    "description": ""
+  },
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "id": "game_loop",
+          "name": "GameLoop",
+          "className": "TGameLoop",
+          "x": 0,
+          "y": 0,
+          "isInherited": true
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "flowCharts": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      }
+    },
+    {
+      "id": "stage-1",
+      "name": "Spielfeld",
+      "type": "standard",
+      "objects": [
+        {
+          "id": "bullet_template",
+          "name": "BulletTemplate",
+          "className": "TSpriteTemplate",
+          "x": 30,
+          "y": 15,
+          "width": 1,
+          "height": 1,
+          "spriteColor": "#ffff00",
+          "shape": "circle",
+          "velocityY": -0.5,
+          "collisionEnabled": true,
+          "isInherited": false,
+          "poolSize": 20,
+          "autoRecycle": true,
+          "lifetime": 5,
+          "events": {
+            "onCollision": "Kugel trifft Ziel",
+            "onBoundaryHit": "DeleteBullet"
+          }
+        },
+        {
+          "id": "player_base",
+          "name": "Player",
+          "className": "TSprite",
+          "x": 30,
+          "y": 35,
+          "width": 4,
+          "height": 1,
+          "spriteColor": "#00ccff",
+          "collisionEnabled": false
+        },
+        {
+          "id": "score_label",
+          "name": "ScoreLabel",
+          "className": "TLabel",
+          "x": 1,
+          "y": 1,
+          "width": 10,
+          "height": 2,
+          "text": "Score: ${score}",
+          "color": "#ffffff"
+        },
+        {
+          "id": "input_ctrl",
+          "name": "InputController",
+          "className": "TInputController",
+          "x": 0,
+          "y": 0,
+          "events": {
+            "onKeyDown_ArrowLeft": "Bewege Links",
+            "onKeyDown_ArrowRight": "Bewege Rechts",
+            "onKeyUp_ArrowLeft": "Stoppe Bewegung",
+            "onKeyUp_ArrowRight": "Stoppe Bewegung",
+            "onKeyDown_Space": "Schiessen",
+            "onKeyDown_KeyX": "Schiessen"
+          }
+        },
+        {
+          "id": "target_enemy",
+          "name": "Target",
+          "className": "TSprite",
+          "x": 5,
+          "y": 5,
+          "width": 4,
+          "height": 1,
+          "spriteColor": "#ff0044",
+          "velocityX": 0.2,
+          "collisionEnabled": true,
+          "events": {
+            "onBoundaryHit": "Pruefe Rand"
+          }
+        }
+      ],
+      "actions": [
+        {
+          "name": "Action_DestroyBullet",
+          "type": "destroy_object",
+          "target": "%Self%"
+        },
+        {
+          "name": "Action_HideBullet",
+          "type": "property",
+          "target": "%Self%",
+          "changes": {
+            "visible": false,
+            "velocityY": 0
+          }
+        },
+        {
+          "name": "Action_ScoreUp",
+          "type": "calculate",
+          "resultVariable": "score",
+          "expression": "${score} + 1"
+        },
+        {
+          "name": "Action_MoveRight",
+          "type": "property",
+          "target": "Player",
+          "changes": {
+            "velocityX": 1
+          }
+        },
+        {
+          "name": "Action_MoveLeft",
+          "type": "property",
+          "target": "Player",
+          "changes": {
+            "velocityX": -1
+          }
+        },
+        {
+          "name": "Action_StopMove",
+          "type": "property",
+          "target": "Player",
+          "changes": {
+            "velocityX": 0
+          }
+        },
+        {
+          "name": "Action_SpawnBullet",
+          "type": "spawn_object",
+          "templateId": "BulletTemplate",
+          "referenceObject": "Player",
+          "offsetX": 1.5,
+          "offsetY": -1
+        },
+        {
+          "name": "Action_BounceL",
+          "type": "property",
+          "target": "Target",
+          "changes": {
+            "velocityX": -0.3
+          }
+        },
+        {
+          "name": "Action_BounceR",
+          "type": "property",
+          "target": "Target",
+          "changes": {
+            "velocityX": 0.3
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Kugel trifft Ziel",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Action_DestroyBullet"
+            },
+            {
+              "type": "action",
+              "name": "Action_ScoreUp"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Bewege Rechts",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Action_MoveRight"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Bewege Links",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Action_MoveLeft"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Stoppe Bewegung",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Action_StopMove"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Schiessen",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Action_SpawnBullet"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "DeleteBullet",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Prüfe ob oben berührt",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "top"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Action_HideBullet"
+                },
+                {
+                  "type": "action",
+                  "name": "Action_DestroyBullet"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Pruefe Rand",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "left"
+              },
+              "thenAction": "Action_BounceR"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "right"
+              },
+              "thenAction": "Action_BounceL"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#333333"
+      }
+    }
+  ],
+  "activeStageId": "stage-1",
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [
+    {
+      "name": "score",
+      "type": "number",
+      "className": "TIntegerVariable",
+      "initialValue": 0,
+      "defaultValue": 0,
+      "scope": "global"
+    }
+  ]
+}

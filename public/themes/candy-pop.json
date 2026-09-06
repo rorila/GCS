@@ -1,0 +1,79 @@
+{
+  "id": "candy-pop",
+  "name": "Candy Pop",
+  "description": "Süße Pastellfarben mit rosa Glow — perfekt für verspielte Spiele.",
+  "components": {
+    "TButton": {
+      "backgroundColor": "#ff80ab",
+      "borderColor": "#ff4081",
+      "borderWidth": 2,
+      "color": "#ffffff",
+      "borderRadius": 16,
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "boxShadow": "0 0 8px #ff69b4, 0 0 16px rgba(255, 105, 180, 0.4)"
+    },
+    "TPanel": {
+      "backgroundColor": "#fff0f6",
+      "borderColor": "#f8bbd0",
+      "borderWidth": 2,
+      "borderRadius": 20,
+      "boxShadow": "0 8px 24px rgba(255, 64, 129, 0.15)"
+    },
+    "TCard": {
+      "backgroundColor": "#fce4ec",
+      "borderColor": "#f48fb1",
+      "borderWidth": 2,
+      "borderRadius": 24,
+      "boxShadow": "0 10px 20px rgba(255, 105, 180, 0.2)"
+    },
+    "TLabel": {
+      "color": "#880e4f",
+      "fontSize": 14,
+      "fontFamily": "\"Comic Sans MS\", cursive, sans-serif",
+      "fontWeight": "bold"
+    },
+    "TNumberLabel": {
+      "color": "#880e4f",
+      "fontSize": 14,
+      "fontFamily": "Consolas, monospace",
+      "fontWeight": "bold"
+    },
+    "TDialogRoot": {
+      "backgroundColor": "#fff0f6",
+      "borderColor": "#f06292",
+      "borderWidth": 2,
+      "borderRadius": 24,
+      "boxShadow": "0 20px 40px rgba(255, 64, 129, 0.25)"
+    },
+    "TSidePanel": {
+      "backgroundColor": "#f8bbd0",
+      "borderColor": "#ec407a",
+      "borderWidth": 2,
+      "boxShadow": "10px 0 30px rgba(255, 105, 180, 0.2)"
+    },
+    "TEdit": {
+      "backgroundColor": "#fff5f8",
+      "borderColor": "#f06292",
+      "borderWidth": 2,
+      "color": "#880e4f",
+      "borderRadius": 12
+    },
+    "TTextInput": {
+      "backgroundColor": "#fff5f8",
+      "borderColor": "#f06292",
+      "borderWidth": 2,
+      "color": "#880e4f",
+      "borderRadius": 12
+    },
+    "TStickyNote": {
+      "backgroundColor": "#fff9c4",
+      "borderColor": "#fbc02d",
+      "borderWidth": 1,
+      "color": "#880e4f",
+      "borderRadius": 4,
+      "boxShadow": "2px 4px 8px rgba(0,0,0,0.2)",
+      "fontFamily": "\"Comic Sans MS\", cursive, sans-serif"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+    "meta": {
+        "name": "Table Inspector",
+        "version": "1.0.2"
+    },
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "HeaderLabel",
+            "text": "Tabellen-Konfiguration",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#ffcc00",
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "data",
+            "label": "Datenbasis (Variable)",
+            "selectedValue": "${selectedObject.data}",
+            "options": "${availableVariablesAsTokens}",
+            "placeholder": "-- Variable wählen --",
+            "hint": "Wähle eine GCS Variable als Datenquelle."
+        },
+        {
+            "className": "TEdit",
+            "name": "columns",
+            "label": "Spalten (JSON)",
+            "text": "${selectedObject.columns}",
+            "hint": "[{\"field\":\"id\", \"label\":\"ID\"}] - Leer lassen für Auto-Spalten."
+        },
+        {
+            "className": "TDropdown",
+            "name": "displayMode",
+            "label": "Anzeige-Modus",
+            "selectedValue": "${selectedObject.displayMode}",
+            "options": [
+                "table",
+                "cards"
+            ],
+            "hint": "Wähle zwischen klassischer Tabelle oder moderner Karten-Galerie."
+        },
+        {
+            "className": "TEdit",
+            "name": "cardConfig",
+            "label": "Karten-Design (JSON)",
+            "text": "${selectedObject.cardConfig}",
+            "visible": "${selectedObject.displayMode == 'cards'}",
+            "hint": "Konfiguriere das Karten-Layout (Abstände, Hintergrund, etc.)."
+        },
+        {
+            "className": "TNumberInput",
+            "name": "rowHeight",
+            "label": "Zeilenhöhe (px)",
+            "value": "${selectedObject.rowHeight}",
+            "visible": "${selectedObject.displayMode == 'table'}"
+        },
+        {
+            "className": "TCheckbox",
+            "name": "showHeader",
+            "label": "Kopfzeile zeigen",
+            "checked": "${selectedObject.showHeader}",
+            "visible": "${selectedObject.displayMode == 'table'}"
+        },
+        {
+            "className": "TCheckbox",
+            "name": "striped",
+            "label": "Zebra-Tabelle",
+            "checked": "${selectedObject.striped}",
+            "visible": "${selectedObject.displayMode == 'table'}"
+        }
+    ]
+}

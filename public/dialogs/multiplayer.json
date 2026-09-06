@@ -1,0 +1,178 @@
+{
+    "meta": {
+        "name": "MultiplayerDialog",
+        "version": "1.0.0",
+        "description": "Multiplayer lobby dialog using new TDialogRoot component"
+    },
+    "dialogRoot": {
+        "className": "TDialogRoot",
+        "name": "MultiplayerDialog",
+        "title": "🎮 Multiplayer",
+        "x": 440,
+        "y": 200,
+        "width": 400,
+        "height": 300,
+        "modal": true,
+        "closable": true,
+        "draggableAtRuntime": true,
+        "style": {
+            "backgroundColor": "rgba(26, 26, 46, 0.98)",
+            "borderColor": "#4fc3f7",
+            "borderWidth": 2
+        },
+        "borderRadius": 12,
+        "padding": 16
+    },
+    "elements": [
+        {
+            "className": "TLabel",
+            "name": "TitleLabel",
+            "x": 20,
+            "y": 60,
+            "text": "Wähle eine Option:",
+            "fontSize": 16,
+            "style": {
+                "color": "#ffffff"
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "CreateRoomBtn",
+            "caption": "🏠 Room erstellen",
+            "x": 20,
+            "y": 100,
+            "width": 360,
+            "height": 40,
+            "style": {
+                "backgroundColor": "#4fc3f7",
+                "color": "#000000"
+            },
+            "service": "RemoteGameManager",
+            "serviceMethod": "createRoom",
+            "serviceParams": "${gameName}",
+            "onSuccessInfoWindow": "WaitingInfo",
+            "onSuccessInfoMessage": "Room ${result.roomCode} erstellt. Warte auf Spieler 2...",
+            "onErrorToast": "${error}",
+            "onErrorToastType": "error"
+        },
+        {
+            "className": "TLabel",
+            "name": "OrLabel",
+            "x": 180,
+            "y": 150,
+            "text": "— oder —",
+            "fontSize": 12,
+            "style": {
+                "color": "#888888"
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "RoomCodeLabel",
+            "x": 20,
+            "y": 180,
+            "text": "Room-Code eingeben:",
+            "fontSize": 14,
+            "style": {
+                "color": "#cccccc"
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "RoomCodeInput",
+            "x": 20,
+            "y": 210,
+            "width": 200,
+            "height": 35,
+            "placeholder": "z.B. ABC123",
+            "maxLength": 8,
+            "uppercase": true,
+            "style": {
+                "backgroundColor": "#2a2a3e",
+                "borderColor": "#4fc3f7",
+                "borderWidth": 1,
+                "color": "#ffffff"
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "JoinRoomBtn",
+            "caption": "✓ Beitreten",
+            "x": 230,
+            "y": 210,
+            "width": 150,
+            "height": 35,
+            "style": {
+                "backgroundColor": "#81c784",
+                "color": "#000000"
+            },
+            "service": "RemoteGameManager",
+            "serviceMethod": "joinRoom",
+            "serviceParams": "${RoomCodeInput.value}",
+            "onSuccessToast": "Room ${result.roomCode} beigetreten!",
+            "onSuccessToastType": "success",
+            "onSuccessCloseDialog": true,
+            "onErrorToast": "${error}",
+            "onErrorToastType": "error"
+        }
+    ],
+    "infoWindows": [
+        {
+            "className": "TInfoWindow",
+            "name": "WaitingInfo",
+            "title": "Room erstellt",
+            "icon": "🏠",
+            "message": "",
+            "showSpinner": true,
+            "showCancelButton": true,
+            "cancelButtonText": "Abbrechen",
+            "showConfirmButton": false,
+            "autoClose": false,
+            "onCancelTask": "CancelRoom",
+            "style": {
+                "backgroundColor": "#2a2a4a",
+                "borderColor": "#4fc3f7"
+            }
+        }
+    ],
+    "services": {
+        "RemoteGameManager": {
+            "description": "Multiplayer room management service",
+            "methods": [
+                "connect",
+                "createRoom",
+                "joinRoom",
+                "validateRoomCode",
+                "ready",
+                "leaveRoom"
+            ]
+        }
+    },
+    "callbacks": {
+        "onPlayerJoined": {
+            "description": "Called when Player 2 joins the room",
+            "actions": [
+                {
+                    "type": "updateInfoWindow",
+                    "target": "WaitingInfo",
+                    "message": "Spieler 2 ist beigetreten!",
+                    "showSpinner": false
+                },
+                {
+                    "type": "delay",
+                    "duration": 2000
+                },
+                {
+                    "type": "closeInfoWindow",
+                    "target": "WaitingInfo"
+                },
+                {
+                    "type": "closeDialog"
+                },
+                {
+                    "type": "startGame"
+                }
+            ]
+        }
+    }
+}

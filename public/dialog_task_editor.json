@@ -1,0 +1,361 @@
+{
+    "title": "Edit Task: ${name}",
+    "width": 600,
+    "height": 700,
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "NameLabel",
+            "text": "Task Name",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "NameInput",
+            "text": "${name}",
+            "placeholder": "Task Name",
+            "style": {
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "DescLabel",
+            "text": "Description",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#aaa",
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TMemo",
+            "name": "DescriptionInput",
+            "text": "${description || ''}",
+            "placeholder": "Describe what this task does...",
+            "style": {
+                "marginBottom": 16,
+                "height": 60,
+                "fontSize": 12,
+                "fontFamily": "sans-serif"
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "SequenceTitle",
+            "text": "Execution Sequence",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TForEach",
+            "name": "ActionSequenceList",
+            "source": "dialogData.actionSequence",
+            "template": [
+                {
+                    "className": "TPanel",
+                    "name": "SequenceItem_${index}",
+                    "style": {
+                        "padding": 8,
+                        "marginBottom": 4,
+                        "backgroundColor": "${item.type === 'task' ? '#2a1a3a' : '#2a2a2a'}",
+                        "borderRadius": 4,
+                        "borderLeft": "${item.type === 'task' ? '3px solid #6a0dad' : '3px solid #0e639c'}"
+                    },
+                    "children": [
+                        {
+                            "className": "TLabel",
+                            "name": "SequenceItemLabel_${index}",
+                            "text": "${index + 1}. ${item.name}",
+                            "style": {
+                                "fontFamily": "monospace",
+                                "color": "${item.type === 'task' ? '#c586c0' : '#dcdcaa'}"
+                            }
+                        },
+                        {
+                            "className": "TButton",
+                            "name": "MoveUpButton_${index}",
+                            "caption": "▲",
+                            "action": "moveSequenceItem",
+                            "actionData": {
+                                "index": "${index}",
+                                "direction": "up"
+                            },
+                            "visible": "${index > 0}",
+                            "style": {
+                                "backgroundColor": "#444",
+                                "padding": "2px 6px",
+                                "fontSize": 10
+                            }
+                        },
+                        {
+                            "className": "TButton",
+                            "name": "MoveDownButton_${index}",
+                            "caption": "▼",
+                            "action": "moveSequenceItem",
+                            "actionData": {
+                                "index": "${index}",
+                                "direction": "down"
+                            },
+                            "visible": "${index < dialogData.actionSequence.length - 1}",
+                            "style": {
+                                "backgroundColor": "#444",
+                                "padding": "2px 6px",
+                                "fontSize": 10
+                            }
+                        },
+                        {
+                            "className": "TButton",
+                            "name": "DeleteSequenceButton_${index}",
+                            "caption": "×",
+                            "action": "deleteSequenceItem",
+                            "actionData": {
+                                "index": "${index}"
+                            },
+                            "style": {
+                                "backgroundColor": "transparent",
+                                "color": "#d32f2f",
+                                "fontSize": 16
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "className": "TLabel",
+            "name": "EmptySequenceLabel",
+            "text": "No items in sequence",
+            "visible": "${!dialogData.actionSequence || dialogData.actionSequence.length === 0}",
+            "style": {
+                "fontStyle": "italic",
+                "color": "#888",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "AddActionTitle",
+            "text": "Add Action",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 8,
+                "marginTop": 16,
+                "paddingTop": 10,
+                "borderTop": "1px solid #444"
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "CreateNewActionBtn",
+            "caption": "⚡ Create New Action",
+            "action": "createAction",
+            "style": {
+                "backgroundColor": "#2e7d32",
+                "color": "#fff",
+                "marginTop": 8,
+                "marginBottom": 12,
+                "width": "100%",
+                "fontWeight": "bold"
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "ActionSelect",
+            "options": "${project.actions.map(a => a.name + ' (' + a.target + ')')}",
+            "selectedIndex": 0,
+            "visible": "${project.actions && project.actions.length > 0}",
+            "style": {
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "AddActionButton",
+            "caption": "+ Add Action",
+            "action": "addAction",
+            "visible": "${project.actions && project.actions.length > 0}",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "color": "#fff",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "NoActionsLabel",
+            "text": "No actions defined. Create actions first.",
+            "visible": "${!project.actions || project.actions.length === 0}",
+            "style": {
+                "fontStyle": "italic",
+                "color": "#888",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "CallTaskTitle",
+            "text": "Call Another Task",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 16,
+                "paddingTop": 10,
+                "borderTop": "1px solid #444"
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "TaskSelect",
+            "options": "${project.tasks.filter(t => t.name !== taskName).map(t => '🔗 ' + t.name)}",
+            "selectedIndex": 0,
+            "visible": "${project.tasks && project.tasks.filter(t => t.name !== taskName).length > 0}",
+            "style": {
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "CallTaskButton",
+            "caption": "+ Call Task",
+            "action": "addTaskCall",
+            "visible": "${project.tasks && project.tasks.filter(t => t.name !== taskName).length > 0}",
+            "style": {
+                "backgroundColor": "#6a0dad",
+                "color": "#fff",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "NoTasksLabel",
+            "text": "No other tasks available.",
+            "visible": "${!project.tasks || project.tasks.filter(t => t.name !== taskName).length === 0}",
+            "style": {
+                "fontStyle": "italic",
+                "color": "#888",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "VariablesTitle",
+            "text": "📦 Variables",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 16,
+                "paddingTop": 10,
+                "borderTop": "1px solid #444"
+            }
+        },
+        {
+            "className": "TForEach",
+            "name": "VariablesList",
+            "source": "project.variables",
+            "filter": "(item.scope || 'global').toLowerCase() === taskName.toLowerCase()",
+            "template": [
+                {
+                    "className": "TCheckbox",
+                    "name": "VariableCheckbox_${item.name}",
+                    "label": "${item.name} = \"${item.defaultValue}\"",
+                    "checked": "${dialogData.usedVariables && dialogData.usedVariables.includes(item.name)}",
+                    "action": "toggleVariable",
+                    "actionData": {
+                        "variableName": "${item.name}"
+                    },
+                    "style": {
+                        "fontFamily": "monospace",
+                        "color": "#9cdcfe"
+                    }
+                }
+            ]
+        },
+        {
+            "className": "TLabel",
+            "name": "NoVariablesLabel",
+            "text": "No variables defined",
+            "visible": "${!project.variables || project.variables.length === 0}",
+            "style": {
+                "fontStyle": "italic",
+                "color": "#888",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "AddVariableTitle",
+            "text": "Add New Variable",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa",
+                "marginTop": 12
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "NewVariableNameInput",
+            "text": "",
+            "placeholder": "Variable name",
+            "style": {
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "NewVariableValueInput",
+            "text": "",
+            "placeholder": "Default value",
+            "style": {
+                "marginTop": 4
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "AddVariableButton",
+            "caption": "+ Add Variable",
+            "action": "addVariable",
+            "style": {
+                "backgroundColor": "#2e7d32",
+                "color": "#fff",
+                "marginTop": 8
+            }
+        }
+    ],
+    "footer": [
+        {
+            "className": "TButton",
+            "name": "SaveButton",
+            "caption": "Save Task",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "color": "#fff"
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "CancelButton",
+            "caption": "Cancel",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#666",
+                "color": "#fff"
+            }
+        }
+    ]
+}

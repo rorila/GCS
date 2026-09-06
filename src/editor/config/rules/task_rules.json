@@ -1,0 +1,21 @@
+{
+    "start": "ask_task_name",
+    "nodes": {
+        "ask_task_name": {
+            "id": "ask_task_name",
+            "prompt": "Wie soll der Task heißen?",
+            "propName": "name",
+            "type": "string",
+            "required": true,
+            "next": "ask_task_desc"
+        },
+        "ask_task_desc": {
+            "id": "ask_task_desc",
+            "prompt": "Was soll dieser Task bewirken (Beschreibung)?",
+            "propName": "description",
+            "type": "string",
+            "required": false,
+            "next": null
+        }
+    }
+}

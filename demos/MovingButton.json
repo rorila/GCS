@@ -1,0 +1,186 @@
+{
+  "version": "3.9.1",
+  "meta": {
+    "id": "demo_moving_button",
+    "name": "MovingButton",
+    "version": "1.0.0",
+    "author": "AgentController",
+    "description": "Ein einzelner Button springt auf der Stage zufaellig weg, wenn die Maus ihn beruehrt."
+  },
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#1e1e2e"
+      },
+      "objects": [
+        {
+          "className": "TGameLoop",
+          "name": "GameLoop",
+          "x": 2,
+          "y": 2,
+          "width": 4,
+          "height": 2,
+          "isService": true,
+          "isHiddenInRun": true,
+          "targetFPS": 60,
+          "state": "running",
+          "style": {
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2,
+            "color": "#ffffff"
+          },
+          "id": "obj_1783705240728_eigwu"
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "className": "TGameState",
+          "name": "GameState",
+          "x": 7,
+          "y": 2,
+          "width": 4,
+          "height": 2,
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "state": "running",
+          "spritesMoving": false,
+          "collisionsEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2,
+            "color": "#ffffff"
+          },
+          "id": "obj_1783705240728_xt05j"
+        }
+      ],
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_main",
+      "name": "MainStage",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#0f0c29"
+      },
+      "objects": [
+        {
+          "className": "TButton",
+          "name": "StartButton",
+          "x": 28,
+          "y": 18,
+          "width": 8,
+          "height": 4,
+          "text": "Klick mich",
+          "style": {
+            "backgroundColor": "#0078d4",
+            "borderColor": "#005a9e",
+            "borderWidth": 2,
+            "borderRadius": 8,
+            "color": "#ffffff",
+            "fontSize": 18,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "id": "obj_1783705240728_shugk",
+          "events": {
+            "onMouseEnter": "MoveTheStartButton"
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "MoveTheStartButton",
+          "description": "Berechnet eine zufaellige Position und setzt den Button dorthin.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "CalcNewX"
+            },
+            {
+              "type": "action",
+              "name": "CalcNewY"
+            },
+            {
+              "type": "action",
+              "name": "MoveButton"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "MoveTheStartButton": {
+              "x": 40,
+              "y": 40
+            },
+            "CalcNewX": {
+              "x": 40,
+              "y": 140
+            },
+            "CalcNewY": {
+              "x": 40,
+              "y": 240
+            },
+            "MoveButton": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_1_calcnewx",
+          "name": "CalcNewX",
+          "type": "calculate",
+          "resultVariable": "newX",
+          "formula": "Math.floor(Math.random() * (64 - 8))"
+        },
+        {
+          "id": "act_2_calcnewy",
+          "name": "CalcNewY",
+          "type": "calculate",
+          "resultVariable": "newY",
+          "formula": "Math.floor(Math.random() * (40 - 4))"
+        },
+        {
+          "id": "act_3_movebutton",
+          "name": "MoveButton",
+          "type": "property",
+          "target": "StartButton",
+          "changes": {
+            "x": "${newX}",
+            "y": "${newY}"
+          }
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "gameName": "MainStage",
+      "backgroundColor": "#0f0c29"
+    }
+  ],
+  "tasks": [],
+  "actions": [],
+  "objects": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "activeStageId": "stage_main"
+}

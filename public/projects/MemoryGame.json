@@ -1,0 +1,1120 @@
+{
+  "version": "3.9.1",
+  "meta": {
+    "id": "memory_game_v2",
+    "name": "Memory (TForEach)",
+    "version": "1.0.0",
+    "author": "AgentController",
+    "description": "Klassisches Memory-Spiel — deklarativ gebaut mit TForEach, Collection-Actions und Magic-Variablen."
+  },
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#1e1e2e"
+      },
+      "objects": [
+        {
+          "className": "TGameLoop",
+          "name": "GameLoop",
+          "x": 2,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isService": true,
+          "isHiddenInRun": true,
+          "targetFPS": 60,
+          "style": {
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2,
+            "color": "#fff"
+          },
+          "id": "obj_1777099949859_syo07"
+        },
+        {
+          "className": "TDialogRoot",
+          "name": "WinDialog",
+          "x": 16,
+          "y": 12,
+          "width": 32,
+          "height": 10,
+          "visible": false,
+          "modal": true,
+          "title": "🏆 Gewonnen!",
+          "text": "Geschafft mit ${attempts} Versuchen!",
+          "style": {
+            "backgroundColor": "#1a1a2e",
+            "color": "#f7c948",
+            "borderColor": "#f7c948",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "id": "obj_1777099949859_hsfzj"
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "className": "TGameState",
+          "name": "GameState",
+          "x": 6,
+          "y": 2,
+          "width": 4,
+          "height": 1,
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "state": "idle",
+          "style": {
+            "backgroundColor": "#4caf50",
+            "color": "#fff"
+          },
+          "id": "obj_1777099949859_a5i72"
+        }
+      ],
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_main",
+      "name": "Memory",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#0f0c29"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "name": "Title",
+          "x": 22,
+          "y": 4,
+          "width": 24,
+          "height": 3,
+          "text": "🎴 Memory",
+          "style": {
+            "color": "#f7c948",
+            "fontSize": 36,
+            "fontWeight": "bold",
+            "textAlign": "center",
+            "backgroundColor": "transparent"
+          },
+          "id": "obj_1777099949859_zqymb"
+        },
+        {
+          "className": "TLabel",
+          "name": "StatsLabel",
+          "x": 22,
+          "y": 8,
+          "width": 24,
+          "height": 2,
+          "text": "Paare: ${score} / 8  |  Versuche: ${attempts}",
+          "style": {
+            "color": "#b9b9d4",
+            "fontSize": 18,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent"
+          },
+          "id": "obj_1777099949859_5xozg"
+        },
+        {
+          "className": "TForEach",
+          "name": "MemoryGrid",
+          "x": 22,
+          "y": 11,
+          "width": 24,
+          "height": 24,
+          "source": "cards",
+          "layout": "grid",
+          "cols": 4,
+          "rows": 4,
+          "gap": 1,
+          "itemWidth": 5,
+          "itemHeight": 5,
+          "namePattern": "Card_{index}",
+          "template": {
+            "className": "TButton",
+            "text": "${item.displayText}",
+            "_idx": "${index}",
+            "style": {
+              "fontSize": 28,
+              "fontWeight": "bold",
+              "backgroundColor": "#3a3a5c",
+              "borderColor": "#5a5a8c",
+              "borderWidth": 2,
+              "borderRadius": 8,
+              "color": "#ffffff",
+              "textAlign": "center"
+            },
+            "events": {
+              "onClick": "OnCardClick"
+            }
+          },
+          "id": "obj_1777099949859_kjeeu"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "InitGame",
+          "description": "Karten mischen, Spiel-Zustand zurücksetzen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "ShuffleCards"
+            },
+            {
+              "type": "action",
+              "name": "ResetFirstIdxInit"
+            },
+            {
+              "type": "action",
+              "name": "ResetSecondIdxInit"
+            },
+            {
+              "type": "action",
+              "name": "ResetScoreInit"
+            },
+            {
+              "type": "action",
+              "name": "ResetAttemptsInit"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "InitGame": {
+              "x": 40,
+              "y": 40
+            },
+            "ShuffleCards": {
+              "x": 40,
+              "y": 140
+            },
+            "ResetFirstIdxInit": {
+              "x": 40,
+              "y": 240
+            },
+            "ResetSecondIdxInit": {
+              "x": 40,
+              "y": 340
+            },
+            "ResetScoreInit": {
+              "x": 40,
+              "y": 440
+            },
+            "ResetAttemptsInit": {
+              "x": 40,
+              "y": 540
+            }
+          }
+        },
+        {
+          "name": "ResetFlippedCards",
+          "description": "Vorheriges Nicht-Paar zurückklappen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "GetFirstFlip"
+            },
+            {
+              "type": "action",
+              "name": "HideFirstFlip"
+            },
+            {
+              "type": "action",
+              "name": "GetSecondFlip"
+            },
+            {
+              "type": "action",
+              "name": "HideSecondFlip"
+            },
+            {
+              "type": "action",
+              "name": "ResetFirstIdxFlip"
+            },
+            {
+              "type": "action",
+              "name": "ResetSecondIdxFlip"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "ResetFlippedCards": {
+              "x": 40,
+              "y": 40
+            },
+            "GetFirstFlip": {
+              "x": 40,
+              "y": 140
+            },
+            "HideFirstFlip": {
+              "x": 40,
+              "y": 240
+            },
+            "GetSecondFlip": {
+              "x": 40,
+              "y": 340
+            },
+            "HideSecondFlip": {
+              "x": 40,
+              "y": 440
+            },
+            "ResetFirstIdxFlip": {
+              "x": 40,
+              "y": 540
+            },
+            "ResetSecondIdxFlip": {
+              "x": 40,
+              "y": 640
+            }
+          }
+        },
+        {
+          "name": "HandleMatch",
+          "description": "Paar gefunden: markieren, Score erhöhen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "MatchFirst"
+            },
+            {
+              "type": "action",
+              "name": "MatchSecond"
+            },
+            {
+              "type": "action",
+              "name": "IncScore"
+            },
+            {
+              "type": "action",
+              "name": "ResetFirstIdxMatch"
+            },
+            {
+              "type": "action",
+              "name": "ResetSecondIdxMatch"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "HandleMatch": {
+              "x": 40,
+              "y": 40
+            },
+            "MatchFirst": {
+              "x": 40,
+              "y": 140
+            },
+            "MatchSecond": {
+              "x": 40,
+              "y": 240
+            },
+            "IncScore": {
+              "x": 40,
+              "y": 340
+            },
+            "ResetFirstIdxMatch": {
+              "x": 40,
+              "y": 440
+            },
+            "ResetSecondIdxMatch": {
+              "x": 40,
+              "y": 540
+            }
+          }
+        },
+        {
+          "name": "ProcessSecondCard",
+          "description": "Zweite Karte: secondIdx setzen, Match prüfen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetSecondIdx"
+            },
+            {
+              "type": "action",
+              "name": "IncAttempts"
+            },
+            {
+              "type": "action",
+              "name": "GetFirstCard"
+            },
+            {
+              "type": "action",
+              "name": "EvalMatch"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: isMatch == true",
+              "condition": {
+                "variable": "isMatch",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "HandleMatch"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "ProcessSecondCard": {
+              "x": 40,
+              "y": 40
+            },
+            "SetSecondIdx": {
+              "x": 40,
+              "y": 140
+            },
+            "IncAttempts": {
+              "x": 40,
+              "y": 240
+            },
+            "GetFirstCard": {
+              "x": 40,
+              "y": 340
+            },
+            "EvalMatch": {
+              "x": 40,
+              "y": 440
+            },
+            "Branch: isMatch == true": {
+              "x": 40,
+              "y": 540
+            }
+          }
+        },
+        {
+          "name": "ProcessCardClick",
+          "description": "Karte aufdecken, erste oder zweite Karte einsortieren",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "FlipUp"
+            },
+            {
+              "type": "action",
+              "name": "EvalIsFirst"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: isFirst == true",
+              "condition": {
+                "variable": "isFirst",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "SetFirstIdx"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "ProcessSecondCard"
+                }
+              ]
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "ProcessCardClick": {
+              "x": 40,
+              "y": 40
+            },
+            "FlipUp": {
+              "x": 40,
+              "y": 140
+            },
+            "EvalIsFirst": {
+              "x": 40,
+              "y": 240
+            },
+            "Branch: isFirst == true": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "name": "CheckWin",
+          "description": "Prüfen ob alle 8 Paare gefunden",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: score == 8",
+              "condition": {
+                "variable": "score",
+                "operator": "==",
+                "value": 8
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "ShowWinDialog"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "CheckWin": {
+              "x": 40,
+              "y": 40
+            },
+            "Branch: score == 8": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "OnCardClick",
+          "description": "Klick auf beliebige Memory-Karte",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "GetIdxStr"
+            },
+            {
+              "type": "action",
+              "name": "ParseIdx"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: secondIdx != -1",
+              "condition": {
+                "variable": "secondIdx",
+                "operator": "!=",
+                "value": -1
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "ResetFlippedCards"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "GetClicked"
+            },
+            {
+              "type": "action",
+              "name": "EvalCanFlip"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: canFlip == true",
+              "condition": {
+                "variable": "canFlip",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "ProcessCardClick"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "task",
+              "name": "CheckWin"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "OnCardClick": {
+              "x": 40,
+              "y": 40
+            },
+            "GetIdxStr": {
+              "x": 40,
+              "y": 140
+            },
+            "ParseIdx": {
+              "x": 40,
+              "y": 240
+            },
+            "Branch: secondIdx != -1": {
+              "x": 40,
+              "y": 340
+            },
+            "GetClicked": {
+              "x": 40,
+              "y": 440
+            },
+            "EvalCanFlip": {
+              "x": 40,
+              "y": 540
+            },
+            "Branch: canFlip == true": {
+              "x": 40,
+              "y": 640
+            },
+            "CheckWin": {
+              "x": 40,
+              "y": 740
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_1_shufflecards",
+          "name": "ShuffleCards",
+          "type": "list_shuffle",
+          "target": "cards"
+        },
+        {
+          "id": "act_2_resetfirstidxinit",
+          "name": "ResetFirstIdxInit",
+          "type": "calculate",
+          "formula": "-1",
+          "resultVariable": "firstIdx"
+        },
+        {
+          "id": "act_3_resetsecondidxinit",
+          "name": "ResetSecondIdxInit",
+          "type": "calculate",
+          "formula": "-1",
+          "resultVariable": "secondIdx"
+        },
+        {
+          "id": "act_4_resetscoreinit",
+          "name": "ResetScoreInit",
+          "type": "calculate",
+          "formula": "0",
+          "resultVariable": "score"
+        },
+        {
+          "id": "act_5_resetattemptsinit",
+          "name": "ResetAttemptsInit",
+          "type": "calculate",
+          "formula": "0",
+          "resultVariable": "attempts"
+        },
+        {
+          "id": "act_6_getfirstflip",
+          "name": "GetFirstFlip",
+          "type": "list_get",
+          "target": "cards",
+          "index": "${firstIdx}",
+          "resultVariable": "tempCard"
+        },
+        {
+          "id": "act_7_hidefirstflip",
+          "name": "HideFirstFlip",
+          "type": "property",
+          "target": "tempCard",
+          "changes": {
+            "face": false,
+            "displayText": "?"
+          }
+        },
+        {
+          "id": "act_8_getsecondflip",
+          "name": "GetSecondFlip",
+          "type": "list_get",
+          "target": "cards",
+          "index": "${secondIdx}",
+          "resultVariable": "tempCard"
+        },
+        {
+          "id": "act_9_hidesecondflip",
+          "name": "HideSecondFlip",
+          "type": "property",
+          "target": "tempCard",
+          "changes": {
+            "face": false,
+            "displayText": "?"
+          }
+        },
+        {
+          "id": "act_10_resetfirstidxflip",
+          "name": "ResetFirstIdxFlip",
+          "type": "calculate",
+          "formula": "-1",
+          "resultVariable": "firstIdx"
+        },
+        {
+          "id": "act_11_resetsecondidxflip",
+          "name": "ResetSecondIdxFlip",
+          "type": "calculate",
+          "formula": "-1",
+          "resultVariable": "secondIdx"
+        },
+        {
+          "id": "act_12_matchfirst",
+          "name": "MatchFirst",
+          "type": "property",
+          "target": "firstCard",
+          "changes": {
+            "matched": true
+          }
+        },
+        {
+          "id": "act_13_matchsecond",
+          "name": "MatchSecond",
+          "type": "property",
+          "target": "tempCard",
+          "changes": {
+            "matched": true
+          }
+        },
+        {
+          "id": "act_14_incscore",
+          "name": "IncScore",
+          "type": "calculate",
+          "formula": "score + 1",
+          "resultVariable": "score"
+        },
+        {
+          "id": "act_15_resetfirstidxmatch",
+          "name": "ResetFirstIdxMatch",
+          "type": "calculate",
+          "formula": "-1",
+          "resultVariable": "firstIdx"
+        },
+        {
+          "id": "act_16_resetsecondidxmatch",
+          "name": "ResetSecondIdxMatch",
+          "type": "calculate",
+          "formula": "-1",
+          "resultVariable": "secondIdx"
+        },
+        {
+          "id": "act_17_setsecondidx",
+          "name": "SetSecondIdx",
+          "type": "variable",
+          "variableName": "secondIdx",
+          "value": "${clickedIdx}"
+        },
+        {
+          "id": "act_18_incattempts",
+          "name": "IncAttempts",
+          "type": "calculate",
+          "formula": "attempts + 1",
+          "resultVariable": "attempts"
+        },
+        {
+          "id": "act_19_getfirstcard",
+          "name": "GetFirstCard",
+          "type": "list_get",
+          "target": "cards",
+          "index": "${firstIdx}",
+          "resultVariable": "firstCard"
+        },
+        {
+          "id": "act_20_evalmatch",
+          "name": "EvalMatch",
+          "type": "calculate",
+          "formula": "firstCard.value == tempCard.value",
+          "resultVariable": "isMatch"
+        },
+        {
+          "id": "act_21_flipup",
+          "name": "FlipUp",
+          "type": "property",
+          "target": "tempCard",
+          "changes": {
+            "face": true,
+            "displayText": "${tempCard.value}"
+          }
+        },
+        {
+          "id": "act_22_evalisfirst",
+          "name": "EvalIsFirst",
+          "type": "calculate",
+          "formula": "firstIdx == -1",
+          "resultVariable": "isFirst"
+        },
+        {
+          "id": "act_23_setfirstidx",
+          "name": "SetFirstIdx",
+          "type": "variable",
+          "variableName": "firstIdx",
+          "value": "${clickedIdx}"
+        },
+        {
+          "id": "act_24_showwindialog",
+          "name": "ShowWinDialog",
+          "type": "call_method",
+          "target": "WinDialog",
+          "method": "show"
+        },
+        {
+          "id": "act_25_getidxstr",
+          "name": "GetIdxStr",
+          "type": "variable",
+          "variableName": "clickedIdxStr",
+          "value": "${self._idx}"
+        },
+        {
+          "id": "act_26_parseidx",
+          "name": "ParseIdx",
+          "type": "calculate",
+          "formula": "parseInt(clickedIdxStr)",
+          "resultVariable": "clickedIdx"
+        },
+        {
+          "id": "act_27_getclicked",
+          "name": "GetClicked",
+          "type": "list_get",
+          "target": "cards",
+          "index": "${clickedIdx}",
+          "resultVariable": "tempCard"
+        },
+        {
+          "id": "act_28_evalcanflip",
+          "name": "EvalCanFlip",
+          "type": "calculate",
+          "formula": "!tempCard.matched && !tempCard.face",
+          "resultVariable": "canFlip"
+        }
+      ],
+      "variables": [
+        {
+          "className": "TListVariable",
+          "name": "cards",
+          "x": 2,
+          "y": 2,
+          "width": 4,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "items": [
+            {
+              "idx": 0,
+              "value": "🍎",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 1,
+              "value": "🍎",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 2,
+              "value": "🍌",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 3,
+              "value": "🍌",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 4,
+              "value": "🍇",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 5,
+              "value": "🍇",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 6,
+              "value": "🍉",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 7,
+              "value": "🍉",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 8,
+              "value": "🍓",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 9,
+              "value": "🍓",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 10,
+              "value": "🍒",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 11,
+              "value": "🍒",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 12,
+              "value": "🥝",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 13,
+              "value": "🥝",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 14,
+              "value": "🍍",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            },
+            {
+              "idx": 15,
+              "value": "🍍",
+              "displayText": "?",
+              "face": false,
+              "matched": false
+            }
+          ],
+          "style": {
+            "backgroundColor": "#1e1e2e",
+            "color": "#fff"
+          },
+          "id": "obj_1777099949859_9gkbw"
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "firstIdx",
+          "x": 7,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": -1,
+          "defaultValue": -1,
+          "type": "integer",
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "id": "obj_1777099949859_a0qg6"
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "secondIdx",
+          "x": 11,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": -1,
+          "defaultValue": -1,
+          "type": "integer",
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "id": "obj_1777099949859_j3kqy"
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "score",
+          "x": 15,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": 0,
+          "defaultValue": 0,
+          "type": "integer",
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "id": "obj_1777099949859_ty5wz"
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "attempts",
+          "x": 19,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": 0,
+          "defaultValue": 0,
+          "type": "integer",
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "id": "obj_1777099949859_qjsni"
+        },
+        {
+          "className": "TIntegerVariable",
+          "name": "clickedIdx",
+          "x": 23,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": -1,
+          "defaultValue": -1,
+          "type": "integer",
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "id": "obj_1777099949859_rdj54"
+        },
+        {
+          "className": "TStringVariable",
+          "name": "clickedIdxStr",
+          "x": 27,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": "",
+          "defaultValue": "",
+          "type": "string",
+          "id": "obj_1777099949859_ae3ov"
+        },
+        {
+          "className": "TObjectVariable",
+          "name": "tempCard",
+          "x": 31,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": null,
+          "defaultValue": null,
+          "id": "obj_1777099949859_n18ky"
+        },
+        {
+          "className": "TObjectVariable",
+          "name": "firstCard",
+          "x": 35,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": null,
+          "defaultValue": null,
+          "id": "obj_1777099949859_8y5i2"
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "canFlip",
+          "x": 39,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": false,
+          "defaultValue": false,
+          "type": "boolean",
+          "id": "obj_1777099949859_dz8sl"
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "isFirst",
+          "x": 43,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": false,
+          "defaultValue": false,
+          "type": "boolean",
+          "id": "obj_1777099949859_1z50g"
+        },
+        {
+          "className": "TBooleanVariable",
+          "name": "isMatch",
+          "x": 47,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "value": false,
+          "defaultValue": false,
+          "type": "boolean",
+          "id": "obj_1777099949859_cz0gv"
+        }
+      ],
+      "flowCharts": {},
+      "gameName": "Memory",
+      "backgroundColor": "#0f0c29",
+      "events": {
+        "onRuntimeStart": "InitGame"
+      }
+    }
+  ],
+  "tasks": [],
+  "actions": [],
+  "objects": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "activeStageId": "stage_main"
+}

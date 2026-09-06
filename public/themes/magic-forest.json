@@ -1,0 +1,83 @@
+{
+  "id": "magic-forest",
+  "name": "Magic Forest",
+  "description": "Mystische Lila- und Grüntöne mit sanftem Glow.",
+  "components": {
+    "TButton": {
+      "backgroundColor": "#4527a0",
+      "borderColor": "#b388ff",
+      "borderWidth": 2,
+      "color": "#e1bee7",
+      "borderRadius": 16,
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "boxShadow": "0 0 8px #b388ff, 0 0 16px rgba(179, 136, 255, 0.4)"
+    },
+    "TPanel": {
+      "backgroundColor": "#1a0b2e",
+      "borderColor": "#7c4dff",
+      "borderWidth": 2,
+      "borderRadius": 18,
+      "boxShadow": "0 8px 32px rgba(124, 77, 255, 0.25)"
+    },
+    "TCard": {
+      "backgroundColor": "#311b92",
+      "borderColor": "#b388ff",
+      "borderWidth": 2,
+      "borderRadius": 20,
+      "boxShadow": "0 10px 20px rgba(179, 136, 255, 0.25)"
+    },
+    "TLabel": {
+      "color": "#b388ff",
+      "fontSize": 14,
+      "fontFamily": "Georgia, serif",
+      "fontWeight": "bold",
+      "textShadow": "0 0 6px #b388ff"
+    },
+    "TNumberLabel": {
+      "color": "#b388ff",
+      "fontSize": 14,
+      "fontFamily": "Georgia, serif",
+      "fontWeight": "bold",
+      "textShadow": "0 0 6px #b388ff"
+    },
+    "TDialogRoot": {
+      "backgroundColor": "#1a0b2e",
+      "borderColor": "#b388ff",
+      "borderWidth": 2,
+      "borderRadius": 22,
+      "boxShadow": "0 20px 40px rgba(124, 77, 255, 0.35)"
+    },
+    "TSidePanel": {
+      "backgroundColor": "#1a0b2e",
+      "borderColor": "#7c4dff",
+      "borderWidth": 2,
+      "boxShadow": "10px 0 30px rgba(124, 77, 255, 0.25)"
+    },
+    "TEdit": {
+      "backgroundColor": "#311b92",
+      "borderColor": "#b388ff",
+      "borderWidth": 2,
+      "color": "#e1bee7",
+      "borderRadius": 12,
+      "boxShadow": "0 0 8px #b388ff, 0 0 16px rgba(179, 136, 255, 0.4)"
+    },
+    "TTextInput": {
+      "backgroundColor": "#311b92",
+      "borderColor": "#b388ff",
+      "borderWidth": 2,
+      "color": "#e1bee7",
+      "borderRadius": 12,
+      "boxShadow": "0 0 8px #b388ff, 0 0 16px rgba(179, 136, 255, 0.4)"
+    },
+    "TStickyNote": {
+      "backgroundColor": "#e8f5e9",
+      "borderColor": "#66bb6a",
+      "borderWidth": 1,
+      "color": "#1a0b2e",
+      "borderRadius": 4,
+      "boxShadow": "2px 4px 8px rgba(0,0,0,0.2)",
+      "fontFamily": "Georgia, serif"
+    }
+  }
+}

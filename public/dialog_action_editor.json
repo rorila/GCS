@@ -1,0 +1,159 @@
+{
+    "title": "Aktion bearbeiten: ${name}",
+    "width": 600,
+    "height": 650,
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "NameLabel",
+            "text": "Aktions-Name",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "NameInput",
+            "text": "${name}",
+            "placeholder": "Aktions-Name",
+            "style": {
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "DescLabel",
+            "text": "Beschreibung",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#aaa",
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TMemo",
+            "name": "DescriptionInput",
+            "text": "${dialogData.description || ''}",
+            "placeholder": "Beschreibung...",
+            "style": {
+                "marginBottom": 16,
+                "height": 40,
+                "fontSize": 12
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "TypeTitle",
+            "text": "Aktionstyp",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "ActionTypeSelect",
+            "options": [
+                {
+                    "value": "property",
+                    "label": "📝 Eigenschaft setzen"
+                },
+                {
+                    "value": "increment",
+                    "label": "➕ Erhöhen (+1)"
+                },
+                {
+                    "value": "negate",
+                    "label": "✖️ Negieren (Bool/Num)"
+                },
+                {
+                    "value": "call_method",
+                    "label": "⚡ Methode aufrufen"
+                },
+                {
+                    "value": "variable",
+                    "label": "📂 Variable lesen"
+                },
+                {
+                    "value": "set_variable",
+                    "label": "💾 Variable setzen"
+                },
+                {
+                    "value": "service",
+                    "label": "🌐 Server-Aktion"
+                },
+                {
+                    "value": "broadcast",
+                    "label": "📣 Event senden"
+                },
+                {
+                    "value": "navigate_stage",
+                    "label": "🚀 Stage wechseln"
+                },
+                {
+                    "value": "calculate",
+                    "label": "🧮 Berechnen"
+                },
+                {
+                    "value": "animate",
+                    "label": "🎬 Animieren"
+                },
+                {
+                    "value": "sprite_animate",
+                    "label": "🎞️ Sprite Frame-Animation"
+                }
+            ],
+            "selectedValue": "${dialogData.type}",
+            "action": "changeActionType",
+            "style": {
+                "marginBottom": 16
+            }
+        },
+        {
+            "className": "TCheckbox",
+            "name": "sync",
+            "label": "🌐 Synchronisieren (Netzwerk)",
+            "checked": "${dialogData.sync !== false}",
+            "style": {
+                "marginBottom": 16
+            }
+        },
+        {
+            "className": "TActionParams",
+            "name": "Params",
+            "visible": "${dialogData.type !== undefined}",
+            "style": {
+                "marginTop": 8,
+                "paddingTop": 12,
+                "borderTop": "1px solid #444"
+            }
+        }
+    ],
+    "footer": [
+        {
+            "className": "TButton",
+            "name": "CancelBtn",
+            "caption": "Abbrechen",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#444",
+                "marginRight": 10
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "SaveBtn",
+            "caption": "Speichern",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#0e639c"
+            }
+        }
+    ]
+}

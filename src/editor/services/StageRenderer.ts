@@ -1,0 +1,2517 @@
+import { GridConfig } from '../../model/types';
+import { Logger } from '../../utils/Logger';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { EmojiPickerRenderer } from './renderers/EmojiPickerRenderer';
+import { TableRenderer } from './renderers/TableRenderer';
+
+
+import { IRenderContext } from './renderers/IRenderContext';
+import { SpriteRenderer } from './renderers/SpriteRenderer';
+import { SpriteGeometry } from '../../runtime/SpriteGeometry';
+import { ShapeRenderer } from './renderers/ShapeRenderer';
+import { InputRenderer } from './renderers/InputRenderer';
+import { SystemComponentRenderer } from './renderers/SystemComponentRenderer';
+import { VirtualGamepadRenderer } from './renderers/VirtualGamepadRenderer';
+import { TextObjectRenderer } from './renderers/TextObjectRenderer';
+    import { ComplexComponentRenderer } from './renderers/ComplexComponentRenderer';
+import { themeRegistry } from '../../runtime/ThemeRegistry';
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
+import { getDialogSlideOffset } from './renderers/DialogSlide';
+import { dataUrlToBlobUrl } from '../../utils/BlobUrlCache';
+const logger = Logger.get('StageRenderer', 'Component_Manipulation');
+
+/**
+ * Interface für den Host (Stage), damit der Renderer auf notwendige Eigenschaften zugreifen kann.
+ */
+export interface StageHost {
+    element: HTMLElement;
+    grid: GridConfig;
+    runMode: boolean;
+    isBlueprint: boolean;
+    selectedIds: Set<string>;
+    onEvent: ((id: string, eventName: string, data?: any) => void) | null;
+    lastRenderedObjects: any[];
+    /** Optionale Referenz auf die aktive GameRuntime (nur im RunMode gesetzt) */
+    runtime?: { getRawObject(id: string): any | undefined } | any;
+    /** Liefert Variablenwerte für die Auflösung von ${...}-Bindings im Editor. */
+    getVariableContext?(): Record<string, any>;
+}
+
+// Referenz-CellSize für fontSize-Skalierung
+const REFERENCE_CELL_SIZE = 20;
+
+const DEFAULT_NO_FRAMES_SVG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="8" fill="#252536"/><rect x="8" y="18" width="48" height="28" rx="4" stroke="#7f849c" stroke-width="3" fill="none"/><circle cx="24" cy="32" r="7" fill="#7f849c"/><path d="M38 26L48 32L38 38V26Z" fill="#7f849c"/><rect x="10" y="14" width="6" height="4" rx="1" fill="#7f849c"/><rect x="48" y="14" width="6" height="4" rx="1" fill="#7f849c"/><rect x="10" y="46" width="6" height="4" rx="1" fill="#7f849c"/><rect x="48" y="46" width="6" height="4" rx="1" fill="#7f849c"/></svg>');
+
+export class StageRenderer {
+    private host: StageHost;
+    private cachedVariableContext: Record<string, any> | undefined;
+    private variableContextCached = false;
+    private animationPreview: { id: string; timer: number | null; el: HTMLElement; imageList: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number } | null = null;
+    private spriteAnimationPreview: { id: string; timer: number | null; el: HTMLElement; obj: any; ctx: IRenderContext; animObj: any; frameDuration: number; imageCount: number; loop: boolean; enabled: boolean; currentFrame: number; tick: (() => void) | null } | null = null;
+    private spriteElementCache: Map<string, HTMLElement> = new Map();
+    /** Index-Caches fuer den 60fps-Fast-Path. Werden bei jedem renderObjects() invalidiert. */
+    private fastPathObjectsRef: any[] | null = null;
+    private fastPathById: Map<string, any> = new Map();
+    private fastPathChildrenByParent: Map<string, any[]> = new Map();
+    private fastPathDialogParent: Map<string, any> = new Map();
+    /** PERF: Wiederverwendete Puffer fuer updateSpritePositions (kein Muell pro Frame). */
+    private fastPathUpdateMap: Map<string, any> = new Map();
+    private fastPathMergedBuffer: any[] = [];
+    private fastPathKidBuffer: any[] = [];
+    private fastPathAbsX: number = 0;
+    private fastPathAbsY: number = 0;
+
+    constructor(host: StageHost) {
+        this.host = host;
+    }
+
+    private resetVariableContext(): void {
+        this.variableContextCached = false;
+        this.cachedVariableContext = undefined;
+    }
+
+    /**
+     * PERF: Liefert das DOM-Element einer Objekt-ID aus dem Cache.
+     * Vermeidet `querySelector` in den 60fps-Pfaden (Frame- und Positions-Update).
+     */
+    private getCachedElement(objId: string | undefined): HTMLElement | null {
+        if (!objId || !this.host || !this.host.element) return null;
+        const cached = this.spriteElementCache.get(objId);
+        if (cached && cached.isConnected && cached.getAttribute('data-id') === objId) {
+            return cached;
+        }
+        const el = this.host.element.querySelector(`[data-id="${objId}"]`) as HTMLElement | null;
+        if (el) this.spriteElementCache.set(objId, el);
+        return el;
+    }
+
+    /** Verwirft die Fast-Path-Indizes; wird bei jedem vollen Render aufgerufen. */
+    private invalidateFastPathIndex(): void {
+        this.fastPathObjectsRef = null;
+        this.fastPathById.clear();
+        this.fastPathChildrenByParent.clear();
+        this.fastPathDialogParent.clear();
+    }
+
+    /**
+     * PERF: Baut Id- und Parent-Indizes einmalig auf, statt in jedem Frame
+     * `Array.find`/`Array.filter` ueber alle Stage-Objekte laufen zu lassen.
+     */
+    private ensureFastPathIndex(allObjects: any[]): void {
+        if (this.fastPathObjectsRef === allObjects && this.fastPathById.size > 0) return;
+
+        this.fastPathObjectsRef = allObjects;
+        this.fastPathById.clear();
+        this.fastPathChildrenByParent.clear();
+        this.fastPathDialogParent.clear();
+
+        for (const o of allObjects) {
+            const id = o?.id || o?.name;
+            if (id && !this.fastPathById.has(id)) this.fastPathById.set(id, o);
+            if (o?.parentId) {
+                const siblings = this.fastPathChildrenByParent.get(o.parentId);
+                if (siblings) siblings.push(o);
+                else this.fastPathChildrenByParent.set(o.parentId, [o]);
+            }
+        }
+    }
+
+    /**
+     * Ermittelt den Dialog-/SidePanel-Vorfahren eines Objekts.
+     * Die Baumstruktur aendert sich zwischen zwei vollen Renders nicht, daher
+     * wird das Ergebnis gecacht (der `visible`-Zustand wird weiterhin live gelesen).
+     */
+    private resolveDialogParent(obj: any, lookupObject: (id: string) => any): any {
+        const isDialogLike = (o: any): boolean =>
+            !!o && (o.className === 'TDialogRoot' || o.className === 'TThemeDialog' || o.className === 'TSidePanel'
+                || o.constructor?.name === 'TDialogRoot' || o.constructor?.name === 'TThemeDialog');
+
+        if (obj.className === 'TDialogRoot' || obj.className === 'TThemeDialog' || obj.className === 'TSidePanel') {
+            return obj;
+        }
+
+        const objId = obj.id || obj.name;
+        if (objId && this.fastPathDialogParent.has(objId)) {
+            return this.fastPathDialogParent.get(objId);
+        }
+
+        let parentDialog: any = null;
+        let currId = obj.parentId;
+        let sanity = 0;
+        while (currId && sanity++ < 20) {
+            const p = lookupObject(currId);
+            if (isDialogLike(p)) {
+                parentDialog = p;
+                break;
+            }
+            currId = p?.parentId;
+        }
+
+        if (objId) this.fastPathDialogParent.set(objId, parentDialog);
+        return parentDialog;
+    }
+
+    private getVariableContext(): Record<string, any> {
+        if (!this.variableContextCached) {
+            this.cachedVariableContext = this.host.getVariableContext ? this.host.getVariableContext() : {};
+            this.variableContextCached = true;
+        }
+        return this.cachedVariableContext ?? {};
+    }
+
+    /**
+     * Skaliert eine fontSize relativ zur aktuellen cellSize.
+     * Referenz ist cellSize=20 — dort entspricht die fontSize 1:1 dem Eingabewert.
+     * Bei cellSize=10 → halbe fontSize, bei cellSize=30 → 1.5× fontSize.
+     */
+    private scaleFontSize(rawSize: number | string | undefined): string {
+        if (!rawSize) return '';
+        const numSize = typeof rawSize === 'string' ? parseFloat(rawSize) : rawSize;
+        if (isNaN(numSize)) return typeof rawSize === 'string' ? rawSize : '';
+        const scale = this.host.grid.cellSize / REFERENCE_CELL_SIZE;
+        return `${Math.round(numSize * scale)}px`;
+    }
+
+    /**
+     * Löst eine ggf. gebundene Eigenschaft (z.B. "${myVar}") in einen numerischen Wert auf.
+     * Wenn keine Auflösung möglich ist, wird 0 zurückgegeben, damit das Layout nicht mit NaN bricht.
+     */
+    private getResolvedNumber(obj: any, prop: string, objects?: any[]): number {
+        if (!obj) return 0;
+        if (prop === 'x' && (obj.className === 'TSprite' || obj.constructor?.name === 'TSprite') && obj.renderX != null) return obj.renderX;
+        if (prop === 'y' && (obj.className === 'TSprite' || obj.constructor?.name === 'TSprite') && obj.renderY != null) return obj.renderY;
+        const vars = this.getVariableContext();
+        const val = PropertyHelper.getResolvedPropertyValue(obj, prop, vars, objects);
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+            const num = Number(val);
+            return isNaN(num) ? 0 : num;
+        }
+        return val ?? 0;
+    }
+
+    private alignStateMap = new Map<string, { lastAlign?: string; original?: { x: any; y: any; width: any; height: any }; computed?: { x: number; y: number; width: number; height: number } | null }>();
+
+    private getAlignState(obj: any) {
+        const id = obj.id || obj.name;
+        if (!id) return {};
+        if (!this.alignStateMap.has(id)) {
+            this.alignStateMap.set(id, {});
+        }
+        return this.alignStateMap.get(id)!;
+    }
+
+    /**
+     * Returns the original width/height captured before alignment was applied.
+     * Preserves binding expressions by resolving them from the persistent source object.
+     */
+    private getDesignDimension(obj: any, prop: 'width' | 'height', objects?: any[]): number {
+        const alignState = this.getAlignState(obj);
+        const raw = alignState.original?.[prop];
+        if (raw !== undefined) {
+            if (typeof raw === 'number') return raw;
+            if (typeof raw === 'string' && PropertyHelper.isBinding(raw)) {
+                const sourceObj = obj.__rawSource || obj;
+                return this.getResolvedNumber(sourceObj, prop, objects);
+            }
+            const num = Number(raw);
+            return isNaN(num) ? 0 : num;
+        }
+        return this.getResolvedNumber(obj, prop, objects);
+    }
+
+    /**
+     * Löst einen Style-Wert (z. B. opacity) auf, falls er ein Binding wie "${myVar}" ist.
+     * Gibt ansonsten den Rohwert zurück.
+     */
+    private getResolvedStyleValue(obj: any, prop: string, objects?: any[]): any {
+        if (!obj || !obj.style) return undefined;
+        const raw = obj.style[prop];
+        if (raw === undefined || raw === null) return undefined;
+        if (typeof raw === 'string' && PropertyHelper.isBinding(raw)) {
+            const vars = this.getVariableContext();
+            const resolved = PropertyHelper.getResolvedPropertyValue(obj, `style.${prop}`, vars, objects);
+            return resolved !== undefined ? resolved : raw;
+        }
+        return raw;
+    }
+
+    /**
+     * Returns the value to use for layout/positioning.
+     * For aligned objects the last computed layout values are preferred so that
+     * partial updates (updateSingleObject) keep the dock dimensions.
+     */
+    private getLayoutValue(obj: any, prop: 'x' | 'y' | 'width' | 'height', objects?: any[]): number {
+        const alignState = this.getAlignState(obj);
+        if (obj.align && obj.align !== 'NONE' && alignState.computed && alignState.computed[prop] !== undefined) {
+            return alignState.computed[prop];
+        }
+        return this.getResolvedNumber(obj, prop, objects);
+    }
+
+    /**
+     * Handles align transitions and computes geometry for a single object update
+     * (used by updateSingleObject, where renderObjects is not invoked).
+     */
+    private handleSingleObjectAlign(obj: any, gridConfig: any, objects?: any[]): void {
+        const newAlign = obj.align || 'NONE';
+        const objId = obj.id || obj.name;
+        if (!objId) return;
+        const alignState = this.getAlignState(obj);
+        const lastAlign = alignState.lastAlign;
+        const sourceObj = obj.__rawSource || obj;
+
+        if (newAlign === 'NONE' && !alignState.original) {
+            alignState.original = {
+                x: sourceObj.x,
+                y: sourceObj.y,
+                width: sourceObj.width,
+                height: sourceObj.height
+            };
+        }
+
+        if ((lastAlign === undefined || lastAlign === 'NONE') && newAlign !== 'NONE') {
+            if (!alignState.original) {
+                alignState.original = {
+                    x: sourceObj.x,
+                    y: sourceObj.y,
+                    width: sourceObj.width,
+                    height: sourceObj.height
+                };
+            }
+        } else if (lastAlign !== undefined && lastAlign !== 'NONE' && newAlign === 'NONE') {
+            const orig = alignState.original;
+            if (orig) {
+                const restore = (prop: string) => {
+                    const origValue = (orig as any)[prop];
+                    if (origValue === undefined) return;
+                    const currentValue = (sourceObj as any)[prop];
+                    if (typeof currentValue === 'string' && PropertyHelper.isBinding(currentValue)) return;
+                    (sourceObj as any)[prop] = origValue;
+                };
+                restore('x');
+                restore('y');
+                restore('width');
+                restore('height');
+            }
+            alignState.original = undefined;
+            alignState.computed = null;
+        }
+
+        alignState.lastAlign = newAlign;
+
+        if (newAlign === 'NONE') {
+            alignState.computed = null;
+            return;
+        }
+
+        const cellSize = gridConfig.cellSize;
+        const stageWidth = gridConfig.cols * cellSize;
+        const stageHeight = gridConfig.rows * cellSize;
+        const isPixelBased = obj.className === 'TStatusBar';
+
+        const origW = this.getDesignDimension(obj, 'width', objects);
+        const origH = this.getDesignDimension(obj, 'height', objects);
+
+        let actualW = isPixelBased ? origW : origW * cellSize;
+        let actualH = isPixelBased ? origH : origH * cellSize;
+
+        let left = 0;
+        let top = 0;
+        let width = 0;
+        let height = 0;
+
+        switch (newAlign) {
+            case 'TOP':
+                left = 0; top = 0; width = stageWidth; height = actualH; break;
+            case 'BOTTOM':
+                left = 0; top = stageHeight - actualH; width = stageWidth; height = actualH; break;
+            case 'LEFT':
+                left = 0; top = 0; width = actualW; height = stageHeight; break;
+            case 'RIGHT':
+                left = stageWidth - actualW; top = 0; width = actualW; height = stageHeight; break;
+            case 'CLIENT':
+                left = 0; top = 0; width = stageWidth; height = stageHeight; break;
+        }
+
+        alignState.computed = {
+            x: isPixelBased ? left : left / cellSize,
+            y: isPixelBased ? top : top / cellSize,
+            width: isPixelBased ? width : width / cellSize,
+            height: isPixelBased ? height : height / cellSize
+        };
+
+    }
+
+    public renderObjects(objects: any[]) {
+        if (!this.host || !this.host.element) return;
+
+        this.resetVariableContext();
+        this.spriteElementCache.clear();
+        this.invalidateFastPathIndex();
+
+        // Update object hash for internal bookkeeping
+        const objectHash = objects.map(o => `${o.id}@${Number(this.getResolvedNumber(o, 'x', objects)).toFixed(1)},${Number(this.getResolvedNumber(o, 'y', objects)).toFixed(1)}`).join('|');
+
+        if (this.host.runMode) {
+            (this.host as any).lastObjectHash = objectHash;
+            const gridConfig = this.host.grid;
+            logger.info(`%c[Layout] renderObjects: Using cellSize=${gridConfig.cellSize} for ${objects.length} objects`, 'color: #00ff00; font-weight: bold');
+
+            // RADICAL PERFORMANCE/DEBUG LOG: Only once per run-session
+            if (!(this.host as any).runModeLogDone) {
+                (this.host as any).runModeLogDone = true; // Mark as done after first log
+                logger.info(`RunMode Render Start. Rendering ${objects.length} objects.`);
+                if (objects.length > 0) {
+                    logger.debug(`RunMode objects dump:`, objects.slice(0, 20).map(o => ({
+                        name: o.name,
+                        class: o.className || o.constructor?.name,
+                        visible: o.visible,
+                        isVar: o.isVariable || false,
+                        scope: o.scope || '-',
+                        value: o.isVariable ? JSON.stringify(o.value)?.substring(0, 80) : '-',
+                        text: typeof o.text === 'string' ? o.text.substring(0, 60) : '-'
+                    })));
+                } else {
+                    logger.warn(`Rendering an EMPTY stage in RunMode!`);
+                }
+            }
+        }
+
+        this.host.lastRenderedObjects = objects;
+        const gridConfig = this.host.grid;
+        const stageWidth = gridConfig.cols * gridConfig.cellSize;
+        const stageHeight = gridConfig.rows * gridConfig.cellSize;
+
+        if (this.host.runMode) {
+            logger.info(`[StageRenderer:Layout] Stage Size: ${stageWidth}x${stageHeight} (cols: ${gridConfig.cols}, nodes: ${objects.length})`);
+        }
+
+        // 0. Detect align transitions and preserve/restore original geometry
+        objects.forEach(obj => {
+            const newAlign = obj.align || 'NONE';
+            const objId = obj.id || obj.name;
+            if (!objId) return;
+            const alignState = this.getAlignState(obj);
+            const lastAlign = alignState.lastAlign;
+            const sourceObj = obj.__rawSource || obj;
+
+            if (newAlign === 'NONE' && !alignState.original) {
+                alignState.original = {
+                    x: sourceObj.x,
+                    y: sourceObj.y,
+                    width: sourceObj.width,
+                    height: sourceObj.height
+                };
+            }
+
+            if ((lastAlign === undefined || lastAlign === 'NONE') && newAlign !== 'NONE') {
+                if (!alignState.original) {
+                    alignState.original = {
+                        x: sourceObj.x,
+                        y: sourceObj.y,
+                        width: sourceObj.width,
+                        height: sourceObj.height
+                    };
+                }
+            } else if (lastAlign !== undefined && lastAlign !== 'NONE' && newAlign === 'NONE') {
+                const orig = alignState.original;
+                if (orig) {
+                    const restore = (prop: string) => {
+                        const origValue = (orig as any)[prop];
+                        if (origValue === undefined) return;
+                        const currentValue = (sourceObj as any)[prop];
+                        if (typeof currentValue === 'string' && PropertyHelper.isBinding(currentValue)) return;
+                        (sourceObj as any)[prop] = origValue;
+                        (obj as any)[prop] = origValue;
+                    };
+                    restore('x');
+                    restore('y');
+                    restore('width');
+                    restore('height');
+                }
+                alignState.original = undefined;
+                alignState.computed = null;
+            }
+
+            alignState.lastAlign = newAlign;
+        });
+
+        // 1. Calculate dock positions
+        const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
+        const dockPositions = new Map<string, { left: number, top: number, width: number, height: number }>();
+
+        objects.forEach(obj => {
+            const align = obj.align || 'NONE';
+            if (align === 'NONE' || align === 'CLIENT') return; // Skip CLIENT in first pass
+
+            const objId = obj.id || obj.name; // Fallback to name
+            if (!objId) return;
+
+            const objHeight = this.getDesignDimension(obj, 'height', objects) * gridConfig.cellSize;
+            const objWidth = this.getDesignDimension(obj, 'width', objects) * gridConfig.cellSize;
+
+            // SPECIAL CASE: TStatusBar defines height in pixels (e.g. 28), not grid units
+            let actualHeight = objHeight;
+            let actualWidth = objWidth;
+
+            if (obj.className === 'TStatusBar') {
+                actualHeight = this.getResolvedNumber(obj, 'height', objects); // Use pixels directly
+                actualWidth = this.getResolvedNumber(obj, 'width', objects);
+            }
+
+            const availableWidth = dockArea.right - dockArea.left;
+            const availableHeight = dockArea.bottom - dockArea.top;
+
+            if (align === 'TOP') {
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: availableWidth, height: actualHeight });
+                dockArea.top += actualHeight;
+            } else if (align === 'BOTTOM') {
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.bottom - actualHeight, width: availableWidth, height: actualHeight });
+                dockArea.bottom -= actualHeight;
+            } else if (align === 'LEFT') {
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: actualWidth, height: availableHeight });
+                dockArea.left += actualWidth;
+            } else if (align === 'RIGHT') {
+                dockPositions.set(objId, { left: dockArea.right - actualWidth, top: dockArea.top, width: actualWidth, height: availableHeight });
+                dockArea.right -= actualWidth;
+            }
+        });
+
+        // 1b. Handle CLIENT alignment - fills remaining dock area
+        objects.forEach(obj => {
+            const align = obj.align || 'NONE';
+            if (align !== 'CLIENT') return;
+
+            const objId = obj.id || obj.name;
+            if (!objId) return;
+
+            const clientWidth = dockArea.right - dockArea.left;
+            const clientHeight = dockArea.bottom - dockArea.top;
+            dockPositions.set(objId, {
+                left: dockArea.left,
+                top: dockArea.top,
+                width: clientWidth,
+                height: clientHeight
+            });
+        });
+
+        // 1c. Rück-Sync: Dock-Positionen auf Objekt-Properties zurückschreiben (Grid-Einheiten)
+        // Damit Inspector und JSON konsistent mit der visuellen Darstellung bleiben.
+        objects.forEach(obj => {
+            const objId = obj.id || obj.name;
+            if (!objId) return;
+            const dockPos = dockPositions.get(objId);
+            if (!dockPos) return;
+
+            // TStatusBar verwendet Pixel direkt, keine Grid-Konvertierung
+            const isPixelBased = obj.className === 'TStatusBar';
+            if (isPixelBased) {
+                if (!PropertyHelper.isBinding(obj.x)) obj.x = dockPos.left;
+                if (!PropertyHelper.isBinding(obj.y)) obj.y = dockPos.top;
+                if (!PropertyHelper.isBinding(obj.width)) obj.width = dockPos.width;
+                if (!PropertyHelper.isBinding(obj.height)) obj.height = dockPos.height;
+            } else {
+                if (!PropertyHelper.isBinding(obj.x)) obj.x = dockPos.left / gridConfig.cellSize;
+                if (!PropertyHelper.isBinding(obj.y)) obj.y = dockPos.top / gridConfig.cellSize;
+                if (!PropertyHelper.isBinding(obj.width)) obj.width = dockPos.width / gridConfig.cellSize;
+                if (!PropertyHelper.isBinding(obj.height)) obj.height = dockPos.height / gridConfig.cellSize;
+            }
+
+            const alignState = this.getAlignState(obj);
+            alignState.computed = {
+                x: isPixelBased ? dockPos.left : dockPos.left / gridConfig.cellSize,
+                y: isPixelBased ? dockPos.top : dockPos.top / gridConfig.cellSize,
+                width: isPixelBased ? dockPos.width : dockPos.width / gridConfig.cellSize,
+                height: isPixelBased ? dockPos.height : dockPos.height / gridConfig.cellSize
+            };
+        });
+
+        const currentIds = this.collectAllIds(objects);
+        const renderedElements = Array.from(this.host.element.querySelectorAll('.game-object')) as HTMLElement[];
+
+        // Remove elements that are no longer in the objects list
+        renderedElements.forEach(el => {
+            const id = el.getAttribute('data-id');
+            if (id && !currentIds.has(id)) {
+                el.remove();
+            }
+        });
+
+        // Sort objects by zIndex for proper layer ordering
+        const getDepth = (objId: string, visited = new Set<string>()): number => {
+            if (!objId || visited.has(objId)) {
+                if (visited.has(objId)) logger.error(`[StageRenderer] Cycle detected in getDepth for id: ${objId}`);
+                return 0;
+            }
+            visited.add(objId);
+            const o = objects.find(ox => (ox.id || ox.name) === objId);
+            if (!o || !o.parentId) return 0;
+            return 1 + getDepth(o.parentId, visited);
+        };
+        const sortedObjects = [...objects].sort((a, b) => {
+            const zA = a.zIndex || 0;
+            const zB = b.zIndex || 0;
+            if (zA !== zB) return zA - zB;
+            return getDepth(a.id || a.name) - getDepth(b.id || b.name);
+        });
+
+        // Update or Create elements
+        sortedObjects.forEach((rawObj) => {
+            // --- INJECT THEME STYLES ---
+            const mergedStyle = themeRegistry.getMergedStyle(rawObj.className || 'TObject', rawObj.style);
+            // Proxy statt Object.create: Style wird ueberlagert, SCHREIBENDE Zugriffe
+            // (Bindings, Eingaben, X/Y-Updates) landen weiterhin auf dem Originalobjekt.
+            const obj = new Proxy(rawObj, {
+                get(target, prop: string | symbol, receiver) {
+                    if (prop === 'style') return mergedStyle;
+                    const value = Reflect.get(target, prop, receiver);
+                    if (value && typeof value === 'object' && (value as any).__isProxy__) return value;
+                    return value;
+                },
+                set(target, prop: string | symbol, value, receiver) {
+                    return Reflect.set(target, prop, value, receiver);
+                }
+            });
+            // ---------------------------
+            
+            const objId = obj.id || obj.name;
+            if (!objId) return;
+
+            let el = this.host.element.querySelector(`[data-id="${objId}"]`) as HTMLElement;
+            let isNew = false;
+
+            if (!el) {
+                el = document.createElement('div');
+                el.setAttribute('data-id', objId);
+                el.style.position = 'absolute';
+                el.style.boxSizing = 'border-box';
+                el.style.overflow = 'hidden'; // Wichtig für border-radius + children!
+                // ── Anti-Blink: Element startet unsichtbar, damit es nicht für
+                // einen Frame bei Position (0,0) aufblitzt, bevor Transform und
+                // Sichtbarkeit konfiguriert sind (Zeile ~275).
+                el.style.display = 'none';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'center';
+                el.style.userSelect = 'none';
+                this.host.element.appendChild(el);
+                isNew = true;
+            }
+            this.spriteElementCache.set(objId, el);
+            // Style-Diff-Cache des Fast-Path verwerfen, da renderObjects direkt schreibt.
+            (el as any)._fp = undefined;
+
+            const className = obj.className || obj.constructor?.name;
+            el.className = 'game-object' + (className ? ' ' + className : '');
+            el.setAttribute('data-align', obj.align || 'NONE');
+
+            // Apply positioning
+            const dockPos = dockPositions.get(objId);
+            let finalX, finalY, finalW, finalH;
+
+            if (dockPos) {
+                // FIXED: For docked objects, we ignore the internal x/y coordinates to prevent "jumping out" of the stage
+                // The alignment (TOP, BOTTOM, LEFT, RIGHT, CLIENT) is the primary source of truth.
+                finalX = dockPos.left;
+                finalY = dockPos.top;
+                finalW = dockPos.width;
+                finalH = dockPos.height;
+            } else {
+                let absX = this.getResolvedNumber(obj, 'x', objects);
+                let absY = this.getResolvedNumber(obj, 'y', objects);
+                let curr = obj.parentId;
+                let depth = 0;
+                while (curr && depth < 100) {
+                    const p = objects.find(o => (o.id || o.name) === curr);
+                    if (p) {
+                        absX += this.getResolvedNumber(p, 'x', objects);
+                        absY += this.getResolvedNumber(p, 'y', objects);
+                        curr = p.parentId;
+                    } else {
+                        break;
+                    }
+                    depth++;
+                }
+                if (depth >= 100) {
+                    logger.error(`[StageRenderer] Cycle detected calculating absolute position for id: ${objId}`);
+                }
+
+                finalX = absX * gridConfig.cellSize;
+                finalY = absY * gridConfig.cellSize;
+                finalW = this.getResolvedNumber(obj, 'width', objects) * gridConfig.cellSize;
+                finalH = this.getResolvedNumber(obj, 'height', objects) * gridConfig.cellSize;
+            }
+
+            // Determine if this object is a dialog or child of a dialog
+            // (Berechnung AUSSERHALB von runMode, damit z-index Logik weiter unten darauf zugreifen kann)
+            let parentDialog: any = null;
+            if (this.host.runMode) {
+                if ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel') parentDialog = obj;
+                else if (obj.parentId) {
+                    let currId = obj.parentId;
+                    let sanity = 0;
+                    while (currId && sanity++ < 20) {
+                        const p = objects.find(o => (o.id || o.name) === currId);
+                        if (p && ((p.className === 'TDialogRoot' || p.className === 'TThemeDialog') || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot' || p.constructor?.name === 'TThemeDialog')) {
+                            parentDialog = p;
+                            break;
+                        }
+                        currId = p?.parentId;
+                    }
+                }
+            }
+
+            // 🎮 PERFORMANTE SPIELE-SCHLEIFE (GPU COMPOSITING)
+            if (this.host.runMode) {
+                // Hardware Acceleration: Anker auf Null setzen, damit die GPU Texturen schiebt statt der CPU Layouts rechnet
+                // 'translate' muss mit aufgefuehrt werden: animiert wird die separate
+                // CSS-translate-Property, nicht transform. Ohne den Eintrag kann der
+                // Browser die Ebene verwerfen und pro Frame neu rastern -> Ruckeln.
+                el.style.willChange = 'translate, transform, opacity';
+                el.style.backfaceVisibility = 'hidden';
+                el.style.left = '0px';
+                el.style.top = '0px';
+
+                // Initiale Position als Translate (getrennt von Transform, neuester Web-Standard)
+                if (className === 'TVirtualGamepad') {
+                    (el.style as any).translate = 'none';
+                } else if (parentDialog) {
+                    // Dialog-spezifische Transition einschalten
+                    el.style.transition = 'translate 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease';
+                    
+                    if (parentDialog.visible) {
+                        (el.style as any).translate = `${finalX}px ${finalY}px`;
+                        el.style.pointerEvents = 'auto';
+                    } else {
+                        const outOfBoundsOffset = getDialogSlideOffset(parentDialog, gridConfig.cellSize);
+                        (el.style as any).translate = `${finalX + outOfBoundsOffset}px ${finalY}px`;
+                        el.style.pointerEvents = 'none';
+                    }
+                } else {
+                    el.style.transition = '';
+                    (el.style as any).translate = `${finalX}px ${finalY}px`;
+                }
+                let transformStr = (obj.style && obj.style.transform) ? obj.style.transform : '';
+                if (obj.rotation) {
+                    transformStr += ` rotate(${obj.rotation}deg)`;
+                }
+                el.style.transform = transformStr.trim();
+
+                // Log all objects in Run-Mode to trace layout issues (Metrics)
+                const isMetric = obj.name?.includes('Metric') || obj.id?.includes('metric');
+                if (isMetric || obj.id === 'dash_title' || obj.id === 'dash_back_btn' || obj.name?.includes('Button') || (obj.name && obj.name.includes('Emoji'))) {
+                    logger.info(`%c[HW-Layout:${this.host.element.id}] ${obj.name || obj.id} (RUN): align=${obj.align}, x=${obj.x}, y=${obj.y}, w=${obj.width}, cellSize=${gridConfig.cellSize} -> GPU_transform: ${finalX}/${finalY}`, 'color: #00ffff; font-weight: bold');
+                }
+            } else {
+                // 🖌️ DESIGN-MODUS (Klassischer DOM für Drag & Drop)
+                el.style.left = `${finalX}px`;
+                el.style.top = `${finalY}px`;
+            }
+
+            el.style.width = `${finalW}px`;
+            el.style.height = `${finalH}px`;
+
+            let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
+
+            // ── isHiddenInRun-Fix: Templates, Services und andere Objekte mit
+            // isHiddenInRun=true MÜSSEN im Run-Mode unsichtbar sein, auch wenn
+            // visible=true gesetzt ist. Ohne diesen Check erscheinen z.B.
+            // TSpriteTemplate-Bilder als "Ghost-Images" auf der Stage.
+            if (this.host.runMode && obj.isHiddenInRun) {
+                isVisible = false;
+            }
+
+            // SPECIAL FIX: Hide blueprint-only services on regular stages
+            const isInherited = !!obj.isInherited;
+            const isFromBlueprint = !!obj.isFromBlueprint;
+            const isBlueprintOnly = !!obj.isBlueprintOnly;
+            const isService = !!obj.isService;
+
+            if (!this.host.isBlueprint) {
+                // Hide services and strictly blueprint-only marker objects on regular stages
+                if (isFromBlueprint && (isService || isBlueprintOnly)) {
+                    isVisible = false;
+                }
+            } else {
+                // In blueprint stage, we ALWAYS want to see blueprint elements
+                if (isFromBlueprint || isService || isBlueprintOnly) {
+                    isVisible = true;
+                }
+            }
+
+            if (!this.host.runMode && (!isVisible || obj.isHiddenInRun || isService || isBlueprintOnly)) {
+                el.style.display = obj.className === 'TRichText' ? 'block' : 'flex';
+                el.classList.add('invisible-object-in-editor');
+            } else {
+                let finalDisplay = isVisible ? (obj.className === 'TRichText' ? 'block' : 'flex') : 'none';
+                
+                // WICHTIG: Im RunMode dürfen Dialoge, SidePanels und deren Kinder NIEMALS display: none haben!
+                // Ansonsten funktioniert die CSS-Translate Animation (Slide in/out) nicht, da
+                // der Browser den Wechsel von none -> flex im selben Frame nicht animiert.
+                if (this.host.runMode) {
+                    let keepVisible = false;
+                    if ((obj.className === 'TDialogRoot' || obj.className === 'TThemeDialog') || obj.className === 'TSidePanel') {
+                        keepVisible = true;
+                    } else if (obj.parentId) {
+                        let currId = obj.parentId;
+                        let sanity = 0;
+                        while (currId && sanity++ < 20) {
+                            const p = objects.find(o => (o.id || o.name) === currId);
+                            if (p && ((p.className === 'TDialogRoot' || p.className === 'TThemeDialog') || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot' || p.constructor?.name === 'TThemeDialog')) {
+                                keepVisible = true;
+                                break;
+                            }
+                            currId = p?.parentId;
+                        }
+                    }
+                    if (keepVisible) {
+                        finalDisplay = obj.className === 'TRichText' ? 'block' : 'flex';
+                    }
+                }
+
+                el.style.display = finalDisplay;
+                el.classList.remove('invisible-object-in-editor');
+            }
+
+            // Inherited/Ghosted State — nur im Design-Mode schemenhaft
+            if (isInherited && !this.host.runMode) {
+                el.classList.add('inherited-object');
+                el.style.pointerEvents = 'auto';
+                el.style.cursor = 'default';
+                el.draggable = false;
+            } else {
+                el.classList.remove('inherited-object');
+                el.style.pointerEvents = 'auto';
+            }
+
+            const opacity = (obj.style && obj.style.opacity !== undefined && obj.style.opacity !== null)
+                ? this.getResolvedStyleValue(obj, 'opacity', objects)
+                : (obj.imageOpacity !== undefined ? obj.imageOpacity : undefined);
+            const needsPlaceholder = (!isVisible || obj.isHiddenInRun || isService || isBlueprintOnly) && !this.host.runMode;
+
+            if (opacity !== undefined && opacity !== null) {
+                el.style.opacity = String(opacity);
+            } else if (isInherited && !this.host.runMode) {
+                el.style.opacity = '0.4';
+            } else if (needsPlaceholder) {
+                el.style.opacity = '0.4';
+                el.style.outline = '2px dashed #ff4444';
+                el.style.outlineOffset = '-2px';
+            } else {
+                el.style.opacity = '1';
+                el.style.outline = '';
+            }
+
+            // Styles
+            if (obj.style) {
+                const isTShape = className === 'TShape';
+                if (!isTShape) {
+                    el.style.border = `${obj.style.borderWidth || 0}px solid ${obj.style.borderColor || 'transparent'}`;
+                } else {
+                    el.style.border = 'none';
+                }
+
+                if (obj.style.color) {
+                    el.style.color = obj.style.color;
+                    if (obj.className === 'TLabel' || obj.className === 'TButton' || obj.className === 'TStickyNote') {
+                        // Color applied
+                    }
+                }
+                if (obj.style.fontSize) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
+                if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
+                if (obj.style.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+                if (obj.style.textShadow) el.style.textShadow = obj.style.textShadow;
+                if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
+                // Transform wird jetzt zusammen mit der Positions-Zuweisung berechnet,
+                // damit das translate3d() (Basis-Positionierung) nicht zerstört wird.
+                if (!this.host.runMode) {
+                    let transformStr = (obj.style && obj.style.transform) ? obj.style.transform : '';
+                    if (obj.rotation) {
+                        transformStr += ` rotate(${obj.rotation}deg)`;
+                    }
+                    el.style.transform = transformStr.trim();
+                }
+                // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor, Prio 3 = strukturierte Shadow-Parameter
+                if (obj.style.boxShadow) {
+                    el.style.boxShadow = obj.style.boxShadow;
+                } else if (obj.style.glowColor) {
+                    const blur = obj.style.glowBlur ?? 20;
+                    const spread = obj.style.glowSpread ?? 5;
+                    el.style.boxShadow = `0 0 ${blur}px ${spread}px ${obj.style.glowColor}`;
+                } else if (obj.style.shadowColor) {
+                    const inset = obj.style.shadowInset ? 'inset ' : '';
+                    const offsetX = obj.style.shadowOffsetX ?? 4;
+                    const offsetY = obj.style.shadowOffsetY ?? 4;
+                    const blur = obj.style.shadowBlur ?? 10;
+                    const spread = obj.style.shadowSpread ?? 0;
+                    el.style.boxShadow = `${inset}${offsetX}px ${offsetY}px ${blur}px ${spread}px ${obj.style.shadowColor}`;
+                } else {
+                    el.style.boxShadow = '';
+                }
+
+                if (this.host.runMode && parentDialog) {
+                    // Dialog-Kinder und der Dialog selbst MUESSEN ueber dem Modal-Overlay (19999) liegen.
+                    // Diese Zuweisung darf NICHT im ComplexComponentRenderer stehen, da der StageRenderer
+                    // als letzter in der Rendering-Pipeline den z-index ueberschreibt.
+                    //
+                    // STACKING-STRATEGIE:
+                    //   Children:      dialogZBase + 1  (klickbar)
+                    //   Dialog-Root:   dialogZBase      (Background/Rahmen + Titelleiste als DOM-Kind)
+                    //   Overlay:       dialogZBase - 1  (block background)
+                    const isSidePanelRoot = parentDialog.className === 'TSidePanel' || parentDialog.constructor?.name === 'TSidePanel';
+                    const dialogZBase = parentDialog.zIndex
+                        ? Number(parentDialog.zIndex)
+                        : (isSidePanelRoot ? 100000 : 20000);
+                    if ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel') {
+                        el.style.zIndex = String(dialogZBase);
+                    } else {
+                        el.style.zIndex = String(dialogZBase + 1);
+                    }
+                    // Marker: Einzel-Updates duerfen diese z-Basis NICHT mit obj.zIndex (Default 0)
+                    // ueberschreiben, sonst landen Dialog/Side-Panel auf derselben Ebene wie Sprites.
+                    el.dataset.dialogZ = el.style.zIndex;
+                } else if (obj.zIndex !== undefined) {
+                    delete el.dataset.dialogZ;
+                    el.style.zIndex = String(obj.zIndex);
+                } else if (obj.name && (obj.name.startsWith('Overlay') || obj.name.startsWith('Btn') || obj.name.startsWith('Input')) || obj.className === 'TStatusBar') {
+                    el.style.zIndex = '2000';
+                }
+            }
+
+            // Grid overlay
+            if (className === 'TParallaxBackground') {
+                // TParallaxBackground verwaltet seinen Hintergrund selbst (Design-Platzhalter / Ebenen)
+            } else if (obj.showGrid && !this.host.runMode) {
+                this.applyGridOverlay(el, obj);
+            } else {
+                this.applyBackground(el, obj, className, objId);
+            }
+
+            // Interaction hints & Click handlers
+            const hasTaskClick = (obj.Tasks && (obj.Tasks.onClick || obj.Tasks.onSingleClick || obj.Tasks.onMultiClick)) ||
+                (obj.events && (obj.events.onClick || obj.events.onSingleClick || obj.events.onMultiClick));
+            const isClickable = hasTaskClick || (this.host.runMode && className === 'TButton');
+
+            if (this.host.runMode && isClickable) {
+                el.style.cursor = 'pointer';
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    // Falls ein Touch-Pointer das onTouchStart bereits ausgeloest hat,
+                    // muss der nachfolgende synthetisierte Click ignoriert werden,
+                    // sonst toggelt ein SidePanel doppelt (oeffnen + sofort schliessen).
+                    const wasTouchStart = (el as any).__wasTouchStart;
+                    (el as any).__wasTouchStart = false;
+                    if (wasTouchStart) return;
+
+                    logger.debug(`Click on ${obj.name} (${obj.id}). Task: ${obj.events?.onClick || obj.Tasks?.onClick || 'none'}`);
+                    if (this.host.onEvent) {
+                        this.host.onEvent(obj.id, 'onClick');
+                    }
+                };
+            } else if (this.host.runMode) {
+                // FALLBACK: Even if not explicitly "clickable" (no task assigned yet), 
+                // we might want to catch clicks in runMode for other reasons or ensure old handlers are cleared.
+                el.style.cursor = 'default';
+                if (isNew) el.onclick = null;
+            }
+
+            if (this.host.runMode) {
+                const hasMouseEnter = obj.events?.onMouseEnter || obj.Tasks?.onMouseEnter;
+                const hasMouseLeave = obj.events?.onMouseLeave || obj.Tasks?.onMouseLeave;
+                const hasDoubleClick = obj.events?.onDoubleClick || obj.Tasks?.onDoubleClick;
+
+                if (hasMouseEnter) {
+                    el.onmouseenter = (e: MouseEvent) => {
+                        e.stopPropagation();
+                        if (this.host.onEvent) this.host.onEvent(obj.id, 'onMouseEnter');
+                    };
+                } else if (isNew) {
+                    el.onmouseenter = null;
+                }
+
+                if (hasMouseLeave) {
+                    el.onmouseleave = (e: MouseEvent) => {
+                        e.stopPropagation();
+                        if (this.host.onEvent) this.host.onEvent(obj.id, 'onMouseLeave');
+                    };
+                } else if (isNew) {
+                    el.onmouseleave = null;
+                }
+
+                if (hasDoubleClick) {
+                    el.ondblclick = (e: MouseEvent) => {
+                        e.stopPropagation();
+                        if (this.host.onEvent) this.host.onEvent(obj.id, 'onDoubleClick');
+                    };
+                } else if (isNew) {
+                    el.ondblclick = null;
+                }
+            }
+
+            // ─── Drag & Drop Events ───
+            if (this.host.runMode) {
+                const hasDragStart = obj.events?.onDragStart || obj.Tasks?.onDragStart;
+                const hasDragEnd   = obj.events?.onDragEnd   || obj.Tasks?.onDragEnd;
+                const hasDrop      = obj.events?.onDrop      || obj.Tasks?.onDrop;
+
+                const getDragData = (e: DragEvent) => {
+                    const rect = this.host.element.getBoundingClientRect();
+                    const cellSize = this.host.grid.cellSize;
+                    return {
+                        x: Math.round((e.clientX - rect.left) / cellSize * 10) / 10,
+                        y: Math.round((e.clientY - rect.top) / cellSize * 10) / 10
+                    };
+                };
+
+                if (hasDragStart || hasDragEnd) {
+                    el.draggable = true;
+                    if (hasDragStart) {
+                        el.ondragstart = (e: DragEvent) => {
+                            e.stopPropagation();
+                            e.dataTransfer?.setData('text/plain', obj.id || obj.name || '');
+                            if (this.host.onEvent) this.host.onEvent(obj.id, 'onDragStart', getDragData(e));
+                        };
+                    } else if (isNew) {
+                        el.ondragstart = null;
+                    }
+                    if (hasDragEnd) {
+                        el.ondragend = (e: DragEvent) => {
+                            e.stopPropagation();
+                            if (this.host.onEvent) this.host.onEvent(obj.id, 'onDragEnd', getDragData(e));
+                        };
+                    } else if (isNew) {
+                        el.ondragend = null;
+                    }
+                } else if (isNew) {
+                    el.draggable = false;
+                    el.ondragstart = null;
+                    el.ondragend = null;
+                }
+
+                if (hasDrop) {
+                    el.ondragover = (e: DragEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    };
+                    el.ondrop = (e: DragEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const sourceId = e.dataTransfer?.getData('text/plain');
+                        if (this.host.onEvent) this.host.onEvent(obj.id, 'onDrop', { sourceId, ...getDragData(e) });
+                    };
+                } else if (isNew) {
+                    el.ondrop = null;
+                    el.ondragover = null;
+                }
+            }
+
+
+            // ─── Touch/Pointer Events (Tablet & Mobile Support) ───
+            // Nutzt die Pointer Events API (vereint Maus, Touch, Stift).
+            // Event-Namen: onTouchStart, onTouchMove, onTouchEnd (intuitiv für Designer).
+            // onTouchMove bekommt RAF-Throttle (max 1 Event pro Frame = 60fps).
+            if (this.host.runMode) {
+                const hasTouchStart = obj.events?.onTouchStart || obj.Tasks?.onTouchStart;
+                const hasTouchMove  = obj.events?.onTouchMove  || obj.Tasks?.onTouchMove;
+                const hasTouchEnd   = obj.events?.onTouchEnd   || obj.Tasks?.onTouchEnd;
+
+                const getPointerData = (e: PointerEvent) => {
+                    const rect = this.host.element.getBoundingClientRect();
+                    const cellSize = this.host.grid.cellSize;
+                    return {
+                        x: Math.round((e.clientX - rect.left) / cellSize * 10) / 10,
+                        y: Math.round((e.clientY - rect.top) / cellSize * 10) / 10,
+                        pointerId: e.pointerId,
+                        pointerType: e.pointerType  // mouse | touch | pen
+                    };
+                };
+
+                if (hasTouchStart) {
+                    el.onpointerdown = (e: PointerEvent) => {
+                        e.stopPropagation();
+                        // Merken, ob der Klick von Touch stammte, damit onclick ihn ignorieren kann.
+                        (el as any).__wasTouchStart = e.pointerType === 'touch';
+                        if (e.pointerType !== 'touch') return;
+
+                        el.setPointerCapture(e.pointerId);
+                        el.style.touchAction = 'none';
+                        if (this.host.onEvent) {
+                            this.host.onEvent(obj.id, 'onTouchStart', getPointerData(e));
+                        }
+                    };
+                }
+
+                if (hasTouchMove) {
+                    let moveThrottled = false;
+                    el.onpointermove = (e: PointerEvent) => {
+                        if (e.pointerType !== 'touch') return;
+                        if (moveThrottled) return;
+                        moveThrottled = true;
+                        requestAnimationFrame(() => {
+                            moveThrottled = false;
+                            if (this.host.onEvent) {
+                                this.host.onEvent(obj.id, 'onTouchMove', getPointerData(e));
+                            }
+                        });
+                    };
+                }
+
+                if (hasTouchEnd) {
+                    el.onpointerup = (e: PointerEvent) => {
+                        e.stopPropagation();
+                        if (e.pointerType !== 'touch') return;
+                        if (this.host.onEvent) {
+                            this.host.onEvent(obj.id, 'onTouchEnd', getPointerData(e));
+                        }
+                    };
+                }
+            }
+
+            // Component specific rendering
+            this.renderComponentContent(el, obj, className, isNew);
+
+            // Highlight selected
+            this.updateSelectionState(el, objId);
+        });
+
+        // Stop running animation/sprite previews if their owning object is no longer selected
+        if (this.animationPreview && !this.host.selectedIds.has(this.animationPreview.id)) {
+            this.stopAnimationPreview();
+        }
+        if (this.spriteAnimationPreview && !this.host.selectedIds.has(this.spriteAnimationPreview.id)) {
+            this.stopSpriteAnimationPreview();
+        }
+    }
+
+    private collectAllIds(objs: any[]): Set<string> {
+        const ids = new Set<string>();
+        objs.forEach(o => {
+            const objId = o.id || o.name;
+            if (objId) ids.add(objId);
+            if (o.children && Array.isArray(o.children)) {
+                o.children.forEach((c: any) => {
+                    const childId = c.id || c.name;
+                    if (childId) ids.add(childId);
+                });
+            }
+        });
+        return ids;
+    }
+
+    private checkVisible(val: any): boolean {
+        if (val === undefined || val === null) return true;
+        if (typeof val === 'boolean') return val;
+        if (typeof val === 'string') {
+            const clean = val.trim().toLowerCase();
+            if (clean === 'false') return false;
+            if (clean === 'true') return true;
+        }
+        return !!val;
+    }
+
+    private applyGridOverlay(el: HTMLElement, obj: any) {
+        const cellSize = this.host.grid.cellSize;
+        const bgColor = obj.style?.backgroundColor || 'transparent';
+        const gridColor = obj.gridColor || '#000000';
+        const gridStyle = obj.gridStyle || 'lines';
+
+        const hexToRgba = (hex: string, alpha: number) => {
+            let r = 0, g = 0, b = 0;
+            if (hex.length === 4) {
+                r = parseInt(hex[1] + hex[1], 16);
+                g = parseInt(hex[2] + hex[2], 16);
+                b = parseInt(hex[3] + hex[3], 16);
+            } else if (hex.length === 7) {
+                r = parseInt(hex.slice(1, 3), 16);
+                g = parseInt(hex.slice(3, 5), 16);
+                b = parseInt(hex.slice(5, 7), 16);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+
+        const gridRgba = hexToRgba(gridColor, 0.4);
+        const dotRgba = hexToRgba(gridColor, 0.25);
+
+        if (gridStyle === 'dots') {
+            const halfCell = cellSize / 2;
+            el.style.background = `radial-gradient(circle, ${dotRgba} 1px, transparent 1px), ${bgColor}`;
+            el.style.backgroundSize = `${cellSize}px ${cellSize}px, 100% 100%`;
+            el.style.backgroundPosition = `${halfCell}px ${halfCell}px, 0 0`;
+        } else {
+            el.style.background = `linear-gradient(to right, ${gridRgba} 1px, transparent 1px), linear-gradient(to bottom, ${gridRgba} 1px, transparent 1px), ${bgColor}`;
+            el.style.backgroundSize = `${cellSize}px ${cellSize}px, ${cellSize}px ${cellSize}px, 100% 100%`;
+        }
+    }
+
+    private applyBackground(el: HTMLElement, obj: any, className: string, objId: string) {
+        const bgColor = obj.style?.backgroundColor || 'transparent';
+        let bgImg = obj.backgroundImage || obj.src || obj.style?.backgroundImage;
+
+        if (bgImg && typeof bgImg === 'string') {
+            const vars = this.getVariableContext();
+            const objects = [...(this.host.lastRenderedObjects || []), ...projectObjectRegistry.getObjects()];
+            // Verschachtelte Bindings (z.B. ${BackCardImage} -> ${List_15[9]} -> Pfad)
+            // aufloesen, bis kein ${...} mehr uebrig ist.
+            for (let i = 0; i < 3 && typeof bgImg === 'string' && bgImg.includes('${'); i++) {
+                bgImg = PropertyHelper.interpolate(bgImg, vars, objects);
+            }
+
+            if (typeof bgImg !== 'string') {
+                logger.warn(`[StageRenderer] Resolved image src is not a string for ${objId} (${className}): ${bgImg}`);
+                bgImg = String(bgImg ?? '');
+            }
+            // Base64-Data-URLs enthalten immer ein Komma ("data:image/png;base64,...")
+            // und darf deshalb nicht als Liste behandelt werden.
+            if (bgImg.includes(',') && !bgImg.startsWith('data:')) {
+                const first = bgImg.split(',')[0].trim();
+                logger.warn(`[StageRenderer] Resolved image src is a list for ${objId} (${className}); using first entry: ${first}`);
+                bgImg = first;
+            }
+
+            if (bgImg.startsWith('url(')) {
+                const match = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);
+                if (match) bgImg = match[1];
+            }
+        }
+
+        if (this.host.runMode && !(el as any).runModeTraceDone) {
+            (el as any).lastLoggedSrc = null;
+            (el as any).runModeTraceDone = true;
+        }
+
+        // ── GPU-OPTIMIERUNG: TSprite-Images werden als natives <img>-Tag im renderSprite()
+        // gerendert, NICHT als CSS background-image. CSS background-image erzwingt CPU-Rasterung
+        // bei translate3d-Animationen, ein <img>-Tag wird dagegen als eigenständige GPU-Textur
+        // composited und erlaubt jitterfreie Subpixel-Bewegungen.
+        if (bgImg && (className === 'TSprite' || className === 'TSpriteTemplate')) {
+            // Nur Hintergrundfarbe setzen; das Bild wird als <img> Child gerendert
+            el.style.background = bgColor;
+            el.style.backgroundImage = 'none';
+            // Die background-Kurzform loescht backgroundImage: Diff-Cache verwerfen,
+            // sonst wuerde ein spaeter wieder identischer Pfad nicht neu gesetzt.
+            const spriteFp = (el as any)._fp;
+            if (spriteFp) spriteFp.bgImage = undefined;
+            return;
+        }
+
+        if (bgImg) {
+            // ── DIAGNOSE: Bildpfad im applyBackground ──
+            if (this.host.runMode && !(el as any)._bgPathLogged) {
+                logger.info(`%c[BG-PATH-DIAG] "${objId}" (${className}): raw bgImg="${String(bgImg).substring(0, 100)}" location.protocol="${window.location.protocol}" location.origin="${window.location.origin}"`, 'color: #ff6b6b; font-weight: bold');
+                (el as any)._bgPathLogged = true;
+            }
+            let src = bgImg;
+            if (!bgImg.startsWith('http') && !bgImg.startsWith('/') && !bgImg.startsWith('.') && !bgImg.startsWith('data:')) {
+                if (bgImg.startsWith('images/') || bgImg.startsWith('audio/') || bgImg.startsWith('video/') || bgImg.startsWith('assets/')) {
+                    src = './' + bgImg;
+                } else {
+                    src = `./images/${bgImg}`;
+                }
+            }
+                
+            if (src.startsWith('/images/') || src.startsWith('/audio/')) {
+                src = '.' + src;
+            }
+
+            if (!src.startsWith('data:')) {
+                const parts = src.split('/');
+                const lastPart = parts.pop() || '';
+                src = [...parts, encodeURIComponent(lastPart)].join('/');
+            }
+
+            // PERF: Eingebettete Base64-Bilder sind mehrere hundert Kilobyte lang.
+            // Als kurze Blob-URL wird die CSSOM-Zuweisung praktisch kostenlos und
+            // der Browser dekodiert das Bild nur einmal — unabhaengig davon, wie
+            // viele Komponenten es nutzen.
+            src = dataUrlToBlobUrl(src);
+
+            if ((el as any).lastLoggedSrc !== src) {
+                logger.info(`%c[BG-PATH-DIAG] "${objId}" (${className}) FINAL path: "${src.substring(0, 150)}" runMode=${this.host.runMode}`, 'color: #ffa500; font-weight: bold');
+                (el as any).lastLoggedSrc = src;
+            }
+
+            const fit = obj.objectFit || 'contain';
+            // PERF: Bei eingebetteten Base64-Bildern ist `src` mehrere hundert
+            // Kilobyte gross. Ohne den Diff-Cache wurde die komplette url(...)
+            // pro Aufruf neu zusammengesetzt und ins CSSOM geschrieben — bei
+            // Animationen 60x pro Sekunde und Objekt.
+            const bgFp = ((el as any)._fp ||= {});
+            if (bgFp.bgImage !== src) {
+                bgFp.bgImage = src;
+                el.style.backgroundImage = `url("${src}")`;
+            }
+            if (bgFp.bgFit !== fit) {
+                bgFp.bgFit = fit;
+                el.style.backgroundSize = fit;
+                el.style.backgroundPosition = 'center';
+                el.style.backgroundRepeat = 'no-repeat';
+            }
+            el.style.backgroundColor = bgColor;
+        } else {
+            // TGroupPanel: Im Editor-Modus hellgrau hinterlegen damit es sichtbar bleibt,
+            // im Run-Modus transparent.
+            if (className === 'TGroupPanel' && !this.host.runMode) {
+                el.style.background = (bgColor && bgColor !== 'transparent') ? bgColor : 'rgba(255, 255, 255, 0.05)';
+                // berschreibe explizit mgliche '0px solid transparent' Borders vom Standard-Styling
+                if (!obj.style?.borderWidth || obj.style.borderWidth === 0 || obj.style.borderWidth === '0') {
+                    el.style.border = '2px dashed rgba(0, 255, 128, 0.6)';
+                }
+            } else {
+                el.style.background = bgColor;
+            }
+            // Die background-Kurzform loescht backgroundImage: Diff-Cache verwerfen,
+            // sonst wuerde ein spaeter wieder identischer Pfad nicht neu gesetzt.
+            const clearedFp = (el as any)._fp;
+            if (clearedFp) clearedFp.bgImage = undefined;
+        }
+    }
+
+    private renderComponentContent(el: HTMLElement, obj: any, className: string, isNew: boolean) {
+        const ctx: IRenderContext = {
+            host: this.host,
+            scaleFontSize: this.scaleFontSize.bind(this),
+            updateSelectionState: this.updateSelectionState.bind(this)
+        };
+
+        if (className === 'TCheckbox') InputRenderer.renderCheckbox(ctx, el, obj, isNew);
+        else if (className === 'TNumberInput') InputRenderer.renderNumberInput(ctx, el, obj, isNew);
+        else if (className === 'TEdit' || className === 'TTextInput') InputRenderer.renderTextInput(ctx, el, obj, isNew);
+        else if (className === 'TGameCard') TextObjectRenderer.renderGameCard(ctx, el, obj, isNew);
+        else if (className === 'TCard') TextObjectRenderer.renderCard(ctx, el, obj);
+        else if (className === 'TButton') TextObjectRenderer.renderButton(ctx, el, obj, isNew);
+        else if (className === 'TEmojiPicker') EmojiPickerRenderer.renderEmojiPicker(el, obj, this.host.grid.cellSize, this.host.onEvent?.bind(this.host));
+        else if (className === 'TTable' || className === 'TObjectList') TableRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host), this.host.grid.cellSize);
+        else if (className === 'TDataList') ComplexComponentRenderer.renderDataList(ctx, el, obj);
+        else if (className === 'TVirtualGamepad') VirtualGamepadRenderer.render(ctx, el, obj, className);
+        else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable' || obj.isVariable || obj.isService) SystemComponentRenderer.render(ctx, el, obj, className);
+        else if (className === 'TLabel' || className === 'TNumberLabel') TextObjectRenderer.renderLabel(ctx, el, obj);
+        else if (className === 'TStickyNote') TextObjectRenderer.renderStickyNote(ctx, el, obj, isNew);
+        else if (className === 'TPanel') TextObjectRenderer.renderPanel(ctx, el, obj);
+        else if (className === 'TParallaxBackground') this.renderParallaxBackground(el, obj);
+        else if (className === 'TRichText') TextObjectRenderer.renderRichText(ctx, el, obj);
+        else if (className === 'TGameHeader') TextObjectRenderer.renderGameHeader(ctx, el, obj);
+        else if (className === 'TSpawner') this.renderSpawner(el, obj);
+        else if (className === 'TSpeedlines') this.renderSpeedlines(el, obj);
+        else if (className === 'TSprite' || className === 'TSpriteTemplate') {
+            SpriteRenderer.render(ctx, el, obj);
+            if (className === 'TSprite') {
+                this.startSpriteAnimationPreview(el, obj, ctx);
+            }
+        }
+        else if (className === 'TShape') ShapeRenderer.render(ctx, el, obj, isNew);
+        else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
+        else if ((className === 'TDialogRoot' || className === 'TThemeDialog')) ComplexComponentRenderer.renderDialogRoot(ctx, el, obj);
+        else if (className === 'TSidePanel') ComplexComponentRenderer.renderSidePanel(ctx, el, obj);
+        else if (className === 'TInfoWindow') ComplexComponentRenderer.renderInfoWindow(ctx, el, obj, isNew);
+        else if (className === 'TColorPicker') InputRenderer.renderColorPicker(ctx, el, obj, isNew);
+        else if (className === 'TImageList') this.renderImageList(el, obj);
+        else if (className === 'TAnimation') this.renderAnimation(el, obj);
+        else if (className === 'TVideo') this.renderVideo(el, obj);
+        else if (className === 'TLink') this.renderLink(el, obj);
+        else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
+        else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) TextObjectRenderer.renderLabel(ctx, el, obj);
+    }
+
+    /**
+     * Targeted Rendering: Aktualisiert nur Eigenschaften eines spezifischen Nodes 
+     * (wie Texte, Sichtbarkeit, Farben), ohne den DOM-Tree Layout-Thrashing zuzumuten!
+     */
+    private updateObjectPosition(el: HTMLElement, obj: any, className: string, isVisible: boolean): void {
+        this.resetVariableContext();
+        const grid = this.host.grid;
+        if (!grid) return;
+        const objects = this.host.lastRenderedObjects || [];
+        const cellSize = grid.cellSize;
+        const isPixelBased = className === 'TStatusBar';
+
+        let absX = this.getLayoutValue(obj, 'x', objects);
+        let absY = this.getLayoutValue(obj, 'y', objects);
+
+        if (!obj.align || obj.align === 'NONE') {
+            // For non-aligned objects, sum parent chain offsets
+            let parentId = obj.parentId;
+            let depth = 0;
+            while (parentId && depth < 100) {
+                const p = objects.find((o: any) => (o.id || o.name) === parentId);
+                if (!p) break;
+                absX += this.getResolvedNumber(p, 'x', objects);
+                absY += this.getResolvedNumber(p, 'y', objects);
+                parentId = p.parentId;
+                depth++;
+            }
+        }
+
+        const layoutW = this.getLayoutValue(obj, 'width', objects);
+        const layoutH = this.getLayoutValue(obj, 'height', objects);
+
+        const finalX = isPixelBased ? absX : absX * cellSize;
+        const finalY = isPixelBased ? absY : absY * cellSize;
+        const finalW = isPixelBased ? layoutW : layoutW * cellSize;
+        const finalH = isPixelBased ? layoutH : layoutH * cellSize;
+
+        // Determine if this object is a dialog or child of a dialog
+        let parentDialog: any = null;
+        if ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel') {
+            parentDialog = obj;
+        } else if (obj.parentId) {
+            let currId = obj.parentId;
+            let sanity = 0;
+            while (currId && sanity++ < 20) {
+                const p = objects.find((o: any) => (o.id || o.name) === currId);
+                if (p && ((p.className === 'TDialogRoot' || p.className === 'TThemeDialog') || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot' || p.constructor?.name === 'TThemeDialog')) {
+                    parentDialog = p;
+                    break;
+                }
+                currId = p?.parentId;
+            }
+        }
+
+        const isDialogVisible = parentDialog
+            ? this.checkVisible(parentDialog.visible) && this.checkVisible(parentDialog.style?.visible)
+            : isVisible;
+
+        if (this.host.runMode) {
+            el.style.left = '0px';
+            el.style.top = '0px';
+            el.style.width = `${finalW}px`;
+            el.style.height = `${finalH}px`;
+
+            if (className === 'TVirtualGamepad') {
+                (el.style as any).translate = 'none';
+            } else if (parentDialog) {
+                el.style.transition = 'translate 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease';
+                if (isDialogVisible) {
+                    (el.style as any).translate = `${finalX}px ${finalY}px`;
+                    el.style.pointerEvents = 'auto';
+                } else {
+                    const outOfBounds = getDialogSlideOffset(parentDialog, cellSize);
+                    (el.style as any).translate = `${finalX + outOfBounds}px ${finalY}px`;
+                    el.style.pointerEvents = 'none';
+                }
+            } else {
+                // Die Transition gehoert waehrend einer CSS-Animation dem
+                // AnimationManager; ein Reset wuerde sie sofort beenden.
+                if (!(el as any)._cssAnimActive) {
+                    el.style.transition = '';
+                }
+                (el.style as any).translate = `${finalX}px ${finalY}px`;
+            }
+        } else {
+            el.style.left = `${finalX}px`;
+            el.style.top = `${finalY}px`;
+            el.style.width = `${finalW}px`;
+            el.style.height = `${finalH}px`;
+        }
+    }
+
+    /**
+     * PERF-FAST-PATH: Schreibt ausschliesslich transform/opacity ins DOM.
+     *
+     * Animationen (z.B. der flip-Effekt) setzen diese beiden Werte bis zu 60x pro
+     * Sekunde — und zwar auf dem Ziel UND allen seinen Kindern. Ueber
+     * `updateSingleObject` haenge daran jedes Mal Theme-Merge, Align-Rechnung,
+     * `applyBackground` und ein kompletter Inhalts-Rebuild.
+     *
+     * Bewusst NICHT an den Tween-Zustand gekoppelt: Der letzte Schreibzugriff einer
+     * Animation (Reset auf '') erfolgt erst, wenn der Tween bereits entfernt ist.
+     * Eine Kopplung wuerde genau diesen Reset verschlucken und das Objekt sichtbar
+     * im Zwischenzustand stehen lassen.
+     *
+     * @returns true, wenn der Fast-Path angewendet wurde.
+     */
+    public updateObjectTransform(obj: any): boolean {
+        if (!this.host || !this.host.element || !obj || !obj.id) return false;
+
+        const el = this.getCachedElement(obj.id);
+        if (!el) return false;
+
+        const fp = ((el as any)._fp ||= {});
+
+        // Waehrend einer CSS-Animation gehoert der Transform dem AnimationManager.
+        if (!(el as any)._cssAnimActive) {
+            let transformStr = (obj.style && obj.style.transform !== undefined) ? obj.style.transform : '';
+            if (obj.rotation) {
+                transformStr += ` rotate(${obj.rotation}deg)`;
+            }
+            transformStr = transformStr.trim();
+            if (fp.transform !== transformStr) {
+                fp.transform = transformStr;
+                el.style.transform = transformStr;
+            }
+        }
+
+        if (obj.style && obj.style.opacity !== undefined) {
+            const resolved = this.getResolvedStyleValue(obj, 'opacity');
+            if (resolved !== undefined) {
+                const opacityValue = String(resolved);
+                if (fp.opacity !== opacityValue) {
+                    fp.opacity = opacityValue;
+                    el.style.opacity = opacityValue;
+                }
+            }
+        } else if (obj.opacity !== undefined) {
+            const opacityValue = String(obj.opacity);
+            if (fp.opacity !== opacityValue) {
+                fp.opacity = opacityValue;
+                el.style.opacity = opacityValue;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * PERF-FAST-PATH: Aktualisiert nur den Frame-Ausschnitt eines Sprites.
+     * Ein Frame-Wechsel (imageIndex) benötigt lediglich eine neue backgroundPosition;
+     * `updateSingleObject` würde dagegen Theme-Merge, Align und Layout neu berechnen.
+     *
+     * @returns true, wenn der Fast-Path angewendet wurde.
+     */
+    public updateSpriteFrame(obj: any): boolean {
+        if (!this.host || !this.host.element || !obj || !obj.id) return false;
+        if (obj.className !== 'TSprite' && obj.className !== 'TSpriteTemplate') return false;
+
+        const el = this.getCachedElement(obj.id);
+        if (!el) return false;
+
+        const ctx: IRenderContext = {
+            host: this.host,
+            scaleFontSize: this.scaleFontSize.bind(this),
+            updateSelectionState: this.updateSelectionState.bind(this)
+        };
+
+        SpriteRenderer.render(ctx, el, obj);
+        return true;
+    }
+
+    /**
+     * DIRTY-FRAME FAST-PATH: Aktualisiert nur den Frame-Index (transform) für eine
+     * Liste von Sprites, ohne SpriteRenderer.render() pro Sprite aufzurufen.
+     */
+    public updateSpriteFrames(objects: any[]): void {
+        const ctx: IRenderContext = {
+            host: this.host,
+            scaleFontSize: this.scaleFontSize.bind(this),
+            updateSelectionState: this.updateSelectionState.bind(this)
+        };
+
+        for (const obj of objects) {
+            if (!obj || !obj.id) continue;
+            if (obj.className !== 'TSprite' && obj.className !== 'TSpriteTemplate') continue;
+
+            const el = this.getCachedElement(obj.id);
+            if (!el) continue;
+
+            const imgEl = el.querySelector('.sprite-image-layer') as HTMLElement;
+            const sheetEl = imgEl ? imgEl.querySelector('.sprite-sheet-layer') as HTMLElement : null;
+            if (!imgEl || !sheetEl) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            const appearanceMode = obj.appearanceMode || (obj.animationId ? 'animation' : (obj.imageListId ? 'spritesheet' : (obj.videoSource ? 'video' : (obj.backgroundImage ? 'simple' : 'simple'))));
+            if (appearanceMode !== 'animation' && appearanceMode !== 'spritesheet') {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            let imageListId = obj.imageListId || '';
+            if (appearanceMode === 'animation' && obj.animationId) {
+                const animObj = this.host.lastRenderedObjects.find((o: any) =>
+                    (o.name === obj.animationId || o.id === obj.animationId) &&
+                    (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation')
+                ) || projectObjectRegistry.getObjects().find((o: any) =>
+                    (o.name === obj.animationId || o.id === obj.animationId) &&
+                    (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation')
+                );
+                if (animObj) imageListId = animObj.imageListId || '';
+            }
+
+            if (!imageListId) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            const imageListObj = this.host.lastRenderedObjects.find((o: any) =>
+                (o.name === imageListId || o.id === imageListId) &&
+                (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+            ) || projectObjectRegistry.getObjects().find((o: any) =>
+                (o.name === imageListId || o.id === imageListId) &&
+                (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+            );
+
+            if (!imageListObj) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            const hCount = imageListObj.imageCountHorizontal || 1;
+            const vCount = imageListObj.imageCountVertical || 1;
+            const sheetKey = `${hCount}x${vCount}`;
+
+            const rawIndex = appearanceMode === 'animation'
+                ? (obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : 0)
+                : (obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : (imageListObj.currentImageNumber || 0));
+            const currentFrame = Math.max(0, Math.min(rawIndex, (hCount * vCount) - 1));
+            const col = currentFrame % hCount;
+            const row = Math.floor(currentFrame / hCount);
+
+            const { tx, ty } = SpriteGeometry.frameOffsetPercent(col, row, hCount, vCount);
+
+            const cache = sheetEl as any;
+            const poolSize = Number(obj.poolSize) || 1;
+            const promote = appearanceMode === 'animation' && hCount * vCount <= 12 && poolSize <= 8;
+            const transform = promote ? `translate3d(${tx}%, ${ty}%, 0)` : `translate(${tx}%, ${ty}%)`;
+
+            if (cache._imageListId !== imageListId && cache._imageListId !== undefined) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+            if (cache._sheetKey !== sheetKey && cache._sheetKey !== undefined) {
+                SpriteRenderer.render(ctx, el, obj);
+                continue;
+            }
+
+            cache._imageListId = imageListId;
+            cache._sheetKey = sheetKey;
+
+            if (cache._transform !== transform) {
+                cache._transform = transform;
+                sheetEl.style.transform = transform;
+            }
+        }
+    }
+
+    public updateSingleObject(obj: any): void {
+        if (!this.host || !this.host.element || !obj || !obj.id) return;
+
+        // --- INJECT THEME STYLES ---
+        const mergedStyle = themeRegistry.getMergedStyle(obj.className || 'TObject', obj.style);
+        // Proxy statt Object.create: Style wird ueberlagert, SCHREIBENDE Zugriffe
+        // (z.B. Eingabe in TEdit) landen aber weiterhin auf dem Originalobjekt.
+        const themedObj = new Proxy(obj, {
+            get(target, prop: string | symbol, receiver) {
+                if (prop === 'style') return mergedStyle;
+                const value = Reflect.get(target, prop, receiver);
+                if (value && typeof value === 'object' && (value as any).__isProxy__) return value;
+                return value;
+            },
+            set(target, prop: string | symbol, value, receiver) {
+                return Reflect.set(target, prop, value, receiver);
+            }
+        });
+        obj = themedObj;
+        // ---------------------------
+
+        const grid = this.host.grid;
+        if (grid) {
+            this.handleSingleObjectAlign(obj, grid, this.host.lastRenderedObjects || []);
+        }
+
+        // SONDERFALL: Wenn das Objekt die Stage selbst ist (z.B. Hintergrund/Grid wird reaktiv geändert)
+        if (obj.className === 'TStage' || obj.type === 'main' || obj.type === 'splash' || obj.type === 'blueprint' || obj.grid) {
+            if (typeof (this.host as any).updategrid === 'function') {
+                // Wir synchronisieren das Grid zurück zum Host und triggern den Update
+                (this.host as any).gridConfig = obj.grid; // Host's interner Zustand aktualisieren
+                (this.host as any).updategrid();          // Background auf das native Element anwenden
+            }
+            return;
+        }
+
+        const el = this.host.element.querySelector(`[data-id="${obj.id}"]`) as HTMLElement;
+        if (!el) return;
+
+        const className = obj.className || 'TObject';
+
+        // 1. Sichtbarkeit syncen
+        let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
+        if (this.host.runMode && obj.isHiddenInRun) isVisible = false;
+        
+        if (!this.host.runMode && (!isVisible || obj.isHiddenInRun || obj.isService || obj.isBlueprintOnly)) {
+            el.style.display = 'flex';
+            el.classList.add('invisible-object-in-editor');
+            if (className === 'TInfoWindow') logger.debug(`[VISIBILITY-DEBUG] StageRenderer.updateSingleObject (TInfoWindow ${obj.id}) - DESIGN MODE -> display: flex (invisible-object)`);
+        } else {
+            let finalDisplay = isVisible ? 'flex' : 'none';
+            if (this.host.runMode && ((className === 'TDialogRoot' || className === 'TThemeDialog') || className === 'TSidePanel')) {
+                finalDisplay = 'flex'; // Niemals none, sonst bricht die Slide-Animation!
+            }
+            if (className === 'TInfoWindow') logger.debug(`[VISIBILITY-DEBUG] StageRenderer.updateSingleObject (TInfoWindow ${obj.id}) - RUN MODE -> isVisible=${isVisible}, setting finalDisplay=${finalDisplay}`);
+            el.style.display = finalDisplay;
+            el.classList.remove('invisible-object-in-editor');
+        }
+
+        // 2. Position & Groesse syncen
+        this.updateObjectPosition(el, obj, className, isVisible);
+
+        // 3. Basiseigenschaften
+        if (className !== 'TParallaxBackground') {
+            this.applyBackground(el, obj, className, obj.id);
+        }
+
+        if (obj.style) {
+            if (obj.style.color !== undefined) el.style.color = obj.style.color;
+            const resolvedOpacity = this.getResolvedStyleValue(obj, 'opacity');
+            if (resolvedOpacity !== undefined) {
+                el.style.opacity = String(resolvedOpacity);
+            }
+            if (obj.style.fontFamily !== undefined) el.style.fontFamily = obj.style.fontFamily;
+            if (obj.style.fontWeight !== undefined) el.style.fontWeight = obj.style.fontWeight;
+            if (obj.style.textShadow !== undefined) el.style.textShadow = obj.style.textShadow;
+            if (obj.style.fontSize !== undefined) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
+            // Waehrend einer CSS-Animation (siehe AnimationManager.runCssTransform)
+            // liegt der aktuelle Transform nur am DOM, nicht im Modell. Ein
+            // Zurueckschreiben wuerde die laufende Animation abbrechen.
+            if (!(el as any)._cssAnimActive) {
+                let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
+                if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
+                el.style.transform = tStr.trim();
+            }
+
+            // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor, Prio 3 = strukturierte Shadow-Parameter
+            if (obj.style.boxShadow) {
+                el.style.boxShadow = obj.style.boxShadow;
+            } else if (obj.style.glowColor) {
+                const blur = obj.style.glowBlur ?? 20;
+                const spread = obj.style.glowSpread ?? 5;
+                el.style.boxShadow = `0 0 ${blur}px ${spread}px ${obj.style.glowColor}`;
+            } else if (obj.style.shadowColor) {
+                const inset = obj.style.shadowInset ? 'inset ' : '';
+                const offsetX = obj.style.shadowOffsetX ?? 4;
+                const offsetY = obj.style.shadowOffsetY ?? 4;
+                const blur = obj.style.shadowBlur ?? 10;
+                const spread = obj.style.shadowSpread ?? 0;
+                el.style.boxShadow = `${inset}${offsetX}px ${offsetY}px ${blur}px ${spread}px ${obj.style.shadowColor}`;
+            } else if (obj.style.boxShadow === '' || (!obj.style.glowColor && !obj.style.shadowColor)) {
+                el.style.boxShadow = '';
+            }
+
+            if (obj.style.borderRadius !== undefined) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
+            if (obj.style.borderColor !== undefined) el.style.borderColor = obj.style.borderColor;
+            if (obj.style.borderWidth !== undefined) el.style.borderWidth = `${obj.style.borderWidth}px`;
+            // zIndex muss auch bei Einzel-Updates (z.B. durch Bindvariable) am DOM gesetzt werden.
+            // AUSNAHME: Dialoge/Side-Panels und deren Kinder haben eine eigene z-Basis
+            // (data-dialog-z). obj.zIndex ist dort meist 0 (TWindow-Default) und wuerde
+            // das Panel auf die Sprite-Ebene zurueckwerfen.
+            if (el.dataset.dialogZ) {
+                el.style.zIndex = el.dataset.dialogZ;
+            } else if (obj.zIndex !== undefined) {
+                el.style.zIndex = String(obj.zIndex);
+            }
+        } else if (obj.opacity !== undefined) {
+            el.style.opacity = String(obj.opacity);
+        }
+
+        // 3. Inhalt (z.B. TLabel Text, Bilder)
+        this.renderComponentContent(el, obj, className, false);
+
+        // 4. TVideo: _isPlaying-State auf das DOM-<video>-Element übertragen
+        if (className === 'TVideo') {
+            const videoEl = el.querySelector('video') as HTMLVideoElement | null;
+            if (videoEl) {
+                if (obj._isPlaying && videoEl.paused) videoEl.play().catch(() => {});
+                else if (!obj._isPlaying && !videoEl.paused) videoEl.pause();
+            }
+        }
+    }
+
+    private updateSelectionState(el: HTMLElement, id: string) {
+        if (this.host.selectedIds.has(id)) {
+            el.classList.add('selected');
+            el.style.overflow = 'visible';
+            el.style.outline = '2px solid #4fc3f7';
+            if (!el.querySelector('.resize-handle')) {
+                this.addResizeHandles(el);
+            }
+        } else {
+            el.classList.remove('selected');
+            el.style.overflow = 'hidden';
+            el.style.outline = 'none';
+            el.querySelectorAll('.resize-handle').forEach(h => h.remove());
+        }
+    }
+
+    private addResizeHandles(el: HTMLElement) {
+        const handleSize = 6;
+        const handles = ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'];
+        const handleStyles: Record<string, { top?: string, bottom?: string, left?: string, right?: string, cursor: string, transform?: string }> = {
+            'nw': { top: '-6px', left: '-6px', cursor: 'nwse-resize' },
+            'n': { top: '-6px', left: '50%', cursor: 'ns-resize', transform: 'translateX(-50%)' },
+            'ne': { top: '-6px', right: '-6px', cursor: 'nesw-resize' },
+            'w': { top: '50%', left: '-6px', cursor: 'ew-resize', transform: 'translateY(-50%)' },
+            'e': { top: '50%', right: '-6px', cursor: 'ew-resize', transform: 'translateY(-50%)' },
+            'sw': { bottom: '-6px', left: '-6px', cursor: 'nesw-resize' },
+            's': { bottom: '-6px', left: '50%', cursor: 'ns-resize', transform: 'translateX(-50%)' },
+            'se': { bottom: '-6px', right: '-6px', cursor: 'nwse-resize' }
+        };
+        handles.forEach(dir => {
+            const handle = document.createElement('div');
+            handle.className = `resize-handle ${dir}`;
+            handle.style.position = 'absolute';
+            handle.style.width = `${handleSize}px`;
+            handle.style.height = `${handleSize}px`;
+            handle.style.backgroundColor = '#000000';
+            handle.style.zIndex = '100';
+            handle.style.cursor = handleStyles[dir].cursor;
+            if (handleStyles[dir].top) handle.style.top = handleStyles[dir].top;
+            if (handleStyles[dir].bottom) handle.style.bottom = handleStyles[dir].bottom;
+            if (handleStyles[dir].left) handle.style.left = handleStyles[dir].left;
+            if (handleStyles[dir].right) handle.style.right = handleStyles[dir].right;
+            if (handleStyles[dir].transform) handle.style.transform = handleStyles[dir].transform;
+            el.appendChild(handle);
+        });
+    }
+
+    /**
+     * Rendert eine TDataList: Im Editor das Template, im Run-Modus die geklonten Karten
+     */
+    
+    /**
+     * Rendert einen TSpawner: Design-Mode Platzhalter, da der Spawner zur Laufzeit unsichtbar ist.
+     */
+    private renderSpawner(el: HTMLElement, obj: any): void {
+        el.innerHTML = '';
+        el.style.background = 'rgba(16, 185, 129, 0.15)';
+        el.style.border = '1px dashed rgba(16, 185, 129, 0.6)';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.color = '#34d399';
+        el.style.fontSize = '12px';
+        el.style.fontFamily = 'sans-serif';
+        el.style.textAlign = 'center';
+        el.textContent = `Spawner: ${obj.templateName || '---'}\n${obj.spawnInterval}s`;
+        el.style.whiteSpace = 'pre-line';
+    }
+
+    /**
+     * Rendert TSpeedlines: Übergibt das DOM-Element an die Komponente.
+     */
+    private renderSpeedlines(el: HTMLElement, obj: any): void {
+        if (!obj || typeof obj.setElement !== 'function') return;
+        obj.setElement(el, this.host.grid.cellSize, this.host.runMode);
+    }
+
+    /**
+     * Rendert einen TParallaxBackground: Übergibt das DOM-Element an die Komponente,
+     * die sich selbst um das Aufbauen und Animieren der Ebenen kümmert.
+     */
+    private renderParallaxBackground(el: HTMLElement, obj: any): void {
+        if (!obj || typeof obj.setElement !== 'function') return;
+        obj.setElement(el, this.host.grid.cellSize, this.host.runMode);
+    }
+
+    /**
+     * Standard-Platzhalter für TImageList/TAnimation ohne Frames/Bild.
+     * Zeigt ein SVG-Default-Bild und den Komponententyp als Text.
+     */
+    private renderDefaultImagePlaceholder(el: HTMLElement, label: string): void {
+        el.style.backgroundImage = `url("${DEFAULT_NO_FRAMES_SVG}")`;
+        el.style.backgroundSize = 'contain';
+        el.style.backgroundPosition = 'center';
+        el.style.backgroundRepeat = 'no-repeat';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.backgroundColor = '#1e1e2e';
+
+        el.querySelector('.animation-type-label')?.remove();
+        let labelEl = el.querySelector('.component-type-label') as HTMLElement;
+        if (!labelEl) {
+            labelEl = document.createElement('div');
+            labelEl.className = 'component-type-label';
+            labelEl.style.cssText = `
+                position: absolute;
+                bottom: 4px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(30, 30, 46, 0.85);
+                color: #89b4fa;
+                font-size: 10px;
+                font-weight: bold;
+                padding: 2px 6px;
+                border-radius: 3px;
+                pointer-events: none;
+                z-index: 10;
+                white-space: nowrap;
+            `;
+            el.appendChild(labelEl);
+        }
+        labelEl.textContent = label;
+    }
+
+    /**
+     * Rendert eine TImageList: Zeigt den aktuellen Frame des Sprite-Sheets an.
+     * Nutzt CSS background-size + background-position für pixelgenaues Clipping.
+     */
+    private renderImageList(el: HTMLElement, obj: any): void {
+        let src = obj.backgroundImage || obj.src || '';
+        const hCount = obj.imageCountHorizontal || 1;
+        const vCount = obj.imageCountVertical || 1;
+        const currentFrame = obj.currentImageNumber || 0;
+
+        if (src && typeof src === 'string') {
+            const vars = this.getVariableContext();
+            const objects = this.host.lastRenderedObjects || [];
+            for (let i = 0; i < 3 && typeof src === 'string' && src.includes('${'); i++) {
+                src = PropertyHelper.interpolate(src, vars, objects);
+            }
+        }
+
+        if (!src) {
+            this.renderDefaultImagePlaceholder(el, 'ImageList');
+            return;
+        }
+
+        // Platzhalter entfernen falls vorhanden
+        const existing = el.querySelector('.imagelist-placeholder');
+        if (existing) existing.remove();
+        el.querySelector('.component-type-label')?.remove();
+
+        // URL normalisieren
+        let imgSrc = src;
+        if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/') && !imgSrc.startsWith('.') && !imgSrc.startsWith('data:')) {
+            imgSrc = `./images/${imgSrc}`;
+        }
+        if (imgSrc.startsWith('/images/') || imgSrc.startsWith('/audio/')) {
+            imgSrc = '.' + imgSrc;
+        }
+        if (!imgSrc.startsWith('data:')) {
+            const parts = imgSrc.split('/');
+            const lastPart = parts.pop() || '';
+            imgSrc = [...parts, encodeURIComponent(lastPart)].join('/');
+        }
+
+        // CSS Sprite-Sheet Clipping:
+        // background-size: H*100% V*100% → vergrößert das Bild so, dass jeder Frame exakt die Element-Größe hat
+        // background-position: berechnet den Offset zum gewünschten Frame
+        const col = currentFrame % hCount;
+        const row = Math.floor(currentFrame / hCount);
+
+        const bgSizeX = hCount * 100;
+        const bgSizeY = vCount * 100;
+        const bgPosX = hCount <= 1 ? 0 : (col / (hCount - 1)) * 100;
+        const bgPosY = vCount <= 1 ? 0 : (row / (vCount - 1)) * 100;
+
+        el.style.backgroundImage = `url("${imgSrc}")`;
+        el.style.backgroundSize = `${bgSizeX}% ${bgSizeY}%`;
+        el.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
+        el.style.backgroundRepeat = 'no-repeat';
+
+        // Im Editor-Modus: Frame-Nummer anzeigen
+        if (!this.host.runMode) {
+            let badge = el.querySelector('.imagelist-badge') as HTMLElement;
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'imagelist-badge';
+                badge.style.cssText = `
+                    position: absolute; top: 2px; right: 2px;
+                    background: rgba(30, 30, 46, 0.85); color: #89b4fa;
+                    font-size: 10px; font-weight: bold; padding: 2px 6px;
+                    border-radius: 3px; pointer-events: none; z-index: 10;
+                `;
+                el.appendChild(badge);
+            }
+            badge.textContent = `#${currentFrame}/${hCount * vCount}`;
+        } else {
+            // Im Run-Modus Badge entfernen
+            const badge = el.querySelector('.imagelist-badge');
+            if (badge) badge.remove();
+        }
+    }
+    /**
+     * Rendert eine TAnimation: Zeigt das 1. Frame der verknüpften TImageList.
+     * Falls keine ImageList/Bild vorhanden ist, wird der Platzhalter angezeigt.
+     */
+    private renderAnimation(el: HTMLElement, obj: any): void {
+        const imageListId = obj.imageListId || '';
+        let imageList: any = null;
+        if (imageListId) {
+            imageList = this.host.lastRenderedObjects.find((o: any) =>
+                (o.name === imageListId || o.id === imageListId) &&
+                (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+            );
+            if (!imageList) {
+                imageList = projectObjectRegistry.getObjects().find((o: any) =>
+                    (o.name === imageListId || o.id === imageListId) &&
+                    (o.className === 'TImageList' || o.constructor?.name === 'TImageList')
+                );
+            }
+        }
+        const hasSrc = imageList && (imageList.backgroundImage || imageList.src);
+        if (!hasSrc) {
+            this.renderDefaultImagePlaceholder(el, 'Animation');
+            return;
+        }
+        this.renderImageList(el, {
+            backgroundImage: imageList.backgroundImage,
+            src: imageList.src,
+            imageCountHorizontal: imageList.imageCountHorizontal,
+            imageCountVertical: imageList.imageCountVertical,
+            currentImageNumber: 0
+        });
+
+        // TAnimation-Kennzeichnung, auch wenn ein Bild gerendert wird
+        let labelEl = el.querySelector('.animation-type-label') as HTMLElement;
+        if (!labelEl) {
+            labelEl = document.createElement('div');
+            labelEl.className = 'animation-type-label';
+            labelEl.style.cssText = `
+                position: absolute;
+                bottom: 4px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(30, 30, 46, 0.85);
+                color: #f9e2af;
+                font-size: 10px;
+                font-weight: bold;
+                padding: 2px 6px;
+                border-radius: 3px;
+                pointer-events: none;
+                z-index: 10;
+                white-space: nowrap;
+            `;
+            el.appendChild(labelEl);
+        }
+        labelEl.textContent = 'Animation';
+
+        const id = obj.id || obj.name;
+        if (this.animationPreview && this.animationPreview.id === id && !this.host.selectedIds.has(id)) {
+            this.stopAnimationPreview();
+        }
+        if (id && this.host.selectedIds.has(id)) {
+            this.startAnimationPreview(el, obj, imageList);
+        }
+    }
+
+    private startAnimationPreview(el: HTMLElement, obj: any, imageList: any): void {
+        const id = obj.id || obj.name;
+        const frameDuration = Math.max(1, obj.frameDuration || 100);
+        const imageCount = Math.max(1, obj.imageCount || 1);
+        const loop = !!obj.loop;
+        const enabled = !!obj.enabled;
+
+        if (this.animationPreview && this.animationPreview.id === id) {
+            this.animationPreview.frameDuration = frameDuration;
+            this.animationPreview.imageCount = imageCount;
+            this.animationPreview.loop = loop;
+            this.animationPreview.enabled = enabled;
+            this.animationPreview.el = el;
+            this.animationPreview.imageList = imageList;
+            if (!enabled || imageCount <= 1) {
+                this.stopAnimationPreview();
+            }
+            return;
+        }
+
+        this.stopAnimationPreview();
+
+        if (!enabled || imageCount <= 1) {
+            return;
+        }
+
+        this.animationPreview = { id, timer: null, el, imageList, frameDuration, imageCount, loop, enabled, currentFrame: 0 };
+
+        const tick = () => {
+            if (!this.animationPreview || this.animationPreview.id !== id) return;
+            const preview = this.animationPreview;
+            const frame = preview.currentFrame;
+
+            this.renderImageList(preview.el, {
+                backgroundImage: preview.imageList.backgroundImage,
+                src: preview.imageList.src,
+                imageCountHorizontal: preview.imageList.imageCountHorizontal,
+                imageCountVertical: preview.imageList.imageCountVertical,
+                currentImageNumber: frame
+            });
+
+            let labelEl = preview.el.querySelector('.animation-type-label') as HTMLElement;
+            if (!labelEl) {
+                labelEl = document.createElement('div');
+                labelEl.className = 'animation-type-label';
+                labelEl.style.cssText = `
+                    position: absolute;
+                    bottom: 4px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(30, 30, 46, 0.85);
+                    color: #f9e2af;
+                    font-size: 10px;
+                    font-weight: bold;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    pointer-events: none;
+                    z-index: 10;
+                    white-space: nowrap;
+                `;
+                preview.el.appendChild(labelEl);
+            }
+            labelEl.textContent = 'Animation';
+
+            const nextFrame = preview.currentFrame + 1;
+            if (nextFrame >= preview.imageCount) {
+                if (preview.loop) {
+                    preview.currentFrame = 0;
+                    preview.timer = window.setTimeout(tick, preview.frameDuration);
+                } else {
+                    this.stopAnimationPreview();
+                }
+            } else {
+                preview.currentFrame = nextFrame;
+                preview.timer = window.setTimeout(tick, preview.frameDuration);
+            }
+        };
+
+        tick();
+    }
+
+    private stopAnimationPreview(): void {
+        if (this.animationPreview && this.animationPreview.timer !== null) {
+            window.clearTimeout(this.animationPreview.timer);
+        }
+        this.animationPreview = null;
+    }
+
+    private startSpriteAnimationPreview(el: HTMLElement, obj: any, ctx: IRenderContext): void {
+        const id = obj.id || obj.name;
+        const selected = this.host.selectedIds.has(id);
+
+        if (!selected) {
+            if (this.spriteAnimationPreview && this.spriteAnimationPreview.id === id) {
+                this.stopSpriteAnimationPreview();
+            }
+            return;
+        }
+
+        const animId = obj.animationId;
+        if (!animId) {
+            if (this.spriteAnimationPreview && this.spriteAnimationPreview.id === id) {
+                this.stopSpriteAnimationPreview();
+            }
+            return;
+        }
+
+        const animObj = this.resolveAnimationObject(animId);
+
+        if (this.spriteAnimationPreview && this.spriteAnimationPreview.id === id) {
+            if (!animObj) {
+                this.stopSpriteAnimationPreview();
+                return;
+            }
+            const preview = this.spriteAnimationPreview;
+            const newDuration = Math.max(1, animObj.frameDuration || 100);
+            const durationChanged = preview.frameDuration !== newDuration;
+            preview.frameDuration = newDuration;
+            preview.imageCount = Math.max(1, animObj.imageCount || 1);
+            preview.loop = !!animObj.loop;
+            preview.enabled = !!animObj.enabled;
+            preview.animObj = animObj;
+            preview.el = el;
+            preview.obj = obj;
+            preview.ctx = ctx;
+            if (!preview.enabled || preview.imageCount <= 1) {
+                this.stopSpriteAnimationPreview();
+                return;
+            }
+            // Geänderte Geschwindigkeit sofort anwenden: der bereits geplante Timer
+            // würde sonst noch mit der alten Dauer ablaufen.
+            if (durationChanged && preview.tick) {
+                if (preview.timer !== null) {
+                    window.clearTimeout(preview.timer);
+                    preview.timer = null;
+                }
+                preview.timer = window.setTimeout(preview.tick, newDuration);
+            }
+            return;
+        }
+
+        if (!animObj) return;
+
+        this.stopSpriteAnimationPreview();
+
+        const frameDuration = Math.max(1, animObj.frameDuration || 100);
+        const imageCount = Math.max(1, animObj.imageCount || 1);
+        const loop = !!animObj.loop;
+        const enabled = !!animObj.enabled;
+
+        if (!enabled || imageCount <= 1) {
+            return;
+        }
+
+        logger.info(
+            `Sprite-Vorschau '${obj.name}' nutzt TAnimation '${animId}': ` +
+            `frameDuration=${frameDuration}ms, imageCount=${imageCount}, loop=${loop}`
+        );
+
+        this.spriteAnimationPreview = { id, timer: null, el, obj, ctx, animObj, frameDuration, imageCount, loop, enabled, currentFrame: 0, tick: null };
+
+        const tick = () => {
+            if (!this.spriteAnimationPreview || this.spriteAnimationPreview.id !== id) return;
+            const preview = this.spriteAnimationPreview;
+
+            // Werte bei JEDEM Tick frisch auflösen: sonst liefe die Vorschau mit der
+            // Geschwindigkeit weiter, die beim Start der Vorschau gültig war.
+            const live = this.resolveAnimationObject(animId);
+            if (live) {
+                preview.animObj = live;
+                preview.frameDuration = Math.max(1, live.frameDuration || 100);
+                preview.imageCount = Math.max(1, live.imageCount || 1);
+                preview.loop = !!live.loop;
+                preview.enabled = !!live.enabled;
+                if (!preview.enabled || preview.imageCount <= 1) {
+                    this.stopSpriteAnimationPreview();
+                    return;
+                }
+            }
+
+            if (preview.currentFrame >= preview.imageCount) preview.currentFrame = 0;
+            const frame = preview.currentFrame;
+
+            // WICHTIG: kein Spread — Getter wie appearanceMode/animationId liegen auf dem
+            // Prototyp und gingen dabei verloren. Ein Proxy überlagert nur imageIndex.
+            const frameObj = new Proxy(preview.obj, {
+                get(target, prop, receiver) {
+                    if (prop === 'imageIndex') return frame;
+                    return Reflect.get(target, prop, receiver);
+                }
+            });
+            SpriteRenderer.render(preview.ctx, preview.el, frameObj);
+
+            const nextFrame = preview.currentFrame + 1;
+            if (nextFrame >= preview.imageCount) {
+                if (preview.loop) {
+                    preview.currentFrame = 0;
+                    preview.timer = window.setTimeout(tick, preview.frameDuration);
+                } else {
+                    this.stopSpriteAnimationPreview();
+                }
+            } else {
+                preview.currentFrame = nextFrame;
+                preview.timer = window.setTimeout(tick, preview.frameDuration);
+            }
+        };
+
+        this.spriteAnimationPreview.tick = tick;
+        tick();
+    }
+
+    /**
+     * Löst eine TAnimation über Name oder Id auf. Erst über die aktuell gerenderten
+     * Objekte (Live-Instanzen der Stage), dann über die Projekt-Registry.
+     */
+    private resolveAnimationObject(animId: string): any | null {
+        const isAnim = (o: any) => (o.name === animId || o.id === animId) &&
+            (o.className === 'TAnimation' || o.constructor?.name === 'TAnimation');
+
+        const fromStage = this.host.lastRenderedObjects.find(isAnim);
+        if (fromStage) return fromStage;
+
+        const fromRegistry = projectObjectRegistry.getObjects().find(isAnim);
+        return fromRegistry || null;
+    }
+
+    private stopSpriteAnimationPreview(): void {
+        if (this.spriteAnimationPreview && this.spriteAnimationPreview.timer !== null) {
+            window.clearTimeout(this.spriteAnimationPreview.timer);
+        }
+        this.spriteAnimationPreview = null;
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // FAST PATH: Sprite-Positionen direkt im DOM aktualisieren
+    // Wird 60×/sec vom GameLoopManager aufgerufen, OHNE volles Render.
+    // Kein Dock-Recalc, kein Element-Create/Remove.
+    // ─────────────────────────────────────────────────────────────────
+    public updateSpritePositions(objects: any[]): void {
+        this.resetVariableContext();
+        const cellSize = this.host.grid.cellSize;
+        const allObjects = this.host.lastRenderedObjects || [];
+        this.ensureFastPathIndex(allObjects);
+
+        const objectsToUpdateMap = this.fastPathUpdateMap;
+        objectsToUpdateMap.clear();
+
+        // 1. Zuerst die primär animierten Original-Objekte (aus dem GameRuntime) aufnehmen
+        for (const obj of objects) {
+            if (obj && (obj.id || obj.name)) {
+                objectsToUpdateMap.set(obj.id || obj.name, obj);
+            }
+        }
+
+        // 2. Kinder ueber den vorberechneten Parent-Index sammeln (statt O(n^2) filter)
+        const collectChildren = (parentId: string, out: any[], depth: number): void => {
+            if (depth > 100) return;
+            const kids = this.fastPathChildrenByParent.get(parentId);
+            if (!kids) return;
+            for (const k of kids) {
+                out.push(k);
+                const kId = k.id || k.name;
+                if (kId) collectChildren(kId, out, depth + 1);
+            }
+        };
+
+        // 3. Auch alle Kinder in den Update-Zyklus einbeziehen, damit sie sich 
+        // synchron mit ihren animierten Containern mitbewegen.
+        const kidBuffer = this.fastPathKidBuffer;
+        for (const obj of objects) {
+            if (!obj.id && !obj.name) continue;
+            kidBuffer.length = 0;
+            collectChildren(obj.id || obj.name, kidBuffer, 0);
+            for (const k of kidBuffer) {
+                const kId = k.id || k.name;
+                // Originale (aktiv animierte) haben Vorrang! Überschreibe keine bestehenden Einträge.
+                if (kId && !objectsToUpdateMap.has(kId)) {
+                    objectsToUpdateMap.set(kId, k);
+                }
+            }
+        }
+
+        const mergedObjectsArray = this.fastPathMergedBuffer;
+        mergedObjectsArray.length = 0;
+        for (const value of objectsToUpdateMap.values()) {
+            mergedObjectsArray.push(value);
+        }
+
+        /** Parent-Lookup: bevorzugt die aktuell animierten Objekte, sonst der Stage-Index. */
+        const lookupObject = (id: string): any =>
+            objectsToUpdateMap.get(id) || this.fastPathById.get(id);
+
+        // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain).
+        // Muss die LATEST properties referenzieren.
+        // PERF: Schreibt in Felder statt ein Ergebnisobjekt pro Sprite und Frame
+        // zu allokieren.
+        const accumulateAbsPos = (obj: any): void => {
+            let absX = this.getResolvedNumber(obj, 'x', mergedObjectsArray);
+            let absY = this.getResolvedNumber(obj, 'y', mergedObjectsArray);
+            let curr = obj.parentId;
+            let depth = 0;
+            while (curr && depth < 100) {
+                const p = lookupObject(curr);
+                if (p) {
+                    absX += this.getResolvedNumber(p, 'x', mergedObjectsArray);
+                    absY += this.getResolvedNumber(p, 'y', mergedObjectsArray);
+                    curr = p.parentId;
+                } else {
+                    break;
+                }
+                depth++;
+            }
+            this.fastPathAbsX = absX;
+            this.fastPathAbsY = absY;
+        };
+
+        for (const obj of mergedObjectsArray) {
+            const el = this.getCachedElement(obj.id);
+            if (!el) continue;
+            const fp = ((el as any)._fp ||= {});
+            
+            // Rekursive Parent-Positionierung berücksichtigen!
+            accumulateAbsPos(obj);
+            const transX = this.fastPathAbsX * cellSize;
+            const transY = this.fastPathAbsY * cellSize;
+
+            let finalTransX = transX;
+            let finalTransY = transY;
+
+            if (this.host.runMode) {
+                // ── Sichtbarkeits-Sync (Pool-Sprites) ──
+                let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
+                if (obj.isHiddenInRun) isVisible = false;
+
+                const isFromBlueprint = !!obj.isFromBlueprint;
+                const isBlueprintOnly = !!obj.isBlueprintOnly;
+                const isService = !!obj.isService;
+                if (!this.host.isBlueprint) {
+                    if (isFromBlueprint && (isService || isBlueprintOnly)) {
+                        isVisible = false;
+                    }
+                } else {
+                    if (isFromBlueprint || isService || isBlueprintOnly) {
+                        isVisible = true;
+                    }
+                }
+
+                // Feststellen, ob es zum Dialog-Zweig gehört (Ergebnis wird gecacht)
+                const parentDialog = this.resolveDialogParent(obj, lookupObject);
+
+                // Display
+                const displayValue = (isVisible || parentDialog)
+                    ? (obj.className === 'TRichText' ? 'block' : 'flex')
+                    : 'none';
+                if (fp.display !== displayValue) {
+                    fp.display = displayValue;
+                    el.style.display = displayValue;
+                }
+
+                // GPU Compositing: Native CSS translate Property
+                let translateValue: string;
+                if (obj.className === 'TVirtualGamepad') {
+                    translateValue = 'none';
+                } else if (parentDialog) {
+                    if (this.checkVisible(parentDialog.visible) && this.checkVisible(parentDialog.style?.visible)) {
+                        translateValue = `${finalTransX}px ${finalTransY}px`;
+                    } else {
+                        const outOfBoundsOffset = getDialogSlideOffset(parentDialog, cellSize);
+                        translateValue = `${finalTransX + outOfBoundsOffset}px ${finalTransY}px`;
+                    }
+                } else {
+                    translateValue = `${finalTransX}px ${finalTransY}px`;
+                }
+                if (fp.translate !== translateValue) {
+                    fp.translate = translateValue;
+                    (el.style as any).translate = translateValue;
+                }
+                
+                let transformStr = (obj.style && obj.style.transform !== undefined) ? obj.style.transform : '';
+                if (obj.rotation) {
+                    transformStr += ` rotate(${obj.rotation}deg)`;
+                }
+                transformStr = transformStr.trim();
+                if (fp.transform !== transformStr) {
+                    fp.transform = transformStr;
+                    el.style.transform = transformStr;
+                }
+
+                if (obj.style && obj.style.opacity !== undefined) {
+                    const resolvedOpacity = this.getResolvedStyleValue(obj, 'opacity', mergedObjectsArray);
+                    if (resolvedOpacity !== undefined) {
+                        const opacityValue = String(resolvedOpacity);
+                        if (fp.opacity !== opacityValue) {
+                            fp.opacity = opacityValue;
+                            el.style.opacity = opacityValue;
+                        }
+                    }
+                } else if (obj.opacity !== undefined) {
+                    const opacityValue = String(obj.opacity);
+                    if (fp.opacity !== opacityValue) {
+                        fp.opacity = opacityValue;
+                        el.style.opacity = opacityValue;
+                    }
+                }
+
+                // Größen-Sync (für grow/shrink Animationen)
+                if (obj.width !== undefined) {
+                    const widthValue = `${this.getResolvedNumber(obj, 'width', mergedObjectsArray) * cellSize}px`;
+                    if (fp.width !== widthValue) {
+                        fp.width = widthValue;
+                        el.style.width = widthValue;
+                    }
+                }
+                if (obj.height !== undefined) {
+                    const heightValue = `${this.getResolvedNumber(obj, 'height', mergedObjectsArray) * cellSize}px`;
+                    if (fp.height !== heightValue) {
+                        fp.height = heightValue;
+                        el.style.height = heightValue;
+                    }
+                }
+
+            } else {
+                // Fallback Layout für Inspektion
+                if (obj.x !== undefined) el.style.left = `${transX}px`;
+                if (obj.y !== undefined) el.style.top = `${transY}px`;
+                
+                if (obj.style) {
+                    let tStr = (obj.style.transform !== undefined) ? obj.style.transform : '';
+                    if (obj.rotation) tStr += ` rotate(${obj.rotation}deg)`;
+                    if (tStr.trim()) el.style.transform = tStr.trim();
+                    const resolvedOpacity = this.getResolvedStyleValue(obj, 'opacity', mergedObjectsArray);
+                    if (resolvedOpacity !== undefined) {
+                        el.style.opacity = String(resolvedOpacity);
+                    }
+                } else if (obj.opacity !== undefined) {
+                    el.style.opacity = String(obj.opacity);
+                }
+            }
+        }
+    }
+
+    /**
+     * Rendert TLink: klickbarer Link-Text der eine URL in einem neuen Tab öffnet.
+     */
+    private renderLink(el: HTMLElement, obj: any): void {
+        const text = obj.text || obj.name || 'Link';
+        const url = obj.url || '';
+        const underline = obj.underline !== false;
+        const color = obj.style?.color || '#4fc3f7';
+        const fontSize = obj.style?.fontSize || 14;
+
+        let span = el.querySelector('.tlink-text') as HTMLElement | null;
+        if (!span) {
+            el.innerHTML = '';
+            span = document.createElement('span');
+            span.className = 'tlink-text';
+            el.appendChild(span);
+        }
+        span.textContent = text;
+        span.style.cssText = `color:${color};font-size:${fontSize}px;text-decoration:${underline ? 'underline' : 'none'};cursor:pointer;`;
+
+        if (this.host.runMode) {
+            el.onclick = (e) => {
+                e.stopPropagation();
+                if (url) window.open(url, '_blank', 'noopener,noreferrer');
+            };
+        } else {
+            el.onclick = null;
+        }
+    }
+
+    /**
+     * Rendert TVideo: Platzhalter im Editor, echtes <video>-Element im Run-Mode.
+     */
+    private renderVideo(el: HTMLElement, obj: any): void {
+        const runMode = this.host.runMode;
+        const src = obj._videoSource || obj.videoSource || '';
+
+        if (!runMode) {
+            // Editor: Platzhalter anzeigen
+            const existing = el.querySelector('video');
+            if (existing) existing.remove();
+            if (!el.querySelector('.tvideo-placeholder')) {
+                el.innerHTML = '';
+                const ph = document.createElement('div');
+                ph.className = 'tvideo-placeholder';
+                ph.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.5;pointer-events:none;background:#000;color:#fff;';
+                ph.textContent = '🎥';
+                el.appendChild(ph);
+            }
+            return;
+        }
+
+        // Run-Mode: <video>-Element erstellen oder aktualisieren
+        let videoEl = el.querySelector('video') as HTMLVideoElement | null;
+        const placeholder = el.querySelector('.tvideo-placeholder');
+        if (placeholder) placeholder.remove();
+
+        if (!videoEl) {
+            el.innerHTML = '';
+            videoEl = document.createElement('video');
+            videoEl.style.cssText = 'width:100%;height:100%;display:block;pointer-events:none;';
+            el.appendChild(videoEl);
+        }
+
+        // Eigenschaften synchronisieren
+        // data:-URLs direkt verwenden (eingebetteter Export), sonst Pfad normalisieren
+        const normalizedSrc = src.startsWith('data:') ? src : (src.startsWith('/videos/') ? '.' + src : src);
+        if (videoEl.getAttribute('src') !== normalizedSrc) {
+            videoEl.src = normalizedSrc;
+        }
+        videoEl.style.objectFit = (obj._objectFit || obj.objectFit || 'contain') as any;
+        videoEl.style.opacity = String(obj._imageOpacity ?? obj.imageOpacity ?? 1);
+        videoEl.loop = !!(obj._loop ?? obj.loop);
+        videoEl.muted = !!(obj._muted ?? obj.muted);
+        videoEl.playbackRate = obj._playbackRate ?? obj.playbackRate ?? 1;
+
+        // Reset auf Anfang wenn stop() aufgerufen wurde
+        if (obj.resetRequested) {
+            videoEl.currentTime = 0;
+            obj.resetRequested = false;
+        }
+
+        // Playback-Zustand
+        const shouldPlay = !!(obj._isPlaying ?? obj.isPlaying);
+        if (shouldPlay && videoEl.paused) videoEl.play().catch(() => {});
+        else if (!shouldPlay && !videoEl.paused) videoEl.pause();
+    }
+}
+
+

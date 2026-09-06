@@ -1,0 +1,89 @@
+{
+  "name": "game-builder-v1",
+  "private": true,
+  "version": "3.9.1",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "start": "node scripts/start-local.mjs",
+    "predev": "npm run bundle:runtime && npm run media:manifest",
+    "bundle:runtime": "node scripts/bundle-runtime.mjs",
+    "media:manifest": "node scripts/generate-media-manifest.mjs",
+    "clean": "npm run clean:vite && npm run clean:build && npm run clean:runtime",
+    "clean:vite": "if exist node_modules\\.vite rmdir /s /q node_modules\\.vite",
+    "clean:build": "if exist dist rmdir /s /q dist",
+    "clean:runtime": "if exist public\\runtime-standalone.js del /f /q public\\runtime-standalone.js",
+    "build": "npm run bundle:runtime && npm run media:manifest && tsc && vite build",
+    "preview": "vite preview",
+    "test": "node scripts/run-tests.mjs",
+    "test:seed": "npx tsx scripts/seed_test_data.ts",
+    "test:logic": "npx tsx scripts/test_login_logic.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "validate": "node scripts/validate_project.cjs",
+    "clean:electron": "node scripts/clean_electron_cache.cjs",
+    "dev:electron": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev:electron:clean": "npm run clean:vite && npm run clean:electron && npm run dev:electron",
+    "build:electron": "npm run build && electron-builder",
+    "tauri:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && tauri dev\"",
+    "tauri:build": "npm run build && tauri build",
+    "lint": "eslint src --ext .ts --max-warnings 999",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@playwright/test": "^1.58.2",
+    "@tauri-apps/cli": "^2.10.1",
+    "@types/dompurify": "^3.0.5",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "concurrently": "^8.2.2",
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.2",
+    "esbuild": "^0.28.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "html-to-docx": "^1.8.0",
+    "marked": "^17.0.5",
+    "md-to-docx": "^1.6.1",
+    "playwright": "^1.58.2",
+    "prettier": "^3.4.0",
+    "tsx": "4.23.13",
+    "typescript": "^5.2.2",
+    "vite": "^8.0.16",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-dialog": "^2.7.0",
+    "@tauri-apps/plugin-fs": "^2.5.0",
+    "@types/express": "^5.0.6",
+    "dompurify": "^3.4.9",
+    "express": "^5.2.1",
+    "fflate": "^0.8.2",
+    "jsep": "^1.4.0",
+    "mermaid": "^11.12.2"
+  },
+  "build": {
+    "appId": "com.gamebuilder.app",
+    "productName": "Game Builder",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        "dir"
+      ]
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ]
+  }
+}

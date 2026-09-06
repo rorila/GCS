@@ -1,0 +1,37 @@
+{
+    "title": "Stage Template auswählen",
+    "width": 400,
+    "height": 200,
+    "objects": [
+        {
+            "className": "TLabel",
+            "text": "Wähle ein Template für die neue Stage:",
+            "style": {
+                "marginBottom": 10
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "templateId",
+            "options": []
+        }
+    ],
+    "buttons": [
+        {
+            "caption": "Erstellen",
+            "action": "select",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "color": "white"
+            }
+        },
+        {
+            "caption": "Abbrechen",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#3a3a3a",
+                "color": "#ccc"
+            }
+        }
+    ]
+}

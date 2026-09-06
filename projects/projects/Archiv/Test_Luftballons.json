@@ -1,0 +1,352 @@
+{
+  "meta": {
+    "name": "Test_Luftballons",
+    "version": "1.0.0",
+    "author": "",
+    "description": "",
+    "_sourcePath": "projects/Test_Luftballons.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {}
+    },
+    {
+      "id": "main",
+      "name": "Haupt-Level",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TGroupPanel",
+          "id": "obj_1775210255141_iffuu77p2",
+          "name": "GroupPanel_4",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 55,
+          "y": 34,
+          "width": 9,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TButton",
+              "id": "obj_1775210232784_dwvlk4f14",
+              "name": "Button_4",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 0,
+              "y": 0,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Button_4",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1775210243461_lbvwmetnr",
+              "name": "Button_4",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 3,
+              "y": 4,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Button_4",
+              "icon": ""
+            }
+          ]
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "obj_1775210209285_riix9f35m",
+          "name": "GroupPanel_3",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 9,
+          "y": 6,
+          "width": 9,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TButton",
+              "id": "obj_1775210265899_s5gqriy6c",
+              "name": "Button_5",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 0,
+              "y": 0,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Button_5",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1775210323468_xt79y6k0m",
+              "name": "Button_5",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 3,
+              "y": 4,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Button_5",
+              "icon": ""
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "node-1775149330211",
+          "details": "",
+          "name": "action",
+          "showDetails": false,
+          "type": "animate",
+          "target": "Sprite_4",
+          "effect": "explode"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "ANewTask",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ANewTask": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 300,
+              "y": 40
+            }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1775149330211",
+              "type": "action",
+              "x": 300,
+              "y": 40,
+              "width": 280,
+              "height": 80,
+              "properties": {
+                "name": "action",
+                "details": "target: Sprite_4, effect: explode",
+                "description": ""
+              },
+              "data": {
+                "name": "action",
+                "type": "animate",
+                "isLinked": true
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "flowCharts": {}
+    }
+  ],
+  "activeStageId": "main"
+}
