@@ -5,6 +5,9 @@ import { ComponentRegistry } from '../utils/ComponentRegistry';
 export type StickyNoteColor = 'yellow' | 'green' | 'blue' | 'red';
 
 export class TStickyNote extends TTextControl {
+    // Vorlage, Overlay oder Editornotiz: visuelle Konfiguration ist weiterhin relevant.
+    protected override get hasVisualInspector(): boolean { return true; }
+
     public className: string = 'TStickyNote';
     private _noteColor: StickyNoteColor = 'yellow';
     public title: string = 'Neu';

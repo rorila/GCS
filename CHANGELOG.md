@@ -16,3 +16,10 @@
 - Lokale Konfiguration und neu erzeugbare Laufzeit-/Builddateien in .gitignore ergänzt.
 
 Änderungen gelten ausschließlich für game-builder-v2. Der ursprüngliche Verlauf bleibt in v1.
+
+## Inspector für nicht visuelle Komponenten
+
+- Rein visuelle Basisfelder werden bei Variablen, Timern und Services ausgeblendet, einschließlich Geometrie, Sichtbarkeit, Kollision, Typografie, Stil und Schatten.
+- Funktionale Einstellungen, Ereignisse und die JSON-Serialisierung bleiben erhalten.
+- Sprite-Vorlagen, Toasts, Statusleisten und Editornotizen behalten ihre visuelle Konfiguration.
+- Regressionstests prüfen Filterung, gespeicherte Werte, funktionale Einstellungen und visuelle Ausnahmen.

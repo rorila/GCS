@@ -126,15 +126,20 @@ export abstract class TComponent implements IInspectable {
     protected getBaseProperties(): TPropertyDef[] {
         return [
             { name: 'name', label: 'Name', type: 'string', group: 'IDENTITÄT' },
-            { name: 'draggable', label: 'Draggable', type: 'boolean', group: 'INTERAKTION', editorOnly: true, inline: true },
-            { name: 'droppable', label: 'Droppable', type: 'boolean', group: 'INTERAKTION', editorOnly: true, inline: true },
-            { name: 'dragMode', label: 'Drag Mode', type: 'select', group: 'INTERAKTION', options: ['move', 'copy'], editorOnly: true }
+            { name: 'draggable', label: 'Draggable', type: 'boolean', group: 'INTERAKTION', visualOnly: true, editorOnly: true, inline: true },
+            { name: 'droppable', label: 'Droppable', type: 'boolean', group: 'INTERAKTION', visualOnly: true, editorOnly: true, inline: true },
+            { name: 'dragMode', label: 'Drag Mode', type: 'select', group: 'INTERAKTION', visualOnly: true, options: ['move', 'copy'], editorOnly: true }
         ];
     }
 
     // =========================================================================
     // IInspectable: Component-Owned Inspector
     // =========================================================================
+
+    /** Ressourcen/Services ohne eigene Laufzeitdarstellung brauchen keine visuellen Basisfelder. */
+    protected get hasVisualInspector(): boolean {
+        return !this.isHiddenInRun;
+    }
 
     /**
      * Auto-Konvertierung: Gruppiert getInspectorProperties() nach 'group'
@@ -145,18 +150,12 @@ export abstract class TComponent implements IInspectable {
     public getInspectorSections(): InspectorSection[] {
         const props = this.getInspectorProperties();
 
-        // Unsichtbare Service-Komponenten/Variablen: Rein visuelle Gruppen ausblenden,
-        // da diese Komponenten zur Laufzeit nicht gerendert werden.
-        const hiddenGroups = this.isHiddenInRun
-            ? ['STIL', 'GLOW-EFFEKT', 'TYPOGRAFIE', 'INTERAKTION']
-            : [];
-
         const groupMap = new Map<string, TPropertyDef[]>();
         const groupOrder: string[] = [];
 
         for (const prop of props) {
             const group = prop.group || 'ALLGEMEIN';
-            if (hiddenGroups.includes(group)) continue;
+            if (!this.hasVisualInspector && prop.visualOnly) continue;
             if (!groupMap.has(group)) {
                 groupMap.set(group, []);
                 groupOrder.push(group);

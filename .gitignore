@@ -65,3 +65,6 @@ patch*.cjs
 fix_*.cjs
 scratch.ts
 scratch.js
+
+# Private lokale Trainingsdaten und Modelladapter
+game-server/private-training/

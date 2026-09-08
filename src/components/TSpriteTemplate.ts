@@ -16,6 +16,9 @@ import { TPropertyDef } from './TComponent';
  *   Runtime-Stop  → Pool komplett verworfen
  */
 export class TSpriteTemplate extends TSprite {
+    // Vorlage, Overlay oder Editornotiz: visuelle Konfiguration ist weiterhin relevant.
+    protected override get hasVisualInspector(): boolean { return true; }
+
     /**
      * Anzahl der vorhydrierten Pool-Instanzen.
      * Werden beim Runtime-Start erzeugt und bekommen echte DOM-Elemente.

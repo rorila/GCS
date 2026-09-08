@@ -1,3 +1,4 @@
+import { createTrainingRouter } from './TrainingRouter';
 import WebSocket, { WebSocketServer } from 'ws';
 import express from 'express';
 import cors from 'cors';
@@ -80,6 +81,7 @@ loadDB();
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use('/api/training', createTrainingRouter(path.resolve(__dirname, '../..')));
 
 // Serve static files from public folder
 // Medien aus dem Editor-public-Verzeichnis (Media-Picker) vorziehen

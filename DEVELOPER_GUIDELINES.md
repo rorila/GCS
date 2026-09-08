@@ -589,3 +589,7 @@ agent.addFor('SpawnLoop', 'i', '${spawnStart}', '${spawnEnd}',
 
 
 
+
+### Inspector-Metadaten für nicht visuelle Komponenten
+
+Rein visuelle Basisfelder mit `visualOnly: true` kennzeichnen. Ausschließlich die Inspector-Sektionen filtern; niemals deshalb Definitionen aus `getInspectorProperties()` entfernen, da diese auch die Serialisierung steuern. Funktionale Geometrie (z.B. Spawn-Koordinaten) oder Animationssteuerung nicht pauschal nach Gruppennamen ausblenden. Verborgene Vorlagen/Overlays mit eigener visueller Konfiguration können `hasVisualInspector` überschreiben.

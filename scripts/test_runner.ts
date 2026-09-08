@@ -37,6 +37,7 @@ import { runElectronSecurityTests } from '../tests/electron_security.test.js';
 import { runStageTransitionRegressionTests } from '../tests/stage_transition_regression.test.js';
 import { runTests as runSidePanelTests } from '../tests/side_panel.test.js';
 import { runComponentEventsTests } from '../tests/component_events.test.js';
+import { runNonvisualInspectorTests } from '../tests/nonvisual_inspector.test.js';
 import { runEventActionsTests } from '../tests/event_actions.test.js';
 import { runActionStageRoutingTests } from '../tests/action_stage_routing.test.js';
 // Phase 0 — SYNC_REFACTOR Test-Netz
@@ -358,6 +359,7 @@ async function main() {
         await timer.measure('Component Events', async () => {
             console.log('🏃 Starte Component Events Tests...');
             allResults.push(...await runComponentEventsTests());
+            allResults.push(...runNonvisualInspectorTests());
         });
 
         await timer.measure('Event Actions (bind/unbind)', async () => {

@@ -23,6 +23,9 @@ export interface StatusSection {
  * Can be placed at the bottom of the screen or anywhere in the scene.
  */
 export class TStatusBar extends TWindow {
+    // Vorlage, Overlay oder Editornotiz: visuelle Konfiguration ist weiterhin relevant.
+    protected override get hasVisualInspector(): boolean { return true; }
+
     // Sections configuration
     public sections: StatusSection[] = [];
 

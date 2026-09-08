@@ -79,23 +79,42 @@ class ActionRegistry {
             return (stage?.actions || []).find(isMatch) || null;
         };
 
+        // Ein Eintrag mit type 'action' und ohne Definitions-Felder ist nur eine
+        // Referenz (z.B. versehentlich aus einer actionSequence nach stage.actions
+        // synchronisiert) — keine echte Definition. Solche Referenz-Stubs duerfen
+        // echte Definitionen (z.B. in der Blueprint-Stage) nicht verdecken.
+        const isReferenceStub = (a: any) =>
+            a?.type === 'action' &&
+            a.changes === undefined && a.target === undefined &&
+            a.method === undefined && a.formula === undefined &&
+            a.condition === undefined && a.body === undefined;
+
+        // Ersten Referenz-Stub als Fallback merken, falls es keine echte Definition gibt
+        let stubFallback: any = null;
+        const prefer = (candidate: any): any | null => {
+            if (!candidate) return null;
+            if (!isReferenceStub(candidate)) return candidate;
+            if (!stubFallback) stubFallback = candidate;
+            return null;
+        };
+
         // 1. Explizit angeforderte Stage
-        const requested = findInStage(stageId);
+        const requested = prefer(findInStage(stageId));
         if (requested) return requested;
 
         // 2. Aktive Stage — ein Action-Knoten meint die Action seiner eigenen Stage
         if (!stageId || stageId !== coreStore.activeStageId) {
-            const active = findInStage(coreStore.activeStageId);
+            const active = prefer(findInStage(coreStore.activeStageId));
             if (active) return active;
         }
 
         // 3. Projektweite Actions
-        const globalAction = (project.actions || []).find(isMatch);
+        const globalAction = prefer((project.actions || []).find(isMatch));
         if (globalAction) return globalAction;
 
         // 4. Blueprint (gilt fuer alle Stages)
         const blueprint = project.stages?.find(s => s.type === 'blueprint');
-        const blueprintAction = (blueprint?.actions || []).find(isMatch);
+        const blueprintAction = prefer((blueprint?.actions || []).find(isMatch));
         if (blueprintAction) return blueprintAction;
 
         // 5. Fallback: uebrige Stages. Ein Treffer hier bedeutet, dass die Referenz
@@ -103,7 +122,7 @@ class ActionRegistry {
         if (project.stages) {
             for (const stage of project.stages) {
                 if (stage.id === stageId || stage.id === coreStore.activeStageId) continue;
-                const stageAction = (stage.actions || []).find(isMatch);
+                const stageAction = prefer((stage.actions || []).find(isMatch));
                 if (stageAction) {
                     ActionRegistry.logger.warn(
                         `Action "${nameOrId}" wurde nicht in der eigenen Stage gefunden — ` +
@@ -114,7 +133,8 @@ class ActionRegistry {
             }
         }
 
-        return null;
+        // 6. Letzter Fallback: Referenz-Stub (besser als null — z.B. für Rename-Flows)
+        return stubFallback;
     }
 
     public getNextSmartActionName(action: any): string {

@@ -18,6 +18,7 @@ export interface TPropertyDef {
     group?: string;    // 'Geometry', 'Style', 'Identity' etc.
     readonly?: boolean;
     serializable?: boolean; // Ob die Property gespeichert werden soll (default: true)
+    visualOnly?: boolean;   // Nur im Inspector visueller Komponenten anzeigen; bleibt serialisierbar.
     editorOnly?: boolean;   // Ob die Property nur im Editor relevant ist (default: false)
     defaultValue?: any;     // Standardwert
     step?: number | string; // for number inputs

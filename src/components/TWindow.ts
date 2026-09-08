@@ -246,8 +246,7 @@ export class TWindow extends TComponent {
     public getInspectorProperties(): TPropertyDef[] {
         const gc = this.getGeometryConstraints();
 
-        return [
-            ...this.getBaseProperties(),
+        const visualProperties: TPropertyDef[] = [
             { name: 'visible', label: 'Sichtbar', type: 'boolean', group: 'IDENTITÄT' },
             { name: 'x', label: 'X', type: 'number', group: 'GEOMETRIE', min: 0, max: gc.xMax, step: 1, inline: true, hint: `Stage: ${gc.cols}×${gc.rows} Zellen` },
             { name: 'y', label: 'Y', type: 'number', group: 'GEOMETRIE', min: 0, max: gc.yMax, step: 1, inline: true, hint: `Stage: ${gc.cols}×${gc.rows} Zellen` },
@@ -278,6 +277,10 @@ export class TWindow extends TComponent {
             { name: 'style.shadowSpread', label: 'Ausbreitung', type: 'number', group: 'SCHATTEN', min: -50, max: 50, step: 1, inline: true },
             { name: 'style.shadowInset', label: 'Innen', type: 'boolean', group: 'SCHATTEN', inline: true },
             { name: 'style.boxShadow', label: 'Box-Shadow (CSS)', type: 'string', group: 'SCHATTEN', hint: 'Überschreibt alle obigen Felder' }
+        ];
+        return [
+            ...this.getBaseProperties(),
+            ...visualProperties.map(prop => ({ ...prop, visualOnly: true }))
         ];
     }
 }

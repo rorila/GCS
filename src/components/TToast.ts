@@ -36,6 +36,9 @@ interface ToastItem {
  * Configurable animations, positions, and styling.
  */
 export class TToast extends TWindow {
+    // Vorlage, Overlay oder Editornotiz: visuelle Konfiguration ist weiterhin relevant.
+    protected override get hasVisualInspector(): boolean { return true; }
+
     // Animation settings
     public animation: ToastAnimation = 'slide-left';
     public position: ToastPosition = 'bottom-left';

@@ -223,9 +223,17 @@ export class FlowAction extends FlowElement {
             // FIX: If this.data has a different type than the project action, prefer this.data
             // This allows the Inspector to override the action type
             if (this.data && this.data.type && this.data.type !== action.type) {
-                // Merge this.data overrides into the action definition
+                // Merge this.data overrides into the action definition.
+                // Leere Werte (undefined/null/leere Objekte) duerfen die echte
+                // Definition NICHT ueberschreiben — sonst wuerde z.B. ein
+                // mitgeschlepptes `changes: {}` im Node die Blueprint-Definition
+                // leeren (Inspector zeigt dann "Keine Eigenschafts-Aenderungen").
                 const merged = { ...action };
-                Object.assign(merged, this.data);
+                for (const [key, value] of Object.entries(this.data)) {
+                    const isEmpty = value === undefined || value === null ||
+                        (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0);
+                    if (!isEmpty) merged[key] = value;
+                }
                 return merged;
             }
 

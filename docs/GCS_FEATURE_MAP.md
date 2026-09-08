@@ -115,3 +115,11 @@ Die Gliedeurng folgt den im `UseCaseManager` definierten Kern-Kategorien.
 ### Daten-Synchronisation (Firebase/Rest)
 - **Beschreibung:** Speicherung von Highscores oder User-Profilen. Im Standalone-Modus oft simulierte `TDataStore` Prozesse.
 - **Kern-Dateien:** `src/components/TDataStore.ts`, Netzwerkschicht (`src/multiplayer/*`)
+
+### Inspector: nicht visuelle Komponenten
+
+`TPropertyDef.visualOnly` kennzeichnet rein visuelle Basisfelder. `TComponent.getInspectorSections()` blendet sie für nicht gerenderte Services/Ressourcen aus. `getInspectorProperties()` und JSON-Serialisierung behalten die vollständigen Definitionen. Sprite-Vorlagen, Toasts, Statusleisten und Editornotizen überschreiben `hasVisualInspector`, weil sie eine visuelle Konfiguration benötigen. Funktionale Animations-, Spawn- und GameLoop-Parameter bleiben sichtbar.
+
+## Lokales SFT-Training (Grundlage, 08.09.2026)
+Worker scripts/training/worker.py und lokale Opt-in-API game-server/src/TrainingRouter.ts: freigegebene JSONL-Daten, begrenzte Jobs, Fortschritt, Abbruch und Antwortvergleich. Kein UI-Button/Export vorhanden. Details: [GCS-TRAINING.md](GCS-TRAINING.md).
+
