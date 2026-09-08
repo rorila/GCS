@@ -572,6 +572,22 @@ export class EditorDataManager {
             });
         }
 
+        // Beim Projekt-Laden immer auf der Haupt-Stage starten: Die gespeicherte
+        // activeStageId wird bewusst NICHT wiederhergestellt, damit der Editor
+        // unabhaengig vom letzten Kontext (z.B. Flow-Editor eines Objekts) mit
+        // der Haupt-Stage beginnt. Muss VOR setProject() passieren, da coreStore
+        // die activeStageId dort bereits uebernimmt.
+        const mainStage = data.stages?.find((s: any) => s.type === 'main')
+            || data.stages?.find((s: any) => s.type !== 'blueprint' && s.type !== 'splash')
+            || data.stages?.[0];
+        if (mainStage) {
+            data.activeStageId = mainStage.id;
+        }
+
+        // Flow-Editor-Kontext ebenfalls zuruecksetzen: Er startet immer in der
+        // Global-Ansicht statt den letzten Kontext (localStorage) wiederherzustellen.
+        localStorage.setItem('gcs_last_flow_context', 'global');
+
         // 3. CENTRAL UPDATE (Replaces reference and notifies managers)
         // Use try-catch because in some Vite HMR/rebuild scenarios, prototype methods
         // may not be available on the host instance
@@ -689,6 +705,13 @@ export class EditorDataManager {
         setTimeout(() => {
             this.host.updateStagesMenu();
             this.updateProjectPathDisplay();
+
+            // Nach dem Laden immer in die Stage-Ansicht wechseln:
+            // Egal aus welchem Kontext (Flow-Editor, JSON, ...) geladen wurde,
+            // startet der Editor mit der Haupt-Stage.
+            if (typeof this.host.switchView === 'function') {
+                this.host.switchView('stage');
+            }
 
             // Stage-Eigenschaften im Inspector anzeigen (nach Projekt-Laden)
             const activeStage = this.host.getActiveStage();
