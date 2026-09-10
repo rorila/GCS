@@ -126,7 +126,7 @@ def run(config, validate_only=False):
                 {"role": "user", "content": question}], tokenize=True,
                 add_generation_prompt=True, return_tensors="pt", return_dict=True).to("cuda")
             with torch.no_grad(), torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-                tokens = model.generate(**inputs, max_new_tokens=128, do_sample=False,
+                tokens = model.generate(**inputs, max_new_tokens=512, do_sample=False,
                     pad_token_id=tokenizer.eos_token_id, use_cache=True)
             answers.append({"question": question, "answer": tokenizer.decode(
                 tokens[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True)})

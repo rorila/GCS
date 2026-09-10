@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "Elternzuordnung und Zyklenschutz",
+    "Unterfeature sichtbar",
+    "Bereich klappt Unterfeatures ein",
+    "Bereich klappt Unterfeatures aus",
+    "Bearbeitungsdialog kennt aktuellen Bereich",
+    "Feature kann sich nicht selbst als Eltern wählen",
+    "Feature kann aus Bereich gelöst werden",
+    "Bereich auflösen erhält Unterfeatures und löst Elternverweis",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": []
+}

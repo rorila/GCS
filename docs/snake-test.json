@@ -1,0 +1,23 @@
+{
+  "checks": [
+    "Start mit vier Segmenten",
+    "Tastatur startet",
+    "Geordnete Bewegung",
+    "Umkehr gesperrt",
+    "Ein Wechsel je Takt",
+    "Raster nach oben",
+    "Pause friert Bewegung ein",
+    "Futter ergibt Wachstum und Punkte",
+    "Belegung enthält alle Segmente",
+    "Neues Futter ist frei",
+    "Neustart stellt Anfang her",
+    "Frei werdender Schwanz ist erlaubt",
+    "Selbstkollision beendet Spiel",
+    "Wand beendet Spiel",
+    "Volles Feld führt zum Sieg",
+    "Automatischer Timer bewegt",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": [],
+  "notes": "Echte Runtime mit deterministischen Timer-Ereignissen und Grenzfall-Fixtures."
+}

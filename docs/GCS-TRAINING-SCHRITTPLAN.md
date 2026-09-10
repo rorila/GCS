@@ -1,6 +1,6 @@
 # Schritt-für-Schritt-Plan: lokales Fine-Tuning in GCS V2
 
-Stand: 08.09.2026. Status: Etappe A als technische Grundlage implementiert und getestet; Oberfläche, GGUF-Export und Modellaktivierung noch offen. Details und Einschränkungen: GCS-TRAINING.md.
+Stand: 08.09.2026. Status: Etappen A und B implementiert und getestet; echter Trainings-Integrationstest, GGUF-Export und Modellaktivierung noch offen. Details und Einschränkungen: GCS-TRAINING.md.
 
 ## Ziel und erste Ausbaustufe
 

@@ -1,0 +1,5 @@
+Wie liest du die Spalte des Kopfsegments aus Schlange in KopfX im Task Schritt?
+Wie verbindet man Takt mit dem Task Ticken auf stage_main?
+Wie blendest du im Task Reset alle Objekte der Liste Schlange über eine foreach-Schleife aus?
+Wie stoppst du im Task Pausieren den Timer und wechselst in paused?
+Wie liest du BelegteFelder am Index Kandidat in Belegt im Task LeseKandidat?

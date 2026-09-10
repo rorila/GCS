@@ -53,6 +53,7 @@ const GROUP_ICONS: Record<string, string> = {
     'INTO / ERGEBNIS': '💾',
     'WHERE / FILTER': '🔎',
     'HTTP / REQUEST': '⚙️',
+    'SERVER / BETRIEB': '🖥️', 'SERVER / REQUEST': '📥', 'SERVER / PRÜFUNG': '✅', 'SERVER / SICHERHEIT': '🔒', 'SERVER / RESPONSE': '📤', 'SERVER / RÜCKMELDUNG': '💬', 'SERVER / DIAGNOSE': '🔎',
 };
 
 /** Farb-Mapping für Inspector-Gruppen (farbige Bordüren & Header) */

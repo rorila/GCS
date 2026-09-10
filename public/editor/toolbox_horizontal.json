@@ -1,310 +1,337 @@
 {
-    "meta": {
-        "name": "ComponentPalette",
-        "version": "1.0.0",
-        "layout": "horizontal",
-        "description": "Delphi-style horizontal component palette with categories"
+  "meta": {
+    "name": "ComponentPalette",
+    "version": "1.0.0",
+    "layout": "horizontal",
+    "description": "Delphi-style horizontal component palette with categories"
+  },
+  "categories": [
+    {
+      "name": "⇄",
+      "action": "toggleLayout",
+      "items": []
     },
-    "categories": [
+    {
+      "name": "Standard",
+      "items": [
         {
-            "name": "⇄",
-            "action": "toggleLayout",
-            "items": []
+          "type": "Panel",
+          "icon": "⬜",
+          "label": "Panel"
         },
         {
-            "name": "Standard",
-            "items": [
-                {
-                    "type": "Panel",
-                    "icon": "⬜",
-                    "label": "Panel"
-                },
-                {
-                    "type": "GroupPanel",
-                    "icon": "📦",
-                    "label": "GroupContainer"
-                },
-                {
-                    "type": "Card",
-                    "icon": "📇",
-                    "label": "Card"
-                },
-                {
-                    "type": "Button",
-                    "icon": "🔘",
-                    "label": "Button"
-                },
-                {
-                    "type": "Label",
-                    "icon": "📝",
-                    "label": "Label"
-                },
-                {
-                    "type": "RichText",
-                    "icon": "🖋️",
-                    "label": "RichText"
-                },
-                {
-                    "type": "Edit",
-                    "icon": "✏️",
-                    "label": "Edit"
-                },
-                {
-                    "type": "EmojiPicker",
-                    "icon": "😊",
-                    "label": "EmojiPicker"
-                },
-                {
-                    "type": "Link",
-                    "icon": "🔗",
-                    "label": "Link"
-                }
-            ]
+          "type": "GroupPanel",
+          "icon": "📦",
+          "label": "GroupContainer"
         },
         {
-            "name": "Media",
-            "items": [
-                {
-                    "type": "Image",
-                    "icon": "🖼️",
-                    "label": "Image"
-                },
-                {
-                    "type": "Audio",
-                    "icon": "🔊",
-                    "label": "Audio"
-                },
-                {
-                    "type": "Video",
-                    "icon": "🎬",
-                    "label": "Video"
-                }
-            ]
+          "type": "Card",
+          "icon": "📇",
+          "label": "Card"
         },
         {
-            "name": "Erweitert",
-            "items": [
-                {
-                    "type": "Dropdown",
-                    "icon": "📋",
-                    "label": "Dropdown"
-                },
-                {
-                    "type": "Checkbox",
-                    "icon": "☑️",
-                    "label": "Checkbox"
-                },
-                {
-                    "type": "ColorPicker",
-                    "icon": "🎨",
-                    "label": "ColorPicker"
-                },
-                {
-                    "type": "NumberInput",
-                    "icon": "🔢",
-                    "label": "NumberInput"
-                },
-                {
-                    "type": "TabControl",
-                    "icon": "📑",
-                    "label": "TabControl"
-                },
-                {
-                    "type": "Table",
-                    "icon": "📊",
-                    "label": "Table"
-                }
-            ]
+          "type": "Button",
+          "icon": "🔘",
+          "label": "Button"
         },
         {
-            "name": "Game",
-            "items": [
-                {
-                    "type": "Sprite",
-                    "icon": "🎯",
-                    "label": "Sprite"
-                },
-                {
-                    "type": "GameHeader",
-                    "icon": "🎮",
-                    "label": "GameHeader"
-                },
-                {
-                    "type": "GameCard",
-                    "icon": "🃏",
-                    "label": "GameCard"
-                },
-                {
-                    "type": "GameState",
-                    "icon": "⏯️",
-                    "label": "GameState"
-                },
-                {
-                    "type": "ParallaxBackground",
-                    "icon": "🌄",
-                    "label": "ParallaxBackground"
-                },
-                {
-                    "type": "Spawner",
-                    "icon": "🧬",
-                    "label": "Spawner"
-                },
-                {
-                    "type": "Animation",
-                    "icon": "🎬",
-                    "label": "Animation"
-                }
-            ]
+          "type": "Label",
+          "icon": "📝",
+          "label": "Label"
         },
         {
-            "name": "Variablen",
-            "items": [
-                {
-                    "type": "Variable",
-                    "icon": "📦",
-                    "label": "Variable"
-                },
-                {
-                    "type": "StringMap",
-                    "icon": "🗂️",
-                    "label": "String Map"
-                },
-                {
-                    "type": "Timer",
-                    "icon": "⏲️",
-                    "label": "Timer"
-                },
-                {
-                    "type": "ObjectList",
-                    "icon": "🗃️",
-                    "label": "ObjectList"
-                },
-                {
-                    "type": "Threshold",
-                    "icon": "📊",
-                    "label": "Threshold"
-                },
-                {
-                    "type": "Trigger",
-                    "icon": "🎯",
-                    "label": "Trigger"
-                },
-                {
-                    "type": "Range",
-                    "icon": "📏",
-                    "label": "Range"
-                },
-                {
-                    "type": "List",
-                    "icon": "📋",
-                    "label": "List"
-                },
-                {
-                    "type": "Random",
-                    "icon": "🎲",
-                    "label": "Random"
-                }
-            ]
+          "type": "RichText",
+          "icon": "🖋️",
+          "label": "RichText"
         },
         {
-            "name": "System",
-            "items": [
-                {
-                    "type": "GameLoop",
-                    "icon": "🔄",
-                    "label": "GameLoop"
-                },
-                {
-                    "type": "InputController",
-                    "icon": "🎹",
-                    "label": "InputController"
-                },
-                {
-                    "type": "VirtualGamepad",
-                    "icon": "🎮",
-                    "label": "VirtualGamepad"
-                },
-                {
-                    "type": "IntervalTimer",
-                    "icon": "⏱️",
-                    "label": "Intervall-Timer"
-                },
-                {
-                    "type": "SystemInfo",
-                    "icon": "💻",
-                    "label": "SystemInfo"
-                },
-                {
-                    "type": "GameServer",
-                    "icon": "🌐",
-                    "label": "GameServer"
-                },
-                {
-                    "type": "StageController",
-                    "icon": "🎬",
-                    "label": "StageController"
-                },
-                {
-                    "type": "APIServer",
-                    "icon": "🖥️",
-                    "label": "APIServer"
-                }
-            ]
+          "type": "Edit",
+          "icon": "✏️",
+          "label": "Edit"
         },
         {
-            "name": "Daten & Auth",
-            "items": [
-                {
-                    "type": "DataStore",
-                    "icon": "🗄️",
-                    "label": "DataStore"
-                },
-                {
-                    "type": "AuthService",
-                    "icon": "🔐",
-                    "label": "AuthService"
-                },
-                {
-                    "type": "UserManager",
-                    "icon": "👥",
-                    "label": "UserManager"
-                }
-            ]
+          "type": "EmojiPicker",
+          "icon": "😊",
+          "label": "EmojiPicker"
         },
         {
-            "name": "Dialogs",
-            "items": [
-                {
-                    "type": "DialogRoot",
-                    "icon": "📄",
-                    "label": "DialogRoot"
-                },
-                {
-                    "type": "ThemeDialog",
-                    "icon": "🎨",
-                    "label": "ThemeDialog"
-                },
-                {
-                    "type": "InfoWindow",
-                    "icon": "ℹ️",
-                    "label": "InfoWindow"
-                },
-                {
-                    "type": "Toast",
-                    "icon": "🔔",
-                    "label": "Toast"
-                },
-                {
-                    "type": "StatusBar",
-                    "icon": "━",
-                    "label": "StatusBar"
-                },
-                {
-                    "type": "InspectorTemplate",
-                    "icon": "📋",
-                    "label": "InspectorDesigner"
-                }
-            ]
+          "type": "Link",
+          "icon": "🔗",
+          "label": "Link"
         }
-    ]
+      ]
+    },
+    {
+      "name": "Media",
+      "items": [
+        {
+          "type": "Image",
+          "icon": "🖼️",
+          "label": "Image"
+        },
+        {
+          "type": "Audio",
+          "icon": "🔊",
+          "label": "Audio"
+        },
+        {
+          "type": "Video",
+          "icon": "🎬",
+          "label": "Video"
+        }
+      ]
+    },
+    {
+      "name": "Erweitert",
+      "items": [
+        {
+          "type": "Dropdown",
+          "icon": "📋",
+          "label": "Dropdown"
+        },
+        {
+          "type": "Checkbox",
+          "icon": "☑️",
+          "label": "Checkbox"
+        },
+        {
+          "type": "ColorPicker",
+          "icon": "🎨",
+          "label": "ColorPicker"
+        },
+        {
+          "type": "NumberInput",
+          "icon": "🔢",
+          "label": "NumberInput"
+        },
+        {
+          "type": "TabControl",
+          "icon": "📑",
+          "label": "TabControl"
+        },
+        {
+          "type": "Table",
+          "icon": "📊",
+          "label": "Table"
+        }
+      ]
+    },
+    {
+      "name": "Game",
+      "items": [
+        {
+          "type": "Sprite",
+          "icon": "🎯",
+          "label": "Sprite"
+        },
+        {
+          "type": "GameHeader",
+          "icon": "🎮",
+          "label": "GameHeader"
+        },
+        {
+          "type": "GameCard",
+          "icon": "🃏",
+          "label": "GameCard"
+        },
+        {
+          "type": "GameState",
+          "icon": "⏯️",
+          "label": "GameState"
+        },
+        {
+          "type": "ParallaxBackground",
+          "icon": "🌄",
+          "label": "ParallaxBackground"
+        },
+        {
+          "type": "Spawner",
+          "icon": "🧬",
+          "label": "Spawner"
+        },
+        {
+          "type": "Animation",
+          "icon": "🎬",
+          "label": "Animation"
+        }
+      ]
+    },
+    {
+      "name": "Variablen",
+      "items": [
+        {
+          "type": "Variable",
+          "icon": "📦",
+          "label": "Variable"
+        },
+        {
+          "type": "StringMap",
+          "icon": "🗂️",
+          "label": "String Map"
+        },
+        {
+          "type": "Timer",
+          "icon": "⏲️",
+          "label": "Timer"
+        },
+        {
+          "type": "ObjectList",
+          "icon": "🗃️",
+          "label": "ObjectList"
+        },
+        {
+          "type": "Threshold",
+          "icon": "📊",
+          "label": "Threshold"
+        },
+        {
+          "type": "Trigger",
+          "icon": "🎯",
+          "label": "Trigger"
+        },
+        {
+          "type": "Range",
+          "icon": "📏",
+          "label": "Range"
+        },
+        {
+          "type": "List",
+          "icon": "📋",
+          "label": "List"
+        },
+        {
+          "type": "Random",
+          "icon": "🎲",
+          "label": "Random"
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "items": [
+        {
+          "type": "GameLoop",
+          "icon": "🔄",
+          "label": "GameLoop"
+        },
+        {
+          "type": "InputController",
+          "icon": "🎹",
+          "label": "InputController"
+        },
+        {
+          "type": "VirtualGamepad",
+          "icon": "🎮",
+          "label": "VirtualGamepad"
+        },
+        {
+          "type": "IntervalTimer",
+          "icon": "⏱️",
+          "label": "Intervall-Timer"
+        },
+        {
+          "type": "SystemInfo",
+          "icon": "💻",
+          "label": "SystemInfo"
+        },
+        {
+          "type": "GameServer",
+          "icon": "🌐",
+          "label": "GameServer"
+        },
+        {
+          "type": "StageController",
+          "icon": "🎬",
+          "label": "StageController"
+        },
+        {
+          "type": "APIServer",
+          "icon": "🖥️",
+          "label": "APIServer"
+        }
+      ]
+    },
+    {
+      "name": "Daten & Auth",
+      "items": [
+        {
+          "type": "DataStore",
+          "icon": "🗄️",
+          "label": "DataStore"
+        },
+        {
+          "type": "AuthService",
+          "icon": "🔐",
+          "label": "AuthService"
+        },
+        {
+          "type": "UserManager",
+          "icon": "👥",
+          "label": "UserManager"
+        }
+      ]
+    },
+    {
+      "name": "Dialogs",
+      "items": [
+        {
+          "type": "DialogRoot",
+          "icon": "📄",
+          "label": "DialogRoot"
+        },
+        {
+          "type": "ThemeDialog",
+          "icon": "🎨",
+          "label": "ThemeDialog"
+        },
+        {
+          "type": "InfoWindow",
+          "icon": "ℹ️",
+          "label": "InfoWindow"
+        },
+        {
+          "type": "Toast",
+          "icon": "🔔",
+          "label": "Toast"
+        },
+        {
+          "type": "StatusBar",
+          "icon": "━",
+          "label": "StatusBar"
+        },
+        {
+          "type": "InspectorTemplate",
+          "icon": "📋",
+          "label": "InspectorDesigner"
+        }
+      ]
+    },
+    {
+      "name": "Server-Workflow",
+      "icon": "🖥️",
+      "expanded": false,
+      "items": [
+        {
+          "type": "ServerEndpoint",
+          "label": "Request empfangen",
+          "icon": "📥"
+        },
+        {
+          "type": "ServerValidate",
+          "label": "Eingaben prüfen",
+          "icon": "✅"
+        },
+        {
+          "type": "ServerAuthenticate",
+          "label": "Spieler authentifizieren",
+          "icon": "🔐"
+        },
+        {
+          "type": "ServerResponse",
+          "label": "Response senden",
+          "icon": "📤"
+        }
+      ]
+    }
+  ]
 }

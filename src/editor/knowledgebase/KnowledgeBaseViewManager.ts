@@ -1,3 +1,4 @@
+import { TrainingPanel } from './TrainingPanel';
 import type { IViewHost } from '../EditorViewManager';
 import { KnowledgeBase } from '../../ai/rag/KnowledgeBase';
 import type { KnowledgeChunk } from '../../ai/rag/KnowledgeChunk';
@@ -17,6 +18,8 @@ import { Logger } from '../../utils/Logger';
 export class KnowledgeBaseViewManager {
     private static readonly LOGGER = Logger.get('KnowledgeBaseViewManager');
     private previewChunkId: string | null = null;
+    private trainingPanel?: TrainingPanel;
+    public disposeTraining() { this.trainingPanel?.dispose(); }
 
     // host wird fuer zukuenftige Erweiterungen (z.B. Navigation) vorgehalten
     constructor(_host: IViewHost) {
@@ -28,13 +31,14 @@ export class KnowledgeBaseViewManager {
     // ═══════════════════════════════════════════════════════════
 
     public async renderKnowledgeBaseView(panel: HTMLElement) {
+        this.disposeTraining();
         panel.innerHTML = `
             <div style="padding: 20px 20px 40px 20px; background-color: #1a1a2e; min-height: 100%; box-sizing: border-box; color: #e0e0e0;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
                     <h2 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: bold;">🧠 Wissensbasis</h2>
                     <button id="kb-rebuild-btn" style="padding: 8px 16px; background: #1565c0; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;">🔄 KB neu aufbauen</button>
                 </div>
-                <div id="kb-stats"></div>
+                <div id="kb-training"></div><div id="kb-stats"></div>
                 <div id="kb-feature-list"></div>
                 <div id="kb-preview"></div>
             </div>
@@ -43,6 +47,7 @@ export class KnowledgeBaseViewManager {
         document.getElementById('kb-rebuild-btn')?.addEventListener('click', () => this.rebuildKnowledgeBase());
 
         const kb = KnowledgeBase.getInstance();
+        this.trainingPanel = new TrainingPanel(panel.querySelector<HTMLElement>('#kb-training')!);
         await kb.loadFromUrl();
         this.renderStats();
         this.renderFeatureList();

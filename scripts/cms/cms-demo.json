@@ -1,0 +1,11 @@
+{
+ "version":1,
+ "people":[{"id":"demo-child","name":"Fuchskind","avatar":"🦊","active":true},{"id":"demo-adult","name":"Eulenfreund","avatar":"🦉","active":true}],
+ "areas":[{"id":"root","name":"GCS","type":"root","parentId":null,"active":true},{"id":"demo-house","name":"Spielhaus","type":"house","parentId":"root","active":true},{"id":"garden","name":"Spielegarten","avatar":"🌳","type":"room","parentId":"demo-house","active":true},{"id":"stars","name":"Sternenzimmer","avatar":"⭐","type":"room","parentId":"demo-house","active":true}],
+ "memberships":[{"personId":"demo-child","areaId":"garden","active":true},{"personId":"demo-child","areaId":"stars","active":true},{"personId":"demo-adult","areaId":"garden","active":true}],
+ "roles":[{"personId":"demo-child","areaId":"garden","role":"player","active":true},{"personId":"demo-adult","areaId":"demo-house","role":"areaAdmin","active":true},{"personId":"demo-adult","areaId":"garden","role":"player","active":true}],
+ "guardians":[{"guardianId":"demo-adult","childId":"demo-child","status":"confirmed"}],
+ "codes":[{"personId":"demo-child","areaId":"demo-house","sequence":["dog","tree","house","elephant"]},{"personId":"demo-adult","areaId":"demo-house","sequence":["cat","cat","tree","house"]}],
+ "games":[{"id":"snake","ownerId":"demo-adult","title":"Snake","avatar":"🐍","file":"Snake-Lernprojekt.json","status":"published"},{"id":"breakout","ownerId":"demo-adult","title":"Breakout","avatar":"🧱","file":"Breakout-Lernprojekt.json","status":"published"}],
+ "grants":[{"areaId":"garden","gameId":"snake","active":true},{"areaId":"garden","gameId":"breakout","active":true},{"areaId":"stars","gameId":"snake","active":true}]
+}

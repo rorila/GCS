@@ -1,0 +1,32 @@
+{
+  "checks": [
+    "HouseAdmin kann keine Superaktion ausführen",
+    "SuperAdmin legt Haus an",
+    "Doppelter Hausname abgewiesen",
+    "Verantwortliche Person angelegt",
+    "Ohne Rolle keine Einladung",
+    "Vergabe verlangt Bestätigung",
+    "Einrichtungslink erstellt",
+    "Nur Tokenhash gespeichert",
+    "Einrichtung ohne Kommando",
+    "Einrichtungslink nur einmal nutzbar",
+    "Neuer HouseAdmin kann anmelden",
+    "Nur zugewiesenes Haus sichtbar",
+    "Altes Spielhaus geschützt",
+    "Keine SuperAdmin-Eskalation",
+    "Eigener Raum anlegbar",
+    "Emoji-Code pro Haus unabhängig",
+    "Deaktiviertes Haus entzieht Zugriff",
+    "Reaktivierung erhält Räume",
+    "Entzug wirkt in laufender Sitzung",
+    "Vorhandener Zugang bleibt erhalten",
+    "Häuser werden automatisch geladen",
+    "GCS legt Haus an",
+    "GCS zeigt Einrichtungslink",
+    "Einrichtung im Browser",
+    "Verbindungsfehler sichtbar",
+    "Hauskontext in GCS-Einwahl",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": []
+}

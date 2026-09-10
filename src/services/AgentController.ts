@@ -1,3 +1,5 @@
+import {projectStore} from './ProjectStore';
+import {canParentFeature} from '../model/FeatureHierarchy';
 import { coreStore } from './registry/CoreStore';
 import { projectActionRegistry } from './registry/ActionRegistry';
 import { projectTaskRegistry } from './registry/TaskRegistry';
@@ -198,20 +200,22 @@ export class AgentController {
 
         if (!stage.features) stage.features = [];
 
-        const { id, name, description, tags, keywords, userStoryIds = [], blueprintTaskNames = [] } = featureData || {};
+        const { id, name, description, tags, keywords, parentId, userStoryIds = [], blueprintTaskNames = [] } = featureData || {};
         if (!id) throw new Error('Feature requires an id.');
         if (!name) throw new Error('Feature requires a name.');
+        if (parentId !== undefined && (typeof parentId !== 'string' || !canParentFeature(stage.features, id, parentId))) throw new Error('Ungültiger übergeordneter Feature-Bereich.');
 
         let feature = (stage.features as any[]).find((f: any) => f.id === id);
         if (feature) {
             feature.name = name;
+            if (parentId !== undefined) { if (parentId) feature.parentId = parentId; else delete feature.parentId; }
             if (description !== undefined) feature.description = description;
             if (tags !== undefined) feature.tags = tags;
             if (keywords !== undefined) feature.keywords = keywords;
             feature.userStoryIds = userStoryIds;
             feature.blueprintTaskNames = blueprintTaskNames;
         } else {
-            feature = { id, name, description, tags, keywords, userStoryIds, blueprintTaskNames };
+            feature = { id, name, description, tags, keywords, parentId, userStoryIds, blueprintTaskNames };
             stage.features.push(feature);
         }
 
@@ -282,7 +286,13 @@ export class AgentController {
 
         if (stage.features) {
             const idx = stage.features.findIndex((f: any) => f.id === featureId);
-            if (idx >= 0) stage.features.splice(idx, 1);
+            if (idx >= 0) {
+                const parentId = stage.features[idx].parentId || '';
+                for (const child of stage.features) {
+                    if (child.parentId === featureId) projectStore.dispatch({type: 'SET_PROPERTY', target: child, path: 'parentId', value: parentId});
+                }
+                stage.features.splice(idx, 1);
+            }
         }
 
         const userStories = this.project!.userStories?.userStories || [];
@@ -508,8 +518,8 @@ export class AgentController {
             'map_keys': ['target'],
             // Record-Actions (stabilisiert in Commit 5c1294d)
             // 'target' optional – leeres Ziel wird als 'self' behandelt (Runtime-Konvention)
-            'record_get': ['key'],
-            'record_set': ['key', 'value'],
+            'record_get': ['list', 'field', 'resultVariable'],
+            'record_set': ['list', 'field', 'value'],
             'record_delete': ['key'],
             // record_create hat keine zwingenden Pflicht-Params (nur optionale Felder)
         };

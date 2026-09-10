@@ -1,0 +1,28 @@
+{
+  "checks": [
+    "Private Personendatei nicht öffentlich",
+    "Ohne Sitzung keine Räume",
+    "Falscher Kontext abgewiesen",
+    "Emoji-Einwahl",
+    "Fremder Raum abgewiesen",
+    "Fremde Freigabe abgewiesen",
+    "Spielstart freigegeben",
+    "Sperre blockiert direkten Start",
+    "Abmeldung entzieht Spielzugriff",
+    "Emoji gewährt keine Adminrechte",
+    "Eigene Spiele verwaltbar",
+    "Fremdes Eigentum geschützt",
+    "SuperAdmin ist keine Aufsicht",
+    "Zusätzliche Aufsichtsrolle",
+    "Hierarchiezyklus abgewiesen",
+    "Vier Emoji-Plätze",
+    "Einwahl öffnet Räume",
+    "Zwei Räume sichtbar",
+    "Raum öffnet Galerie",
+    "Spiel im Host geöffnet",
+    "Rückkehr zur Galerie",
+    "Abmelden leert Profil",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": []
+}

@@ -1,0 +1,37 @@
+{
+  "projects": [
+    {
+      "project": "GCS-CMS.json",
+      "features": 5,
+      "areas": 2,
+      "actions": 58,
+      "stories": 18,
+      "checks": "Semantik unverändert, IDs erhalten, eindeutige Namen, Referenzen gültig, wiederholbar"
+    },
+    {
+      "project": "GCS-CMS-Verwaltung.json",
+      "features": 8,
+      "areas": 5,
+      "actions": 30,
+      "stories": 18,
+      "checks": "Semantik unverändert, IDs erhalten, eindeutige Namen, Referenzen gültig, wiederholbar"
+    },
+    {
+      "project": "GCS-CMS-Hausverwaltung.json",
+      "features": 8,
+      "areas": 4,
+      "actions": 32,
+      "stories": 14,
+      "checks": "Semantik unverändert, IDs erhalten, eindeutige Namen, Referenzen gültig, wiederholbar"
+    },
+    {
+      "project": "GCS-CMS-SuperAdmin.json",
+      "features": 10,
+      "areas": 3,
+      "actions": 38,
+      "stories": 15,
+      "checks": "Semantik unverändert, IDs erhalten, eindeutige Namen, Referenzen gültig, wiederholbar"
+    }
+  ],
+  "hierarchyChecks": 5
+}

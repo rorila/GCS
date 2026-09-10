@@ -1,0 +1,213 @@
+{
+  "meta": {
+    "id": "gcs-server-login",
+    "name": "GCS-Server-Anmeldung",
+    "version": "0.1.0",
+    "description": "Ausführung durch den lokalen CMS-Server; Änderungen nach Speichern und Dienstneustart aktiv."
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "backgroundColor": "#142d3b"
+    }
+  },
+  "objects": [],
+  "tasks": [],
+  "actions": [],
+  "variables": [],
+  "activeStageId": "stage_blueprint",
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Server · Anmeldung",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#142d3b"
+      },
+      "objects": [
+        {
+          "className": "TServerEndpoint",
+          "id": "server_login_component_0",
+          "name": "AnmeldungEmpfangen",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onRequest": "Server_Anmeldung_Verarbeiten"
+          },
+          "executionSide": "server",
+          "endpointPath": "/api/cms/login",
+          "httpMethod": "POST",
+          "traceEnabled": true,
+          "x": 2,
+          "y": 2,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerValidate",
+          "id": "server_login_component_1",
+          "name": "AnmeldedatenPruefen",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "validationRule": "Haus-ID und genau vier Emoji-Schlüssel",
+          "failureMessage": "Bitte Haus und vier Bilder angeben.",
+          "x": 2,
+          "y": 7,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerAuthenticate",
+          "id": "server_login_component_2",
+          "name": "SpielerAuthentifizieren",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "authenticationMode": "Emoji-Spielerprofil",
+          "permissionBoundary": "Keine Verwaltungsrechte durch Emoji-Anmeldung",
+          "failureMessage": "🤔 Noch einmal versuchen",
+          "x": 2,
+          "y": 12,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerResponse",
+          "id": "server_login_component_3",
+          "name": "AnmeldeantwortSenden",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "successMessage": "✓",
+          "responseFormat": "JSON",
+          "secretPolicy": "Passwörter, Emoji-Code, Cookies und Tokens maskieren",
+          "x": 2,
+          "y": 17,
+          "width": 12,
+          "height": 3
+        }
+      ],
+      "tasks": [
+        {
+          "id": "server_login_task",
+          "name": "Server_Anmeldung_Verarbeiten",
+          "description": "Request prüfen → Spieler authentifizieren → Response senden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Anmeldedaten_Pruefen"
+            },
+            {
+              "type": "condition",
+              "name": "Sind die Anmeldedaten vollständig?",
+              "condition": {
+                "variable": "requestValid",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Spieler_Authentifizieren"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "Act_Anmeldeantwort_Senden"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "server_login_action_0",
+          "name": "Act_Anmeldedaten_Pruefen",
+          "type": "call_method",
+          "target": "AnmeldedatenPruefen",
+          "method": "execute",
+          "params": []
+        },
+        {
+          "id": "server_login_action_1",
+          "name": "Act_Spieler_Authentifizieren",
+          "type": "call_method",
+          "target": "SpielerAuthentifizieren",
+          "method": "execute",
+          "params": []
+        },
+        {
+          "id": "server_login_action_2",
+          "name": "Act_Anmeldeantwort_Senden",
+          "type": "call_method",
+          "target": "AnmeldeantwortSenden",
+          "method": "execute",
+          "params": []
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "features": [
+        {
+          "id": "server-login",
+          "name": "Anmeldung auf dem Server verarbeiten",
+          "description": "Request prüfen → Spieler authentifizieren → Response senden",
+          "userStoryIds": [
+            "server-login-request"
+          ],
+          "blueprintTaskNames": [
+            "Server_Anmeldung_Verarbeiten"
+          ]
+        }
+      ]
+    }
+  ],
+  "userStories": {
+    "userStories": [
+      {
+        "id": "server-login-request",
+        "projectId": "gcs-server-login",
+        "title": "Anfrage empfangen und Anmeldeantwort erzeugen",
+        "description": "Request prüfen → Spieler authentifizieren → Response senden",
+        "status": "completed",
+        "priority": "high",
+        "relatedStages": [
+          "stage_blueprint"
+        ],
+        "relatedComponents": [
+          "AnmeldungEmpfangen"
+        ],
+        "relatedVariables": [],
+        "acceptanceCriteria": [
+          "Ungültige Eingaben überspringen die Authentifizierung.",
+          "Eine Emoji-Anmeldung erstellt ausschließlich eine Spielersitzung."
+        ],
+        "plannedComponent": {
+          "name": "AnmeldungEmpfangen",
+          "type": "TServerEndpoint"
+        },
+        "plannedEvent": "onRequest",
+        "plannedTask": "Server_Anmeldung_Verarbeiten",
+        "featureId": "server-login",
+        "interactions": [
+          {
+            "id": "interaction_server_login_component_0_onRequest"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,3 +1,4 @@
+import {redactDebug,redactDebugMessage,debugSecretKey} from './DebugPrivacy';
 import { Logger } from '../utils/Logger';
 import { LogLevel } from '../utils/LogTypes';
 
@@ -98,6 +99,9 @@ export class DebugLogService {
         level?: any,
         category?: any
     } = {}): string {
+        if(options.data !== undefined) options = {...options, data:redactDebug(options.data)};
+        message = redactDebugMessage(message);
+        if(debugSecretKey.test(options.objectName || '')) { message = (options.objectName || 'Zugangswert') + ': [maskiert]'; options = {...options,data:'[maskiert]'}; }
         if (!this.enabled) {
             // Diagnose: einmalig pro 50 verworfene Eintraege ein Hinweis,
             // damit wir sehen ob enabled=false die Ursache ist.

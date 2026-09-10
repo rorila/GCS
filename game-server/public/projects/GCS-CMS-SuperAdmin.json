@@ -1,0 +1,3831 @@
+{
+  "meta": {
+    "id": "gcs-cms-super",
+    "name": "GCS-CMS-SuperAdmin",
+    "version": "0.3.0",
+    "_sourcePath": "projects/GCS-CMS-SuperAdmin.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 48,
+      "cellSize": 18,
+      "visible": false,
+      "backgroundColor": "#122b39"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Hausdienste",
+      "type": "blueprint",
+      "objects": [],
+      "tasks": [
+        {
+          "name": "HaeuserTask",
+          "description": "Häuserliste öffnen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Haeuserliste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "710b58ef-2c25-4575-9233-b69122e98abc"
+        },
+        {
+          "name": "RaeumeTask",
+          "description": "HouseAdmins des Hauses anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_HouseAdmins_des_Hauses_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "16bd9c26-6a25-4d0e-a1b0-ad4261167348"
+        },
+        {
+          "name": "AdminsTask",
+          "description": "HouseAdmin-Liste öffnen",
+          "actionSequence": [
+            {
+              "name": "Act_HouseAdmin_Liste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+              "type": "action"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "57abb62a-5d0f-427c-a4aa-0f337481d62c",
+          "flowLayout": {
+            "AdminsTask": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_AdminsTask_3": {
+              "x": 40,
+              "y": 140
+            },
+            "Laden": {
+              "x": 40,
+              "y": 240
+            }
+          }
+        },
+        {
+          "name": "Laden",
+          "description": "Ausgewählte Liste vom Server laden",
+          "actionSequence": [
+            {
+              "name": "Act_Ausgewaehlte_Liste_vom_Server_laden__Eingabe_Sperren_Und_Warten_Anzeigen",
+              "type": "action"
+            },
+            {
+              "name": "Act_Ausgewaehlte_Liste_vom_Server_laden__Server_Ausgewaehlte_Liste_vom_Server_laden",
+              "type": "action"
+            },
+            {
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "type": "task",
+                  "name": "Zeigen"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "51f54e29-a73d-41e8-8c93-30ab814ad912",
+          "flowLayout": {
+            "Laden": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_Laden_4": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_Laden_5": {
+              "x": 40,
+              "y": 240
+            },
+            "Antwort.ok == true": {
+              "x": 40,
+              "y": 340
+            },
+            "Zeigen": {
+              "x": 280,
+              "y": 340
+            },
+            "Fehler": {
+              "x": 40,
+              "y": 440
+            }
+          }
+        },
+        {
+          "name": "Zeigen",
+          "description": "Geladene Einträge anzeigen",
+          "actionSequence": [
+            {
+              "name": "Act_Geladene_Eintraege_anzeigen__Listenkarten_Und_Status_Aktualisieren",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "a704e21b-65ad-4323-bfcf-4e16d009495f",
+          "flowLayout": {
+            "Zeigen": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_Zeigen_6": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "Fehler",
+          "description": "Fehlermeldung anzeigen",
+          "actionSequence": [
+            {
+              "name": "Act_Fehlermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "8b399af2-5cd5-477f-8b09-e8bcabf8374b",
+          "flowLayout": {
+            "Fehler": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_Fehler_7": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "Waehlen",
+          "description": "Ausgewählten Eintrag zuordnen",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Modus == super-houses",
+              "condition": {
+                "variable": "Modus",
+                "operator": "==",
+                "value": "super-houses"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "WaehleHaus"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "RaumOderAdmin"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "b9592b55-e56d-412a-bd99-37a37c786c29"
+        },
+        {
+          "name": "WaehleHaus",
+          "description": "Haus auswählen und Folgeliste öffnen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Haus_auswaehlen_und_Folgeliste_oeffnen__Eingabe_Und_Auswahl_Aktualisieren"
+            },
+            {
+              "type": "task",
+              "name": "RaeumeTask"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "a4ed480c-74cc-4c02-9206-e3125b12e56c"
+        },
+        {
+          "name": "RaumOderAdmin",
+          "description": "Raum- oder Admin-Auswahl unterscheiden",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "AdminFrage"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "465137a9-f230-4307-984e-cbc34e1167c8"
+        },
+        {
+          "name": "WaehleRaum",
+          "description": "Raum zur Bearbeitung auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Raum_zur_Bearbeitung_auswaehlen__Status_Und_Anzeige_Aktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "32d340e0-adf5-4ebe-bc76-0cd1f31fbae4"
+        },
+        {
+          "name": "AdminFrage",
+          "description": "HouseAdmin-Zuweisung zur Bestätigung vormerken",
+          "actionSequence": [
+            {
+              "name": "Act_HouseAdmin_Zuweisung_zur_Bestaetigung_vormerken__Bestaetigung_Anfordern",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "ccd26008-7981-4ec1-8a9e-62a404a8e7e0",
+          "flowLayout": {
+            "AdminFrage": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_AdminFrage_15": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "AdminSet",
+          "description": "HouseAdmin-Zuweisung vergeben oder entziehen",
+          "actionSequence": [
+            {
+              "name": "Act_HouseAdmin_Zuweisung_vergeben_oder_entziehen__Neuen_Aktivstatus_Berechnen",
+              "type": "action"
+            },
+            {
+              "name": "Act_HouseAdmin_Zuweisung_vergeben_oder_entziehen__Eingabe_Sperren_Und_Warten_Anzeigen",
+              "type": "action"
+            },
+            {
+              "name": "Act_HouseAdmin_Zuweisung_vergeben_oder_entziehen__Server_HouseAdmin_Zuweisung_Speichern",
+              "type": "action"
+            },
+            {
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "type": "task",
+                  "name": "AdminsTask"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "838cefc2-54cb-470a-8991-7d778c30fa76",
+          "flowLayout": {
+            "AdminSet": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_AdminSet_16": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_AdminSet_17": {
+              "x": 40,
+              "y": 240
+            },
+            "Act_AdminSet_18": {
+              "x": 40,
+              "y": 340
+            },
+            "Branch: Antwort.ok == true": {
+              "x": 40,
+              "y": 440
+            },
+            "AdminsTask": {
+              "x": 280,
+              "y": 440
+            },
+            "Fehler": {
+              "x": 40,
+              "y": 540
+            }
+          }
+        },
+        {
+          "name": "RoomCreateTask",
+          "description": "Haus anlegen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Haus_anlegen__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Haus_anlegen__Server_Haus_Anlegen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RaumAngelegt"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "25cac790-177b-4223-a817-46baea59a9c6"
+        },
+        {
+          "name": "RoomSaveTask",
+          "description": "Haus-Änderungen speichern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Haus_Aenderungen_speichern__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Haus_Aenderungen_speichern__Server_Haus_Aenderung_Speichern"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RoomSaved"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "a2a3f7e0-cc4a-40c6-bfcc-c7e54ea68d7a"
+        },
+        {
+          "name": "RoomToggleTask",
+          "description": "Haus aktivieren oder deaktivieren",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Haus_aktivieren_oder_deaktivieren__Neuen_Aktivstatus_Berechnen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Haus_aktivieren_oder_deaktivieren__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Haus_aktivieren_oder_deaktivieren__Server_Haus_Aenderung_Speichern"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RoomToggleSave"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "36bf7a71-a73c-48cf-8969-46839cee05af"
+        },
+        {
+          "name": "RoomToggleSave",
+          "description": "Haus-Status anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Haus_Status_anzeigen__Status_Und_Anzeige_Aktualisieren"
+            },
+            {
+              "type": "task",
+              "name": "RaeumeTask"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "015f78e9-fb23-4a1e-81a4-0456a8004907"
+        },
+        {
+          "name": "PersonCreateTask",
+          "description": "Verantwortliche Person anlegen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Verantwortliche_Person_anlegen__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Verantwortliche_Person_anlegen__Server_Verantwortliche_Person_Anlegen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "PersonAngelegt"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "40edaade-cbcb-40ba-b6fc-b1a8e04b59ea"
+        },
+        {
+          "name": "Meldung",
+          "description": "Servermeldung anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Servermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "f2b116ed-e84f-4bbc-8554-0c3eb7004467"
+        },
+        {
+          "name": "RaumAngelegt",
+          "description": "Neu angelegten Haus auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Neu_angelegten_Haus_auswaehlen__Status_Und_Anzeige_Aktualisieren"
+            },
+            {
+              "type": "task",
+              "name": "RaeumeTask"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "3fc4fb24-9e2c-4740-94a5-8e49496bcb40"
+        },
+        {
+          "name": "VorherTask",
+          "description": "Vorherige Listenseite anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Vorherige_Listenseite_anzeigen__Vorherige_Seitennummer_Berechnen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "dde387e8-e36c-4110-8c2c-b7ec44bad41b"
+        },
+        {
+          "name": "WeiterTask",
+          "description": "Nächste Listenseite anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Naechste_Listenseite_anzeigen__Naechste_Seitennummer_Berechnen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "1f762cc7-f454-40c7-be81-41de20825788"
+        },
+        {
+          "name": "RaumZuruecksetzen",
+          "description": "Raumauswahl zurücksetzen",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "8811ebdb-2a16-4c97-85b7-cc339cfbe7a3"
+        },
+        {
+          "name": "Select0",
+          "description": "Listeneintrag 1 auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Listeneintrag_1_auswaehlen__Gewaehlten_Eintrag_Merken"
+            },
+            {
+              "type": "task",
+              "name": "Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "1f0fe9d7-4f66-4a5e-a15b-a073a10a394d"
+        },
+        {
+          "name": "Select1",
+          "description": "Listeneintrag 2 auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Listeneintrag_2_auswaehlen__Gewaehlten_Eintrag_Merken"
+            },
+            {
+              "type": "task",
+              "name": "Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "f8969ae7-afb4-47be-a6a9-767357c5786f"
+        },
+        {
+          "name": "Select2",
+          "description": "Listeneintrag 3 auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Listeneintrag_3_auswaehlen__Gewaehlten_Eintrag_Merken"
+            },
+            {
+              "type": "task",
+              "name": "Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "ceda9409-3605-4c62-b694-f2f05d0b279d"
+        },
+        {
+          "name": "Select3",
+          "description": "Listeneintrag 4 auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Listeneintrag_4_auswaehlen__Gewaehlten_Eintrag_Merken"
+            },
+            {
+              "type": "task",
+              "name": "Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "418db272-500b-49b1-bf3c-3b3046e64e71"
+        },
+        {
+          "name": "RoomSaved",
+          "description": "Haus-Anzeige aktualisieren",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Haus_Anzeige_aktualisieren__Eingabe_Und_Auswahl_Aktualisieren"
+            },
+            {
+              "type": "task",
+              "name": "RaeumeTask"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "c7ff415a-fda4-4bc0-bb29-2c81fc028da3"
+        },
+        {
+          "name": "PersonAngelegt",
+          "description": "Neue verantwortliche Person auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Neue_verantwortliche_Person_auswaehlen__Eingabe_Und_Auswahl_Aktualisieren"
+            },
+            {
+              "type": "task",
+              "name": "AdminsTask"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "cabdc2ab-d9d7-4df2-be86-c21e37755a7a"
+        },
+        {
+          "name": "PlayerLinkTask",
+          "description": "Spieler-Einwahllink für das Haus erzeugen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spieler_Einwahllink_fuer_das_Haus_erzeugen__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Spieler_Einwahllink_fuer_das_Haus_erzeugen__Server_Haus_Spielerlink_Anfordern"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "InviteBereit"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "35c0fd7d-34c8-413e-a4cd-8371cfe5c1bd"
+        },
+        {
+          "name": "InviteTask",
+          "description": "Verwaltungszugang einrichten",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Verwaltungszugang_einrichten__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Verwaltungszugang_einrichten__Server_HouseAdmin_Einrichtungslink_Anfordern"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "InviteBereit"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "f397581d-8341-4591-a290-effbcd21d342"
+        },
+        {
+          "name": "InviteBereit",
+          "description": "Einrichtungs- oder Spielerlink anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Einrichtungs_oder_Spielerlink_anzeigen__Link_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "e9e9d3b0-e6a7-4287-a58d-6ae1f30ea2ba"
+        },
+        {
+          "name": "Sperre_Invite",
+          "description": "Doppeleingabe verhindern: Invite",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "InviteTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "3f987dcd-19be-4659-8e11-01c928d9cab1"
+        },
+        {
+          "name": "Sperre_Haeuser",
+          "description": "Doppeleingabe verhindern: Haeuser",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "HaeuserTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "69ed5a12-f6ed-4db6-b408-db9dac465e09"
+        },
+        {
+          "name": "Sperre_Raeume",
+          "description": "Doppeleingabe verhindern: Raeume",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RaeumeTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "25b172ad-8c50-40f4-bd5f-3a4236509bfb"
+        },
+        {
+          "name": "Sperre_Admins",
+          "description": "Doppeleingabe verhindern: Admins",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "PlayerLinkTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "c760d74c-3b04-443d-b7f2-77c36f8b9d33"
+        },
+        {
+          "name": "Sperre_RoomCreate",
+          "description": "Doppeleingabe verhindern: RoomCreate",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RoomCreateTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "7e164d2a-bd1e-42d8-b5a8-ac120bb1e8e7"
+        },
+        {
+          "name": "Sperre_RoomSave",
+          "description": "Doppeleingabe verhindern: RoomSave",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RoomSaveTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "7d781ae0-b49d-4749-8882-ae7bfcc6dfc4"
+        },
+        {
+          "name": "Sperre_RoomToggle",
+          "description": "Doppeleingabe verhindern: RoomToggle",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RoomToggleTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "144e84ca-cdfd-48cc-bcf1-9f28a3948a69"
+        },
+        {
+          "name": "Sperre_PersonCreate",
+          "description": "Doppeleingabe verhindern: PersonCreate",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "PersonCreateTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "c1919c3e-8bb0-4060-87de-75bcb0015f4c"
+        },
+        {
+          "name": "Sperre_Confirm",
+          "description": "Doppeleingabe verhindern: Confirm",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "AdminSet"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "b90eee75-9402-4817-8f39-784dfafd8a48"
+        },
+        {
+          "name": "Sperre_Vorher",
+          "description": "Doppeleingabe verhindern: Vorher",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "VorherTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "5939b6cb-7408-4936-ad9a-a1777fbffe3b"
+        },
+        {
+          "name": "Sperre_Weiter",
+          "description": "Doppeleingabe verhindern: Weiter",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "WeiterTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "dabb17c2-ab16-430a-8a2d-e031e6858858"
+        },
+        {
+          "name": "Sperre_Karte0",
+          "description": "Doppeleingabe verhindern: Karte0",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Select0"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "263850ca-7d20-4491-977b-0eed19073d5e"
+        },
+        {
+          "name": "Sperre_Karte1",
+          "description": "Doppeleingabe verhindern: Karte1",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Select1"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "ff39768e-b2b5-4466-979a-9203866749df"
+        },
+        {
+          "name": "Sperre_Karte2",
+          "description": "Doppeleingabe verhindern: Karte2",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Select2"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "45150a06-a32f-4add-a758-ab4d16f10e8f"
+        },
+        {
+          "name": "Sperre_Karte3",
+          "description": "Doppeleingabe verhindern: Karte3",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Select3"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "e822f24b-ba5f-4e13-9189-fde24da7fe30"
+        }
+      ],
+      "actions": [
+        {
+          "id": "0e00f1f0-089f-4861-ac5f-a7b6fd6aa280",
+          "name": "Act_Haeuserliste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+          "type": "property",
+          "changes": {
+            "Modus": "super-houses",
+            "Seite": 0,
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "27825ef8-a1e6-413c-8c6b-f4a6f3ed4081",
+          "name": "Act_HouseAdmins_des_Hauses_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+          "type": "property",
+          "changes": {
+            "Modus": "super-admins",
+            "Seite": 0,
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "e81d85a6-831c-4bcb-9aaf-4e47cfa4527d",
+          "name": "Act_HouseAdmin_Liste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+          "type": "property",
+          "changes": {
+            "Modus": "super-admins",
+            "Seite": 0,
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "8f2de8dc-7d0b-4206-9ed9-5bde7dd84df0",
+          "name": "Act_Ausgewaehlte_Liste_vom_Server_laden__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …",
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "0f8f65fa-2bed-4623-85bb-bd6c4067c6b1",
+          "name": "Act_Ausgewaehlte_Liste_vom_Server_laden__Server_Ausgewaehlte_Liste_vom_Server_laden",
+          "type": "http",
+          "url": "/api/cms/admin/${Modus}",
+          "method": "POST",
+          "body": "{\"houseId\":\"${Haus}\",\"areaId\":\"${Raum}\",\"page\":\"${Seite}\"}",
+          "resultVariable": "Antwort",
+          "queryOperator": "=="
+        },
+        {
+          "id": "56697d30-cad7-4153-8bc1-e1fa9d2ccd38",
+          "name": "Act_Geladene_Eintraege_anzeigen__Listenkarten_Und_Status_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${Antwort.message}",
+            "Seite": "${Antwort.page}",
+            "Seiten": "${Antwort.pages}",
+            "Karte0.text": "${Antwort.slot0.label}",
+            "Karte0.visible": "${Antwort.slot0.visible}",
+            "Slot0": "${Antwort.slot0.id}",
+            "Name0": "${Antwort.slot0.name}",
+            "Active0": "${Antwort.slot0.active}",
+            "Karte1.text": "${Antwort.slot1.label}",
+            "Karte1.visible": "${Antwort.slot1.visible}",
+            "Slot1": "${Antwort.slot1.id}",
+            "Name1": "${Antwort.slot1.name}",
+            "Active1": "${Antwort.slot1.active}",
+            "Karte2.text": "${Antwort.slot2.label}",
+            "Karte2.visible": "${Antwort.slot2.visible}",
+            "Slot2": "${Antwort.slot2.id}",
+            "Name2": "${Antwort.slot2.name}",
+            "Active2": "${Antwort.slot2.active}",
+            "Karte3.text": "${Antwort.slot3.label}",
+            "Karte3.visible": "${Antwort.slot3.visible}",
+            "Slot3": "${Antwort.slot3.id}",
+            "Name3": "${Antwort.slot3.name}",
+            "Active3": "${Antwort.slot3.active}"
+          }
+        },
+        {
+          "id": "819e34c4-650a-45fa-ada2-ec353a4fb2c5",
+          "name": "Act_Fehlermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${Antwort.message}"
+          }
+        },
+        {
+          "id": "c4440b5a-a5c4-45f3-8e3f-2dbc54c8afe1",
+          "name": "Act_Servermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${Antwort.message}"
+          }
+        },
+        {
+          "id": "bbc2d238-717e-4c82-9845-0e33d110ebd8",
+          "name": "Act_Listeneintrag_1_auswaehlen__Gewaehlten_Eintrag_Merken",
+          "type": "property",
+          "changes": {
+            "Auswahl": "${Slot0}",
+            "AuswahlName": "${Name0}",
+            "Ziel": "${Active0}"
+          }
+        },
+        {
+          "id": "3fe41edc-7e5f-4c13-8205-a367304d046a",
+          "name": "Act_Listeneintrag_2_auswaehlen__Gewaehlten_Eintrag_Merken",
+          "type": "property",
+          "changes": {
+            "Auswahl": "${Slot1}",
+            "AuswahlName": "${Name1}",
+            "Ziel": "${Active1}"
+          }
+        },
+        {
+          "id": "c227ba6a-fe9c-4faf-b69f-9e7817238ec5",
+          "name": "Act_Listeneintrag_3_auswaehlen__Gewaehlten_Eintrag_Merken",
+          "type": "property",
+          "changes": {
+            "Auswahl": "${Slot2}",
+            "AuswahlName": "${Name2}",
+            "Ziel": "${Active2}"
+          }
+        },
+        {
+          "id": "9e7c45f8-4f11-4f8c-a5b4-66c0b6a6ad83",
+          "name": "Act_Listeneintrag_4_auswaehlen__Gewaehlten_Eintrag_Merken",
+          "type": "property",
+          "changes": {
+            "Auswahl": "${Slot3}",
+            "AuswahlName": "${Name3}",
+            "Ziel": "${Active3}"
+          }
+        },
+        {
+          "id": "d4fc6db7-97d9-4c67-b6e4-87acb215b958",
+          "name": "Act_Haus_auswaehlen_und_Folgeliste_oeffnen__Eingabe_Und_Auswahl_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Haus": "${Auswahl}",
+            "HausName": "${AuswahlName}",
+            "Raum": "",
+            "RaumName": "",
+            "RaumAktiv": "${Ziel}",
+            "RaumEingabe.text": "${AuswahlName}",
+            "Kontext.text": "Haus: ${AuswahlName}"
+          }
+        },
+        {
+          "id": "f064637a-54f6-4e2b-8b52-d15dbdbbedc9",
+          "name": "Act_Raum_zur_Bearbeitung_auswaehlen__Status_Und_Anzeige_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Raum": "${Auswahl}",
+            "RaumName": "${AuswahlName}",
+            "RaumAktiv": "${Ziel}",
+            "RaumEingabe.text": "${AuswahlName}",
+            "Kontext.text": "${HausName} / ${AuswahlName}",
+            "Status.text": "Raum ausgewählt. Spielefreigaben unter Raumverwaltung."
+          }
+        },
+        {
+          "id": "9e943aea-1319-4f91-81b1-6abe8dff9c51",
+          "name": "Act_HouseAdmin_Zuweisung_zur_Bestaetigung_vormerken__Bestaetigung_Anfordern",
+          "type": "property",
+          "changes": {
+            "Person": "${Auswahl}",
+            "Confirm.visible": true,
+            "Status.text": "Admin-Recht für die ausgewählte Person ändern?"
+          }
+        },
+        {
+          "id": "d378ac50-196f-4848-8bbd-46dcd5e4b680",
+          "name": "Act_HouseAdmin_Zuweisung_vergeben_oder_entziehen__Neuen_Aktivstatus_Berechnen",
+          "type": "calculate",
+          "formula": "Ziel ? 0 : 1",
+          "resultVariable": "Ziel",
+          "resultVariable_ref": "house_var_Ziel"
+        },
+        {
+          "id": "fe052c92-9ff8-4365-98a9-b60364fe3663",
+          "name": "Act_HouseAdmin_Zuweisung_vergeben_oder_entziehen__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …",
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "19633875-acd3-4810-8732-48a70ecd7ff6",
+          "name": "Act_HouseAdmin_Zuweisung_vergeben_oder_entziehen__Server_HouseAdmin_Zuweisung_Speichern",
+          "type": "http",
+          "url": "/api/cms/admin/super-admin-set",
+          "method": "POST",
+          "body": "{\"houseId\":\"${Haus}\",\"areaId\":\"${Raum}\",\"personId\":\"${Person}\",\"active\":\"${Ziel}\",\"confirm\":true}",
+          "resultVariable": "Antwort",
+          "queryOperator": "=="
+        },
+        {
+          "id": "c3379bd2-fc70-46e4-b497-0145378aa278",
+          "name": "Act_Haus_anlegen__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …",
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "989defec-2038-4316-a612-4a29d0924c79",
+          "name": "Act_Haus_anlegen__Server_Haus_Anlegen",
+          "type": "http",
+          "url": "/api/cms/admin/super-house-create",
+          "method": "POST",
+          "body": "{\"houseId\":\"${Haus}\",\"name\":\"${RaumEingabe.text}\"}",
+          "resultVariable": "Antwort",
+          "queryOperator": "=="
+        },
+        {
+          "id": "444c697f-6b8d-474e-ba34-cd8e998309ca",
+          "name": "Act_Neu_angelegten_Haus_auswaehlen__Status_Und_Anzeige_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Haus": "${Antwort.id}",
+            "Raum": "${Antwort.id}",
+            "HausName": "${RaumEingabe.text}",
+            "RaumName": "${RaumEingabe.text}",
+            "RaumAktiv": true,
+            "Busy": 0,
+            "Kontext.text": "Haus: ${RaumEingabe.text}",
+            "Status.text": "${Antwort.message}"
+          }
+        },
+        {
+          "id": "054a9139-5a95-4e9d-b169-de060121f9e0",
+          "name": "Act_Haus_Aenderungen_speichern__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …",
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "53dc4bbe-1ac3-4b9b-b6fe-be5ed9994f7e",
+          "name": "Act_Haus_Aenderungen_speichern__Server_Haus_Aenderung_Speichern",
+          "type": "http",
+          "url": "/api/cms/admin/super-house-update",
+          "method": "POST",
+          "body": "{\"houseId\":\"${Haus}\",\"areaId\":\"${Raum}\",\"name\":\"${RaumEingabe.text}\",\"active\":\"${RaumAktiv}\"}",
+          "resultVariable": "Antwort",
+          "queryOperator": "=="
+        },
+        {
+          "id": "8c41fefa-e60b-44e5-b35f-264092979045",
+          "name": "Act_Haus_Anzeige_aktualisieren__Eingabe_Und_Auswahl_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "RaumName": "${RaumEingabe.text}",
+            "Kontext.text": "Haus: ${RaumEingabe.text}"
+          }
+        },
+        {
+          "id": "5e8d5496-1da2-40e6-9fca-0339efc27d74",
+          "name": "Act_Haus_aktivieren_oder_deaktivieren__Neuen_Aktivstatus_Berechnen",
+          "type": "calculate",
+          "formula": "RaumAktiv ? 0 : 1",
+          "resultVariable": "Ziel",
+          "resultVariable_ref": "house_var_Ziel"
+        },
+        {
+          "id": "10836b5b-5e3a-4e26-89bd-3bf1d52bda42",
+          "name": "Act_Haus_aktivieren_oder_deaktivieren__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …",
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "c82007d0-c03a-4c59-92ef-797f6e25f661",
+          "name": "Act_Haus_aktivieren_oder_deaktivieren__Server_Haus_Aenderung_Speichern",
+          "type": "http",
+          "url": "/api/cms/admin/super-house-update",
+          "method": "POST",
+          "body": "{\"houseId\":\"${Haus}\",\"areaId\":\"${Raum}\",\"name\":\"${RaumEingabe.text}\",\"active\":\"${Ziel}\"}",
+          "resultVariable": "Antwort",
+          "queryOperator": "=="
+        },
+        {
+          "id": "9514b030-ad38-424c-a68f-229ba8147cbc",
+          "name": "Act_Haus_Status_anzeigen__Status_Und_Anzeige_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "RaumAktiv": "${Ziel}",
+            "Busy": 0,
+            "Status.text": "${Antwort.message}"
+          }
+        },
+        {
+          "id": "7d62dff3-5179-4dc1-9e7b-56a9767d0e60",
+          "name": "Act_Verantwortliche_Person_anlegen__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …",
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "e8cfe0e9-47a8-4e55-ad48-f0835448a061",
+          "name": "Act_Verantwortliche_Person_anlegen__Server_Verantwortliche_Person_Anlegen",
+          "type": "http",
+          "url": "/api/cms/admin/super-person-create",
+          "method": "POST",
+          "body": "{\"houseId\":\"${Haus}\",\"areaId\":\"${Raum}\",\"name\":\"${NameEingabe.text}\"}",
+          "resultVariable": "Antwort",
+          "queryOperator": "=="
+        },
+        {
+          "id": "566bb5e9-c96f-441a-88fe-bc7b3d37d7a2",
+          "name": "Act_Neue_verantwortliche_Person_auswaehlen__Eingabe_Und_Auswahl_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Person": "${Antwort.id}"
+          }
+        },
+        {
+          "id": "4bf00075-8a49-465e-950f-4a993df77de8",
+          "name": "Act_Vorherige_Listenseite_anzeigen__Vorherige_Seitennummer_Berechnen",
+          "type": "calculate",
+          "formula": "Math.max(0, Seite - 1)",
+          "resultVariable": "Seite",
+          "resultVariable_ref": "house_var_Seite"
+        },
+        {
+          "id": "b850a9ab-79da-460d-aab3-85c94bd513d2",
+          "name": "Act_Naechste_Listenseite_anzeigen__Naechste_Seitennummer_Berechnen",
+          "type": "calculate",
+          "formula": "Math.min(Math.max(0, Seiten - 1), Seite + 1)",
+          "resultVariable": "Seite",
+          "resultVariable_ref": "house_var_Seite"
+        },
+        {
+          "id": "a5965ced-98b7-4786-9daa-9e8fd08388a7",
+          "name": "Act_Spieler_Einwahllink_fuer_das_Haus_erzeugen__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …",
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "2b702bbe-e70d-41a9-9ae1-e546b67b07ad",
+          "name": "Act_Spieler_Einwahllink_fuer_das_Haus_erzeugen__Server_Haus_Spielerlink_Anfordern",
+          "type": "http",
+          "url": "/api/cms/admin/super-player-link",
+          "method": "POST",
+          "body": "{\"houseId\":\"${Haus}\"}",
+          "resultVariable": "Antwort",
+          "queryOperator": "=="
+        },
+        {
+          "id": "da6be9b6-2b41-4238-a16a-c44947e38dcb",
+          "name": "Act_Verwaltungszugang_einrichten__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …",
+            "Confirm.visible": false
+          }
+        },
+        {
+          "id": "8d5713d3-7014-4aad-9c9f-4c2a6cc306f9",
+          "name": "Act_Verwaltungszugang_einrichten__Server_HouseAdmin_Einrichtungslink_Anfordern",
+          "type": "http",
+          "url": "/api/cms/admin/super-invite",
+          "method": "POST",
+          "body": "{\"houseId\":\"${Haus}\",\"personId\":\"${Person}\"}",
+          "resultVariable": "Antwort",
+          "queryOperator": "=="
+        },
+        {
+          "id": "8796c685-9cbe-4535-9464-997f6a9b2c75",
+          "name": "Act_Einrichtungs_oder_Spielerlink_anzeigen__Link_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Einladung.text": "${Antwort.link}",
+            "Status.text": "${Antwort.message}"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Modus",
+          "name": "Modus",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.88888888888889,
+          "y": 33.888888888888886,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "super-houses",
+          "value": "super-houses",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Haus",
+          "name": "Haus",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18.055555555555557,
+          "y": 30.72222222222222,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Raum",
+          "name": "Raum",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.333333333333334,
+          "y": 30.77777777777778,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_HausName",
+          "name": "HausName",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 18.77777777777778,
+          "y": 24.666666666666668,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_RaumName",
+          "name": "RaumName",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.61111111111111,
+          "y": 24.666666666666668,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "house_var_RaumAktiv",
+          "name": "RaumAktiv",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.5,
+          "y": 27.666666666666668,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Person",
+          "name": "Person",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.11111111111111,
+          "y": 19.055555555555557,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "house_var_Seite",
+          "name": "Seite",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.166666666666666,
+          "y": 16.055555555555557,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "house_var_Seiten",
+          "name": "Seiten",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.055555555555555,
+          "y": 13.166666666666666,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "house_var_Busy",
+          "name": "Busy",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 19.555555555555557,
+          "y": 4.555555555555555,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Auswahl",
+          "name": "Auswahl",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.333333333333334,
+          "y": 7.555555555555555,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_AuswahlName",
+          "name": "AuswahlName",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.166666666666666,
+          "y": 4.5,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "house_var_Ziel",
+          "name": "Ziel",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10.333333333333334,
+          "y": 0.5555555555555556,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Slot0",
+          "name": "Slot0",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.1111111111111111,
+          "y": 29.444444444444443,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Slot1",
+          "name": "Slot1",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.05555555555555555,
+          "y": 31.61111111111111,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Slot2",
+          "name": "Slot2",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.05555555555555555,
+          "y": 34.22222222222222,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Slot3",
+          "name": "Slot3",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.1111111111111111,
+          "y": 36.333333333333336,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Name0",
+          "name": "Name0",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.2777777777777778,
+          "y": 18,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Name1",
+          "name": "Name1",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.3333333333333333,
+          "y": 20.166666666666668,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Name2",
+          "name": "Name2",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.3333333333333333,
+          "y": 22.27777777777778,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "house_var_Name3",
+          "name": "Name3",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.2222222222222222,
+          "y": 24.555555555555557,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "house_var_Active0",
+          "name": "Active0",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.2222222222222222,
+          "y": 7.944444444444445,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "house_var_Active1",
+          "name": "Active1",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 10.11111111111111,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "house_var_Active2",
+          "name": "Active2",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.1111111111111111,
+          "y": 12.333333333333334,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "house_var_Active3",
+          "name": "Active3",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.05555555555555555,
+          "y": 14.666666666666666,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0.2777777777777778,
+          "y": 4.666666666666667,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 48,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Hausverwaltung",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "stage_main_Titel",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 3,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 28,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "SUPERADMIN"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Status",
+          "name": "Status",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 6,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 20,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Alle Häuser wählen."
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Kontext",
+          "name": "Kontext",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 9,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 16,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Noch kein Haus / Raum ausgewählt"
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Haeuser",
+          "name": "Haeuser",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Haeuser"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 12,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "Alle Häuser",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Raeume",
+          "name": "Raeume",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Raeume"
+          },
+          "visible": true,
+          "x": 22,
+          "y": 12,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "HouseAdmins",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Admins",
+          "name": "Admins",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Admins"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 12,
+          "width": 18,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "Spieler-Link",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Karte0",
+          "name": "Karte0",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Karte0"
+          },
+          "visible": false,
+          "x": 5,
+          "y": 17,
+          "width": 25,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Karte1",
+          "name": "Karte1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Karte1"
+          },
+          "visible": false,
+          "x": 33,
+          "y": 17,
+          "width": 25,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Karte2",
+          "name": "Karte2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Karte2"
+          },
+          "visible": false,
+          "x": 5,
+          "y": 21,
+          "width": 25,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Karte3",
+          "name": "Karte3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Karte3"
+          },
+          "visible": false,
+          "x": 33,
+          "y": 21,
+          "width": 25,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_RaumInfo",
+          "name": "RaumInfo",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 25,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 13,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Hausname · anlegen oder ausgewähltes Haus bearbeiten"
+        },
+        {
+          "className": "TEdit",
+          "id": "stage_main_RaumEingabe",
+          "name": "RaumEingabe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 28,
+          "width": 23,
+          "height": 2.5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#cccccc",
+            "borderWidth": 1
+          },
+          "text": "",
+          "placeholder": "Hausname",
+          "maxLength": 120
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_RoomCreate",
+          "name": "RoomCreate",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_RoomCreate"
+          },
+          "visible": true,
+          "x": 29,
+          "y": 28,
+          "width": 10,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "Anlegen",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_RoomSave",
+          "name": "RoomSave",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_RoomSave"
+          },
+          "visible": true,
+          "x": 41,
+          "y": 28,
+          "width": 9,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "Speichern",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_RoomToggle",
+          "name": "RoomToggle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_RoomToggle"
+          },
+          "visible": true,
+          "x": 52,
+          "y": 28,
+          "width": 9,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "An/Aus",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_PersonInfo",
+          "name": "PersonInfo",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 32,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 13,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Neue verantwortliche Person anlegen"
+        },
+        {
+          "className": "TEdit",
+          "id": "stage_main_NameEingabe",
+          "name": "NameEingabe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 35,
+          "width": 17,
+          "height": 2.5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#cccccc",
+            "borderWidth": 1
+          },
+          "text": "",
+          "placeholder": "Anzeigename",
+          "maxLength": 120
+        },
+        {
+          "className": "TEdit",
+          "id": "stage_main_Einladung",
+          "name": "Einladung",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 23,
+          "y": 35,
+          "width": 37,
+          "height": 2.5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#cccccc",
+            "borderWidth": 1
+          },
+          "text": "",
+          "placeholder": "Einrichtungslink erscheint hier",
+          "maxLength": 120
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Invite",
+          "name": "Invite",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Invite"
+          },
+          "visible": true,
+          "x": 27,
+          "y": 39,
+          "width": 14,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "Zugang einrichten",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_PersonCreate",
+          "name": "PersonCreate",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_PersonCreate"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 39,
+          "width": 22,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "Person anlegen",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Vorher",
+          "name": "Vorher",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Vorher"
+          },
+          "visible": true,
+          "x": 43,
+          "y": 39,
+          "width": 7,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "◀",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Weiter",
+          "name": "Weiter",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Weiter"
+          },
+          "visible": true,
+          "x": 52,
+          "y": 39,
+          "width": 7,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "▶",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Confirm",
+          "name": "Confirm",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sperre_Confirm"
+          },
+          "visible": false,
+          "x": 4,
+          "y": 43,
+          "width": 55,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9
+          },
+          "text": "Admin-Zuweisung wirklich ändern?",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Hilfe",
+          "name": "Hilfe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 46,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 12,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Haus wählen → HouseAdmin anklicken und bestätigen → Zugang einrichten."
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 48,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      },
+      "startAnimation": "none",
+      "features": [
+        {
+          "id": "cms_workflow_area_Listen_und_Auswahl",
+          "name": "Listen und Auswahl",
+          "description": "Zusammengehörige Arbeitsschritte",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "cms_workflow_area_Haus_verwalten",
+          "name": "Haus verwalten",
+          "description": "Zusammengehörige Arbeitsschritte",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "cms_workflow_area_HouseAdmins_verwalten",
+          "name": "HouseAdmins verwalten",
+          "description": "Zusammengehörige Arbeitsschritte",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "cms_workflow_lists",
+          "name": "01 · Verwaltungsbereich auswählen",
+          "parentId": "cms_workflow_area_Listen_und_Auswahl",
+          "description": "Gewünschte Liste öffnen → Serverdaten laden → Einträge anzeigen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_lists_stage_main_Haeuser_onClick",
+            "cms_workflow_lists_stage_main_Raeume_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Haeuser",
+            "HaeuserTask",
+            "Laden",
+            "Zeigen",
+            "Sperre_Raeume",
+            "RaeumeTask"
+          ]
+        },
+        {
+          "id": "cms_workflow_select",
+          "name": "02 · Eintrag auswählen",
+          "parentId": "cms_workflow_area_Listen_und_Auswahl",
+          "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_select_stage_main_Karte0_onClick",
+            "cms_workflow_select_stage_main_Karte1_onClick",
+            "cms_workflow_select_stage_main_Karte2_onClick",
+            "cms_workflow_select_stage_main_Karte3_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Karte0",
+            "Select0",
+            "Waehlen",
+            "WaehleHaus",
+            "RaeumeTask",
+            "Laden",
+            "Zeigen",
+            "RaumOderAdmin",
+            "AdminFrage",
+            "Sperre_Karte1",
+            "Select1",
+            "Sperre_Karte2",
+            "Select2",
+            "Sperre_Karte3",
+            "Select3"
+          ]
+        },
+        {
+          "id": "cms_workflow_pages",
+          "name": "03 · In Listen blättern",
+          "parentId": "cms_workflow_area_Listen_und_Auswahl",
+          "description": "Seitennummer ändern → aktuelle Liste erneut laden.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_pages_stage_main_Vorher_onClick",
+            "cms_workflow_pages_stage_main_Weiter_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Vorher",
+            "VorherTask",
+            "Laden",
+            "Zeigen",
+            "Sperre_Weiter",
+            "WeiterTask"
+          ]
+        },
+        {
+          "id": "cms_workflow_create",
+          "name": "01 · Haus hinzufügen",
+          "parentId": "cms_workflow_area_Haus_verwalten",
+          "description": "Übergeordneten Bereich wählen → Namen eingeben → Haus anlegen → neue Auswahl anzeigen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_create_stage_main_RoomCreate_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_RoomCreate",
+            "RoomCreateTask",
+            "RaumAngelegt",
+            "RaeumeTask",
+            "Laden",
+            "Zeigen",
+            "Fehler"
+          ]
+        },
+        {
+          "id": "cms_workflow_save",
+          "name": "02 · Haus ändern und speichern",
+          "parentId": "cms_workflow_area_Haus_verwalten",
+          "description": "Eintrag auswählen → Namen bearbeiten → Änderung speichern → Anzeige aktualisieren.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_save_stage_main_RoomSave_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_RoomSave",
+            "RoomSaveTask",
+            "RoomSaved",
+            "RaeumeTask",
+            "Laden",
+            "Zeigen",
+            "Fehler"
+          ]
+        },
+        {
+          "id": "cms_workflow_active",
+          "name": "03 · Haus aktivieren oder deaktivieren",
+          "parentId": "cms_workflow_area_Haus_verwalten",
+          "description": "Eintrag auswählen → bestehenden Aktivstatus umschalten → neuen Status speichern und anzeigen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_active_stage_main_RoomToggle_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_RoomToggle",
+            "RoomToggleTask",
+            "RoomToggleSave",
+            "RaeumeTask",
+            "Laden",
+            "Zeigen",
+            "Fehler"
+          ]
+        },
+        {
+          "id": "cms_workflow_person",
+          "name": "01 · Verantwortliche Person hinzufügen",
+          "parentId": "cms_workflow_area_HouseAdmins_verwalten",
+          "description": "Person anlegen → Person in der HouseAdmin-Liste auswählen → Zuständigkeit separat bestätigen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_person_stage_main_PersonCreate_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_PersonCreate",
+            "PersonCreateTask",
+            "PersonAngelegt",
+            "AdminsTask",
+            "Laden",
+            "Zeigen",
+            "Fehler"
+          ]
+        },
+        {
+          "id": "cms_workflow_assignment",
+          "name": "02 · HouseAdmin-Zuständigkeit vergeben oder entziehen",
+          "parentId": "cms_workflow_area_HouseAdmins_verwalten",
+          "description": "Admin-Liste öffnen → Person wählen → Änderung bestätigen → Zuweisung speichern → Liste aktualisieren. Die Person bleibt bestehen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_assignment_stage_main_Confirm_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Confirm",
+            "AdminSet",
+            "AdminsTask",
+            "Laden",
+            "Zeigen",
+            "AdminFrage"
+          ]
+        },
+        {
+          "id": "cms_workflow_invite",
+          "name": "03 · Passwortzugang einrichten",
+          "parentId": "cms_workflow_area_HouseAdmins_verwalten",
+          "description": "Zugewiesene Person wählen → einmaligen Einrichtungslink anfordern → Link persönlich weitergeben.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_invite_stage_main_Invite_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Invite",
+            "InviteTask",
+            "InviteBereit",
+            "Fehler"
+          ]
+        },
+        {
+          "id": "cms_workflow_player-link",
+          "name": "04 · Spieler-Einwahllink bereitstellen",
+          "parentId": "cms_workflow_area_Haus_verwalten",
+          "description": "Haus wählen → Einwahllink mit Hauskontext erzeugen und anzeigen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_player-link_stage_main_Admins_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Admins",
+            "PlayerLinkTask",
+            "InviteBereit",
+            "Fehler"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_blueprint",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "cms_workflow_lists_stage_main_Haeuser_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Alle Häuser – Verwaltungsbereich auswählen",
+        "description": "Gewünschte Liste öffnen → Serverdaten laden → Einträge anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Haeuser"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Haeuser_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Haeuser",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Haeuser",
+        "featureId": "cms_workflow_lists"
+      },
+      {
+        "id": "cms_workflow_lists_stage_main_Raeume_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "HouseAdmins – Verwaltungsbereich auswählen",
+        "description": "Gewünschte Liste öffnen → Serverdaten laden → Einträge anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Raeume"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Raeume_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Raeume",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Raeume",
+        "featureId": "cms_workflow_lists"
+      },
+      {
+        "id": "cms_workflow_select_stage_main_Karte0_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Eintrag 1 auswählen",
+        "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Karte0"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Karte0_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Karte0",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Karte0",
+        "featureId": "cms_workflow_select"
+      },
+      {
+        "id": "cms_workflow_select_stage_main_Karte1_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Eintrag 2 auswählen",
+        "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Karte1"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Karte1_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Karte1",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Karte1",
+        "featureId": "cms_workflow_select"
+      },
+      {
+        "id": "cms_workflow_select_stage_main_Karte2_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Eintrag 3 auswählen",
+        "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Karte2"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Karte2_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Karte2",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Karte2",
+        "featureId": "cms_workflow_select"
+      },
+      {
+        "id": "cms_workflow_select_stage_main_Karte3_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Eintrag 4 auswählen",
+        "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Karte3"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Karte3_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Karte3",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Karte3",
+        "featureId": "cms_workflow_select"
+      },
+      {
+        "id": "cms_workflow_pages_stage_main_Vorher_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "◀ – In Listen blättern",
+        "description": "Seitennummer ändern → aktuelle Liste erneut laden.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Vorher"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Vorher_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Vorher",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Vorher",
+        "featureId": "cms_workflow_pages"
+      },
+      {
+        "id": "cms_workflow_pages_stage_main_Weiter_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "▶ – In Listen blättern",
+        "description": "Seitennummer ändern → aktuelle Liste erneut laden.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Weiter"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Weiter_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Weiter",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Weiter",
+        "featureId": "cms_workflow_pages"
+      },
+      {
+        "id": "cms_workflow_create_stage_main_RoomCreate_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Anlegen – Haus hinzufügen",
+        "description": "Übergeordneten Bereich wählen → Namen eingeben → Haus anlegen → neue Auswahl anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "RoomCreate"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_RoomCreate_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "RoomCreate",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_RoomCreate",
+        "featureId": "cms_workflow_create"
+      },
+      {
+        "id": "cms_workflow_save_stage_main_RoomSave_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Speichern – Haus ändern und speichern",
+        "description": "Eintrag auswählen → Namen bearbeiten → Änderung speichern → Anzeige aktualisieren.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "RoomSave"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_RoomSave_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "RoomSave",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_RoomSave",
+        "featureId": "cms_workflow_save"
+      },
+      {
+        "id": "cms_workflow_active_stage_main_RoomToggle_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "An/Aus – Haus aktivieren oder deaktivieren",
+        "description": "Eintrag auswählen → bestehenden Aktivstatus umschalten → neuen Status speichern und anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "RoomToggle"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_RoomToggle_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "RoomToggle",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_RoomToggle",
+        "featureId": "cms_workflow_active"
+      },
+      {
+        "id": "cms_workflow_person_stage_main_PersonCreate_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Person anlegen – Verantwortliche Person hinzufügen",
+        "description": "Person anlegen → Person in der HouseAdmin-Liste auswählen → Zuständigkeit separat bestätigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "PersonCreate"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_PersonCreate_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "PersonCreate",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_PersonCreate",
+        "featureId": "cms_workflow_person"
+      },
+      {
+        "id": "cms_workflow_assignment_stage_main_Confirm_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Admin-Zuweisung wirklich ändern? – HouseAdmin-Zuständigkeit vergeben oder entziehen",
+        "description": "Admin-Liste öffnen → Person wählen → Änderung bestätigen → Zuweisung speichern → Liste aktualisieren. Die Person bleibt bestehen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Confirm"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Confirm_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Confirm",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Confirm",
+        "featureId": "cms_workflow_assignment"
+      },
+      {
+        "id": "cms_workflow_invite_stage_main_Invite_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Zugang einrichten – Passwortzugang einrichten",
+        "description": "Zugewiesene Person wählen → einmaligen Einrichtungslink anfordern → Link persönlich weitergeben.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Invite"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Invite_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Invite",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Invite",
+        "featureId": "cms_workflow_invite"
+      },
+      {
+        "id": "cms_workflow_player-link_stage_main_Admins_onClick",
+        "projectId": "gcs-cms-super",
+        "title": "Spieler-Link – Spieler-Einwahllink bereitstellen",
+        "description": "Haus wählen → Einwahllink mit Hauskontext erzeugen und anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Admins"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Admins_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Admins",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Admins",
+        "featureId": "cms_workflow_player-link"
+      }
+    ]
+  },
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "elements": [],
+    "connections": []
+  }
+}

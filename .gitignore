@@ -68,3 +68,16 @@ scratch.js
 
 # Private lokale Trainingsdaten und Modelladapter
 game-server/private-training/
+
+# Private lokale CMS-Daten und Verwaltungszugänge
+/game-server/data/cms-admin-auth.json
+/game-server/data/CMS-VERWALTUNGSZUGANG.txt
+/game-server/data/cms-v1.json
+/game-server/data/cms-v1.json.previous
+/game-server/data/cms-v1.json.tmp
+/game-server/data/CMS-ZUGANG-*.txt
+/game-server/data/cms-admin-auth.json.tmp
+
+# Python-Cache
+__pycache__/
+*.py[cod]

@@ -1,0 +1,161 @@
+{
+  "$module": "server",
+  "description": "Server-Workflow-Pilot: Anmeldung und nachvollziehbare Request-/Response-Diagnose",
+  "components": {
+    "TServerEndpoint": {
+      "description": "Empfängt die serverseitige Emoji-Anmeldung. Ausführung im CMS-Server.",
+      "stage": "blueprint",
+      "category": "server",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "endpointPath": {
+          "type": "string",
+          "default": "/api/cms/login",
+          "description": "Anfragepfad, im Pilot fest"
+        },
+        "httpMethod": {
+          "type": "string",
+          "default": "POST",
+          "description": "Methode, im Pilot fest"
+        },
+        "traceEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Erfassung für explizite Debug-Anfragen"
+        }
+      },
+      "methods": [],
+      "events": [
+        "onRequest"
+      ],
+      "example": {
+        "className": "TServerEndpoint",
+        "name": "ServerEndpoint",
+        "executionSide": "server",
+        "isService": true,
+        "isHiddenInRun": true,
+        "endpointPath": "/api/cms/login",
+        "httpMethod": "POST",
+        "traceEnabled": true
+      }
+    },
+    "TServerValidate": {
+      "description": "Prüft Haus-ID und vier Emoji-Schlüssel; Zugangscode bleibt im Log maskiert.",
+      "stage": "blueprint",
+      "category": "server",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "validationRule": {
+          "type": "string",
+          "default": "Haus-ID und genau vier Emoji-Schlüssel",
+          "description": "Verbindliche Regel"
+        },
+        "failureMessage": {
+          "type": "string",
+          "default": "Bitte Haus und vier Bilder angeben.",
+          "description": "Rückmeldung bei ungültiger Eingabe"
+        }
+      },
+      "methods": [
+        {
+          "name": "execute",
+          "description": "Nur der CMS-Server führt diesen Schritt aus."
+        }
+      ],
+      "events": [],
+      "example": {
+        "className": "TServerValidate",
+        "name": "ServerValidate",
+        "executionSide": "server",
+        "isService": true,
+        "isHiddenInRun": true,
+        "validationRule": "Haus-ID und genau vier Emoji-Schlüssel",
+        "failureMessage": "Bitte Haus und vier Bilder angeben."
+      }
+    },
+    "TServerAuthenticate": {
+      "description": "Verwendet den bestehenden CMS-Kern und erstellt nur Spielersitzungen.",
+      "stage": "blueprint",
+      "category": "server",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "authenticationMode": {
+          "type": "string",
+          "default": "Emoji-Spielerprofil",
+          "description": "Anmeldeverfahren"
+        },
+        "permissionBoundary": {
+          "type": "string",
+          "default": "Keine Verwaltungsrechte durch Emoji-Anmeldung",
+          "description": "Verbindliche Grenze"
+        },
+        "failureMessage": {
+          "type": "string",
+          "default": "🤔 Noch einmal versuchen",
+          "description": "Rückmeldung bei abgelehnter Anmeldung"
+        }
+      },
+      "methods": [
+        {
+          "name": "execute",
+          "description": "Nur der CMS-Server führt diesen Schritt aus."
+        }
+      ],
+      "events": [],
+      "example": {
+        "className": "TServerAuthenticate",
+        "name": "ServerAuthenticate",
+        "executionSide": "server",
+        "isService": true,
+        "isHiddenInRun": true,
+        "authenticationMode": "Emoji-Spielerprofil",
+        "permissionBoundary": "Keine Verwaltungsrechte durch Emoji-Anmeldung",
+        "failureMessage": "🤔 Noch einmal versuchen"
+      }
+    },
+    "TServerResponse": {
+      "description": "Erstellt die JSON-Anmeldeantwort; sensible Daten sind nur in der tatsächlichen Antwort, niemals im Debug-Protokoll.",
+      "stage": "blueprint",
+      "category": "server",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "successMessage": {
+          "type": "string",
+          "default": "✓",
+          "description": "Erfolgsmeldung"
+        },
+        "responseFormat": {
+          "type": "string",
+          "default": "JSON",
+          "description": "Antwortformat"
+        },
+        "secretPolicy": {
+          "type": "string",
+          "default": "Passwörter, Emoji-Code, Cookies und Tokens maskieren",
+          "description": "Nicht abschaltbare Maskierung"
+        }
+      },
+      "methods": [
+        {
+          "name": "execute",
+          "description": "Nur der CMS-Server führt diesen Schritt aus."
+        }
+      ],
+      "events": [],
+      "example": {
+        "className": "TServerResponse",
+        "name": "ServerResponse",
+        "executionSide": "server",
+        "isService": true,
+        "isHiddenInRun": true,
+        "successMessage": "✓",
+        "responseFormat": "JSON",
+        "secretPolicy": "Passwörter, Emoji-Code, Cookies und Tokens maskieren"
+      }
+    }
+  }
+}

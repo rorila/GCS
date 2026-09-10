@@ -1,0 +1,26 @@
+{
+  "checks": [
+    "Admin ohne Sitzung gesperrt",
+    "Passwortanmeldung",
+    "HttpOnly Sitzung",
+    "Fremder Ursprung gesperrt",
+    "Zwei verwaltbare Räume",
+    "Fremder Bereich gesperrt",
+    "Freigabe speichern",
+    "Spieler sieht neue Freigabe",
+    "Restore verlangt Bestätigung",
+    "Raumsicherung stellt Freigaben her",
+    "Freigabe nach Serverneustart",
+    "Entzug verhindert Spielstart",
+    "Doppelte Emoji-Folge abgewiesen",
+    "Neue Emoji-Einwahl funktioniert",
+    "Mitgliedschaft entzogen",
+    "Änderungen protokolliert",
+    "Speicherfehler verändert Laufzeit nicht",
+    "GCS öffnet Sternenzimmer",
+    "GCS schaltet Freigabe",
+    "GCS meldet Verwaltung ab",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": []
+}

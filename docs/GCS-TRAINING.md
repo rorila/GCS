@@ -1,6 +1,6 @@
 # Lokales GCS-Training – technische Grundlage
 
-Stand 08.09.2026: Worker und Server-API vorhanden. **Noch kein Trainingsbutton, kein automatischer GGUF-Export und keine Modellaktivierung.** Das vorhandene Ollama-Modell bleibt unverändert.
+Stand 08.09.2026: Worker und Server-API vorhanden. **Trainingsoberfläche in der Wissensbasis vorhanden; noch kein automatischer GGUF-Export und keine Modellaktivierung.** Das vorhandene Ollama-Modell bleibt unverändert.
 
 ## Aktivierung
 
@@ -35,6 +35,19 @@ Das Training verwendet die erprobte NF4/BF16-Konfiguration, den bestehenden LoRA
 
 Die API-Tests sind separat, da sie einen lokalen Python-Interpreter benötigen. Kein echtes 7B-Training im Rahmen dieser Integration gestartet. GPU-Verfügbarkeit, Trainingsqualität und UI müssen in der nächsten Etappe gesondert geprüft werden.
 
-## Nächste Etappe
+## Weitere Entwicklung
 
-Wissensbasis um Dateiauswahl mit Vorschau, ausdrückliche Freigabe, Start/Abbruch und Fortschritt ergänzen. Dafür einen eigenen Training-Port/Adapter verwenden: `IStorageAdapter` ist auf GameProject-Speicherung beschränkt und wird hier nicht für Trainingsjobs zweckentfremdet. Danach kurzer echter Testlauf, GGUF-Export und explizite Aktivierung einer neuen Ollama-Version. Die Originalversion bleibt auswählbar.
+Die Wissensbasis enthält Dateiauswahl mit Vorschau, ausdrückliche Freigabe, Start/Abbruch und Fortschritt. ITrainingAdapter und ServerTrainingAdapter kapseln die Trainings-API: `IStorageAdapter` ist auf GameProject-Speicherung beschränkt und wird hier nicht für Trainingsjobs zweckentfremdet. Danach kurzer echter Testlauf, GGUF-Export und explizite Aktivierung einer neuen Ollama-Version. Die Originalversion bleibt auswählbar.
+
+## Bedienung (Etappe B)
+
+1. Eine bereits laufende V2-Instanz selbst beenden und im V2-Ordner `npm run start:training` ausführen. Dieser Start schaltet die lokale Trainings-API ausdrücklich frei. Der normale Start bleibt unverändert.
+2. Wissensbasis öffnen. Der Bereich „Lokales Modell trainieren“ steht oberhalb der RAG-Statistik. Bei veraltetem Browserinhalt Strg+Umschalt+R verwenden.
+3. JSONL-Datei auswählen, Beispiele aufklappen und prüfen. Separate Prüffragen eintragen und zunächst wenige Schritte wählen.
+4. Freigabe ankreuzen und „Training starten“ wählen. Die vollständige Tokenprüfung erfolgt vor dem Laden der Modellgewichte; ungültige Daten erscheinen als fehlgeschlagener Job.
+5. Fortschritt beobachten oder abbrechen. Tabwechsel beendet nur die Statusabfrage; der Serverprozess arbeitet weiter. Beim Wiederöffnen wird der Status erneut geladen.
+6. Vorher-/Nachher-Antworten beurteilen. Ein erfolgreicher Lauf speichert einen neuen Adapter; er ändert das Modell in Ollama noch nicht.
+
+Die nächste Trainingsrunde verwendet weiterhin den in settings.json ausgewählten Adapter. Automatische Verkettung und Export sind noch nicht eingebaut. Bei einem Verbindungsfehler zunächst „Verbindung prüfen“ verwenden; ein Trainingsstart wird nicht automatisch wiederholt.
+
+Prüfung: `npm run test:training-ui` verwendet einen isolierten Browser und eine simulierte Trainingsschnittstelle. Dateiprüfung, Freigabesicherung, Start, Abbruch, Textausgabe und Abbau der Statusabfrage werden ohne GPU geprüft. Der tatsächliche Trainingspfad benötigt noch einen kurzen Integrationstest. Native Electron-Anbindung bleibt offen.

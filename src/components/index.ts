@@ -85,3 +85,8 @@ export * from './TVirtualGamepad';
 export * from './TWindow';
 export * from './TThemeDialog';
 export * from './TStickyNote';
+
+export * from './TServerEndpoint';
+export * from './TServerValidate';
+export * from './TServerAuthenticate';
+export * from './TServerResponse';

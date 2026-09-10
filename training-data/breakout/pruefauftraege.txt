@@ -1,0 +1,4 @@
+GCS AgentController: Ergänze den vorhandenen Task SteinPruefen um die Action PruefeTreffer. Lies in der TObjectList Steine für das auslösende Objekt das Feld zerstoert in SchonZerstoert. Gib nur agent-Aufrufe aus.
+GCS AgentController: Der Task SteinWerten existiert. Ergänze die Action VerbleibendeSteine: Zähle in der TObjectList Steine die Records mit zerstoert=false und speichere die Anzahl in Reststeine. Gib nur agent-Aufrufe aus.
+GCS AgentController: Ergänze NeuesSpiel um ResetListe. Setze bei allen Mitgliedern von Steine das Record-Feld zerstoert auf false. Die Punktewerte sollen erhalten bleiben. Gib nur agent-Aufrufe aus.
+GCS AgentController: Verbinde in stage_main onCollision der vorhandenen Sprites Stein_1_1 und Stein_1_2 mit dem gemeinsamen vorhandenen Task SteinTreffer. Gib nur agent-Aufrufe aus.

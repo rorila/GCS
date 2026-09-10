@@ -1,0 +1,2539 @@
+{
+  "meta": {
+    "id": "gcs-cms-admin",
+    "name": "GCS-CMS-Verwaltung",
+    "version": "0.2.0"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "backgroundColor": "#122b39"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Verwaltungsdienste",
+      "type": "blueprint",
+      "objects": [],
+      "tasks": [
+        {
+          "name": "RaeumeTask",
+          "description": "Räume anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Raeume_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "541c9f44-7532-47b2-8f9c-37c2eae268ff"
+        },
+        {
+          "name": "SpieleTask",
+          "description": "Spielefreigaben des Raumes anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spielefreigaben_des_Raumes_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "0416b2bf-62a9-4f86-b908-796a36692240"
+        },
+        {
+          "name": "MitgliederTask",
+          "description": "Raummitglieder anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Raummitglieder_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "e486d422-c049-4f6c-8d8b-2b83fccaf813"
+        },
+        {
+          "name": "Laden",
+          "description": "Ausgewählte Liste vom Server laden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Ausgewaehlte_Liste_vom_Server_laden__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Ausgewaehlte_Liste_vom_Server_laden__Server_Ausgewaehlte_Liste_vom_Server_laden"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Zeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "060279c0-1d1e-4d64-b014-960d6c5b78e8"
+        },
+        {
+          "name": "Zeigen",
+          "description": "Geladene Einträge anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Geladene_Eintraege_anzeigen__Listenkarten_Und_Status_Aktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "40bed40d-99e4-47cb-9129-f7334f3d1b96"
+        },
+        {
+          "name": "Fehler",
+          "description": "Fehlermeldung anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Fehlermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "54882351-71ff-412b-a6bc-19baf7a78c4d"
+        },
+        {
+          "name": "Waehlen",
+          "description": "Ausgewählten Eintrag zuordnen",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Modus == rooms",
+              "condition": {
+                "variable": "Modus",
+                "operator": "==",
+                "value": "rooms"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "WaehleRaum"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Aendern"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "bc429ccd-a988-4e14-8cf0-2191e6a68cef"
+        },
+        {
+          "name": "WaehleRaum",
+          "description": "Raum zur Bearbeitung auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Raum_zur_Bearbeitung_auswaehlen__Eingabe_Und_Auswahl_Aktualisieren"
+            },
+            {
+              "type": "task",
+              "name": "SpieleTask"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "7d85b98c-1cab-41dd-b97d-6d655d14915e"
+        },
+        {
+          "name": "Aendern",
+          "description": "Freigabe oder Mitgliedschaft umschalten",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Modus == games",
+              "condition": {
+                "variable": "Modus",
+                "operator": "==",
+                "value": "games"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Grant"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Member"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "ea566051-0cc4-4eaa-9713-e7c4b17724f9"
+        },
+        {
+          "name": "Grant",
+          "description": "Spielfreigabe speichern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spielfreigabe_speichern__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Spielfreigabe_speichern__Server_Spielfreigabe_Speichern"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Gespeichert"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "58e239c3-c787-410f-a9c8-42ac8bf03da3"
+        },
+        {
+          "name": "Member",
+          "description": "Raummitgliedschaft speichern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Raummitgliedschaft_speichern__Eingabe_Und_Auswahl_Aktualisieren"
+            },
+            {
+              "type": "action",
+              "name": "Act_Raummitgliedschaft_speichern__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Raummitgliedschaft_speichern__Server_Raummitgliedschaft_speichern"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Gespeichert"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "59b5c0c2-fc67-417e-a994-0b51af2a5c64"
+        },
+        {
+          "name": "Gespeichert",
+          "description": "Änderung bestätigen und Liste aktualisieren",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "e87a2420-f637-45f4-b6ca-54a84cbe91a2"
+        },
+        {
+          "name": "BackupTask",
+          "description": "Raumsicherung erstellen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Raumsicherung_erstellen__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Raumsicherung_erstellen__Server_Raumsicherung_Erstellen"
+            },
+            {
+              "type": "task",
+              "name": "Meldung"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "20f545f5-1511-422a-9908-1d6f539febd5"
+        },
+        {
+          "name": "RestoreTask",
+          "description": "Wiederherstellung zur Bestätigung vormerken",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Wiederherstellung_zur_Bestaetigung_vormerken__Bestaetigung_Anfordern"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "dff47686-2dce-482a-a10f-aa5408a3b4b9"
+        },
+        {
+          "name": "ConfirmTask",
+          "description": "Raumsicherung nach Bestätigung wiederherstellen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Raumsicherung_nach_Bestaetigung_wiederherstellen__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Raumsicherung_nach_Bestaetigung_wiederherstellen__Server_Raumsicherung_Wiederherstellen"
+            },
+            {
+              "type": "task",
+              "name": "Meldung"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "74b2a530-7e8a-44fd-83d1-6026457f1ec7"
+        },
+        {
+          "name": "Meldung",
+          "description": "Servermeldung anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Servermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "110a016f-7886-4b13-b9f4-f75ba5ba35fb"
+        },
+        {
+          "name": "CodeTask",
+          "description": "Emoji-Code der ausgewählten Person speichern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Emoji_Code_der_ausgewaehlten_Person_speichern__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Emoji_Code_der_ausgewaehlten_Person_speichern__Server_EmojiCode_Speichern"
+            },
+            {
+              "type": "task",
+              "name": "Meldung"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "2d93fcbe-4dd9-412d-9782-5ccedd742577"
+        },
+        {
+          "name": "LogoutTask",
+          "description": "Verwaltungssitzung beenden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Verwaltungssitzung_beenden__Eingabe_Sperren_Und_Warten_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Verwaltungssitzung_beenden__Server_Sitzung_Beenden"
+            },
+            {
+              "type": "task",
+              "name": "Ende"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "176be631-0421-42a1-a235-29bcd26486b7"
+        },
+        {
+          "name": "Ende",
+          "description": "Abmeldung anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Abmeldung_anzeigen__Listenkarten_Und_Status_Aktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "a56cec19-3f50-4905-88d1-95d7402b210a"
+        },
+        {
+          "name": "VorherTask",
+          "description": "Vorherige Listenseite anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Vorherige_Listenseite_anzeigen__Vorherige_Seitennummer_Berechnen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "fa9aee39-67e8-4c05-9a08-7847acfc6d80"
+        },
+        {
+          "name": "WeiterTask",
+          "description": "Nächste Listenseite anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Naechste_Listenseite_anzeigen__Naechste_Seitennummer_Berechnen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "3280654d-08ee-42cf-973c-35f12f5fc36c"
+        },
+        {
+          "name": "Select0",
+          "description": "Listeneintrag 1 auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Listeneintrag_1_auswaehlen__Gewaehlten_Eintrag_Merken"
+            },
+            {
+              "type": "task",
+              "name": "Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "4b516197-2eec-49c2-a9d9-ac4da4ecf8c3"
+        },
+        {
+          "name": "Select1",
+          "description": "Listeneintrag 2 auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Listeneintrag_2_auswaehlen__Gewaehlten_Eintrag_Merken"
+            },
+            {
+              "type": "task",
+              "name": "Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "d641e7d9-604c-46e2-b3ad-7dc994e23c73"
+        },
+        {
+          "name": "Select2",
+          "description": "Listeneintrag 3 auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Listeneintrag_3_auswaehlen__Gewaehlten_Eintrag_Merken"
+            },
+            {
+              "type": "task",
+              "name": "Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "ba2af9f2-ea42-4aad-ac61-0fb48be292de"
+        },
+        {
+          "name": "Select3",
+          "description": "Listeneintrag 4 auswählen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Listeneintrag_4_auswaehlen__Gewaehlten_Eintrag_Merken"
+            },
+            {
+              "type": "task",
+              "name": "Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "62debf4b-b838-4744-af74-9387962e79be"
+        },
+        {
+          "name": "Sperre_Raeume",
+          "description": "Doppeleingabe verhindern: Raeume",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RaeumeTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "bcda0f5b-c2f7-439a-bfdb-d5d959544cf2"
+        },
+        {
+          "name": "Sperre_Spiele",
+          "description": "Doppeleingabe verhindern: Spiele",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SpieleTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "a64ec178-8b4f-40dd-aba5-bf4005b25b0d"
+        },
+        {
+          "name": "Sperre_Mitglieder",
+          "description": "Doppeleingabe verhindern: Mitglieder",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "MitgliederTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "f9586697-fd8b-4ccb-9d08-57c8eb164458"
+        },
+        {
+          "name": "Sperre_Backup",
+          "description": "Doppeleingabe verhindern: Backup",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "BackupTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "93ee95a6-fccb-4983-b547-b35f6081d2fa"
+        },
+        {
+          "name": "Sperre_Restore",
+          "description": "Doppeleingabe verhindern: Restore",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RestoreTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "d4879676-db55-44c7-93e5-c1dcd61e6870"
+        },
+        {
+          "name": "Sperre_Confirm",
+          "description": "Doppeleingabe verhindern: Confirm",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "ConfirmTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "efe4ee6c-2eb2-42a5-ab26-082a7734c6a4"
+        },
+        {
+          "name": "Sperre_CodeSave",
+          "description": "Doppeleingabe verhindern: CodeSave",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "CodeTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "c5853065-c4c3-4df4-8207-cde22ed572e7"
+        },
+        {
+          "name": "Sperre_Logout",
+          "description": "Doppeleingabe verhindern: Logout",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "LogoutTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "a042f5a8-e6ab-4117-806e-105a4f730b49"
+        },
+        {
+          "name": "Sperre_Vorher",
+          "description": "Doppeleingabe verhindern: Vorher",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "VorherTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "fa1e3724-4615-419c-8911-a95a64d8e203"
+        },
+        {
+          "name": "Sperre_Weiter",
+          "description": "Doppeleingabe verhindern: Weiter",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "WeiterTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "e4238238-0c43-47bb-9b46-22c36ab4e62f"
+        },
+        {
+          "name": "Sperre_Karte0",
+          "description": "Doppeleingabe verhindern: Karte0",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Select0"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "76dfd5ae-1a43-4a21-85b5-90a83884e7e7"
+        },
+        {
+          "name": "Sperre_Karte1",
+          "description": "Doppeleingabe verhindern: Karte1",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Select1"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "e5ff8242-9307-4695-a565-5733c496136d"
+        },
+        {
+          "name": "Sperre_Karte2",
+          "description": "Doppeleingabe verhindern: Karte2",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Select2"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "b6c018f4-a41f-4858-99d8-fc2e98c968ee"
+        },
+        {
+          "name": "Sperre_Karte3",
+          "description": "Doppeleingabe verhindern: Karte3",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Select3"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "e28d362b-f911-4333-93cd-94da14b86eb5"
+        }
+      ],
+      "actions": [
+        {
+          "id": "d2641f67-d564-437a-91c5-9d4320d148f0",
+          "name": "Act_Raeume_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+          "type": "property",
+          "changes": {
+            "Modus": "rooms",
+            "Seite": 0,
+            "Confirm.visible": false,
+            "CodeInfo.visible": true
+          }
+        },
+        {
+          "id": "ea29de53-6a4e-429b-9cec-342f3255bbcc",
+          "name": "Act_Spielefreigaben_des_Raumes_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+          "type": "property",
+          "changes": {
+            "Modus": "games",
+            "Seite": 0,
+            "Confirm.visible": false,
+            "CodeInfo.visible": true
+          }
+        },
+        {
+          "id": "94b44865-e199-4473-bf3e-43d6e481ceb6",
+          "name": "Act_Raummitglieder_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+          "type": "property",
+          "changes": {
+            "Modus": "members",
+            "Seite": 0,
+            "Confirm.visible": false,
+            "CodeInfo.visible": true
+          }
+        },
+        {
+          "id": "87001b11-63e1-464d-b6f1-f478fc9ca74b",
+          "name": "Act_Ausgewaehlte_Liste_vom_Server_laden__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …"
+          }
+        },
+        {
+          "id": "9e55c058-a036-4c70-bc78-559bf367aefa",
+          "name": "Act_Ausgewaehlte_Liste_vom_Server_laden__Server_Ausgewaehlte_Liste_vom_Server_laden",
+          "type": "http",
+          "url": "/api/cms/admin/${Modus}",
+          "method": "POST",
+          "body": "{\"areaId\":\"${Raum}\",\"page\":\"${Seite}\"}",
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "1485d7cc-6b4a-457e-9729-e268e6f3bb47",
+          "name": "Act_Geladene_Eintraege_anzeigen__Listenkarten_Und_Status_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${Antwort.message}",
+            "Seite": "${Antwort.page}",
+            "Seiten": "${Antwort.pages}",
+            "Karte0.text": "${Antwort.slot0.label}",
+            "Karte0.visible": "${Antwort.slot0.visible}",
+            "Slot0": "${Antwort.slot0.id}",
+            "Next0": "${Antwort.slot0.next}",
+            "Karte1.text": "${Antwort.slot1.label}",
+            "Karte1.visible": "${Antwort.slot1.visible}",
+            "Slot1": "${Antwort.slot1.id}",
+            "Next1": "${Antwort.slot1.next}",
+            "Karte2.text": "${Antwort.slot2.label}",
+            "Karte2.visible": "${Antwort.slot2.visible}",
+            "Slot2": "${Antwort.slot2.id}",
+            "Next2": "${Antwort.slot2.next}",
+            "Karte3.text": "${Antwort.slot3.label}",
+            "Karte3.visible": "${Antwort.slot3.visible}",
+            "Slot3": "${Antwort.slot3.id}",
+            "Next3": "${Antwort.slot3.next}"
+          }
+        },
+        {
+          "id": "f99b55a0-14ee-4356-9352-3098e22dac1d",
+          "name": "Act_Fehlermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${Antwort.message}"
+          }
+        },
+        {
+          "id": "45a666b5-a4c0-4884-85be-84e5fa506d25",
+          "name": "Act_Servermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${Antwort.message}",
+            "Confirm.visible": false,
+            "CodeInfo.visible": true
+          }
+        },
+        {
+          "id": "f3e6f150-6bfb-40c7-9675-e6ff31ba89e0",
+          "name": "Act_Listeneintrag_1_auswaehlen__Gewaehlten_Eintrag_Merken",
+          "type": "property",
+          "changes": {
+            "Auswahl": "${Slot0}",
+            "Ziel": "${Next0}"
+          }
+        },
+        {
+          "id": "9af7c0de-224f-443f-88e4-13ed71a9cc44",
+          "name": "Act_Listeneintrag_2_auswaehlen__Gewaehlten_Eintrag_Merken",
+          "type": "property",
+          "changes": {
+            "Auswahl": "${Slot1}",
+            "Ziel": "${Next1}"
+          }
+        },
+        {
+          "id": "bc305b74-d90a-4927-a2ce-18fad85d728c",
+          "name": "Act_Listeneintrag_3_auswaehlen__Gewaehlten_Eintrag_Merken",
+          "type": "property",
+          "changes": {
+            "Auswahl": "${Slot2}",
+            "Ziel": "${Next2}"
+          }
+        },
+        {
+          "id": "723ed677-6bfc-4f41-a3c4-5117ca23946c",
+          "name": "Act_Listeneintrag_4_auswaehlen__Gewaehlten_Eintrag_Merken",
+          "type": "property",
+          "changes": {
+            "Auswahl": "${Slot3}",
+            "Ziel": "${Next3}"
+          }
+        },
+        {
+          "id": "faf4d81d-eb0c-46e8-adb0-7d6a42f2bd19",
+          "name": "Act_Raum_zur_Bearbeitung_auswaehlen__Eingabe_Und_Auswahl_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Raum": "${Auswahl}"
+          }
+        },
+        {
+          "id": "f5cd7830-d109-4718-b086-37a13d8a42fe",
+          "name": "Act_Spielfreigabe_speichern__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …"
+          }
+        },
+        {
+          "id": "be267e9e-5f78-40e8-9304-1e30d591d6a4",
+          "name": "Act_Spielfreigabe_speichern__Server_Spielfreigabe_Speichern",
+          "type": "http",
+          "url": "/api/cms/admin/grant",
+          "method": "POST",
+          "body": "{\"areaId\":\"${Raum}\",\"id\":\"${Auswahl}\",\"active\":\"${Ziel}\"}",
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "092fb020-2965-46d1-b6b2-c12987c95e53",
+          "name": "Act_Raummitgliedschaft_speichern__Eingabe_Und_Auswahl_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Person.text": "${Auswahl}"
+          }
+        },
+        {
+          "id": "b2508ecc-39a4-4199-a4b6-93a242c338ed",
+          "name": "Act_Raummitgliedschaft_speichern__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …"
+          }
+        },
+        {
+          "id": "4892c897-307c-4c76-93fe-968728c27026",
+          "name": "Act_Raummitgliedschaft_speichern__Server_Raummitgliedschaft_speichern",
+          "type": "http",
+          "url": "/api/cms/admin/membership",
+          "method": "POST",
+          "body": "{\"areaId\":\"${Raum}\",\"id\":\"${Auswahl}\",\"active\":\"${Ziel}\"}",
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "3ef7703d-4400-4532-8c3d-0ea14d999b3d",
+          "name": "Act_Raumsicherung_erstellen__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …"
+          }
+        },
+        {
+          "id": "e5315cbc-9e27-4f60-9ec8-c98748e46316",
+          "name": "Act_Raumsicherung_erstellen__Server_Raumsicherung_Erstellen",
+          "type": "http",
+          "url": "/api/cms/admin/backup",
+          "method": "POST",
+          "body": "{\"areaId\":\"${Raum}\"}",
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "7fcbcb28-20a5-49a3-b4d0-28437d7beef1",
+          "name": "Act_Wiederherstellung_zur_Bestaetigung_vormerken__Bestaetigung_Anfordern",
+          "type": "property",
+          "changes": {
+            "Confirm.visible": true,
+            "CodeInfo.visible": false
+          }
+        },
+        {
+          "id": "d34ad219-2b0e-4b12-8b4c-1528349db67a",
+          "name": "Act_Raumsicherung_nach_Bestaetigung_wiederherstellen__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …"
+          }
+        },
+        {
+          "id": "d9f3b071-545e-414f-b333-30973da73c52",
+          "name": "Act_Raumsicherung_nach_Bestaetigung_wiederherstellen__Server_Raumsicherung_Wiederherstellen",
+          "type": "http",
+          "url": "/api/cms/admin/restore",
+          "method": "POST",
+          "body": "{\"areaId\":\"${Raum}\",\"confirm\":true}",
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "0ffae0d5-d95e-4a01-9b31-53e9ff17003d",
+          "name": "Act_Emoji_Code_der_ausgewaehlten_Person_speichern__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …"
+          }
+        },
+        {
+          "id": "6d425f44-9e6a-4384-80dd-20b24ff4a1e9",
+          "name": "Act_Emoji_Code_der_ausgewaehlten_Person_speichern__Server_EmojiCode_Speichern",
+          "type": "http",
+          "url": "/api/cms/admin/code",
+          "method": "POST",
+          "body": "{\"areaId\":\"${Raum}\",\"id\":\"${Person.text}\",\"sequenceText\":\"${Code.text}\"}",
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "bee3048b-4043-4a50-b0c9-e51890e4cd14",
+          "name": "Act_Verwaltungssitzung_beenden__Eingabe_Sperren_Und_Warten_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Bitte warten …"
+          }
+        },
+        {
+          "id": "fd5b1442-8fbf-4dcd-8a43-da3ca704bdac",
+          "name": "Act_Verwaltungssitzung_beenden__Server_Sitzung_Beenden",
+          "type": "http",
+          "url": "/api/cms/admin/logout",
+          "method": "POST",
+          "body": "{}",
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "f03b3d55-b33f-46cd-ae3c-60e1aa817f76",
+          "name": "Act_Abmeldung_anzeigen__Listenkarten_Und_Status_Aktualisieren",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "Abgemeldet. Zum Anmelden oben Verwaltung wählen.",
+            "Karte0.visible": false,
+            "Karte1.visible": false,
+            "Karte2.visible": false,
+            "Karte3.visible": false
+          }
+        },
+        {
+          "id": "919b56de-7820-4813-b237-fb56855bc815",
+          "name": "Act_Vorherige_Listenseite_anzeigen__Vorherige_Seitennummer_Berechnen",
+          "type": "calculate",
+          "formula": "Math.max(0, Seite - 1)",
+          "resultVariable": "Seite"
+        },
+        {
+          "id": "91850660-bf73-446e-bb28-77859b3616bc",
+          "name": "Act_Naechste_Listenseite_anzeigen__Naechste_Seitennummer_Berechnen",
+          "type": "calculate",
+          "formula": "Math.min(Math.max(0, Seiten - 1), Seite + 1)",
+          "resultVariable": "Seite"
+        }
+      ],
+      "variables": [
+        {
+          "name": "Modus",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "rooms",
+          "defaultValue": "rooms",
+          "value": "rooms",
+          "scope": "global",
+          "id": "admin_var_Modus"
+        },
+        {
+          "name": "Raum",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "admin_var_Raum"
+        },
+        {
+          "name": "Seite",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "admin_var_Seite"
+        },
+        {
+          "name": "Seiten",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "admin_var_Seiten"
+        },
+        {
+          "name": "Busy",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "admin_var_Busy"
+        },
+        {
+          "name": "Auswahl",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "admin_var_Auswahl"
+        },
+        {
+          "name": "Ziel",
+          "type": "boolean",
+          "isVariable": true,
+          "className": "TBooleanVariable",
+          "initialValue": false,
+          "defaultValue": false,
+          "value": false,
+          "scope": "global",
+          "id": "admin_var_Ziel"
+        },
+        {
+          "name": "Slot0",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "admin_var_Slot0"
+        },
+        {
+          "name": "Slot1",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "admin_var_Slot1"
+        },
+        {
+          "name": "Slot2",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "admin_var_Slot2"
+        },
+        {
+          "name": "Slot3",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "admin_var_Slot3"
+        },
+        {
+          "name": "Next0",
+          "type": "boolean",
+          "isVariable": true,
+          "className": "TBooleanVariable",
+          "initialValue": false,
+          "defaultValue": false,
+          "value": false,
+          "scope": "global",
+          "id": "admin_var_Next0"
+        },
+        {
+          "name": "Next1",
+          "type": "boolean",
+          "isVariable": true,
+          "className": "TBooleanVariable",
+          "initialValue": false,
+          "defaultValue": false,
+          "value": false,
+          "scope": "global",
+          "id": "admin_var_Next1"
+        },
+        {
+          "name": "Next2",
+          "type": "boolean",
+          "isVariable": true,
+          "className": "TBooleanVariable",
+          "initialValue": false,
+          "defaultValue": false,
+          "value": false,
+          "scope": "global",
+          "id": "admin_var_Next2"
+        },
+        {
+          "name": "Next3",
+          "type": "boolean",
+          "isVariable": true,
+          "className": "TBooleanVariable",
+          "initialValue": false,
+          "defaultValue": false,
+          "value": false,
+          "scope": "global",
+          "id": "admin_var_Next3"
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Raumverwaltung",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "name": "Titel",
+          "x": 4,
+          "y": 3,
+          "width": 56,
+          "height": 2,
+          "text": "RAUMVERWALTUNG",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 28,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Titel"
+        },
+        {
+          "className": "TLabel",
+          "name": "Status",
+          "x": 4,
+          "y": 7,
+          "width": 56,
+          "height": 2,
+          "text": "Zuständigkeiten laden.",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 20,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Status"
+        },
+        {
+          "className": "TButton",
+          "name": "Raeume",
+          "x": 4,
+          "y": 10,
+          "width": 12,
+          "height": 3,
+          "text": "Meine Räume",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Raeume"
+          },
+          "id": "stage_main_Raeume"
+        },
+        {
+          "className": "TButton",
+          "name": "Spiele",
+          "x": 18,
+          "y": 10,
+          "width": 12,
+          "height": 3,
+          "text": "Spiele",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Spiele"
+          },
+          "id": "stage_main_Spiele"
+        },
+        {
+          "className": "TButton",
+          "name": "Mitglieder",
+          "x": 32,
+          "y": 10,
+          "width": 12,
+          "height": 3,
+          "text": "Mitglieder",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Mitglieder"
+          },
+          "id": "stage_main_Mitglieder"
+        },
+        {
+          "className": "TButton",
+          "name": "Logout",
+          "x": 46,
+          "y": 10,
+          "width": 12,
+          "height": 3,
+          "text": "Abmelden",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Logout"
+          },
+          "id": "stage_main_Logout"
+        },
+        {
+          "className": "TButton",
+          "name": "Karte0",
+          "x": 5,
+          "y": 15,
+          "width": 25,
+          "height": 3,
+          "text": "",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Karte0"
+          },
+          "id": "stage_main_Karte0"
+        },
+        {
+          "className": "TButton",
+          "name": "Karte1",
+          "x": 33,
+          "y": 15,
+          "width": 25,
+          "height": 3,
+          "text": "",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Karte1"
+          },
+          "id": "stage_main_Karte1"
+        },
+        {
+          "className": "TButton",
+          "name": "Karte2",
+          "x": 5,
+          "y": 20,
+          "width": 25,
+          "height": 3,
+          "text": "",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Karte2"
+          },
+          "id": "stage_main_Karte2"
+        },
+        {
+          "className": "TButton",
+          "name": "Karte3",
+          "x": 33,
+          "y": 20,
+          "width": 25,
+          "height": 3,
+          "text": "",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Karte3"
+          },
+          "id": "stage_main_Karte3"
+        },
+        {
+          "className": "TButton",
+          "name": "Vorher",
+          "x": 4,
+          "y": 25,
+          "width": 8,
+          "height": 3,
+          "text": "◀",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Vorher"
+          },
+          "id": "stage_main_Vorher"
+        },
+        {
+          "className": "TButton",
+          "name": "Weiter",
+          "x": 14,
+          "y": 25,
+          "width": 8,
+          "height": 3,
+          "text": "▶",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Weiter"
+          },
+          "id": "stage_main_Weiter"
+        },
+        {
+          "className": "TButton",
+          "name": "Backup",
+          "x": 27,
+          "y": 25,
+          "width": 13,
+          "height": 3,
+          "text": "Raum sichern",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Backup"
+          },
+          "id": "stage_main_Backup"
+        },
+        {
+          "className": "TButton",
+          "name": "Restore",
+          "x": 42,
+          "y": 25,
+          "width": 16,
+          "height": 3,
+          "text": "Wiederherstellen",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Restore"
+          },
+          "id": "stage_main_Restore"
+        },
+        {
+          "className": "TButton",
+          "name": "Confirm",
+          "x": 27,
+          "y": 29,
+          "width": 31,
+          "height": 3,
+          "text": "Sicherung wirklich wiederherstellen?",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_Confirm"
+          },
+          "id": "stage_main_Confirm"
+        },
+        {
+          "className": "TLabel",
+          "name": "CodeInfo",
+          "x": 4,
+          "y": 29,
+          "width": 56,
+          "height": 2,
+          "text": "Emoji ändern: Person-ID und 4 Bild-IDs, z. B. dog,tree,house,elephant",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 12,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_CodeInfo"
+        },
+        {
+          "className": "TEdit",
+          "name": "Person",
+          "x": 4,
+          "y": 32,
+          "width": 16,
+          "height": 2.5,
+          "text": "",
+          "placeholder": "Person-ID",
+          "maxLength": 120,
+          "id": "stage_main_Person"
+        },
+        {
+          "className": "TEdit",
+          "name": "Code",
+          "x": 22,
+          "y": 32,
+          "width": 27,
+          "height": 2.5,
+          "text": "",
+          "placeholder": "dog,tree,house,elephant",
+          "maxLength": 120,
+          "id": "stage_main_Code"
+        },
+        {
+          "className": "TButton",
+          "name": "CodeSave",
+          "x": 51,
+          "y": 32,
+          "width": 9,
+          "height": 3,
+          "text": "Speichern",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "events": {
+            "onClick": "Sperre_CodeSave"
+          },
+          "id": "stage_main_CodeSave"
+        },
+        {
+          "className": "TLabel",
+          "name": "Hilfe",
+          "x": 4,
+          "y": 36,
+          "width": 56,
+          "height": 2,
+          "text": "✓ = freigegeben/zugeordnet · Klick schaltet um. Personen-ID steht bei den Mitgliedern.",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 12,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Hilfe"
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      },
+      "startAnimation": "none",
+      "features": [
+        {
+          "id": "cms_workflow_area_Listen_und_Auswahl",
+          "name": "Listen und Auswahl",
+          "description": "Zusammengehörige Arbeitsschritte",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "cms_workflow_area_Spiele_und_Mitglieder_verwalten",
+          "name": "Spiele und Mitglieder verwalten",
+          "description": "Zusammengehörige Arbeitsschritte",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "cms_workflow_area_Spielerzugang_verwalten",
+          "name": "Spielerzugang verwalten",
+          "description": "Zusammengehörige Arbeitsschritte",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "cms_workflow_area_Raumsicherungen_verwalten",
+          "name": "Raumsicherungen verwalten",
+          "description": "Zusammengehörige Arbeitsschritte",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "cms_workflow_area_Verwaltungszugang",
+          "name": "Verwaltungszugang",
+          "description": "Zusammengehörige Arbeitsschritte",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "cms_workflow_lists",
+          "name": "01 · Verwaltungsbereich auswählen",
+          "parentId": "cms_workflow_area_Listen_und_Auswahl",
+          "description": "Gewünschte Liste öffnen → Serverdaten laden → Einträge anzeigen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_lists_stage_main_Raeume_onClick",
+            "cms_workflow_lists_stage_main_Spiele_onClick",
+            "cms_workflow_lists_stage_main_Mitglieder_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Raeume",
+            "RaeumeTask",
+            "Laden",
+            "Zeigen",
+            "Fehler",
+            "Sperre_Spiele",
+            "SpieleTask",
+            "Sperre_Mitglieder",
+            "MitgliederTask"
+          ]
+        },
+        {
+          "id": "cms_workflow_select",
+          "name": "02 · Eintrag auswählen",
+          "parentId": "cms_workflow_area_Listen_und_Auswahl",
+          "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_select_stage_main_Karte0_onClick",
+            "cms_workflow_select_stage_main_Karte1_onClick",
+            "cms_workflow_select_stage_main_Karte2_onClick",
+            "cms_workflow_select_stage_main_Karte3_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Karte0",
+            "Select0",
+            "Waehlen",
+            "WaehleRaum",
+            "SpieleTask",
+            "Laden",
+            "Zeigen",
+            "Fehler",
+            "Aendern",
+            "Grant",
+            "Gespeichert",
+            "Member",
+            "Sperre_Karte1",
+            "Select1",
+            "Sperre_Karte2",
+            "Select2",
+            "Sperre_Karte3",
+            "Select3"
+          ]
+        },
+        {
+          "id": "cms_workflow_pages",
+          "name": "03 · In Listen blättern",
+          "parentId": "cms_workflow_area_Listen_und_Auswahl",
+          "description": "Seitennummer ändern → aktuelle Liste erneut laden.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_pages_stage_main_Vorher_onClick",
+            "cms_workflow_pages_stage_main_Weiter_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Vorher",
+            "VorherTask",
+            "Laden",
+            "Zeigen",
+            "Fehler",
+            "Sperre_Weiter",
+            "WeiterTask"
+          ]
+        },
+        {
+          "id": "cms_workflow_access",
+          "name": "01 · Freigabe oder Mitgliedschaft ändern",
+          "parentId": "cms_workflow_area_Spiele_und_Mitglieder_verwalten",
+          "description": "Spiel oder Mitglied in der Liste auswählen → Status umschalten → Änderung speichern.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_access_Aendern",
+            "cms_workflow_access_Grant",
+            "cms_workflow_access_Member",
+            "cms_workflow_access_Gespeichert"
+          ],
+          "blueprintTaskNames": [
+            "Aendern",
+            "Grant",
+            "Member",
+            "Gespeichert"
+          ]
+        },
+        {
+          "id": "cms_workflow_emoji",
+          "name": "01 · Emoji-Code ändern",
+          "parentId": "cms_workflow_area_Spielerzugang_verwalten",
+          "description": "Person auswählen → neuen Emoji-Code eingeben → serverseitig prüfen und speichern.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_emoji_stage_main_CodeSave_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_CodeSave",
+            "CodeTask",
+            "Meldung"
+          ]
+        },
+        {
+          "id": "cms_workflow_backup",
+          "name": "01 · Raum sichern",
+          "parentId": "cms_workflow_area_Raumsicherungen_verwalten",
+          "description": "Ausgewählten Raum sichern → Ergebnis anzeigen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_backup_stage_main_Backup_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Backup",
+            "BackupTask",
+            "Meldung"
+          ]
+        },
+        {
+          "id": "cms_workflow_restore",
+          "name": "02 · Raum wiederherstellen",
+          "parentId": "cms_workflow_area_Raumsicherungen_verwalten",
+          "description": "Wiederherstellung anfordern → ausdrücklich bestätigen → Sicherung übernehmen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_restore_stage_main_Restore_onClick",
+            "cms_workflow_restore_stage_main_Confirm_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Restore",
+            "RestoreTask",
+            "Sperre_Confirm",
+            "ConfirmTask",
+            "Meldung"
+          ]
+        },
+        {
+          "id": "cms_workflow_logout",
+          "name": "01 · Verwaltung abmelden",
+          "parentId": "cms_workflow_area_Verwaltungszugang",
+          "description": "Verwaltungssitzung beenden → Abmeldehinweis anzeigen.",
+          "tags": [
+            "CMS"
+          ],
+          "userStoryIds": [
+            "cms_workflow_logout_stage_main_Logout_onClick"
+          ],
+          "blueprintTaskNames": [
+            "Sperre_Logout",
+            "LogoutTask",
+            "Ende"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "cms_workflow_lists_stage_main_Raeume_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Meine Räume – Verwaltungsbereich auswählen",
+        "description": "Gewünschte Liste öffnen → Serverdaten laden → Einträge anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Raeume"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Raeume_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Raeume",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Raeume",
+        "featureId": "cms_workflow_lists"
+      },
+      {
+        "id": "cms_workflow_lists_stage_main_Spiele_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Spiele – Verwaltungsbereich auswählen",
+        "description": "Gewünschte Liste öffnen → Serverdaten laden → Einträge anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Spiele"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Spiele_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Spiele",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Spiele",
+        "featureId": "cms_workflow_lists"
+      },
+      {
+        "id": "cms_workflow_lists_stage_main_Mitglieder_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Mitglieder – Verwaltungsbereich auswählen",
+        "description": "Gewünschte Liste öffnen → Serverdaten laden → Einträge anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Mitglieder"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Mitglieder_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Mitglieder",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Mitglieder",
+        "featureId": "cms_workflow_lists"
+      },
+      {
+        "id": "cms_workflow_select_stage_main_Karte0_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Eintrag 1 auswählen",
+        "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Karte0"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Karte0_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Karte0",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Karte0",
+        "featureId": "cms_workflow_select"
+      },
+      {
+        "id": "cms_workflow_select_stage_main_Karte1_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Eintrag 2 auswählen",
+        "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Karte1"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Karte1_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Karte1",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Karte1",
+        "featureId": "cms_workflow_select"
+      },
+      {
+        "id": "cms_workflow_select_stage_main_Karte2_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Eintrag 3 auswählen",
+        "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Karte2"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Karte2_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Karte2",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Karte2",
+        "featureId": "cms_workflow_select"
+      },
+      {
+        "id": "cms_workflow_select_stage_main_Karte3_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Eintrag 4 auswählen",
+        "description": "Eintrag auswählen → Haus/Raum übernehmen oder eine Zuweisungsänderung vormerken.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Karte3"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Karte3_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Karte3",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Karte3",
+        "featureId": "cms_workflow_select"
+      },
+      {
+        "id": "cms_workflow_pages_stage_main_Vorher_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "◀ – In Listen blättern",
+        "description": "Seitennummer ändern → aktuelle Liste erneut laden.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Vorher"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Vorher_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Vorher",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Vorher",
+        "featureId": "cms_workflow_pages"
+      },
+      {
+        "id": "cms_workflow_pages_stage_main_Weiter_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "▶ – In Listen blättern",
+        "description": "Seitennummer ändern → aktuelle Liste erneut laden.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Weiter"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Weiter_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Weiter",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Weiter",
+        "featureId": "cms_workflow_pages"
+      },
+      {
+        "id": "cms_workflow_access_Aendern",
+        "projectId": "gcs-cms-admin",
+        "title": "Freigabe oder Mitgliedschaft umschalten",
+        "description": "Spiel oder Mitglied in der Liste auswählen → Status umschalten → Änderung speichern.",
+        "acceptanceCriteria": [],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_task_Aendern"
+          }
+        ],
+        "plannedEvent": "task",
+        "plannedTask": "Aendern",
+        "featureId": "cms_workflow_access"
+      },
+      {
+        "id": "cms_workflow_access_Grant",
+        "projectId": "gcs-cms-admin",
+        "title": "Spielfreigabe speichern",
+        "description": "Spiel oder Mitglied in der Liste auswählen → Status umschalten → Änderung speichern.",
+        "acceptanceCriteria": [],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_task_Grant"
+          }
+        ],
+        "plannedEvent": "task",
+        "plannedTask": "Grant",
+        "featureId": "cms_workflow_access"
+      },
+      {
+        "id": "cms_workflow_access_Member",
+        "projectId": "gcs-cms-admin",
+        "title": "Raummitgliedschaft speichern",
+        "description": "Spiel oder Mitglied in der Liste auswählen → Status umschalten → Änderung speichern.",
+        "acceptanceCriteria": [],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_task_Member"
+          }
+        ],
+        "plannedEvent": "task",
+        "plannedTask": "Member",
+        "featureId": "cms_workflow_access"
+      },
+      {
+        "id": "cms_workflow_access_Gespeichert",
+        "projectId": "gcs-cms-admin",
+        "title": "Änderung bestätigen und Liste aktualisieren",
+        "description": "Spiel oder Mitglied in der Liste auswählen → Status umschalten → Änderung speichern.",
+        "acceptanceCriteria": [],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_task_Gespeichert"
+          }
+        ],
+        "plannedEvent": "task",
+        "plannedTask": "Gespeichert",
+        "featureId": "cms_workflow_access"
+      },
+      {
+        "id": "cms_workflow_emoji_stage_main_CodeSave_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Speichern – Emoji-Code ändern",
+        "description": "Person auswählen → neuen Emoji-Code eingeben → serverseitig prüfen und speichern.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "CodeSave"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_CodeSave_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "CodeSave",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_CodeSave",
+        "featureId": "cms_workflow_emoji"
+      },
+      {
+        "id": "cms_workflow_backup_stage_main_Backup_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Raum sichern – Raum sichern",
+        "description": "Ausgewählten Raum sichern → Ergebnis anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Backup"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Backup_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Backup",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Backup",
+        "featureId": "cms_workflow_backup"
+      },
+      {
+        "id": "cms_workflow_restore_stage_main_Restore_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Wiederherstellen – Raum wiederherstellen",
+        "description": "Wiederherstellung anfordern → ausdrücklich bestätigen → Sicherung übernehmen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Restore"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Restore_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Restore",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Restore",
+        "featureId": "cms_workflow_restore"
+      },
+      {
+        "id": "cms_workflow_restore_stage_main_Confirm_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Sicherung wirklich wiederherstellen? – Raum wiederherstellen",
+        "description": "Wiederherstellung anfordern → ausdrücklich bestätigen → Sicherung übernehmen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Confirm"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Confirm_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Confirm",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Confirm",
+        "featureId": "cms_workflow_restore"
+      },
+      {
+        "id": "cms_workflow_logout_stage_main_Logout_onClick",
+        "projectId": "gcs-cms-admin",
+        "title": "Abmelden – Verwaltung abmelden",
+        "description": "Verwaltungssitzung beenden → Abmeldehinweis anzeigen.",
+        "acceptanceCriteria": [
+          "Die zugeordnete Aktion wird ausgeführt; Serverfehler werden angezeigt."
+        ],
+        "priority": "medium",
+        "status": "completed",
+        "relatedComponents": [
+          "Logout"
+        ],
+        "relatedVariables": [],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "interactions": [
+          {
+            "id": "interaction_stage_main_Logout_onClick"
+          }
+        ],
+        "plannedComponent": {
+          "name": "Logout",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Sperre_Logout",
+        "featureId": "cms_workflow_logout"
+      }
+    ]
+  }
+}

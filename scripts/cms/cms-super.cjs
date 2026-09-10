@@ -1,0 +1,42 @@
+const crypto=require('node:crypto'),fs=require('node:fs');
+const {areaActive}=require('./cms-core.cjs');
+const isSuper=(db,s)=>s?.assurance==='admin'&&db.people.some(p=>p.id===s.personId&&p.active)&&areaActive(db,'root')&&db.roles.some(r=>r.personId===s.personId&&r.role==='superAdmin'&&r.areaId==='root'&&r.active);
+function superApi(core,s,route,b,commit,credentialPath){
+ if(!route.startsWith('super-'))return null;const ok=data=>({status:200,data:{ok:true,...data}}),fail=(status,message)=>({status,data:{ok:false,message}});if(!isSuper(core.db,s))return fail(403,'SuperAdmin-Zuständigkeit erforderlich.');
+ const text=v=>typeof v==='string'&&v.trim().length>0&&v.trim().length<=60&&!/[\x00-\x1f<>]/.test(v)?v.trim():null;
+ const houses=core.db.areas.filter(a=>a.type==='house');
+ if(route==='super-houses')return ok({items:houses.map(h=>({id:h.id,name:h.name,label:h.name+(h.active?'':' · deaktiviert'),active:h.active})),message:'SuperAdmin · Häuser'});
+ if(route==='super-house-create'){
+  const name=text(b.name);if(!name)return fail(400,'Hausname erforderlich (max. 60 Zeichen).');if(houses.some(h=>h.name.toLowerCase()===name.toLowerCase()))return fail(409,'Hausname existiert bereits.');const id='house-'+crypto.randomUUID();commit(s,'house-create','root',next=>next.areas.push({id,name,type:'house',parentId:'root',active:true,avatar:'🏡'}));return ok({id,message:'Haus angelegt: '+name});
+ }
+ if(route==='super-person-create'){
+  const name=text(b.name);if(!name)return fail(400,'Anzeigename erforderlich.');const id='person-'+crypto.randomUUID();commit(s,'admin-person-create','root',next=>next.people.push({id,name,avatar:'👤',active:true}));return ok({id,message:'Person angelegt. Jetzt einem Haus zuweisen.'});
+ }
+ const house=houses.find(h=>h.id===b.houseId);if(!house)return fail(404,'Haus nicht gefunden.');
+ if(route==='super-house-update'){
+  const name=text(b.name);if(!name||typeof b.active!=='boolean')return fail(400,'Name und Zustand erforderlich.');if(houses.some(h=>h.id!==house.id&&h.name.toLowerCase()===name.toLowerCase()))return fail(409,'Hausname existiert bereits.');commit(s,'house-update',house.id,next=>Object.assign(next.areas.find(a=>a.id===house.id),{name,active:b.active}));return ok({message:'Haus gespeichert.'});
+ }
+ if(route==='super-admins')return ok({items:core.db.people.filter(p=>p.active).map(p=>({id:p.id,name:p.name,label:p.name,active:core.db.roles.some(r=>r.personId===p.id&&r.areaId===house.id&&r.role==='areaAdmin'&&r.active)})),message:house.name+' · HouseAdmins'});
+ if(route==='super-player-link')return ok({link:'/?house='+house.id,message:'Spieler-Link für dieses Haus.'});
+ const person=core.db.people.find(p=>p.id===b.personId&&p.active);if(!person)return fail(404,'Person nicht gefunden.');
+ if(route==='super-admin-set'){
+  if(b.confirm!==true||typeof b.active!=='boolean')return fail(400,'Zuweisung ausdrücklich bestätigen.');commit(s,'house-admin-set',house.id,next=>{let role=next.roles.find(r=>r.personId===person.id&&r.areaId===house.id&&r.role==='areaAdmin');if(!role){role={personId:person.id,areaId:house.id,role:'areaAdmin',active:false};next.roles.push(role);}role.active=b.active;});return ok({message:b.active?'HouseAdmin zugewiesen.':'HouseAdmin-Zuständigkeit entzogen.'});
+ }
+ if(route==='super-invite'){
+  if(!areaActive(core.db,house.id)||!core.db.roles.some(r=>r.personId===person.id&&r.areaId===house.id&&r.role==='areaAdmin'&&r.active))return fail(403,'Zuerst eine aktive HouseAdmin-Zuständigkeit vergeben.');
+  const credentials=fs.existsSync(credentialPath)?JSON.parse(fs.readFileSync(credentialPath,'utf8')):[];if(credentials.some(c=>c.personId===person.id))return fail(409,'Diese Person hat bereits einen Zugang. Bestehende Zugangsdaten weiterverwenden.');
+  const token=crypto.randomBytes(32).toString('hex');commit(s,'admin-invite',house.id,next=>{next.adminInvites=(next.adminInvites||[]).filter(i=>i.personId!==person.id);next.adminInvites.push({personId:person.id,houseId:house.id,issuer:s.personId,hash:crypto.createHash('sha256').update(token).digest('hex'),expires:Date.now()+86400000});});return ok({link:'/admin-enroll?ticket='+token,message:'Einrichtungslink erstellt; 24 Stunden gültig, einmal verwendbar.'});
+ }
+ return fail(404,'Unbekannte SuperAdmin-Aktion.');
+}
+function enroll(core,credentialPath,ticket,username,password,commit){
+ const fail=message=>({ok:false,message});if(!/^[a-f0-9]{64}$/.test(ticket||'')||!/^[a-zA-Z0-9_-]{3,40}$/.test(username||'')||typeof password!=='string'||password.length<12||password.length>200)return fail('Gültigen Link, Benutzernamen (3–40 Zeichen) und Passwort (12–200 Zeichen) angeben.');
+ const hash=crypto.createHash('sha256').update(ticket).digest('hex'),invite=(core.db.adminInvites||[]).find(i=>i.hash===hash&&i.expires>Date.now());
+ if(!invite||!isSuper(core.db,{personId:invite.issuer,assurance:'admin'})||!core.db.people.some(p=>p.id===invite.personId&&p.active)||!areaActive(core.db,invite.houseId)||!core.db.roles.some(r=>r.personId===invite.personId&&r.areaId===invite.houseId&&r.role==='areaAdmin'&&r.active))return fail('Link ist abgelaufen, verwendet oder nicht mehr freigegeben.');
+ const entries=fs.existsSync(credentialPath)?JSON.parse(fs.readFileSync(credentialPath,'utf8')):[];if(entries.some(c=>c.personId===invite.personId||c.username===username))return fail('Zugang besteht bereits oder Benutzername ist vergeben.');
+ const salt=crypto.randomBytes(16).toString('hex');entries.push({personId:invite.personId,username,salt,hash:crypto.scryptSync(password,salt,64).toString('hex')});
+ fs.writeFileSync(credentialPath+'.tmp',JSON.stringify(entries,null,2),{mode:0o600});fs.renameSync(credentialPath+'.tmp',credentialPath);
+ // Bereits gespeicherte Zugangsdaten verhindern auch bei einem nachfolgenden Audit-Fehler Wiederverwendung.
+ commit({personId:invite.personId},'admin-enrolled',invite.houseId,next=>{next.adminInvites=next.adminInvites.filter(i=>i.hash!==hash);});return {ok:true,message:'Zugang eingerichtet. Jetzt unter Verwaltung anmelden.'};
+}
+module.exports={superApi,enroll,isSuper};

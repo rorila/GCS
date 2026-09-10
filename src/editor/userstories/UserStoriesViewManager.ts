@@ -1,3 +1,5 @@
+import {canParentFeature} from '../../model/FeatureHierarchy';
+import {renderFeatureHierarchy} from './FeatureHierarchy';
 import type { IViewHost } from '../EditorViewManager';
 import { UserStoryExtractor } from './UserStoryExtractor';
 import type { UserStory } from './UserStoryTypes';
@@ -315,7 +317,8 @@ export class UserStoriesViewManager {
                 return nameA.localeCompare(nameB);
             });
 
-            const featureBlocks = featureEntries.map(([fid, f]) => {
+            const featureBlocks = renderFeatureHierarchy(featureEntries.map(([fid, f]) => {
+                const childCount = featureEntries.filter(([, entry]) => entry.feature?.parentId === fid).length;
                 const fName = f.feature?.name || 'Unbekanntes Feature';
                 const fDesc = f.feature?.description ? `<span style="color: #9090b0; font-size: 12px; margin-left: 8px;">${f.feature.description}</span>` : '';
                 const fTags = (f.feature?.tags || []).concat(f.feature?.keywords || []);
@@ -328,11 +331,11 @@ export class UserStoriesViewManager {
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px 8px 36px; background-color: #1e2a4a; border: 1px solid #2a3a6a; border-radius: 6px; margin: 4px 0 4px 12px;">
                         <div style="display:flex;align-items:center;gap:8px;">
                             <button onclick="window.toggleFeatureCollapse('${stage.id}', '${fid}')" style="padding:2px 6px;background:transparent;color:#ff9800;border:1px solid #ff9800;border-radius:4px;cursor:pointer;font-size:13px;" title='Use Cases dieses Features ein-/ausblenden'>${isCollapsed ? '▶' : '▼'}</button>
-                            <span style="font-size: 11px; font-weight: bold; color: #ff9800; text-transform: uppercase; letter-spacing: 1px;">Feature</span>
+                            <span style="font-size: 11px; font-weight: bold; color: #ff9800; text-transform: uppercase; letter-spacing: 1px;">${childCount ? 'Bereich' : 'Feature'}</span>
                             <span style="font-weight: bold; font-size: 13px; color: #ffffff;">${fName}</span>
                             ${fDesc}
                             ${fTagsHtml}
-                            <span style="font-size: 11px; color: #9090b0; margin-left: 8px;">(${f.userStories.length} User Stories)</span>
+                            <span style="font-size: 11px; color: #9090b0; margin-left: 8px;">(${childCount ? childCount + ' Features' : f.userStories.length + ' User Stories'})</span>
                         </div>
                         <div style="display:flex; gap:6px; flex-wrap: wrap; align-items: center;">
                             <button onclick="window.addSelectedInteractionsToFeature('${stage.id}', '${fid}')" style="padding: 3px 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;" title='Alle markierten Use Cases diesem Feature zuordnen'>+ UseCases</button>
@@ -342,8 +345,8 @@ export class UserStoriesViewManager {
                     </div>
                 `;
                 const rows = isCollapsed ? '' : filteredUserStories.map((us: any) => renderStoryRow(us, 'margin-left: 24px; border: 1px solid #2a3a6a; background-color: #0d1b2a;')).join('');
-                return fHeader + (!isCollapsed && rows ? `<div style="margin: 0 0 8px 36px; border-left: 3px solid #ff9800; padding-left: 0px;">${rows}</div>` : '');
-            }).join('');
+                return {id: fid, parentId: f.feature?.parentId, collapsed: isCollapsed, html: fHeader + (!isCollapsed && rows ? `<div style="margin: 0 0 8px 36px; border-left: 3px solid #ff9800; padding-left: 0px;">${rows}</div>` : '')};
+            }));
 
             const filteredUnassigned = unassigned.filter(filterPlanned).sort(sortPlanned);
             const unassignedHeader = filteredUnassigned.length > 0 ? `
@@ -1103,6 +1106,17 @@ export class UserStoriesViewManager {
         nameInput.placeholder = 'Feature-Name';
         nameInput.style.cssText = 'padding:8px 10px;background:#0d0d1f;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;font-size:14px;';
 
+        const parentLabel = document.createElement('label');
+        parentLabel.textContent = 'Übergeordneter Bereich (optional)';
+        const parentSelect = document.createElement('select');
+        parentSelect.setAttribute('aria-label', 'Übergeordneter Bereich');
+        parentSelect.style.cssText = nameInput.style.cssText;
+        parentSelect.add(new Option('Ohne übergeordneten Bereich', ''));
+        for (const candidate of stage?.features || []) {
+            if (canParentFeature(stage?.features || [], existing?.id || '', candidate.id)) parentSelect.add(new Option(candidate.name, candidate.id));
+        }
+        parentSelect.value = existing?.parentId || '';
+
         const descLabel = document.createElement('label');
         descLabel.textContent = 'Beschreibung';
         descLabel.style.cssText = 'font-size:13px;color:#9090b0;';
@@ -1152,6 +1166,7 @@ export class UserStoriesViewManager {
                 description,
                 tags,
                 keywords: tags.slice(),
+                parentId: parentSelect.value,
                 userStoryIds: existing?.userStoryIds || initialUserStoryIds || [],
                 blueprintTaskNames: existing?.blueprintTaskNames || []
             };
@@ -1175,6 +1190,8 @@ export class UserStoriesViewManager {
         dialog.appendChild(title);
         dialog.appendChild(nameLabel);
         dialog.appendChild(nameInput);
+        dialog.appendChild(parentLabel);
+        dialog.appendChild(parentSelect);
         dialog.appendChild(descLabel);
         dialog.appendChild(descInput);
         dialog.appendChild(tagsLabel);

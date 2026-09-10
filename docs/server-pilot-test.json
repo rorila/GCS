@@ -1,0 +1,27 @@
+{
+  "passed": 21,
+  "checks": [
+    "Bestehende Anmeldung funktioniert",
+    "Vorgangs-ID in Response",
+    "Anonymer Zugriff auf Serverwerte gesperrt",
+    "HouseAdmin sieht keine globalen Serverwerte",
+    "SuperAdmin kann Vorgang lesen",
+    "Request und Response protokolliert",
+    "Server-Innenschritte sichtbar",
+    "Zugangscode, Header und Token maskiert",
+    "Flow-Bezug vorhanden",
+    "Fehlversuch bleibt abgelehnt",
+    "Ungültige Eingabe nimmt Fehlerzweig",
+    "Gleichzeitige Vorgänge bleiben getrennt",
+    "Ohne Debug-Anforderung kein Trace-Header",
+    "Entfernte Authentifizierung wird zurückgewiesen",
+    "Diagnose abschaltbar",
+    "Alte Vorgänge verfallen",
+    "Native GCS-Anmeldung mit Tracing funktioniert",
+    "Client-Log enthält keinen Sitzungsschlüssel",
+    "Response-Werte im Viewer sichtbar",
+    "Logwerte erzeugen kein HTML",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": []
+}

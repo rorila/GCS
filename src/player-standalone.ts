@@ -1,3 +1,4 @@
+import {TDebugLog} from './components/TDebugLog';
 import { GameRuntime } from './runtime/GameRuntime';
 import { network, ServerMessage } from './multiplayer';
 import { ExpressionParser } from './runtime/ExpressionParser';
@@ -38,6 +39,7 @@ function applyPlayerLogLevel(): void {
     }
 }
 applyPlayerLogLevel();
+if(typeof window!=='undefined'&&new URLSearchParams(location.search).get('trace')==='1')document.addEventListener('DOMContentLoaded',()=>{const viewer=new TDebugLog();(window as any).cmsDebugLog=viewer;viewer.setRecordingActive(true);viewer.showServerTraces();});
 
 // DIAGNOSE: Sichtbare Messwerte im Bild, wenn auf dem Zielgeraet keine Konsole
 // erreichbar ist. Nur aktiv bei ?perf=1 bzw. ?debug=perf.

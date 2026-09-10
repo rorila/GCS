@@ -1,0 +1,32 @@
+{
+  "checks": [
+    "Hausadmin angemeldet",
+    "Eigenes Haus sichtbar",
+    "Fremdes Haus geschützt",
+    "Familienraum angelegt",
+    "Doppelter Raumname abgewiesen",
+    "Profil mit ID angelegt",
+    "Doppelte Emoji-Folge abgewiesen",
+    "Neue Person meldet sich an",
+    "Nur eigener Raum sichtbar",
+    "Snake freigegeben",
+    "Fremder Raum für Spieler gesperrt",
+    "Deaktivierter Raum blockiert Start",
+    "Deaktivierter Raum administrativ auffindbar",
+    "Reaktivierung erhält Freigabe",
+    "Delegation verlangt Bestätigung",
+    "Zugewiesener RaumAdmin kann anmelden",
+    "Mehrere Raumzuständigkeiten",
+    "RaumAdmin kann kein Haus verwalten",
+    "RaumAdmin kann nicht delegieren",
+    "Entzug wirkt in bestehender Sitzung",
+    "Andere Raumrolle bleibt erhalten",
+    "Person und Raum überstehen Neustart",
+    "GCS legt Raum an",
+    "GCS legt Spielerprofil an",
+    "GCS vergibt RaumAdmin",
+    "GCS entzieht RaumAdmin",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": []
+}

@@ -1,0 +1,4 @@
+Ein neuer GCS-TTimer soll viermal im Abstand von zwei Sekunden laufen. Welche Werte und Ereignisse sind dafür relevant?
+Mein GCS-TTimer hat interval=250 und maxInterval=0. Ist er nach 250 Takten fertig?
+Woran erkenne ich im GCS-Timertest, dass die festgelegte Anzahl an Takten erreicht ist?
+Welche Person verantwortet die Entwicklung von GameProductionSet?

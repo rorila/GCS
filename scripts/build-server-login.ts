@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import {TServerEndpoint} from '../src/components/TServerEndpoint';
+import {TServerValidate} from '../src/components/TServerValidate';
+import {TServerAuthenticate} from '../src/components/TServerAuthenticate';
+import {TServerResponse} from '../src/components/TServerResponse';
+import {projectStore} from '../src/services/ProjectStore';
+const file='game-server/public/projects/GCS-Server-Anmeldung.json';if(fs.existsSync(file)&&!process.argv.includes('--replace-generated'))throw Error('Server-Projekt existiert. Änderungen vor Ersetzen sichern.');
+const nodes=[new TServerEndpoint('AnmeldungEmpfangen',2,2),new TServerValidate('AnmeldedatenPruefen',2,7),new TServerAuthenticate('SpielerAuthentifizieren',2,12),new TServerResponse('AnmeldeantwortSenden',2,17)];
+nodes.forEach((o,i)=>o.id='server_login_component_'+i);nodes[0].events={onRequest:'Server_Anmeldung_Verarbeiten'};
+const actions=nodes.slice(1).map((o,i)=>({id:'server_login_action_'+i,name:['Act_Anmeldedaten_Pruefen','Act_Spieler_Authentifizieren','Act_Anmeldeantwort_Senden'][i],type:'call_method',target:o.name,method:'execute',params:[]}));
+const ref=(i:number)=>({type:'action',name:actions[i].name});
+const task={id:'server_login_task',name:'Server_Anmeldung_Verarbeiten',description:'Request prüfen → Spieler authentifizieren → Response senden',actionSequence:[ref(0),{type:'condition',name:'Sind die Anmeldedaten vollständig?',condition:{variable:'requestValid',operator:'==',value:true},then:[ref(1)],else:[]},ref(2)]};
+const grid={cols:64,rows:40,cellSize:18,visible:false,backgroundColor:'#142d3b'};
+const project:any={meta:{id:'gcs-server-login',name:'GCS-Server-Anmeldung',version:'0.1.0',description:'Ausführung durch den lokalen CMS-Server; Änderungen nach Speichern und Dienstneustart aktiv.'},stage:{grid},objects:[],tasks:[],actions:[],variables:[],activeStageId:'stage_blueprint',stages:[{id:'stage_blueprint',name:'Server · Anmeldung',type:'blueprint',grid,objects:nodes.map(o=>o.toDTO()),tasks:[task],actions,variables:[],flowCharts:{},features:[{id:'server-login',name:'Anmeldung auf dem Server verarbeiten',description:task.description,userStoryIds:['server-login-request'],blueprintTaskNames:[task.name]}]}],userStories:{userStories:[{id:'server-login-request',projectId:'gcs-server-login',title:'Anfrage empfangen und Anmeldeantwort erzeugen',description:task.description,status:'completed',priority:'high',relatedStages:['stage_blueprint'],relatedComponents:[nodes[0].name],relatedVariables:[],acceptanceCriteria:['Ungültige Eingaben überspringen die Authentifizierung.','Eine Emoji-Anmeldung erstellt ausschließlich eine Spielersitzung.'],plannedComponent:{name:nodes[0].name,type:'TServerEndpoint'},plannedEvent:'onRequest',plannedTask:task.name,featureId:'server-login',interactions:[{id:'interaction_'+nodes[0].id+'_onRequest'}]}]}};
+projectStore.setProject(project);fs.writeFileSync(file,JSON.stringify(project,null,2));console.log(file);

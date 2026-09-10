@@ -123,3 +123,37 @@ Die Gliedeurng folgt den im `UseCaseManager` definierten Kern-Kategorien.
 ## Lokales SFT-Training (Grundlage, 08.09.2026)
 Worker scripts/training/worker.py und lokale Opt-in-API game-server/src/TrainingRouter.ts: freigegebene JSONL-Daten, begrenzte Jobs, Fortschritt, Abbruch und Antwortvergleich. Kein UI-Button/Export vorhanden. Details: [GCS-TRAINING.md](GCS-TRAINING.md).
 
+
+### Trainingsoberfläche (Etappe B)
+Wissensbasis: TrainingPanel mit JSONL-Vorschau, Freigabe, Prüffragen, Start, Abbruch, Fortschritt und Antwortvergleich. ITrainingAdapter/ServerTrainingAdapter trennen die API vom UI. Start mit npm run start:training; kein automatischer Export oder Modellwechsel.
+
+
+## Breakout-Lernprojekt
+Separates natives GCS-Spiel unter game-server/public/projects/Breakout-Lernprojekt.json mit sechs Features, 40 Steinen und 107 expliziten Tasks. Vorschau: /breakout.html. Generator scripts/build-breakout.ts, Runtime-Test scripts/test-breakout.cjs, Trainingsdaten training-data/breakout. Lernanleitung: [BREAKOUT-LERNPROJEKT.md](BREAKOUT-LERNPROJEKT.md).
+
+
+### Breakout: TObjectList statt einzelner Stein-Tasks
+Steine enthält 40 Objekt-IDs und die Felder zerstoert/punkte. Gemeinsame Tasks mit record_get, record_set, record_count; Reset mit record_reset und foreach. 30 Tasks, 34 Actions. Analyse des Memory-Musters: docs/BREAKOUT-OBJEKTLISTE.md. Record-Pflichtparameter im AgentController an die Runtime angeglichen.
+
+
+
+## Snake-Lernprojekt (2026-09-09)
+Native TObjectList mit Segment-Records, Timer-Rasterbewegung, Wachstum, Belegungsliste, Kollisionen und Pause/Reset. Projekt: `game-server/public/projects/Snake-Lernprojekt.json`; Anleitung: `docs/SNAKE-LERNPROJEKT.md`; 12 SFT-Beispiele in `training-data/snake`.
+
+## CMS: erster ausführbarer Schritt (09.09.2026)
+GCS-CMS.json: native Emoji-Einwahl, Raumauswahl und Galerie über HTTP-Actions. Getrennter lokaler Dienst scripts/cms/cms-server.cjs, private Datei und hierarchischer Mehrfachrollen-Kern. Bestehende Komponenten genügen; kein neues Komponentenschema erforderlich. Anleitung und offene Ausbauschritte: docs/GCS-CMS-START.md. 23 gezielte CMS-Prüfungen bestanden.
+
+## CMS-Raumverwaltung (09.09.2026)
+Zusätzliche Passwortanmeldung über CMS-Host, scrypt-Hash und HttpOnly-Sitzung. Native GCS-CMS-Verwaltung.json für bereichsbezogene Spielefreigaben, Mitgliedschaften, Haus-Emoji-Codes und bestätigte Raumsicherung/-wiederherstellung. Persistenz mit atomarem Dateiaustausch, Vorversion und Audit. Details: docs/GCS-CMS-VERWALTUNG.md. Keine neue Komponente erforderlich. 21 neue Verwaltungsprüfungen bestanden.
+
+## CMS-Hausverwaltung (09.09.2026)
+Native GCS-CMS-Hausverwaltung.json: Räume im eigenen Haus anlegen, bearbeiten und deaktivieren; Spielerprofile samt Emoji-Code anlegen; RaumAdmin-Zuständigkeiten bestätigt vergeben/entziehen. Mehrfachrollen bleiben erhalten, aktive Bereichsvorfahren werden geprüft. Zusätzliche lokale Zugangseinrichtung über cms-provision-admin.cjs. 27 gezielte neue Prüfungen bestanden. Anleitung: docs/GCS-CMS-HAUSVERWALTUNG.md.
+
+## CMS-SuperAdmin (09.09.2026)
+Native GCS-CMS-SuperAdmin.json, Hausverwaltung und HouseAdmin-Zuweisungen. Zeitlich begrenzte einmalige Einrichtungslinks mit serverseitigem Tokenhash und separatem Passwortformular. Hauskontext für Spieler-Einwahl. 25 neue Prüfungen bestanden. Erstmalige SuperAdmin-Kontozuweisung noch nicht ausgeführt. Details: docs/GCS-CMS-SUPERADMIN.md.
+
+### SuperAdmin: Häuserliste laden
+Automatisches initiales Laden per TTimer und sichtbare Ladefehlermeldung ergänzt (10.09.2026). Vorhandene Komponenten genügen. Browserregression für Anzeige und Verbindungsabbruch in scripts/test-cms-super.cjs.
+
+## CMS: verständliche Workflows und Feature-Bereiche (10.09.2026)
+Vier CMS-Projekte: 14 Bereiche, 31 Features, 65 zugeordnete Use Cases, 158 aufgabenbezogene Actionnamen. Optionale parentId für aufklappbare Hierarchie und Elternauswahl im Feature-Dialog; Zyklenschutz und Erhalt der Unterfeatures beim Auflösen. Generatoren verwenden scripts/cms-workflow-names.ts. Ausführungsdaten und IDs unverändert geprüft. Details: [GCS-CMS-WORKFLOWS.md](GCS-CMS-WORKFLOWS.md).

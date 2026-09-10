@@ -1,0 +1,12 @@
+{
+  "passed": 6,
+  "checks": [
+    "Alle vier Komponenten minifiziert registriert, nicht visuell und servergebunden",
+    "Eigene Toolbox-Gruppe zeigt vier Komponenten",
+    "Inspector enthält Rückmeldung und Diagnose",
+    "Erfolgsmeldung im Inspector änderbar",
+    "Konfiguration wird im DTO erhalten",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": []
+}

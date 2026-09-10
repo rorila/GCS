@@ -1,0 +1,4620 @@
+{
+  "meta": {
+    "id": "breakout-learning",
+    "name": "Breakout-Lernprojekt",
+    "author": "Rolf Rieckmann / Codex",
+    "version": "1.0.0",
+    "description": "NEON / BREAK — natives GCS-Breakout mit 40 Steinen und dokumentierten Features",
+    "_sourcePath": "projects/Breakout-Lernprojekt.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#080f20"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Globale Dienste",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TGameLoop",
+          "id": "stage_blueprint_GameLoop",
+          "name": "GameLoop",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "autoAdjustFPS": true,
+          "boundaryMode": "bounce",
+          "boundsOffsetTop": 5,
+          "boundsOffsetBottom": 5
+        },
+        {
+          "className": "TGameState",
+          "id": "stage_blueprint_GameState",
+          "name": "GameState",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 4,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#4caf50",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "state": "menu",
+          "spritesMoving": false,
+          "collisionsEnabled": false,
+          "score": 0,
+          "level": 1,
+          "lives": 3,
+          "maxLives": 3
+        },
+        {
+          "className": "TInputController",
+          "id": "stage_blueprint_Tastatur",
+          "name": "Tastatur",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_Space": "StartOderNeu",
+            "onKeyDown_KeyP": "PauseWechsel",
+            "onKeyDown_ArrowLeft": "LinksDruecken",
+            "onKeyUp_ArrowLeft": "LinksLoslassen",
+            "onKeyDown_ArrowRight": "RechtsDruecken",
+            "onKeyUp_ArrowRight": "RechtsLoslassen"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 7,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "className": "TIntegerVariable",
+          "id": "var_Reststeine",
+          "name": "Reststeine",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 40,
+          "value": 40,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "var_Links",
+          "name": "Links",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "var_Rechts",
+          "name": "Rechts",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "var_TrefferPunkte",
+          "name": "TrefferPunkte",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "var_SchonZerstoert",
+          "name": "SchonZerstoert",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "isGlobal": true,
+          "description": "System internal flag to track unsaved changes"
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#080f20"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "NEON / BREAK",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "stage_main_Titel",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 0.8,
+          "width": 24,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#72f4da",
+            "fontSize": 25,
+            "fontFamily": "Segoe UI, sans-serif",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "NEON / BREAK"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Untertitel",
+          "name": "Untertitel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2.7,
+          "width": 32,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#8196b7",
+            "fontSize": 11,
+            "fontFamily": "Segoe UI, sans-serif",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "40 STEINE · EIN BALL · DEIN RHYTHMUS"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Punkte",
+          "name": "Punkte",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 38,
+          "y": 1,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f5f8ff",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "PUNKTE  0"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Leben",
+          "name": "Leben",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 52,
+          "y": 1,
+          "width": 11,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffb87b",
+            "fontSize": 17,
+            "fontFamily": "Segoe UI, sans-serif",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "LEBEN  3"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Restanzeige",
+          "name": "Restanzeige",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 42,
+          "y": 3,
+          "width": 20,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#91a7c8",
+            "fontSize": 11,
+            "fontFamily": "Segoe UI, sans-serif",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "NOCH ${Reststeine} STEINE"
+        },
+        {
+          "className": "TPanel",
+          "id": "stage_main_Kopflinie",
+          "name": "Kopflinie",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 4.6,
+          "width": 64,
+          "height": 0.08,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#28405f",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TPanel",
+          "id": "stage_main_Verlustlinie",
+          "name": "Verlustlinie",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 34.8,
+          "width": 64,
+          "height": 0.08,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#a94d65",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Schlaeger",
+          "name": "Schlaeger",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "SchlaegerRand"
+          },
+          "visible": true,
+          "x": 27.5,
+          "y": 32,
+          "width": 9,
+          "height": 0.7,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72f4da",
+            "borderColor": "#333",
+            "borderWidth": 0,
+            "borderRadius": 8
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72f4da",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Ball",
+          "name": "Ball",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "Wandkontakt",
+            "onCollision": "BallKontakt"
+          },
+          "visible": true,
+          "x": 31.6,
+          "y": 30.8,
+          "width": 0.8,
+          "height": 0.8,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#333",
+            "borderWidth": 0,
+            "borderRadius": 999
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "ball",
+          "pushOutOnCollision": true,
+          "shape": "circle",
+          "spriteColor": "#ffffff",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_1_1",
+          "name": "Stein_1_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 7,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ed6e99",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ed6e99",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_1_2",
+          "name": "Stein_1_2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 9.6,
+          "y": 7,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ed6e99",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ed6e99",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_1_3",
+          "name": "Stein_1_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 17.2,
+          "y": 7,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ed6e99",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ed6e99",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_1_4",
+          "name": "Stein_1_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 24.799999999999997,
+          "y": 7,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ed6e99",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ed6e99",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_1_5",
+          "name": "Stein_1_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 32.4,
+          "y": 7,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ed6e99",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ed6e99",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_1_6",
+          "name": "Stein_1_6",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 7,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ed6e99",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ed6e99",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_1_7",
+          "name": "Stein_1_7",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 47.599999999999994,
+          "y": 7,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ed6e99",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ed6e99",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_1_8",
+          "name": "Stein_1_8",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 55.199999999999996,
+          "y": 7,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ed6e99",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ed6e99",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_2_1",
+          "name": "Stein_2_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 9.15,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ee916c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ee916c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_2_2",
+          "name": "Stein_2_2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 9.6,
+          "y": 9.15,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ee916c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ee916c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_2_3",
+          "name": "Stein_2_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 17.2,
+          "y": 9.15,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ee916c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ee916c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_2_4",
+          "name": "Stein_2_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 24.799999999999997,
+          "y": 9.15,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ee916c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ee916c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_2_5",
+          "name": "Stein_2_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 32.4,
+          "y": 9.15,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ee916c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ee916c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_2_6",
+          "name": "Stein_2_6",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 9.15,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ee916c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ee916c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_2_7",
+          "name": "Stein_2_7",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 47.599999999999994,
+          "y": 9.15,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ee916c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ee916c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_2_8",
+          "name": "Stein_2_8",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 55.199999999999996,
+          "y": 9.15,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#ee916c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ee916c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_3_1",
+          "name": "Stein_3_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 11.3,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#e9c86c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#e9c86c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_3_2",
+          "name": "Stein_3_2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 9.6,
+          "y": 11.3,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#e9c86c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#e9c86c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_3_3",
+          "name": "Stein_3_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 17.2,
+          "y": 11.3,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#e9c86c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#e9c86c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_3_4",
+          "name": "Stein_3_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 24.799999999999997,
+          "y": 11.3,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#e9c86c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#e9c86c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_3_5",
+          "name": "Stein_3_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 32.4,
+          "y": 11.3,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#e9c86c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#e9c86c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_3_6",
+          "name": "Stein_3_6",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 11.3,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#e9c86c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#e9c86c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_3_7",
+          "name": "Stein_3_7",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 47.599999999999994,
+          "y": 11.3,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#e9c86c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#e9c86c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_3_8",
+          "name": "Stein_3_8",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 55.199999999999996,
+          "y": 11.3,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#e9c86c",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#e9c86c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_4_1",
+          "name": "Stein_4_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 13.45,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#67d9bc",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#67d9bc",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_4_2",
+          "name": "Stein_4_2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 9.6,
+          "y": 13.45,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#67d9bc",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#67d9bc",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_4_3",
+          "name": "Stein_4_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 17.2,
+          "y": 13.45,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#67d9bc",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#67d9bc",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_4_4",
+          "name": "Stein_4_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 24.799999999999997,
+          "y": 13.45,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#67d9bc",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#67d9bc",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_4_5",
+          "name": "Stein_4_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 32.4,
+          "y": 13.45,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#67d9bc",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#67d9bc",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_4_6",
+          "name": "Stein_4_6",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 13.45,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#67d9bc",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#67d9bc",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_4_7",
+          "name": "Stein_4_7",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 47.599999999999994,
+          "y": 13.45,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#67d9bc",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#67d9bc",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_4_8",
+          "name": "Stein_4_8",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 55.199999999999996,
+          "y": 13.45,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#67d9bc",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#67d9bc",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_5_1",
+          "name": "Stein_5_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 15.6,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72aaf8",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72aaf8",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_5_2",
+          "name": "Stein_5_2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 9.6,
+          "y": 15.6,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72aaf8",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72aaf8",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_5_3",
+          "name": "Stein_5_3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 17.2,
+          "y": 15.6,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72aaf8",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72aaf8",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_5_4",
+          "name": "Stein_5_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 24.799999999999997,
+          "y": 15.6,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72aaf8",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72aaf8",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_5_5",
+          "name": "Stein_5_5",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 32.4,
+          "y": 15.6,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72aaf8",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72aaf8",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_5_6",
+          "name": "Stein_5_6",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 15.6,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72aaf8",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72aaf8",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_5_7",
+          "name": "Stein_5_7",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 47.599999999999994,
+          "y": 15.6,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72aaf8",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72aaf8",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "stage_main_Stein_5_8",
+          "name": "Stein_5_8",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onCollision": "SteinTreffer"
+          },
+          "visible": true,
+          "x": 55.199999999999996,
+          "y": 15.6,
+          "width": 6.8,
+          "height": 1.45,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#72aaf8",
+            "borderColor": "#ffffff33",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "feld",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#72aaf8",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TObjectList",
+          "id": "stage_main_Steine",
+          "name": "Steine",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 20,
+          "height": 10,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "data": [],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Name",
+              "width": "1fr"
+            },
+            {
+              "property": "uiScope",
+              "label": "Scope",
+              "width": "60px"
+            },
+            {
+              "property": "usageCount",
+              "label": "Links",
+              "width": "50px"
+            }
+          ],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "fields": [
+            {
+              "name": "zerstoert",
+              "type": "boolean",
+              "defaultValue": false
+            },
+            {
+              "name": "punkte",
+              "type": "number",
+              "defaultValue": 10
+            }
+          ],
+          "items": [
+            "stage_main_Stein_1_1",
+            "stage_main_Stein_1_2",
+            "stage_main_Stein_1_3",
+            "stage_main_Stein_1_4",
+            "stage_main_Stein_1_5",
+            "stage_main_Stein_1_6",
+            "stage_main_Stein_1_7",
+            "stage_main_Stein_1_8",
+            "stage_main_Stein_2_1",
+            "stage_main_Stein_2_2",
+            "stage_main_Stein_2_3",
+            "stage_main_Stein_2_4",
+            "stage_main_Stein_2_5",
+            "stage_main_Stein_2_6",
+            "stage_main_Stein_2_7",
+            "stage_main_Stein_2_8",
+            "stage_main_Stein_3_1",
+            "stage_main_Stein_3_2",
+            "stage_main_Stein_3_3",
+            "stage_main_Stein_3_4",
+            "stage_main_Stein_3_5",
+            "stage_main_Stein_3_6",
+            "stage_main_Stein_3_7",
+            "stage_main_Stein_3_8",
+            "stage_main_Stein_4_1",
+            "stage_main_Stein_4_2",
+            "stage_main_Stein_4_3",
+            "stage_main_Stein_4_4",
+            "stage_main_Stein_4_5",
+            "stage_main_Stein_4_6",
+            "stage_main_Stein_4_7",
+            "stage_main_Stein_4_8",
+            "stage_main_Stein_5_1",
+            "stage_main_Stein_5_2",
+            "stage_main_Stein_5_3",
+            "stage_main_Stein_5_4",
+            "stage_main_Stein_5_5",
+            "stage_main_Stein_5_6",
+            "stage_main_Stein_5_7",
+            "stage_main_Stein_5_8"
+          ],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "recordData": {
+            "stage_main_Stein_1_1": {
+              "zerstoert": false,
+              "punkte": 50
+            },
+            "stage_main_Stein_1_2": {
+              "zerstoert": false,
+              "punkte": 50
+            },
+            "stage_main_Stein_1_3": {
+              "zerstoert": false,
+              "punkte": 50
+            },
+            "stage_main_Stein_1_4": {
+              "zerstoert": false,
+              "punkte": 50
+            },
+            "stage_main_Stein_1_5": {
+              "zerstoert": false,
+              "punkte": 50
+            },
+            "stage_main_Stein_1_6": {
+              "zerstoert": false,
+              "punkte": 50
+            },
+            "stage_main_Stein_1_7": {
+              "zerstoert": false,
+              "punkte": 50
+            },
+            "stage_main_Stein_1_8": {
+              "zerstoert": false,
+              "punkte": 50
+            },
+            "stage_main_Stein_2_1": {
+              "zerstoert": false,
+              "punkte": 40
+            },
+            "stage_main_Stein_2_2": {
+              "zerstoert": false,
+              "punkte": 40
+            },
+            "stage_main_Stein_2_3": {
+              "zerstoert": false,
+              "punkte": 40
+            },
+            "stage_main_Stein_2_4": {
+              "zerstoert": false,
+              "punkte": 40
+            },
+            "stage_main_Stein_2_5": {
+              "zerstoert": false,
+              "punkte": 40
+            },
+            "stage_main_Stein_2_6": {
+              "zerstoert": false,
+              "punkte": 40
+            },
+            "stage_main_Stein_2_7": {
+              "zerstoert": false,
+              "punkte": 40
+            },
+            "stage_main_Stein_2_8": {
+              "zerstoert": false,
+              "punkte": 40
+            },
+            "stage_main_Stein_3_1": {
+              "zerstoert": false,
+              "punkte": 30
+            },
+            "stage_main_Stein_3_2": {
+              "zerstoert": false,
+              "punkte": 30
+            },
+            "stage_main_Stein_3_3": {
+              "zerstoert": false,
+              "punkte": 30
+            },
+            "stage_main_Stein_3_4": {
+              "zerstoert": false,
+              "punkte": 30
+            },
+            "stage_main_Stein_3_5": {
+              "zerstoert": false,
+              "punkte": 30
+            },
+            "stage_main_Stein_3_6": {
+              "zerstoert": false,
+              "punkte": 30
+            },
+            "stage_main_Stein_3_7": {
+              "zerstoert": false,
+              "punkte": 30
+            },
+            "stage_main_Stein_3_8": {
+              "zerstoert": false,
+              "punkte": 30
+            },
+            "stage_main_Stein_4_1": {
+              "zerstoert": false,
+              "punkte": 20
+            },
+            "stage_main_Stein_4_2": {
+              "zerstoert": false,
+              "punkte": 20
+            },
+            "stage_main_Stein_4_3": {
+              "zerstoert": false,
+              "punkte": 20
+            },
+            "stage_main_Stein_4_4": {
+              "zerstoert": false,
+              "punkte": 20
+            },
+            "stage_main_Stein_4_5": {
+              "zerstoert": false,
+              "punkte": 20
+            },
+            "stage_main_Stein_4_6": {
+              "zerstoert": false,
+              "punkte": 20
+            },
+            "stage_main_Stein_4_7": {
+              "zerstoert": false,
+              "punkte": 20
+            },
+            "stage_main_Stein_4_8": {
+              "zerstoert": false,
+              "punkte": 20
+            },
+            "stage_main_Stein_5_1": {
+              "zerstoert": false,
+              "punkte": 10
+            },
+            "stage_main_Stein_5_2": {
+              "zerstoert": false,
+              "punkte": 10
+            },
+            "stage_main_Stein_5_3": {
+              "zerstoert": false,
+              "punkte": 10
+            },
+            "stage_main_Stein_5_4": {
+              "zerstoert": false,
+              "punkte": 10
+            },
+            "stage_main_Stein_5_5": {
+              "zerstoert": false,
+              "punkte": 10
+            },
+            "stage_main_Stein_5_6": {
+              "zerstoert": false,
+              "punkte": 10
+            },
+            "stage_main_Stein_5_7": {
+              "zerstoert": false,
+              "punkte": 10
+            },
+            "stage_main_Stein_5_8": {
+              "zerstoert": false,
+              "punkte": 10
+            }
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Hinweis",
+          "name": "Hinweis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 22,
+          "width": 43,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#eaf1ff",
+            "fontSize": 22,
+            "fontFamily": "Segoe UI, sans-serif",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "BEREIT?  STARTE MIT LEERTASTE"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Anleitung",
+          "name": "Anleitung",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 24.5,
+          "width": 46,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#9caecc",
+            "fontSize": 13,
+            "fontFamily": "Segoe UI, sans-serif",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "← → bewegen · P Pause · Randtreffer lenken den Ball"
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Start",
+          "name": "Start",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "StartOderNeu"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 36.4,
+          "width": 13,
+          "height": 2.1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f3f8ff",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#166d65",
+            "borderColor": "#315176",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "START / BALL",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Pause",
+          "name": "Pause",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "PauseWechsel"
+          },
+          "visible": true,
+          "x": 16,
+          "y": 36.4,
+          "width": 11,
+          "height": 2.1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f3f8ff",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#1e304d",
+            "borderColor": "#315176",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "PAUSE · P",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_Neu",
+          "name": "Neu",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "NeuesSpiel"
+          },
+          "visible": true,
+          "x": 28,
+          "y": 36.4,
+          "width": 12,
+          "height": 2.1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f3f8ff",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#1e304d",
+            "borderColor": "#315176",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "NEUSTART",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_LinksTaste",
+          "name": "LinksTaste",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "TouchLinks"
+          },
+          "visible": true,
+          "x": 43,
+          "y": 36.4,
+          "width": 8,
+          "height": 2.1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f3f8ff",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#1e304d",
+            "borderColor": "#315176",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "◀",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_RechtsTaste",
+          "name": "RechtsTaste",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "TouchRechts"
+          },
+          "visible": true,
+          "x": 52,
+          "y": 36.4,
+          "width": 8,
+          "height": 2.1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f3f8ff",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#1e304d",
+            "borderColor": "#315176",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "▶",
+          "icon": ""
+        }
+      ],
+      "tasks": [
+        {
+          "name": "StartOderNeu",
+          "description": "Startet einen bereitliegenden Ball oder ein neues Spiel nach dem Ende.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: GameState.state == menu",
+              "condition": {
+                "variable": "GameState.state",
+                "operator": "==",
+                "value": "menu"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Aufschlag"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "NeustartPruefen"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "a692b507-0945-4b71-b0f8-495d13aabfcb"
+        },
+        {
+          "name": "NeustartPruefen",
+          "description": "Prüft, ob das Spiel beendet ist.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: GameState.state == gameover",
+              "condition": {
+                "variable": "GameState.state",
+                "operator": "==",
+                "value": "gameover"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "NeuesSpiel"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "GewonnenPruefen"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "83c80e4f-5f04-4e89-9afc-3d0c96dd4c05"
+        },
+        {
+          "name": "GewonnenPruefen",
+          "description": "Erlaubt Neustart nach Sieg.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: GameState.state == won",
+              "condition": {
+                "variable": "GameState.state",
+                "operator": "==",
+                "value": "won"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "NeuesSpiel"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "e0c494c9-68bc-45d5-8ef9-5322a97bcbd4"
+        },
+        {
+          "name": "Aufschlag",
+          "description": "Startet den Ball mit moderater diagonaler Geschwindigkeit.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Start"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "6852ce42-63bb-4a8b-8f2d-21f4e96feb5d"
+        },
+        {
+          "name": "NeuesSpiel",
+          "description": "Setzt Punkte, Leben und alle 40 Steine zurück.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_ResetSpiel"
+            },
+            {
+              "type": "action",
+              "name": "Act_ResetSteinStatus"
+            },
+            {
+              "type": "foreach",
+              "name": "ForEach: Stein in Steine",
+              "sourceArray": "Steine",
+              "itemVar": "Stein",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_SteinWiederherstellen"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Act_ZaehleStartsteine"
+            },
+            {
+              "type": "task",
+              "name": "BallBereit"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "cf071a61-50df-447f-bdd4-5896d99946bb"
+        },
+        {
+          "name": "BallBereit",
+          "description": "Positioniert Ball und Schläger neu und wartet auf den Start.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Bereit"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "84aa348b-bd44-4d7e-8799-aaf979aa0e71"
+        },
+        {
+          "name": "Wandkontakt",
+          "description": "Die Engine reflektiert an Wänden; unten geht ein Leben verloren.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == bottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "LebenVerlieren"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "d31bbf30-f30a-4d1c-aa93-5b1ebafcfb4d"
+        },
+        {
+          "name": "LebenVerlieren",
+          "description": "Zieht genau ein Leben ab und prüft das Spielende.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: GameState.state == playing",
+              "condition": {
+                "variable": "GameState.state",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "VerlustAktiv"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "cc102d0e-a6f7-4459-aeaf-aa3c28959387"
+        },
+        {
+          "name": "EndePruefen",
+          "description": "Entscheidet zwischen nächstem Ball und Niederlage.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: GameState.lives <= 0",
+              "condition": {
+                "variable": "GameState.lives",
+                "operator": "<=",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Niederlage"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "BallBereit"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "6c0cd078-1fa7-46b1-ad2c-1cfe8eb0fd75"
+        },
+        {
+          "name": "Niederlage",
+          "description": "Friert das Spiel ein und zeigt die Niederlage.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Niederlage"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "01b785b9-65b6-43bb-999c-743b87518125"
+        },
+        {
+          "name": "Sieg",
+          "description": "Friert das Spiel nach dem letzten Stein ein.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Sieg"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "73abd962-1a72-46cf-80b5-e4b0c4db5c92"
+        },
+        {
+          "name": "BallKontakt",
+          "description": "Unterscheidet den Schläger von Steinen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: other == Schlaeger",
+              "condition": {
+                "variable": "other",
+                "operator": "==",
+                "value": "Schlaeger"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SchlaegerKontakt"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "SteinReflexion"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "f5d8eb64-bc04-47f8-9a11-83e723e27245"
+        },
+        {
+          "name": "SchlaegerKontakt",
+          "description": "Lenkt den Ball anhand des Treffpunkts; vermeidet flache Flugbahnen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Trefferwinkel"
+            },
+            {
+              "type": "action",
+              "name": "Act_Aufwaerts"
+            },
+            {
+              "type": "action",
+              "name": "Act_BallFreistellen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "44fe988c-5625-4095-958e-62de49199b8c"
+        },
+        {
+          "name": "SteinReflexion",
+          "description": "Kehrt abhängig von der Kollisionsseite die richtige Geschwindigkeitskomponente um.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == top",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "top"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Reflex_top"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == bottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Reflex_bottom"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == left",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "left"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Reflex_left"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == right",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "right"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Reflex_right"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "a940d20a-bfda-478f-a4b9-5832760c5421"
+        },
+        {
+          "name": "PauseWechsel",
+          "description": "Pausiert oder setzt einen laufenden Ball fort.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: GameState.state == playing",
+              "condition": {
+                "variable": "GameState.state",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Pausieren"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "PausePruefen"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "bbe7f6f7-9d2c-422b-8ee1-bcb94625ca1a"
+        },
+        {
+          "name": "PausePruefen",
+          "description": "Prüft auf pausiertes Spiel.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: GameState.state == paused",
+              "condition": {
+                "variable": "GameState.state",
+                "operator": "==",
+                "value": "paused"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Fortsetzen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "6355d9ff-acb4-4c4d-a100-1a605b192e8f"
+        },
+        {
+          "name": "Pausieren",
+          "description": "Stoppt Bewegung und Kollisionen, ohne Ballgeschwindigkeit zu verlieren.",
+          "actionSequence": [
+            {
+              "name": "Act_Pause",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "9ca4a97a-3870-4808-9d31-09217f8c4cec",
+          "flowLayout": {
+            "Pausieren": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_Pause": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "Fortsetzen",
+          "description": "Aktiviert Bewegung und Kollisionen wieder.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Fortsetzen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "40f64b54-98a8-4c86-8fdc-4766877f5297"
+        },
+        {
+          "name": "LinksDruecken",
+          "description": "Merkt die linke Pfeiltaste.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_LinksDruecken"
+            },
+            {
+              "type": "task",
+              "name": "RichtungAktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "776dbbb8-87d6-4cba-97e9-971eb9a9ae8a"
+        },
+        {
+          "name": "LinksLoslassen",
+          "description": "Löscht die linke Pfeiltaste.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_LinksLoslassen"
+            },
+            {
+              "type": "task",
+              "name": "RichtungAktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "43d30d1e-d6e9-45e1-bd93-404768883dcc"
+        },
+        {
+          "name": "RechtsDruecken",
+          "description": "Merkt die rechte Pfeiltaste.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_RechtsDruecken"
+            },
+            {
+              "type": "task",
+              "name": "RichtungAktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "9bdceac3-bb5e-4912-9ea2-cb4f525e05a5"
+        },
+        {
+          "name": "RechtsLoslassen",
+          "description": "Löscht die rechte Pfeiltaste.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_RechtsLoslassen"
+            },
+            {
+              "type": "task",
+              "name": "RichtungAktualisieren"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "bf31303a-da2f-40ef-900a-470e4c379c1e"
+        },
+        {
+          "name": "RichtungAktualisieren",
+          "description": "Berechnet die Richtung auch bei gleichzeitig gedrückten Tasten.",
+          "actionSequence": [
+            {
+              "name": "Act_Richtung",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "1f564de4-1bd6-4a50-8818-874abb3fcee0",
+          "flowLayout": {
+            "RichtungAktualisieren": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_Richtung": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "SchlaegerRand",
+          "description": "Stoppt den Schläger am Rand.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_RandStopp"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "9fd67e7f-40a6-4796-9d17-2b892573c674"
+        },
+        {
+          "name": "TouchLinks",
+          "description": "Bewegt den Schläger schrittweise nach links.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_TouchLinks"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "f5e75e04-1d5d-4d01-beec-f31e21509fcf"
+        },
+        {
+          "name": "TouchRechts",
+          "description": "Bewegt den Schläger schrittweise nach rechts.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_TouchRechts"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "7db9d53e-04ec-41fa-ad57-2a5a7fc5c150"
+        },
+        {
+          "name": "VerlustAktiv",
+          "description": "Nur ein aktiver Ball kann ein Leben kosten.",
+          "actionSequence": [
+            {
+              "name": "Act_LebenAbziehen",
+              "type": "action"
+            },
+            {
+              "name": "Act_LebenAnzeige",
+              "type": "action"
+            },
+            {
+              "type": "task",
+              "name": "EndePruefen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "f424a5ce-5a50-4c62-be7a-664274e39688",
+          "flowLayout": {
+            "VerlustAktiv": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_LebenAbziehen": {
+              "x": 40,
+              "y": 140
+            },
+            "Act_LebenAnzeige": {
+              "x": 40,
+              "y": 240
+            },
+            "EndePruefen": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "name": "SteinTreffer",
+          "description": "Gemeinsamer Eingang für alle Steine; self ist das auslösende Sprite.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: other == Ball",
+              "condition": {
+                "variable": "other",
+                "operator": "==",
+                "value": "Ball"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SteinPruefen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "5419bda6-df61-4c94-b30f-06f44d7b4480"
+        },
+        {
+          "name": "SteinPruefen",
+          "description": "Liest den Trefferstatus des auslösenden Steins aus der Objektliste.",
+          "actionSequence": [
+            {
+              "name": "Act_LeseSteinStatus",
+              "type": "action"
+            },
+            {
+              "condition": {
+                "variable": "SchonZerstoert",
+                "operator": "==",
+                "value": false
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "type": "task",
+                  "name": "SteinWerten"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "24cf7260-6528-4159-9b63-e65293fdc200",
+          "flowLayout": {
+            "SteinPruefen": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_LeseSteinStatus": {
+              "x": 40,
+              "y": 140
+            },
+            "Branch: SchonZerstoert == false": {
+              "x": 40,
+              "y": 240
+            },
+            "SteinWerten": {
+              "x": 300,
+              "y": 240
+            }
+          }
+        },
+        {
+          "name": "SteinWerten",
+          "description": "Markiert den Record, blendet self aus und übernimmt die Punkte aus der Liste.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_MarkiereStein"
+            },
+            {
+              "type": "action",
+              "name": "Act_LeseSteinPunkte"
+            },
+            {
+              "type": "action",
+              "name": "Act_EntferneStein"
+            },
+            {
+              "type": "action",
+              "name": "Act_AddiereSteinPunkte"
+            },
+            {
+              "type": "action",
+              "name": "Act_ZaehleReststeine"
+            },
+            {
+              "type": "action",
+              "name": "Act_AktualisierePunkte"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Reststeine == 0",
+              "condition": {
+                "variable": "Reststeine",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Sieg"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "288ff46d-7114-4040-a9d6-2a005d4956d1"
+        }
+      ],
+      "actions": [
+        {
+          "id": "91cc487b-fcda-4a5b-93f5-859788130fd6",
+          "name": "Act_Start",
+          "type": "property",
+          "changes": {
+            "GameState.state": "playing",
+            "GameState.spritesMoving": true,
+            "GameState.collisionsEnabled": true,
+            "Ball.velocityX": 0.2,
+            "Ball.velocityY": -0.36,
+            "Hinweis.visible": false,
+            "Anleitung.visible": false
+          }
+        },
+        {
+          "id": "0f61b973-f1d7-46b6-8469-b74801a030c6",
+          "name": "Act_ResetSpiel",
+          "type": "property",
+          "changes": {
+            "GameState.score": 0,
+            "GameState.lives": 3,
+            "Reststeine": 40,
+            "Punkte.text": "PUNKTE  0",
+            "Leben.text": "LEBEN  3"
+          }
+        },
+        {
+          "id": "3812fcbe-a479-4d5b-8b38-f188d4e3ccb4",
+          "name": "Act_ResetSteinStatus",
+          "type": "record_reset",
+          "list": "Steine",
+          "field": "zerstoert",
+          "value": false,
+          "list_ref": "stage_main_Steine"
+        },
+        {
+          "name": "Act_SteinWiederherstellen",
+          "type": "property",
+          "changes": {
+            "${Stein}.visible": true,
+            "${Stein}.collisionEnabled": true
+          },
+          "id": "865a68cb-1ef2-42a6-8c43-f498f58ea8da"
+        },
+        {
+          "id": "cfc99f1e-a5fd-429c-9589-906266e4fa18",
+          "name": "Act_ZaehleStartsteine",
+          "type": "record_count",
+          "list": "Steine",
+          "field": "zerstoert",
+          "value": false,
+          "resultVariable": "Reststeine",
+          "list_ref": "stage_main_Steine",
+          "resultVariable_ref": "var_Reststeine"
+        },
+        {
+          "id": "c7c468cb-f601-4ecf-a1a3-ca0ad5343d17",
+          "name": "Act_Bereit",
+          "type": "property",
+          "changes": {
+            "GameState.state": "menu",
+            "GameState.spritesMoving": false,
+            "GameState.collisionsEnabled": false,
+            "Ball.x": 31.6,
+            "Ball.y": 30.8,
+            "Ball.velocityX": 0,
+            "Ball.velocityY": 0,
+            "Schlaeger.x": 27.5,
+            "Schlaeger.velocityX": 0,
+            "Links": 0,
+            "Rechts": 0,
+            "Hinweis.text": "BEREIT?  STARTE MIT LEERTASTE",
+            "Hinweis.visible": true,
+            "Anleitung.text": "← → bewegen · P Pause · Randtreffer lenken den Ball",
+            "Anleitung.visible": true
+          }
+        },
+        {
+          "id": "e2d34663-ade1-43a8-b663-768ddc1b5976",
+          "name": "Act_LebenAbziehen",
+          "type": "increment",
+          "changes": {
+            "GameState.lives": -1
+          }
+        },
+        {
+          "id": "c505d7b3-2234-4289-9d5b-9a69b091740f",
+          "name": "Act_LebenAnzeige",
+          "type": "property",
+          "changes": {
+            "Leben.text": "LEBEN  ${GameState.lives}"
+          }
+        },
+        {
+          "id": "34eb0c27-72a5-4e64-b6b0-82c7d7f6f6d1",
+          "name": "Act_Niederlage",
+          "type": "property",
+          "changes": {
+            "GameState.state": "gameover",
+            "GameState.spritesMoving": false,
+            "GameState.collisionsEnabled": false,
+            "Ball.velocityX": 0,
+            "Ball.velocityY": 0,
+            "Schlaeger.velocityX": 0,
+            "Hinweis.text": "GAME OVER · NOCH EINE RUNDE?",
+            "Hinweis.visible": true,
+            "Anleitung.text": "NEUSTART drücken oder Leertaste für eine neue Runde",
+            "Anleitung.visible": true
+          }
+        },
+        {
+          "id": "40ea8893-09e8-4e8a-8ef6-3e39008abc90",
+          "name": "Act_Sieg",
+          "type": "property",
+          "changes": {
+            "GameState.state": "won",
+            "GameState.spritesMoving": false,
+            "GameState.collisionsEnabled": false,
+            "Ball.velocityX": 0,
+            "Ball.velocityY": 0,
+            "Schlaeger.velocityX": 0,
+            "Hinweis.text": "GESCHAFFT!  ALLE STEINE GELÖST",
+            "Hinweis.visible": true,
+            "Anleitung.text": "NEUSTART drücken oder Leertaste für eine neue Runde",
+            "Anleitung.visible": true
+          }
+        },
+        {
+          "id": "78717fd0-0b4b-41a0-8e77-4d1bf1ec8e3f",
+          "name": "Act_Trefferwinkel",
+          "type": "calculate",
+          "formula": "Math.max(-0.34, Math.min(0.34, ((Ball.x + 0.4 - Schlaeger.x) / 9 - 0.5) * 0.68))",
+          "resultVariable": "Ball.velocityX"
+        },
+        {
+          "id": "69ceee6b-ffe6-4359-9ff2-a783bd9a431d",
+          "name": "Act_Aufwaerts",
+          "type": "calculate",
+          "formula": "-Math.sqrt(0.1764 - Ball.velocityX * Ball.velocityX)",
+          "resultVariable": "Ball.velocityY"
+        },
+        {
+          "id": "5373985b-1d9e-4610-a634-a4a13c205c82",
+          "name": "Act_BallFreistellen",
+          "type": "calculate",
+          "formula": "Schlaeger.y - Ball.height - 0.02",
+          "resultVariable": "Ball.y"
+        },
+        {
+          "name": "Act_Reflex_top",
+          "type": "negate",
+          "changes": {
+            "Ball.velocityY": 1
+          },
+          "id": "24b5e5a7-9ae8-4398-8aa7-ee9483327217"
+        },
+        {
+          "name": "Act_Reflex_bottom",
+          "type": "negate",
+          "changes": {
+            "Ball.velocityY": 1
+          },
+          "id": "090c12f3-1bb7-4b53-96a2-bb02725d5f63"
+        },
+        {
+          "name": "Act_Reflex_left",
+          "type": "negate",
+          "changes": {
+            "Ball.velocityX": 1
+          },
+          "id": "6608b6e2-8893-4bc5-9595-d8ef51f66ea8"
+        },
+        {
+          "name": "Act_Reflex_right",
+          "type": "negate",
+          "changes": {
+            "Ball.velocityX": 1
+          },
+          "id": "a17a76e8-dbd1-4609-a6c6-361463064f1c"
+        },
+        {
+          "id": "3c53e757-531b-4349-bb96-b72785be354e",
+          "name": "Act_LeseSteinStatus",
+          "type": "record_get",
+          "list": "Steine",
+          "target": "self",
+          "field": "zerstoert",
+          "resultVariable": "SchonZerstoert",
+          "list_ref": "stage_main_Steine",
+          "resultVariable_ref": "var_SchonZerstoert"
+        },
+        {
+          "id": "4293fd7b-635b-448d-980a-c64d2e8c59d9",
+          "name": "Act_MarkiereStein",
+          "type": "record_set",
+          "list": "Steine",
+          "target": "self",
+          "field": "zerstoert",
+          "value": true,
+          "list_ref": "stage_main_Steine"
+        },
+        {
+          "id": "c9fbee5c-7e55-40c7-9063-56ab3844ff74",
+          "name": "Act_LeseSteinPunkte",
+          "type": "record_get",
+          "list": "Steine",
+          "target": "self",
+          "field": "punkte",
+          "resultVariable": "TrefferPunkte",
+          "list_ref": "stage_main_Steine",
+          "resultVariable_ref": "var_TrefferPunkte"
+        },
+        {
+          "id": "b7400fbb-49ac-4725-9f9b-0949812ce304",
+          "name": "Act_EntferneStein",
+          "type": "property",
+          "changes": {
+            "self.visible": false,
+            "self.collisionEnabled": false
+          }
+        },
+        {
+          "id": "433eb070-2e86-4fe4-8c04-94d264135a5b",
+          "name": "Act_AddiereSteinPunkte",
+          "type": "increment",
+          "changes": {
+            "GameState.score": "${TrefferPunkte}"
+          }
+        },
+        {
+          "id": "5f487357-dd79-4b2c-a5a8-adaf776a0e5e",
+          "name": "Act_ZaehleReststeine",
+          "type": "record_count",
+          "list": "Steine",
+          "field": "zerstoert",
+          "value": false,
+          "resultVariable": "Reststeine",
+          "list_ref": "stage_main_Steine",
+          "resultVariable_ref": "var_Reststeine"
+        },
+        {
+          "id": "c94a551a-3d9a-4088-a369-3bb06a123fcf",
+          "name": "Act_AktualisierePunkte",
+          "type": "property",
+          "changes": {
+            "Punkte.text": "PUNKTE  ${GameState.score}"
+          }
+        },
+        {
+          "id": "bf2ae1b5-c41f-4694-bbec-9badfaad1de3",
+          "name": "Act_Pause",
+          "type": "property",
+          "changes": {
+            "GameState.state": "paused",
+            "GameState.spritesMoving": false,
+            "GameState.collisionsEnabled": false,
+            "Hinweis.text": "PAUSE · P ZUM WEITERSPIELEN",
+            "Hinweis.visible": true
+          }
+        },
+        {
+          "id": "88272596-4126-4db0-8b46-be8773b2cbe7",
+          "name": "Act_Fortsetzen",
+          "type": "property",
+          "changes": {
+            "GameState.state": "playing",
+            "GameState.spritesMoving": true,
+            "GameState.collisionsEnabled": true,
+            "Hinweis.visible": false
+          }
+        },
+        {
+          "id": "6075ce50-0bf3-4509-a47e-9561995758a5",
+          "name": "Act_LinksDruecken",
+          "type": "property",
+          "changes": {
+            "Links": 1
+          }
+        },
+        {
+          "id": "02a170b1-d69a-4726-9fd7-38bbc5b65844",
+          "name": "Act_LinksLoslassen",
+          "type": "property",
+          "changes": {
+            "Links": 0
+          }
+        },
+        {
+          "id": "4597039c-0071-4287-afa6-0c5116a70d16",
+          "name": "Act_RechtsDruecken",
+          "type": "property",
+          "changes": {
+            "Rechts": 1
+          }
+        },
+        {
+          "id": "32d478ca-aeaf-4772-bf02-d5ddde9f3f76",
+          "name": "Act_RechtsLoslassen",
+          "type": "property",
+          "changes": {
+            "Rechts": 0
+          }
+        },
+        {
+          "id": "ad454939-619d-48f0-845a-f3ad619b9973",
+          "name": "Act_Richtung",
+          "type": "calculate",
+          "formula": "(Rechts - Links) * 0.65",
+          "resultVariable": "Schlaeger.velocityX"
+        },
+        {
+          "id": "36b62546-fd06-496d-9749-eaa2299a8939",
+          "name": "Act_RandStopp",
+          "type": "property",
+          "changes": {
+            "Schlaeger.velocityX": 0
+          }
+        },
+        {
+          "id": "6512956b-df00-41ae-b00e-5867a49bcd1e",
+          "name": "Act_TouchLinks",
+          "type": "calculate",
+          "formula": "Math.max(0.02, Schlaeger.x - 3)",
+          "resultVariable": "Schlaeger.x"
+        },
+        {
+          "id": "ad93bcef-f4c6-44ec-9dd1-6d2ddaebe20d",
+          "name": "Act_TouchRechts",
+          "type": "calculate",
+          "formula": "Math.min(54.98, Schlaeger.x + 3)",
+          "resultVariable": "Schlaeger.x"
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#080f20"
+      },
+      "backgroundColor": "#080f20",
+      "startAnimation": "none",
+      "features": [
+        {
+          "id": "breakout_aufbau",
+          "name": "Spielfeld & Gestaltung",
+          "description": "40 Steine in fünf Punktestufen, klare Anzeigen und kontrastreiche Spielobjekte.",
+          "tags": [
+            "Breakout"
+          ],
+          "userStoryIds": [
+            "us_breakout_aufbau"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "breakout_steuerung",
+          "name": "Schlägersteuerung",
+          "description": "Pfeiltasten und Bildschirmtasten steuern den begrenzten Schläger.",
+          "tags": [
+            "Breakout"
+          ],
+          "userStoryIds": [
+            "us_breakout_steuerung"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "breakout_physik",
+          "name": "Ball & Kollisionen",
+          "description": "GCS-Physik, Wandreflexion und winkelabhängiger Schlägerabprall.",
+          "tags": [
+            "Breakout"
+          ],
+          "userStoryIds": [
+            "us_breakout_physik"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "breakout_punkte",
+          "name": "Steine & Punkte",
+          "description": "Jeder Stein wird genau einmal gewertet, obere Reihen bringen mehr Punkte.",
+          "tags": [
+            "Breakout"
+          ],
+          "userStoryIds": [
+            "us_breakout_punkte"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "breakout_leben",
+          "name": "Leben & Spielende",
+          "description": "Drei Leben, erneuter Aufschlag und klare Endzustände.",
+          "tags": [
+            "Breakout"
+          ],
+          "userStoryIds": [
+            "us_breakout_leben"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "breakout_ablauf",
+          "name": "Start, Pause & Neustart",
+          "description": "Explizite Zustandswechsel erhalten oder initialisieren den Spielstand.",
+          "tags": [
+            "Breakout"
+          ],
+          "userStoryIds": [
+            "us_breakout_ablauf"
+          ],
+          "blueprintTaskNames": []
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "us_breakout_aufbau",
+        "title": "Spielfeld & Gestaltung",
+        "description": "40 Steine in fünf Punktestufen, klare Anzeigen und kontrastreiche Spielobjekte.",
+        "acceptanceCriteria": [
+          "40 Steine in fünf Reihen sichtbar",
+          "Schläger und Ball innerhalb des Spielfelds"
+        ],
+        "priority": "high",
+        "status": "in_progress",
+        "relatedStages": [
+          "stage_main"
+        ],
+        "tags": [
+          "Breakout",
+          "Lernprojekt"
+        ],
+        "createdAt": "2026-09-08T17:38:28.563Z",
+        "projectId": "breakout-learning",
+        "updatedAt": "2026-09-08T17:38:28.563Z",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "breakout_aufbau",
+        "plannedActions": []
+      },
+      {
+        "id": "us_breakout_steuerung",
+        "title": "Schlägersteuerung",
+        "description": "Pfeiltasten und Bildschirmtasten steuern den begrenzten Schläger.",
+        "acceptanceCriteria": [
+          "Links/rechts funktionieren",
+          "Gleichzeitige Pfeiltasten neutralisieren sich",
+          "Schläger verlässt die Stage nicht"
+        ],
+        "priority": "high",
+        "status": "in_progress",
+        "relatedStages": [
+          "stage_main"
+        ],
+        "tags": [
+          "Breakout",
+          "Lernprojekt"
+        ],
+        "createdAt": "2026-09-08T17:38:28.563Z",
+        "projectId": "breakout-learning",
+        "updatedAt": "2026-09-08T17:38:28.563Z",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "breakout_steuerung",
+        "plannedActions": []
+      },
+      {
+        "id": "us_breakout_physik",
+        "title": "Ball & Kollisionen",
+        "description": "GCS-Physik, Wandreflexion und winkelabhängiger Schlägerabprall.",
+        "acceptanceCriteria": [
+          "Ball prallt oben und seitlich ab",
+          "Schlägerrand ändert die Flugrichtung"
+        ],
+        "priority": "high",
+        "status": "in_progress",
+        "relatedStages": [
+          "stage_main"
+        ],
+        "tags": [
+          "Breakout",
+          "Lernprojekt"
+        ],
+        "createdAt": "2026-09-08T17:38:28.563Z",
+        "projectId": "breakout-learning",
+        "updatedAt": "2026-09-08T17:38:28.563Z",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "breakout_physik",
+        "plannedActions": []
+      },
+      {
+        "id": "us_breakout_punkte",
+        "title": "Steine & Punkte",
+        "description": "Jeder Stein wird genau einmal gewertet, obere Reihen bringen mehr Punkte.",
+        "acceptanceCriteria": [
+          "Stein verschwindet nach Treffer",
+          "Reststeine sinkt um eins",
+          "Maximaler Punktestand ist 1200"
+        ],
+        "priority": "high",
+        "status": "in_progress",
+        "relatedStages": [
+          "stage_main"
+        ],
+        "tags": [
+          "Breakout",
+          "Lernprojekt"
+        ],
+        "createdAt": "2026-09-08T17:38:28.563Z",
+        "projectId": "breakout-learning",
+        "updatedAt": "2026-09-08T17:38:28.563Z",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "breakout_punkte",
+        "plannedActions": []
+      },
+      {
+        "id": "us_breakout_leben",
+        "title": "Leben & Spielende",
+        "description": "Drei Leben, erneuter Aufschlag und klare Endzustände.",
+        "acceptanceCriteria": [
+          "Ballverlust zieht ein Leben ab",
+          "Null Leben beendet das Spiel",
+          "Null Steine zeigt Sieg"
+        ],
+        "priority": "high",
+        "status": "in_progress",
+        "relatedStages": [
+          "stage_main"
+        ],
+        "tags": [
+          "Breakout",
+          "Lernprojekt"
+        ],
+        "createdAt": "2026-09-08T17:38:28.563Z",
+        "projectId": "breakout-learning",
+        "updatedAt": "2026-09-08T17:38:28.563Z",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "breakout_leben",
+        "plannedActions": []
+      },
+      {
+        "id": "us_breakout_ablauf",
+        "title": "Start, Pause & Neustart",
+        "description": "Explizite Zustandswechsel erhalten oder initialisieren den Spielstand.",
+        "acceptanceCriteria": [
+          "Pause friert Bewegung ein",
+          "Fortsetzen erhält Ballposition",
+          "Neustart stellt 40 Steine und 3 Leben her"
+        ],
+        "priority": "high",
+        "status": "in_progress",
+        "relatedStages": [
+          "stage_main"
+        ],
+        "tags": [
+          "Breakout",
+          "Lernprojekt"
+        ],
+        "createdAt": "2026-09-08T17:38:28.563Z",
+        "projectId": "breakout-learning",
+        "updatedAt": "2026-09-08T17:38:28.563Z",
+        "relatedComponents": [],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "breakout_ablauf",
+        "plannedActions": []
+      }
+    ]
+  },
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "elements": [],
+    "connections": []
+  }
+}

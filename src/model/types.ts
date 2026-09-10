@@ -445,6 +445,7 @@ export interface InputConfig {
 export type StageType = 'standard' | 'splash' | 'main' | 'template' | 'blueprint' | 'theme-editor';
 
 export interface Feature {
+    parentId?: string;            // Optionaler übergeordneter Feature-Bereich
     id: string;                   // Eindeutige Feature-ID
     name: string;                 // Anzeigename
     description?: string;         // Optionale Beschreibung

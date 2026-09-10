@@ -49,6 +49,24 @@ export async function runTests(): Promise<TestResult[]> {
         results.push({ name, type: 'AgentController', expectedSuccess: true, actualSuccess: passed, passed, details });
     };
 
+    // Record-API muss die Parameter der bestehenden TObjectList-Runtime akzeptieren.
+    {
+        const previous = coreStore.project;
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        try {
+            coreStore.setProject(project); agent.setProject(project);
+            agent.createTask('stage_main', 'RecordPruefung');
+            agent.addAction('RecordPruefung', 'record_get', 'LeseRecord', {list:'Steine',target:'self',field:'zerstoert',resultVariable:'SchonZerstoert'});
+            agent.addAction('RecordPruefung', 'record_set', 'SchreibeRecord', {list:'Steine',target:'self',field:'zerstoert',value:false});
+            addResult('Record-API: list/field ohne erfundenes key', true);
+            let rejected = false;
+            try { agent.addAction('RecordPruefung', 'record_get', 'Ungueltig', {key:'zerstoert'}); } catch { rejected = true; }
+            addResult('Record-API: fehlende Listenparameter ablehnen', rejected);
+        } catch (error: any) { addResult('Record-API: list/field ohne erfundenes key', false, error.message); }
+        finally { if (previous) coreStore.setProject(previous); else coreStore.project = null; }
+    }
+
     // ══════════════════════════════════════════════
     // Gutfall-Tests: Neue Methoden
     // ══════════════════════════════════════════════

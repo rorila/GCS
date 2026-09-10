@@ -1,3 +1,5 @@
+import {tracedFetch} from '../../../services/HttpTrace';
+import {redactDebug} from '../../../services/DebugPrivacy';
 import { actionRegistry } from '../../ActionRegistry';
 import { PropertyHelper } from '../../PropertyHelper';
 import { serviceRegistry } from '../../../services/ServiceRegistry';
@@ -75,7 +77,7 @@ export function registerHttpActions() {
             }
         }
 
-        DebugLogService.getInstance().log('Action', `HTTP: ${method} ${url}`, {
+        const httpLogId = DebugLogService.getInstance().log('Action', `HTTP: ${method} ${url}`, {
             data: { type: 'http', method, url, body: parsedBody }
         });
 
@@ -145,7 +147,7 @@ export function registerHttpActions() {
                     const varName = context.objects?.find(o => o.id === resVar)?.name || resVar;
                     const displayValue = Array.isArray(result)
                         ? `[${result.length} Einträge]`
-                        : (typeof result === 'object' && result !== null ? JSON.stringify(result)?.substring(0, 80) : String(result));
+                        : (typeof result === 'object' && result !== null ? JSON.stringify(redactDebug(result))?.substring(0, 80) : String(result));
 
                     DebugLogService.getInstance().log('Variable', `${varName} ← HTTP-Ergebnis: ${displayValue}`, {
                         objectName: varName,
@@ -186,14 +188,14 @@ export function registerHttpActions() {
             if (body) options.body = body;
 
             if (action.requestJWT) {
-                dataLogger.info(`JWT Real Request: ${method} ${url}`, { headers: options.headers, body: parsedBody });
+                dataLogger.info(`JWT Real Request: ${method} ${url}`, redactDebug({ headers: options.headers, body: parsedBody }));
             }
 
-            const response = await fetch(url, options);
+            const response = await tracedFetch(url, options, httpLogId);
             let data = await response.json();
 
             if (action.requestJWT) {
-                dataLogger.info(`JWT Real Response:`, data);
+                dataLogger.info(`JWT Real Response:`, redactDebug(data));
                 if (data && data.token) {
                     localStorage.setItem('auth_token', data.token);
                     dataLogger.info('Auto-saved JWT token to localStorage "auth_token"');
@@ -220,7 +222,7 @@ export function registerHttpActions() {
                 const varName = context.objects?.find(o => o.id === action.resultVariable)?.name || action.resultVariable;
                 const displayValue = Array.isArray(data)
                     ? `[${data.length} Einträge]`
-                    : (typeof data === 'object' && data !== null ? JSON.stringify(data).substring(0, 80) : String(data));
+                    : (typeof data === 'object' && data !== null ? JSON.stringify(redactDebug(data)).substring(0, 80) : String(data));
 
                 DebugLogService.getInstance().log('Variable', `${varName} ← HTTP-Ergebnis: ${displayValue}`, {
                     objectName: varName,

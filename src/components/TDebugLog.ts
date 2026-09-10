@@ -1,3 +1,5 @@
+import {renderServerTraces} from '../editor/debug/ServerTraceView';
+const escapeLogHtml=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 import { DebugLogService, LogEntry, LogType } from '../services/DebugLogService';
 import { Logger } from '../utils/Logger';
 
@@ -9,6 +11,8 @@ export class TDebugLog {
     private filterContainer!: HTMLElement;
     private typeFilters: Set<LogType> = new Set(['Event', 'Task', 'Action', 'Variable', 'Condition', 'System']);
     private showDetails: boolean = true;
+    private serverTraceMode=false;
+    public showServerTraces(){this.serverTraceMode=true;this.setPanelVisible(true);this.renderLogs(this.service.getLogs());}
     private objectFilter: string = '';
     private eventFilter: string = '';
     private taskFilter: string = '';
@@ -204,6 +208,7 @@ export class TDebugLog {
         closeBtn.innerHTML = '&#10005;';
         closeBtn.style.cssText = 'background: none; border: none; color: #666; cursor: pointer; font-size: 16px;';
         closeBtn.onclick = () => this.toggle();
+        const traceButton=document.createElement('button');traceButton.textContent='HTTP / Server';traceButton.title='Zwischen Ablaufprotokoll und HTTP-/Server-Vorgängen wechseln';traceButton.onclick=()=>{this.serverTraceMode=!this.serverTraceMode;this.renderLogs(this.service.getLogs());};header.append(traceButton);
         header.appendChild(closeBtn);
         this.element.appendChild(header);
 
@@ -804,6 +809,7 @@ export class TDebugLog {
         // PERFORMANCE: Dropdowns nur aktualisieren, wenn sich die Filter geändert haben
         // Nicht bei jedem renderLogs() aufrufen
         this.logList.innerHTML = '';
+        if(this.serverTraceMode){renderServerTraces(logs,this.logList,this.project?.meta?.id==='gcs-server-login'&&this.editor?.navigateToFlowChart?(task)=>this.editor.navigateToFlowChart(task):undefined);return;}
 
         if (logs.length === 0) {
             this.logList.innerHTML = '<div style="padding: 20px; color: #666; font-style: italic;">No logs recorded yet. Start interacting with the game!</div>';
@@ -953,6 +959,8 @@ export class TDebugLog {
                 detailText = `(${data.target || '?'}.${data.method || '?'}(${params}))`;
             } else if (data.type === 'spawn_object') {
                 detailText = `(spawn '${data.templateId || '?'}' offset=(${data.offsetX || 0}, ${data.offsetY || 0}) target=${data.referenceObject || '?'})`;
+            } else if (data.type === 'http_trace') {
+                detailText = JSON.stringify(data, null, 2);
             } else if (data.type === 'http') {
                 const bodyStr = data.body ? (typeof data.body === 'object' ? JSON.stringify(data.body, null, 2) : String(data.body)) : '';
                 detailText = `${data.method || 'GET'} ${data.url || '?'}${bodyStr ? ' - Body: ' + bodyStr : ''}`;
@@ -971,16 +979,16 @@ export class TDebugLog {
         // Since we are rendering the entry, the type hierarchy is satisfied. So we just check showDetails.
         const detailsVisible = this.showDetails;
 
-        const details = (detailText && detailsVisible) ? `<div style="color: #888; font-size: 9px; margin-top: 1px; padding-left: 12px; opacity: 0.7;">${detailText}</div>` : '';
+        const details = (detailText && detailsVisible) ? `<div style="color: #bbb; font-size: 11px; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 4px; padding-left: 12px;">${escapeLogHtml(detailText)}</div>` : '';
 
         const cleanMessage = entry.message.replace(/<[^>]*>?/gm, ''); // Strip potential HTML tags for tooltip
         const fullTooltip = `${entry.type}: ${cleanMessage}${detailText ? '\n' + detailText : ''}`;
 
         row.innerHTML = `
             <span style="color: #888; width: 10px; font-size: 8px; margin-top: 4px;">${icon}</span>
-            <div style="flex: 1; overflow: hidden;" title="${fullTooltip.replace(/"/g, '&quot;')}">
+            <div style="flex: 1; overflow: hidden;" title="${escapeLogHtml(fullTooltip)}">
                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${typeLabel} ${entry.message}
+                    ${typeLabel} ${escapeLogHtml(entry.message)}
                 </div>
                 ${details}
             </div>

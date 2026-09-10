@@ -1,0 +1,27 @@
+{
+  "checks": [
+    "40 sichtbare Steine",
+    "Leertaste startet",
+    "Tastatur bewegt Schläger",
+    "Pause hält Ball an",
+    "Fortsetzen",
+    "Steintreffer entfernt und zählt",
+    "Punkte genau einmal",
+    "Record markiert Treffer",
+    "Doppelwertung gesperrt",
+    "Schläger reflektiert nach oben",
+    "Trefferwinkel links",
+    "Wandreflexion",
+    "Leben 2",
+    "Leben 1",
+    "Leben 0",
+    "Niederlage",
+    "Neustart setzt Werte",
+    "Listenreset stellt alle Steine wieder her",
+    "Sieg nach 40 Steinen",
+    "1200 Gesamtpunkte",
+    "Keine Browser-Ausnahmen"
+  ],
+  "errors": [],
+  "notes": "Echte GCS-Runtime. Physische Einzelkollisionen und gezielte Events; kein vollständig autonom durchgespieltes Match."
+}

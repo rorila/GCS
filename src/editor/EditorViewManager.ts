@@ -155,6 +155,7 @@ export class EditorViewManager {
     }
 
     public switchView(view: ViewType) {
+        if (view !== 'knowledgebase') this.knowledgeBaseViewManager.disposeTraining();
         const h = this.host;
         EditorViewManager.logger.info(`[TRACE] switchView called: ${this.currentView} -> ${view}`, { stack: new Error().stack });
 

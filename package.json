@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "vite",
     "start": "node scripts/start-local.mjs",
+    "start:training": "node scripts/start-training.mjs",
+    "test:training-ui": "node scripts/test-training-ui.cjs",
     "predev": "npm run bundle:runtime && npm run media:manifest",
     "bundle:runtime": "node scripts/bundle-runtime.mjs",
     "media:manifest": "node scripts/generate-media-manifest.mjs",
@@ -67,7 +69,8 @@
     "express": "^5.2.1",
     "fflate": "^0.8.2",
     "jsep": "^1.4.0",
-    "mermaid": "^11.12.2"
+    "mermaid": "^11.12.2",
+    "sharp": "0.34.4"
   },
   "build": {
     "appId": "com.gamebuilder.app",
