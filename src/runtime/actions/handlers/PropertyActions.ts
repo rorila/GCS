@@ -30,6 +30,17 @@ export function registerPropertyActions() {
                 if (target) {
                     if (propPath) {
                         PropertyHelper.setPropertyValue(target, propPath, finalValue);
+
+                        // Bei direkten x/y-Positionsspruengen auch die Render- und
+                        // Vorgaenger-Koordinaten sofort anpassen, damit das Objekt
+                        // tatsaechlich an der neuen Stelle gerendert wird.
+                        if (propPath === 'x' && 'previousX' in target && 'renderX' in target) {
+                            target.previousX = finalValue;
+                            target.renderX = finalValue;
+                        } else if (propPath === 'y' && 'previousY' in target && 'renderY' in target) {
+                            target.previousY = finalValue;
+                            target.renderY = finalValue;
+                        }
                     } else {
                         // Direct variable assignment
                         if (context.vars[rootName] !== undefined) {

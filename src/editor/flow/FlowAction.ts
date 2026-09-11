@@ -232,6 +232,9 @@ export class FlowAction extends FlowElement {
                 for (const [key, value] of Object.entries(this.data)) {
                     const isEmpty = value === undefined || value === null ||
                         (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0);
+                    // Generische Referenz-Stubs (type: 'action') sollen den echten
+                    // Typ (z.B. 'negate' aus der Blueprint) nicht ueberschreiben.
+                    if (key === 'type' && value === 'action') continue;
                     if (!isEmpty) merged[key] = value;
                 }
                 return merged;
