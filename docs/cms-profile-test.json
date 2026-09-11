@@ -1,0 +1,19 @@
+{
+  "passed": 14,
+  "checks": [
+    "Ohne Sitzung kein Profil",
+    "Eigenes Profil lesbar",
+    "Ungültiger Avatar abgelehnt",
+    "Name und Avatar gespeichert",
+    "Fremde Person unverändert",
+    "Dauerhaft gespeichert",
+    "Hilfe einmalig vorgemerkt",
+    "Profilbutton nach Anmeldung sichtbar",
+    "Profilformular geladen",
+    "Native Änderung gespeichert",
+    "Hilfebestätigung sichtbar",
+    "Rückkehr zur Raumauswahl",
+    "Profil nach Abmeldung verborgen",
+    "Keine Browserfehler"
+  ]
+}

@@ -160,7 +160,12 @@ export class InputRenderer {
                         if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onFocus', input.value);
                     };
                 }
-                if (document.activeElement !== input && input.value !== (obj.text || '')) input.value = obj.text || '';
+                if ((document.activeElement !== input || (obj.inputType === 'password' && !obj.text)) && input.value !== (obj.text || '')) input.value = obj.text || '';
+                input.type = obj.inputType === 'password' ? 'password' : 'text';
+                input.name = obj.name;
+                input.setAttribute('aria-label', obj.placeholder || obj.name);
+                input.setAttribute('autocomplete', obj.autocomplete || 'off');
+                input.maxLength = obj.maxLength || 100;
                 input.placeholder = obj.placeholder || '';
                 input.style.color = obj.style?.color || '#000000';
                 input.style.backgroundColor = obj.style?.backgroundColor || 'transparent';

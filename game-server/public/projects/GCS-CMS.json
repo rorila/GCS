@@ -21,7 +21,37 @@
       "id": "stage_blueprint",
       "name": "CMS-Dienste",
       "type": "blueprint",
-      "objects": [],
+      "objects": [
+        {
+          "id": "Avatarpicker",
+          "className": "TFilePicker",
+          "name": "AvatarDatei",
+          "x": 1,
+          "y": 1,
+          "accept": ".png,.jpg,.jpeg,.webp",
+          "maxBytes": 2097152,
+          "events": {
+            "onSelected": "Avatar_Bereit",
+            "onError": "Avatar_Dateifehler"
+          }
+        },
+        {
+          "id": "Avatarupload",
+          "className": "TFileUpload",
+          "name": "AvatarUpload",
+          "x": 1,
+          "y": 4,
+          "picker": "AvatarDatei",
+          "endpoint": "/api/cms/upload/avatar",
+          "events": {
+            "onStarted": "Avatar_Status",
+            "onProgress": "Avatar_Status",
+            "onError": "Avatar_Status",
+            "onCancel": "Avatar_Status",
+            "onSuccess": "Avatar_Gespeichert"
+          }
+        }
+      ],
       "tasks": [
         {
           "name": "Pruefen",
@@ -97,6 +127,10 @@
             {
               "type": "task",
               "name": "Raeume"
+            },
+            {
+              "type": "action",
+              "name": "Act_Profilzugang_Anzeigen"
             }
           ],
           "triggerMode": "local-sync",
@@ -326,6 +360,14 @@
             {
               "type": "action",
               "name": "Act_Emoji_Einwahl_zuruecksetzen_und_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen"
+            },
+            {
+              "type": "task",
+              "name": "Profil_Verbergen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Profilzugang_Verbergen"
             }
           ],
           "triggerMode": "local-sync",
@@ -2228,6 +2270,492 @@
           "triggerMode": "local-sync",
           "params": [],
           "id": "98c825e8-a673-4826-9236-decbf5ed0414"
+        },
+        {
+          "name": "Profil_Oeffnen",
+          "description": "Profil_Oeffnen",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Profil_Laden"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Laden",
+          "description": "Profil_Laden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Profil_Laden_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Profil_Laden_Serveranfrage"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: ProfilAntwort.ok == true",
+              "condition": {
+                "variable": "ProfilAntwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Profil_Anzeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Profil_Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Anzeigen",
+          "description": "Profil_Anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Profilfelder_Anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Avatarupload_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Speichern",
+          "description": "Profil_Speichern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Profil_Speichern_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Profil_Speichern_Serveranfrage"
+            },
+            {
+              "type": "task",
+              "name": "Profil_Rueckmeldung"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Hilfe_Anfordern",
+          "description": "Profil_Hilfe_Anfordern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Profil_Hilfe_Anfordern_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Profil_Hilfe_Anfordern_Serveranfrage"
+            },
+            {
+              "type": "task",
+              "name": "Profil_Rueckmeldung"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Rueckmeldung",
+          "description": "Profil_Rueckmeldung",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Profilantwort_Anzeigen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: ProfilAntwort.ok == true",
+              "condition": {
+                "variable": "ProfilAntwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Profil_Titel_Aktualisieren"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Profil_Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Fehler",
+          "description": "Profil_Fehler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Profilfehler_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Verbergen",
+          "description": "Profil_Verbergen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Profilfelder_Verbergen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Avatarupload_Verbergen"
+            },
+            {
+              "type": "task",
+              "name": "Avatar_Abbrechen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Zurueck",
+          "description": "Profil_Zurueck",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "Profil_Verbergen"
+            },
+            {
+              "type": "task",
+              "name": "Raeume"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Titel_Aktualisieren",
+          "description": "Profil_Titel_Aktualisieren",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Aktuellen_Namen_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Sperre_MeinBereich",
+          "description": "Profil_Sperre_MeinBereich",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Profil_Oeffnen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Sperre_ProfilSpeichern",
+          "description": "Profil_Sperre_ProfilSpeichern",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Profil_Speichern"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Sperre_ProfilHilfe",
+          "description": "Profil_Sperre_ProfilHilfe",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Profil_Hilfe_Anfordern"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Sperre_ProfilZurueck",
+          "description": "Profil_Sperre_ProfilZurueck",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Profil_Zurueck"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Avatar_0",
+          "description": "Profil_Avatar_0",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_0_Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Avatar_1",
+          "description": "Profil_Avatar_1",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_1_Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Avatar_2",
+          "description": "Profil_Avatar_2",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_2_Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Avatar_3",
+          "description": "Profil_Avatar_3",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_3_Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Avatar_4",
+          "description": "Profil_Avatar_4",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_4_Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Avatar_5",
+          "description": "Profil_Avatar_5",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_5_Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Avatar_6",
+          "description": "Profil_Avatar_6",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_6_Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Profil_Avatar_7",
+          "description": "Profil_Avatar_7",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_7_Waehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Avatar_Waehlen",
+          "description": "Avatar_Waehlen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_Dateiauswahl_Oeffnen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Avatar_Uebertragen",
+          "description": "Avatar_Uebertragen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_Uebertragen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Avatar_Abbrechen",
+          "description": "Avatar_Abbrechen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_Upload_Abbrechen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Avatar_Status",
+          "description": "Avatar_Status",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_Uploadstatus_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Avatar_Bereit",
+          "description": "Avatar_Bereit",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_Dateiname_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Avatar_Gespeichert",
+          "description": "Avatar_Gespeichert",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatarbild_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Avatar_Dateifehler",
+          "description": "Avatar_Dateifehler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Avatar_Dateifehler_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
         }
       ],
       "actions": [
@@ -2858,6 +3386,311 @@
           "formula": "Math.min(Math.max(0, Seiten - 1), Seite + 1)",
           "resultVariable": "Seite",
           "resultVariable_ref": "cms_var_Seite"
+        },
+        {
+          "id": "cba85334-d01d-4bfd-9b91-5b5cf189ef2d",
+          "name": "Act_Profil_Laden_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Hinweis.text": "⏳ Einen Moment …"
+          }
+        },
+        {
+          "id": "fa494215-83d4-4fa4-8075-cc392360d574",
+          "name": "Act_Profil_Laden_Serveranfrage",
+          "type": "http",
+          "url": "/api/cms/profile/read",
+          "method": "POST",
+          "body": {
+            "token": "${Token}"
+          },
+          "resultVariable": "ProfilAntwort"
+        },
+        {
+          "id": "684fea10-c169-452c-b5e6-4ccc712a7184",
+          "name": "Act_Profilfelder_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Modus": "profile",
+            "ProfilName.visible": true,
+            "ProfilAvatar.visible": true,
+            "ProfilSpeichern.visible": true,
+            "ProfilHilfe.visible": true,
+            "ProfilZurueck.visible": true,
+            "ProfilAvatar0.visible": true,
+            "ProfilAvatar1.visible": true,
+            "ProfilAvatar2.visible": true,
+            "ProfilAvatar3.visible": true,
+            "ProfilAvatar4.visible": true,
+            "ProfilAvatar5.visible": true,
+            "ProfilAvatar6.visible": true,
+            "ProfilAvatar7.visible": true,
+            "Karte0.visible": false,
+            "Karte1.visible": false,
+            "Karte2.visible": false,
+            "Karte3.visible": false,
+            "Zurueck.visible": false,
+            "Vorher.visible": false,
+            "Weiter.visible": false,
+            "ProfilName.text": "${ProfilAntwort.name}",
+            "ProfilAvatar.text": "${ProfilAntwort.avatar}",
+            "Hinweis.text": "${ProfilAntwort.message}"
+          }
+        },
+        {
+          "id": "d8fbbdce-bfa6-498d-a6db-ce141991f2ad",
+          "name": "Act_Profil_Speichern_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Hinweis.text": "⏳ Einen Moment …"
+          }
+        },
+        {
+          "id": "35c05278-1cfc-4892-9887-0cd9fd397b3a",
+          "name": "Act_Profil_Speichern_Serveranfrage",
+          "type": "http",
+          "url": "/api/cms/profile/save",
+          "method": "POST",
+          "body": {
+            "token": "${Token}",
+            "name": "${ProfilName.text}",
+            "avatar": "${ProfilAvatar.text}"
+          },
+          "resultVariable": "ProfilAntwort"
+        },
+        {
+          "id": "2e345e91-fe1c-4e1e-a1d7-b758f5170f2e",
+          "name": "Act_Profil_Hilfe_Anfordern_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Hinweis.text": "⏳ Einen Moment …"
+          }
+        },
+        {
+          "id": "f70bfc03-f453-4c71-8fb8-f9f83b2f5b4c",
+          "name": "Act_Profil_Hilfe_Anfordern_Serveranfrage",
+          "type": "http",
+          "url": "/api/cms/profile/help",
+          "method": "POST",
+          "body": {
+            "token": "${Token}"
+          },
+          "resultVariable": "ProfilAntwort"
+        },
+        {
+          "id": "60d864f1-da4d-471a-ac0f-1d3d5ba45af8",
+          "name": "Act_Profilantwort_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Hinweis.text": "${ProfilAntwort.message}"
+          }
+        },
+        {
+          "id": "df1423e9-2105-4182-8387-b6afa7a3b58e",
+          "name": "Act_Aktuellen_Namen_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Titel.text": "${ProfilAntwort.avatar}  ${ProfilAntwort.name}"
+          }
+        },
+        {
+          "id": "eb39ae0e-7774-4b4b-9161-095797ef73d0",
+          "name": "Act_Profilfehler_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Hinweis.text": "⚠ Nicht gespeichert. Eingaben und Verbindung prüfen."
+          }
+        },
+        {
+          "id": "0a52271f-e28d-4d34-8156-1f37abfd4673",
+          "name": "Act_Profilfelder_Verbergen",
+          "type": "property",
+          "changes": {
+            "ProfilName.visible": false,
+            "ProfilAvatar.visible": false,
+            "ProfilSpeichern.visible": false,
+            "ProfilHilfe.visible": false,
+            "ProfilZurueck.visible": false,
+            "ProfilAvatar0.visible": false,
+            "ProfilAvatar1.visible": false,
+            "ProfilAvatar2.visible": false,
+            "ProfilAvatar3.visible": false,
+            "ProfilAvatar4.visible": false,
+            "ProfilAvatar5.visible": false,
+            "ProfilAvatar6.visible": false,
+            "ProfilAvatar7.visible": false,
+            "ProfilName.text": ""
+          }
+        },
+        {
+          "id": "90fd57e1-4dc1-4895-9f4b-7a0ed45e840f",
+          "name": "Act_Avatar_0_Waehlen",
+          "type": "property",
+          "changes": {
+            "ProfilAvatar.text": "🦊"
+          }
+        },
+        {
+          "id": "4f0c185a-a944-43cb-9635-92a83db86877",
+          "name": "Act_Avatar_1_Waehlen",
+          "type": "property",
+          "changes": {
+            "ProfilAvatar.text": "🦉"
+          }
+        },
+        {
+          "id": "d6baf4e2-ef17-4044-ba2f-16f7a57123bf",
+          "name": "Act_Avatar_2_Waehlen",
+          "type": "property",
+          "changes": {
+            "ProfilAvatar.text": "🐶"
+          }
+        },
+        {
+          "id": "cbbe86c3-7f37-4a18-9281-9655ace81aa2",
+          "name": "Act_Avatar_3_Waehlen",
+          "type": "property",
+          "changes": {
+            "ProfilAvatar.text": "🐱"
+          }
+        },
+        {
+          "id": "52a5321f-5341-4c50-9afa-8b60ec64409d",
+          "name": "Act_Avatar_4_Waehlen",
+          "type": "property",
+          "changes": {
+            "ProfilAvatar.text": "🐼"
+          }
+        },
+        {
+          "id": "36b2dfda-c63f-44a3-97f6-5c6e341b2119",
+          "name": "Act_Avatar_5_Waehlen",
+          "type": "property",
+          "changes": {
+            "ProfilAvatar.text": "🐸"
+          }
+        },
+        {
+          "id": "7c7614a5-6874-4415-8990-6aa21f81c6e5",
+          "name": "Act_Avatar_6_Waehlen",
+          "type": "property",
+          "changes": {
+            "ProfilAvatar.text": "🦁"
+          }
+        },
+        {
+          "id": "6e8fa797-1f5b-4b72-9f41-c8dec8554f39",
+          "name": "Act_Avatar_7_Waehlen",
+          "type": "property",
+          "changes": {
+            "ProfilAvatar.text": "🐰"
+          }
+        },
+        {
+          "id": "0f67c28a-fcfc-41ed-9818-46eedcff960a",
+          "name": "Act_Profilzugang_Anzeigen",
+          "type": "property",
+          "changes": {
+            "MeinBereich.visible": true
+          }
+        },
+        {
+          "id": "27d0bd2a-89ae-4a95-a6ac-c057643eba3b",
+          "name": "Act_Profilzugang_Verbergen",
+          "type": "property",
+          "changes": {
+            "MeinBereich.visible": false
+          }
+        },
+        {
+          "id": "dc572ebb-19c5-4a0d-90f6-d996a4f1ec4d",
+          "name": "Act_Avatar_Dateiauswahl_Oeffnen",
+          "type": "call_method",
+          "target": "AvatarDatei",
+          "method": "choose",
+          "params": []
+        },
+        {
+          "id": "537d0e4b-1aa1-40af-8b57-b28549ca4ce4",
+          "name": "Act_Avatar_Uebertragen",
+          "type": "call_method",
+          "target": "AvatarUpload",
+          "method": "start",
+          "params": [
+            "",
+            "",
+            "${Token}"
+          ]
+        },
+        {
+          "id": "1ba3a132-f9ca-465d-9d39-e17cd9045ea3",
+          "name": "Act_Avatar_Upload_Abbrechen",
+          "type": "call_method",
+          "target": "AvatarUpload",
+          "method": "cancel",
+          "params": []
+        },
+        {
+          "id": "2e50548f-266f-4e0d-96d7-6995f247acf0",
+          "name": "Act_Avatar_Uploadstatus_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Hinweis.text": "${AvatarUpload.message} (${AvatarUpload.progress} %)"
+          }
+        },
+        {
+          "id": "681337f1-1653-486f-871d-2e5ea19b33a8",
+          "name": "Act_Avatar_Dateiname_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Hinweis.text": "${AvatarDatei.filename} · bereit"
+          }
+        },
+        {
+          "id": "129bddd7-234a-4de0-9979-41e023186208",
+          "name": "Act_Avatarbild_Anzeigen",
+          "type": "property",
+          "changes": {
+            "ProfilBild.src": "${AvatarUpload.result.avatarImage}",
+            "Hinweis.text": "${AvatarUpload.message}"
+          }
+        },
+        {
+          "id": "62149c93-5b5c-448d-9b9a-de706822073b",
+          "name": "Act_Avatar_Dateifehler_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Hinweis.text": "${AvatarDatei.message}"
+          }
+        },
+        {
+          "id": "d8fd53c8-b649-4b6c-b282-4331ae8396ff",
+          "name": "Act_Avatarupload_Anzeigen",
+          "type": "property",
+          "changes": {
+            "AvatarDateiWaehlen.visible": true,
+            "AvatarHochladen.visible": true,
+            "AvatarAbbrechen.visible": true,
+            "ProfilBild.visible": true,
+            "ProfilBild.src": "${ProfilAntwort.avatarImage}"
+          }
+        },
+        {
+          "id": "2fbb593a-a82e-4d73-b14e-90dcae62fa74",
+          "name": "Act_Avatarupload_Verbergen",
+          "type": "property",
+          "changes": {
+            "AvatarDateiWaehlen.visible": false,
+            "AvatarHochladen.visible": false,
+            "AvatarAbbrechen.visible": false,
+            "ProfilBild.visible": false
+          }
         }
       ],
       "variables": [
@@ -4170,6 +5003,347 @@
           },
           "text": "",
           "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "profile_MeinBereich",
+          "name": "MeinBereich",
+          "x": 39,
+          "y": 2,
+          "width": 8,
+          "height": 3,
+          "text": "👤",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Sperre_MeinBereich"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilSpeichern",
+          "name": "ProfilSpeichern",
+          "x": 7,
+          "y": 23,
+          "width": 20,
+          "height": 3,
+          "text": "✓ Speichern",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Sperre_ProfilSpeichern"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilHilfe",
+          "name": "ProfilHilfe",
+          "x": 30,
+          "y": 23,
+          "width": 26,
+          "height": 3,
+          "text": "🆘 Zugangshilfe",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Sperre_ProfilHilfe"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilZurueck",
+          "name": "ProfilZurueck",
+          "x": 7,
+          "y": 29,
+          "width": 18,
+          "height": 3,
+          "text": "⬅ Räume",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Sperre_ProfilZurueck"
+          }
+        },
+        {
+          "className": "TEdit",
+          "id": "profile_name",
+          "name": "ProfilName",
+          "x": 7,
+          "y": 11,
+          "width": 48,
+          "height": 3,
+          "text": "",
+          "placeholder": "Dein Anzeigename",
+          "maxLength": 40,
+          "visible": false
+        },
+        {
+          "className": "TLabel",
+          "name": "ProfilAvatar",
+          "x": 7,
+          "y": 15,
+          "width": 48,
+          "height": 3,
+          "text": "🦊",
+          "style": {
+            "color": "#fff",
+            "fontSize": 30,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent"
+          },
+          "id": "profile_avatar"
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilAvatar0",
+          "name": "ProfilAvatar0",
+          "x": 7,
+          "y": 19,
+          "width": 5,
+          "height": 3,
+          "text": "🦊",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Avatar_0"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilAvatar1",
+          "name": "ProfilAvatar1",
+          "x": 13,
+          "y": 19,
+          "width": 5,
+          "height": 3,
+          "text": "🦉",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Avatar_1"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilAvatar2",
+          "name": "ProfilAvatar2",
+          "x": 19,
+          "y": 19,
+          "width": 5,
+          "height": 3,
+          "text": "🐶",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Avatar_2"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilAvatar3",
+          "name": "ProfilAvatar3",
+          "x": 25,
+          "y": 19,
+          "width": 5,
+          "height": 3,
+          "text": "🐱",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Avatar_3"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilAvatar4",
+          "name": "ProfilAvatar4",
+          "x": 31,
+          "y": 19,
+          "width": 5,
+          "height": 3,
+          "text": "🐼",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Avatar_4"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilAvatar5",
+          "name": "ProfilAvatar5",
+          "x": 37,
+          "y": 19,
+          "width": 5,
+          "height": 3,
+          "text": "🐸",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Avatar_5"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilAvatar6",
+          "name": "ProfilAvatar6",
+          "x": 43,
+          "y": 19,
+          "width": 5,
+          "height": 3,
+          "text": "🦁",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Avatar_6"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "profile_ProfilAvatar7",
+          "name": "ProfilAvatar7",
+          "x": 49,
+          "y": 19,
+          "width": 5,
+          "height": 3,
+          "text": "🐰",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 22,
+            "borderRadius": 10
+          },
+          "events": {
+            "onClick": "Profil_Avatar_7"
+          }
+        },
+        {
+          "id": "upload_AvatarDateiWaehlen",
+          "className": "TButton",
+          "name": "AvatarDateiWaehlen",
+          "x": 7,
+          "y": 34,
+          "width": 16,
+          "height": 3,
+          "text": "📁 Eigenes Bild",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Avatar_Waehlen"
+          }
+        },
+        {
+          "id": "upload_AvatarHochladen",
+          "className": "TButton",
+          "name": "AvatarHochladen",
+          "x": 25,
+          "y": 34,
+          "width": 16,
+          "height": 3,
+          "text": "📤 Übertragen",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Avatar_Uebertragen"
+          }
+        },
+        {
+          "id": "upload_AvatarAbbrechen",
+          "className": "TButton",
+          "name": "AvatarAbbrechen",
+          "x": 43,
+          "y": 34,
+          "width": 13,
+          "height": 3,
+          "text": "Abbrechen",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Avatar_Abbrechen"
+          }
+        },
+        {
+          "id": "own_avatar_image",
+          "className": "TImage",
+          "name": "ProfilBild",
+          "x": 56,
+          "y": 12,
+          "width": 6,
+          "height": 6,
+          "src": "",
+          "visible": false
         }
       ],
       "tasks": [],
@@ -4385,6 +5559,51 @@
             "AbmeldenTask",
             "LoginZeigen"
           ]
+        },
+        {
+          "id": "personal-profile",
+          "name": "Meinen persönlichen Bereich verwalten",
+          "description": "Eigenen Namen und Avatar bearbeiten oder Zugangshilfe anfordern",
+          "userStoryIds": [
+            "personal-profile-story"
+          ],
+          "blueprintTaskNames": [
+            "Profil_Oeffnen",
+            "Profil_Laden",
+            "Profil_Anzeigen",
+            "Profil_Speichern",
+            "Profil_Hilfe_Anfordern",
+            "Profil_Rueckmeldung",
+            "Profil_Fehler",
+            "Profil_Verbergen",
+            "Profil_Zurueck",
+            "Profil_Titel_Aktualisieren",
+            "Profil_Sperre_MeinBereich",
+            "Profil_Sperre_ProfilSpeichern",
+            "Profil_Sperre_ProfilHilfe",
+            "Profil_Sperre_ProfilZurueck",
+            "Profil_Avatar_0",
+            "Profil_Avatar_1",
+            "Profil_Avatar_2",
+            "Profil_Avatar_3",
+            "Profil_Avatar_4",
+            "Profil_Avatar_5",
+            "Profil_Avatar_6",
+            "Profil_Avatar_7"
+          ]
+        },
+        {
+          "id": "avatar-upload",
+          "name": "Eigenes Avatarbild hochladen",
+          "userStoryIds": [],
+          "blueprintTaskNames": [
+            "Avatar_Waehlen",
+            "Avatar_Uebertragen",
+            "Avatar_Abbrechen",
+            "Avatar_Status",
+            "Avatar_Bereit",
+            "Avatar_Gespeichert"
+          ]
         }
       ]
     }
@@ -4393,7 +5612,7 @@
   "actions": [],
   "tasks": [],
   "variables": [],
-  "activeStageId": "stage_blueprint",
+  "activeStageId": "stage_main",
   "userStories": {
     "userStories": [
       {
@@ -4989,6 +6208,27 @@
         "plannedActions": [],
         "createdAt": "2026-09-10T11:38:27.366Z",
         "updatedAt": "2026-09-10T11:38:27.366Z"
+      },
+      {
+        "id": "personal-profile-story",
+        "title": "Meinen persönlichen Bereich öffnen",
+        "projectId": "gcs-cms-v1",
+        "featureId": "personal-profile",
+        "status": "completed",
+        "priority": "high",
+        "description": "Profil lesen → bearbeiten → speichern; bei Zugangsproblemen Hilfe anfordern",
+        "plannedComponent": {
+          "name": "MeinBereich",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Profil_Oeffnen",
+        "relatedStages": [
+          "stage_main"
+        ],
+        "relatedComponents": [
+          "MeinBereich"
+        ]
       }
     ]
   },

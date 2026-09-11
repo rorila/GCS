@@ -55,8 +55,9 @@ export function registerHttpActions() {
         let parsedBody = {};
 
         if (method !== 'GET' && action.body) {
-            const bodyStr = typeof action.body === 'object' ? JSON.stringify(action.body) : String(action.body);
-            body = PropertyHelper.interpolate(bodyStr, combinedContext, context.objects);
+            // Objektwerte vor JSON-Encoding interpolieren: Passwörter mit Sonderzeichen bleiben erhalten.
+            const expand = (value: any): any => typeof value === 'string' ? PropertyHelper.interpolate(value, combinedContext, context.objects) : Array.isArray(value) ? value.map(expand) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, expand(item)])) : value;
+            body = typeof action.body === 'object' ? JSON.stringify(expand(action.body)) : PropertyHelper.interpolate(String(action.body), combinedContext, context.objects);
             try {
                 parsedBody = JSON.parse(body);
             } catch (e) {

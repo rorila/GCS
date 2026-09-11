@@ -1,129 +1,63 @@
-import {projectStore} from './ProjectStore';
-import {canParentFeature} from '../model/FeatureHierarchy';
+import { GameProject, BaseAction, GameTask, ActionType, SequenceItem, ConditionOperator, VariableType, VariableScope } from '../model/types';
 import { coreStore } from './registry/CoreStore';
-import { projectActionRegistry } from './registry/ActionRegistry';
-import { projectTaskRegistry } from './registry/TaskRegistry';
-import { GameProject, BaseAction, GameTask, ActionType, SequenceItem, ConditionOperator, VariableType, VariableScope, ProjectVariable } from '../model/types';
-
 import { mediatorService } from './MediatorService';
 import { serviceRegistry } from './ServiceRegistry';
 import { Logger } from '../utils/Logger';
-import { RESERVED_VARIABLE_NAMES } from '../runtime/EventContext';
-import { SchemaMigrator } from './SchemaMigrator';
-import { actionRegistry } from '../runtime/ActionRegistry';
-import { ThresholdComparison } from '../components/TThresholdVariable';
+
 import { AgentShortcutModule } from './agent/AgentShortcutModule';
-import { AgentScriptIO, STAGE_CONFIG_EXCLUDE } from './agent/AgentScriptIO';
+import { AgentScriptIO } from './agent/AgentScriptIO';
 import { AgentScript, ImportOptions, ImportResult, ExportOptions } from './agent/AgentScriptTypes';
+import { VariableOptions, AgentBatchOperation, AgentBatchResult } from './agent/AgentTypes';
 
-/**
- * BranchBuilder
- * 
- * Hilfsklasse zum Aufbau von Then/Else-Zweigen innerhalb einer Condition.
- * Wird als Callback-Parameter an `AgentController.addBranch()` übergeben.
- */
-export class BranchBuilder {
-    private controller: AgentController;
-    private items: SequenceItem[] = [];
-    private stageId: string | undefined;
+import { AgentProjectService } from './agent/AgentProjectService';
+import { AgentFlowService } from './agent/AgentFlowService';
+import { AgentObjectService } from './agent/AgentObjectService';
+import { AgentValidationService } from './agent/AgentValidationService';
+import { AgentDeletionService } from './agent/AgentDeletionService';
+import { AgentReadService } from './agent/AgentReadService';
+import { AgentUseCaseService } from './agent/AgentUseCaseService';
+import { AgentBatchHelper } from './agent/AgentBatchHelper';
 
-    constructor(controller: AgentController, stageId?: string) {
-        this.controller = controller;
-        this.stageId = stageId;
-    }
-
-    /** Referenziert eine existierende, global definierte Action. */
-    addAction(actionName: string): BranchBuilder {
-        this.items.push({ type: 'action', name: actionName });
-        return this;
-    }
-
-    /** Definiert eine NEUE Action (global oder stage-spezifisch) und referenziert sie im Branch. */
-    addNewAction(actionType: ActionType, actionName: string, params: Record<string, any> = {}): BranchBuilder {
-        // Delegate creation to AgentController with stage context
-        this.controller.ensureActionDefined(actionType, actionName, params, this.stageId);
-        this.items.push({ type: 'action', name: actionName });
-        return this;
-    }
-
-    /** Referenziert einen Task-Aufruf im Branch. */
-    addTaskCall(taskName: string): BranchBuilder {
-        this.items.push({ type: 'task', name: taskName });
-        return this;
-    }
-
-    getItems(): SequenceItem[] {
-        return this.items;
-    }
-}
-
-export interface VariableOptions {
-    id?: string;
-    x?: number;
-    y?: number;
-    width?: number;
-    height?: number;
-    style?: any;
-    description?: string;
-    isPublic?: boolean;
-    objectModel?: string;
-
-    // Typ-spezifische Eigenschaften
-    threshold?: number;
-    comparison?: ThresholdComparison;
-    triggerValue?: any;
-    duration?: number;
-    min?: number;
-    max?: number;
-    isRandom?: boolean;
-    isInteger?: boolean;
-    searchValue?: string;
-    searchProperty?: string;
-
-    // Event-Handler (Task-Namen)
-    onValueChanged?: string;
-    onValueEmpty?: string;
-    onThresholdReached?: string;
-    onThresholdLeft?: string;
-    onThresholdExceeded?: string;
-    onTriggerEnter?: string;
-    onTriggerExit?: string;
-    onFinished?: string;
-    onTick?: string;
-    onHour?: string;
-    onMinute?: string;
-    onSecond?: string;
-    onMinReached?: string;
-    onMaxReached?: string;
-    onInside?: string;
-    onOutside?: string;
-    onItemAdded?: string;
-    onItemRemoved?: string;
-    onContains?: string;
-    onNotContains?: string;
-    onCleared?: string;
-    onGenerated?: string;
-    onItemCreated?: string;
-    onItemUpdated?: string;
-    onItemDeleted?: string;
-    onItemRead?: string;
-    onNotFound?: string;
-}
+// BranchBuilder bleibt über den AgentFlowService erreichbar, um Import-Pfade
+// auswärts kompatibel zu halten.
+export { BranchBuilder } from './agent/AgentFlowService';
 
 /**
  * AgentController
- * 
+ *
  * Zentrale API für den AI-Agenten (und Scripts), um das Projekt sicher und atomar zu manipulieren.
  * Enforces "Keep it Simple" & Architecture Invariants.
+ *
+ * Abstrahiert ab sofort in fachliche Service-Module; diese Klasse bleibt die
+ * öffentliche Fassade und delegiert an die Module.
  */
 export class AgentController {
     private static logger = Logger.get('AgentController', 'Editor_Diagnostics');
     private static instance: AgentController;
     private project: GameProject | null = null;
+
     private shortcutModule: AgentShortcutModule;
     private scriptIO: AgentScriptIO;
 
+    private projectService: AgentProjectService;
+    private flowService: AgentFlowService;
+    private objectService: AgentObjectService;
+    private validationService: AgentValidationService;
+    private deletionService: AgentDeletionService;
+    private readService: AgentReadService;
+    private useCaseService: AgentUseCaseService;
+    private batchHelper: AgentBatchHelper;
+
     private constructor() {
+        this.projectService = new AgentProjectService(this);
+        this.flowService = new AgentFlowService(this);
+        this.objectService = new AgentObjectService(this);
+        this.validationService = new AgentValidationService(this);
+        this.deletionService = new AgentDeletionService(this);
+        this.readService = new AgentReadService(this);
+        this.useCaseService = new AgentUseCaseService(this);
+        this.batchHelper = new AgentBatchHelper(this);
+
         this.shortcutModule = new AgentShortcutModule(this);
         this.scriptIO = new AgentScriptIO(this);
     }
@@ -139,208 +73,45 @@ export class AgentController {
         this.project = project;
     }
 
+    public getProject(): GameProject | null {
+        return this.project;
+    }
+
+    public validateProjectLoaded() {
+        if (!this.project) {
+            this.project = coreStore.getProject();
+            if (!this.project) throw new Error("AgentController: No project loaded.");
+        }
+    }
+
+    public notifyChange() {
+        mediatorService.notifyDataChanged(this.project!, 'agent-controller');
+    }
+
     // ─────────────────────────────────────────────
     // 0. Project Structure
     // ─────────────────────────────────────────────
 
-    /**
-     * Wendet die generische Stage-Config auf ein Stage-Objekt an.
-     * Kind-Sammlungen und Positionsargumente (STAGE_CONFIG_EXCLUDE) werden
-     * übersprungen, damit config niemals objects/tasks/... überschreibt.
-     */
-    private applyStageConfig(stage: any, config?: Record<string, any>): void {
-        if (!config) return;
-        for (const key of Object.keys(config)) {
-            if (STAGE_CONFIG_EXCLUDE.has(key)) continue;
-            if (config[key] === undefined) continue;
-            stage[key] = config[key];
-        }
+    public createStage(id: string, name: string, type: 'standard' | 'blueprint' = 'standard', config?: Record<string, any>): void {
+        this.projectService.createStage(id, name, type, config);
     }
 
-    /** Erstellt eine neue Stage. */
-    public createStage(
-        id: string,
-        name: string,
-        type: 'standard' | 'blueprint' = 'standard',
-        config?: Record<string, any>
-    ): void {
-        this.validateProjectLoaded();
-        if (!this.project!.stages) this.project!.stages = [];
-
-        const existingStage = this.project!.stages.find(s => s.id === id);
-        if (existingStage) {
-            this.applyStageConfig(existingStage, config);
-            AgentController.logger.info(`Stage '${id}' updated from import config.`);
-            this.notifyChange();
-            return;
-        }
-
-        const newStage: any = {
-            id, name, type,
-            objects: [],
-            tasks: [],
-            actions: [],
-            variables: [],
-            flowCharts: {},
-            events: {}
-        };
-        this.applyStageConfig(newStage, config);
-
-        this.project!.stages.push(newStage);
-
-        AgentController.logger.info(`Stage '${name}' (${id}) created.`);
-        this.notifyChange();
-    }
-
-    /** Erstellt oder aktualisiert ein Feature in einer Stage und verknüpft User Stories. */
     public createFeature(stageId: string, featureData: any): void {
-        this.validateProjectLoaded();
-        const stage = this.project!.stages?.find(s => s.id === stageId);
-        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
-
-        if (!stage.features) stage.features = [];
-
-        const { id, name, description, tags, keywords, parentId, userStoryIds = [], blueprintTaskNames = [] } = featureData || {};
-        if (!id) throw new Error('Feature requires an id.');
-        if (!name) throw new Error('Feature requires a name.');
-        if (parentId !== undefined && (typeof parentId !== 'string' || !canParentFeature(stage.features, id, parentId))) throw new Error('Ungültiger übergeordneter Feature-Bereich.');
-
-        let feature = (stage.features as any[]).find((f: any) => f.id === id);
-        if (feature) {
-            feature.name = name;
-            if (parentId !== undefined) { if (parentId) feature.parentId = parentId; else delete feature.parentId; }
-            if (description !== undefined) feature.description = description;
-            if (tags !== undefined) feature.tags = tags;
-            if (keywords !== undefined) feature.keywords = keywords;
-            feature.userStoryIds = userStoryIds;
-            feature.blueprintTaskNames = blueprintTaskNames;
-        } else {
-            feature = { id, name, description, tags, keywords, parentId, userStoryIds, blueprintTaskNames };
-            stage.features.push(feature);
-        }
-
-        // User Story featureId synchronisieren
-        const userStories = this.project!.userStories?.userStories || [];
-        for (const us of userStories) {
-            if (us.featureId === id && !userStoryIds.includes(us.id)) {
-                delete (us as any).featureId;
-            }
-        }
-        for (const usId of userStoryIds) {
-            const us = userStories.find((u: any) => u.id === usId);
-            if (us) (us as any).featureId = id;
-        }
-
-        AgentController.logger.info(`Feature '${name}' (${id}) in stage '${stageId}' created/updated.`);
-        this.notifyChange();
+        this.projectService.createFeature(stageId, featureData);
     }
 
-    /** Fügt eine User Story zum Projekt hinzu (Upsert anhand der ID). */
     public addUserStory(userStoryData: any): void {
-        this.validateProjectLoaded();
-
-        if (!this.project!.userStories) {
-            this.project!.userStories = { projectDescription: undefined, userStories: [] };
-        }
-        const userStories = this.project!.userStories.userStories || [];
-        this.project!.userStories.userStories = userStories;
-
-        const id = userStoryData?.id;
-        if (!id) throw new Error('User Story benötigt eine ID.');
-
-        const now = new Date().toISOString();
-        const existing = userStories.find((us: any) => us.id === id);
-
-        const data = {
-            ...userStoryData,
-            projectId: this.project!.meta?.id || this.project!.meta?.name || '',
-            updatedAt: now,
-        };
-
-        if (!data.acceptanceCriteria) data.acceptanceCriteria = [];
-        if (!data.relatedComponents) data.relatedComponents = [];
-        if (!data.relatedVariables) data.relatedVariables = [];
-        if (!data.relatedStages) data.relatedStages = [];
-        if (!data.interactions) data.interactions = [];
-        if (!data.status) data.status = 'idea';
-        if (!data.priority) data.priority = 'medium';
-
-        if (existing) {
-            Object.assign(existing, data);
-            existing.id = id;
-            AgentController.logger.info(`User Story '${data.title || id}' (${id}) updated.`);
-        } else {
-            if (!data.createdAt) data.createdAt = now;
-            userStories.push(data);
-            AgentController.logger.info(`User Story '${data.title || id}' (${id}) added.`);
-        }
-
-        this.notifyChange();
+        this.projectService.addUserStory(userStoryData);
     }
 
-    /** Löscht ein Feature aus einer Stage und entfernt featureId bei User Stories. */
     public deleteFeature(stageId: string, featureId: string): void {
-        this.validateProjectLoaded();
-        const stage = this.project!.stages?.find(s => s.id === stageId);
-        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
-
-        if (stage.features) {
-            const idx = stage.features.findIndex((f: any) => f.id === featureId);
-            if (idx >= 0) {
-                const parentId = stage.features[idx].parentId || '';
-                for (const child of stage.features) {
-                    if (child.parentId === featureId) projectStore.dispatch({type: 'SET_PROPERTY', target: child, path: 'parentId', value: parentId});
-                }
-                stage.features.splice(idx, 1);
-            }
-        }
-
-        const userStories = this.project!.userStories?.userStories || [];
-        for (const us of userStories) {
-            if ((us as any).featureId === featureId) {
-                delete (us as any).featureId;
-            }
-        }
-
-        AgentController.logger.info(`Feature '${featureId}' removed from stage '${stageId}'.`);
-        this.notifyChange();
+        this.projectService.deleteFeature(stageId, featureId);
     }
 
-    /** Fügt ein Objekt zu einer Stage hinzu (Upsert: existiert bereits ein Objekt mit gleichem Namen, wird es aktualisiert). */
     public addObject(stageId: string, objectData: any): void {
-        this.validateProjectLoaded();
-        const stage = this.project!.stages?.find(s => s.id === stageId);
-        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
-
-        if (!stage.objects) stage.objects = [];
-
-        // Feature C: TForEach-Validierung
-        if (objectData.className === 'TForEach') {
-            if (!objectData.source) throw new Error('TForEach requires "source" property (Name einer List/Map-Variable).');
-            if (!objectData.template?.className) throw new Error('TForEach.template must have a className property.');
-            if (objectData.template.name) {
-                AgentController.logger.warn('TForEach.template should not have a fixed name; use namePattern instead.');
-                delete objectData.template.name;
-            }
-        }
-
-        const existing = stage.objects.find((o: any) =>
-            (objectData.name != null && objectData.name !== '' && o.name === objectData.name) ||
-            (objectData.id != null && objectData.id !== '' && o.id === objectData.id));
-        if (existing) {
-            const originalId = existing.id;
-            Object.assign(existing, objectData);
-            existing.id = originalId;
-            AgentController.logger.info(`Object '${objectData.name}' updated in stage '${stageId}'.`);
-        } else {
-            stage.objects.push(objectData);
-            AgentController.logger.info(`Object '${objectData.name}' added to stage '${stageId}'.`);
-        }
-
-        this.notifyChange();
+        this.projectService.addObject(stageId, objectData);
     }
 
-    /** Registriert eine globale Variable im Projekt. */
     public addVariable(
         name: string,
         type: VariableType | 'number' | 'boolean' | 'string' | 'object' | 'trigger',
@@ -348,1193 +119,183 @@ export class AgentController {
         scope: VariableScope = 'global',
         options?: VariableOptions
     ): void {
-        this.validateProjectLoaded();
-
-        // Feature A: Reservierte Magic-Variablen-Namen blockieren
-        if (RESERVED_VARIABLE_NAMES.has(name)) {
-            throw new Error(`Variable name '${name}' is reserved (Magic-Variable). Reserviert: ${[...RESERVED_VARIABLE_NAMES].join(', ')}`);
-        }
-
-        if (!this.project!.variables) this.project!.variables = [];
-
-        const classNameMap: Record<string, string> = {
-            'number': 'TIntegerVariable',
-            'integer': 'TIntegerVariable',
-            'real': 'TRealVariable',
-            'boolean': 'TBooleanVariable',
-            'string': 'TStringVariable',
-            'object': 'TObjectVariable',
-            'object_list': 'TObjectList',
-            'list': 'TListVariable',
-            'trigger': 'TTriggerVariable',
-            'threshold': 'TThresholdVariable',
-            'timer': 'TTimer',
-            'random': 'TRandomVariable',
-            'range': 'TRangeVariable',
-            'keystore': 'TKeyStore',
-            'any': 'TVariable',
-            'json': 'TVariable'
-        };
-        const className = classNameMap[type] || 'TVariable';
-
-        const base: Partial<ProjectVariable> = {
-            name,
-            type: type as VariableType,
-            isVariable: true,
-            className,
-            initialValue,
-            defaultValue: initialValue,
-            value: initialValue,
-            scope
-        };
-
-        if (options) {
-            Object.assign(base, options);
-            const tasks = this.buildVariableTasks(options);
-            if (tasks) base.Tasks = tasks;
-        }
-
-        const existing = this.project!.variables.find(v => v.name === name);
-        if (existing) {
-            Object.assign(existing, base);
-            AgentController.logger.info(`Variable '${name}' updated.`);
-        } else {
-            this.project!.variables.push(base as ProjectVariable);
-            AgentController.logger.info(`Variable '${name}' added.`);
-        }
-
-        this.notifyChange();
-    }
-
-    /**
-     * Baut aus den Event-Handler-Optionen einer Variable ein Tasks-Mapping.
-     * Der RuntimeVariableManager erwartet Events in `varDef.Tasks`.
-     */
-    private buildVariableTasks(options: VariableOptions): Record<string, string> | undefined {
-        const tasks: Record<string, string> = {};
-        const eventNames = [
-            'onValueChanged', 'onValueEmpty',
-            'onThresholdReached', 'onThresholdLeft', 'onThresholdExceeded',
-            'onTriggerEnter', 'onTriggerExit',
-            'onFinished', 'onTick', 'onHour', 'onMinute', 'onSecond',
-            'onMinReached', 'onMaxReached', 'onInside', 'onOutside',
-            'onItemAdded', 'onItemRemoved', 'onContains', 'onNotContains', 'onCleared',
-            'onGenerated',
-            'onItemCreated', 'onItemUpdated', 'onItemDeleted', 'onItemRead', 'onNotFound'
-        ];
-        eventNames.forEach(eventName => {
-            const taskName = (options as any)[eventName];
-            if (taskName) tasks[eventName] = taskName;
-        });
-        return Object.keys(tasks).length > 0 ? tasks : undefined;
+        this.projectService.addVariable(name, type, initialValue, scope, options);
     }
 
     // ─────────────────────────────────────────────
     // 1. Task Management
     // ─────────────────────────────────────────────
 
-    /**
-     * Erstellt einen neuen Task.
-     * Invarianten:
-     * - Task wird global registriert (Daten).
-     * - Task wird in der Stage registriert (Lokalität).
-     * - Löscht existierende FlowCharts (erzwingt Neu-Generierung).
-     */
     public createTask(stageId: string, taskName: string, description: string = ""): string {
-        this.validateProjectLoaded();
-        if (!taskName) throw new Error("Task name cannot be empty");
-
-        // 1. Check if task exists (Global or Stage)
-        const exists = this.getTaskByName(taskName);
-        if (exists) {
-            AgentController.logger.warn(`Task '${taskName}' already exists. Skipping creation.`);
-            return taskName;
-        }
-
-        // 2. Create Task Object
-        const newTask: GameTask = {
-            name: taskName,
-            description: description,
-            actionSequence: [],
-            triggerMode: 'local-sync',
-            params: []
-        };
-
-        // 3. Register Locally (Stage) or Globally (Blueprint)
-        const targetStageId = stageId || 'stage_blueprint';
-        const targetStage = this.project!.stages?.find(s => s.id === targetStageId || s.name === targetStageId);
-
-        if (targetStage) {
-            if (!targetStage.tasks) targetStage.tasks = [];
-            targetStage.tasks.push(newTask);
-            AgentController.logger.info(`Task '${taskName}' created in stage '${targetStageId}'.`);
-        } else {
-            // Fallback to project root if no stage found
-            if (!this.project!.tasks) this.project!.tasks = [];
-            this.project!.tasks.push(newTask);
-            AgentController.logger.info(`Task '${taskName}' created in project root (fallback).`);
-        }
-
-        // 4. Invalidate Flow (Scorched Earth)
-        this.invalidateTaskFlow(taskName);
-
-        // 5. Notify
-        this.notifyChange();
-        return taskName;
+        return this.flowService.createTask(stageId, taskName, description);
     }
 
     // ─────────────────────────────────────────────
     // 2. Action Management
     // ─────────────────────────────────────────────
 
-    /**
-     * Fügt eine Action zu einem Task hinzu.
-     * Invarianten:
-     * - Keine Inline-Actions (nur Referenzen).
-     * - Action muss global definiert sein.
-     */
     public addAction(taskName: string, actionType: ActionType, actionName: string, params: Record<string, any> = {}) {
-        this.validateProjectLoaded();
-
-        // 1. Get Task
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-
-        // Validate required params for new actions
-        const requiredParams: Record<string, string[]> = {
-            'list_push': ['target', 'value'],
-            'list_pop': ['target'],
-            'list_get': ['target', 'index'],
-            'list_set': ['target', 'index', 'value'],
-            'list_remove': ['target', 'index'],
-            'list_clear': ['target'],
-            'list_shuffle': ['target'],
-            'list_contains': ['target', 'value'],
-            'list_length': ['target'],
-            'map_get': ['target', 'key'],
-            'map_set': ['target', 'key', 'value'],
-            'map_delete': ['target', 'key'],
-            'map_has': ['target', 'key'],
-            'map_keys': ['target'],
-            // Record-Actions (stabilisiert in Commit 5c1294d)
-            // 'target' optional – leeres Ziel wird als 'self' behandelt (Runtime-Konvention)
-            'record_get': ['list', 'field', 'resultVariable'],
-            'record_set': ['list', 'field', 'value'],
-            'record_delete': ['key'],
-            // record_create hat keine zwingenden Pflicht-Params (nur optionale Felder)
-        };
-
-        if (requiredParams[actionType]) {
-            for (const param of requiredParams[actionType]) {
-                // Backward-compat: target | listName | mapName sind Aliasse für die Collection-Variable
-                if (param === 'target') {
-                    if (params['target'] === undefined && params['listName'] === undefined && params['mapName'] === undefined) {
-                        throw new Error(`ActionType '${actionType}' requires parameter 'target' (or alias 'listName'/'mapName'). Provided params: ${JSON.stringify(Object.keys(params))}`);
-                    }
-                } else {
-                    // Alle anderen Pflicht-Params (value, index, key, ...) müssen direkt vorhanden sein
-                    if (params[param] === undefined) {
-                        throw new Error(`ActionType '${actionType}' requires parameter '${param}'. Provided params: ${JSON.stringify(Object.keys(params))}`);
-                    }
-                }
-            }
-        }
-
-        // 2. Define Action Globally (Identity)
-        // Check if action already exists with DIFFERENT type -> Error
-        let actionDef = this.getActionByName(actionName);
-        if (actionDef) {
-            if (actionDef.type !== actionType) {
-                throw new Error(`Action '${actionName}' already exists with type '${actionDef.type}', cannot redefine as '${actionType}'.`);
-            }
-            // Update params?
-            Object.assign(actionDef, params);
-        } else {
-            // Create New Global Definition in Blueprint
-            // Phase 4: Sofort ID vergeben für stabile Identität
-            const generateId = () => {
-                if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-                    return crypto.randomUUID();
-                }
-                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                    const r = Math.random() * 16 | 0;
-                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
-            };
-            actionDef = {
-                id: generateId(),
-                name: actionName,
-                type: actionType,
-                ...params
-            } as any;
-
-            // Stage des Tasks ermitteln – Action gehört in dieselbe Stage wie der Task
-            const taskContainer = projectTaskRegistry.getTaskContainer(taskName);
-            const targetStage = taskContainer.type === 'stage' && taskContainer.stageId
-                ? this.project!.stages?.find(s => s.id === taskContainer.stageId)
-                : undefined;
-
-            if (targetStage) {
-                if (!targetStage.actions) targetStage.actions = [];
-                targetStage.actions.push(actionDef as any);
-                AgentController.logger.info(`Action '${actionName}' created in Stage '${targetStage.name}'.`);
-            } else {
-                // Fallback: Blueprint Stage (Legacy-Verhalten)
-                const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
-                if (blueprintStage) {
-                    if (!blueprintStage.actions) blueprintStage.actions = [];
-                    blueprintStage.actions.push(actionDef as any);
-                    AgentController.logger.info(`Action '${actionName}' created in Blueprint Stage (fallback).`);
-                } else {
-                    if (!this.project!.actions) this.project!.actions = [];
-                    this.project!.actions.push(actionDef as any);
-                }
-            }
-        }
-
-        // 3. Add to Task Sequence (Reference Only)
-        // "Keine Inline-Actions" -> Wir pushen nur { type: 'action', name: ... }
-        // ABER: GCS Runtime braucht manchmal mehr Daten im Sequence-Item?
-        // FlowSyncManager nutzt: { type: 'action', name: '...' } -> Das ist sauber.
-        task.actionSequence.push({
-            type: 'action',
-            name: actionName
-        });
-
-        // 4. Invalidate Flow
-        this.invalidateTaskFlow(taskName);
-
-        // 5. Notify
-        this.notifyChange();
+        this.flowService.addAction(taskName, actionType, actionName, params);
     }
 
-
-    /**
-     * Fügt einen Task-Aufruf in die Sequenz eines anderen Tasks ein.
-     * Damit kann ein Task einen anderen Task als Sub-Routine aufrufen.
-     */
     public addTaskCall(taskName: string, calledTaskName: string): void {
-        this.validateProjectLoaded();
-
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-
-        const calledTask = this.getTaskByName(calledTaskName);
-        if (!calledTask) throw new Error(`Called task '${calledTaskName}' not found. Create it first with createTask().`);
-
-        task.actionSequence.push({
-            type: 'task',
-            name: calledTaskName
-        } as any);
-
-        this.invalidateTaskFlow(taskName);
-        AgentController.logger.info(`Added task call '${calledTaskName}' to '${taskName}'.`);
-        this.notifyChange();
+        this.flowService.addTaskCall(taskName, calledTaskName);
     }
 
-    /**
-     * Setzt den Ausführungsmodus eines Tasks.
-     * @param mode - 'local-sync' (Standard), 'local-async', 'broadcast'
-     */
     public setTaskTriggerMode(taskName: string, mode: 'local-sync' | 'local' | 'broadcast'): void {
-        this.validateProjectLoaded();
-
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-
-        const validModes = ['local-sync', 'local', 'broadcast'];
-        if (!validModes.includes(mode)) {
-            throw new Error(`Invalid trigger mode '${mode}'. Valid: ${validModes.join(', ')}`);
-        }
-
-        task.triggerMode = mode;
-        AgentController.logger.info(`Task '${taskName}' trigger mode set to '${mode}'.`);
-        this.notifyChange();
+        this.flowService.setTaskTriggerMode(taskName, mode);
     }
 
-    /**
-     * Definiert einen Eingangsparameter für einen Task.
-     * Parameter werden beim Event-Auslöser über eventData übergeben (z.B. hitSide bei onBoundaryHit).
-     */
     public addTaskParam(taskName: string, paramName: string, type: string = 'string', defaultValue: any = ''): void {
-        this.validateProjectLoaded();
-
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-
-        if (!task.params) task.params = [];
-
-        // Prüfe ob Parameter bereits existiert
-        const existing = task.params.find((p: any) => p.name === paramName);
-        if (existing) {
-            existing.type = type;
-            existing.defaultValue = defaultValue;
-            AgentController.logger.info(`Updated param '${paramName}' on task '${taskName}'.`);
-        } else {
-            task.params.push({ name: paramName, type, defaultValue } as any);
-            AgentController.logger.info(`Added param '${paramName}' (${type}) to task '${taskName}'.`);
-        }
-
-        this.notifyChange();
+        this.flowService.addTaskParam(taskName, paramName, type, defaultValue);
     }
 
-    /**
-     * Ändert die Reihenfolge einer Action/Element in der Sequenz eines Tasks.
-     * @param fromIndex - Aktuelle Position (0-basiert)
-     * @param toIndex - Neue Position (0-basiert)
-     */
     public moveActionInSequence(taskName: string, fromIndex: number, toIndex: number): void {
-        this.validateProjectLoaded();
-
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-
-        const seq = task.actionSequence;
-        if (fromIndex < 0 || fromIndex >= seq.length) throw new Error(`fromIndex ${fromIndex} out of bounds (0-${seq.length - 1}).`);
-        if (toIndex < 0 || toIndex >= seq.length) throw new Error(`toIndex ${toIndex} out of bounds (0-${seq.length - 1}).`);
-
-        const [item] = seq.splice(fromIndex, 1);
-        seq.splice(toIndex, 0, item);
-
-        this.invalidateTaskFlow(taskName);
-        AgentController.logger.info(`Moved action in '${taskName}' from index ${fromIndex} to ${toIndex}.`);
-        this.notifyChange();
+        this.flowService.moveActionInSequence(taskName, fromIndex, toIndex);
     }
-
 
     // ─────────────────────────────────────────────
     // 3. Branch Management
     // ─────────────────────────────────────────────
 
-    /**
-     * Fügt eine Condition (Verzweigung) zur actionSequence eines Tasks hinzu.
-     * 
-     * Invarianten:
-     * - Actions in Then/Else-Zweigen müssen global definiert sein.
-     * - Flow wird nach Änderung invalidiert.
-     * 
-     * @param taskName - Name des Ziel-Tasks
-     * @param conditionVariable - Variable die geprüft wird (z.B. 'loginResult.success')
-     * @param operator - Vergleichsoperator ('==', '!=', '>', '<', '>=', '<=')
-     * @param conditionValue - Vergleichswert (z.B. 'true')
-     * @param thenBuilder - Callback das den Then-Zweig aufbaut
-     * @param elseBuilder - Callback das den Else-Zweig aufbaut (optional)
-     */
     public addBranch(
         taskName: string,
         conditionVariable: string,
         operator: ConditionOperator,
         conditionValue: string | number,
-        thenBuilder: (branch: BranchBuilder) => void,
-        elseBuilder?: (branch: BranchBuilder) => void
+        thenBuilder: (branch: import('./agent/AgentFlowService').BranchBuilder) => void,
+        elseBuilder?: (branch: import('./agent/AgentFlowService').BranchBuilder) => void
     ) {
-        this.validateProjectLoaded();
-
-        // 1. Get Task
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-
-        // 2. Build Branches with stage context from Task
-        const taskOwner = projectTaskRegistry.getTaskContainer(taskName);
-        const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
-
-        const thenBranch = new BranchBuilder(this, stageId);
-        thenBuilder(thenBranch);
-
-        let elseBranch: BranchBuilder | undefined;
-        if (elseBuilder) {
-            elseBranch = new BranchBuilder(this, stageId);
-            elseBuilder(elseBranch);
-        }
-
-        // 3. Ensure all referenced actions exist globally
-        this.ensureActionsExistGlobally(thenBranch.getItems());
-        if (elseBranch) {
-            this.ensureActionsExistGlobally(elseBranch.getItems());
-        }
-
-        // 4. Create Condition SequenceItem
-        const conditionItem: SequenceItem = {
-            type: 'condition',
-            name: `Branch: ${conditionVariable} ${operator} ${conditionValue}`,
-            condition: {
-                variable: conditionVariable,
-                operator: operator,
-                value: conditionValue
-            },
-            then: thenBranch.getItems(),
-            else: elseBranch ? elseBranch.getItems() : []
-        };
-
-        // 5. Add to Task Sequence
-        task.actionSequence.push(conditionItem);
-
-        // 6. Invalidate Flow
-        this.invalidateTaskFlow(taskName);
-
-        // 7. Notify
-        this.notifyChange();
+        this.flowService.addBranch(taskName, conditionVariable, operator, conditionValue, thenBuilder, elseBuilder);
     }
 
-    /**
-     * Serialisierbare Condition-Operation für AgentScripts.
-     * Übernimmt ein vollständiges Condition-SequenceItem unverändert (inkl. beider
-     * Branch-Darstellungen: Einzel-Shortcuts thenAction/elseAction/thenTask/elseTask
-     * UND Multi-Step-Arrays then/else). So gehen die an der Condition hängenden
-     * Aktionen beim Export/Import nicht verloren.
-     * Referenzierte Actions müssen zuvor global definiert sein (ensureActionDefined/addAction).
-     */
     public addConditionItem(taskName: string, item: SequenceItem): void {
-        this.validateProjectLoaded();
-
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-
-        // Referenzierte Actions prüfen (Array-Form rekursiv + Shortcut-Form)
-        if (item.then) this.ensureActionsExistGlobally(item.then);
-        if (item.else) this.ensureActionsExistGlobally(item.else);
-        for (const actionName of [item.thenAction, item.elseAction]) {
-            if (actionName && !this.getActionByName(actionName)) {
-                throw new Error(
-                    `[AgentController] Action '${actionName}' is referenced in condition but not globally defined. ` +
-                    `Use addAction()/ensureActionDefined() first.`
-                );
-            }
-        }
-
-        task.actionSequence.push({ ...item, type: 'condition' });
-
-        this.invalidateTaskFlow(taskName);
-        this.notifyChange();
+        this.flowService.addConditionItem(taskName, item);
     }
 
     // ─────────────────────────────────────────────
     // 3b. Loop Management
     // ─────────────────────────────────────────────
 
-    /**
-     * Fügt eine FOREACH-Schleife zur actionSequence eines Tasks hinzu.
-     * Unterstützt sowohl List-Variablen (Arrays) als auch Map-Variablen (Objekte).
-     *
-     * Invarianten:
-     * - Actions im Loop-Body müssen global definiert sein.
-     * - Flow wird nach Änderung invalidiert.
-     *
-     * @param taskName       - Name des Ziel-Tasks
-     * @param sourceArray    - Name der List- oder Map-Variable (z.B. 'players', 'scoreMap')
-     * @param itemVar        - Variablenname für das aktuelle Element/Value (z.B. 'player', 'score')
-     * @param bodyBuilder    - Callback, das den Schleifenrumpf aufbaut
-     * @param indexVar       - Optionaler Name für den Zähler (z.B. 'idx')
-     * @param iterationMode  - Nur für Map-Variablen: 'keys' (Standard), 'values', 'entries'
-     *                         - 'keys':    itemVar = Schlüssel (z.B. 'spielerName')
-     *                         - 'values':  itemVar = Wert      (z.B. 'punktzahl')
-     *                         - 'entries': itemVar = Wert, keyVar = Schlüssel
-     * @param keyVar         - Nur bei iterationMode='entries': Variable für den Schlüssel
-     */
     public addForeach(
         taskName: string,
         sourceArray: string,
         itemVar: string,
-        bodyBuilder: (branch: BranchBuilder) => void,
+        bodyBuilder: (branch: import('./agent/AgentFlowService').BranchBuilder) => void,
         indexVar?: string,
         iterationMode?: 'values' | 'keys' | 'entries',
         keyVar?: string
     ): void {
-        this.validateProjectLoaded();
-
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-        if (!sourceArray) throw new Error('addForeach: sourceArray darf nicht leer sein.');
-        if (!itemVar) throw new Error('addForeach: itemVar darf nicht leer sein.');
-        if (iterationMode === 'entries' && !keyVar) {
-            throw new Error('addForeach: keyVar ist bei iterationMode="entries" erforderlich.');
-        }
-
-        const taskOwner = projectTaskRegistry.getTaskContainer(taskName);
-        const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
-
-        const bodyBranch = new BranchBuilder(this, stageId);
-        bodyBuilder(bodyBranch);
-
-        this.ensureActionsExistGlobally(bodyBranch.getItems());
-
-        // Name spiegelt den Modus wider für bessere Lesbarkeit im Flow-Editor
-        const modeSuffix = iterationMode && iterationMode !== 'values'
-            ? ` (${iterationMode})`
-            : '';
-        const loopItem: SequenceItem = {
-            type: 'foreach',
-            name: `ForEach: ${itemVar} in ${sourceArray}${modeSuffix}`,
-            sourceArray,
-            itemVar,
-            body: bodyBranch.getItems(),
-            ...(indexVar ? { indexVar } : {}),
-            ...(iterationMode ? { iterationMode } : {}),
-            ...(keyVar ? { keyVar } : {})
-        };
-
-        task.actionSequence.push(loopItem);
-
-        this.invalidateTaskFlow(taskName);
-        AgentController.logger.info(`addForeach: '${itemVar} in ${sourceArray}' (${iterationMode ?? 'auto'}) zu Task '${taskName}' hinzugefügt.`);
-        this.notifyChange();
+        this.flowService.addForeach(taskName, sourceArray, itemVar, bodyBuilder, indexVar, iterationMode, keyVar);
     }
 
-    /**
-     * Fügt eine WHILE-Schleife zur actionSequence eines Tasks hinzu.
-     * Führt den Body aus, solange die Bedingung wahr ist.
-     *
-     * @param taskName          - Name des Ziel-Tasks
-     * @param conditionVariable - Variable, die geprüft wird (z.B. 'isRunning')
-     * @param operator          - Vergleichsoperator ('==', '!=', '>', '<', '>=', '<=')
-     * @param conditionValue    - Vergleichswert
-     * @param bodyBuilder       - Callback, das den Schleifenrumpf aufbaut
-     */
     public addWhile(
         taskName: string,
         conditionVariable: string,
         operator: ConditionOperator,
         conditionValue: string | number,
-        bodyBuilder: (branch: BranchBuilder) => void
+        bodyBuilder: (branch: import('./agent/AgentFlowService').BranchBuilder) => void
     ): void {
-        this.validateProjectLoaded();
-
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-        if (!conditionVariable) throw new Error('addWhile: conditionVariable darf nicht leer sein.');
-
-        const taskOwner = projectTaskRegistry.getTaskContainer(taskName);
-        const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
-
-        const bodyBranch = new BranchBuilder(this, stageId);
-        bodyBuilder(bodyBranch);
-
-        this.ensureActionsExistGlobally(bodyBranch.getItems());
-
-        const loopItem: SequenceItem = {
-            type: 'while',
-            name: `While: ${conditionVariable} ${operator} ${conditionValue}`,
-            condition: {
-                variable: conditionVariable,
-                operator,
-                value: conditionValue
-            },
-            body: bodyBranch.getItems()
-        };
-
-        task.actionSequence.push(loopItem);
-
-        this.invalidateTaskFlow(taskName);
-        AgentController.logger.info(`addWhile: '${conditionVariable} ${operator} ${conditionValue}' zu Task '${taskName}' hinzugefügt.`);
-        this.notifyChange();
+        this.flowService.addWhile(taskName, conditionVariable, operator, conditionValue, bodyBuilder);
     }
 
-    /**
-     * Fügt eine numerische FOR-Schleife zur actionSequence eines Tasks hinzu.
-     * Zählt von `from` bis `to` in `step`-Schritten.
-     *
-     * @param taskName    - Name des Ziel-Tasks
-     * @param iteratorVar - Name der Zählvariable (z.B. 'i')
-     * @param from        - Startwert (Zahl oder Variablenname, z.B. '${startIndex}')
-     * @param to          - Endwert (Zahl oder Variablenname, z.B. '${endIndex}')
-     * @param bodyBuilder - Callback, das den Schleifenrumpf aufbaut
-     * @param step        - Schrittweite (Standard: 1, negativ für Abwärtszählung)
-     */
     public addFor(
         taskName: string,
         iteratorVar: string,
         from: number | string,
         to: number | string,
-        bodyBuilder: (branch: BranchBuilder) => void,
+        bodyBuilder: (branch: import('./agent/AgentFlowService').BranchBuilder) => void,
         step: number = 1
     ): void {
-        this.validateProjectLoaded();
-
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-        if (!iteratorVar) throw new Error('addFor: iteratorVar darf nicht leer sein.');
-        if (step === 0) throw new Error('addFor: step darf nicht 0 sein.');
-
-        const taskOwner = projectTaskRegistry.getTaskContainer(taskName);
-        const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
-
-        const bodyBranch = new BranchBuilder(this, stageId);
-        bodyBuilder(bodyBranch);
-
-        this.ensureActionsExistGlobally(bodyBranch.getItems());
-
-        const loopItem: SequenceItem = {
-            type: 'for',
-            name: `For: ${iteratorVar} = ${from} to ${to}${step !== 1 ? ` step ${step}` : ''}`,
-            iteratorVar,
-            from,
-            to,
-            step,
-            body: bodyBranch.getItems()
-        };
-
-        task.actionSequence.push(loopItem);
-
-        this.invalidateTaskFlow(taskName);
-        AgentController.logger.info(`addFor: '${iteratorVar} = ${from}..${to}' zu Task '${taskName}' hinzugefügt.`);
-        this.notifyChange();
-    }
-
-    /**
-     * Stellt sicher, dass alle in einer Branch/Body-Sequenz referenzierten Actions
-     * global im Projekt definiert sind. Traversiert rekursiv then/else/body.
-     */
-    private ensureActionsExistGlobally(items: SequenceItem[]) {
-        for (const item of items) {
-            if (item.type === 'action' && item.name) {
-                const exists = this.getActionByName(item.name);
-                if (!exists) {
-                    throw new Error(
-                        `[AgentController] Action '${item.name}' is referenced in branch but not globally defined. ` +
-                        `Use addAction() first or define it inline via BranchBuilder.addNewAction().`
-                    );
-                }
-            }
-            // Rekursiv: Condition-Zweige und Loop-Bodies prüfen
-            if (item.then) this.ensureActionsExistGlobally(item.then);
-            if (item.else) this.ensureActionsExistGlobally(item.else);
-            if (item.body) this.ensureActionsExistGlobally(item.body);
-        }
-    }
-
-    // ─────────────────────────────────────────────
-    // Helper & Validation
-    // ─────────────────────────────────────────────
-
-    /**
-     * Definiert eine Action (global oder in einer Stage), ohne sie an einen Task anzuhängen.
-     * Wird intern vom BranchBuilder genutzt.
-     */
-    public ensureActionDefined(actionType: ActionType, actionName: string, params: Record<string, any> = {}, stageId?: string) {
-        this.validateProjectLoaded();
-
-        // 1. Suche bestehende Action (global oder in der Ziel-Stage)
-        let actionDef = this.getActionByName(actionName);
-
-        // 2. Falls stageId angegeben, prüfe ob sie dort existiert
-        if (stageId) {
-            const stage = this.project!.stages?.find(s => s.id === stageId);
-            if (stage) {
-                if (!stage.actions) stage.actions = [];
-                const stageAction = stage.actions.find(a => a.name === actionName);
-                if (stageAction) actionDef = stageAction;
-            }
-        }
-
-        if (actionDef) {
-            // Bereits existent – Parameter aktualisieren
-            Object.assign(actionDef, params);
-            AgentController.logger.info(`Updated existing action: ${actionName}`);
-        } else {
-            actionDef = {
-                name: actionName,
-                type: actionType,
-                ...params
-            } as any;
-
-            SchemaMigrator.initializeActionDefaults(actionDef, (type) => actionRegistry.getMetadata(type)?.parameters || null);
-
-            if (stageId) {
-                const stage = this.project!.stages?.find(s => s.id === stageId);
-                if (stage) {
-                    if (!stage.actions) stage.actions = [];
-                    stage.actions.push(actionDef as any);
-                    AgentController.logger.info(`Created new STAGE action: ${actionName} in ${stageId}`);
-                    return;
-                }
-            }
-
-            // Fallback: Global (Blueprint stage preferred)
-            const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
-            if (blueprintStage) {
-                if (!blueprintStage.actions) blueprintStage.actions = [];
-                blueprintStage.actions.push(actionDef as any);
-                AgentController.logger.info(`Created new action in BLUEPRINT: ${actionName}`);
-            } else {
-                if (!this.project!.actions) this.project!.actions = [];
-                this.project!.actions.push(actionDef as any);
-                AgentController.logger.info(`Created new GLOBAL action (fallback): ${actionName}`);
-            }
-        }
-    }
-
-    private getTaskByName(name: string): GameTask | undefined {
-        // Search Global
-        let task = this.project!.tasks?.find(t => t.name === name);
-        if (task) return task;
-
-        // Search Stages
-        if (this.project!.stages) {
-            for (const s of this.project!.stages) {
-                if (s.tasks) {
-                    task = s.tasks.find(t => t.name === name);
-                    if (task) return task;
-                }
-            }
-        }
-        return undefined;
-    }
-
-    private getActionByName(name: string): BaseAction | undefined {
-        // Search Global
-        let action = this.project!.actions?.find(a => a.name === name);
-        if (action) return action;
-
-        // Search Blueprint Stage
-        const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
-        if (blueprintStage?.actions) {
-            action = blueprintStage.actions.find(a => a.name === name);
-            if (action) return action;
-        }
-
-        // Search all other Stages
-        for (const stage of this.project!.stages || []) {
-            if (stage.type === 'blueprint') continue;
-            if (stage.actions) {
-                action = stage.actions.find(a => a.name === name);
-                if (action) return action;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Generiert Layout-Positionen für die Flow-Darstellung aus der actionSequence.
-     * Orthogonales Layout: Alle Nodes gleiche Breite, zentriert, kein Überlappen.
-     */
-    public generateTaskFlow(taskName: string) {
-        this.validateProjectLoaded();
-        const task = this.getTaskByName(taskName);
-        if (!task) throw new Error(`Task '${taskName}' not found.`);
-
-        // --- Layout-Konstanten (identisch mit FlowSyncManager) ---
-        const CHAR_WIDTH = 9;
-        const MIN_NODE_WIDTH = 140;
-        const NODE_HEIGHT = 50;
-        const NODE_PADDING = 40;
-        const Y_SPACING = NODE_HEIGHT + 30;
-        const BRANCH_GAP = 40;
-        const CENTER_X = 400;
-
-        // Einheitliche Breite berechnen
-        const allLabels: string[] = [task.name];
-        const collectLabels = (seq: any[]) => {
-            seq?.forEach(item => {
-                allLabels.push(item.name || item.type || 'Aktion');
-                if (item.then) collectLabels(item.then);
-                if (item.else) collectLabels(item.else);
-                if (item.body) collectLabels(item.body);
-            });
-        };
-        collectLabels(task.actionSequence || []);
-        const NODE_WIDTH = Math.max(MIN_NODE_WIDTH, Math.max(...allLabels.map(l => l.length)) * CHAR_WIDTH + NODE_PADDING);
-        const BRANCH_OFFSET = NODE_WIDTH + BRANCH_GAP;
-
-        const elements: any[] = [];
-        let nextId = 1;
-        const getId = () => `node-${Date.now()}-${nextId++}`;
-
-        // Root Node (Task)
-        elements.push({
-            id: getId(), type: 'task',
-            x: CENTER_X, y: 50,
-            width: NODE_WIDTH, height: NODE_HEIGHT,
-            properties: { name: task.name, text: task.name, description: task.description },
-            data: { name: task.name }
-        });
-
-        const processItems = (sequence: any[], startY: number, centerX: number = CENTER_X): number => {
-            let y = startY;
-            for (const item of sequence) {
-                if (item.type === 'condition') {
-                    elements.push({
-                        id: getId(), type: 'condition',
-                        x: centerX, y,
-                        width: NODE_WIDTH, height: NODE_HEIGHT,
-                        properties: { text: item.name || `${item.condition?.variable} ${item.condition?.operator} ${item.condition?.value}` }
-                    });
-                    const branchY = y + Y_SPACING;
-                    let thenMaxY = branchY, elseMaxY = branchY;
-                    if (item.then?.length > 0) {
-                        thenMaxY = processItems(item.then, branchY, centerX - BRANCH_OFFSET);
-                    }
-                    if (item.else?.length > 0) {
-                        elseMaxY = processItems(item.else, branchY, centerX + BRANCH_OFFSET);
-                    }
-                    y = Math.max(thenMaxY, elseMaxY) + Y_SPACING;
-                } else if (item.type === 'foreach' || item.type === 'while' || item.type === 'for') {
-                    // Loop-Node: als eigener Typ 'loop' im Flow rendern
-                    elements.push({
-                        id: getId(), type: 'loop',
-                        x: centerX, y,
-                        width: NODE_WIDTH, height: NODE_HEIGHT,
-                        properties: { name: item.name, text: item.name, loopType: item.type }
-                    });
-                    const bodyY = y + Y_SPACING;
-                    // Body-Items leicht eingerückt darstellen
-                    const bodyEndY = item.body?.length > 0
-                        ? processItems(item.body, bodyY, centerX + Math.round(BRANCH_OFFSET / 2))
-                        : bodyY;
-                    y = bodyEndY + Y_SPACING;
-                } else {
-                    elements.push({
-                        id: getId(), type: item.type === 'task' ? 'task' : 'action',
-                        x: centerX, y,
-                        width: NODE_WIDTH, height: NODE_HEIGHT,
-                        properties: { name: item.name, text: item.name },
-                        data: { name: item.name, isLinked: true }
-                    });
-                    y += Y_SPACING;
-                }
-            }
-            return y;
-        };
-
-        processItems(task.actionSequence || [], 50 + Y_SPACING);
-
-        // NUR flowLayout speichern
-        task.flowLayout = {};
-        elements.forEach(el => {
-            const name = el.properties?.name || el.data?.name;
-            if (name) {
-                task.flowLayout![name] = { x: el.x, y: el.y };
-            }
-        });
-
-        AgentController.logger.info(`Generated flowLayout for '${taskName}' (${Object.keys(task.flowLayout).length} Positionen, NODE_WIDTH=${NODE_WIDTH})`);
+        this.flowService.addFor(taskName, iteratorVar, from, to, bodyBuilder, step);
     }
 
     // ─────────────────────────────────────────────
     // 4. Delete Operations
     // ─────────────────────────────────────────────
 
-    /** Löscht einen Task und seine FlowChart-Daten. Entfernt Referenzen aus Event-Bindings. */
     public deleteTask(taskName: string): void {
-        this.validateProjectLoaded();
-
-        // Aus Stages entfernen
-        this.project!.stages?.forEach(s => {
-            if (s.tasks) s.tasks = s.tasks.filter(t => t.name !== taskName);
-            // Event-Bindings bereinigen
-            if (s.objects) {
-                s.objects.forEach((obj: any) => {
-                    if (obj.events) {
-                        for (const [key, val] of Object.entries(obj.events)) {
-                            if (val === taskName) delete obj.events[key];
-                        }
-                    }
-                });
-            }
-        });
-        // Aus project.tasks entfernen (Legacy)
-        if (this.project!.tasks) this.project!.tasks = this.project!.tasks.filter(t => t.name !== taskName);
-
-        this.invalidateTaskFlow(taskName);
-        AgentController.logger.info(`Task '${taskName}' deleted.`);
-        this.notifyChange();
+        this.deletionService.deleteTask(taskName);
     }
 
-    /** Löscht eine Action aus dem Projekt und entfernt sie aus allen Task-Sequenzen. */
     public deleteAction(actionName: string): void {
-        this.validateProjectLoaded();
-
-        // Aus allen Stages und project.actions entfernen
-        this.project!.stages?.forEach(s => {
-            if (s.actions) s.actions = s.actions.filter(a => a.name !== actionName);
-        });
-        if (this.project!.actions) this.project!.actions = this.project!.actions.filter(a => a.name !== actionName);
-
-        // Aus allen Task-Sequenzen entfernen
-        const removeFromSequence = (seq: SequenceItem[]): SequenceItem[] => {
-            return seq.filter(item => {
-                if (item.type === 'action' && item.name === actionName) return false;
-                if (item.then) item.then = removeFromSequence(item.then);
-                if (item.else) item.else = removeFromSequence(item.else);
-                return true;
-            });
-        };
-
-        const allTasks = [...(this.project!.tasks || []), ...(this.project!.stages?.flatMap(s => s.tasks || []) || [])];
-        allTasks.forEach(t => {
-            t.actionSequence = removeFromSequence(t.actionSequence);
-            this.invalidateTaskFlow(t.name);
-        });
-
-        AgentController.logger.info(`Action '${actionName}' deleted from project and all sequences.`);
-        this.notifyChange();
+        this.deletionService.deleteAction(actionName);
     }
 
-    /** Entfernt ein Objekt aus einer Stage. */
     public removeObject(stageId: string, objectName: string): void {
-        this.validateProjectLoaded();
-        const stage = this.project!.stages?.find(s => s.id === stageId);
-        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
-        if (!stage.objects) return;
-
-        const before = stage.objects.length;
-        stage.objects = stage.objects.filter((o: any) => o.name !== objectName && o.id !== objectName);
-
-        if (stage.objects.length === before) {
-            AgentController.logger.warn(`Object '${objectName}' not found in stage '${stageId}'.`);
-            return;
-        }
-        AgentController.logger.info(`Object '${objectName}' removed from stage '${stageId}'.`);
-        this.notifyChange();
+        this.deletionService.removeObject(stageId, objectName);
     }
 
-    /** Löscht eine Stage (Blueprint-Stage ist geschützt). */
     public deleteStage(stageId: string): void {
-        this.validateProjectLoaded();
-        if (!this.project!.stages) return;
-
-        const stage = this.project!.stages.find(s => s.id === stageId);
-        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
-        if (stage.type === 'blueprint') throw new Error('Blueprint-Stage darf nicht gelöscht werden.');
-
-        this.project!.stages = this.project!.stages.filter(s => s.id !== stageId);
-        AgentController.logger.info(`Stage '${stageId}' deleted.`);
-        this.notifyChange();
+        this.deletionService.deleteStage(stageId);
     }
 
-    /** Löscht eine Variable aus dem Projekt. */
     public deleteVariable(variableName: string): void {
-        this.validateProjectLoaded();
-        if (this.project!.variables) {
-            this.project!.variables = this.project!.variables.filter(v => v.name !== variableName);
-        }
-        this.project!.stages?.forEach(s => {
-            if (s.variables) s.variables = s.variables.filter((v: any) => v.name !== variableName);
-        });
-        AgentController.logger.info(`Variable '${variableName}' deleted.`);
-        this.notifyChange();
+        this.deletionService.deleteVariable(variableName);
     }
 
     // ─────────────────────────────────────────────
     // 5. Rename Operations
     // ─────────────────────────────────────────────
 
-    /** Benennt einen Task um (inkl. Referenzen in Events, Sequences, FlowCharts). */
     public renameTask(oldName: string, newName: string): boolean {
-        this.validateProjectLoaded();
-        const result = projectTaskRegistry.renameTask(oldName, newName);
-        if (result) {
-            AgentController.logger.info(`Task '${oldName}' renamed to '${newName}'.`);
-            this.notifyChange();
-        }
-        return result;
+        return this.deletionService.renameTask(oldName, newName);
     }
 
-    /** Benennt eine Action um (inkl. Referenzen in Sequences). */
     public renameAction(oldName: string, newName: string): boolean {
-        this.validateProjectLoaded();
-        const result = projectActionRegistry.renameAction(oldName, newName);
-        if (result) {
-            AgentController.logger.info(`Action '${oldName}' renamed to '${newName}'.`);
-            this.notifyChange();
-        }
-        return result;
+        return this.deletionService.renameAction(oldName, newName);
     }
 
     // ─────────────────────────────────────────────
     // 6. Read Operations (Inventar)
     // ─────────────────────────────────────────────
 
-    /** Listet alle Stages auf. */
     public listStages(): { id: string, name: string, type: string, objectCount: number, taskCount: number }[] {
-        this.validateProjectLoaded();
-        return (this.project!.stages || []).map(s => ({
-            id: s.id, name: s.name, type: s.type || 'standard',
-            objectCount: (s.objects || []).length,
-            taskCount: (s.tasks || []).length
-        }));
+        return this.readService.listStages();
     }
 
-    /** Listet Tasks auf (optional gefiltert nach Stage). */
     public listTasks(stageId?: string): { name: string, actionCount: number, triggerMode: string }[] {
-        this.validateProjectLoaded();
-        let tasks: GameTask[] = [];
-        if (stageId) {
-            const stage = this.project!.stages?.find(s => s.id === stageId);
-            tasks = stage?.tasks || [];
-        } else {
-            tasks = [...(this.project!.tasks || []), ...(this.project!.stages?.flatMap(s => s.tasks || []) || [])];
-        }
-        return tasks.map(t => ({ name: t.name, actionCount: t.actionSequence.length, triggerMode: t.triggerMode || 'local-sync' }));
+        return this.readService.listTasks(stageId);
     }
 
-    /** Listet Actions auf (optional gefiltert nach Stage). */
     public listActions(stageId?: string): { name: string, type: string }[] {
-        this.validateProjectLoaded();
-        let actions: BaseAction[] = [];
-        if (stageId) {
-            const stage = this.project!.stages?.find(s => s.id === stageId);
-            actions = (stage?.actions as BaseAction[]) || [];
-        } else {
-            actions = [...(this.project!.actions || []), ...(this.project!.stages?.flatMap(s => (s.actions as BaseAction[]) || []) || [])];
-        }
-        return actions.map(a => ({ name: a.name, type: a.type }));
+        return this.readService.listActions(stageId);
     }
 
-    /** Listet Variablen auf. */
     public listVariables(scope?: 'global' | 'stage'): { name: string, type: string, value: any, scope: string }[] {
-        this.validateProjectLoaded();
-        const vars: any[] = [];
-        if (!scope || scope === 'global') {
-            (this.project!.variables || []).forEach(v => vars.push({ name: v.name, type: v.type, value: v.defaultValue ?? v.initialValue, scope: 'global' }));
-        }
-        if (!scope || scope === 'stage') {
-            this.project!.stages?.forEach(s => {
-                (s.variables || []).forEach((v: any) => vars.push({ name: v.name, type: v.type, value: v.defaultValue ?? v.initialValue, scope: s.id }));
-            });
-        }
-        return vars;
+        return this.readService.listVariables(scope);
     }
 
-    /** Listet Objekte einer Stage auf. */
     public listObjects(stageId: string): { name: string, className: string, x: number, y: number, visible: boolean }[] {
-        this.validateProjectLoaded();
-        const stage = this.project!.stages?.find(s => s.id === stageId);
-        if (!stage) return [];
-        return (stage.objects || []).map((o: any) => ({ name: o.name, className: o.className, x: o.x || 0, y: o.y || 0, visible: o.visible !== false }));
+        return this.readService.listObjects(stageId);
     }
 
-    /** Gibt detaillierte Task-Infos zurück (mit aufgelöster Sequenz). */
     public getTaskDetails(taskName: string): { name: string, description: string, sequence: SequenceItem[], triggerMode: string } | null {
-        this.validateProjectLoaded();
-        const task = this.getTaskByName(taskName);
-        if (!task) return null;
-        return { name: task.name, description: task.description || '', sequence: task.actionSequence, triggerMode: task.triggerMode || 'local-sync' };
+        return this.readService.getTaskDetails(taskName);
     }
 
     // ─────────────────────────────────────────────
     // 7. UI Interaction
     // ─────────────────────────────────────────────
 
-    /** Setzt eine beliebige Property auf einem Stage-Objekt. Unterstützt dot-notation (z.B. 'style.backgroundColor'). */
     public setProperty(stageId: string, objectName: string, property: string, value: any): void {
-        this.validateProjectLoaded();
-        const stage = this.project!.stages?.find(s => s.id === stageId);
-        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
-
-        const obj = (stage.objects || []).find((o: any) => o.name === objectName || o.id === objectName);
-        if (!obj) throw new Error(`Object '${objectName}' not found in stage '${stageId}'.`);
-
-        // Dot-Notation auflösen (z.B. 'style.backgroundColor')
-        const parts = property.split('.');
-        let target: any = obj;
-        for (let i = 0; i < parts.length - 1; i++) {
-            if (target[parts[i]] === undefined) target[parts[i]] = {};
-            target = target[parts[i]];
-        }
-        target[parts[parts.length - 1]] = value;
-
-        AgentController.logger.info(`Set ${objectName}.${property} = ${JSON.stringify(value)}`);
-        this.notifyChange();
+        this.objectService.setProperty(stageId, objectName, property, value);
     }
 
-    /** Setzt ein Binding auf einem Objekt-Property (z.B. '${currentUser.name}'). */
     public bindVariable(stageId: string, objectName: string, property: string, expression: string): void {
-        // Binding-Format: ${variableName.subProp}
-        if (!expression.startsWith('${')) {
-            expression = '${' + expression + '}';
-        }
-        this.setProperty(stageId, objectName, property, expression);
-        AgentController.logger.info(`Bound ${objectName}.${property} to '${expression}'`);
+        this.objectService.bindVariable(stageId, objectName, property, expression);
     }
 
-    /** Verbindet ein Event eines Objekts mit einem Task. */
     public connectEvent(stageId: string, objectName: string, eventName: string, taskName: string): void {
-        this.validateProjectLoaded();
-        const stage = this.project!.stages?.find(s => s.id === stageId);
-        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
-
-        const obj = (stage.objects || []).find((o: any) => o.name === objectName || o.id === objectName);
-        if (!obj) throw new Error(`Object '${objectName}' not found in stage '${stageId}'.`);
-
-        // Prüfe ob Task existiert
-        if (!this.getTaskByName(taskName)) {
-            throw new Error(`Task '${taskName}' not found. Create it first with createTask().`);
-        }
-
-        if (!obj.events) obj.events = {};
-        obj.events[eventName] = taskName;
-
-        AgentController.logger.info(`Connected ${objectName}.${eventName} → Task '${taskName}'`);
-        this.notifyChange();
+        this.objectService.connectEvent(stageId, objectName, eventName, taskName);
     }
 
-    /**
-     * Verbindet ein Event einer Variable (Projekt- oder Stage-Variable) mit einem Task.
-     * Der RuntimeVariableManager erwartet die Mapping in `variable.Tasks`.
-     */
     public connectVariableEvent(variableName: string, eventName: string, taskName: string): void {
-        this.validateProjectLoaded();
-        if (!this.getTaskByName(taskName)) {
-            throw new Error(`Task '${taskName}' not found. Create it first with createTask().`);
-        }
-
-        const variable = this.findVariable(variableName);
-        if (!variable) {
-            throw new Error(`Variable '${variableName}' not found.`);
-        }
-
-        if (!variable.Tasks) variable.Tasks = {};
-        variable.Tasks[eventName] = taskName;
-
-        AgentController.logger.info(`Connected ${variableName}.${eventName} → Task '${taskName}'`);
-        this.notifyChange();
+        this.objectService.connectVariableEvent(variableName, eventName, taskName);
     }
 
-    /** Findet eine Variable anhand des Namens (Projekt- oder Stage-Scope). */
-    private findVariable(name: string): any | undefined {
-        let variable = this.project!.variables?.find(v => v.name === name);
-        if (variable) return variable;
-
-        const stageWithVar = this.project!.stages?.find(s => s.variables?.some((v: any) => v.name === name));
-        if (stageWithVar) {
-            return stageWithVar.variables?.find((v: any) => v.name === name);
-        }
-        return undefined;
-    }
-
-    // ─────────────────────────────────────────────
-    // 8. Workflow
-    // ─────────────────────────────────────────────
-
-    /** Klont einen Task mit neuem Namen (inkl. Action-Sequenz und FlowChart). */
     public duplicateTask(taskName: string, newName: string, stageId?: string): string {
-        this.validateProjectLoaded();
-        const original = this.getTaskByName(taskName);
-        if (!original) throw new Error(`Task '${taskName}' not found.`);
-        if (this.getTaskByName(newName)) throw new Error(`Task '${newName}' already exists.`);
-
-        const clone: GameTask = JSON.parse(JSON.stringify(original));
-        clone.name = newName;
-
-        // In die richtige Stage einfügen
-        const targetStageId = stageId || projectTaskRegistry.getTaskContainer(taskName).stageId || 'stage_blueprint';
-        const stage = this.project!.stages?.find(s => s.id === targetStageId);
-        if (stage) {
-            if (!stage.tasks) stage.tasks = [];
-            stage.tasks.push(clone);
-        } else {
-            if (!this.project!.tasks) this.project!.tasks = [];
-            this.project!.tasks.push(clone);
-        }
-
-        // FlowChart generieren
-        this.generateTaskFlow(newName);
-
-        AgentController.logger.info(`Task '${taskName}' duplicated as '${newName}'.`);
-        this.notifyChange();
-        return newName;
+        return this.flowService.duplicateTask(taskName, newName, stageId);
     }
 
     // ─────────────────────────────────────────────
@@ -1591,16 +352,10 @@ export class AgentController {
     // 8c. AgentScript Import/Export
     // ─────────────────────────────────────────────
 
-    /**
-     * Exportiert einen Bereich des Projekts als AgentScript.
-     */
     public exportScript(options: ExportOptions): AgentScript {
         return this.scriptIO.exportScript(options);
     }
 
-    /**
-     * Importiert ein AgentScript in das aktuelle Projekt.
-     */
     public importScript(script: AgentScript, options?: ImportOptions): ImportResult {
         return this.scriptIO.importScript(script, options);
     }
@@ -1651,171 +406,46 @@ export class AgentController {
     // 9. Validation
     // ─────────────────────────────────────────────
 
-    /** Validiert das Projekt auf Konsistenz. Gibt eine Liste von Problemen zurück. */
-    public validate(): { level: 'error' | 'warning', message: string }[] {
-        this.validateProjectLoaded();
-        const issues: { level: 'error' | 'warning', message: string }[] = [];
-
-        const allActions = [...(this.project!.actions || []), ...(this.project!.stages?.flatMap(s => (s.actions as BaseAction[]) || []) || [])];
-        const actionNames = new Set(allActions.map(a => a.name));
-
-        const allTasks = [...(this.project!.tasks || []), ...(this.project!.stages?.flatMap(s => s.tasks || []) || [])];
-
-        // Prüfe und repariere: Inline-Actions (verboten – werden automatisch extrahiert)
-        const checkInlineActions = (seq: SequenceItem[], taskName: string) => {
-            for (const item of seq) {
-                if (item.type === 'action') {
-                    const keys = Object.keys(item).filter(k => !['type', 'name'].includes(k));
-                    if (keys.length > 0 && item.name) {
-                        // Auto-Reparatur: Action global definieren falls noch nicht vorhanden
-                        if (!actionNames.has(item.name)) {
-                            const { type: _t, name: _n, ...inlineParams } = item as any;
-                            const actionType = (inlineParams.actionType ?? inlineParams.type ?? 'property') as ActionType;
-                            delete inlineParams.actionType;
-                            const actionDef = { name: item.name, type: actionType, ...inlineParams } as any;
-                            const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
-                            if (blueprintStage) {
-                                if (!blueprintStage.actions) blueprintStage.actions = [];
-                                blueprintStage.actions.push(actionDef);
-                            } else {
-                                if (!this.project!.actions) this.project!.actions = [];
-                                this.project!.actions.push(actionDef);
-                            }
-                            actionNames.add(item.name);
-                            issues.push({ level: 'warning', message: `Task '${taskName}': Inline-Action '${item.name}' wurde automatisch als globale Action extrahiert.` });
-                        }
-                        // Item bereinigen – nur type und name behalten
-                        for (const k of keys) delete (item as any)[k];
-                    }
-                    if (item.name && !actionNames.has(item.name)) {
-                        issues.push({ level: 'error', message: `Task '${taskName}': Action '${item.name}' ist referenziert aber nicht definiert.` });
-                    }
-                }
-                if (item.then) checkInlineActions(item.then, taskName);
-                if (item.else) checkInlineActions(item.else, taskName);
-                // Loop-Bodies ebenfalls traversieren
-                if (item.body) checkInlineActions(item.body, taskName);
-            }
-        };
-
-        allTasks.forEach(t => checkInlineActions(t.actionSequence, t.name));
-
-        // Prüfe: Verwaiste Actions (definiert aber nie referenziert)
-        const referencedActions = new Set<string>();
-        const collectRefs = (seq: SequenceItem[]) => {
-            for (const item of seq) {
-                if (item.type === 'action' && item.name) referencedActions.add(item.name);
-                if (item.then) collectRefs(item.then);
-                if (item.else) collectRefs(item.else);
-                // Loop-Bodies ebenfalls traversieren
-                if (item.body) collectRefs(item.body);
-            }
-        };
-        allTasks.forEach(t => collectRefs(t.actionSequence));
-        allActions.forEach(a => {
-            if (!referencedActions.has(a.name)) {
-                issues.push({ level: 'warning', message: `Action '${a.name}' ist definiert aber in keinem Task referenziert.` });
-            }
-        });
-
-        // Prüfe: Tasks ohne FlowChart
-        allTasks.forEach(t => {
-            let hasFlow = false;
-            if (this.project!.flowCharts?.[t.name]) hasFlow = true;
-            this.project!.stages?.forEach(s => {
-                if (s.flowCharts?.[t.name]) hasFlow = true;
-            });
-            if (!hasFlow && t.actionSequence.length > 0) {
-                issues.push({ level: 'warning', message: `Task '${t.name}' hat ${t.actionSequence.length} Actions aber kein FlowChart.` });
-            }
-        });
-
-        // Bereinige: Leere Event-Einträge aus allen Objekten entfernen
-        const cleanEmptyEvents = (objs: any[]) => {
-            if (!objs) return;
-            for (const obj of objs) {
-                if (obj.events) {
-                    for (const key of Object.keys(obj.events)) {
-                        const val = obj.events[key];
-                        if (!val || (typeof val === 'string' && val.trim() === '')) {
-                            delete obj.events[key];
-                        }
-                    }
-                }
-                if (obj.Tasks) {
-                    for (const key of Object.keys(obj.Tasks)) {
-                        const val = obj.Tasks[key];
-                        if (!val || (typeof val === 'string' && val.trim() === '')) {
-                            delete obj.Tasks[key];
-                        }
-                    }
-                }
-                if (obj.children) cleanEmptyEvents(obj.children);
-            }
-        };
-        cleanEmptyEvents(this.project!.objects || []);
-        cleanEmptyEvents(this.project!.variables || []);
-        this.project!.stages?.forEach(s => {
-            cleanEmptyEvents(s.objects || []);
-            cleanEmptyEvents(s.variables || []);
-        });
-
-        AgentController.logger.info(`Validation complete: ${issues.filter(i => i.level === 'error').length} errors, ${issues.filter(i => i.level === 'warning').length} warnings`);
-        return issues;
+    public ensureActionDefined(actionType: ActionType, actionName: string, params: Record<string, any> = {}, stageId?: string) {
+        this.validationService.ensureActionDefined(actionType, actionName, params, stageId);
     }
+
+    public getTaskByName(name: string): GameTask | undefined {
+        return this.validationService.getTaskByName(name);
+    }
+
+    public getActionByName(name: string): BaseAction | undefined {
+        return this.validationService.getActionByName(name);
+    }
+
+    public ensureActionsExistGlobally(items: SequenceItem[]) {
+        this.validationService.ensureActionsExistGlobally(items);
+    }
+
+    public generateTaskFlow(taskName: string) {
+        this.validationService.generateTaskFlow(taskName);
+    }
+
+    public validate(): { level: 'error' | 'warning', message: string }[] {
+        return this.validationService.validate();
+    }
+
+    public invalidateTaskFlow(taskName: string) {
+        this.validationService.invalidateTaskFlow(taskName);
+    }
+
     // ─────────────────────────────────────────────
     // 10. Batch-API (Transaktionen)
     // ─────────────────────────────────────────────
 
-    /**
-     * Führt mehrere API-Aufrufe als Batch/Transaktion aus.
-     * Bei Fehler: Rollback auf den Zustand vor dem Batch.
-     * @param operations - Array von {method, params} Objekten
-     * @returns Array von {method, success, data, error} Ergebnissen
-     */
-    public executeBatch(operations: Array<{ method: string; params: any[] }>): Array<{ method: string; success: boolean; data: any; error: string | null }> {
-        this.validateProjectLoaded();
-
-        // Snapshot für Rollback
-        const snapshot = JSON.stringify(this.project);
-        const results: Array<{ method: string; success: boolean; data: any; error: string | null }> = [];
-        let rollback = false;
-
-        for (const op of operations) {
-            try {
-                const fn = (this as any)[op.method];
-                if (typeof fn !== 'function') {
-                    throw new Error(`Methode '${op.method}' existiert nicht auf AgentController.`);
-                }
-                const result = fn.apply(this, op.params || []);
-                results.push({ method: op.method, success: true, data: result ?? null, error: null });
-            } catch (e: any) {
-                results.push({ method: op.method, success: false, data: null, error: e.message });
-                rollback = true;
-                break;
-            }
-        }
-
-        if (rollback) {
-            // Rollback: Projekt auf Snapshot zurücksetzen
-            const restored = JSON.parse(snapshot);
-            Object.assign(this.project!, restored);
-            AgentController.logger.warn(`Batch rolled back after error in '${results[results.length - 1]?.method}'.`);
-        } else {
-            AgentController.logger.info(`Batch executed: ${operations.length} operations OK.`);
-        }
-
-        return results;
+    public executeBatch(operations: AgentBatchOperation[]): AgentBatchResult[] {
+        return this.batchHelper.execute(operations);
     }
 
     // ─────────────────────────────────────────────
     // 11. UserStories API
     // ─────────────────────────────────────────────
 
-    /**
-     * Speichert einen UseCase (aus dem Wizard) in project.userStories.
-     * Erzeugt die Struktur falls noch nicht vorhanden.
-     */
     public addUseCase(stageId: string, data: {
         id?: string;
         title: string;
@@ -1832,98 +462,22 @@ export class AgentController {
         agentHints?: string;
         otherTriggerDesc?: string;
     }): string {
-        this.validateProjectLoaded();
-        const id = data.id || `uc_${Date.now()}`;
-        this.project!.userStories = this.project!.userStories || {};
-        this.project!.userStories.userStories = this.project!.userStories.userStories || [];
-
-        const existing = this.project!.userStories.userStories.find((uc: any) => uc.id === id);
-        if (existing) {
-            Object.assign(existing, { ...data, id, stageId, updatedAt: new Date() });
-            AgentController.logger.info(`UseCase '${data.title}' (${id}) updated.`);
-        } else {
-            this.project!.userStories.userStories.push({
-                ...data, id, stageId,
-                status: 'idea',
-                linkedTaskName: data.taskName || '',
-                createdAt: new Date(),
-                updatedAt: new Date()
-            } as any);
-            AgentController.logger.info(`UseCase '${data.title}' (${id}) created for stage '${stageId}'.`);
-        }
-        this.notifyChange();
-        return id;
+        return this.useCaseService.addUseCase(stageId, data);
     }
 
-    /**
-     * Aktualisiert den Status eines UseCases.
-     * @param id - ID des UseCases
-     * @param status - 'idea' | 'in_progress' | 'completed' | 'blocked'
-     */
     public updateUseCaseStatus(id: string, status: 'idea' | 'in_progress' | 'completed' | 'blocked'): void {
-        this.validateProjectLoaded();
-        const uc = (this.project!.userStories?.userStories || []).find((u: any) => u.id === id);
-        if (!uc) throw new Error(`UseCase '${id}' not found.`);
-        uc.status = status;
-        uc.updatedAt = new Date();
-        AgentController.logger.info(`UseCase '${id}' status → '${status}'.`);
-        this.notifyChange();
+        this.useCaseService.updateUseCaseStatus(id, status);
     }
 
-    /**
-     * Verknüpft einen UseCase mit einem Task (nach dessen Implementierung).
-     */
     public linkUseCaseToTask(useCaseId: string, taskName: string): void {
-        this.validateProjectLoaded();
-        const uc = (this.project!.userStories?.userStories || []).find((u: any) => u.id === useCaseId);
-        if (!uc) throw new Error(`UseCase '${useCaseId}' not found.`);
-        if (!this.getTaskByName(taskName)) throw new Error(`Task '${taskName}' not found.`);
-        (uc as any).linkedTaskName = taskName;
-        uc.updatedAt = new Date();
-        AgentController.logger.info(`UseCase '${useCaseId}' linked to Task '${taskName}'.`);
-        this.notifyChange();
+        this.useCaseService.linkUseCaseToTask(useCaseId, taskName);
     }
 
-    /**
-     * Gibt alle UseCases zurück, optional gefiltert nach Stage.
-     */
     public listUseCases(stageId?: string): any[] {
-        this.validateProjectLoaded();
-        const all = this.project!.userStories?.userStories || [];
-        return stageId ? all.filter((uc: any) => (uc as any).stageId === stageId) : all;
-    }
-
-    // ─────────────────────────────────────────────
-    // Internal Helpers
-    // ─────────────────────────────────────────────
-
-    private invalidateTaskFlow(taskName: string) {
-        if (this.project!.flowCharts && this.project!.flowCharts[taskName]) {
-            delete this.project!.flowCharts[taskName];
-        }
-        if (this.project!.stages) {
-            this.project!.stages.forEach(s => {
-                if (s.flowCharts && s.flowCharts[taskName]) {
-                    delete s.flowCharts[taskName];
-                }
-            });
-        }
-    }
-
-    private validateProjectLoaded() {
-        if (!this.project) {
-            this.project = coreStore.getProject();
-            if (!this.project) throw new Error("AgentController: No project loaded.");
-        }
-    }
-
-    private notifyChange() {
-        mediatorService.notifyDataChanged(this.project!, 'agent-controller');
+        return this.useCaseService.listUseCases(stageId);
     }
 }
 
 // Singleton Export & Registration
 export const agentController = AgentController.getInstance();
 serviceRegistry.register('AgentController', agentController, 'API for AI Agent to manipulate project structure');
-
-

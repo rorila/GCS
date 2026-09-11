@@ -157,3 +157,12 @@ Automatisches initiales Laden per TTimer und sichtbare Ladefehlermeldung ergänz
 
 ## CMS: verständliche Workflows und Feature-Bereiche (10.09.2026)
 Vier CMS-Projekte: 14 Bereiche, 31 Features, 65 zugeordnete Use Cases, 158 aufgabenbezogene Actionnamen. Optionale parentId für aufklappbare Hierarchie und Elternauswahl im Feature-Dialog; Zyklenschutz und Erhalt der Unterfeatures beim Auflösen. Generatoren verwenden scripts/cms-workflow-names.ts. Ausführungsdaten und IDs unverändert geprüft. Details: [GCS-CMS-WORKFLOWS.md](GCS-CMS-WORKFLOWS.md).
+
+## Server-Workflow: Emoji-Anmeldung (11.09.2026)
+Vier registrierte nichtvisuelle Serverkomponenten mit eigener Toolbox-Kategorie und gruppiertem Inspector. Native Aufgabenstruktur in GCS-Server-Anmeldung.json, ausgeführt durch den Node-CMS-Server. Debug-Log-Viewer mit korrelierten Request-/Response-Werten und geschützten Serverdetails. Anleitung: [GCS-SERVER-KOMPONENTEN.md](GCS-SERVER-KOMPONENTEN.md).
+
+## Native Verwaltungsanmeldung (11.09.2026)
+GCS-CMS-Anmeldung.json gestaltet und steuert den Login; GCS-Server-Verwaltungsanmeldung.json kapselt Prüfung, Authentifizierung, TServerSession und Response. Inspector-konfigurierbare Rückmeldungen, Passwort-TEdit und TLink-Zielfenster. Anleitung: [GCS-CMS-ANMELDUNG.md](GCS-CMS-ANMELDUNG.md).
+
+## Persönlicher Spielerbereich (11.09.2026)
+👤 öffnet die native Profilpflege im Spielerprojekt. TServerProfile kapselt eigene Profilangaben und Zugangshilfe; Rückmeldungen im GCS konfigurierbar. Details: [GCS-CMS-PROFIL.md](GCS-CMS-PROFIL.md).

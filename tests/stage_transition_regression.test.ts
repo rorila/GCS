@@ -14,6 +14,9 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import assert from 'node:assert/strict';
+import type { GameRuntime } from '../src/runtime/GameRuntime';
+import type { GameProject, GridConfig, StageDefinition } from '../src/model/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,10 +95,12 @@ export async function runStageTransitionRegressionTests(): Promise<TestResult[]>
 
     let runtimeSource = '';
     let rendererSource = '';
+    let fastPathSource = '';
 
     try {
         runtimeSource = readSourceFile('src/runtime/GameRuntime.ts');
         rendererSource = readSourceFile('src/editor/services/StageRenderer.ts');
+        fastPathSource = readSourceFile('src/editor/services/renderers/StageFastPathUpdater.ts');
     } catch (e: any) {
         addResult('A0: Quelldateien lesbar', false, e.message);
         return results;
@@ -169,8 +174,11 @@ export async function runStageTransitionRegressionTests(): Promise<TestResult[]>
 
     // ── A4: updateSpritePositions verwendet Map-Deduplizierung ──
     // REGRESSION: Ohne Deduplizierung überschreiben veraltete Cache-Objekte die Tween-Positionen
+    // Nach dem Refactoring kann die Methode selbst oder ihr delegierter Fast-Path die Map enthalten.
     try {
-        const updateBody = extractMethodBody(rendererSource, 'updateSpritePositions');
+        const updateBody = extractMethodBody(rendererSource, 'updateSpritePositions') +
+            '\n' +
+            extractMethodBody(fastPathSource, 'updateSpritePositions');
         const hasMap = updateBody.includes('new Map<') || updateBody.includes('new Map(') || updateBody.includes('fastPathUpdateMap');
         const hasSetCheck = updateBody.includes('.has(') && updateBody.includes('.set(');
         const ok = hasMap && hasSetCheck;
@@ -397,9 +405,202 @@ export async function runStageTransitionRegressionTests(): Promise<TestResult[]>
     // ══════════════════════════════════════════════════════════════
     // Zusammenfassung
     // ══════════════════════════════════════════════════════════════
+    results.push(...await runStageLifecycleBehaviorTests());
+
     const passed = results.filter(r => r.passed).length;
     const failed = results.length - passed;
     console.log(`\n  StageTransition-Regression: ${passed} bestanden, ${failed} fehlgeschlagen`);
 
+    return results;
+}
+
+export async function runStageLifecycleBehaviorTests(): Promise<TestResult[]> {
+    const results: TestResult[] = [];
+    const globals = ['window', 'document', 'HTMLElement', 'Node', 'requestAnimationFrame', 'cancelAnimationFrame', 'setTimeout', 'clearTimeout'];
+    const savedGlobals = globals.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)] as const);
+    const frames = new Map<number, FrameRequestCallback>();
+    const timeouts = new Map<number, () => void>();
+    let nextId = 0;
+    const installGlobal = (key: string, value: unknown) => {
+        Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
+    };
+    installGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+        const id = ++nextId;
+        frames.set(id, callback);
+        return id;
+    });
+    installGlobal('cancelAnimationFrame', (id: number) => frames.delete(id));
+    installGlobal('setTimeout', (callback: () => void) => {
+        const id = ++nextId;
+        timeouts.set(id, callback);
+        return id;
+    });
+    installGlobal('clearTimeout', (id: number) => timeouts.delete(id));
+    installGlobal('window', Object.assign(new EventTarget(), {
+        location: { hostname: 'localhost', search: '' },
+        setTimeout: globalThis.setTimeout,
+        clearTimeout: globalThis.clearTimeout
+    }));
+    installGlobal('document', Object.assign(new EventTarget(), { querySelector: () => null }));
+    installGlobal('Node', class {});
+    installGlobal('HTMLElement', class extends Node {});
+
+    try {
+        const { GameRuntime: Runtime } = await import('../src/runtime/GameRuntime.js');
+        const { GameLoopManager } = await import('../src/runtime/GameLoopManager.js');
+        const { TSprite } = await import('../src/components/TSprite.js');
+        const { themeRegistry } = await import('../src/runtime/ThemeRegistry.js');
+        const previousThemeListener = themeRegistry.onChange;
+        const glm = GameLoopManager.getInstance();
+        class LifecycleSprite extends TSprite {
+            runtimeStarts = 0;
+            enterCount = 0;
+            stageStartCount = 0;
+            onRuntimeStart(): void { this.runtimeStarts++; }
+        }
+        const grid: GridConfig = { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: false, backgroundColor: '#000000' };
+        const createStage = (id: string, type: StageDefinition['type']): StageDefinition => {
+            const sprite = new LifecycleSprite(`${id}_sprite`, 2, 3, 1, 1);
+            sprite.id = `${id}_sprite`;
+            sprite.className = 'TSprite';
+            sprite.velocityX = 6;
+            return {
+                id, name: id, type, grid: { ...grid }, objects: [sprite], startAnimation: 'none',
+                events: { onEnter: `${id}_enter`, onRuntimeStart: `${id}_start` },
+                tasks: [
+                    { name: `${id}_enter`, actionSequence: [{ type: 'action', name: `${id}_count_enter` }] },
+                    { name: `${id}_start`, actionSequence: [{ type: 'action', name: `${id}_count_start` }] }
+                ],
+                actions: [
+                    { name: `${id}_count_enter`, type: 'increment', changes: { [`${sprite.name}.enterCount`]: 1 } },
+                    { name: `${id}_count_start`, type: 'increment', changes: { [`${sprite.name}.stageStartCount`]: 1 } }
+                ]
+            };
+        };
+        const frame = (time: number) => {
+            const pending = [...frames];
+            for (const [id, callback] of pending) {
+                if (!frames.delete(id)) continue;
+                callback(time);
+            }
+        };
+        const settle = () => new Promise<void>(resolve => setImmediate(resolve));
+        const routes = ['API', 'Controller', 'Direkt', 'Splash', 'Legacy-Splash', 'Reset', 'Reset verzögert'] as const;
+
+        try {
+            for (const makeReactive of [false, true]) {
+                for (const route of routes) {
+                    const name = `Runtime-Lifecycle: ${route} (${makeReactive ? 'reaktiv' : 'direkt'})`;
+                    let runtime: GameRuntime | undefined;
+                    try {
+                        const splash = route === 'Splash' || route === 'Legacy-Splash';
+                        const source = createStage('source', splash ? 'splash' : 'standard');
+                        const target = createStage('target', splash ? 'main' : 'standard');
+                        const project: GameProject = {
+                            meta: { name: 'Lifecycle regression', author: 'Test', version: '1' },
+                            stage: { grid: { ...grid } }, stages: [source, target],
+                            activeStageId: source.id, objects: [], actions: [], tasks: [], variables: []
+                        };
+                        const switches: string[] = [];
+                        const rendered: { id: string; x: number }[][] = [];
+                        runtime = new Runtime(project, undefined, {
+                            startStageId: source.id, makeReactive,
+                            onRender: () => {},
+                            onComponentUpdate: () => {},
+                            onStageSwitch: id => switches.push(id),
+                            onSpriteRender: objects => rendered.push(objects.map(obj => ({ id: obj.id, x: obj.renderX })))
+                        });
+                        runtime.start();
+                        await settle();
+                        switches.length = 0;
+                        rendered.length = 0;
+
+                        if (route === 'API') {
+                            runtime.switchToStage(target.id);
+                        } else if (route === 'Controller') {
+                            runtime.stageController!.goToStage(target.id);
+                        } else if (route === 'Direkt') {
+                            runtime.handleStageChange(source.id, target.id);
+                        } else if (route === 'Splash') {
+                            runtime.stageService.finishSplash(runtime);
+                        } else if (route === 'Legacy-Splash') {
+                            runtime.stageController = null;
+                            runtime.stageService.finishSplash(runtime);
+                        } else {
+                            runtime.switchToStage(target.id);
+                            await settle();
+                            const current = runtime.getObjects().find(obj => obj.id === 'target_sprite') as LifecycleSprite;
+                            current.runtimeStarts = current.enterCount = current.stageStartCount = 0;
+                            if (route === 'Reset verzögert') {
+                                target.startAnimation = 'fade-in';
+                                target.startLogicAfterAnimation = true;
+                                target.startAnimationDuration = 100;
+                            }
+                            switches.length = 0;
+                            runtime.stageController!.goToStage(target.id, true);
+                        }
+                        await settle();
+
+                        const sprite = runtime.getObjects().find(obj => obj.id === 'target_sprite') as LifecycleSprite;
+                        assert.ok(sprite instanceof TSprite, 'Die Ziel-Stage enthält einen echten Sprite');
+                        assert.equal(runtime.stage.id, target.id);
+                        assert.equal(runtime.stageController!.currentStageId, target.id);
+                        assert.equal(glm.getState(), 'running', 'Der Loop muss nach dem Stage-Wechsel laufen');
+                        assert.deepEqual(switches, [target.id], 'Der Player muss genau einen Stage-Wechsel erhalten');
+                        if (route === 'Reset verzögert') {
+                            assert.equal(sprite.runtimeStarts, 0, 'Komponentenstart muss bis nach der Animation warten');
+                            assert.equal(sprite.enterCount, 0, 'onEnter darf nicht vorzeitig ausgelöst werden');
+                            assert.equal(sprite.stageStartCount, 0, 'onRuntimeStart darf nicht vorzeitig ausgelöst werden');
+                            const pending = [...timeouts.values()];
+                            timeouts.clear();
+                            pending.forEach(callback => callback());
+                            await settle();
+                        }
+                        assert.equal(sprite.runtimeStarts, 1, 'Komponentenstart genau einmal');
+                        assert.equal(sprite.enterCount, 1, 'onEnter-Task genau einmal');
+                        assert.equal(sprite.stageStartCount, 1, 'onRuntimeStart-Task genau einmal');
+                        assert.equal(runtime.isSplashActive, false);
+
+                        if (route !== 'Reset verzögert') {
+                            rendered.length = 0;
+                            const oldX = sprite.x;
+                            const now = performance.now();
+                            frame(now);
+                            frame(now + 20);
+                            assert.ok(sprite.x > oldX, 'Physik muss den Ziel-Sprite weiterbewegen');
+                            assert.ok(rendered.some(objects => objects.some(obj => obj.id === sprite.id && obj.x > oldX)), 'Der Loop muss die neue Position an den Player liefern');
+                            assert.ok(rendered.every(objects => objects.every(obj => obj.id !== 'source_sprite')), 'Alte Stage-Sprites dürfen nicht weitergezeichnet werden');
+                        }
+                        const starts = sprite.runtimeStarts;
+                        switches.length = 0;
+                        runtime.switchToStage(target.id);
+                        await settle();
+                        assert.equal(sprite.runtimeStarts, starts, 'API-Wechsel zur aktiven Stage ist ein No-op');
+                        assert.deepEqual(switches, []);
+                        runtime.stop();
+                        assert.equal(glm.getState(), 'stopped');
+                        const count = rendered.length;
+                        frame(performance.now() + 40);
+                        assert.equal(rendered.length, count, 'Nach Stop keine Loop-Ausgabe');
+                        results.push({ name, type: 'StageTransition-Behavior', expectedSuccess: true, actualSuccess: true, passed: true });
+                    } catch (error) {
+                        results.push({ name, type: 'StageTransition-Behavior', expectedSuccess: true, actualSuccess: false, passed: false, details: error instanceof Error ? error.message : String(error) });
+                    } finally {
+                        runtime?.stop();
+                        frames.clear();
+                        timeouts.clear();
+                    }
+                }
+            }
+        } finally {
+            glm.stop();
+            themeRegistry.onChange = previousThemeListener;
+        }
+    } finally {
+        for (const [key, descriptor] of savedGlobals) {
+            if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+            else Reflect.deleteProperty(globalThis, key);
+        }
+    }
     return results;
 }

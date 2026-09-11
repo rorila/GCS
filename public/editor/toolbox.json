@@ -380,13 +380,45 @@
         },
         {
           "type": "ServerAuthenticate",
-          "label": "Spieler authentifizieren",
+          "label": "Zugang prüfen",
           "icon": "🔐"
+        },
+        {
+          "type": "ServerSession",
+          "label": "Verwaltungssitzung erstellen",
+          "icon": "🔑"
         },
         {
           "type": "ServerResponse",
           "label": "Response senden",
           "icon": "📤"
+        },
+        {
+          "type": "ServerProfile",
+          "label": "Eigenes Profil verwalten",
+          "icon": "👤"
+        }
+      ]
+    },
+    {
+      "name": "Dateien und Upload",
+      "icon": "📤",
+      "expanded": false,
+      "items": [
+        {
+          "type": "FilePicker",
+          "label": "Datei auswählen",
+          "icon": "📁"
+        },
+        {
+          "type": "FileUpload",
+          "label": "Datei übertragen",
+          "icon": "📤"
+        },
+        {
+          "type": "ServerUpload",
+          "label": "Upload prüfen und speichern",
+          "icon": "🖥️"
         }
       ]
     }

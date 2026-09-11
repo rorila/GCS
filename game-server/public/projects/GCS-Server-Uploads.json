@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "id": "gcs-server-uploads",
+    "name": "GCS-Server-Uploads",
+    "version": "1.0.0"
+  },
+  "activeStageId": "stage_blueprint",
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 48,
+      "cellSize": 18,
+      "visible": false,
+      "backgroundColor": "#122b39"
+    }
+  },
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Uploads",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 48,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      },
+      "objects": [
+        {
+          "className": "TServerUpload",
+          "id": "server_upload_game",
+          "name": "SpielUploadVerarbeiten",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onRequest": "Spiel_Upload_Verarbeiten"
+          },
+          "executionSide": "server",
+          "kind": "game",
+          "maxBytes": 10485760,
+          "successMessage": "✓ Spiel als Entwurf gespeichert.",
+          "failureMessage": "Die Datei entspricht nicht dem erlaubten Format.",
+          "x": 2,
+          "y": 2,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerUpload",
+          "id": "server_upload_avatar",
+          "name": "AvatarUploadVerarbeiten",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onRequest": "Avatar_Upload_Verarbeiten"
+          },
+          "executionSide": "server",
+          "kind": "avatar",
+          "maxBytes": 2097152,
+          "successMessage": "✓ Eigenes Avatarbild gespeichert.",
+          "failureMessage": "Die Datei entspricht nicht dem erlaubten Format.",
+          "x": 2,
+          "y": 8,
+          "width": 12,
+          "height": 3
+        }
+      ],
+      "actions": [
+        {
+          "id": "upload_action_0",
+          "name": "Act_SpielUploadVerarbeiten",
+          "type": "call_method",
+          "target": "SpielUploadVerarbeiten",
+          "method": "execute",
+          "params": []
+        },
+        {
+          "id": "upload_action_1",
+          "name": "Act_AvatarUploadVerarbeiten",
+          "type": "call_method",
+          "target": "AvatarUploadVerarbeiten",
+          "method": "execute",
+          "params": []
+        }
+      ],
+      "tasks": [
+        {
+          "id": "upload_task_0",
+          "name": "Spiel_Upload_Verarbeiten",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SpielUploadVerarbeiten"
+            }
+          ]
+        },
+        {
+          "id": "upload_task_1",
+          "name": "Avatar_Upload_Verarbeiten",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_AvatarUploadVerarbeiten"
+            }
+          ]
+        }
+      ],
+      "variables": [],
+      "features": [
+        {
+          "id": "server-uploads",
+          "name": "Dateien prüfen und zuordnen",
+          "blueprintTaskNames": [
+            "Spiel_Upload_Verarbeiten",
+            "Avatar_Upload_Verarbeiten"
+          ]
+        }
+      ]
+    }
+  ]
+}

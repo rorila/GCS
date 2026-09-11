@@ -3,15 +3,11 @@ import { gzipSync, zipSync } from 'fflate';
 import { Logger } from '../utils/Logger';
 import { NotificationToast } from '../editor/ui/NotificationToast';
 import { SecurityUtils } from '../utils/SecurityUtils';
+import { RUNTIME_VERSION } from '../utils/RuntimeVersion';
+import { network } from '../multiplayer';
+export { RUNTIME_VERSION };
 
 const logger = Logger.get('GameExporter', 'Export_System');
-
-/**
- * Runtime version for exported games.
- * Increment this when making breaking changes to the runtime.
- * Format: MAJOR.MINOR.PATCH
- */
-export const RUNTIME_VERSION = '1.5.0';
 
 /**
  * GameExporter - Generates a standalone HTML or JSON game from a GameProject
@@ -676,18 +672,34 @@ ${pwaHead}
                 if (relativePath.startsWith('/')) {
                     relativePath = relativePath.substring(1);
                 }
-                const baseUrl = project.meta?.baseUrl || window.location.href;
+                const baseUrl = project.meta?.baseUrl || network.getHttpUrl() || window.location.href;
                 const url = new URL(relativePath, baseUrl).href;
 
-                logger.info(`[GameExporter] Fetching media: ${url}`);
-                const resp = await fetch(url);
-                if (resp.ok) {
-                    const blob = await resp.blob();
-                    const dataUrl = await this.blobToDataUrl(blob);
-                    mediaRefs.set(path, dataUrl);
-                    logger.info(`[GameExporter] Successfully embedded: ${path}`);
-                } else {
-                    logger.warn(`[GameExporter] Failed to fetch media: ${url} (Status: ${resp.status})`);
+                const urls = [url];
+                if (!relativePath.startsWith('images/')) {
+                    urls.push(new URL(`images/${relativePath}`, baseUrl).href);
+                }
+
+                let embedded = false;
+                for (const tryUrl of urls) {
+                    logger.info(`[GameExporter] Fetching media: ${tryUrl}`);
+                    const resp = await fetch(tryUrl);
+                    if (resp.ok) {
+                        const contentType = resp.headers.get('content-type') || '';
+                        if (contentType.includes('text/html')) {
+                            logger.warn(`[GameExporter] Media path returned HTML, not a media file: ${tryUrl}`);
+                        } else {
+                            const blob = await resp.blob();
+                            const dataUrl = await this.blobToDataUrl(blob);
+                            mediaRefs.set(path, dataUrl);
+                            logger.info(`[GameExporter] Successfully embedded: ${path} from ${tryUrl}`);
+                            embedded = true;
+                            break;
+                        }
+                    }
+                }
+                if (!embedded) {
+                    logger.warn(`[GameExporter] Failed to embed media: ${path}`);
                 }
             } catch (e) {
                 logger.warn(`[GameExporter] Network error embedding media: ${path}`, e);

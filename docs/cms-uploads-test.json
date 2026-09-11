@@ -1,0 +1,28 @@
+{
+  "passed": 22,
+  "checks": [
+    "Spielupload ohne Verwaltung gesperrt",
+    "HTML als Spiel abgelehnt",
+    "Server-Größenlimit greift",
+    "SVG als Avatar abgelehnt",
+    "HouseAdmin darf keine Spiele hochladen",
+    "GCS-Spiel als Entwurf gespeichert",
+    "Eigentümer aus Sitzung",
+    "Fremdes Spiel nicht veröffentlichbar",
+    "Entwurf nicht spielbar",
+    "Hochgeladenes Spiel startbar",
+    "Spiel läuft in isolierter Sandbox",
+    "Avatar geprüft gespeichert",
+    "Nur eigene Person verändert",
+    "Avatar als PNG abrufbar",
+    "Native Dateiauswahl funktioniert",
+    "Nativer Spieleupload funktioniert",
+    "Fortschritt erreicht 100 Prozent",
+    "Upload abbrechbar",
+    "Spiel rendert in Sandbox",
+    "Nativer Avatarupload funktioniert",
+    "Dateiauswahl meldet Größenfehler",
+    "Keine Browserfehler"
+  ],
+  "errors": []
+}

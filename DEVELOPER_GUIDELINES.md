@@ -472,6 +472,12 @@ Modale Dialoge (wie PropertyPicker, VariablePicker, ConfirmDialog) mssen zwingen
 - **ExpressionParser BUG (behoben)**: Im `MemberExpression`-Case darf das Identifier-Objekt NICHT via `resolveValue` aufgeloest werden, weil sonst TVariable-Objekte vorzeitig zu Primitiven werden und `.value`-Zugriff `undefined` ergibt.
 - **VariableActions/CalculateActions**: Wenn `variableName` oder `resultVariable` einen Punkt enthlt (z.B. `MyVar.value`), muss der Wert sowohl als flacher Key in `context.vars` als auch via `setPropertyValue` auf dem TVariable-Objekt geschrieben werden.
 
+### Runtime-Lifecycle nach Modularisierung
+- `RenderLoop.clear()` löscht auch die Render-Callbacks. `GameLoopManager.init()` muss neue Callbacks nach diesem Reset setzen; `stop()` muss sie weiterhin freigeben.
+- StageController, öffentliche Stage-Navigation und Legacy-Splash-Wechsel müssen über den vollständigen `GameRuntime.handleStageChange()`-Ablauf gehen. Die Service-Methode allein startet den Loop nicht neu.
+- `initMainGame()` übernimmt Komponenten- und Stage-Start-Events einschließlich der Animationsverzögerung. Bei Reset keine zweite Auslösung im aufrufenden Wrapper hinzufügen.
+- Die Verhaltenstests in `tests/game_loop_manager.test.ts` und `runStageLifecycleBehaviorTests()` in `tests/stage_transition_regression.test.ts` prüfen echte Engine-Aufrufketten; reine Quelltextprüfungen ersetzen sie nicht.
+
 
 ### 20. FlowNode Property-Shadowing (x/y Namenskonflikt)
 - **DO NOT**: `PropertyHelper.getPropertyValue(flowNode, paramName)` verwenden, um Action-Parameter aus FlowNodes zu lesen. FlowElement (Basisklasse) besitzt `this.x` und `this.y` als Canvas-Position. Actions wie `move_to` definieren ebenfalls Parameter namens `x` und `y`. PropertyHelper liest dann die Canvas-Koordinate (z.B. 40) statt den Action-Parameter (z.B. `${MyVar.value}`).

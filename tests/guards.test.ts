@@ -56,6 +56,8 @@ export async function runGuardTests(): Promise<TestResult[]> {
             'TStage',           // Factory-verwaltet in GameRuntime / ProjectLoader
             'TFlowStage',       // Factory-verwaltet in GameRuntime / ProjectLoader
             'TDebugLog',        // Reines Singleton-Utility (kein TComponent)
+            'TDebugLogProjectHelper', // Debug-Log Hilfsklasse (keine Komponente)
+            'TDebugLogRenderer',      // Debug-Log Hilfsklasse (keine Komponente)
         ];
 
         const missingInBarrel: string[] = [];

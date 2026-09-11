@@ -20,7 +20,7 @@ function createAdmin(core,dataPath,{store=fileStore(dataPath)}={}){
   const area=areas.find(a=>a.id===b.areaId);if(!area)return fail(403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.');
   const people=core.db.people.filter(p=>p.active&&core.db.memberships.some(m=>m.personId===p.id&&areas.some(a=>a.id===m.areaId)));
   if(route==='games')return ok({items:core.db.games.filter(g=>g.status==='published').map(g=>({id:g.id,label:g.title,active:core.db.grants.some(x=>x.gameId===g.id&&x.areaId===area.id&&x.active)})),message:area.name+' · Spielefreigaben'});
-  if(route==='members')return ok({items:people.map(p=>({id:p.id,label:p.name+' ('+p.id+')',active:core.db.memberships.some(m=>m.personId===p.id&&m.areaId===area.id&&m.active)})),message:area.name+' · Mitglieder'});
+  if(route==='members')return ok({items:people.map(p=>({id:p.id,label:(core.db.profileRequests?.some(x=>x.personId===p.id&&x.status==='open')?'🆘 Zugangshilfe · ':'')+p.name+' ('+p.id+')',active:core.db.memberships.some(m=>m.personId===p.id&&m.areaId===area.id&&m.active)})),message:area.name+' · Mitglieder'});
   if(route==='grant'||route==='membership'){
    if(typeof b.active!=='boolean')return fail(400,'Aktiver Zustand fehlt.');const isGame=route==='grant';
    if(isGame?!core.db.games.some(g=>g.id===b.id&&g.status==='published'):!people.some(p=>p.id===b.id))return fail(403,'Eintrag nicht verfügbar.');
@@ -32,7 +32,7 @@ function createAdmin(core,dataPath,{store=fileStore(dataPath)}={}){
    if(!house||!core.can(s,'manageArea',{areaId:house.id})||!people.some(p=>p.id===b.id))return fail(403,'Emoji-Einwahl benötigt die Zuständigkeit für das Haus.');
    const alphabet=['dog','cat','tree','house','elephant','owl','flower','pig'];if(!Array.isArray(b.sequence)||b.sequence.length!==4||b.sequence.some(e=>!alphabet.includes(e)))return fail(400,'Vier gültige Emoji-IDs erforderlich.');
    if(core.db.codes.some(c=>c.areaId===house.id&&c.personId!==b.id&&JSON.stringify(c.sequence)===JSON.stringify(b.sequence)))return fail(409,'Diese Emoji-Folge ist bereits vergeben.');
-   commit(s,'emoji-change',area.id,next=>{next.codes=next.codes.filter(c=>!(c.personId===b.id&&c.areaId===house.id));next.codes.push({personId:b.id,areaId:house.id,sequence:b.sequence});});return ok({message:'Emoji-Folge gespeichert'});
+   commit(s,'emoji-change',area.id,next=>{next.codes=next.codes.filter(c=>!(c.personId===b.id&&c.areaId===house.id));next.codes.push({personId:b.id,areaId:house.id,sequence:b.sequence});for(const request of next.profileRequests||[])if(request.personId===b.id&&request.status==='open')request.status='resolved';});return ok({message:'Emoji-Folge gespeichert'});
   }
   if(route==='backup'){commit(s,'room-backup',area.id,next=>{next.roomBackups={...(next.roomBackups||{}),[area.id]:{at:new Date().toISOString(),grants:next.grants.filter(g=>g.areaId===area.id),memberships:next.memberships.filter(m=>m.areaId===area.id)}};});return ok({message:'Raumsicherung gespeichert (Mitglieder und Spielefreigaben).'});}
   if(route==='restore'){
@@ -41,13 +41,16 @@ function createAdmin(core,dataPath,{store=fileStore(dataPath)}={}){
   }
   return fail(404,'Unbekannte Verwaltungsaktion.');
  }
- function form(message='') {return '<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GCS Verwaltung anmelden</title><style>body{background:#122b39;color:#eef;font:20px Segoe UI;margin:8vh auto;max-width:520px;padding:24px}input,button{box-sizing:border-box;font:inherit;width:100%;padding:14px;margin:12px 0}a{color:#9ee8da}</style><h1>🏡 Verwaltung</h1><p>Zusätzliche Anmeldung für Erwachsene mit Verwaltungsrechten.</p><p role="status">'+escape(message)+'</p><form method="post" action="/admin-login"><label>Benutzername<input name="username" autocomplete="username" required maxlength="80"></label><label>Passwort<input name="password" type="password" autocomplete="current-password" required maxlength="200"></label><button>Anmelden</button></form><a href="/">Zur Spieler-Einwahl</a></html>';}
- async function login(req,body){const key=req.socket.remoteAddress,now=Date.now();let rate=attempts.get(key);if(!rate||now-rate.at>60000){rate={at:now,n:0};attempts.set(key,rate);}if(++rate.n>10)return {error:'Zu viele Versuche. Bitte eine Minute warten.'};
+ async function verify(req,body,emit=()=>{}){const key=req.socket.remoteAddress,now=Date.now();let rate=attempts.get(key);if(!rate||now-rate.at>60000){rate={at:now,n:0};attempts.set(key,rate);}emit('Versuchslimit prüfen',{allowed:rate.n<10});if(++rate.n>10)return {error:'Zu viele Versuche. Bitte eine Minute warten.'};
   let entries=[];if(fs.existsSync(credentialPath))entries=JSON.parse(fs.readFileSync(credentialPath,'utf8'));const c=entries.find(c=>c.username===body.username),salt=c?.salt||'00000000000000000000000000000000';
   const hash=await new Promise((resolve,reject)=>crypto.scrypt(String(body.password||''),salt,64,(e,b)=>e?reject(e):resolve(b)));
-  if(!c||!crypto.timingSafeEqual(hash,Buffer.from(c.hash,'hex'))||!core.db.people.some(p=>p.id===c.personId&&p.active))return {error:'Anmeldung nicht möglich.'};
-  const s={personId:c.personId,assurance:'admin',expires:Date.now()+1800000};if(!core.db.areas.some(a=>a.active&&core.can(s,'manageArea',{areaId:a.id})))return {error:'Keine Verwaltungszuständigkeit.'};for(const [k,v]of sessions)if(v.expires<now)sessions.delete(k);const token=crypto.randomBytes(32).toString('hex');sessions.set(token,s);return {token};
+  const valid=!!c&&crypto.timingSafeEqual(hash,Buffer.from(c.hash,'hex'))&&core.db.people.some(p=>p.id===c.personId&&p.active);emit('Passwort und Person prüfen',{valid:!!valid});if(!valid)return {error:'Anmeldung nicht möglich.'};
+  const s={personId:c.personId,assurance:'admin',expires:Date.now()+1800000};const allowed=core.db.areas.some(a=>a.active&&core.can(s,'manageArea',{areaId:a.id}));emit('Verwaltungszuständigkeit prüfen',{allowed});if(!allowed)return {error:'Keine Verwaltungszuständigkeit.'};verified.add(s);return {session:s};
  }
- return {api,form,login,readSession,enroll:(b)=>enroll(core,credentialPath,b.ticket,b.username,b.password,commit)};
+ const verified=new WeakSet();
+ function createSession(s){if(!verified.has(s))throw Error('Nicht geprüfte Verwaltungssitzung');verified.delete(s);const now=Date.now();for(const [k,v]of sessions)if(v.expires<now)sessions.delete(k);const token=crypto.randomBytes(32).toString('hex');sessions.set(token,s);return {token};
+ }
+ async function login(req,body){const checked=await verify(req,body);return checked.error?checked:createSession(checked.session);}
+ return {api,verify,createSession,login,readSession,enroll:(b)=>enroll(core,credentialPath,b.ticket,b.username,b.password,commit)};
 }
 module.exports={createAdmin,fileStore};

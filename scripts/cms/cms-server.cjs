@@ -3,23 +3,42 @@ const {createCore}=require('./cms-core.cjs');
 const {createAdmin}=require('./cms-admin.cjs');
 const {createTraceStore}=require('./cms-trace.cjs');
 const {loadLoginWorkflow}=require('./cms-login-workflow.cjs');
+const {loadAdminWorkflow,renderLogin}=require('./cms-admin-workflow.cjs');
+const {createProfile}=require('./cms-profile.cjs');
+const {createUploads}=require('./cms-uploads.cjs');
 const root=path.resolve(__dirname,'../..');
 function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}={}){
  if(!fs.existsSync(dataPath)){fs.mkdirSync(path.dirname(dataPath),{recursive:true});fs.copyFileSync(path.join(__dirname,'cms-demo.json'),dataPath,fs.constants.COPYFILE_EXCL);}
  const core=createCore(JSON.parse(fs.readFileSync(dataPath,'utf8'))),launches=new Map(),attempts=new Map();
  const admin=createAdmin(core,dataPath),traces=createTraceStore(),loginWorkflow=loadLoginWorkflow(path.join(root,'game-server/public/projects/GCS-Server-Anmeldung.json'));
+ const adminWorkflow=loadAdminWorkflow(path.join(root,'game-server/public/projects/GCS-Server-Verwaltungsanmeldung.json'));
+ const loginPage=()=>renderLogin(path.join(root,'game-server/public/projects/GCS-CMS-Anmeldung.json'));
+ const profile=createProfile(core,dataPath,path.join(root,'game-server/public/projects/GCS-Server-Profil.json'));
+ const uploads=createUploads(core,admin,dataPath,path.join(root,'game-server/public/projects/GCS-Server-Uploads.json'));
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
  const reply=(res,code,data)=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  const server=http.createServer(async(req,res)=>{
   try{
    const url=new URL(req.url,'http://localhost');if(!/^(localhost|127\.0\.0\.1):\d+$/.test(req.headers.host||'')){res.writeHead(403);return res.end();}res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');
+   if(req.method==='GET'&&url.pathname==='/library'){
+    res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','no-store');return res.end(admin.readSession(req)?renderLogin(path.join(root,'game-server/public/projects/GCS-CMS-Spiele.json')):loginPage());
+   }
+   if(req.method==='GET'&&url.pathname.startsWith('/avatars/')){
+    const file=uploads.asset(url.pathname.slice(9));if(!file)return reply(res,404,{ok:false});res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=86400'});return res.end(fs.readFileSync(file));
+   }
+   if(req.method==='POST'&&['/api/cms/upload/game','/api/cms/upload/avatar'].includes(url.pathname)){
+    if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
+    const trace=traces.begin(req,true);if(trace){trace.project='GCS-Server-Uploads.json';res.setHeader('X-GCS-Trace-ID',trace.id)}const emit=(label,data)=>traces.step(trace,label,data);
+    emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,note:'Binärinhalt nicht protokolliert'});
+    const result=await uploads.receive(req,url.pathname.endsWith('/game')?'game':'avatar',emit);emit('Response senden',{status:result.status,body:result.data});return reply(res,result.status,result.data);
+   }
    if(req.method==='GET'&&url.pathname.startsWith('/api/cms/debug/traces/')){
     const actor=admin.readSession(req);if(!actor||!core.can(actor,'manageArea',{areaId:'root'}))return reply(res,403,{ok:false,message:'SuperAdmin-Anmeldung für Server-Diagnose erforderlich.'});
     const trace=traces.get(url.pathname.slice('/api/cms/debug/traces/'.length));return reply(res,trace?200:404,trace||{ok:false,message:'Vorgang abgelaufen oder Diagnose ausgeschaltet.'});
    }
    if(req.method==='GET'&&['/admin','/house','/super'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
-    return res.end(admin.readSession(req)?fs.readFileSync(path.join(root,url.pathname==='/super'?'public/cms-super.html':url.pathname==='/house'?'public/cms-house.html':'public/cms-admin.html')):admin.form());
+    return res.end(admin.readSession(req)?fs.readFileSync(path.join(root,url.pathname==='/super'?'public/cms-super.html':url.pathname==='/house'?'public/cms-house.html':'public/cms-admin.html')):loginPage());
    }
    if(url.pathname==='/admin-enroll'&&['GET','POST'].includes(req.method)){
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
@@ -36,7 +55,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
     let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(res,413,{error:'Zu groß'});}
     const result=await admin.login(req,Object.fromEntries(new URLSearchParams(raw)));
-    if(result.error){res.writeHead(401,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(admin.form(result.error));}
+    if(result.error){res.writeHead(401,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(loginPage());}
     res.writeHead(303,{'Location':'/admin','Set-Cookie':`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`,'Cache-Control':'no-store'});return res.end();
    }
    if(req.method==='GET'&&['/','/runtime-standalone.js','/cms-shell.js'].includes(url.pathname)){
@@ -47,14 +66,25 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const launch=launches.get(url.pathname.slice(6)),session=launch&&core.session(launch.token),game=launch&&core.db.games.find(g=>g.id===launch.gameId);
     if(!launch||!session||!core.can(session,'play',{game,areaId:launch.areaId}))return reply(res,403,{error:'Spiel nicht freigegeben'});
     // Erste Ausbaustufe: nur die zwei geprüften lokalen Lernprojekte; keine freien Uploads.
-    const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json'};if(!allowed[game.id]||allowed[game.id]!==game.file)return reply(res,403,{error:'Projekt nicht zugelassen'});
-    const project=JSON.parse(fs.readFileSync(path.join(root,'game-server/public/projects',allowed[game.id]),'utf8'));
+    const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json'},uploaded=uploads.game(game);if(!uploaded&&(!allowed[game.id]||allowed[game.id]!==game.file))return reply(res,403,{error:'Projekt nicht zugelassen'});
+    if(uploaded)res.setHeader('Content-Security-Policy',"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'");
+    const project=JSON.parse(fs.readFileSync(uploaded||path.join(root,'game-server/public/projects',allowed[game.id]),'utf8'));
     const encoded=JSON.stringify(project).replace(/</g,'\\u003c');res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
     return res.end('<!doctype html><meta charset="utf-8"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><script>window.PROJECT='+encoded+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
    }
    if(req.method!=='POST'||!url.pathname.startsWith('/api/cms/'))return reply(res,404,{error:'Nicht gefunden'});
    if(req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
    let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>8192)return reply(res,413,{error:'Anfrage zu groß'});}let body;try{body=JSON.parse(raw||'{}');}catch{return reply(res,400,{error:'Ungültiges JSON'});}
+   if(url.pathname==='/api/cms/admin-login'){
+    if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
+    const trace=traces.begin(req,adminWorkflow.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-Server-Verwaltungsanmeldung.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
+    const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,body});
+    const result=await adminWorkflow.run(admin,req,body,emit);
+    if(result.token)res.setHeader('Set-Cookie',`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
+    res.once('finish',()=>emit('Response gesendet',{status:200,headers:res.getHeaders(),body:result.data}));
+    return reply(res,200,result.data);
+   }
+   if(url.pathname==='/api/cms/upload-library')return reply(res,200,uploads.library(req,body));
    if(url.pathname.startsWith('/api/cms/admin/')){
     if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
     if(['true','false','1','0'].includes(body.active))body.active=body.active==='true'||body.active==='1';
@@ -74,6 +104,11 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     return reply(res,200,result);
    }
    const session=core.session(body.token);if(!session)return reply(res,401,{ok:false,message:'🔑 Bitte neu anmelden'});
+   if(url.pathname.startsWith('/api/cms/profile/')){
+    const trace=traces.begin(req,true);if(trace){trace.project='GCS-Server-Profil.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
+    const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,body});
+    const result=profile(session,url.pathname.slice('/api/cms/profile/'.length),body,emit);emit('Response senden',{status:200,body:result});return reply(res,200,result);
+   }
    if(url.pathname==='/api/cms/logout'){core.logout(body.token);for(const [key,l]of launches)if(l.token===body.token)launches.delete(key);return reply(res,200,{ok:true});}
    if(url.pathname==='/api/cms/rooms'){
     const list=core.rooms(session.personId),page=Math.max(0,Math.min(Number.isInteger(Number(body.page))?Number(body.page):0,Math.max(0,Math.ceil(list.length/4)-1)));

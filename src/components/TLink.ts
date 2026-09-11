@@ -12,6 +12,7 @@ const logger = Logger.get('TLink');
 export class TLink extends TTextControl {
     public url: string = '';
     public underline: boolean = true;
+    public target: string = '_blank';
 
     constructor(name: string, x: number, y: number, width: number = 8, height: number = 2) {
         super(name, x, y, width, height);
@@ -22,7 +23,10 @@ export class TLink extends TTextControl {
 
     public open(): void {
         if (this.url) {
-            window.open(this.url, '_blank', 'noopener,noreferrer');
+            const url = new URL(this.url, window.location.href);
+            if (!['http:', 'https:'].includes(url.protocol)) return;
+            if (this.target === '_self') window.location.assign(url.href);
+            else window.open(url.href, '_blank', 'noopener,noreferrer');
             logger.info(`[TLink] ${this.name}.open() → ${this.url}`);
         } else {
             logger.warn(`[TLink] ${this.name}.open() → keine URL konfiguriert`);
@@ -33,6 +37,7 @@ export class TLink extends TTextControl {
         const props = super.getInspectorProperties();
         return [
             ...props,
+            { name: 'target', label: 'Zielfenster', type: 'select', options: ['_blank', '_self'], group: 'LINK' },
             { name: 'url', label: 'URL', type: 'string', group: 'LINK' },
             { name: 'underline', label: 'Unterstrichen', type: 'boolean', group: 'LINK' }
         ];
@@ -42,6 +47,7 @@ export class TLink extends TTextControl {
         return {
             ...super.toDTO(),
             url: this.url,
+            target: this.target,
             underline: this.underline
         };
     }
@@ -52,6 +58,7 @@ import { ComponentRegistry } from '../utils/ComponentRegistry';
 ComponentRegistry.register('TLink', (objData: any) => {
     const link = new TLink(objData.name, objData.x, objData.y, objData.width, objData.height);
     if (objData.text !== undefined) link.text = objData.text;
+    if (objData.target !== undefined) link.target = objData.target;
     if (objData.url !== undefined) link.url = objData.url;
     if (objData.color !== undefined) link.style.color = objData.color;
     if (objData.underline !== undefined) link.underline = objData.underline;

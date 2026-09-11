@@ -17,6 +17,7 @@ import { ViewportDiagnose } from './utils/ViewportDiagnose';
 import { ImageMetaCache } from './runtime/ImageMetaCache';
 import { applyTouchHardening } from './runtime/TouchHardening';
 import { LOADING_SVG } from './loading-overlay-svg';
+import { RUNTIME_VERSION } from './utils/RuntimeVersion';
 installTauriFSAdapter();
 
 // PERF: Im ausgelieferten Spiel ist Logging per Default aus. console.*-Aufrufe in den
@@ -39,6 +40,9 @@ function applyPlayerLogLevel(): void {
     }
 }
 applyPlayerLogLevel();
+if (typeof window !== 'undefined') {
+    (window as any).__GCS_RUNTIME_VERSION__ = RUNTIME_VERSION;
+}
 if(typeof window!=='undefined'&&new URLSearchParams(location.search).get('trace')==='1')document.addEventListener('DOMContentLoaded',()=>{const viewer=new TDebugLog();(window as any).cmsDebugLog=viewer;viewer.setRecordingActive(true);viewer.showServerTraces();});
 
 // DIAGNOSE: Sichtbare Messwerte im Bild, wenn auf dem Zielgeraet keine Konsole
@@ -402,7 +406,10 @@ class UniversalPlayer implements StageHost {
         }
 
         this.currentProject = project;
-        const startStageId = (project as any).activeStageId || (project.stage as any)?.id || project.stages?.[0]?.id;
+        const startStageId = project.stages?.find((s: any) => s.type === 'splash')?.id ||
+            (project as any).activeStageId ||
+            (project.stage as any)?.id ||
+            project.stages?.[0]?.id;
 
         // 1b. Preload images to avoid decode jank on first use
         await this.preloadImages(project);

@@ -20,6 +20,8 @@ export class TEdit extends TTextControl {
     public text: string;
     public placeholder: string;
     public maxLength: number;
+    public inputType: string = 'text';
+    public autocomplete: string = 'off';
 
     // TEdit-specific event callbacks
     private onChangeCallback: ((text: string) => void) | null = null;
@@ -90,6 +92,8 @@ export class TEdit extends TTextControl {
         const props = super.getInspectorProperties();
         return [
             ...props,
+            { name: 'inputType', label: 'Eingabetyp', type: 'select', options: ['text', 'password'], group: 'EINGABE' },
+            { name: 'autocomplete', label: 'Autovervollständigung', type: 'select', options: ['off', 'username', 'current-password', 'new-password'], group: 'EINGABE' },
             { name: 'placeholder', label: 'Platzhalter', type: 'string', group: 'EINGABE' },
             { name: 'maxLength', label: 'Max. Länge', type: 'number', group: 'EINGABE' }
             // Inherits styles from TTextControl

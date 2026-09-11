@@ -133,7 +133,7 @@ export function registerMiscActions() {
                 context.vars[action.resultVariable] = result;
                 context.contextVars[action.resultVariable] = result;
             }
-            runtimeLogger.info(`${targetName}.${methodName}(${resolvedParams.join(', ')}) aufgerufen.`);
+            runtimeLogger.info(`${targetName}.${methodName}(${resolvedParams.length} Parameter) aufgerufen.`);
             return;
         }
 
@@ -143,7 +143,7 @@ export function registerMiscActions() {
                 context.vars[action.resultVariable] = result;
                 context.contextVars[action.resultVariable] = result;
             }
-            runtimeLogger.info(`Service ${targetName}.${methodName}(${resolvedParams.join(', ')}) aufgerufen.`);
+            runtimeLogger.info(`Service ${targetName}.${methodName}(${resolvedParams.length} Parameter) aufgerufen.`);
             return;
         }
 

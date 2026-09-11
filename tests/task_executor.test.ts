@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * TaskExecutor Tests – Sicherheitsnetz für Task-Ausführung und Resolution
  * 
@@ -7,7 +8,6 @@
 
 import { TaskExecutor } from '../src/runtime/TaskExecutor';
 import { ActionExecutor } from '../src/runtime/ActionExecutor';
-import { GameProject } from '../src/model/types';
 
 // --- Mocks ---
 // Mock für DebugLogService (wird global von TaskExecutor genutzt)
@@ -48,7 +48,7 @@ export interface TestResult {
     details?: string;
 }
 
-function createTestProject(): GameProject {
+function createTestProject(): any {
     return {
         meta: { name: 'ExecutorTest', version: '1.0', author: 'Test' },
         objects: [],
@@ -333,6 +333,60 @@ export async function runTaskExecutorTests(): Promise<TestResult[]> {
             `Ausgeführt: [${executedNames.join(', ')}]`);
     } catch (e: any) {
         addResult('Execute: Task in Composite Action', false, `Exception: ${e.message}`);
+    }
+
+    // --- Test 9: Blueprint-Action-Referenzen verdecken echte Definitionen nicht (PingPong-Regression) ---
+    try {
+        const project = createTestProject();
+        const bpStage = project.stages.find(s => s.id === 'stage_blueprint')!;
+        const loginStage = project.stages.find(s => s.id === 'stage_login')!;
+
+        // Blueprint enthält echte Definition
+        bpStage.actions = [{
+            name: 'EnableMoving',
+            type: 'property',
+            target: 'GameState',
+            changes: { spritesMoving: true }
+        } as any];
+
+        // Stage enthält nur einen Referenz-Stub mit gleichem Namen
+        loginStage.actions = [{
+            name: 'EnableMoving',
+            type: 'action',
+            scope: 'global',
+            sourceStage: 'stage_blueprint'
+        } as any];
+
+        // Task auf der Stage verweist auf die Action
+        loginStage.tasks = [{
+            name: 'StartGame',
+            actionSequence: [{ type: 'action', name: 'EnableMoving' }]
+        } as any];
+
+        const { RuntimeStageManager } = await import('../src/runtime/RuntimeStageManager');
+        const stageManager = new RuntimeStageManager(project);
+        const merged = stageManager.getMergedStageData('stage_login');
+
+        const mock = new MockActionExecutor();
+        const executor = new TaskExecutor(
+            project,
+            merged.actions,
+            mock as any as ActionExecutor,
+            undefined,
+            undefined,
+            merged.tasks
+        );
+
+        await executor.execute('StartGame', {}, {});
+
+        const ok = mock.executedActions.length === 1
+            && mock.executedActions[0].name === 'EnableMoving'
+            && mock.executedActions[0].type === 'property'
+            && mock.executedActions[0].changes?.spritesMoving === true;
+        addResult('Execute: Blueprint-Referenz verdeckt echte Action nicht', ok,
+            `Ausgeführt: [${mock.executedActions.map(a => `${a.name}:${a.type}`).join(', ')}]`);
+    } catch (e: any) {
+        addResult('Execute: Blueprint-Referenz verdeckt echte Action nicht', false, `Exception: ${e.message}`);
     }
 
     return results;

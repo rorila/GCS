@@ -3101,6 +3101,18 @@
             "borderWidth": 0
           },
           "text": "Haus wählen → HouseAdmin anklicken und bestätigen → Zugang einrichten."
+        },
+        {
+          "id": "library_link",
+          "className": "TLink",
+          "name": "SpieleVerwalten",
+          "x": 40,
+          "y": 3,
+          "width": 20,
+          "height": 2,
+          "text": "🎮 Meine Spiele",
+          "url": "/library",
+          "target": "_self"
         }
       ],
       "tasks": [],
@@ -3368,7 +3380,7 @@
   "actions": [],
   "tasks": [],
   "variables": [],
-  "activeStageId": "stage_blueprint",
+  "activeStageId": "stage_main",
   "userStories": {
     "userStories": [
       {

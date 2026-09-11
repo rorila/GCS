@@ -76,7 +76,7 @@
       }
     },
     "TServerAuthenticate": {
-      "description": "Verwendet den bestehenden CMS-Kern und erstellt nur Spielersitzungen.",
+      "description": "Prüft den Zugang des konfigurierten Anmeldeprojekts: Emoji-Spielerprofil oder Verwaltungspasswort. Der Server erzwingt das Verfahren pro Endpunkt.",
       "stage": "blueprint",
       "category": "server",
       "isService": true,
@@ -155,6 +155,195 @@
         "successMessage": "✓",
         "responseFormat": "JSON",
         "secretPolicy": "Passwörter, Emoji-Code, Cookies und Tokens maskieren"
+      }
+    },
+    "TServerSession": {
+      "description": "Erstellt eine Verwaltungssitzung ausschließlich nach erfolgreicher Zugangsprüfung.",
+      "stage": "blueprint",
+      "category": "server",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "sessionPolicy": {
+          "type": "string",
+          "default": "HttpOnly; SameSite=Strict; 30 Minuten",
+          "description": "Verbindlicher serverseitiger Sitzungsschutz"
+        }
+      },
+      "methods": [
+        {
+          "name": "execute",
+          "description": "Nur im CMS-Server nach geprüfter Authentifizierung ausführen"
+        }
+      ],
+      "events": [],
+      "example": {
+        "className": "TServerSession",
+        "name": "VerwaltungssitzungErstellen"
+      }
+    },
+    "TServerProfile": {
+      "description": "Eigene Profilangaben lesen und speichern; Zugangshilfe anfordern. Identität aus Sitzung.",
+      "category": "server",
+      "stage": "blueprint",
+      "properties": {
+        "readMessage": {
+          "type": "string",
+          "description": "Profilhinweis"
+        },
+        "savedMessage": {
+          "type": "string",
+          "description": "Speicherbestätigung"
+        },
+        "helpMessage": {
+          "type": "string",
+          "description": "Hilfebestätigung"
+        },
+        "failureMessage": {
+          "type": "string",
+          "description": "Eingabefehler"
+        }
+      },
+      "methods": [
+        {
+          "name": "read",
+          "description": "Serverseitiger Profilschritt"
+        },
+        {
+          "name": "save",
+          "description": "Serverseitiger Profilschritt"
+        },
+        {
+          "name": "help",
+          "description": "Serverseitiger Profilschritt"
+        }
+      ],
+      "events": [
+        "onRead",
+        "onSave",
+        "onHelp"
+      ],
+      "example": {
+        "className": "TServerProfile",
+        "name": "EigenesProfil"
+      }
+    },
+    "TFilePicker": {
+      "description": "Wiederverwendbarer Upload-Baustein: TFilePicker",
+      "stage": "blueprint",
+      "properties": {
+        "accept": {
+          "type": "string",
+          "default": ".json",
+          "description": "accept"
+        },
+        "maxBytes": {
+          "type": "number",
+          "default": 10485760,
+          "description": "maxBytes"
+        }
+      },
+      "methods": [
+        {
+          "name": "choose"
+        }
+      ],
+      "events": [
+        "onSelected",
+        "onCancel",
+        "onError"
+      ],
+      "example": {
+        "className": "TFilePicker",
+        "name": "FilePicker"
+      }
+    },
+    "TFileUpload": {
+      "description": "Wiederverwendbarer Upload-Baustein: TFileUpload",
+      "stage": "blueprint",
+      "properties": {
+        "picker": {
+          "type": "string",
+          "default": "Dateiauswahl",
+          "description": "picker"
+        },
+        "endpoint": {
+          "type": "string",
+          "default": "/api/cms/upload/game",
+          "description": "endpoint"
+        }
+      },
+      "methods": [
+        {
+          "name": "start",
+          "parameters": [
+            {
+              "name": "title",
+              "type": "string"
+            },
+            {
+              "name": "description",
+              "type": "string"
+            },
+            {
+              "name": "token",
+              "type": "string",
+              "description": "Spieler-Token nur für Avatarupload; nicht in der Projektdatei speichern."
+            }
+          ]
+        },
+        {
+          "name": "cancel"
+        }
+      ],
+      "events": [
+        "onStarted",
+        "onProgress",
+        "onSuccess",
+        "onError",
+        "onCancel"
+      ],
+      "example": {
+        "className": "TFileUpload",
+        "name": "FileUpload"
+      }
+    },
+    "TServerUpload": {
+      "description": "Wiederverwendbarer Upload-Baustein: TServerUpload",
+      "stage": "blueprint",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "default": "game",
+          "description": "kind"
+        },
+        "maxBytes": {
+          "type": "number",
+          "default": 10485760,
+          "description": "maxBytes"
+        },
+        "successMessage": {
+          "type": "string",
+          "default": "Upload gespeichert",
+          "description": "successMessage"
+        },
+        "failureMessage": {
+          "type": "string",
+          "default": "Dateiformat ungültig",
+          "description": "failureMessage"
+        }
+      },
+      "methods": [
+        {
+          "name": "execute"
+        }
+      ],
+      "events": [
+        "onRequest"
+      ],
+      "example": {
+        "className": "TServerUpload",
+        "name": "ServerUpload"
       }
     }
   }

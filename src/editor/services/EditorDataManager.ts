@@ -1,22 +1,10 @@
 import { coreStore } from '../../services/registry/CoreStore';
 import { GameProject } from '../../model/types';
 import { ViewType } from '../EditorViewManager';
-import { projectPersistenceService } from '../../services/ProjectPersistenceService';
-
-import { mediatorService } from '../../services/MediatorService';
-import { dataService } from '../../services/DataService';
-import { RefactoringManager } from '../RefactoringManager';
-import { hydrateObjects } from '../../utils/Serialization';
-import { safeDeepCopy } from '../../utils/DeepCopy';
 import { Logger } from '../../utils/Logger';
-import { SaveAsDialog } from '../SaveAsDialog';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { PromptDialog } from '../ui/PromptDialog';
-import { NotificationToast } from '../ui/NotificationToast';
-import { SchemaMigrator } from '../../services/SchemaMigrator';
-import { ProjectIntegrityValidator } from '../../services/ProjectIntegrityValidator';
-import { actionRegistry } from '../../runtime/ActionRegistry';
-import { AgentController } from '../../services/AgentController';
+import { EditorProjectLoader } from './EditorProjectLoader';
+import { EditorProjectSaver } from './EditorProjectSaver';
+import { EditorMediaExporter } from './EditorMediaExporter';
 
 export interface EditorDataHost {
     project: GameProject;
@@ -40,7 +28,6 @@ export interface EditorDataHost {
     syncStageObjectsToProject(): void;
     getActiveStage(): any;
     morphVariable(variable: any, newType: any): void;
-    setProject(project: GameProject): void;
     stageManager: any;
     commandManager: any;
     menuManager: any;
@@ -58,798 +45,77 @@ export class EditorDataManager {
     private _autoSaveCount: number = 0;
     private _diskSaveTimer: any = null;
 
+    private loader: EditorProjectLoader;
+    private saver: EditorProjectSaver;
+    private exporter: EditorMediaExporter;
+
     constructor(host: EditorDataHost) {
         this.host = host;
+        this.loader = new EditorProjectLoader(this);
+        this.saver = new EditorProjectSaver(this);
+        this.exporter = new EditorMediaExporter(this);
     }
 
-    /**
-     * Aktualisiert die Pfad-Anzeige in der Menüleiste
-     */
+    public get loadedAt(): number { return this._loadedAt; }
+    public set loadedAt(value: number) { this._loadedAt = value; }
+    public get autoSaveCount(): number { return this._autoSaveCount; }
+    public set autoSaveCount(value: number) { this._autoSaveCount = value; }
+    public get diskSaveTimer(): any { return this._diskSaveTimer; }
+    public set diskSaveTimer(value: any) { this._diskSaveTimer = value; }
+
+    public getHost(): EditorDataHost {
+        return this.host;
+    }
+
     public updateProjectPathDisplay(): void {
-        const menuBar = (this.host as any).menuBar;
-        if (menuBar && typeof menuBar.setInfoText === 'function') {
-            let path = this.currentSavePath || '(nicht gespeichert)';
-            let prefix = 'AutoSave-Ziel';
-
-            const isElectron = !!(window as any).electronFS;
-            const hasNativeHandle = !!this.currentFileHandle;
-
-            if (isElectron && this.currentSavePath) {
-                path = this.currentSavePath;
-                prefix = 'AutoSave-Ziel (Electron)';
-            } else if (hasNativeHandle) {
-                path = this.currentFileHandle.name;
-                prefix = 'AutoSave-Ziel (Lokal)';
-            } else {
-                // Browser-Fallback
-                const sourcePath = this.host.project?.meta?._sourcePath || 'projects/project.json';
-                path = `game-server/public/${sourcePath}`;
-                prefix = 'AutoSave-Ziel (Dev-Server)';
-            }
-
-            menuBar.setInfoText(`${prefix}: ${path}`);
-        }
+        this.saver.updateProjectPathDisplay();
     }
 
-    public async triggerLoad() {
-        if (this.host.isProjectDirty) {
-            if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen am aktuellen Projekt. Möchten Sie wirklich ein anderes Projekt laden? (Nicht gespeicherte Änderungen gehen verloren)')) {
-                return;
-            }
-        }
-        try {
-            const result = await projectPersistenceService.triggerLoad();
-            if (result) {
-                this.currentFileHandle = result.fileHandle || null;
-
-                // Beim Laden über File-Dialog: Den Pfad beibehalten, außer es ist nur ein Dateiname.
-                // In Electron erhalten wir hier einen absoluten Pfad, im Web nur einen Dateinamen.
-                let sourcePath = result.filename;
-                if (!sourcePath.includes('/') && !sourcePath.includes('\\')) {
-                    sourcePath = `projects/${result.filename}`;
-                }
-                EditorDataManager.logger.info(`[triggerLoad] Datei geladen: ${result.filename}, Pfad: ${sourcePath}`);
-                this.loadProject(result.data, sourcePath);
-            }
-        } catch (err) {
-            NotificationToast.show('Error loading project: ' + err, 'error');
-        }
+    public async triggerLoad(): Promise<void> {
+        return this.loader.triggerLoad();
     }
 
-    public async saveProject() {
-        if (this.host.flowEditor) {
-            this.host.flowEditor.syncToProjectIfDirty();
-            this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
-        }
-
-        this.host.syncStageObjectsToProject();
-
-        // Erstes Speichern: Projektname abfragen wenn noch kein _sourcePath
-        const project = this.host.project;
-        if (!project.meta?._sourcePath) {
-            const isE2E = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('e2e') === 'true';
-            const defaultName = project.meta?.name || 'MeinProjekt';
-            
-            // Im E2E-Modus: kein Dialog, automatisch Projektname setzen
-            const projectName = isE2E ? defaultName : await PromptDialog.show('Projektname für das Speichern:', defaultName);
-            if (!projectName) {
-                EditorDataManager.logger.info('[SaveProject] Speichern abgebrochen (kein Name eingegeben)');
-                return;
-            }
-            // Sicheren Dateinamen erstellen
-            const safeName = projectName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
-            if (!project.meta) (project as any).meta = {};
-            project.meta._sourcePath = `projects/${safeName}.json`;
-            project.meta.name = projectName;
-            EditorDataManager.logger.info(`[SaveProject] Neuer Projektpfad: ${project.meta._sourcePath}`);
-        }
-
-        // 1. Lokaler Download / Storage Sync
-        await projectPersistenceService.saveProject(project);
-
-        // 2. Server-seitige Persistenz (Disk)
-        try {
-            const res = await fetch('/api/dev/save-project', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.host.project)
-            });
-            const data = await res.json();
-            if (data.success) {
-                this.host.isProjectDirty = false;
-                NotificationToast.show('Projekt erfolgreich gespeichert und auf Disk persistiert!', 'success');
-            } else {
-                NotificationToast.show('Fehler beim Speichern auf Disk: ' + (data.error || 'Unbekannter Fehler'), 'error');
-            }
-        } catch (err) {
-            EditorDataManager.logger.error('Kritischer Fehler beim Server-Save:', err);
-            NotificationToast.show('Kritischer Fehler beim Speichern auf Disk. Bitte prüfen Sie die Server-Verbindung.', 'error');
-        }
+    public async saveProject(): Promise<void> {
+        return this.saver.saveProject();
     }
 
-    /**
-     * Speichert das Projekt gemäß UseCase „Projekt speichern":
-     * Schritt 1: isProjectChangeAvailable prüfen
-     * Schritt 2: Spielname prüfen (≠ 'Haupt-Level')
-     * Schritt 3: Datei-Existenz prüfen + ggf. Überschreiben-Dialog
-     * Schritt 4: Speichern via /api/dev/save-custom + isProjectChangeAvailable zurücksetzen
-     *
-     * @param overwriteConfirmed - für E2E-Tests: Datei-Überschreiben ohne Browser-confirm
-     * @returns { success: boolean, message: string }
-     */
     public async saveProjectToFile(overwriteConfirmed?: boolean): Promise<{ success: boolean; message: string }> {
-        // --- Schritt 1: Änderungsstatus prüfen ---
-        // isProjectDirty delegiert auf die Blueprint-Variable 'isProjectChangeAvailable' (SSoT)
-        if (!this.host.isProjectDirty) {
-            const msg = 'Daten haben sich nicht geändert';
-            EditorDataManager.logger.info(`[UseCase: Projekt speichern] Abbruch: ${msg}`);
-            if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'warning');
-            return { success: false, message: msg };
-        }
-
-        // --- Schritt 2: Spielname prüfen ---
-        const mainStage = this.host.project.stages?.find((s: any) => s.id === 'main');
-        const gameName = (this.host.project.meta as any)?.name || mainStage?.name || '';
-
-        if (!gameName || gameName === 'Haupt-Level') {
-            const msg = 'Bitte ändern Sie den Spielnamen in der Main-Stage';
-            EditorDataManager.logger.info(`[UseCase: Projekt speichern] Abbruch: ${msg}`);
-            if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'warning');
-            return { success: false, message: msg };
-        }
-
-        // --- Schritt 3: Pfad-Konstruktion und Datei-Existenz-Prüfung ---
-        // Spielname bereinigen (Sonderzeichen entfernen, für Dateiname geeignet)
-        const safeGameName = gameName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
-        // Pfad: Ordner aus currentSavePath übernehmen, Dateiname IMMER aus aktuellem meta.name
-        let targetFilePath: string;
-        if (this.currentSavePath) {
-            // Bullet-proof Sanitization: Falls dirty state noch projects/C:/... enthält
-            // und konvertiere alle Backslashes zu Forward-Slashes für sichere Pfadoperationen
-            let sanitizedPath = this.currentSavePath.replace(/\\/g, '/').replace(/^(?:projects\/)+([a-zA-Z]:\/)/, '$1');
-            
-            // Ordner-Anteil beibehalten, Dateiname aus meta.name
-            const folder = sanitizedPath.substring(0, sanitizedPath.lastIndexOf('/'));
-            targetFilePath = `${folder}/${safeGameName}.json`;
-            // currentSavePath aktualisieren damit er konsistent bleibt
-            this.currentSavePath = targetFilePath;
-            
-            // SECURITY ALLOW NATIVE PATH: Falls sich der Dateiname geändert hat (weil meta.name geändert wurde),
-            // müssen wir den neuen berechneten Pfad in Electron explizit erlauben.
-            if ((window as any).electronFS && typeof (window as any).electronFS.allowPath === 'function') {
-                (window as any).electronFS.allowPath(this.currentSavePath).catch((e: any) => EditorDataManager.logger.warn('Failed to allow path:', e));
-            }
-        } else {
-            targetFilePath = `projects/master_test/${safeGameName}.json`;
-            this.currentSavePath = targetFilePath;
-        }
-
-        try {
-            const existsRes = await fetch('/api/dev/check-exists', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filePath: targetFilePath })
-            });
-            const existsData = await existsRes.json();
-
-            if (existsData.exists) {
-                // Datei existiert → Server erstellt automatisch ein Backup (.bakN)
-                EditorDataManager.logger.info(`[UseCase: Projekt speichern] Datei existiert bereits, Server erstellt Backup: ${targetFilePath}`);
-            }
-        } catch (err) {
-            EditorDataManager.logger.warn('[UseCase: Projekt speichern] check-exists fehlgeschlagen (Server nicht erreichbar?), fahre fort mit Speichern:', err);
-            // Kein Abbruch – server könnte nicht laufen; save-custom wird trotzdem versucht
-        }
-
-        // --- Schritt 4: Speichern ---
-        // Flow-Editor und Stage vor dem Speichern synchronisieren
-        // Im E2E-Test-Modus (overwriteConfirmed !== undefined) syncToProject() überspringen,
-        // um keine DATA_CHANGED Events auszulösen, die isProjectDirty wieder auf true setzen
-        if (overwriteConfirmed === undefined && this.host.flowEditor) {
-            this.host.flowEditor.syncToProjectIfDirty();
-            this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
-        }
-        this.host.syncStageObjectsToProject();
-
-        // KRITISCH: isProjectDirty (→ isProjectChangeAvailable) VOR dem JSON.stringify auf false setzen,
-        // damit der gespeicherte JSON-Snapshot den korrekten "gespeichert"-Zustand enthält
-        
-        // Nativer Speicherzugriff (Electron & Web FileSystem Access API per Adapter)
-        const nativeAdapter = projectPersistenceService.getNativeAdapter();
-        if (nativeAdapter && overwriteConfirmed === undefined && (this.currentSavePath || this.currentFileHandle)) {
-            try {
-                // Adapter mit den aktuellen Handles/Pfaden synchronisieren
-                if (this.currentSavePath) nativeAdapter.setPath(this.currentSavePath);
-                if (this.currentFileHandle) nativeAdapter.setHandle(this.currentFileHandle);
-
-                await nativeAdapter.save(this.host.project);
-                
-                setTimeout(() => { this.host.isProjectDirty = false; }, 0);
-                
-                const savedPath = nativeAdapter.getPath() || nativeAdapter.getHandle()?.name || this.currentSavePath || 'Lokal';
-                const msg = `Nativ gespeichert: ${savedPath}`;
-                EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
-                
-                if (!this.host.project.meta) (this.host.project as any).meta = {};
-                (this.host.project.meta as any)._sourcePath = savedPath;
-                this.updateProjectPathDisplay();
-                
-                if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'success');
-                return { success: true, message: msg };
-            } catch (err: any) {
-                const nativeErr = err?.message || String(err);
-                EditorDataManager.logger.warn(`[UseCase: Projekt speichern] Fehler beim nativen Speichern. Fallback auf Server. Pfad: ${this.currentSavePath}, Fehler: ${nativeErr}`);
-                this.host.isProjectDirty = true;
-                
-                // Fallback auf Fetch Server API schlägt in Electron meist auch fehl, daher direkt abbrechen und Meldung zeigen
-                if ((window as any).electronFS) {
-                    const msg = `Sicherheits- oder Schreibfehler in Electron!\nPfad: ${this.currentSavePath}\n\nSystem-Meldung: ${nativeErr}`;
-                    if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'error');
-                    return { success: false, message: msg };
-                }
-            }
-        }
-
-        try {
-            const saveRes = await fetch('/api/dev/save-custom', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filePath: targetFilePath, projectData: this.host.project })
-            });
-            const saveData = await saveRes.json();
-
-            if (saveData.success) {
-                // Sicherheit: nach potenziellen async DATA_CHANGED Events nochmals zurücksetzen
-                setTimeout(() => { this.host.isProjectDirty = false; }, 0);
-
-                const msg = `Projekt erfolgreich gespeichert: ${targetFilePath}`;
-                EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
-                this.updateProjectPathDisplay();
-                if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'success');
-                return { success: true, message: msg };
-            } else {
-                // Falls Speichern fehl schlägt: Zustand zurücksetzen
-                this.host.isProjectDirty = true;
-                const msg = `Fehler beim Speichern (Pfad: ${targetFilePath}): ` + (saveData.error || 'Unbekannter Fehler');
-                EditorDataManager.logger.error(`[UseCase: Projekt speichern] ${msg}`);
-                if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'error');
-                return { success: false, message: msg };
-            }
-        } catch (err: any) {
-            // Falls Speichern fehl schlägt: Zustand zurücksetzen
-            this.host.isProjectDirty = true;
-            const msg = `Kritischer Fehler beim Speichern.\n\nPfad: ${targetFilePath}\nInterner Pfad: ${this.currentSavePath}\nFehler: ${err?.message || String(err)}`;
-            EditorDataManager.logger.error(`[UseCase: Projekt speichern] Fehler:`, err);
-            if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'error');
-            return { success: false, message: msg };
-        }
+        return this.saver.saveProjectToFile(overwriteConfirmed);
     }
 
-    /**
- * "Speichern unter..." — Zeigt SaveAsDialog für Ordner-/Dateiname-Auswahl.
- */
     public async saveProjectAs(): Promise<{ success: boolean; message: string }> {
-        const meta = (this.host.project as any).meta || {};
-        const currentName = meta.name || 'MeinSpiel';
-
-        // Nativer File Access per Adapter
-        const nativeAdapter = projectPersistenceService.getNativeAdapter();
-        if (nativeAdapter) {
-            // Lösche Handles um einen Dialog zu erzwingen
-            nativeAdapter.setPath(null);
-            nativeAdapter.setHandle(null);
-            
-            try {
-                await nativeAdapter.save(this.host.project, `${currentName}.json`);
-                const newPath = nativeAdapter.getPath();
-                const newHandle = nativeAdapter.getHandle();
-                
-                if (!newPath && !newHandle) {
-                    return { success: false, message: 'Speichern abgebrochen' };
-                }
-                
-                let combinedPath = newPath || `projects/${newHandle?.name}`;
-                this.currentSavePath = combinedPath.replace(/\\/g, '/');
-                this.currentFileHandle = newHandle;
-                
-                const fileBaseName = (newPath?.replace(/^.*[\\/]/, '') || newHandle?.name || '').replace('.json', '');
-                if (!this.host.project.meta) (this.host.project as any).meta = {};
-                (this.host.project.meta as any).name = fileBaseName;
-                (this.host.project.meta as any)._sourcePath = this.currentSavePath;
-                
-                this.host.isProjectDirty = true; // erzwingt Check-Bypass in saveProjectToFile
-                return this.saveProjectToFile();
-            } catch (err: any) {
-                if (err.name === 'AbortError') return { success: false, message: 'Speichern abgebrochen' };
-                EditorDataManager.logger.warn('FS SaveAPI fehlgeschlagen:', err);
-            }
-        }
-
-        const result = await SaveAsDialog.show(currentName);
-        if (!result) {
-            return { success: false, message: 'Speichern abgebrochen' };
-        }
-
-        // Spielnamen in project.meta setzen
-        const fileBaseName = result.filename.replace('.json', '');
-        if (!this.host.project.meta) (this.host.project as any).meta = {};
-        (this.host.project.meta as any).name = fileBaseName;
-
-        // Neuen Speicherpfad setzen
-        this.currentFileHandle = null; // Auf Server gespeichert, lokales Handle verwerfen
-        this.currentSavePath = `projects/${result.folder}/${result.filename}`;
-
-        // Dirty-Flag forcieren, damit saveProjectToFile den Änderungs-Check übergeht
-        this.host.isProjectDirty = true;
-
-        // An bestehende Speicher-Logik delegieren
-        return this.saveProjectToFile();
+        return this.saver.saveProjectAs();
     }
 
-
-    public async exportHTML() {
-        if (this.host.flowEditor) this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
-        this.host.syncStageObjectsToProject();
-        await projectPersistenceService.exportHTML(this.host.project);
+    public async exportHTML(): Promise<void> {
+        return this.exporter.exportHTML();
     }
 
-    public async exportJSON() {
-        if (this.host.flowEditor) this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
-        this.host.syncStageObjectsToProject();
-        await projectPersistenceService.exportJSON(this.host.project);
+    public async exportHTMLCompressed(): Promise<void> {
+        return this.exporter.exportHTMLCompressed();
     }
 
-    public async exportHTMLCompressed() {
-        if (this.host.flowEditor) this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
-        this.host.syncStageObjectsToProject();
-        await projectPersistenceService.exportHTMLCompressed(this.host.project);
+    public async exportJSON(): Promise<void> {
+        return this.exporter.exportJSON();
     }
 
-    public async exportJSONCompressed() {
-        if (this.host.flowEditor) this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
-        this.host.syncStageObjectsToProject();
-        await projectPersistenceService.exportJSONCompressed(this.host.project);
+    public async exportJSONCompressed(): Promise<void> {
+        return this.exporter.exportJSONCompressed();
     }
 
-    public async exportTheme() {
-        this.host.syncStageObjectsToProject();
-        
-        // Extrahiere alle aktuellen Styles der Objekte auf der Stage als Theme
-        const themeDef: any = {
-            id: 'custom-theme-' + Date.now(),
-            name: 'Custom Theme',
-            components: {}
-        };
-        
-        // Iteriere über alle Objekte in der aktuellen Stage (oder allen Stages)
-        if (this.host.project && this.host.project.stages) {
-            this.host.project.stages.forEach(stage => {
-                if (stage.objects) {
-                    stage.objects.forEach(obj => {
-                        const className = obj.className || 'TObject';
-                        if (obj.style && Object.keys(obj.style).length > 0) {
-                            if (!themeDef.components[className]) {
-                                themeDef.components[className] = {};
-                            }
-                            // Mische die aktuellen Styles als Vorlage für dieses Theme
-                            themeDef.components[className] = { ...themeDef.components[className], ...obj.style };
-                        }
-                    });
-                }
-            });
-        }
-        
-        const jsonStr = JSON.stringify(themeDef, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${themeDef.id}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    public async exportTheme(): Promise<void> {
+        return this.exporter.exportTheme();
     }
 
-    public loadProject(data: any, sourcePath?: string) {
-        if (!data) return;
-
-        // UserStories-Container normalisieren (Initialisierung, Migration, Sicherheitsnetz)
-        SchemaMigrator.ensureUserStories(data);
-
-        // Lade-Zeitpunkt merken: autoSaveToLocalStorage ignoriert die ersten 2s danach
-        this._loadedAt = Date.now();
-        
-        // Zähler zurücksetzen bei komplett neuem Projekt-Laden
-        this._autoSaveCount = 0;
-        const menuBar = (this.host as any).menuBar;
-        if (menuBar && typeof menuBar.setAutosaveCount === 'function') {
-            menuBar.setAutosaveCount(this._autoSaveCount);
-        }
-
-        // Quellpfad setzen — Priorität:
-        // 1. Expliziter sourcePath-Parameter (höchste Priorität)
-        // 2. _sourcePath aus Projekt-Metadaten (wurde beim letzten Speichern geschrieben)
-        // 3. Fallback aus meta.name (letzte Option)
-        if (sourcePath) {
-            let sp = sourcePath.replace(/\\/g, '/');
-            sp = sp.replace(/^(?:projects\/)+([a-zA-Z]:\/)/, '$1');
-            this.currentSavePath = sp;
-            EditorDataManager.logger.info(`[LoadProject] Quellpfad gesetzt (explizit): ${this.currentSavePath}`);
-        } else if (data.meta?._sourcePath) {
-            let sp = data.meta._sourcePath.replace(/\\/g, '/');
-            // Fehler-Korrektur: Falls in einer älteren Version "projects/C:/..." gespeichert wurde
-            sp = sp.replace(/^(?:projects\/)+([a-zA-Z]:\/)/, '$1');
-            
-            this.currentSavePath = sp;
-            EditorDataManager.logger.info(`[LoadProject] Quellpfad aus _sourcePath: ${this.currentSavePath}`);
-        } else if (data.meta?.name) {
-            // Letzter Fallback: Pfad aus Projektnamen konstruieren
-            const safeName = data.meta.name.replace(/[^a-zA-Z0-9_-]/g, '_');
-            this.currentSavePath = `projects/${safeName}.json`;
-            EditorDataManager.logger.info(`[LoadProject] Quellpfad aus meta.name abgeleitet: ${this.currentSavePath}`);
-        }
-
-        if (this.currentSavePath) {
-            if (!data.meta) data.meta = {};
-            data.meta._sourcePath = this.currentSavePath;
-            EditorDataManager.logger.info(`[LoadProject] _sourcePath in Metadaten gesetzt: ${this.currentSavePath}`);
-            
-            // SECURITY ALLOW NATIVE PATH: Der LocalStorage-Pfad muss im Main-Prozess kurz erlaubt werden, 
-            // da er sonst bei autoSave() abgelehnt wird (Szenario: Neustart der Electron-App).
-            if ((window as any).electronFS && typeof (window as any).electronFS.allowPath === 'function') {
-                (window as any).electronFS.allowPath(this.currentSavePath).catch((e: any) => EditorDataManager.logger.warn('Failed to allow path:', e));
-            }
-        }
-
-        // Reset dirty flag after successful load
-        this.host.isProjectDirty = false;
-
-        EditorDataManager.logger.info('Projekt-Ladeprozess gestartet...', data);
-
-        // 1. CLEANUP before load
-        localStorage.removeItem('gcs_last_project');
-
-        // 2. DATA PREPARATION (Sanitization & Hydration)
-        RefactoringManager.cleanActionSequences(data);
-
-        // Schema-Migration (Phase 1, SYNC_REFACTOR): Alias-Felder normalisieren
-        SchemaMigrator.migrateToV4(data);
-
-        // Phase 2: Registry-Defaults auffüllen (ersetzt wasMissing-Blöcke im Inspector)
-        try {
-            SchemaMigrator.applyRegistryDefaults(data, (type: string) => {
-                const meta = actionRegistry.getMetadata(type);
-                return meta?.parameters || null;
-            });
-        } catch (e) {
-            EditorDataManager.logger.warn('[SchemaMigrator] Registry-Defaults konnten nicht angewendet werden:', e);
-        }
-
-        // Referenz-IDs auffüllen: Objektnamen sind projektweit nicht eindeutig,
-        // die zusätzlich gespeicherte ID macht die Auflösung zur Laufzeit eindeutig.
-        try {
-            SchemaMigrator.applyReferenceIds(data, (type: string) => {
-                const meta = actionRegistry.getMetadata(type);
-                return meta?.parameters || null;
-            });
-        } catch (e) {
-            EditorDataManager.logger.warn('[SchemaMigrator] Referenz-IDs konnten nicht aufgefüllt werden:', e);
-        }
-
-        // Integritätsprüfung: doppelte Objektnamen über Stages hinweg melden
-        try {
-            ProjectIntegrityValidator.validate(data);
-        } catch (e) {
-            EditorDataManager.logger.warn('[Integrity] Projektprüfung fehlgeschlagen:', e);
-        }
-
-        // Hydrate objects in legacy lists if present
-        if (data.objects) data.objects = hydrateObjects(data.objects);
-        if (data.variables) data.variables = hydrateObjects(data.variables);
-        if (data.splashObjects) data.splashObjects = hydrateObjects(data.splashObjects);
-
-        // Hydrate objects in stages
-        if (data.stages) {
-            data.stages.forEach((s: any) => {
-                if (s.objects) s.objects = hydrateObjects(s.objects);
-                if (s.variables) s.variables = hydrateObjects(s.variables);
-
-                // CleanCode Phase 2: Grid-Dimensionen an Objekte vererben (für TWindow.align-Setter)
-                const gridCols = s.grid?.cols || data.stage?.grid?.cols || 64;
-                const gridRows = s.grid?.rows || data.stage?.grid?.rows || 40;
-                if (s.objects) {
-                    s.objects.forEach((obj: any) => {
-                        obj._gridCols = gridCols;
-                        obj._gridRows = gridRows;
-                    });
-                }
-
-                // Fix: Clean up accidentally saved global variables from non-blueprint stages
-                if (s.type !== 'blueprint' && s.variables) {
-                    s.variables = s.variables.filter((v: any) => v.scope !== 'global');
-                }
-            });
-        }
-
-        // Beim Projekt-Laden immer auf der Haupt-Stage starten: Die gespeicherte
-        // activeStageId wird bewusst NICHT wiederhergestellt, damit der Editor
-        // unabhaengig vom letzten Kontext (z.B. Flow-Editor eines Objekts) mit
-        // der Haupt-Stage beginnt. Muss VOR setProject() passieren, da coreStore
-        // die activeStageId dort bereits uebernimmt.
-        const mainStage = data.stages?.find((s: any) => s.type === 'main')
-            || data.stages?.find((s: any) => s.type !== 'blueprint' && s.type !== 'splash')
-            || data.stages?.[0];
-        if (mainStage) {
-            data.activeStageId = mainStage.id;
-        }
-
-        // Flow-Editor-Kontext ebenfalls zuruecksetzen: Er startet immer in der
-        // Global-Ansicht statt den letzten Kontext (localStorage) wiederherzustellen.
-        localStorage.setItem('gcs_last_flow_context', 'global');
-
-        // 3. CENTRAL UPDATE (Replaces reference and notifies managers)
-        // Use try-catch because in some Vite HMR/rebuild scenarios, prototype methods
-        // may not be available on the host instance
-        try {
-            this.host.setProject(data);
-        } catch (err) {
-            EditorDataManager.logger.warn('setProject() unavailable, using direct assignment:', err);
-            // Essential fallback: set project reference directly
-            (this.host as any).project = data;
-            coreStore.setProject(data);
-            // Update managers that are accessible
-            if (this.host.stageManager) this.host.stageManager.setProject(data);
-            if (this.host.dialogManager) this.host.dialogManager.setProject(data);
-            if ((this.host as any).inspector?.setProject) (this.host as any).inspector.setProject(data);
-            if (this.host.flowEditor?.setProject) this.host.flowEditor.setProject(data);
-        }
-
-        // 3b. AGENT SYNC: AgentController-Singleton auf das aktuelle Projekt setzen,
-        // damit Export/Agent-Operationen immer das geladene Projekt verwenden.
-        AgentController.getInstance().setProject(this.host.project);
-
-        // 4. MIGRATIONS (Acts on the new project reference)
-        if (!this.host.project.stages || this.host.project.stages.length === 0) {
-            this.host.migrateToStages();
-        }
-
-        // Deep copy grid to stages if missing
-        if (this.host.project.stages) {
-            this.host.project.stages.forEach(s => {
-                if (!s.grid) {
-                    const fallbackGrid = this.host.project.stage?.grid || this.host.project.stages?.[1]?.grid || this.host.project.stages?.[0]?.grid || { cols: 64, rows: 40, cellSize: 20, visible: true, backgroundColor: '#1e1e2e' };
-                    s.grid = JSON.parse(JSON.stringify(fallbackGrid));
-                }
-            });
-        }
-
-        // MIGRATION: flowChart/flowGraph → flowLayout (Dynamische FlowChart-Generierung)
-        // Bestehende FlowChart-Daten werden in kompakte Layout-Positionen konvertiert
-        this.migrateFlowChartsToLayout(data);
-
-        // 5. POST-LOAD FIXES
-        if (this.host.flowEditor) {
-            this.host.flowEditor.cleanCorruptTaskData();
-        }
-        RefactoringManager.sanitizeProject(this.host.project);
-
-        // Bereinige leere Event-Einträge (z.B. { onKeyDown: "", onEnter: "" })
-        const cleanEmptyEvents = (objs: any[]) => {
-            if (!objs) return;
-            for (const obj of objs) {
-                if (obj.events) {
-                    for (const key of Object.keys(obj.events)) {
-                        const val = obj.events[key];
-                        if (!val || (typeof val === 'string' && val.trim() === '')) {
-                            delete obj.events[key];
-                        }
-                    }
-                }
-                if (obj.Tasks) {
-                    for (const key of Object.keys(obj.Tasks)) {
-                        const val = obj.Tasks[key];
-                        if (!val || (typeof val === 'string' && val.trim() === '')) {
-                            delete obj.Tasks[key];
-                        }
-                    }
-                }
-                if (obj.children) cleanEmptyEvents(obj.children);
-            }
-        };
-        cleanEmptyEvents(this.host.project.objects || []);
-        cleanEmptyEvents(this.host.project.variables || []);
-        this.host.project.stages?.forEach((s: any) => {
-            cleanEmptyEvents(s.objects || []);
-            cleanEmptyEvents(s.variables || []);
-        });
-
-        // 6. SYNC & PERSISTENCE
-        this.autoSaveToLocalStorage();
-
-        // 7. AUTO-SEED & DATA ACCESS
-        if (typeof window !== 'undefined') {
-            const dataStores = this.host.project.objects.filter((o: any) => o.className === 'TDataStore');
-            dataStores.forEach((ds: any) => {
-                const path = ds.storagePath || 'db.json';
-                dataService.seedFromUrl(path, `/api/dev/data/${path}`).then(() => {
-                    if (this.host.inspector) this.host.inspector.update();
-                });
-            });
-        }
-
-        // 8. NOTIFICATION
-        mediatorService.notifyDataChanged(this.host.project, 'editor-load');
-
-        // KRITISCH: isProjectDirty NACH allen Events auf false setzen
-        // setProject() und autoSaveToLocalStorage() lösen DATA_CHANGED aus → isProjectDirty=true
-        // Muss deshalb NACH diesen Aufrufen zurückgesetzt werden
-        this.host.isProjectDirty = false;
-        // Lade-Zeitpunkt aktualisieren → 2s-Cooldown beginnt JETZT (nach allen sync Events)
-        this._loadedAt = Date.now();
-        setTimeout(() => { this.host.isProjectDirty = false; }, 100);
-
-        setTimeout(() => {
-            const toast = this.host.project?.objects.find(o => (o as any).className === 'TToast') as any;
-            if (toast && typeof toast.success === 'function') {
-                toast.success('Projekt geladen.');
-            } else {
-                EditorDataManager.logger.info('Project loaded & persisted to LocalStorage');
-            }
-        }, 500);
-
-        EditorDataManager.logger.info("Projekt erfolgreich geladen.", this.host.project);
-
-        // Stage-Menü nach allen Post-Load-Operationen aktualisieren
-        // setProject() ruft updateStagesMenu() auf, aber zu früh (vor async Ops)
-        setTimeout(() => {
-            this.host.updateStagesMenu();
-            this.updateProjectPathDisplay();
-
-            // Nach dem Laden immer in die Stage-Ansicht wechseln:
-            // Egal aus welchem Kontext (Flow-Editor, JSON, ...) geladen wurde,
-            // startet der Editor mit der Haupt-Stage.
-            if (typeof this.host.switchView === 'function') {
-                this.host.switchView('stage');
-            }
-
-            // Stage-Eigenschaften im Inspector anzeigen (nach Projekt-Laden)
-            const activeStage = this.host.getActiveStage();
-            if (activeStage && this.host.inspector) {
-                this.host.inspector.update(activeStage);
-            }
-        }, 200);
+    public loadProject(data: any, sourcePath?: string): void {
+        this.loader.loadProject(data, sourcePath);
     }
 
-    public autoSaveToLocalStorage() {
-        this.host.syncStageObjectsToProject();
-        this.updateProjectJSON();
-
-        // Dirty-Markierung: Nur wenn seit dem Laden mehr als 2 Sekunden vergangen sind.
-        // Post-Load-Events (Render, Inspector) feuern in den ersten ~1s nach loadProject.
-        // Echte User-Änderungen (Drag, Property-Edit) kommen erst danach.
-        const timeSinceLoad = Date.now() - this._loadedAt;
-        if (timeSinceLoad > 2000) {
-            this.host.isProjectDirty = true;
-        }
-
-        const globalVarCount = (this.host.project.variables || []).length;
-        const totalStageVarCount = (this.host.project.stages || []).reduce((acc, s) => acc + (s.variables?.length || 0), 0);
-        EditorDataManager.logger.debug(`autoSaveToLocalStorage triggered (Global Vars: ${globalVarCount}, Stage Vars: ${totalStageVarCount})`);
+    public autoSaveToLocalStorage(): void {
+        this.saver.autoSaveToLocalStorage();
     }
 
-    private notifyAutosaveSuccess(): void {
-        this._autoSaveCount++;
-        const menuBar = (this.host as any).menuBar;
-        if (menuBar && typeof menuBar.setAutosaveCount === 'function') {
-            menuBar.setAutosaveCount(this._autoSaveCount);
-        }
-    }
-
-    private performDiskSave() {
-        if (!this.host.project) return;
-        
-        const nativeAdapter = projectPersistenceService.getNativeAdapter();
-        
-        const tryFetchFallback = () => {
-            if (!(window as any).electronFS) {
-                fetch('/api/dev/save-project', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(this.host.project)
-                }).then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            EditorDataManager.logger.debug(`[PERSISTENT] Dev-Server Fallback erfolgreich.`);
-                            this.notifyAutosaveSuccess();
-                        }
-                    })
-                    .catch(err => {
-                        EditorDataManager.logger.debug(`Dev-Server Fallback nicht erreichbar.`, err);
-                    });
-            }
-        };
-
-        if (nativeAdapter && (this.currentSavePath || this.currentFileHandle)) {
-            if (this.currentSavePath) nativeAdapter.setPath(this.currentSavePath);
-            if (this.currentFileHandle) nativeAdapter.setHandle(this.currentFileHandle);
-            
-            nativeAdapter.autoSave(this.host.project).then(success => {
-                if (success) {
-                    this.notifyAutosaveSuccess();
-                } else {
-                    tryFetchFallback(); // Native AutoSave fehlgeschlagen oder Handle fehlt (Browser Mode), versuche Dev-Server Backup
-                }
-            }).catch(err => {
-                EditorDataManager.logger.warn(`Fehler beim automatischen NativeAdapter Background-Save:`, err);
-                tryFetchFallback();
-            });
-        } else if ((window as any).electronFS && this.currentSavePath) {
-            (window as any).electronFS.writeFile(this.currentSavePath, JSON.stringify(this.host.project, null, 2))
-                .then(() => {
-                    EditorDataManager.logger.debug(`[PERSISTENT] AutoSave Electron erfolgreich.`);
-                    this.notifyAutosaveSuccess();
-                })
-                .catch((err: any) => {
-                    EditorDataManager.logger.warn(`Fehler beim automatischen nativem Disk-Save:`, err);
-                });
-        } else {
-            tryFetchFallback();
-        }
-    }
-
-    private normalizeSourcePath(): void {
-        if (!this.host.project) return;
-        const name = this.host.project.meta?.name || 'project';
-        const safeName = name.replace(/[^a-zA-Z0-9_-]/g, '_');
-        const relativePath = `projects/${safeName}.json`;
-        this.currentSavePath = relativePath;
-        if (!this.host.project.meta) this.host.project.meta = {} as any;
-        this.host.project.meta._sourcePath = relativePath;
-    }
-
-    public updateProjectJSON() {
-        if (this.host.project) {
-            // 1. In LocalStorage sichern (Crash-Schutz)
-            projectPersistenceService.autoSaveToLocalStorage(this.host.project);
-
-            // 2. workingProjectData für JSON-View aktualisieren
-            if (this.host.viewManager) {
-                this.host.viewManager.workingProjectData = safeDeepCopy(this.host.project);
-            }
-
-            // --- CRITICAL AI-GUARD ---
-            // DO NOT REMOVE GRACE PERIOD!
-            // Ignoriere automatische "Post-Load"-Events (DOM-Rendering) in den ersten 2 Sekunden,
-            // da sonst direkt nach dem Laden eine leere Datei geschrieben und der Autosave-Zähler angehoben wird!
-            const timeSinceLoad = Date.now() - this._loadedAt;
-            if (timeSinceLoad < 2000) {
-                return;
-            }
-
-            // --- CRITICAL AI-GUARD ---
-            // DO NOT REMOVE DEBOUNCE TIMER!
-            // 3. SSoT & DATEI-PERSISTENZ 
-            // Dieser Debounce MUSS exakt so auf 1000ms gesetzt bleiben. Das Modul erhält sonst bei DND-Drag oder WYSIWYG
-            // bis zu 5 synchrone save-Calls. Die 'Native FileSystem API' blockt parallele Writes hart ab 
-            // ("The associated file is already being written"), was das Speichern komplett zerstört.
-
-            this.normalizeSourcePath();
-
-            if (this._diskSaveTimer !== null) {
-                clearTimeout(this._diskSaveTimer);
-            }
-            
-            this._diskSaveTimer = setTimeout(() => {
-                this._diskSaveTimer = null;
-                this.performDiskSave();
-            }, 1000);
-
-            EditorDataManager.logger.debug(`[TRACE] updateProjectJSON: LocalStorage synchronisiert. Async Save debounce angestoßen.`);
-        }
-    }
-
-    public syncStageObjectsToProject() {
+    public syncStageObjectsToProject(): void {
         // NEVER save runtime state back to the design project.
         if (this.host.stage && this.host.stage.runMode) {
             EditorDataManager.logger.debug(`SKIPPING syncStageObjectsToProject because we are in RunMode.`);
@@ -952,96 +218,15 @@ export class EditorDataManager {
         coreStore.setProject(this.host.project);
     }
 
-    public async loadFromServer() {
-        if (this.host.isProjectDirty) {
-            if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich das Projekt vom Server neu laden?')) {
-                return;
-            }
-        }
-
-        try {
-            EditorDataManager.logger.info('Force Reload: Fetching project from server...');
-            const projectData = await projectPersistenceService.fetchProjectFromServer();
-
-            // In IndexedDB speichern (ersetzt LocalStorage seit v3.32.0)
-            const { IndexedDBAdapter } = await import('../../adapters/IndexedDBAdapter');
-            const idb = new IndexedDBAdapter();
-            await idb.save(projectData);
-
-            EditorDataManager.logger.info('Force Reload successful. Reloading page...');
-            window.location.reload();
-        } catch (err: any) {
-            EditorDataManager.logger.error('Force Reload failed:', err);
-            NotificationToast.show('Fehler beim Laden vom Server: ' + err.message);
-        }
+    public async loadFromServer(): Promise<void> {
+        return this.loader.loadFromServer();
     }
 
     public async applyJSONChanges(): Promise<void> {
-        const confirmed = await ConfirmDialog.show('Möchten Sie die Änderungen am Projekt wirklich übernehmen? Dies kann nicht rückgängig gemacht werden und wird sofort wirksam.');
-        if (confirmed && this.host.workingProjectData) {
-            // Apply sync to project before loading back
-            this.host.syncFlowChartsWithActions();
-
-            this.loadProject(safeDeepCopy(this.host.workingProjectData));
-            this.host.isProjectDirty = false;
-            this.host.refreshJSONView(); // Hide apply button
-
-            // Notify Mediator that project data has changed via JSON Editor
-            mediatorService.notifyDataChanged(this.host.project, 'json-editor');
-        }
+        return this.loader.applyJSONChanges();
     }
 
-    /**
-     * MIGRATION: Konvertiert bestehende flowChart/flowGraph-Daten in kompakte flowLayout.
-     * Wird einmalig beim Laden aufgerufen und entfernt dann die alten Daten.
-     */
-    private migrateFlowChartsToLayout(data: any): void {
-        if (!data.stages) return;
-
-        let migrated = 0;
-
-        data.stages.forEach((stage: any) => {
-            // Tasks mit flowChart/flowGraph → flowLayout konvertieren
-            if (stage.tasks) {
-                stage.tasks.forEach((task: any) => {
-                    const source = task.flowChart || task.flowGraph;
-                    if (source && source.elements?.length > 0 && !task.flowLayout) {
-                        task.flowLayout = {};
-                        source.elements.forEach((el: any) => {
-                            const name = el.properties?.name || el.data?.name || el.data?.taskName;
-                            if (name) {
-                                task.flowLayout[name] = { x: el.x, y: el.y };
-                            }
-                        });
-                        migrated++;
-                    }
-                    // Legacy-Daten entfernen
-                    delete task.flowChart;
-                    delete task.flowGraph;
-                });
-            }
-
-            // Stage-Level flowCharts bereinigen (außer 'global')
-            if (stage.flowCharts) {
-                Object.keys(stage.flowCharts).forEach(key => {
-                    if (key !== 'global') {
-                        delete stage.flowCharts[key];
-                    }
-                });
-            }
-        });
-
-        // Project-Root flowCharts bereinigen (außer 'global')
-        if (data.flowCharts) {
-            Object.keys(data.flowCharts).forEach((key: string) => {
-                if (key !== 'global') {
-                    delete data.flowCharts[key];
-                }
-            });
-        }
-
-        if (migrated > 0) {
-            EditorDataManager.logger.info(`[Migration] ${migrated} FlowCharts → flowLayout konvertiert.`);
-        }
+    public updateProjectJSON(): void {
+        this.saver.updateProjectJSON();
     }
 }

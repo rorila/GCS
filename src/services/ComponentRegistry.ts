@@ -1,3 +1,6 @@
+import {TFilePicker} from '../components/TFilePicker';
+import {TFileUpload} from '../components/TFileUpload';
+import {TServerUpload} from '../components/TServerUpload';
 import { TWindow } from '../components/TWindow';
 import { TVirtualGamepad } from '../components/TVirtualGamepad';
 import { TAudio } from '../components/TAudio';
@@ -62,6 +65,8 @@ import { TInspectorTemplate } from '../components/TInspectorTemplate';
 import {TServerEndpoint} from '../components/TServerEndpoint';
 import {TServerValidate} from '../components/TServerValidate';
 import {TServerAuthenticate} from '../components/TServerAuthenticate';
+import {TServerProfile} from '../components/TServerProfile';
+import {TServerSession} from '../components/TServerSession';
 import {TServerResponse} from '../components/TServerResponse';
 import { TAPIServer } from '../components/TAPIServer';
 import { TToast } from '../components/TToast';
@@ -163,6 +168,11 @@ export class ComponentRegistry {
         this.register('TServerEndpoint',TServerEndpoint);this.typeMapping.set('ServerEndpoint','TServerEndpoint');
         this.register('TServerValidate',TServerValidate);this.typeMapping.set('ServerValidate','TServerValidate');
         this.register('TServerAuthenticate',TServerAuthenticate);this.typeMapping.set('ServerAuthenticate','TServerAuthenticate');
+        this.register('TFilePicker',TFilePicker);this.typeMapping.set('FilePicker','TFilePicker');
+        this.register('TFileUpload',TFileUpload);this.typeMapping.set('FileUpload','TFileUpload');
+        this.register('TServerUpload',TServerUpload);this.typeMapping.set('ServerUpload','TServerUpload');
+        this.register('TServerProfile',TServerProfile);this.typeMapping.set('ServerProfile','TServerProfile');
+        this.register('TServerSession',TServerSession);this.typeMapping.set('ServerSession','TServerSession');
         this.register('TServerResponse',TServerResponse);this.typeMapping.set('ServerResponse','TServerResponse');
         this.register('TToast', TToast);
         this.register('TEmojiPicker', TEmojiPicker);

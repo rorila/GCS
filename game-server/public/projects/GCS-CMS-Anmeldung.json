@@ -1,0 +1,581 @@
+{
+  "meta": {
+    "id": "gcs-cms-login",
+    "name": "GCS-CMS-Anmeldung",
+    "version": "1.0.0"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "backgroundColor": "#122b39"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Anmeldeablauf",
+      "type": "blueprint",
+      "objects": [],
+      "tasks": [
+        {
+          "name": "Anmeldung_Starten",
+          "description": "Anmeldung_Starten",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Eingaben_Pruefen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "1213f536-92e7-4a46-9602-d5cf8f91b5d4"
+        },
+        {
+          "name": "Eingaben_Pruefen",
+          "description": "Eingaben_Pruefen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Pflichtfelder_Pruefen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: EingabenGueltig == true",
+              "condition": {
+                "variable": "EingabenGueltig",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Anmeldung_Anfordern"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Eingaben_Unvollstaendig"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "789c1391-a921-459b-8daa-e4e7d3e679c2"
+        },
+        {
+          "name": "Anmeldung_Anfordern",
+          "description": "Anmeldung_Anfordern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Anmeldung_Als_Laufend_Markieren"
+            },
+            {
+              "type": "action",
+              "name": "Act_Verwaltungszugang_Anfragen"
+            },
+            {
+              "type": "task",
+              "name": "Anmeldung_Auswerten"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "2bc2c9bd-e4a1-43e0-ad47-b2f417b86c12"
+        },
+        {
+          "name": "Anmeldung_Auswerten",
+          "description": "Anmeldung_Auswerten",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Passwort_Leeren_Und_Eingabe_Freigeben"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Anmeldung_Erfolgreich"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Anmeldung_Abgelehnt"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "bd19198e-7fd2-4a72-a355-8e7a896fa2cb"
+        },
+        {
+          "name": "Anmeldung_Erfolgreich",
+          "description": "Anmeldung_Erfolgreich",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Erfolg_Und_Verwaltungslink_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "9a22035d-5757-4783-8055-db22d09a8a06"
+        },
+        {
+          "name": "Anmeldung_Abgelehnt",
+          "description": "Anmeldung_Abgelehnt",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Anmeldefehler_Anzeigen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == false",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": false
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Serverfehler_Anzeigen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "5b796fd2-073d-4cc0-8664-956c6025221d"
+        },
+        {
+          "name": "Eingaben_Unvollstaendig",
+          "description": "Eingaben_Unvollstaendig",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Pflichtfeldhinweis_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "5f0d319a-5e85-4c76-bfca-64889ec3eb26"
+        },
+        {
+          "name": "Verwaltung_Oeffnen",
+          "description": "Verwaltung_Oeffnen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Verwaltung_Im_Selben_Fenster_Oeffnen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "ea82b200-00cb-4914-a218-3aaf4c872323"
+        },
+        {
+          "name": "Serverfehler_Anzeigen",
+          "description": "Serverfehler_Anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Servermeldung_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "29951192-2b3d-49a2-9e28-17973ca52d3b"
+        }
+      ],
+      "actions": [
+        {
+          "id": "6c22dbce-4628-4b71-ae51-33db343e10d2",
+          "name": "Act_Pflichtfelder_Pruefen",
+          "type": "calculate",
+          "formula": "username.text.length > 0 && password.text.length > 0",
+          "resultVariable": "EingabenGueltig"
+        },
+        {
+          "id": "96a1a7f7-2c99-4a35-b4b0-0b13a110b71a",
+          "name": "Act_Pflichtfeldhinweis_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Status.text": "Bitte Benutzername und Passwort ausfüllen."
+          }
+        },
+        {
+          "id": "c7280baa-f876-48f6-93da-1810a7d92b28",
+          "name": "Act_Anmeldung_Als_Laufend_Markieren",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Zugang wird geprüft …",
+            "VerwaltungOeffnen.visible": false
+          }
+        },
+        {
+          "id": "fb4b6640-ca2b-4dce-95c8-fe13a7c74e60",
+          "name": "Act_Verwaltungszugang_Anfragen",
+          "type": "http",
+          "url": "/api/cms/admin-login",
+          "method": "POST",
+          "body": {
+            "username": "${username.text}",
+            "password": "${password.text}"
+          },
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "543787f6-046f-4e67-b6ce-5b2831a8d365",
+          "name": "Act_Passwort_Leeren_Und_Eingabe_Freigeben",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "password.text": ""
+          }
+        },
+        {
+          "id": "33e7935a-0d96-4a2d-8a07-f1951ce29828",
+          "name": "Act_Erfolg_Und_Verwaltungslink_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Status.text": "${Antwort.message}",
+            "VerwaltungOeffnen.visible": true
+          }
+        },
+        {
+          "id": "4738c5b2-27be-4901-9840-251a80e6ff01",
+          "name": "Act_Anmeldefehler_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Status.text": "Anmeldung nicht möglich. Zugang und Verbindung prüfen."
+          }
+        },
+        {
+          "id": "16f899c0-2f4b-4865-921f-3442de1b6445",
+          "name": "Act_Servermeldung_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Status.text": "${Antwort.message}"
+          }
+        },
+        {
+          "id": "bed7d359-1375-48d5-9a02-3bd9bcde638d",
+          "name": "Act_Verwaltung_Im_Selben_Fenster_Oeffnen",
+          "type": "call_method",
+          "target": "VerwaltungOeffnen",
+          "method": "open",
+          "params": []
+        }
+      ],
+      "variables": [
+        {
+          "name": "Busy",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "login_var_Busy"
+        },
+        {
+          "name": "EingabenGueltig",
+          "type": "boolean",
+          "isVariable": true,
+          "className": "TBooleanVariable",
+          "initialValue": false,
+          "defaultValue": false,
+          "value": false,
+          "scope": "global",
+          "id": "login_var_EingabenGueltig"
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Verwaltung anmelden",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "name": "Titel",
+          "x": 12,
+          "y": 3,
+          "width": 42,
+          "height": 2,
+          "text": "VERWALTUNG ANMELDEN",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 28,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Titel"
+        },
+        {
+          "className": "TLabel",
+          "name": "Hinweis",
+          "x": 12,
+          "y": 6,
+          "width": 42,
+          "height": 2,
+          "text": "Dein persönlicher Zugang zur Verwaltung",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 17,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Hinweis"
+        },
+        {
+          "className": "TLabel",
+          "name": "BenutzernameLabel",
+          "x": 12,
+          "y": 10,
+          "width": 42,
+          "height": 2,
+          "text": "Benutzername",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 20,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_BenutzernameLabel"
+        },
+        {
+          "className": "TLabel",
+          "name": "PasswortLabel",
+          "x": 12,
+          "y": 16,
+          "width": 42,
+          "height": 2,
+          "text": "Passwort",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 20,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_PasswortLabel"
+        },
+        {
+          "className": "TEdit",
+          "name": "username",
+          "x": 12,
+          "y": 12,
+          "width": 40,
+          "height": 3,
+          "text": "",
+          "placeholder": "Benutzername",
+          "inputType": "text",
+          "autocomplete": "username",
+          "maxLength": 80,
+          "id": "stage_main_username"
+        },
+        {
+          "className": "TEdit",
+          "name": "password",
+          "x": 12,
+          "y": 18,
+          "width": 40,
+          "height": 3,
+          "text": "",
+          "placeholder": "Passwort",
+          "inputType": "password",
+          "autocomplete": "current-password",
+          "maxLength": 200,
+          "events": {
+            "onEnter": "Anmeldung_Starten"
+          },
+          "id": "stage_main_password"
+        },
+        {
+          "className": "TButton",
+          "name": "Anmelden",
+          "x": 12,
+          "y": 23,
+          "width": 40,
+          "height": 3,
+          "text": "Anmelden",
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "borderColor": "#76c6bb",
+            "borderWidth": 1,
+            "borderRadius": 9,
+            "fontSize": 20
+          },
+          "events": {
+            "onClick": "Anmeldung_Starten"
+          },
+          "id": "stage_main_Anmelden"
+        },
+        {
+          "className": "TLabel",
+          "name": "Status",
+          "x": 12,
+          "y": 28,
+          "width": 42,
+          "height": 2,
+          "text": "Bitte Benutzername und Passwort eingeben.",
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 17,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Status"
+        },
+        {
+          "className": "TLink",
+          "name": "VerwaltungOeffnen",
+          "x": 12,
+          "y": 32,
+          "width": 40,
+          "height": 2,
+          "text": "Verwaltung öffnen →",
+          "url": "/admin",
+          "target": "_self",
+          "visible": false,
+          "events": {
+            "onClick": "Verwaltung_Oeffnen"
+          },
+          "id": "stage_main_VerwaltungOeffnen"
+        },
+        {
+          "className": "TLink",
+          "name": "SpielerEinwahl",
+          "x": 12,
+          "y": 36,
+          "width": 40,
+          "height": 2,
+          "text": "Zur Spieler-Einwahl",
+          "url": "/",
+          "target": "_self",
+          "id": "stage_main_SpielerEinwahl"
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      },
+      "startAnimation": "none",
+      "features": [
+        {
+          "id": "admin-login",
+          "name": "Bei der Verwaltung anmelden",
+          "description": "Eingaben prüfen, Zugang anfordern und Verwaltung öffnen",
+          "userStoryIds": [
+            "admin-login-story"
+          ],
+          "blueprintTaskNames": [
+            "Anmeldung_Starten",
+            "Eingaben_Pruefen",
+            "Anmeldung_Anfordern",
+            "Anmeldung_Auswerten",
+            "Anmeldung_Erfolgreich",
+            "Anmeldung_Abgelehnt",
+            "Eingaben_Unvollstaendig",
+            "Verwaltung_Oeffnen",
+            "Serverfehler_Anzeigen"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "admin-login-story",
+        "projectId": "gcs-cms-login",
+        "title": "Mit meinem Verwaltungszugang anmelden",
+        "description": "Eingaben prüfen → Server anfragen → Rückmeldung anzeigen → Verwaltung öffnen",
+        "status": "completed",
+        "priority": "high",
+        "featureId": "admin-login",
+        "relatedStages": [
+          "stage_main"
+        ],
+        "relatedComponents": [
+          "Anmelden"
+        ],
+        "plannedComponent": {
+          "name": "Anmelden",
+          "type": "TButton"
+        },
+        "plannedEvent": "onClick",
+        "plannedTask": "Anmeldung_Starten",
+        "acceptanceCriteria": [
+          "Passwort verdeckt eingeben.",
+          "Fehler sichtbar anzeigen.",
+          "Verwaltung erst nach erfolgreicher Anmeldung öffnen."
+        ]
+      }
+    ]
+  }
+}

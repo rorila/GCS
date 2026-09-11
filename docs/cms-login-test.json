@@ -1,0 +1,24 @@
+{
+  "passed": 18,
+  "checks": [
+    "Fremder Ursprung gesperrt",
+    "Falsches Passwort ohne Sitzung",
+    "Sonderzeichenpasswort funktioniert",
+    "HttpOnly und SameSite erhalten",
+    "Kein Sitzungstoken im JSON",
+    "Sitzungsschritt im Trace",
+    "Passwort nicht im Servertrace",
+    "Projekt-Rückmeldung wirkt",
+    "Umgehung der Zugangsprüfung abgewiesen",
+    "Dialog stammt aus Projektdatei",
+    "Passwortfeld verdeckt",
+    "Pflichtfelder lokal geprüft",
+    "Native Anmeldung erfolgreich",
+    "Passwort nach Anfrage geleert",
+    "Passwort nicht im Clientlog",
+    "Request und Serverresponse sichtbar",
+    "Verwaltung im selben Fenster geöffnet",
+    "Keine Browserfehler"
+  ],
+  "errors": []
+}

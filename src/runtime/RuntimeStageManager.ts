@@ -118,6 +118,14 @@ export class RuntimeStageManager {
             // Actions
             if (stage.actions) {
                 stage.actions.forEach((a: GameAction) => {
+                    const existingIndex = mergedActions.findIndex((existing: GameAction) => existing.name === a.name);
+                    const existing = existingIndex >= 0 ? mergedActions[existingIndex] : null;
+
+                    // Referenz-Stub darf keine echte Action-Definition verdrängen
+                    if (existing && this.isActionReferenceStub(a) && !this.isActionReferenceStub(existing)) {
+                        return;
+                    }
+
                     mergedActions = mergedActions.filter((existing: GameAction) => existing.name !== a.name);
                     mergedActions.push(a);
                 });
@@ -182,5 +190,18 @@ export class RuntimeStageManager {
             backgroundColor: activeStage?.grid?.backgroundColor || blueprintStages[0]?.grid?.backgroundColor,
             backgroundImage: (activeStage as any)?.backgroundImage || (blueprintStages[0] as any)?.backgroundImage
         };
+    }
+
+    /**
+     * Erkennt Action-Referenz-Einträge, die nur auf eine andere Stage verweisen
+     * (z.B. { type: 'action', scope: 'global', sourceStage: 'stage_blueprint' })
+     * und selbst keine ausführbare Payload besitzen.
+     */
+    private isActionReferenceStub(a: GameAction): boolean {
+        if (!a || a.type !== 'action') return false;
+        if (a.changes || a.body || a.formula || a.target || a.variableName || a.method || a.service) {
+            return false;
+        }
+        return !!(a.sourceStage || a.scope === 'global' || a.scope === 'stage');
     }
 }

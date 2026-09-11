@@ -1,7 +1,7 @@
-import {renderServerTraces} from '../editor/debug/ServerTraceView';
-const escapeLogHtml=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
-import { DebugLogService, LogEntry, LogType } from '../services/DebugLogService';
+import { DebugLogService, LogType } from '../services/DebugLogService';
 import { Logger } from '../utils/Logger';
+import { TDebugLogProjectHelper } from './debug/TDebugLogProjectHelper';
+import { TDebugLogRenderer } from './debug/TDebugLogRenderer';
 
 export class TDebugLog {
     private static logger = Logger.get('TDebugLog', 'Editor_Diagnostics');
@@ -11,8 +11,12 @@ export class TDebugLog {
     private filterContainer!: HTMLElement;
     private typeFilters: Set<LogType> = new Set(['Event', 'Task', 'Action', 'Variable', 'Condition', 'System']);
     private showDetails: boolean = true;
-    private serverTraceMode=false;
-    public showServerTraces(){this.serverTraceMode=true;this.setPanelVisible(true);this.renderLogs(this.service.getLogs());}
+    private serverTraceMode = false;
+    public showServerTraces() {
+        this.serverTraceMode = true;
+        this.setPanelVisible(true);
+        this.renderer.renderLogs(this.service.getLogs());
+    }
     private objectFilter: string = '';
     private eventFilter: string = '';
     private taskFilter: string = '';
@@ -24,6 +28,9 @@ export class TDebugLog {
     private isVisible: boolean = false;
 
     private renderRafId: number | null = null;
+
+    private projectHelper: TDebugLogProjectHelper;
+    private renderer: TDebugLogRenderer;
 
     constructor() {
         TDebugLog.logger.info('Initializing...');
@@ -54,6 +61,32 @@ export class TDebugLog {
             transform: translateX(100%);
         `;
 
+        this.projectHelper = new TDebugLogProjectHelper({
+            getProject: () => this.project,
+            getEditor: () => this.editor,
+            getService: () => this.service,
+            getObjectFilter: () => this.objectFilter,
+            getEventFilter: () => this.eventFilter,
+        });
+
+        this.renderer = new TDebugLogRenderer({
+            isVisible: () => this.isVisible,
+            isPaused: () => this.isPaused,
+            serverTraceMode: () => this.serverTraceMode,
+            getLogList: () => this.logList,
+            getService: () => this.service,
+            getProject: () => this.project,
+            getEditor: () => this.editor,
+            getFilters: () => ({
+                typeFilters: this.typeFilters,
+                objectFilter: this.objectFilter,
+                eventFilter: this.eventFilter,
+                taskFilter: this.taskFilter,
+                actionFilter: this.actionFilter,
+                showDetails: this.showDetails,
+            }),
+        });
+
         this.createUI();
         this.loadFilters();
         // RAF-Debounce: subscribe feuert bei JEDEM neuen Log-Eintrag.
@@ -64,7 +97,7 @@ export class TDebugLog {
             if (this.renderRafId !== null) return;
             this.renderRafId = requestAnimationFrame(() => {
                 this.renderRafId = null;
-                this.renderLogs(logs);
+                this.renderer.renderLogs(logs);
             });
         });
         document.body.appendChild(this.element);
@@ -208,7 +241,14 @@ export class TDebugLog {
         closeBtn.innerHTML = '&#10005;';
         closeBtn.style.cssText = 'background: none; border: none; color: #666; cursor: pointer; font-size: 16px;';
         closeBtn.onclick = () => this.toggle();
-        const traceButton=document.createElement('button');traceButton.textContent='HTTP / Server';traceButton.title='Zwischen Ablaufprotokoll und HTTP-/Server-Vorgängen wechseln';traceButton.onclick=()=>{this.serverTraceMode=!this.serverTraceMode;this.renderLogs(this.service.getLogs());};header.append(traceButton);
+        const traceButton = document.createElement('button');
+        traceButton.textContent = 'HTTP / Server';
+        traceButton.title = 'Zwischen Ablaufprotokoll und HTTP-/Server-Vorgängen wechseln';
+        traceButton.onclick = () => {
+            this.serverTraceMode = !this.serverTraceMode;
+            this.renderer.renderLogs(this.service.getLogs());
+        };
+        header.append(traceButton);
         header.appendChild(closeBtn);
         this.element.appendChild(header);
 
@@ -263,7 +303,7 @@ export class TDebugLog {
                 else this.typeFilters.delete(type);
                 this.saveFilters();
                 this.updateFilterDropdowns();
-                this.renderLogs(this.service.getLogs());
+                this.renderer.renderLogs(this.service.getLogs());
             });
         });
 
@@ -271,7 +311,7 @@ export class TDebugLog {
         detailsCb.addEventListener('change', () => {
             this.showDetails = detailsCb.checked;
             this.saveFilters();
-            this.renderLogs(this.service.getLogs());
+            this.renderer.renderLogs(this.service.getLogs());
         });
 
         const objSelect = this.element.querySelector('#obj-filter') as HTMLSelectElement;
@@ -290,7 +330,7 @@ export class TDebugLog {
                 this.updateTaskDropdown();
                 this.updateActionDropdown();
                 this.saveFilters();
-                this.renderLogs(this.service.getLogs());
+                this.renderer.renderLogs(this.service.getLogs());
             });
         }
 
@@ -303,7 +343,7 @@ export class TDebugLog {
                 this.updateTaskDropdown();
                 this.updateActionDropdown();
                 this.saveFilters();
-                this.renderLogs(this.service.getLogs());
+                this.renderer.renderLogs(this.service.getLogs());
             });
         }
 
@@ -314,7 +354,7 @@ export class TDebugLog {
                 this.actionFilter = '';
                 this.updateActionDropdown();
                 this.saveFilters();
-                this.renderLogs(this.service.getLogs());
+                this.renderer.renderLogs(this.service.getLogs());
             });
         }
 
@@ -322,7 +362,7 @@ export class TDebugLog {
             actionSelect.addEventListener('change', () => {
                 this.actionFilter = actionSelect.value;
                 this.saveFilters();
-                this.renderLogs(this.service.getLogs());
+                this.renderer.renderLogs(this.service.getLogs());
             });
         }
 
@@ -361,7 +401,7 @@ export class TDebugLog {
 
                 // If we're resuming, immediately render current logs
                 if (!this.isPaused) {
-                    this.renderLogs(this.service.getLogs());
+                    this.renderer.renderLogs(this.service.getLogs());
                 }
             });
         }
@@ -379,7 +419,7 @@ export class TDebugLog {
             action: this.actionFilter
         };
         localStorage.setItem('gcs_debug_log_filters', JSON.stringify(filters));
-        
+
         this.updateServiceRecordingFilter();
     }
 
@@ -427,7 +467,7 @@ export class TDebugLog {
         this.setPanelVisible(true);
 
         // Sofort rendern
-        this.renderLogs(this.service.getLogs());
+        this.renderer.renderLogs(this.service.getLogs());
     }
 
     private loadFilters() {
@@ -476,7 +516,7 @@ export class TDebugLog {
                 TDebugLog.logger.warn('[TDebugLog] Failed to load filters:', e);
             }
         }
-        
+
         // Initial den Recording-Filter anwenden, damit sofort
         // RAM gespart wird, wenn Filter deaktiviert sind.
         this.updateServiceRecordingFilter();
@@ -495,20 +535,6 @@ export class TDebugLog {
         this.editor = editor;
     }
 
-    /**
-     * Liefert die fuer die Filter relevanten Stages: aktive Stage + Blueprint-Stage.
-     * Anforderung: Filter beziehen sich auf die Stage im Fokus + Blueprint.
-     */
-    private getRelevantStages(): any[] {
-        if (!this.project?.stages) return [];
-        const activeStage = this.editor?.getActiveStage?.() || null;
-        const blueprint = this.project.stages.find((s: any) => s.type === 'blueprint') || null;
-        const stages: any[] = [];
-        if (blueprint) stages.push(blueprint);
-        if (activeStage && activeStage !== blueprint) stages.push(activeStage);
-        return stages;
-    }
-
     public updateFilterDropdowns() {
         this.updateObjectDropdown();
         this.updateEventDropdown();
@@ -516,178 +542,12 @@ export class TDebugLog {
         this.updateActionDropdown();
     }
 
-    private getAllProjectObjects(): any[] {
-        if (!this.project) return [];
-        const result: any[] = [];
-
-        const flatten = (arr: any[]) => {
-            for (const o of arr) {
-                result.push(o);
-                if (o.children && Array.isArray(o.children)) flatten(o.children);
-            }
-        };
-
-        // Legacy root objects
-        if (this.project.objects) flatten(this.project.objects);
-        if (this.project.variables) result.push(...this.project.variables);
-
-        // Nur aktive Stage + Blueprint (Stages selbst haben Events, Variables ebenso)
-        for (const stage of this.getRelevantStages()) {
-            result.push(stage);
-            if (stage.objects) flatten(stage.objects);
-            if (stage.variables) result.push(...stage.variables);
-        }
-
-        result.push(...this.getRuntimePoolInstances());
-        return result;
-    }
-
-    /**
-     * Liefert die zur Laufzeit aktiven Pool-Instanzen (aus TSpriteTemplate gespawnte
-     * Objekte wie "CherryTemplate_pool_3").
-     *
-     * Diese Objekte sind transient (isTransient) und stehen NIE in project.objects.
-     * Ohne sie liesse sich im Viewer nicht auf gespawnte Objekte filtern, obwohl
-     * genau diese die onCollision-Events ausloesen.
-     */
-    private getRuntimePoolInstances(): any[] {
-        // Editor: runtimeObjects ist ein Getter auf runManager.runtimeObjects
-        const objects: any[] = this.editor?.runtimeObjects
-            || this.editor?.runManager?.runtime?.objects
-            || this.editor?.runtime?.objects;
-
-        if (!Array.isArray(objects)) return [];
-
-        return objects.filter((o: any) => o && o.isPoolInstance === true && o.name);
-    }
-
-    /**
-     * Sammelt Tasks aus aktiver Stage + Blueprint.
-     */
-    private getAllProjectTasks(): any[] {
-        if (!this.project) return [];
-        const tasks: any[] = [];
-        if (this.project.tasks) tasks.push(...this.project.tasks);
-        // Nur aktive Stage + Blueprint
-        for (const stage of this.getRelevantStages()) {
-            if (stage.tasks) tasks.push(...stage.tasks);
-            // Tasks können auch nur im FlowChart existieren (ohne ActionSequence)
-            if (stage.flowCharts) {
-                Object.keys(stage.flowCharts).forEach(key => {
-                    if (key !== 'global' && !tasks.find(t => t.name === key)) {
-                        tasks.push({ name: key });
-                    }
-                });
-            }
-        }
-        return tasks;
-    }
-
-    /**
-     * Sammelt Actions aus aktiver Stage + Blueprint.
-     */
-    private getAllProjectActions(): any[] {
-        if (!this.project) return [];
-        const actions: any[] = [];
-        if (this.project.actions) actions.push(...this.project.actions);
-        // Nur aktive Stage + Blueprint
-        for (const stage of this.getRelevantStages()) {
-            if (stage.actions) actions.push(...stage.actions);
-        }
-        return actions;
-    }
-
-    private getAssignedEventsForObject(obj: any): string[] {
-        if (!obj) return [];
-        const events: string[] = [];
-
-        if (obj.events && typeof obj.events === 'object') {
-            Object.keys(obj.events).forEach(evt => {
-                // Auch leere Events anzeigen, da der Nutzer wissen will, welche Events am Objekt existieren
-                events.push(evt);
-            });
-        }
-
-        if (obj.Tasks && typeof obj.Tasks === 'object') {
-            Object.keys(obj.Tasks).forEach(evt => {
-                if (!events.includes(evt)) events.push(evt);
-            });
-        }
-
-        Object.keys(obj).forEach(key => {
-            if (key.startsWith('on') && typeof obj[key] === 'string') {
-                if (!events.includes(key)) {
-                    events.push(key);
-                }
-            }
-        });
-
-        return events;
-    }
-
-    /**
-     * Gibt die Task-Namen zurück, die einem Objekt über seine Events zugeordnet sind.
-     */
-    private getTaskNamesForObject(obj: any): string[] {
-        if (!obj) return [];
-        const taskNames: string[] = [];
-
-        if (obj.events && typeof obj.events === 'object') {
-            Object.values(obj.events).forEach((taskName: any) => {
-                if (taskName && String(taskName).trim() !== '' && !taskNames.includes(String(taskName))) {
-                    taskNames.push(String(taskName));
-                }
-            });
-        }
-
-        if (obj.Tasks && typeof obj.Tasks === 'object') {
-            Object.values(obj.Tasks).forEach((taskName: any) => {
-                if (taskName && String(taskName).trim() !== '' && !taskNames.includes(String(taskName))) {
-                    taskNames.push(String(taskName));
-                }
-            });
-        }
-
-        Object.keys(obj).forEach(key => {
-            if (key.startsWith('on') && typeof obj[key] === 'string' && obj[key].trim() !== '') {
-                const tn = obj[key];
-                if (!taskNames.includes(tn)) {
-                    taskNames.push(tn);
-                }
-            }
-        });
-
-        return taskNames;
-    }
-
-    /**
-     * Gibt die Action-Namen aus der actionSequence eines Tasks zurück.
-     */
-    private getActionNamesForTask(taskName: string): string[] {
-        const allTasks = this.getAllProjectTasks();
-        const task = allTasks.find((t: any) => t.name === taskName);
-        if (!task || !task.actionSequence) return [];
-        const actionNames: string[] = [];
-        const collectActions = (seq: any[]) => {
-            for (const item of seq) {
-                if (item.type === 'action' && item.name && !actionNames.includes(item.name)) {
-                    actionNames.push(item.name);
-                }
-                if (item.then) collectActions(item.then);
-                if (item.else) collectActions(item.else);
-                if (item.body) collectActions(item.body);
-            }
-        };
-        collectActions(task.actionSequence);
-        return actionNames;
-    }
-
     private updateObjectDropdown() {
         const objSelect = this.element.querySelector('#obj-filter') as HTMLSelectElement;
         if (!objSelect) return;
 
         const logObjects = this.service.getUniqueObjects();
-        const allProjectObjects = this.getAllProjectObjects();
+        const allProjectObjects = this.projectHelper.getAllProjectObjects();
 
         const idToNameMap = new Map<string, string>();
         allProjectObjects.forEach((o: any) => {
@@ -717,17 +577,17 @@ export class TDebugLog {
         if (!evtSelect) return;
 
         evtSelect.disabled = false;
-        const allProjectObjects = this.getAllProjectObjects();
+        const allProjectObjects = this.projectHelper.getAllProjectObjects();
 
         let projectEvents: string[] = [];
         if (this.objectFilter) {
             const objs = allProjectObjects.filter((o: any) => (o.name || o.id) === this.objectFilter);
             objs.forEach((obj: any) => {
-                projectEvents.push(...this.getAssignedEventsForObject(obj));
+                projectEvents.push(...this.projectHelper.getAssignedEventsForObject(obj));
             });
         } else {
             allProjectObjects.forEach((obj: any) => {
-                projectEvents.push(...this.getAssignedEventsForObject(obj));
+                projectEvents.push(...this.projectHelper.getAssignedEventsForObject(obj));
             });
         }
 
@@ -737,39 +597,13 @@ export class TDebugLog {
             allEvents.map(evt => `<option value="${evt}" ${evt === current ? 'selected' : ''}>${evt}</option>`).join('');
     }
 
-    private getRelevantTasksForCurrentFilters(): string[] {
-        const allProjectObjects = this.getAllProjectObjects();
-        let relevantTaskNames: string[] = [];
-
-        if (this.objectFilter) {
-            const objs = allProjectObjects.filter((o: any) => (o.name || o.id) === this.objectFilter);
-            objs.forEach((obj: any) => {
-                if (this.eventFilter) {
-                    if (obj.events && obj.events[this.eventFilter]) {
-                        relevantTaskNames.push(obj.events[this.eventFilter]);
-                    } else if (obj.Tasks && obj.Tasks[this.eventFilter]) {
-                        relevantTaskNames.push(obj.Tasks[this.eventFilter]);
-                    } else if (typeof obj[this.eventFilter] === 'string') {
-                        relevantTaskNames.push(obj[this.eventFilter]);
-                    }
-                } else {
-                    relevantTaskNames.push(...this.getTaskNamesForObject(obj));
-                }
-            });
-        } else {
-            const allTasks = this.getAllProjectTasks();
-            relevantTaskNames = allTasks.map((t: any) => t.name);
-        }
-        return Array.from(new Set(relevantTaskNames.filter(n => n && n.trim() !== ''))).sort();
-    }
-
     private updateTaskDropdown() {
         const taskSelect = this.element.querySelector('#task-filter') as HTMLSelectElement;
         if (!taskSelect) return;
 
         taskSelect.disabled = false;
-        const uniqueTasks = this.getRelevantTasksForCurrentFilters();
-        
+        const uniqueTasks = this.projectHelper.getRelevantTasksForCurrentFilters();
+
         const current = this.taskFilter;
         taskSelect.innerHTML = '<option value="">All Tasks</option>' +
             uniqueTasks.map(t => `<option value="${t}" ${t === current ? 'selected' : ''}>${t}</option>`).join('');
@@ -784,16 +618,16 @@ export class TDebugLog {
 
         if (this.taskFilter) {
             // Nur Actions dieses Tasks
-            relevantActionNames = this.getActionNamesForTask(this.taskFilter);
+            relevantActionNames = this.projectHelper.getActionNamesForTask(this.taskFilter);
         } else if (this.objectFilter || this.eventFilter) {
             // Actions aller relevanten Tasks für den aktuellen Objekt/Event-Filter
-            const relevantTasks = this.getRelevantTasksForCurrentFilters();
+            const relevantTasks = this.projectHelper.getRelevantTasksForCurrentFilters();
             relevantTasks.forEach(taskName => {
-                relevantActionNames.push(...this.getActionNamesForTask(taskName));
+                relevantActionNames.push(...this.projectHelper.getActionNamesForTask(taskName));
             });
         } else {
             // Alle Actions aus allen Stages
-            const allActions = this.getAllProjectActions();
+            const allActions = this.projectHelper.getAllProjectActions();
             relevantActionNames = allActions.map((a: any) => a.name);
         }
 
@@ -801,221 +635,6 @@ export class TDebugLog {
         const current = this.actionFilter;
         actionSelect.innerHTML = '<option value="">All Actions</option>' +
             uniqueActions.map(a => `<option value="${a}" ${a === current ? 'selected' : ''}>${a}</option>`).join('');
-    }
-
-    private renderLogs(logs: LogEntry[]) {
-        if (this.isPaused || !this.isVisible) return;
-
-        // PERFORMANCE: Dropdowns nur aktualisieren, wenn sich die Filter geändert haben
-        // Nicht bei jedem renderLogs() aufrufen
-        this.logList.innerHTML = '';
-        if(this.serverTraceMode){renderServerTraces(logs,this.logList,this.project?.meta?.id==='gcs-server-login'&&this.editor?.navigateToFlowChart?(task)=>this.editor.navigateToFlowChart(task):undefined);return;}
-
-        if (logs.length === 0) {
-            this.logList.innerHTML = '<div style="padding: 20px; color: #666; font-style: italic;">No logs recorded yet. Start interacting with the game!</div>';
-            return;
-        }
-
-        // Root entries are shown if they or any child matches the filter
-        // Root context check happens inside recursive filter
-        const filtered = logs.filter(e => this.shouldShowRecursive(e, false));
-        filtered.forEach(entry => this.renderEntry(entry, this.logList, 0, this.isContextMatch(entry)));
-
-        // Auto-scroll to bottom
-        if (this.logList.scrollTop > this.logList.scrollHeight - this.logList.clientHeight - 100) {
-            this.logList.scrollTop = this.logList.scrollHeight;
-        }
-    }
-
-    private shouldShowRecursive(e: LogEntry, parentMatched: boolean): boolean {
-        // 1. HARD PRUNE for strict node-level filters
-        if (this.taskFilter && e.type === 'Task' && !e.message.includes(this.taskFilter)) return false;
-        
-        if (this.actionFilter && e.type === 'Action') {
-            const isMatch = e.message.includes(this.actionFilter);
-            const isChildLog = e.message.startsWith('Evaluated:') || e.message.startsWith('Spawned:');
-            // Allow child logs only if their parent matched
-            if (!isMatch && !(isChildLog && parentMatched)) {
-                return false;
-            }
-        }
-
-        // 2. Determine Context Match
-        const localMatch = this.isContextMatch(e) || 
-                           (e.type === 'Task' && this.taskFilter && e.message.includes(this.taskFilter)) || 
-                           (e.type === 'Action' && !!this.actionFilter && e.message.includes(this.actionFilter));
-        const deepMatch = this.isDeepMatch(e);
-        const effectiveMatched = parentMatched || localMatch || deepMatch;
-
-        // 3. Evaluate Children
-        const childMatch = e.children.some(child => this.shouldShowRecursive(child, effectiveMatched));
-
-        // 4. Determine Self Visibility
-        const typeOK = this.matchesTypeHierarchy(e);
-        let showSelf = effectiveMatched && typeOK;
-
-        // 5. Hide empty parents if a stricter lower-level filter is active
-        if (e.type === 'Event' && (this.taskFilter || this.actionFilter) && !childMatch) {
-            showSelf = false;
-        }
-        if (e.type === 'Task' && this.actionFilter && !childMatch) {
-            showSelf = false;
-        }
-
-        return showSelf || childMatch;
-    }
-
-    private isContextMatch(e: LogEntry): boolean {
-        if (this.objectFilter && e.objectName !== this.objectFilter) return false;
-        if (this.eventFilter && e.eventName !== this.eventFilter) return false;
-        return true;
-    }
-
-    private isDeepMatch(e: LogEntry): boolean {
-        if (!this.objectFilter) return false;
-        if (e.data && (e.data.target === this.objectFilter || e.data.source === this.objectFilter)) return true;
-        return false;
-    }
-
-    private matchesTypeHierarchy(e: LogEntry): boolean {
-        // Simple independence: Show if the type itself is enabled
-        // Use case-insensitive check to be robust
-        const entryType = e.type;
-        return Array.from(this.typeFilters).some(t => t.toLowerCase() === entryType.toLowerCase());
-    }
-
-    private renderEntry(entry: LogEntry, container: HTMLElement, level: number, parentMatched: boolean) {
-        const row = document.createElement('div');
-        const isVariable = entry.type === 'Variable';
-        row.style.cssText = `
-            padding: 2px 6px;
-            margin-left: ${(level * 16) + (isVariable ? 12 : 0)}px;
-            border-left: ${level > 0 ? '1px solid rgba(255,255,255,0.1)' : '1px solid #333'};
-            cursor: pointer;
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
-            border-radius: 3px;
-            margin-top: 1px;
-            transition: background 0.2s;
-            font-size: 10px;
-            position: relative;
-        `;
-
-        // Add a subtle guide line for nested items
-        if (level > 0) {
-            row.style.setProperty('--guide-color', 'rgba(255,255,255,0.05)');
-        }
-
-
-        row.onmouseover = () => row.style.background = 'rgba(255,255,255,0.05)';
-        row.onmouseout = () => row.style.background = 'transparent';
-
-        const colors: Record<string, string> = {
-            Event: '#ff9800',
-            Task: '#007acc',
-            Action: '#4caf50',
-            Variable: '#9c27b0',
-            Condition: '#00bcd4',
-            System: '#ff5722'
-        };
-
-        const hasChildren = entry.children.length > 0;
-        const icon = hasChildren ? (entry.isExpanded ? '▼' : '▶') : '&nbsp;';
-
-        const typeLabel = `<span style="color: ${colors[entry.type]}; font-weight: bold;">[${entry.type}]</span>`;
-        const timeLabel = `<span style="color: #555; font-size: 9px; margin-left: auto; margin-top: 2px;">${new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>`;
-
-        let detailText = '';
-        if (entry.type === 'Action' && entry.data) {
-            const data = entry.data;
-            if (data.type === 'calculate') {
-                detailText = `(${data.resultVariable || 'result'} = ${data.formula || '?'})`;
-            } else if (data.type === 'negate' && data.changes) {
-                const changes = Object.entries(data.changes).map(([k, v]) => `${k}=${v}`).join(', ');
-                detailText = `(negate: ${changes})`;
-            } else if (data.type === 'increment' && data.changes) {
-                const changes = Object.entries(data.changes).map(([k, v]) => `${k}+=${v}`).join(', ');
-                detailText = `(increment: ${changes})`;
-            } else if (data.type === 'variable') {
-                if (data.value !== undefined) {
-                    const oldValStr = data.oldValue !== undefined ? ` (vorher: ${data.oldValue})` : '';
-                    detailText = `Wert: ${data.value}${oldValStr}`;
-                } else {
-                    detailText = `(${data.variableName || 'var'} = ${data.source || '?'}.${data.sourceProperty || '?'})`;
-                }
-            } else if (data.newValue !== undefined) {
-                const oldValStr = data.oldValue !== undefined ? ` (vorher: ${data.oldValue})` : '';
-                detailText = `Wert: ${data.newValue}${oldValStr}`;
-            } else if (data.type === 'property' && data.changes) {
-                const changes = Object.entries(data.changes).map(([k, v]) => `${k}=${v}`).join(', ');
-                detailText = `(${data.target || '?'}: ${changes})`;
-            } else if (data.type === 'send_remote_event') {
-                detailText = `(${data.target || '?'}.${data.event || 'onClick'})`;
-            } else if (data.type === 'navigate') {
-                detailText = `(${data.target || '?'})`;
-            } else if (data.type === 'call_method') {
-                const params = data.params ? (Array.isArray(data.params) ? data.params.join(', ') : data.params) : '';
-                detailText = `(${data.target || '?'}.${data.method || '?'}(${params}))`;
-            } else if (data.type === 'spawn_object') {
-                detailText = `(spawn '${data.templateId || '?'}' offset=(${data.offsetX || 0}, ${data.offsetY || 0}) target=${data.referenceObject || '?'})`;
-            } else if (data.type === 'http_trace') {
-                detailText = JSON.stringify(data, null, 2);
-            } else if (data.type === 'http') {
-                const bodyStr = data.body ? (typeof data.body === 'object' ? JSON.stringify(data.body, null, 2) : String(data.body)) : '';
-                detailText = `${data.method || 'GET'} ${data.url || '?'}${bodyStr ? ' - Body: ' + bodyStr : ''}`;
-            } else if (data.type === 'respond_http') {
-                const dataStr = data.data ? (typeof data.data === 'object' ? JSON.stringify(data.data, null, 2) : String(data.data)) : '';
-                detailText = `Status: ${data.status || 200} - Data: ${dataStr}`;
-            } else if (data.type === 'condition') {
-                detailText = `Bedingung: ${data.condition || '?'}`;
-            }
-        }
-
-        // Details rely on explicit showDetails toggle
-        // The Entry visibility is already guaranteed by matchesTypeHierarchy if we are here (and showSelf was true)
-        // However, we should double check if we want to enforce hierarchy for details too? 
-        // User said: "Details werden angezeigt, wenn Tasks, actions und Deteils ausgewält sind."
-        // Since we are rendering the entry, the type hierarchy is satisfied. So we just check showDetails.
-        const detailsVisible = this.showDetails;
-
-        const details = (detailText && detailsVisible) ? `<div style="color: #bbb; font-size: 11px; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 4px; padding-left: 12px;">${escapeLogHtml(detailText)}</div>` : '';
-
-        const cleanMessage = entry.message.replace(/<[^>]*>?/gm, ''); // Strip potential HTML tags for tooltip
-        const fullTooltip = `${entry.type}: ${cleanMessage}${detailText ? '\n' + detailText : ''}`;
-
-        row.innerHTML = `
-            <span style="color: #888; width: 10px; font-size: 8px; margin-top: 4px;">${icon}</span>
-            <div style="flex: 1; overflow: hidden;" title="${escapeLogHtml(fullTooltip)}">
-                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${typeLabel} ${escapeLogHtml(entry.message)}
-                </div>
-                ${details}
-            </div>
-            ${timeLabel}
-        `;
-
-        row.onclick = (e) => {
-            e.stopPropagation();
-            if (hasChildren) {
-                this.service.toggleExpand(entry.id);
-            }
-        };
-
-        container.appendChild(row);
-
-        if (entry.isExpanded && hasChildren) {
-            const localMatch = this.isContextMatch(entry);
-            const deepMatch = this.isDeepMatch(entry);
-            const effectiveMatched = parentMatched || localMatch || deepMatch;
-
-            entry.children.forEach(child => {
-                // Hierarchical children also need to be filtered individually
-                if (this.shouldShowRecursive(child, effectiveMatched)) {
-                    this.renderEntry(child, container, level + 1, effectiveMatched);
-                }
-            });
-        }
     }
 
     public dispose() {
@@ -1028,4 +647,3 @@ export class TDebugLog {
         if (toggleBtn) toggleBtn.remove();
     }
 }
-

@@ -16,6 +16,9 @@ import '../services/RemoteGameManager';
 import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
 import { MenuBar } from './MenuBar';
+import { EditorProjectFactory } from './EditorProjectFactory';
+import { EditorSessionManager } from './EditorSessionManager';
+import { EditorStageImporter } from './EditorStageImporter';
 import { EditorStageManager } from './EditorStageManager';
 // projectPersistenceService wird via EditorDataManager genutzt (saveProject, exportHTML etc.)
 
@@ -91,6 +94,10 @@ export class Editor implements IViewHost {
     private sidePanel: EditorSidepanel | null = null;
     public hideManagedObjectsOnStage: boolean = true;
 
+    private projectFactory: EditorProjectFactory;
+    private sessionManager: EditorSessionManager;
+    private stageImporter: EditorStageImporter;
+
     public get isProjectDirty() { return this.viewManager.isProjectDirty; }
     public set isProjectDirty(v: boolean) { this.viewManager.isProjectDirty = v; }
     public renderUserStoriesList(): void { this.viewManager.renderUserStoriesList(); }
@@ -110,7 +117,8 @@ export class Editor implements IViewHost {
 
     constructor() {
         this.designRuntime = new ReactiveRuntime();
-        this.project = this.createDefaultProject();
+        this.projectFactory = new EditorProjectFactory(this);
+        this.project = this.projectFactory.createDefaultProject();
 
         // 1. Core Services & Registry
         coreStore.setProject(this.project);
@@ -139,6 +147,7 @@ export class Editor implements IViewHost {
         this.keyboardManager = new EditorKeyboardManager(this);
         this.interactionManager = new EditorInteractionManager(this);
         this.themeStageService = new ThemeStageService(this);
+        this.stageImporter = new EditorStageImporter(this);
 
         // Connect global Undo/Redo Engine
         snapshotManager.setRestoreCallback((projectData) => {
@@ -170,7 +179,8 @@ export class Editor implements IViewHost {
         this.bindSystemInfoEvents();
 
         // 7. Load Persistence
-        this.tryRestoreLastSession();
+        this.sessionManager = new EditorSessionManager(this);
+        this.sessionManager.tryRestoreLastSession();
 
         // Setup toolbox toggle
         const toolboxToggleBtn = document.getElementById('toolbox-layout-toggle');
@@ -201,68 +211,6 @@ export class Editor implements IViewHost {
         }
     }
 
-    public createDefaultProject(): GameProject {
-        const blueprintStage: StageDefinition = {
-            id: 'blueprint',
-            name: 'Blueprint (Global)',
-            type: 'blueprint',
-            objects: [
-                {
-                    id: 'stage_controller',
-                    name: 'StageController',
-                    className: 'TStageController',
-                    scope: 'global',
-                    isService: true,
-                    x: 2,
-                    y: 2,
-                    width: 8,
-                    height: 4
-                } as any
-            ],
-            actions: [],
-            tasks: [],
-            variables: [
-                {
-                    id: 'var_project_change',
-                    name: 'isProjectChangeAvailable',
-                    type: 'boolean',
-                    defaultValue: false,
-                    value: false,
-                    scope: 'global',
-                    className: 'TVariable',
-                    isVariable: true,
-                    x: 12,
-                    y: 2,
-                    width: 10,
-                    height: 4
-                } as any
-            ],
-            grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#f5f5f5' }
-        };
-
-        const mainStage: StageDefinition = {
-            id: 'main',
-            name: 'Haupt-Level',
-            type: 'main',
-            objects: [],
-            actions: [],
-            tasks: [],
-            variables: [],
-            grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' }
-        };
-
-        return {
-            meta: { name: "Neues Spiel", version: "1.0.0", author: "", description: "" },
-            stage: { grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' } },
-            flow: { stage: { cols: 100, rows: 100, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#1e1e1e' }, elements: [], connections: [] },
-            input: { player1Controls: 'arrows', player1Target: '', player1Speed: 0.2, player2Controls: 'wasd', player2Target: '', player2Speed: 0.2 },
-            objects: [], splashObjects: [], splashDuration: 3000, splashAutoHide: true, actions: [], tasks: [], variables: [],
-            stages: [blueprintStage, mainStage],
-            activeStageId: 'main',
-            userStories: { userStories: [] }
-        };
-    }
-
     private registerGlobalServices() {
         serviceRegistry.register('Dialog', dialogService, 'Dialog Service');
         serviceRegistry.register('Editor', {
@@ -281,61 +229,6 @@ export class Editor implements IViewHost {
             Editor.logger.warn('ComponentSchema konnte nicht geladen werden:', err);
         });
     }
-
-    private async tryRestoreLastSession() {
-        if (window.location.search.includes('e2e=true')) {
-            Editor.logger.info('E2E mode detected: skipping session restoration');
-            return;
-        }
-
-        // 1. IndexedDB-Projekt lesen (neuer primärer Speicherort seit v3.32.0)
-        try {
-            const { IndexedDBAdapter } = await import('../adapters/IndexedDBAdapter');
-            const idb = new IndexedDBAdapter();
-            if (idb.isAvailable()) {
-                const idbProject = await idb.load();
-                if (idbProject) {
-                    const name = (idbProject as any).meta?.name || 'Unbenannt';
-                    const sourcePath = (idbProject as any).meta?._sourcePath || `projects/${name.replace(/[^a-zA-Z0-9_\\-]/g, '_')}.json`;
-                    this.loadProject(idbProject, sourcePath);
-                    this.themeStageService.restoreSession();
-                    Editor.logger.info(`Projekt aus IndexedDB geladen: "${name}" (Pfad: ${sourcePath})`);
-                    // Alten LocalStorage-Eintrag aufräumen (Migration)
-                    localStorage.removeItem('gcs_last_project');
-                    return;
-                }
-            }
-        } catch (err) {
-            Editor.logger.warn('IndexedDB-Restore fehlgeschlagen, versuche LocalStorage-Fallback:', err);
-        }
-
-        // 2. Fallback: Altes LocalStorage-Projekt (Migration)
-        const localJson = localStorage.getItem('gcs_last_project');
-        let localProject: any = null;
-        if (localJson) {
-            try {
-                localProject = JSON.parse(localJson);
-            } catch (err) {
-                Editor.logger.warn('LocalStorage project parse error, ignoring', err);
-            }
-        }
-
-        if (localProject) {
-            const name = localProject.meta?.name || 'Unbenannt';
-            const sourcePath = localProject.meta?._sourcePath || `projects/${(localProject.meta?.name || 'Unbenannt').replace(/[^a-zA-Z0-9_\\-]/g, '_')}.json`;
-            this.loadProject(localProject, sourcePath);
-            this.themeStageService.restoreSession();
-            Editor.logger.info(`Projekt aus LocalStorage migriert: "${name}" (Pfad: ${sourcePath})`);
-            // Nach erfolgreicher Migration: LocalStorage-Eintrag entfernen
-            localStorage.removeItem('gcs_last_project');
-            return;
-        }
-
-        // 3. Kein Projekt gefunden → neues leeres Projekt
-        Editor.logger.info('Kein gespeichertes Projekt gefunden → neues leeres Projekt');
-        this.switchView('stage');
-    }
-
 
     // --- GETTERS ---
     public get currentObjects(): ComponentData[] {
@@ -557,342 +450,10 @@ export class Editor implements IViewHost {
         this.updateStageLabel();
     }
 
-    public async newProject() {
-        Editor.logger.info('[NewProject] newProject() aufgerufen, isProjectDirty=' + this.isProjectDirty);
-        if (this.isProjectDirty) {
-            if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich ein neues Projekt starten?')) {
-                Editor.logger.info('[NewProject] Abgebrochen durch Bestätigungsdialog');
-                return;
-            }
-        }
-        // LocalStorage komplett leeren (alte Projekt-Daten, Panel-Einstellungen etc.)
-        localStorage.clear();
-        Editor.logger.info('[NewProject] LocalStorage geleert, starte Projekt-Wizard...');
-
-        if (window.location.search.includes('e2e=true')) {
-            const defaultProj = this.createDefaultProject();
-            this.loadProject(defaultProj);
-            Editor.logger.info('[NewProject] E2E-Mode: Neues Projekt direkt geladen');
-            return;
-        }
-
-        // 1. Projekt-Wizard (Ebene 1) aufrufen
-        const projectData = await new Promise<any>((resolve) => {
-            this.viewManager.showConfigureProjectDialog(resolve);
-        });
-        Editor.logger.info('[NewProject] Projekt-Wizard beendet, projectData=' + JSON.stringify(projectData));
-        if (!projectData) {
-            Editor.logger.info('[NewProject] Projekt-Erstellung abgebrochen (Projekt-Wizard)');
-            return;
-        }
-
-        // 2. Stage-Wizard (Ebene 2) aufrufen
-        Editor.logger.info('[NewProject] Starte Stage-Wizard...');
-        const stageData = await new Promise<any>((resolve) => {
-            this.viewManager.showAddStageDialog(resolve);
-        });
-        Editor.logger.info('[NewProject] Stage-Wizard beendet, stageData=' + JSON.stringify(stageData));
-        if (!stageData) {
-            Editor.logger.info('[NewProject] Projekt-Erstellung abgebrochen (Stage-Wizard)');
-            return;
-        }
-
-        // 3. Projekt mit Wizard-Daten erstellen
-        const freshProject = this.createProjectFromWizardData(projectData, stageData);
-        this.loadProject(freshProject);
-        Editor.logger.info('[NewProject] Neues Projekt mit Wizard-Konfiguration initialisiert');
-    }
-
-    public async newProjectDirect(): Promise<void> {
-        Editor.logger.info('[NewProjectDirect] newProjectDirect() aufgerufen, isProjectDirty=' + this.isProjectDirty);
-        if (this.isProjectDirty) {
-            if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich ein neues Projekt starten?')) {
-                Editor.logger.info('[NewProjectDirect] Abgebrochen durch Bestätigungsdialog');
-                return;
-            }
-        }
-        localStorage.clear();
-        const freshProject = this.createDefaultProject();
-        freshProject.meta.name = 'NewProjekt';
-        this.loadProject(freshProject);
-        Editor.logger.info('[NewProjectDirect] Leeres Projekt geladen, starte Speichervorgang...');
-        const result = await this.saveProjectToFile(true);
-        if (result.success) {
-            Editor.logger.info('[NewProjectDirect] Projekt erfolgreich gespeichert');
-        } else {
-            Editor.logger.warn('[NewProjectDirect] Speichern fehlgeschlagen: ' + result.message);
-        }
-    }
-
-    private createProjectFromWizardData(projectData: any, stageData: any): GameProject {
-        // Blueprint Stage mit StageController
-        const blueprintStage: StageDefinition = {
-            id: 'blueprint',
-            name: 'Blueprint (Global)',
-            type: 'blueprint',
-            objects: [
-                {
-                    id: 'stage_controller',
-                    name: 'StageController',
-                    className: 'TStageController',
-                    scope: 'global',
-                    isService: true,
-                    x: 2,
-                    y: 2,
-                    width: 8,
-                    height: 4
-                } as any
-            ],
-            actions: [],
-            tasks: [],
-            variables: [
-                {
-                    id: 'var_project_change',
-                    name: 'isProjectChangeAvailable',
-                    type: 'boolean',
-                    defaultValue: false,
-                    value: false,
-                    scope: 'global',
-                    className: 'TVariable',
-                    isVariable: true,
-                    x: 12,
-                    y: 2,
-                    width: 10,
-                    height: 4
-                } as any
-            ],
-            grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#f5f5f5' }
-        };
-
-        // Blueprint-Variablen aus Projekt-Wizard ableiten
-        const features: string[] = projectData?.features || [];
-        if (features.includes('score')) {
-            blueprintStage.variables!.push({
-                id: 'var_score', name: 'score', type: 'number',
-                defaultValue: 0, value: 0, scope: 'global',
-                className: 'TVariable', isVariable: true,
-                x: 24, y: 2, width: 6, height: 4
-            } as any);
-        }
-        if (features.includes('lives')) {
-            blueprintStage.variables!.push({
-                id: 'var_lives', name: 'lives', type: 'number',
-                defaultValue: 3, value: 3, scope: 'global',
-                className: 'TVariable', isVariable: true,
-                x: 32, y: 2, width: 6, height: 4
-            } as any);
-        }
-        if (projectData?.players === '2net') {
-            blueprintStage.objects.push({
-                id: 'game_server', name: 'GameServer', className: 'TGameServer',
-                x: 0, y: 8, width: 2, height: 2, visible: false
-            } as any);
-        }
-
-        // Main Stage mit Wizard-Konfiguration
-        const mainStage: StageDefinition = {
-            id: stageData.stageId || 'main',
-            name: stageData.stageName || 'Haupt-Level',
-            type: 'main',
-            objects: [],
-            actions: [],
-            tasks: [],
-            variables: [],
-            grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' }
-        };
-        this.populateStageFromWizardData(mainStage, stageData);
-
-        // Meta-Daten aus Wizard-Daten übernehmen (Schritt 1)
-        const projectName = projectData?.projectName || 'Mein Spiel';
-        const author = projectData?.author || '';
-        const description = projectData?.description || '';
-        const safeFileName = projectName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
-
-        return {
-            meta: {
-                name: projectName,
-                version: "1.0.0",
-                author: author,
-                description: description,
-                _sourcePath: `projects/${safeFileName}.json`
-            },
-            stage: { grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' } },
-            flow: { stage: { cols: 100, rows: 100, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#1e1e1e' }, elements: [], connections: [] },
-            input: { player1Controls: 'arrows', player1Target: '', player1Speed: 0.2, player2Controls: 'wasd', player2Target: '', player2Speed: 0.2 },
-            objects: [], splashObjects: [], splashDuration: 3000, splashAutoHide: true, actions: [], tasks: [], variables: [],
-            stages: [blueprintStage, mainStage],
-            activeStageId: stageData.stageId || 'main'
-        };
-    }
-
-    /**
-     * Fügt einer Stage Komponenten gemäß Stage-Wizard-Daten hinzu.
-     * Wird sowohl beim Neu-Projekt-Flow als auch beim "Neue Stage"-Menü genutzt.
-     */
-    private populateStageFromWizardData(stage: StageDefinition, stageData: any): void {
-        // Steuerungs-Objekte hinzufügen
-        if (stageData.controls.includes('keyboard') || stageData.controls.includes('mouse')) {
-            stage.objects.push({
-                id: 'input_controller',
-                name: 'InputController',
-                className: 'TInputController',
-                x: 0, y: 0, width: 2, height: 2,
-                visible: false
-            } as any);
-        }
-        if (stageData.controls.includes('touch')) {
-            stage.objects.push({
-                id: 'virtual_gamepad',
-                name: 'VirtualGamepad',
-                className: 'TVirtualGamepad',
-                x: 0, y: 0, width: 10, height: 4,
-                visible: true
-            } as any);
-        }
-
-        // Spieler-Objekt
-        if (stageData.objects.includes('player')) {
-            stage.objects.push({
-                id: 'player_sprite',
-                name: 'Player',
-                className: 'TSprite',
-                x: 30, y: 20, width: 3, height: 3,
-                collisionEnabled: true,
-                collisionGroup: 'player',
-                spriteColor: '#4ecdc4'
-            } as any);
-        }
-
-        // Gegner-Objekte
-        if (stageData.objects.includes('enemies')) {
-            stage.objects.push({
-                id: 'enemy_sprite',
-                name: 'Enemy',
-                className: 'TSprite',
-                x: 10, y: 5, width: 3, height: 3,
-                collisionEnabled: true,
-                collisionGroup: 'enemy',
-                spriteColor: '#e74c3c'
-            } as any);
-        }
-
-        // UI-Elemente
-        if (stageData.objects.includes('score')) {
-            stage.objects.push({
-                id: 'score_label',
-                name: 'ScoreLabel',
-                className: 'TLabel',
-                x: 1, y: 1, width: 8, height: 2,
-                caption: '${score}',
-                fontSize: 20,
-                color: '#ffffff'
-            } as any);
-        }
-        if (stageData.objects.includes('lives')) {
-            stage.objects.push({
-                id: 'lives_label',
-                name: 'LivesLabel',
-                className: 'TLabel',
-                x: 50, y: 1, width: 8, height: 2,
-                caption: '${lives}',
-                fontSize: 20,
-                color: '#e74c3c'
-            } as any);
-        }
-        if (stageData.objects.includes('buttons')) {
-            stage.objects.push({
-                id: 'action_button',
-                name: 'ActionButton',
-                className: 'TButton',
-                x: 20, y: 30, width: 12, height: 3,
-                caption: 'Start',
-                visible: true
-            } as any);
-        }
-        if (stageData.objects.includes('background')) {
-            stage.objects.push({
-                id: 'background_panel',
-                name: 'Background',
-                className: 'TPanel',
-                x: 0, y: 0, width: 64, height: 40,
-                visible: true,
-                style: { backgroundColor: '#1a1a2e' }
-            } as any);
-        }
-
-        // Timer
-        if (stageData.objects.includes('timer') || stageData.exitType === 'timer') {
-            stage.objects.push({
-                id: 'stage_timer',
-                name: 'StageTimer',
-                className: 'TTimer',
-                x: 0, y: 0, width: 2, height: 2,
-                visible: false,
-                interval: 1000,
-                autoStart: true
-            } as any);
-        }
-
-    }
-
-    /**
-     * Öffnet den Stage-Wizard und fügt eine neue Stage zum bestehenden Projekt hinzu.
-     * Wird vom Hauptmenü "Neue Stage" und vom UserStories-Tab-Button aufgerufen.
-     */
-    public async createStageFromWizard(): Promise<void> {
-        Editor.logger.info('[NewStage] createStageFromWizard() aufgerufen');
-
-        let stageData: any;
-
-        // E2E-Modus: Wizard überspringen und direkt Standard-Stage erstellen
-        if (window.location.search.includes('e2e=true')) {
-            const stageNum = (this.project.stages?.length || 1);
-            stageData = {
-                stageId: 'stage_e2e_' + Date.now().toString(36),
-                stageName: 'Stage ' + stageNum,
-                stageType: 'standard'
-            };
-            Editor.logger.info('[NewStage] E2E-Mode: Wizard übersprungen, Stage-Daten=' + JSON.stringify(stageData));
-        } else {
-            stageData = await new Promise<any>((resolve) => {
-                this.viewManager.showAddStageDialog(resolve);
-            });
-            Editor.logger.info('[NewStage] Stage-Wizard beendet, stageData=' + JSON.stringify(stageData));
-        }
-
-        if (!stageData) {
-            Editor.logger.info('[NewStage] Stage-Erstellung abgebrochen');
-            return;
-        }
-        if (!this.project.stages) this.project.stages = [];
-
-        // Eindeutige ID erzwingen
-        let id = stageData.stageId || ('stage_' + Date.now().toString(36));
-        const existing = new Set(this.project.stages.map((s: any) => s.id));
-        let counter = 1;
-        const baseId = id;
-        while (existing.has(id)) { id = baseId + '_' + counter++; }
-
-        const newStage: StageDefinition = {
-            id,
-            name: stageData.stageName || 'Neue Stage',
-            type: 'standard' as any,
-            objects: [],
-            actions: [],
-            tasks: [],
-            variables: [],
-            grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' }
-        };
-        this.populateStageFromWizardData(newStage, stageData);
-        this.project.stages.push(newStage);
-        this.project.activeStageId = id;
-        this.isProjectDirty = true;
-        this.render();
-        this.updateStagesMenu();
-        this.updateStageLabel();
-        this.autoSaveToLocalStorage();
-        Editor.logger.info('[NewStage] Stage angelegt: id=' + id + ', name=' + newStage.name);
-    }
+    public createDefaultProject(): GameProject { return this.projectFactory.createDefaultProject(); }
+    public async newProject() { return this.projectFactory.newProject(); }
+    public async newProjectDirect(): Promise<void> { return this.projectFactory.newProjectDirect(); }
+    public async createStageFromWizard(): Promise<void> { return this.projectFactory.createStageFromWizard(); }
 
     public saveProject() { this.dataManager.saveProject(); }
     public saveProjectToFile(overwriteConfirmed?: boolean) { return this.dataManager.saveProjectToFile(overwriteConfirmed); }
@@ -910,197 +471,8 @@ export class Editor implements IViewHost {
     public createStageFromTemplate() { this.stageManager.createStageFromTemplate(); }
     public saveStageAsTemplate() { this.stageManager.saveStageAsTemplate(); }
 
-    /**
-     * Stage-Import: Öffnet File-Picker, zeigt Stage-Auswahl-Dialog,
-     * importiert die gewählte Stage inkl. aller Abhängigkeiten.
-     */
-    public importStageFromFile(): void {
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = '.json';
-        fileInput.onchange = (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (!file) return;
+    public importStageFromFile(): void { this.stageImporter.importStageFromFile(); }
 
-            const reader = new FileReader();
-            reader.onload = (re) => {
-                try {
-                    const sourceProject: GameProject = JSON.parse(re.target?.result as string);
-                    if (!sourceProject.stages || sourceProject.stages.length === 0) {
-                        NotificationToast.show('Das gewählte Projekt enthält keine Stages.', 'warning');
-                        return;
-                    }
-
-                    // Nur importierbare Stages (kein Blueprint)
-                    const importableStages = sourceProject.stages.filter(s => s.type !== 'blueprint');
-                    if (importableStages.length === 0) {
-                        NotificationToast.show('Das Projekt enthält nur eine Blueprint-Stage, die nicht importiert werden kann.', 'warning');
-                        return;
-                    }
-
-                    // Bei nur einer Stage: direkt importieren
-                    if (importableStages.length === 1) {
-                        const imported = this.stageManager.importStageFromProject(sourceProject, importableStages[0].id);
-                        if (imported) {
-                            this.updateStagesMenu();
-                            this.updateStageLabel();
-                            this.autoSaveToLocalStorage();
-                            projectStore.setProject(this.project); // SSoT
-                            mediatorService.notifyDataChanged(this.project, 'stage-import');
-                            NotificationToast.show(`Stage "${imported.stage.name}" erfolgreich importiert!`, 'success');
-                        }
-                        return;
-                    }
-
-                    // Mehrere Stages: Auswahl-Dialog
-                    this.showStageSelectionDialog(sourceProject, importableStages);
-                } catch (err) {
-                    NotificationToast.show('Fehler beim Lesen der Projektdatei: ' + (err as Error).message, 'error');
-                }
-            };
-            reader.readAsText(file);
-        };
-        fileInput.click();
-    }
-
-    private showStageSelectionDialog(sourceProject: GameProject, stages: StageDefinition[]): void {
-        const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:20000;display:flex;align-items:center;justify-content:center;';
-
-        const dialog = document.createElement('div');
-        dialog.style.cssText = `
-            background:#252526; border:1px solid #555; border-radius:8px;
-            box-shadow:0 8px 32px rgba(0,0,0,0.6); min-width:380px; max-width:500px;
-            color:#ccc; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-        `;
-
-        const header = document.createElement('div');
-        header.style.cssText = 'padding:16px 20px 12px;border-bottom:1px solid #444;font-size:15px;font-weight:600;color:#fff;';
-        header.textContent = `📥 Stage importieren — ${sourceProject.meta?.name || 'Externes Projekt'}`;
-        dialog.appendChild(header);
-
-        const infoContainer = document.createElement('div');
-        infoContainer.style.cssText = 'padding:8px 20px;font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center;';
-
-        const infoText = document.createElement('span');
-        infoText.textContent = `${stages.length} importierbare Stage(s) gefunden. Wähle eine oder mehrere:`;
-        infoContainer.appendChild(infoText);
-
-        const selectAllLabel = document.createElement('label');
-        selectAllLabel.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;color:#ccc;';
-        const selectAllCb = document.createElement('input');
-        selectAllCb.type = 'checkbox';
-        selectAllCb.checked = false; // By default none are selected
-        selectAllCb.style.cssText = 'width:14px;height:14px;accent-color:#4fc3f7;cursor:pointer;';
-        const selectAllText = document.createElement('span');
-        selectAllText.textContent = 'Alle auswählen';
-        selectAllLabel.appendChild(selectAllCb);
-        selectAllLabel.appendChild(selectAllText);
-
-        selectAllCb.onchange = (e) => {
-            const checked = (e.target as HTMLInputElement).checked;
-            checkboxes.forEach(c => c.cb.checked = checked);
-            selectAllText.textContent = checked ? 'Keine auswählen' : 'Alle auswählen';
-        };
-        infoContainer.appendChild(selectAllLabel);
-
-        dialog.appendChild(infoContainer);
-
-        const list = document.createElement('div');
-        list.style.cssText = 'padding:8px 20px;max-height:300px;overflow-y:auto;';
-
-        const checkboxes: { id: string, name: string, cb: HTMLInputElement }[] = [];
-        for (const stage of stages) {
-            const objCount = (stage.objects || []).length;
-            const taskCount = (stage.tasks || []).length;
-            const actionCount = (stage.actions || []).length;
-
-            const row = document.createElement('label');
-            row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-radius:4px;transition:background 0.15s;';
-            row.onmouseenter = () => row.style.background = '#333';
-            row.onmouseleave = () => row.style.background = 'transparent';
-
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.checked = false; // Default: unchecked
-            cb.style.cssText = 'width:16px;height:16px;accent-color:#4fc3f7;cursor:pointer;';
-            row.appendChild(cb);
-
-            const label = document.createElement('span');
-            label.style.cssText = 'flex:1;font-size:13px;';
-            label.textContent = `🎭 ${stage.name}`;
-            row.appendChild(label);
-
-            const details = document.createElement('span');
-            details.style.cssText = 'font-size:11px;color:#888;';
-            details.textContent = `${objCount} Obj · ${taskCount} Tasks · ${actionCount} Actions`;
-            row.appendChild(details);
-
-            list.appendChild(row);
-            checkboxes.push({ id: stage.id, name: stage.name, cb });
-        }
-        dialog.appendChild(list);
-
-        const footer = document.createElement('div');
-        footer.style.cssText = 'padding:12px 20px;border-top:1px solid #444;display:flex;gap:8px;justify-content:flex-end;';
-
-        const btnImport = document.createElement('button');
-        btnImport.textContent = 'Importieren';
-        btnImport.style.cssText = 'padding:6px 14px;border:none;background:#094771;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;';
-        btnImport.onmouseenter = () => btnImport.style.background = '#0b5d99';
-        btnImport.onmouseleave = () => btnImport.style.background = '#094771';
-
-        const btnCancel = document.createElement('button');
-        btnCancel.textContent = 'Abbrechen';
-        btnCancel.style.cssText = 'padding:6px 14px;border:1px solid #555;background:#333;color:#ccc;border-radius:4px;cursor:pointer;font-size:13px;';
-        btnCancel.onmouseenter = () => btnCancel.style.background = '#444';
-        btnCancel.onmouseleave = () => btnCancel.style.background = '#333';
-
-        footer.appendChild(btnImport);
-        footer.appendChild(btnCancel);
-        dialog.appendChild(footer);
-        overlay.appendChild(dialog);
-        document.body.appendChild(overlay);
-
-        const close = () => overlay.remove();
-        overlay.addEventListener('click', (ev) => { if (ev.target === overlay) close(); });
-        btnCancel.onclick = close;
-
-        const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape') { close(); window.removeEventListener('keydown', onKey); } };
-        window.addEventListener('keydown', onKey);
-
-        btnImport.onclick = () => {
-            const selected = checkboxes.filter(c => c.cb.checked);
-            if (selected.length === 0) { NotificationToast.show('Keine Stage ausgewählt.', 'warning'); return; }
-
-            const importedNames: string[] = [];
-            const importedStages: StageDefinition[] = [];
-            const stageIdMap = new Map<string, string>();
-
-            for (const sel of selected) {
-                const result = this.stageManager.importStageFromProject(sourceProject, sel.id);
-                if (result) {
-                    importedNames.push(result.stage.name);
-                    importedStages.push(result.stage);
-                    stageIdMap.set(result.oldStageId, result.newStageId);
-                }
-            }
-
-            // navigate_stage-Actions in allen importierten Stages auf neue IDs remappen
-            if (stageIdMap.size > 0 && importedStages.length > 1) {
-                this.stageManager.remapStageReferences(importedStages, stageIdMap);
-            }
-
-            close();
-            window.removeEventListener('keydown', onKey);
-            this.updateStagesMenu();
-            this.updateStageLabel();
-            this.autoSaveToLocalStorage();
-            projectStore.setProject(this.project); // SSoT immer synchronisieren -> fixed Run-Mode Electron issue
-            mediatorService.notifyDataChanged(this.project, 'stage-import');
-            NotificationToast.show(`${importedNames.length} Stage(s) importiert: ${importedNames.join(', ')}`, 'success');
-        };
-    }
     public exportHTML() { this.dataManager.exportHTML(); }
     public exportHTMLCompressed() { this.dataManager.exportHTMLCompressed(); }
     public exportJSON() { this.dataManager.exportJSON(); }

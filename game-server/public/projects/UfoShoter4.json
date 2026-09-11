@@ -323,7 +323,7 @@
             "borderWidth": 1
           },
           "type": "integer",
-          "value": 7,
+          "value": 3,
           "objectModel": ""
         },
         {
@@ -352,7 +352,7 @@
             "borderWidth": 1
           },
           "type": "integer",
-          "value": 10,
+          "value": 3,
           "objectModel": ""
         },
         {
