@@ -30,7 +30,8 @@ const SCHEMA_MODULES = [
     'schemas/schema_variables.json',
     'schemas/schema_game.json',
     'schemas/schema_services.json',
-    'schemas/schema_server.json'
+    'schemas/schema_server.json',
+    'schemas/schema_table_data.json'
 ];
 
 /**

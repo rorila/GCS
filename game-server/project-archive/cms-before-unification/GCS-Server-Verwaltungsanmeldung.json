@@ -1,0 +1,240 @@
+{
+  "meta": {
+    "id": "gcs-server-admin-login",
+    "name": "GCS-Server-Verwaltungsanmeldung",
+    "version": "1.0.0"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "backgroundColor": "#142d3b"
+    }
+  },
+  "objects": [],
+  "tasks": [],
+  "actions": [],
+  "variables": [],
+  "activeStageId": "stage_blueprint",
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Server · Verwaltungsanmeldung",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#142d3b"
+      },
+      "objects": [
+        {
+          "className": "TServerEndpoint",
+          "id": "server_login_component_0",
+          "name": "AnmeldungEmpfangen",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onRequest": "Server_Verwaltungsanmeldung_Verarbeiten"
+          },
+          "executionSide": "server",
+          "endpointPath": "/api/cms/admin-login",
+          "httpMethod": "POST",
+          "traceEnabled": true,
+          "x": 2,
+          "y": 2,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerValidate",
+          "id": "server_login_component_1",
+          "name": "AnmeldedatenPruefen",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "validationRule": "Benutzername und Passwort",
+          "failureMessage": "Bitte Benutzername und Passwort ausfüllen.",
+          "x": 2,
+          "y": 7,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerAuthenticate",
+          "id": "server_login_component_2",
+          "name": "VerwaltungszugangPruefen",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "authenticationMode": "Verwaltungspasswort",
+          "permissionBoundary": "Aktive Person und Verwaltungszuständigkeit erforderlich",
+          "failureMessage": "Anmeldung nicht möglich.",
+          "x": 2,
+          "y": 12,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "className": "TServerResponse",
+          "id": "server_login_component_3",
+          "name": "AnmeldeantwortSenden",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "successMessage": "Angemeldet. Du kannst die Verwaltung öffnen.",
+          "responseFormat": "JSON",
+          "secretPolicy": "Passwörter, Emoji-Code, Cookies und Tokens maskieren",
+          "x": 2,
+          "y": 24,
+          "width": 12,
+          "height": 3
+        },
+        {
+          "id": "admin_session_component",
+          "className": "TServerSession",
+          "name": "VerwaltungssitzungErstellen",
+          "x": 2,
+          "y": 18,
+          "width": 12,
+          "height": 3,
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "sessionPolicy": "HttpOnly; SameSite=Strict; 30 Minuten"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "server_login_task",
+          "name": "Server_Verwaltungsanmeldung_Verarbeiten",
+          "description": "Eingaben prüfen → Zugang prüfen → bei Erfolg Sitzung erstellen → Response senden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Anmeldedaten_Pruefen"
+            },
+            {
+              "type": "condition",
+              "name": "Sind die Anmeldedaten vollständig?",
+              "condition": {
+                "variable": "requestValid",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Verwaltungszugang_Pruefen"
+                },
+                {
+                  "type": "condition",
+                  "name": "Ist der Verwaltungszugang gültig?",
+                  "condition": {
+                    "variable": "authenticated",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_Verwaltungssitzung_Erstellen"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "Act_Anmeldeantwort_Senden"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "server_login_action_0",
+          "name": "Act_Anmeldedaten_Pruefen",
+          "type": "call_method",
+          "target": "AnmeldedatenPruefen",
+          "method": "execute",
+          "params": []
+        },
+        {
+          "id": "server_login_action_1",
+          "name": "Act_Verwaltungszugang_Pruefen",
+          "type": "call_method",
+          "target": "VerwaltungszugangPruefen",
+          "method": "execute",
+          "params": []
+        },
+        {
+          "id": "server_login_action_2",
+          "name": "Act_Anmeldeantwort_Senden",
+          "type": "call_method",
+          "target": "AnmeldeantwortSenden",
+          "method": "execute",
+          "params": []
+        },
+        {
+          "id": "admin_session_action",
+          "name": "Act_Verwaltungssitzung_Erstellen",
+          "type": "call_method",
+          "target": "VerwaltungssitzungErstellen",
+          "method": "execute",
+          "params": []
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "features": [
+        {
+          "id": "admin-server-login",
+          "name": "Verwaltungsanmeldung auf dem Server",
+          "description": "Eingaben prüfen → Zugang prüfen → bei Erfolg Sitzung erstellen → Response senden",
+          "blueprintTaskNames": [
+            "Server_Verwaltungsanmeldung_Verarbeiten"
+          ],
+          "userStoryIds": [
+            "admin-server-story"
+          ]
+        }
+      ]
+    }
+  ],
+  "userStories": {
+    "userStories": [
+      {
+        "id": "admin-server-story",
+        "projectId": "gcs-server-admin-login",
+        "title": "Verwaltungszugang prüfen und Sitzung bereitstellen",
+        "description": "Eingaben prüfen → Zugang prüfen → bei Erfolg Sitzung erstellen → Response senden",
+        "featureId": "admin-server-login",
+        "status": "completed",
+        "priority": "high",
+        "plannedComponent": {
+          "name": "AnmeldungEmpfangen",
+          "type": "TServerEndpoint"
+        },
+        "plannedEvent": "onRequest",
+        "plannedTask": "Server_Verwaltungsanmeldung_Verarbeiten",
+        "relatedStages": [
+          "stage_blueprint"
+        ],
+        "relatedComponents": [
+          "AnmeldungEmpfangen"
+        ]
+      }
+    ]
+  }
+}

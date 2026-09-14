@@ -46,6 +46,9 @@ export class DynamicOptionsRenderer {
         if (prop.source === 'variables') {
             return projectVariableRegistry.getVariables().map(v => ({ value: v.name, label: v.name }));
         }
+        if (prop.source === 'object_lists') {
+            return projectObjectRegistry.getObjects().filter(o => o.className === 'TObjectList').map(o => ({value:o.name,label:o.name}));
+        }
         if (prop.source === 'objects') {
             return [
                 { value: 'self', label: 'self (Selbstreferenz)' },

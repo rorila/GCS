@@ -7,9 +7,9 @@ function validateGame(bytes){
  // The uploaded runtime runs in an opaque sandbox; references to local files would not be portable.
  const walk=(o,depth=0)=>{if(depth>60)throw Error('Projekt ist zu tief verschachtelt.');if(o&&typeof o==='object')for(const [k,v]of Object.entries(o)){if(['__proto__','prototype','constructor'].includes(k))throw Error('Ungültiger Projektschlüssel.');if(['src','imageUrl','audioUrl','backgroundImage'].includes(k)&&typeof v==='string'&&v&&!v.startsWith('data:')&&!v.startsWith('${'))throw Error('Medien bitte im Projekt einbetten: '+k);walk(v,depth+1)}};walk(p);return p;
 }
-function createUploads(core,admin,dataPath,configFile){
+function createUploads(core,admin,dataPath,configFile,stageId){
  const store=fileStore(dataPath),directory=path.join(path.dirname(dataPath),'uploads');fs.mkdirSync(directory,{recursive:true});
- const config=JSON.parse(fs.readFileSync(configFile,'utf8')),stage=config.stages[0],settings={};
+ const config=require('./cms-project.cjs').readWorkflow(configFile,stageId),stage=config.stages[0],settings={};
  for(const kind of ['game','avatar']){const nodes=stage.objects.filter(o=>o.className==='TServerUpload'&&o.kind===kind);if(nodes.length!==1)throw Error('Upload-Konfiguration fehlt: '+kind);const n=nodes[0],task=stage.tasks.find(t=>t.name===n.events?.onRequest),a=stage.actions.find(a=>a.name===task?.actionSequence?.[0]?.name);if(task?.actionSequence?.length!==1||a?.type!=='call_method'||a.method!=='execute'||a.target!==n.name||!Number.isInteger(n.maxBytes)||n.maxBytes<1||n.maxBytes>(kind==='game'?10485760:2097152))throw Error('Ungültiger Upload-Workflow');settings[kind]={node:n,task:task.name};}
  const commit=(actor,action,change)=>{const next=structuredClone(core.db);change(next);next.audit=[...(next.audit||[]),{id:crypto.randomUUID(),at:new Date().toISOString(),actor:actor.personId,action}];validate(next);store.save(next);Object.assign(core.db,next)};
  return {

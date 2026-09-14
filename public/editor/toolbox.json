@@ -186,6 +186,11 @@
           "type": "Animation",
           "icon": "🎬",
           "label": "Animation"
+        },
+        {
+          "type": "Tetris",
+          "icon": "🧱",
+          "label": "Tetris"
         }
       ]
     },

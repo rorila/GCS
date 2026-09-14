@@ -1,0 +1,913 @@
+{
+  "meta": {
+    "id": "gcs-cms-library",
+    "name": "GCS-CMS-Spiele",
+    "version": "1.0.0"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 48,
+      "cellSize": 18,
+      "visible": false,
+      "backgroundColor": "#122b39"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Upload-Dienste",
+      "type": "blueprint",
+      "objects": [
+        {
+          "id": "Spielpicker",
+          "className": "TFilePicker",
+          "name": "SpielDatei",
+          "x": 1,
+          "y": 1,
+          "accept": ".json",
+          "maxBytes": 10485760,
+          "events": {
+            "onSelected": "Spiel_Datei_Bereit",
+            "onError": "Spiel_Dateifehler"
+          }
+        },
+        {
+          "id": "Spielupload",
+          "className": "TFileUpload",
+          "name": "SpielUpload",
+          "x": 1,
+          "y": 4,
+          "picker": "SpielDatei",
+          "endpoint": "/api/cms/upload/game",
+          "events": {
+            "onStarted": "Spiel_Upload_Status",
+            "onProgress": "Spiel_Upload_Status",
+            "onError": "Spiel_Upload_Status",
+            "onCancel": "Spiel_Upload_Status",
+            "onSuccess": "Spiel_Upload_Erfolgreich"
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Spiel_Datei_Waehlen",
+          "description": "Spiel_Datei_Waehlen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiel_Dateiauswahl_Oeffnen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_Upload_Starten",
+          "description": "Spiel_Upload_Starten",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiel_Datei_Uebertragen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_Upload_Abbrechen",
+          "description": "Spiel_Upload_Abbrechen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiel_Upload_Abbrechen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_Datei_Bereit",
+          "description": "Spiel_Datei_Bereit",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Dateiname_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_Upload_Status",
+          "description": "Spiel_Upload_Status",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Upload_Status_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_Upload_Erfolgreich",
+          "description": "Spiel_Upload_Erfolgreich",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Neuen_Entwurf_Auswaehlen"
+            },
+            {
+              "type": "task",
+              "name": "Spiele_Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiele_Laden",
+          "description": "Spiele_Laden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiele_Laden_Anfragen"
+            },
+            {
+              "type": "task",
+              "name": "Spiele_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiele_Anzeigen",
+          "description": "Spiele_Anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eigene_Spiele_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiele_Veroeffentlichen",
+          "description": "Spiele_Veroeffentlichen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiele_Veroeffentlichen_Anfragen"
+            },
+            {
+              "type": "task",
+              "name": "Spiele_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiele_Zurueckziehen",
+          "description": "Spiele_Zurueckziehen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiele_Zurueckziehen_Anfragen"
+            },
+            {
+              "type": "task",
+              "name": "Spiele_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiele_Vorher",
+          "description": "Spiele_Vorher",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Vorherige_Spielseite"
+            },
+            {
+              "type": "task",
+              "name": "Spiele_Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiele_Weiter",
+          "description": "Spiele_Weiter",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Naechste_Spielseite"
+            },
+            {
+              "type": "task",
+              "name": "Spiele_Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_0_Auswaehlen",
+          "description": "Spiel_0_Auswaehlen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiel_0_Auswaehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_1_Auswaehlen",
+          "description": "Spiel_1_Auswaehlen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiel_1_Auswaehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_2_Auswaehlen",
+          "description": "Spiel_2_Auswaehlen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiel_2_Auswaehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_3_Auswaehlen",
+          "description": "Spiel_3_Auswaehlen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Spiel_3_Auswaehlen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "name": "Spiel_Dateifehler",
+          "description": "Spiel_Dateifehler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Dateifehler_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        }
+      ],
+      "actions": [
+        {
+          "id": "b3ada6eb-4678-4c55-ad7d-f3e50873c90a",
+          "name": "Act_Spiel_Dateiauswahl_Oeffnen",
+          "type": "call_method",
+          "target": "SpielDatei",
+          "method": "choose",
+          "params": []
+        },
+        {
+          "id": "0b13968a-dc3d-4770-b7cb-b33eeb2ce86d",
+          "name": "Act_Spiel_Datei_Uebertragen",
+          "type": "call_method",
+          "target": "SpielUpload",
+          "method": "start",
+          "params": [
+            "${SpielTitel.text}",
+            "${SpielBeschreibung.text}"
+          ]
+        },
+        {
+          "id": "43a537c8-5d75-4ed2-b5f3-b3a7d9273bb6",
+          "name": "Act_Spiel_Upload_Abbrechen",
+          "type": "call_method",
+          "target": "SpielUpload",
+          "method": "cancel",
+          "params": []
+        },
+        {
+          "id": "0e238144-e958-4c4b-9537-7ba32ea65077",
+          "name": "Act_Dateiname_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Status.text": "${SpielDatei.filename} · bereit zum Hochladen"
+          }
+        },
+        {
+          "id": "d8e7c62a-0c16-4d39-96cb-72b9394e8b05",
+          "name": "Act_Upload_Status_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Status.text": "${SpielUpload.message} (${SpielUpload.progress} %)"
+          }
+        },
+        {
+          "id": "2d4d8211-773a-4f33-bc61-ffbeeda268de",
+          "name": "Act_Neuen_Entwurf_Auswaehlen",
+          "type": "property",
+          "changes": {
+            "SpielId": "${SpielUpload.result.id}",
+            "Auswahl.text": "Neuer Entwurf · veröffentlichen und anschließend einem Raum freigeben."
+          }
+        },
+        {
+          "id": "6254f00d-d6c9-4f8d-a426-0f7ae4a7f309",
+          "name": "Act_Spiele_Laden_Anfragen",
+          "type": "http",
+          "url": "/api/cms/upload-library",
+          "method": "POST",
+          "body": {
+            "page": "${Seite}"
+          },
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "8f1dbecb-fede-48ae-ada7-bf0545292a87",
+          "name": "Act_Eigene_Spiele_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Status.text": "${Antwort.message}",
+            "Seite": "${Antwort.page}",
+            "Seiten": "${Antwort.pages}",
+            "SpielKarte0.visible": "${Antwort.slot0.visible}",
+            "SpielKarte0.text": "${Antwort.slot0.label}",
+            "Slot0": "${Antwort.slot0.id}",
+            "SpielKarte1.visible": "${Antwort.slot1.visible}",
+            "SpielKarte1.text": "${Antwort.slot1.label}",
+            "Slot1": "${Antwort.slot1.id}",
+            "SpielKarte2.visible": "${Antwort.slot2.visible}",
+            "SpielKarte2.text": "${Antwort.slot2.label}",
+            "Slot2": "${Antwort.slot2.id}",
+            "SpielKarte3.visible": "${Antwort.slot3.visible}",
+            "SpielKarte3.text": "${Antwort.slot3.label}",
+            "Slot3": "${Antwort.slot3.id}"
+          }
+        },
+        {
+          "id": "14a9e987-a953-4766-ad14-08380796058f",
+          "name": "Act_Spiele_Veroeffentlichen_Anfragen",
+          "type": "http",
+          "url": "/api/cms/upload-library",
+          "method": "POST",
+          "body": {
+            "operation": "publish",
+            "id": "${SpielId}",
+            "published": true,
+            "page": "${Seite}"
+          },
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "6d1da4f3-88e9-477a-9cb6-888687c47d72",
+          "name": "Act_Spiele_Zurueckziehen_Anfragen",
+          "type": "http",
+          "url": "/api/cms/upload-library",
+          "method": "POST",
+          "body": {
+            "operation": "publish",
+            "id": "${SpielId}",
+            "published": false,
+            "page": "${Seite}"
+          },
+          "resultVariable": "Antwort"
+        },
+        {
+          "id": "87fbfff5-3537-4c2e-a0e7-376a343e8a66",
+          "name": "Act_Spiel_0_Auswaehlen",
+          "type": "property",
+          "changes": {
+            "SpielId": "${Slot0}",
+            "Auswahl.text": "${SpielKarte0.text}"
+          }
+        },
+        {
+          "id": "aa245f99-ec0d-417f-a7e6-bbdb5d77c32e",
+          "name": "Act_Spiel_1_Auswaehlen",
+          "type": "property",
+          "changes": {
+            "SpielId": "${Slot1}",
+            "Auswahl.text": "${SpielKarte1.text}"
+          }
+        },
+        {
+          "id": "8cadff46-34b2-411d-849e-72143a749227",
+          "name": "Act_Spiel_2_Auswaehlen",
+          "type": "property",
+          "changes": {
+            "SpielId": "${Slot2}",
+            "Auswahl.text": "${SpielKarte2.text}"
+          }
+        },
+        {
+          "id": "1e0a164f-5cfe-4d37-9d75-84ca6dcc19fe",
+          "name": "Act_Spiel_3_Auswaehlen",
+          "type": "property",
+          "changes": {
+            "SpielId": "${Slot3}",
+            "Auswahl.text": "${SpielKarte3.text}"
+          }
+        },
+        {
+          "id": "54fd4bb7-5b44-4b32-8de8-9b1d1f7caf3d",
+          "name": "Act_Vorherige_Spielseite",
+          "type": "calculate",
+          "formula": "Math.max(0, Seite - 1)",
+          "resultVariable": "Seite"
+        },
+        {
+          "id": "b5767ad7-f2c3-40c1-b832-e0287c752463",
+          "name": "Act_Naechste_Spielseite",
+          "type": "calculate",
+          "formula": "Math.min(Math.max(0, Seiten - 1), Seite + 1)",
+          "resultVariable": "Seite"
+        },
+        {
+          "id": "bd50510a-e43f-4418-8043-99691525b25f",
+          "name": "Act_Dateifehler_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Status.text": "${SpielDatei.message}"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "name": "SpielId",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global"
+        },
+        {
+          "name": "Seite",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global"
+        },
+        {
+          "name": "Seiten",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global"
+        },
+        {
+          "name": "Slot0",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global"
+        },
+        {
+          "name": "Slot1",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global"
+        },
+        {
+          "name": "Slot2",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global"
+        },
+        {
+          "name": "Slot3",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global"
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 48,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Eigene Spiele",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "name": "Titel",
+          "x": 4,
+          "y": 2,
+          "width": 56,
+          "height": 2,
+          "text": "MEINE SPIELE",
+          "style": {
+            "color": "#fff",
+            "fontSize": 18,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent"
+          },
+          "id": "upload_Titel"
+        },
+        {
+          "className": "TLabel",
+          "name": "Status",
+          "x": 4,
+          "y": 5,
+          "width": 56,
+          "height": 2,
+          "text": "GCS-Projekt auswählen · maximal 10 MB",
+          "style": {
+            "color": "#fff",
+            "fontSize": 18,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent"
+          },
+          "id": "upload_Status"
+        },
+        {
+          "id": "game_title",
+          "className": "TEdit",
+          "name": "SpielTitel",
+          "x": 4,
+          "y": 9,
+          "width": 54,
+          "height": 3,
+          "text": "",
+          "placeholder": "Titel des Spiels",
+          "maxLength": 60
+        },
+        {
+          "id": "game_description",
+          "className": "TEdit",
+          "name": "SpielBeschreibung",
+          "x": 4,
+          "y": 13,
+          "width": 54,
+          "height": 3,
+          "text": "",
+          "placeholder": "Kurze Beschreibung",
+          "maxLength": 500
+        },
+        {
+          "id": "upload_DateiWaehlen",
+          "className": "TButton",
+          "name": "DateiWaehlen",
+          "x": 4,
+          "y": 18,
+          "width": 18,
+          "height": 3,
+          "text": "📁 Datei auswählen",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiel_Datei_Waehlen"
+          }
+        },
+        {
+          "id": "upload_Hochladen",
+          "className": "TButton",
+          "name": "Hochladen",
+          "x": 24,
+          "y": 18,
+          "width": 18,
+          "height": 3,
+          "text": "📤 Hochladen",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiel_Upload_Starten"
+          }
+        },
+        {
+          "id": "upload_Abbrechen",
+          "className": "TButton",
+          "name": "Abbrechen",
+          "x": 44,
+          "y": 18,
+          "width": 14,
+          "height": 3,
+          "text": "Abbrechen",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiel_Upload_Abbrechen"
+          }
+        },
+        {
+          "className": "TLabel",
+          "name": "Auswahl",
+          "x": 4,
+          "y": 23,
+          "width": 56,
+          "height": 2,
+          "text": "Spiel anklicken, um es auszuwählen.",
+          "style": {
+            "color": "#fff",
+            "fontSize": 18,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent"
+          },
+          "id": "upload_Auswahl"
+        },
+        {
+          "id": "upload_SpielKarte0",
+          "className": "TButton",
+          "name": "SpielKarte0",
+          "x": 4,
+          "y": 27,
+          "width": 26,
+          "height": 3,
+          "text": "",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiel_0_Auswaehlen"
+          }
+        },
+        {
+          "id": "upload_SpielKarte1",
+          "className": "TButton",
+          "name": "SpielKarte1",
+          "x": 32,
+          "y": 27,
+          "width": 26,
+          "height": 3,
+          "text": "",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiel_1_Auswaehlen"
+          }
+        },
+        {
+          "id": "upload_SpielKarte2",
+          "className": "TButton",
+          "name": "SpielKarte2",
+          "x": 4,
+          "y": 31,
+          "width": 26,
+          "height": 3,
+          "text": "",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiel_2_Auswaehlen"
+          }
+        },
+        {
+          "id": "upload_SpielKarte3",
+          "className": "TButton",
+          "name": "SpielKarte3",
+          "x": 32,
+          "y": 31,
+          "width": 26,
+          "height": 3,
+          "text": "",
+          "visible": false,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiel_3_Auswaehlen"
+          }
+        },
+        {
+          "id": "upload_Veroeffentlichen",
+          "className": "TButton",
+          "name": "Veroeffentlichen",
+          "x": 4,
+          "y": 37,
+          "width": 25,
+          "height": 3,
+          "text": "Veröffentlichen",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiele_Veroeffentlichen"
+          }
+        },
+        {
+          "id": "upload_Zurueckziehen",
+          "className": "TButton",
+          "name": "Zurueckziehen",
+          "x": 32,
+          "y": 37,
+          "width": 26,
+          "height": 3,
+          "text": "Als Entwurf zurückziehen",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiele_Zurueckziehen"
+          }
+        },
+        {
+          "id": "upload_Vorher",
+          "className": "TButton",
+          "name": "Vorher",
+          "x": 4,
+          "y": 42,
+          "width": 8,
+          "height": 3,
+          "text": "◀",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiele_Vorher"
+          }
+        },
+        {
+          "id": "upload_Weiter",
+          "className": "TButton",
+          "name": "Weiter",
+          "x": 14,
+          "y": 42,
+          "width": 8,
+          "height": 3,
+          "text": "▶",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#285464",
+            "color": "#fff",
+            "fontSize": 18,
+            "borderRadius": 8
+          },
+          "events": {
+            "onClick": "Spiele_Weiter"
+          }
+        },
+        {
+          "id": "library_back",
+          "className": "TLink",
+          "name": "SuperAdminOeffnen",
+          "x": 32,
+          "y": 43,
+          "width": 25,
+          "height": 2,
+          "text": "Zur SuperAdmin-Verwaltung",
+          "url": "/super",
+          "target": "_self"
+        },
+        {
+          "className": "TTimer",
+          "name": "UploadInitialLaden",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "interval": 350,
+          "enabled": true,
+          "maxInterval": 1,
+          "currentInterval": 0,
+          "style": {},
+          "id": "library_timer",
+          "events": {
+            "onTimer": "Spiele_Laden"
+          }
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 48,
+        "cellSize": 18,
+        "visible": false,
+        "backgroundColor": "#122b39"
+      },
+      "features": [
+        {
+          "id": "game-upload",
+          "name": "Eigene Spiele hochladen und veröffentlichen",
+          "description": "Datei auswählen → übertragen → als Entwurf prüfen → veröffentlichen → im Raum freigeben",
+          "userStoryIds": [],
+          "blueprintTaskNames": [
+            "Spiel_Datei_Waehlen",
+            "Spiel_Upload_Starten",
+            "Spiel_Upload_Abbrechen",
+            "Spiel_Datei_Bereit",
+            "Spiel_Upload_Status",
+            "Spiel_Upload_Erfolgreich",
+            "Spiele_Laden",
+            "Spiele_Anzeigen",
+            "Spiele_Veroeffentlichen",
+            "Spiele_Zurueckziehen",
+            "Spiele_Vorher",
+            "Spiele_Weiter",
+            "Spiel_0_Auswaehlen",
+            "Spiel_1_Auswaehlen",
+            "Spiel_2_Auswaehlen",
+            "Spiel_3_Auswaehlen",
+            "Spiel_Dateifehler"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main"
+}

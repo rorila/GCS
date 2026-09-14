@@ -86,6 +86,7 @@ import { TThemeDialog } from '../components/TThemeDialog';
 import { TSpawner } from '../components/TSpawner';
 import { TAnimation } from '../components/TAnimation';
 import { TParallaxBackground } from '../components/TParallaxBackground';
+import { TTetris } from '../components/TTetris';
 /**
  * ComponentRegistry - Der zentrale "Broker" für alle GCS-Komponenten.
  */
@@ -135,6 +136,7 @@ export class ComponentRegistry {
         this.register('TIntervalTimer', TIntervalTimer);
         this.register('TShape', TShape);
         this.register('TTable', TTable);
+        this.register('TTetris', TTetris);
         this.register('TTextControl', TTextControl);
         this.register('TStickyNote', TStickyNote);
         this.register('TVideo', TVideo);
@@ -266,6 +268,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Range', 'TRangeVariable');
         this.typeMapping.set('List', 'TListVariable');
         this.typeMapping.set('Table', 'TTable');
+        this.typeMapping.set('Tetris', 'TTetris');
         this.typeMapping.set('Random', 'TRandomVariable');
         this.typeMapping.set('StringVariable', 'TStringVariable');
         this.typeMapping.set('IntegerVariable', 'TIntegerVariable');

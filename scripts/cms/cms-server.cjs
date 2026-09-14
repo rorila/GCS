@@ -1,44 +1,52 @@
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const envPath=path.join(__dirname,'..','..','.env');
+if(fs.existsSync(envPath))for(const line of fs.readFileSync(envPath,'utf8').split(/\r?\n/)){
+ const m=line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+ if(m&&!(m[1] in process.env))process.env[m[1]]=m[2].replace(/^["']|["']$/g,'');
+}
 const {createCore}=require('./cms-core.cjs');
 const {createAdmin}=require('./cms-admin.cjs');
 const {createTraceStore}=require('./cms-trace.cjs');
 const {loadLoginWorkflow}=require('./cms-login-workflow.cjs');
-const {loadAdminWorkflow,renderLogin}=require('./cms-admin-workflow.cjs');
+const {loadAdminWorkflow}=require('./cms-admin-workflow.cjs');
 const {createProfile}=require('./cms-profile.cjs');
 const {createUploads}=require('./cms-uploads.cjs');
 const root=path.resolve(__dirname,'../..');
+const {renderCms}=require('./cms-project.cjs');
+const cmsFile=path.join(root,'game-server/public/projects/GCS-CMS.json');
 function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}={}){
  if(!fs.existsSync(dataPath)){fs.mkdirSync(path.dirname(dataPath),{recursive:true});fs.copyFileSync(path.join(__dirname,'cms-demo.json'),dataPath,fs.constants.COPYFILE_EXCL);}
  const core=createCore(JSON.parse(fs.readFileSync(dataPath,'utf8'))),launches=new Map(),attempts=new Map();
- const admin=createAdmin(core,dataPath),traces=createTraceStore(),loginWorkflow=loadLoginWorkflow(path.join(root,'game-server/public/projects/GCS-Server-Anmeldung.json'));
- const adminWorkflow=loadAdminWorkflow(path.join(root,'game-server/public/projects/GCS-Server-Verwaltungsanmeldung.json'));
- const loginPage=()=>renderLogin(path.join(root,'game-server/public/projects/GCS-CMS-Anmeldung.json'));
- const profile=createProfile(core,dataPath,path.join(root,'game-server/public/projects/GCS-Server-Profil.json'));
- const uploads=createUploads(core,admin,dataPath,path.join(root,'game-server/public/projects/GCS-Server-Uploads.json'));
+ const admin=createAdmin(core,dataPath),traces=createTraceStore(),loginWorkflow=loadLoginWorkflow(cmsFile,'stage_server_login');
+ const adminWorkflow=loadAdminWorkflow(cmsFile,'stage_server_admin_login');
+ const loginPage=()=>renderCms(cmsFile,'stage_admin_login');
+ const profile=createProfile(core,dataPath,cmsFile,'stage_server_profile');
+ const uploads=createUploads(core,admin,dataPath,cmsFile,'stage_server_uploads');
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
  const reply=(res,code,data)=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  const server=http.createServer(async(req,res)=>{
   try{
    const url=new URL(req.url,'http://localhost');if(!/^(localhost|127\.0\.0\.1):\d+$/.test(req.headers.host||'')){res.writeHead(403);return res.end();}res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');
+   if(req.method==='GET'&&url.pathname==='/api/cms/health')return reply(res,200,{ok:true,message:'🟢 CMS-Server erreichbar'});
    if(req.method==='GET'&&url.pathname==='/library'){
-    res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','no-store');return res.end(admin.readSession(req)?renderLogin(path.join(root,'game-server/public/projects/GCS-CMS-Spiele.json')):loginPage());
+    res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','no-store');return res.end(admin.readSession(req)?renderCms(cmsFile,'stage_library'):loginPage());
    }
    if(req.method==='GET'&&url.pathname.startsWith('/avatars/')){
     const file=uploads.asset(url.pathname.slice(9));if(!file)return reply(res,404,{ok:false});res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=86400'});return res.end(fs.readFileSync(file));
    }
    if(req.method==='POST'&&['/api/cms/upload/game','/api/cms/upload/avatar'].includes(url.pathname)){
     if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
-    const trace=traces.begin(req,true);if(trace){trace.project='GCS-Server-Uploads.json';res.setHeader('X-GCS-Trace-ID',trace.id)}const emit=(label,data)=>traces.step(trace,label,data);
+    const trace=traces.begin(req,true);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id)}const emit=(label,data)=>traces.step(trace,label,data);
     emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,note:'Binärinhalt nicht protokolliert'});
     const result=await uploads.receive(req,url.pathname.endsWith('/game')?'game':'avatar',emit);emit('Response senden',{status:result.status,body:result.data});return reply(res,result.status,result.data);
    }
    if(req.method==='GET'&&url.pathname.startsWith('/api/cms/debug/traces/')){
-    const actor=admin.readSession(req);if(!actor||!core.can(actor,'manageArea',{areaId:'root'}))return reply(res,403,{ok:false,message:'SuperAdmin-Anmeldung für Server-Diagnose erforderlich.'});
+    if(process.env.CMS_TRACE_ADMIN!=='off'){const actor=admin.readSession(req);if(!actor||!core.can(actor,'manageArea',{areaId:'root'}))return reply(res,403,{ok:false,message:'SuperAdmin-Anmeldung für Server-Diagnose erforderlich.'});}
     const trace=traces.get(url.pathname.slice('/api/cms/debug/traces/'.length));return reply(res,trace?200:404,trace||{ok:false,message:'Vorgang abgelaufen oder Diagnose ausgeschaltet.'});
    }
    if(req.method==='GET'&&['/admin','/house','/super'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
-    return res.end(admin.readSession(req)?fs.readFileSync(path.join(root,url.pathname==='/super'?'public/cms-super.html':url.pathname==='/house'?'public/cms-house.html':'public/cms-admin.html')):loginPage());
+    return res.end(admin.readSession(req)?renderCms(cmsFile,{'/super':'stage_super','/house':'stage_house','/admin':'stage_admin'}[url.pathname]):loginPage());
    }
    if(url.pathname==='/admin-enroll'&&['GET','POST'].includes(req.method)){
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
@@ -59,7 +67,8 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     res.writeHead(303,{'Location':'/admin','Set-Cookie':`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`,'Cache-Control':'no-store'});return res.end();
    }
    if(req.method==='GET'&&['/','/runtime-standalone.js','/cms-shell.js'].includes(url.pathname)){
-    const file=url.pathname==='/'?'cms.html':url.pathname.slice(1);const location=file==='cms-shell.js'?path.join(__dirname,file):path.join(root,'public',file);
+    if(url.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(renderCms(cmsFile,'stage_main',url.searchParams.get('house')));}
+    const file=url.pathname.slice(1);const location=file==='cms-shell.js'?path.join(__dirname,file):path.join(root,'public',file);
     res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript; charset=utf-8':'text/html; charset=utf-8'});return res.end(fs.readFileSync(location));
    }
    if(req.method==='GET'&&url.pathname.startsWith('/play/')){
@@ -77,7 +86,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>8192)return reply(res,413,{error:'Anfrage zu groß'});}let body;try{body=JSON.parse(raw||'{}');}catch{return reply(res,400,{error:'Ungültiges JSON'});}
    if(url.pathname==='/api/cms/admin-login'){
     if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
-    const trace=traces.begin(req,adminWorkflow.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-Server-Verwaltungsanmeldung.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
+    const trace=traces.begin(req,adminWorkflow.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,body});
     const result=await adminWorkflow.run(admin,req,body,emit);
     if(result.token)res.setHeader('Set-Cookie',`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
@@ -96,7 +105,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    }
    if(url.pathname==='/api/cms/login'){
     const key=req.socket.remoteAddress,now=Date.now();if(attempts.size>1000)attempts.clear();let limit=attempts.get(key);if(!limit||now-limit.time>60000){limit={time:now,n:0};attempts.set(key,limit);}if(++limit.n>20)return reply(res,429,{ok:false,message:'⏳ Bitte kurz warten'});
-    const trace=traces.begin(req,loginWorkflow.endpoint.traceEnabled!==false);if(trace)res.setHeader('X-GCS-Trace-ID',trace.id);
+    const trace=traces.begin(req,loginWorkflow.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);
     emit('Request empfangen',{method:req.method,path:url.pathname,headers:req.headers,body});
     const result=loginWorkflow.run(core,body,emit);
@@ -105,14 +114,14 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    }
    const session=core.session(body.token);if(!session)return reply(res,401,{ok:false,message:'🔑 Bitte neu anmelden'});
    if(url.pathname.startsWith('/api/cms/profile/')){
-    const trace=traces.begin(req,true);if(trace){trace.project='GCS-Server-Profil.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
+    const trace=traces.begin(req,true);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,body});
     const result=profile(session,url.pathname.slice('/api/cms/profile/'.length),body,emit);emit('Response senden',{status:200,body:result});return reply(res,200,result);
    }
    if(url.pathname==='/api/cms/logout'){core.logout(body.token);for(const [key,l]of launches)if(l.token===body.token)launches.delete(key);return reply(res,200,{ok:true});}
    if(url.pathname==='/api/cms/rooms'){
     const list=core.rooms(session.personId),page=Math.max(0,Math.min(Number.isInteger(Number(body.page))?Number(body.page):0,Math.max(0,Math.ceil(list.length/4)-1)));
-    return reply(res,200,{ok:true,page,pages:Math.ceil(list.length/4),...slots(list.slice(page*4,page*4+4).map(r=>({id:r.id,label:r.avatar+'  '+r.name,visible:true}))),message:'🚪 Wähle deinen Raum'});
+    return reply(res,200,{ok:true,page,pages:Math.ceil(list.length/4),total:list.length,items:list.slice(page*4,page*4+4).map(r=>({id:r.id,name:r.name,avatar:r.avatar||'🚪',active:r.active})),...slots(list.slice(page*4,page*4+4).map(r=>({id:r.id,label:r.avatar+'  '+r.name,visible:true}))),message:'🚪 Wähle deinen Raum'});
    }
    if(url.pathname==='/api/cms/games'){
     if(!core.rooms(session.personId).some(r=>r.id===body.areaId))return reply(res,403,{ok:false,message:'⛔ Raum nicht freigegeben'});

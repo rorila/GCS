@@ -1,0 +1,11 @@
+import fs from 'node:fs';import {projectStore} from './src/services/ProjectStore';
+const file='game-server/public/projects/GCS-CMS.json',p=JSON.parse(fs.readFileSync(file,'utf8'));fs.copyFileSync(file,'backups/GCS-CMS-before-server-status-'+Date.now()+'.json');projectStore.setProject(p);
+const set=(target:any,path:string,value:any)=>projectStore.dispatch({type:'SET_PROPERTY',target,path,value});const bp=p.stages.find((s:any)=>s.type==='blueprint');
+if(bp.objects.some((o:any)=>o.name==='CMSServerStatus'))throw Error('Status bereits vorhanden');
+const label={...structuredClone(p.stages[1].objects.find((o:any)=>o.name==='Hinweis')),id:'cms_server_status',name:'CMSServerStatus',x:1,y:0,width:62,height:1.5,text:'CMS-Verbindung wird geprüft …',fontSize:12,visible:true,scope:'global'};
+const timer={id:'cms_server_status_timer',name:'CMSServerPruefung',className:'TTimer',x:1,y:2,width:4,height:2,interval:15000,maxInterval:0,enabled:true,isHiddenInRun:true,scope:'global',events:{onStart:'CMS_Serverstatus_Pruefen',onTimer:'CMS_Serverstatus_Pruefen'}};
+set(bp,'objects',[...bp.objects,label,timer]);
+set(bp,'actions',[...bp.actions,{id:'cms_health_request',name:'Act_CMS_Server_Erreichbarkeit_Pruefen',type:'http',url:'/api/cms/health',method:'GET',resultVariable:'CMSServerAntwort'},{id:'cms_health_display',name:'Act_CMS_Serverstatus_Anzeigen',type:'property',changes:{'CMSServerStatus.text':'${CMSServerAntwort.message}'}}]);
+set(bp,'tasks',[...bp.tasks,{id:'cms_health_task',name:'CMS_Serverstatus_Pruefen',actionSequence:[{type:'action',name:'Act_CMS_Server_Erreichbarkeit_Pruefen'},{type:'action',name:'Act_CMS_Serverstatus_Anzeigen'}]}]);
+const error=bp.actions.find((a:any)=>a.name==='Act_Fehlermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren');set(error,'changes',{...error.changes,'Hinweis.text':'${Antwort.message}'});
+fs.writeFileSync(file,JSON.stringify(p,null,2));

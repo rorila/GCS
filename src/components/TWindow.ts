@@ -34,6 +34,7 @@ export interface ComponentStyle {
 }
 
 export class TWindow extends TComponent {
+    public description: string = ''; // Dokumentation für Variablen; ohne Laufzeiteffekt.
     public x: number;
     public y: number;
     public width: number;
@@ -280,6 +281,7 @@ export class TWindow extends TComponent {
         ];
         return [
             ...this.getBaseProperties(),
+            ...(this.isVariable ? [{name: 'description', label: 'Bemerkung', type: 'string', group: 'Variable', defaultValue: '', hint: 'Zweck und Verwendung dieser Variable'} as TPropertyDef] : []),
             ...visualProperties.map(prop => ({ ...prop, visualOnly: true }))
         ];
     }

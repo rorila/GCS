@@ -1,0 +1,78 @@
+{
+  "$module": "table_data",
+  "description": "Objektlisten als Datenquelle für Tabellen",
+  "components": {
+    "TTable": {
+      "description": "Zeigt eine TObjectList als Tabelle an. Spalten bestimmen Feld und Überschrift.",
+      "properties": {
+        "dataSource": {
+          "type": "string",
+          "description": "Name oder ID der TObjectList; leer verwendet data."
+        },
+        "keyField": {
+          "type": "string",
+          "default": "id"
+        },
+        "columns": {
+          "type": "json",
+          "description": "Array aus {field,label,width?,format?}; format=boolean zeigt Häkchen."
+        },
+        "selectedKey": {
+          "type": "any",
+          "readonly": true
+        },
+        "selectedRecord": {
+          "type": "object",
+          "readonly": true
+        }
+      },
+      "events": [
+        "onSelect",
+        "onRowClick",
+        "onSelectionChanged"
+      ],
+      "methods": []
+    },
+    "TObjectList": {
+      "description": "Unterstützt Spielobjektverweise und eigenständige Server-Datensätze.",
+      "properties": {
+        "sourceMode": {
+          "type": "string",
+          "default": "objects",
+          "description": "objects oder records"
+        },
+        "records": {
+          "type": "array",
+          "default": []
+        },
+        "recordKey": {
+          "type": "string",
+          "default": "id"
+        }
+      },
+      "methods": [
+        {
+          "name": "replaceRecords",
+          "description": "Ersetzt alle Datensätze atomar; Array oder JSON-Array. Leere Liste erlaubt, fehlende/doppelte Schlüssel abgelehnt.",
+          "params": [
+            {
+              "name": "rows",
+              "type": "array"
+            }
+          ]
+        },
+        {
+          "name": "tryReplaceRecords",
+          "description": "Wie replaceRecords, liefert true/false und setzt lastError statt einer Exception.",
+          "params": [
+            {
+              "name": "rows",
+              "type": "array"
+            }
+          ]
+        }
+      ],
+      "events": []
+    }
+  }
+}

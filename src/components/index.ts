@@ -73,6 +73,7 @@ export * from './TSystemInfo';
 export * from './TTabBar';
 export * from './TTabControl';
 export * from './TTable';
+export * from './TTetris';
 export * from './TTextControl';
 export * from './TThresholdVariable';
 export * from './TTimer';

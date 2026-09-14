@@ -122,9 +122,17 @@ export function registerMiscActions() {
         const targetName = action.target;
         const methodName = action.method;
         const rawParams: any[] = Array.isArray(action.params) ? action.params : [];
-        const resolvedParams = rawParams.map(p =>
-            PropertyHelper.interpolate(String(p), combinedContext, context.objects)
-        );
+        const resolvedParams = rawParams.map(p => {
+            // Ganze Objekt-/Array-Bindungen als Daten übergeben, nicht als '[object Object]'.
+            const match = typeof p === 'string' ? p.match(/^\$\{([^}]+)\}$/) : null;
+            if (match) {
+                const [root, ...parts] = match[1].split('.');
+                const component = context.objects.find(o => o.name === root || o.id === root);
+                const value = component ? (parts.length ? PropertyHelper.getPropertyValue(component, parts.join('.')) : PropertyHelper.resolveValue(component)) : PropertyHelper.getPropertyValue(combinedContext, match[1]);
+                if (value !== null && typeof value === 'object') return value;
+            }
+            return PropertyHelper.interpolate(String(p), combinedContext, context.objects);
+        });
 
         const targetObj = resolveTarget(targetName, context.objects, context.vars, context.eventData);
         if (targetObj && typeof (targetObj as any)[methodName] === 'function') {

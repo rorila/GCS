@@ -1,7 +1,7 @@
 const fs=require('node:fs'),crypto=require('node:crypto');
 const {fileStore}=require('./cms-admin.cjs'),{validate}=require('./cms-core.cjs');
-function createProfile(core,dataPath,configPath){
- const project=JSON.parse(fs.readFileSync(configPath,'utf8')),stage=project.stages[0],node=stage.objects.find(o=>o.className==='TServerProfile');
+function createProfile(core,dataPath,configPath,stageId){
+ const project=require('./cms-project.cjs').readWorkflow(configPath,stageId),stage=project.stages[0],node=stage.objects.find(o=>o.className==='TServerProfile');
  if(!node||!Array.isArray(node.avatars)||!node.avatars.length)throw Error('Profil-Konfiguration fehlt');
  const operations={read:'onRead',save:'onSave',help:'onHelp'};
  for(const [op,event]of Object.entries(operations)){const task=stage.tasks.find(t=>t.name===node.events[event]);const steps=task?.actionSequence;const action=stage.actions.find(a=>a.name===steps?.[0]?.name);if(steps?.length!==1||steps[0].type!=='action'||action?.type!=='call_method'||action.target!==node.name||action.method!==op)throw Error('Ungültiger Profil-Workflow');}

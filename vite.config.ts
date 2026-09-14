@@ -97,6 +97,7 @@ export default defineConfig({
         open: process.env.GCS_NO_OPEN !== '1',
         strictPort: true,
         proxy: {
+            '/play/': {target:'http://127.0.0.1:8081',changeOrigin:false},
             '/api/cms': {target:'http://127.0.0.1:8081',changeOrigin:false},
             '/api': 'http://localhost:8080',
             '/platform': 'http://localhost:8080',

@@ -146,6 +146,7 @@ export class DialogDomainHelper {
             'TWindow': ['open', 'close', 'toggle', 'moveTo'],
             'TTabControl': ['selectTab'],
             'TStageController': ['goToStage', 'goToMainStage', 'goToFirstStage', 'nextStage', 'previousStage'],
+            'TTetris': ['startGame', 'resetGame', 'togglePause', 'pauseGame', 'resumeGame', 'moveLeft', 'moveRight', 'rotatePiece', 'rotatePieceCCW', 'softDrop', 'hardDrop'],
         };
 
         return methodMap[className] || [];

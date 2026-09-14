@@ -1,7 +1,7 @@
 const fs=require('node:fs');
 /** Fixed component contracts; project task references define the visible, validated execution path. */
-function loadAdminWorkflow(file){
- const project=JSON.parse(fs.readFileSync(file,'utf8')),stages=project.stages||[],objects=stages.flatMap(s=>s.objects||[]),actions=stages.flatMap(s=>s.actions||[]),tasks=stages.flatMap(s=>s.tasks||[]);
+function loadAdminWorkflow(file,stageId){
+ const project=require('./cms-project.cjs').readWorkflow(file,stageId),stages=project.stages||[],objects=stages.flatMap(s=>s.objects||[]),actions=stages.flatMap(s=>s.actions||[]),tasks=stages.flatMap(s=>s.tasks||[]);
  const one=type=>{const list=objects.filter(o=>o.className===type);if(list.length!==1)throw Error('Verwaltungsanmeldung benötigt '+type);return list[0]};
  const endpoint=one('TServerEndpoint'),validation=one('TServerValidate'),auth=one('TServerAuthenticate'),session=one('TServerSession'),response=one('TServerResponse');
  if(endpoint.endpointPath!=='/api/cms/admin-login'||endpoint.httpMethod!=='POST'||auth.authenticationMode!=='Verwaltungspasswort')throw Error('Ungültiger Verwaltungsendpunkt');
@@ -13,7 +13,7 @@ function loadAdminWorkflow(file){
  const va=resolve(seq[0],validation),aa=resolve(branch.then[0],auth),sa=resolve(inner.then[0],session),ra=resolve(seq[2],response);
  for(const [o,key]of [[validation,'failureMessage'],[auth,'failureMessage'],[response,'successMessage']])if(typeof o[key]!=='string'||!o[key]||o[key].length>200)throw Error('Ungültige Rückmeldung');
  return {endpoint,async run(admin,req,body,emit){
-  const meta=(node,action)=>({component:node.name,componentId:node.id,action:action.name,actionId:action.id,task:task.name,stage:'stage_blueprint'});
+  const meta=(node,action)=>({component:node.name,componentId:node.id,action:action.name,actionId:action.id,task:task.name,stage:stageId||'stage_blueprint'});
   emit('onRequest → '+task.name,{task:task.name,component:endpoint.name});
   const requestValid=!!body&&typeof body.username==='string'&&body.username.length>0&&body.username.length<=80&&typeof body.password==='string'&&body.password.length>0&&body.password.length<=200;
   emit('Eingaben prüfen',{...meta(validation,va),input:body,requestValid});

@@ -1,0 +1,14 @@
+{
+  "passed": 9,
+  "checks": [
+    "Serverstatus mit registriertem Editor-Simulator erreichbar",
+    "Eulenfreund meldet sich trotz aktivem Simulator an",
+    "CMS umgeht ausschließlich den Simulator",
+    "Andere APIs bleiben simulierbar",
+    "Verbindungsverlust deutlich sichtbar",
+    "Anmeldung unterscheidet Netzwerkfehler von falscher Einwahl",
+    "Wiederhergestellte Verbindung sichtbar",
+    "Proxyfehler ohne JSON verständlich angezeigt",
+    "Keine Browserausnahmen"
+  ]
+}

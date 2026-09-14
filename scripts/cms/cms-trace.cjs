@@ -1,7 +1,11 @@
 const crypto=require('node:crypto');
+// Immer maskiert: echte Zugangsdaten. DEVMASK nur bei CMS_TRACE_MASK=on (Default).
+const SECRET=/(password|passwort|secret|authorization|cookie|token|credential|^salt$|^hash$)/i;
+const DEVMASK=/(sequence|authcode|^code\d*$)/i;
+const maskOn=()=>String(process.env.CMS_TRACE_MASK||'on').toLowerCase()!=='off';
 function redact(value,depth=0){
  if(depth>8)return '[Tiefe begrenzt]';if(Array.isArray(value))return value.slice(0,100).map(v=>redact(v,depth+1));
- if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).slice(0,100).map(([k,v])=>[k,/(password|passwort|secret|authorization|cookie|token|credential|sequence|authcode|^code\d*$|^salt$|^hash$)/i.test(k)?'[maskiert]':redact(v,depth+1)]));
+ if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).slice(0,100).map(([k,v])=>[k,(SECRET.test(k)||(maskOn()&&DEVMASK.test(k)))?'[maskiert]':redact(v,depth+1)]));
  return typeof value==='string'?value.slice(0,8192):value;
 }
 function createTraceStore(){const traces=new Map();

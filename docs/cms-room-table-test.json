@@ -1,0 +1,13 @@
+{
+  "passed": 8,
+  "checks": [
+    "Vier Raumzeilen aus Objektliste",
+    "Eigene Anmeldeantwort bleibt erhalten",
+    "Zweite Seite ersetzt statt anzuhängen",
+    "Zeilenauswahl öffnet richtigen Raum",
+    "Raumantwort bleibt nach Spiele-Anfrage erhalten",
+    "Leere Antwort entfernt alte Datensätze",
+    "Fehlerantwort bleibt in Objektvariable",
+    "Keine Browserausnahmen"
+  ]
+}

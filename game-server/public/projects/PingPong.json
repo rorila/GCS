@@ -452,7 +452,19 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#2d865f"
-      }
+      },
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
     },
     {
       "id": "stage_splash",
@@ -1437,7 +1449,9 @@
               "body": [
                 {
                   "name": "NegateBallY",
-                  "type": "action"
+                  "type": "action",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
                 }
               ],
               "elseBody": [
@@ -1453,7 +1467,9 @@
                   "body": [
                     {
                       "name": "NegateBallY",
-                      "type": "action"
+                      "type": "action",
+                      "scope": "global",
+                      "sourceStage": "stage_blueprint"
                     }
                   ],
                   "elseBody": [
@@ -1469,7 +1485,9 @@
                       "body": [
                         {
                           "name": "ResetBall",
-                          "type": "action"
+                          "type": "action",
+                          "scope": "global",
+                          "sourceStage": "stage_blueprint"
                         }
                       ],
                       "elseBody": [
@@ -1485,7 +1503,9 @@
                           "body": [
                             {
                               "name": "ResetBall",
-                              "type": "action"
+                              "type": "action",
+                              "scope": "global",
+                              "sourceStage": "stage_blueprint"
                             }
                           ],
                           "elseBody": []
@@ -1501,32 +1521,32 @@
           "params": [],
           "flowLayout": {
             "HandleBallBoundary": {
-              "x": 300,
-              "y": 60
+              "x": 40,
+              "y": 40
             },
-            "If Top": {
-              "x": 300,
-              "y": 160
+            "hitSide == top": {
+              "x": 40,
+              "y": 140
             },
             "NegateBallY": {
-              "x": 500,
-              "y": 260
+              "x": 280,
+              "y": 240
             },
-            "If Bottom": {
-              "x": 300,
-              "y": 260
+            "hitSide == bottom": {
+              "x": 40,
+              "y": 240
             },
-            "If Left": {
-              "x": 300,
-              "y": 360
+            "hitSide == left": {
+              "x": 40,
+              "y": 340
             },
             "ResetBall": {
-              "x": 500,
-              "y": 460
+              "x": 280,
+              "y": 440
             },
-            "If Right": {
-              "x": 300,
-              "y": 460
+            "hitSide == right": {
+              "x": 40,
+              "y": 440
             }
           },
           "id": "2aa0559f-40f3-401d-8b55-cfbc59f56ff7"
@@ -1634,6 +1654,24 @@
           "id": "auto_action_0_1788851688784",
           "details": "",
           "name": "StopRightPaddleVelUp",
+          "type": "action",
+          "showDetails": false,
+          "scope": "global",
+          "sourceStage": "stage_blueprint"
+        },
+        {
+          "id": "auto_action_1_1789138066753",
+          "details": "",
+          "name": "NegateBallY",
+          "type": "action",
+          "showDetails": false,
+          "scope": "global",
+          "sourceStage": "stage_blueprint"
+        },
+        {
+          "id": "auto_action_5_1789138066753",
+          "details": "",
+          "name": "ResetBall",
           "type": "action",
           "showDetails": false,
           "scope": "global",

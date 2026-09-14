@@ -465,7 +465,17 @@ export class ActionParameterRenderer {
                     default: {
                         let finalValue = currentValue;
                         if (typeof finalValue === 'object' && finalValue !== null) {
-                            finalValue = JSON.stringify(finalValue);
+                            finalValue = param.multiline
+                                ? JSON.stringify(finalValue, null, 2)
+                                : JSON.stringify(finalValue);
+                        }
+                        if (param.multiline && typeof finalValue === 'string') {
+                            const trimmed = finalValue.trim();
+                            if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                                try {
+                                    finalValue = JSON.stringify(JSON.parse(trimmed), null, 2);
+                                } catch { /* Kein gültiges JSON – Rohtext anzeigen */ }
+                            }
                         }
                         let edit: HTMLInputElement | HTMLTextAreaElement;
                         if (param.multiline) {

@@ -1,5 +1,5 @@
 {
-  "passed": 14,
+  "passed": 17,
   "checks": [
     "Ohne Sitzung kein Profil",
     "Eigenes Profil lesbar",
@@ -13,6 +13,9 @@
     "Native Änderung gespeichert",
     "Hilfebestätigung sichtbar",
     "Rückkehr zur Raumauswahl",
+    "Profil ist eigene Stage",
+    "Profil erneut geladen",
+    "Abmeldung aus Profil öffnet Spielhaus",
     "Profil nach Abmeldung verborgen",
     "Keine Browserfehler"
   ]

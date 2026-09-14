@@ -5,6 +5,7 @@ import { getDialogSlideOffset } from './DialogSlide';
 import { IRenderContext } from './IRenderContext';
 import { EmojiPickerRenderer } from './EmojiPickerRenderer';
 import { TableRenderer } from './TableRenderer';
+import { TetrisRenderer } from './TetrisRenderer';
 import { SpriteRenderer } from './SpriteRenderer';
 import { ShapeRenderer } from './ShapeRenderer';
 import { InputRenderer } from './InputRenderer';
@@ -677,7 +678,11 @@ export class StageObjectRenderer {
         else if (className === 'TCard') TextObjectRenderer.renderCard(ctx, el, obj);
         else if (className === 'TButton') TextObjectRenderer.renderButton(ctx, el, obj, isNew);
         else if (className === 'TEmojiPicker') EmojiPickerRenderer.renderEmojiPicker(el, obj, this.ctx.host.grid.cellSize, this.ctx.host.onEvent?.bind(this.ctx.host));
-        else if (className === 'TTable' || className === 'TObjectList') TableRenderer.renderTable(el, obj, this.ctx.host.onEvent?.bind(this.ctx.host), this.ctx.host.grid.cellSize);
+        else if (className === 'TTetris') TetrisRenderer.renderTetris(el, obj);
+        else if (className === 'TTable' || className === 'TObjectList') {
+            if (!this.ctx.host.runMode) obj.setDataContext?.(this.ctx.objects);
+            TableRenderer.renderTable(el, obj, this.ctx.host.onEvent?.bind(this.ctx.host), this.ctx.host.grid.cellSize);
+        }
         else if (className === 'TDataList') ComplexComponentRenderer.renderDataList(ctx, el, obj);
         else if (className === 'TVirtualGamepad') VirtualGamepadRenderer.render(ctx, el, obj, className);
         else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable' || obj.isVariable || obj.isService) SystemComponentRenderer.render(ctx, el, obj, className);

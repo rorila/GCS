@@ -143,7 +143,10 @@ export class InspectorSectionRenderer {
 
         const container = document.createElement('div');
         const isInline = !!propDef.inline;
-        container.style.cssText = `display:flex;align-items:center;gap:${isInline ? '4' : '8'}px;margin-bottom:4px;`;
+        const isMultiline = propDef.type === 'textarea' || propDef.type === 'json' || !!propDef.multiline;
+        container.style.cssText = isMultiline
+            ? 'display:flex;flex-direction:column;align-items:stretch;gap:4px;margin-bottom:4px;'
+            : `display:flex;align-items:center;gap:${isInline ? '4' : '8'}px;margin-bottom:4px;`;
 
         let labelEl: HTMLElement | null = null;
         if (propDef.label && propDef.type !== 'textarea') {
@@ -152,7 +155,7 @@ export class InspectorSectionRenderer {
             labelEl.style.flexShrink = '0';
             if (propDef.type === 'keyvalue') {
                 labelEl.style.whiteSpace = 'normal';
-            } else if (isInline) {
+            } else if (isInline || isMultiline) {
                 labelEl.style.whiteSpace = 'nowrap';
             } else {
                 labelEl.style.minWidth = '70px';

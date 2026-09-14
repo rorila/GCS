@@ -14,6 +14,13 @@ export interface TColumnDef {
  */
 export class TTable extends TWindow {
     public className: string = 'TTable';
+    public dataSource: string = '';
+    public keyField: string = 'id';
+    public selectedKey: any = '';
+    public selectedRecord: any = null;
+    private tableObjects: any[] = [];
+    private requestRender: (() => void) | undefined;
+    private lastRows: any[] | null = null;
     public data: any[] = [];         // Daten-Basis (gebunden via RuntimeVariableManager)
     public columns: any = [];        // JSON-Konfiguration (TColumnDef[])
     public selectedIndex: number = -1;
@@ -42,14 +49,45 @@ export class TTable extends TWindow {
         this.style.fontSize = 14;
     }
 
+    public initRuntime(callbacks: {objects: any[]; render?: () => void}): void { this.tableObjects = callbacks.objects || []; this.requestRender = callbacks.render; this.lastRows = null; }
+
+    public onRuntimeUpdate(): void {
+        if (!this.dataSource) return;
+        const rows = this.getRows();
+        if (this.data !== rows) { this.data = rows; this.requestRender?.(); }
+    }
+
+    public onRuntimeStop(): void { this.tableObjects = []; this.requestRender = undefined; this.lastRows = null; }
+
+    public setDataContext(objects: any[]): void { this.tableObjects = objects; }
+
+    public getRows(): any[] {
+        const source = this.dataSource ? this.tableObjects.find(o => o !== this && (o.id === this.dataSource || o.name === this.dataSource) && o.className === 'TObjectList') : null;
+        const rows = this.dataSource ? (source?.data || []) : this.data;
+        const result = Array.isArray(rows) ? rows : [];
+        if (this.lastRows !== result) { this.selectedIndex = -1; this.selectedKey = ''; this.selectedRecord = null; this.lastRows = result; }
+        return result;
+    }
+
+    public selectRow(index: number): void {
+        const rows = this.getRows();
+        this.selectedIndex = index >= 0 && index < rows.length ? index : -1;
+        this.selectedRecord = rows[this.selectedIndex] || null;
+        this.selectedKey = this.selectedRecord?.[this.keyField] ?? '';
+    }
+
     public getEvents(): string[] {
-        return ['onSelect', 'onDoubleClick', ...super.getEvents()];
+        return ['onSelect', 'onRowClick', 'onSelectionChanged', 'onDoubleClick', ...super.getEvents()];
     }
 
     public getInspectorProperties(): TPropertyDef[] {
         const props = super.getInspectorProperties();
         return [
             ...props,
+            { name: 'dataSource', label: 'Objektliste (Datenquelle)', type: 'select', source: 'object_lists', placeholder: '--- Keine Objektliste ---', group: 'Tabelle', hint: 'TObjectList auswählen; leer verwendet die eigene Daten-Basis.' },
+            { name: 'keyField', label: 'Schlüsselfeld', type: 'string', group: 'Tabelle' },
+            { name: 'selectedKey', label: 'Ausgewählter Schlüssel', type: 'string', group: 'Auswahl', readonly: true },
+            { name: 'selectedRecord', label: 'Ausgewählter Datensatz', type: 'json', group: 'Auswahl', readonly: true },
             { name: 'data', label: 'Daten-Basis (JSON)', type: 'json', group: 'Tabelle', hint: 'Wird oft zur Laufzeit überschrieben' },
             { name: 'columns', label: 'Spalten (JSON)', type: 'json', group: 'Tabelle', hint: '[{"field":"id", "label":"ID"}] - Leer lassen für Auto-Columns' },
             { name: 'displayMode', label: 'Anzeige-Modus', type: 'select', options: ['table', 'cards'], group: 'Tabelle' },
@@ -63,6 +101,7 @@ export class TTable extends TWindow {
     public toDTO(): any {
         return {
             ...super.toDTO(),
+            dataSource: this.dataSource, keyField: this.keyField,
             data: this.data,
             columns: this.columns,
             selectedIndex: this.selectedIndex,

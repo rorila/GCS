@@ -1,0 +1,858 @@
+{
+  "meta": {
+    "id": "tetris",
+    "name": "Tetris",
+    "version": "1.0.0",
+    "author": "Rolf Rieckmann / Devin",
+    "description": "Klassisches Tetris auf Basis der TTetris-Komponente: 7-Bag-Randomizer, Wall-Kicks, Ghost-Piece, Vorschau, Level und Punkte.",
+    "_sourcePath": "projects/Tetris.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#070b16"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Globale Dienste",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "stage_blueprint_Tastatur",
+          "name": "Tastatur",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowLeft": "SteuerungLinks",
+            "onKeyDown_KeyA": "SteuerungLinks",
+            "onKeyDown_ArrowRight": "SteuerungRechts",
+            "onKeyDown_KeyD": "SteuerungRechts",
+            "onKeyDown_ArrowUp": "SteinDrehen",
+            "onKeyDown_KeyW": "SteinDrehen",
+            "onKeyDown_ArrowDown": "SteinSenken",
+            "onKeyDown_KeyS": "SteinSenken",
+            "onKeyDown_Space": "StartOderDrop",
+            "onKeyDown_Enter": "StartOderDrop",
+            "onKeyDown_KeyP": "PauseWechsel"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "isGlobal": true,
+          "description": "System internal flag to track unsaved changes",
+          "uiScope": "stage",
+          "uiEmoji": "🎭",
+          "usageCount": 0
+        }
+      ],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#070b16"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Tetris",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "stage_main_Titel",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 2,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#8ab4ff",
+            "fontSize": 22,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "🧱 TETRIS"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Hilfe",
+          "name": "Hilfe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 49,
+          "y": 4,
+          "width": 10,
+          "height": 12,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#64748b",
+            "fontSize": 13,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "← →  bewegen\n↑     drehen\n↓     senken\nLEER  fallen\nP     Pause"
+        },
+        {
+          "className": "TTetris",
+          "id": "stage_main_Spielfeld",
+          "name": "Spielfeld",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 20,
+          "y": 3,
+          "width": 26,
+          "height": 34,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#0b1020",
+            "borderColor": "#1f2a4a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "cols": 10,
+          "rows": 20,
+          "baseInterval": 700,
+          "levelLines": 10,
+          "showGhost": true,
+          "state": "ready",
+          "score": 0,
+          "lines": 0,
+          "level": 1,
+          "highScore": 0,
+          "nextPiece": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_BtnStart",
+          "name": "BtnStart",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SpielStarten"
+          },
+          "visible": true,
+          "x": 22,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#dbeafe",
+            "fontSize": 13,
+            "backgroundColor": "#1e3a5f",
+            "borderColor": "#3b82f6",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "▶ START",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_BtnPause",
+          "name": "BtnPause",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "PauseWechsel"
+          },
+          "visible": true,
+          "x": 31,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fde68a",
+            "fontSize": 13,
+            "backgroundColor": "#3a3418",
+            "borderColor": "#a5853b",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "⏸ PAUSE",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_BtnNeu",
+          "name": "BtnNeu",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SpielStarten"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#dcfff0",
+            "fontSize": 13,
+            "backgroundColor": "#20453f",
+            "borderColor": "#416e60",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "↻ NEU",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_TouchLinks",
+          "name": "TouchLinks",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SteuerungLinks"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 30,
+          "width": 5,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#c7d2fe",
+            "fontSize": 16,
+            "backgroundColor": "#1a2440",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "◀",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_TouchRechts",
+          "name": "TouchRechts",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SteuerungRechts"
+          },
+          "visible": true,
+          "x": 11,
+          "y": 30,
+          "width": 5,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#c7d2fe",
+            "fontSize": 16,
+            "backgroundColor": "#1a2440",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "▶",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_TouchDrehen",
+          "name": "TouchDrehen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SteinDrehen"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 25,
+          "width": 5,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#c7d2fe",
+            "fontSize": 16,
+            "backgroundColor": "#1a2440",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "↻",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_TouchFallen",
+          "name": "TouchFallen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SteinFallen"
+          },
+          "visible": true,
+          "x": 11,
+          "y": 25,
+          "width": 5,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#c7d2fe",
+            "fontSize": 16,
+            "backgroundColor": "#1a2440",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "⤓",
+          "icon": ""
+        },
+        {
+          "className": "TTetris",
+          "id": "obj_1789367935356_jd4ut87iq",
+          "name": "Tetris_13",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 22,
+          "height": 24,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#0b1020",
+            "borderColor": "#1f2a4a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "cols": 10,
+          "rows": 20,
+          "baseInterval": 700,
+          "levelLines": 10,
+          "showGhost": true,
+          "state": "ready",
+          "score": 0,
+          "lines": 0,
+          "level": 1,
+          "highScore": 0,
+          "nextPiece": ""
+        }
+      ],
+      "tasks": [
+        {
+          "name": "SpielStarten",
+          "description": "Startet eine neue Runde (Board, Punkte und Level werden zurückgesetzt).",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SpielStarten"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tetris_task_start"
+        },
+        {
+          "name": "PauseWechsel",
+          "description": "Wechselt zwischen playing und paused.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_PauseWechsel"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tetris_task_pause"
+        },
+        {
+          "name": "SteuerungLinks",
+          "description": "Bewegt den aktiven Stein eine Spalte nach links.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SteuerungLinks"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tetris_task_links"
+        },
+        {
+          "name": "SteuerungRechts",
+          "description": "Bewegt den aktiven Stein eine Spalte nach rechts.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SteuerungRechts"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tetris_task_rechts"
+        },
+        {
+          "name": "SteinDrehen",
+          "description": "Dreht den aktiven Stein im Uhrzeigersinn (mit Wall-Kicks).",
+          "actionSequence": [
+            {
+              "name": "Act_SteinDrehen",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tetris_task_drehen",
+          "flowLayout": {
+            "SteinDrehen": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SteinDrehen": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "SteinSenken",
+          "description": "Senkt den aktiven Stein eine Zeile (Soft Drop, +1 Punkt).",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SteinSenken"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tetris_task_senken"
+        },
+        {
+          "name": "SteinFallen",
+          "description": "Lässt den aktiven Stein sofort fallen (Hard Drop, +2 Punkte je Zeile).",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SteinFallen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tetris_task_fallen"
+        },
+        {
+          "name": "StartOderDrop",
+          "description": "Leertaste: Im Spiel Hard Drop, in Pause fortsetzen, sonst neue Runde starten.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Spielfeld.state == playing",
+              "condition": {
+                "variable": "Spielfeld.state",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SteinFallen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Spielfeld.state == paused",
+                  "condition": {
+                    "variable": "Spielfeld.state",
+                    "operator": "==",
+                    "value": "paused"
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "PauseWechsel"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "task",
+                      "name": "SpielStarten"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tetris_task_startoderdrop"
+        }
+      ],
+      "actions": [
+        {
+          "id": "tetris_act_start",
+          "name": "Act_SpielStarten",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "startGame",
+          "params": [],
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "id": "tetris_act_pause",
+          "name": "Act_PauseWechsel",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "togglePause",
+          "params": [],
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "id": "tetris_act_links",
+          "name": "Act_SteuerungLinks",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "moveLeft",
+          "params": [],
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "id": "tetris_act_rechts",
+          "name": "Act_SteuerungRechts",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "moveRight",
+          "params": [],
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "id": "tetris_act_drehen",
+          "name": "Act_SteinDrehen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "rotatePiece",
+          "params": [],
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "id": "tetris_act_senken",
+          "name": "Act_SteinSenken",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "softDrop",
+          "params": [],
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "id": "tetris_act_fallen",
+          "name": "Act_SteinFallen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "hardDrop",
+          "params": [],
+          "target_ref": "stage_main_Spielfeld"
+        }
+      ],
+      "variables": [],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#070b16"
+      },
+      "features": [
+        {
+          "id": "feature_tetris_engine",
+          "name": "Spiellogik & Steine",
+          "description": "Die TTetris-Komponente kapselt Board, 7-Bag-Randomizer, Rotation mit Wall-Kicks, Kollision und Ghost-Piece.",
+          "tags": [
+            "Tetris",
+            "Engine"
+          ],
+          "userStoryIds": [
+            "tetris_engine"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "feature_tetris_steuerung",
+          "name": "Steuerung",
+          "description": "Tastatur (Pfeile/WASD, Leertaste, P) und Bildschirmtasten rufen die Methoden des Spielfelds auf.",
+          "tags": [
+            "Tetris",
+            "Input"
+          ],
+          "userStoryIds": [
+            "tetris_steuerung"
+          ],
+          "blueprintTaskNames": [
+            "SteuerungLinks",
+            "SteuerungRechts",
+            "SteinDrehen",
+            "SteinSenken",
+            "SteinFallen",
+            "StartOderDrop"
+          ]
+        },
+        {
+          "id": "feature_tetris_wertung",
+          "name": "Reihen & Wertung",
+          "description": "Volle Reihen werden aufgelöst; Punkte (100/300/500/800 × Level) und Level-Beschleunigung laufen in der Komponente.",
+          "tags": [
+            "Tetris",
+            "Score"
+          ],
+          "userStoryIds": [
+            "tetris_wertung"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "feature_tetris_ablauf",
+          "name": "Start, Pause & Neustart",
+          "description": "Start-Overlay, Pause-Umschaltung und Game-Over mit Neustart über Leertaste oder Buttons.",
+          "tags": [
+            "Tetris",
+            "Ablauf"
+          ],
+          "userStoryIds": [
+            "tetris_ablauf"
+          ],
+          "blueprintTaskNames": [
+            "SpielStarten",
+            "PauseWechsel"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "tetris_engine",
+        "title": "Spiellogik & Steine",
+        "description": "Als Spieler möchte ich, dass Tetrominos korrekt fallen, rotieren und kollidieren, damit sich das Spiel wie klassisches Tetris anfühlt.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "7-Bag-Randomizer verteilt alle 7 Steine gleichmäßig",
+          "Rotation mit einfachen Wall-Kicks an Kanten",
+          "Kollision mit Wänden, Boden und gesetzten Steinen",
+          "Ghost-Piece zeigt die Landeposition"
+        ],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tetris_engine",
+        "plannedActions": []
+      },
+      {
+        "id": "tetris_steuerung",
+        "title": "Steuerung",
+        "description": "Als Spieler möchte ich Steine per Tastatur und Bildschirmtasten bewegen, drehen und fallen lassen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Pfeiltasten und WASD bewegen/drehen/senken",
+          "Leertaste = Hard Drop bzw. Start",
+          "P = Pause umschalten",
+          "Bildschirmtasten rufen dieselben Methoden auf"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Tastatur",
+          "TouchLinks",
+          "TouchRechts",
+          "TouchDrehen",
+          "TouchFallen"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tetris_steuerung",
+        "plannedActions": []
+      },
+      {
+        "id": "tetris_wertung",
+        "title": "Reihen & Wertung",
+        "description": "Als Spieler möchte ich volle Reihen auflösen und dafür Punkte und Level-Aufstiege erhalten.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "1–4 Reihen geben 100/300/500/800 Punkte × Level",
+          "Alle 10 Reihen steigt das Level (Gravity ~15% schneller)",
+          "Punkte, Reihen, Level und Highscore werden angezeigt"
+        ],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tetris_wertung",
+        "plannedActions": []
+      },
+      {
+        "id": "tetris_ablauf",
+        "title": "Start, Pause & Neustart",
+        "description": "Als Spieler möchte ich das Spiel starten, pausieren und nach Game Over neu beginnen können.",
+        "priority": "medium",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Ready-Overlay mit Starthinweis",
+          "Pause per Taste P oder Button",
+          "Game-Over-Overlay mit Endpunktestand",
+          "Neustart per Leertaste oder Button"
+        ],
+        "relatedStages": [
+          "stage_main"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld",
+          "BtnStart",
+          "BtnPause",
+          "BtnNeu"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tetris_ablauf",
+        "plannedActions": []
+      }
+    ]
+  },
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "elements": [],
+    "connections": []
+  }
+}

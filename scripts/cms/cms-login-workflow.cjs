@@ -1,7 +1,7 @@
 const fs=require('node:fs');
 /** Ein begrenzter Server-Interpreter: keine Scripts, keine Browserausführung, keine Adminanmeldung. */
-function loadLoginWorkflow(file){
- const project=JSON.parse(fs.readFileSync(file,'utf8')),stages=project.stages||[],objects=stages.flatMap(s=>s.objects||[]),tasks=stages.flatMap(s=>s.tasks||[]),actions=stages.flatMap(s=>s.actions||[]);
+function loadLoginWorkflow(file,stageId){
+ const project=require('./cms-project.cjs').readWorkflow(file,stageId),stages=project.stages||[],objects=stages.flatMap(s=>s.objects||[]),tasks=stages.flatMap(s=>s.tasks||[]),actions=stages.flatMap(s=>s.actions||[]);
  const one=type=>{const list=objects.filter(o=>o.className===type);if(list.length!==1)throw Error('Server-Workflow benötigt genau eine Komponente: '+type);return list[0];};
  const endpoint=one('TServerEndpoint'),validator=one('TServerValidate'),authentication=one('TServerAuthenticate'),response=one('TServerResponse');
  if(endpoint.endpointPath!=='/api/cms/login'||endpoint.httpMethod!=='POST')throw Error('Anmelde-Pilot unterstützt POST /api/cms/login.');
@@ -13,7 +13,7 @@ function loadLoginWorkflow(file){
  const authAction=resolve(branch.then[0],authentication);
  for(const [obj,key]of [[validator,'failureMessage'],[authentication,'failureMessage'],[response,'successMessage']])if(typeof obj[key]!=='string'||obj[key].length>200)throw Error('Rückmeldung fehlt oder ist zu lang: '+obj.name);
  return {endpoint,run(core,body,emit){
-  const metadata=(component,action)=>({component:component.name,componentId:component.id,action:action.name,actionId:action.id,task:task.name,stage:'stage_blueprint'});
+  const metadata=(component,action)=>({component:component.name,componentId:component.id,action:action.name,actionId:action.id,task:task.name,stage:stageId||'stage_blueprint'});
   emit('onRequest → '+task.name,{component:endpoint.name,componentId:endpoint.id,task:task.name,event:'onRequest'});
   const requestValid=body&&typeof body.areaId==='string'&&body.areaId.length<=100&&Array.isArray(body.sequence)&&body.sequence.length===4&&body.sequence.every(v=>typeof v==='string'&&v.length<=64);
   emit('Eingaben prüfen',{...metadata(validator,validateAction),input:body,output:{requestValid:!!requestValid}});

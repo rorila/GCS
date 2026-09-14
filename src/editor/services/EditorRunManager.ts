@@ -1,3 +1,4 @@
+import { attachCmsGameHost } from '../../adapters/CmsGameHost';
 import { Editor } from '../Editor';
 import { Stage } from '../Stage';
 import { GameRuntime } from '../../runtime/GameRuntime';
@@ -19,6 +20,7 @@ const logger = Logger.get('Editor', 'RunManager');
 
 export class EditorRunManager {
     public runtime: GameRuntime | null = null;
+    private disposeCmsHost?: () => void;
     public runtimeObjects: TWindow[] | null = null;
     public activeGameLoop: TGameLoop | null = null;
     public activeInputControllers: TInputController[] = [];
@@ -228,6 +230,8 @@ export class EditorRunManager {
 
             this.isGameStarted = false;
             this.createOrShowStartButton();
+            this.disposeCmsHost?.();
+            this.disposeCmsHost = attachCmsGameHost(() => this.runtime);
             
             this.editor.render();
         } else {
@@ -293,6 +297,8 @@ export class EditorRunManager {
     }
 
     private stopRuntime() {
+        this.disposeCmsHost?.();
+        this.disposeCmsHost = undefined;
         if (this.runtime) {
             this.runtime.stop();
             this.runtime = null;

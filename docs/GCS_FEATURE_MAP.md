@@ -166,3 +166,25 @@ GCS-CMS-Anmeldung.json gestaltet und steuert den Login; GCS-Server-Verwaltungsan
 
 ## Persönlicher Spielerbereich (11.09.2026)
 👤 öffnet die native Profilpflege im Spielerprojekt. TServerProfile kapselt eigene Profilangaben und Zugangshilfe; Rückmeldungen im GCS konfigurierbar. Details: [GCS-CMS-PROFIL.md](GCS-CMS-PROFIL.md).
+
+## Spiele- und Avatar-Uploads
+TFilePicker, TFileUpload und TServerUpload: Inspector-konfigurierbare Dateiübertragung über native Tasks. Eigene GCS-Spiele als Entwurf, Veröffentlichung mit Eigentümerschutz, Raumfreigabe und isolierter Spielstart. Eigene Avatarbilder mit serverseitiger PNG-Konvertierung. Anleitung: [GCS-CMS-UPLOADS.md](GCS-CMS-UPLOADS.md).
+
+## CMS: getrennte Oberflächen-Stages
+Spielhaus mit Einwahl/Galerie und Mein Bereich als eigene Stage. Echte navigate_stage-Actions ersetzen die überlagerte Profilansicht; gemeinsame Dienste und Sitzungsvariablen bleiben in der Blueprint-Stage. 17 Profil- und 22 Uploadprüfungen bestanden.
+
+## CMS: ein Projekt, eigenständige Stages (11.09.2026)
+GCS-CMS.json enthält acht Oberflächen, vier Server-Stages und eine gemeinsame Blueprint-Stage. Lokale Tasks/Actions, native Navigation, eindeutige IDs und korrigierte Feature-Zuordnungen. Keine Main-Stage-Vererbung mehr. Alte Einzelprojekte sind archiviert. Anleitung: [GCS-CMS-STAGES.md](GCS-CMS-STAGES.md).
+
+## CMS-Verbindung im Run-Tab (12.09.2026)
+CMS-HTTP-Actions verwenden den echten Sitzungsserver trotz registriertem ApiSimulator. Andere API-Simulationen bleiben unverändert. Native Blueprint-Komponenten CMSServerStatus (TLabel) und CMSServerPruefung (TTimer) prüfen /api/cms/health beim Start und alle 15 Sekunden. Acht Sekunden Anfrage-Timeout, konkrete Netzwerk-/Proxyfehler und Server-Rückmeldungen im Anmeldedialog. Neun gezielte Browserprüfungen mit registriertem Simulator bestanden; allgemeine Suite 365/369, vier bekannte Export-Prüfsummenabweichungen.
+
+## Variablen: Bemerkung (12.09.2026)
+Das bestehende Datenfeld description ist als Bemerkung in der Inspector-Gruppe Variable bearbeitbar. Gilt für als Variable gekennzeichnete Komponenten einschließlich Listen- und Zufallsvariablen; wird über die normale DTO-Serialisierung gespeichert. Alle 89 gespeicherten Variablen in GCS-CMS.json sind stagebezogen dokumentiert. Inspector-/DTO-Prüfung für vier Variablenfamilien bestanden.
+
+## Tabellen mit Objektlisten-Datenquelle (12.09.2026)
+TTable: dataSource, keyField und ausgewählter Datensatz; TObjectList: separater records-Modus, atomare Datensatzübernahme. CMS-Raumliste als erster Ablauf mit eigener RaumlisteAntwort, Objektliste Raeume und RaumTabelle. AnmeldeAntwort ebenfalls explizit. Dokumentation: [GCS-OBJEKTLISTEN-TABELLEN.md](GCS-OBJEKTLISTEN-TABELLEN.md).
+
+
+### CMS-Spielstart in Editor-Laufzeiten (2026-09-13)
+Der Browser-Adapter src/adapters/CmsGameHost.ts verarbeitet den bestehenden SpielURL-Vertrag im Run-Tab und UniversalPlayer ohne cms-shell.js. Vite leitet /play/ an den CMS-Server weiter. Rückkehr, HTTP-Fehleranzeige, Debug-Log und Bereinigung beim Run-Stopp sind enthalten.

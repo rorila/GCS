@@ -1,3 +1,4 @@
+import { attachCmsGameHost } from './adapters/CmsGameHost';
 import {TDebugLog} from './components/TDebugLog';
 import { GameRuntime } from './runtime/GameRuntime';
 import { network, ServerMessage } from './multiplayer';
@@ -94,6 +95,7 @@ function decompressProject(data: string): GameProject | null {
  * - Dynamic Lobby (if no game/room selected)
  */
 class UniversalPlayer implements StageHost {
+    private disposeCmsHost?: () => void;
     public runtime: GameRuntime | null = null;
     public element: HTMLElement; // From StageHost
     private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat', 'TStageController'];
@@ -398,6 +400,8 @@ class UniversalPlayer implements StageHost {
         this.isStarted = true;
         this.showLoadingOverlay();
 
+        this.disposeCmsHost?.();
+
         // 1. Stop previous runtime if any
         if (this.runtime) {
             this.runtime.stop();
@@ -450,6 +454,8 @@ class UniversalPlayer implements StageHost {
                 }
             }
         });
+
+        this.disposeCmsHost = attachCmsGameHost(() => this.runtime);
 
         // 3. Update Visuals
         this.setupScaling();

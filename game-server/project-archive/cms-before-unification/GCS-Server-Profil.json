@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "id": "gcs-server-profile",
+    "name": "GCS-Server-Profil",
+    "version": "1.0.0"
+  },
+  "activeStageId": "stage_blueprint",
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#122b39"
+    }
+  },
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "type": "blueprint",
+      "name": "Persönlicher Bereich",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#122b39"
+      },
+      "objects": [
+        {
+          "className": "TServerProfile",
+          "id": "server_profile",
+          "name": "EigenesProfil",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onRead": "Eigenes_Profil_Lesen",
+            "onSave": "Eigenes_Profil_Speichern",
+            "onHelp": "Zugangshilfe_Anfordern"
+          },
+          "executionSide": "server",
+          "readMessage": "👤 Das ist dein Bereich",
+          "savedMessage": "✓ Gespeichert",
+          "helpMessage": "🆘 Deine Verwaltung sieht deine Bitte um Zugangshilfe.",
+          "failureMessage": "Bitte einen Namen und ein gültiges Avatarbild wählen.",
+          "avatars": [
+            "🦊",
+            "🦉",
+            "🐶",
+            "🐱",
+            "🐼",
+            "🐸",
+            "🦁",
+            "🐰"
+          ],
+          "x": 0,
+          "y": 0,
+          "width": 12,
+          "height": 3
+        }
+      ],
+      "tasks": [
+        {
+          "id": "profile_task_0",
+          "name": "Eigenes_Profil_Lesen",
+          "description": "Eigenes_Profil_Lesen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eigenes_Profil_Lesen"
+            }
+          ]
+        },
+        {
+          "id": "profile_task_1",
+          "name": "Eigenes_Profil_Speichern",
+          "description": "Eigenes_Profil_Speichern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eigenes_Profil_Speichern"
+            }
+          ]
+        },
+        {
+          "id": "profile_task_2",
+          "name": "Zugangshilfe_Anfordern",
+          "description": "Zugangshilfe_Anfordern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Zugangshilfe_Anfordern"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "profile_action_0",
+          "name": "Act_Eigenes_Profil_Lesen",
+          "type": "call_method",
+          "target": "EigenesProfil",
+          "method": "read",
+          "params": []
+        },
+        {
+          "id": "profile_action_1",
+          "name": "Act_Eigenes_Profil_Speichern",
+          "type": "call_method",
+          "target": "EigenesProfil",
+          "method": "save",
+          "params": []
+        },
+        {
+          "id": "profile_action_2",
+          "name": "Act_Zugangshilfe_Anfordern",
+          "type": "call_method",
+          "target": "EigenesProfil",
+          "method": "help",
+          "params": []
+        }
+      ],
+      "variables": [],
+      "features": [
+        {
+          "id": "server-profile",
+          "name": "Eigene Profilangaben verwalten",
+          "blueprintTaskNames": [
+            "Eigenes_Profil_Lesen",
+            "Eigenes_Profil_Speichern",
+            "Zugangshilfe_Anfordern"
+          ]
+        }
+      ]
+    }
+  ]
+}

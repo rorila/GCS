@@ -5,7 +5,7 @@
  "memberships":[{"personId":"demo-child","areaId":"garden","active":true},{"personId":"demo-child","areaId":"stars","active":true},{"personId":"demo-adult","areaId":"garden","active":true}],
  "roles":[{"personId":"demo-child","areaId":"garden","role":"player","active":true},{"personId":"demo-adult","areaId":"demo-house","role":"areaAdmin","active":true},{"personId":"demo-adult","areaId":"garden","role":"player","active":true}],
  "guardians":[{"guardianId":"demo-adult","childId":"demo-child","status":"confirmed"}],
- "codes":[{"personId":"demo-child","areaId":"demo-house","sequence":["dog","tree","house","elephant"]},{"personId":"demo-adult","areaId":"demo-house","sequence":["cat","cat","tree","house"]}],
+ "codes":[{"personId":"demo-child","areaId":"demo-house","sequence":["🐶","🌳","🏠","🐘"]},{"personId":"demo-adult","areaId":"demo-house","sequence":["🐱","🐱","🌳","🏠"]}],
  "games":[{"id":"snake","ownerId":"demo-adult","title":"Snake","avatar":"🐍","file":"Snake-Lernprojekt.json","status":"published"},{"id":"breakout","ownerId":"demo-adult","title":"Breakout","avatar":"🧱","file":"Breakout-Lernprojekt.json","status":"published"}],
  "grants":[{"areaId":"garden","gameId":"snake","active":true},{"areaId":"garden","gameId":"breakout","active":true},{"areaId":"stars","gameId":"snake","active":true}]
 }

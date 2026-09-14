@@ -82,7 +82,9 @@ export function registerHttpActions() {
             data: { type: 'http', method, url, body: parsedBody }
         });
 
-        if (serviceRegistry.has('ApiSimulator')) {
+        // CMS uses the actual session service in both the editor Run tab and standalone.
+        const isCmsRequest = /^\/api\/cms(?:\/|$)/.test(url);
+        if (!isCmsRequest && serviceRegistry.has('ApiSimulator')) {
             dataLogger.info(`Using API Simulation for: ${method} ${url}`);
             try {
                 const dsName = action.dataStore;
@@ -192,8 +194,9 @@ export function registerHttpActions() {
                 dataLogger.info(`JWT Real Request: ${method} ${url}`, redactDebug({ headers: options.headers, body: parsedBody }));
             }
 
+            if (isCmsRequest) options.signal = AbortSignal.timeout(8000);
             const response = await tracedFetch(url, options, httpLogId);
-            let data = await response.json();
+            let data = isCmsRequest ? await response.json().catch(() => ({ok:false, message:`CMS-Server antwortet nicht korrekt (HTTP ${response.status}). Serverstart und Verbindung prüfen.`})) : await response.json();
 
             if (action.requestJWT) {
                 dataLogger.info(`JWT Real Response:`, redactDebug(data));
@@ -241,7 +244,7 @@ export function registerHttpActions() {
         } catch (err) {
             dataLogger.error('Error:', err);
             if (action.resultVariable) {
-                const errorObj = { error: String(err) };
+                const errorObj = isCmsRequest ? {ok:false, error:String(err), message:'🔴 CMS-Server nicht erreichbar oder Zeitüberschreitung. Bitte den CMS-Server starten und erneut versuchen.'} : { error: String(err) };
                 context.vars[action.resultVariable] = errorObj;
                 context.contextVars[action.resultVariable] = errorObj;
             }
@@ -254,7 +257,7 @@ export function registerHttpActions() {
         parameters: [
             { name: 'url', label: 'URL', type: 'string' },
             { name: 'method', label: 'Methode', type: 'select', options: ['GET', 'POST', 'PUT', 'DELETE'], defaultValue: 'GET' },
-            { name: 'body', label: 'Body (JSON-String oder Objekt)', type: 'string' },
+            { name: 'body', label: 'Body (JSON-String oder Objekt)', type: 'string', multiline: true },
             { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' },
             { name: 'resultPath', label: 'Daten-Pfad (Selektor)', type: 'string', hint: 'Optional: Pfad zum Objekt in der Response (z.B. "user")' },
             { name: 'selectFields', label: 'Felder (SELECT)', type: 'string', hint: 'Kommagetrennte Liste der Felder oder count(*)' },

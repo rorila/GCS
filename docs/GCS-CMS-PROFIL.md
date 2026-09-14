@@ -20,3 +20,6 @@ Diese Ausbaustufe umfasst Anzeigename, Emoji-Avatar und Zugangshilfe für Spiele
 ## Abschlussprüfung
 
 14 Profilprüfungen, 23 Spieler-CMS-Prüfungen und 21 Verwaltungsprüfungen bestanden. Browserprüfung einschließlich dauerhafter Änderung, Zurücknavigation und Abmeldung erfolgreich. Allgemeine Regression: 366 von 369 bestanden; drei Prüfsummenabweichungen in player-standalone.ts, GameRuntime.ts und GameLoopManager.ts durch zwischenzeitliche anderweitige Änderungen. Prüfsummen nicht blind aktualisiert. Der allgemeine Runner überspringt seine Port-8080-Browsertests; die separaten CMS-Browsertests wurden ausgeführt.
+
+## Getrennte Stages
+Die Profiloberfläche liegt jetzt in stage_profile (Mein Bereich). stage_main enthält Einwahl und Galerie. Die Blueprint-Stage enthält weiterhin gemeinsame Dienste, Tasks und Sitzungsvariablen. 👤 wechselt in die Profil-Stage; Räume und Abmelden führen ins Spielhaus zurück. Das Projekt im Editor neu laden, um beide Oberflächen getrennt zu bearbeiten.

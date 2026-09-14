@@ -22,10 +22,21 @@ export class TableRenderer {
             scrollArea.style.cssText = 'width:100%; height:100%; overflow:auto;';
             el.appendChild(scrollArea);
 
-            const cols = Array.isArray(obj.columns) ? obj.columns : [];
-            const rawData = Array.isArray(obj.data) ? obj.data : [];
+            let cols: any[] = Array.isArray(obj.columns) ? obj.columns : [];
+            if (cols.length === 0 && typeof obj.columns === 'string' && obj.columns.trim().startsWith('[')) {
+                try { const parsed = JSON.parse(obj.columns); if (Array.isArray(parsed)) cols = parsed; } catch { /* ungültig – Auto-Columns nutzen */ }
+            }
+            const rawData = typeof obj.getRows === 'function' ? obj.getRows() : (Array.isArray(obj.data) ? obj.data : []);
 
-            if (obj.viewType === 'grid') {
+            // Auto-Columns: leere Spaltenliste wird aus dem ersten Datensatz abgeleitet
+            if (cols.length === 0 && rawData.length > 0 && typeof rawData[0] === 'object' && rawData[0] !== null) {
+                cols = Object.keys(rawData[0]).map(key => ({
+                    field: key,
+                    label: key.charAt(0).toUpperCase() + key.slice(1)
+                }));
+            }
+
+            if (obj.viewType === 'grid' || obj.displayMode === 'cards') {
                 this.renderGrid(scrollArea, el, obj, cols, rawData, onEvent, cellSize);
             } else {
                 this.renderStandardTable(scrollArea, el, obj, cols, rawData, onEvent);
@@ -44,10 +55,10 @@ export class TableRenderer {
         onEvent?: any,
         cellSize: number = 20
     ) {
-        const config = obj.gridConfig || {};
-        const cardWidth = config.cardWidth || 180;
-        const cardHeight = config.cardHeight || 120;
-        const gap = config.gap || 16;
+        const config = obj.gridConfig || obj.cardConfig || {};
+        const cardWidth = config.cardWidth ?? config.width ?? 180;
+        const cardHeight = config.cardHeight ?? config.height ?? 120;
+        const gap = config.gap ?? 16;
 
         scrollArea.style.display = 'flex';
         scrollArea.style.flexWrap = 'wrap';
@@ -69,7 +80,9 @@ export class TableRenderer {
             card.onmouseleave = () => card.style.transform = 'none';
             card.onclick = (e) => {
                 e.stopPropagation();
-                obj.selectedIndex = idx;
+                const changed = obj.selectedIndex !== idx || obj.selectedRecord !== row;
+                if (typeof obj.selectRow === 'function') obj.selectRow(idx); else obj.selectedIndex = idx;
+                if (onEvent) { if (changed) onEvent(obj.id, 'onSelectionChanged', {index:idx, data:row, key:obj.selectedKey}); onEvent(obj.id, 'onRowClick', {index:idx, data:row, key:obj.selectedKey}); }
                 if (onEvent) onEvent(obj.id, 'onSelect', { index: idx, data: row });
                 this.renderTable(el, obj, onEvent);
             };
@@ -130,7 +143,7 @@ export class TableRenderer {
             cols.forEach((col: any) => {
                 const th = document.createElement('th');
                 th.style.cssText = `padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.1); width:${col.width || 'auto'}; font-weight:600;`;
-                th.innerText = col.label || col.field || col.property;
+                th.innerText = col.label ?? col.field ?? col.property;
                 hRow.appendChild(th);
             });
             thead.appendChild(hRow);
@@ -155,14 +168,16 @@ export class TableRenderer {
                 tr.style.backgroundColor = isSelected ? 'rgba(0,0,0,0.1)' : (isStriped ? 'rgba(0,0,0,0.02)' : 'transparent');
                 tr.onclick = (e) => {
                     e.stopPropagation();
-                    obj.selectedIndex = idx;
+                    const changed = obj.selectedIndex !== idx || obj.selectedRecord !== row;
+                if (typeof obj.selectRow === 'function') obj.selectRow(idx); else obj.selectedIndex = idx;
+                if (onEvent) { if (changed) onEvent(obj.id, 'onSelectionChanged', {index:idx, data:row, key:obj.selectedKey}); onEvent(obj.id, 'onRowClick', {index:idx, data:row, key:obj.selectedKey}); }
                     if (onEvent) onEvent(obj.id, 'onSelect', { index: idx, data: row });
                     this.renderTable(el, obj, onEvent);
                 };
                 cols.forEach((col: any) => {
                     const td = document.createElement('td');
                     td.style.cssText = 'padding:6px 12px;';
-                    td.innerText = String(row[col.field || col.property] ?? '');
+                    td.innerText = String(col.format === 'boolean' ? (row[col.field || col.property] ? '✓' : '—') : (row[col.field || col.property] ?? ''));
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);

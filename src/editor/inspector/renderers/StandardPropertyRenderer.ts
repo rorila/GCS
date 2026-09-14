@@ -219,8 +219,17 @@ export class StandardPropertyRenderer {
 
     public static renderGeneric(propDef: any, obj: any, context: IInspectorContext, container: HTMLElement, currentValue: any): void {
         let input: HTMLInputElement | HTMLTextAreaElement;
-        if (propDef.type === 'textarea' || propDef.multiline) {
-            input = context.renderer.renderTextArea(String(currentValue), propDef.placeholder || '');
+        if (propDef.type === 'textarea' || propDef.multiline || propDef.type === 'json') {
+            let displayValue = (typeof currentValue === 'object' && currentValue !== null)
+                ? JSON.stringify(currentValue, null, 2)
+                : String(currentValue);
+            const trimmed = displayValue.trim();
+            if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                try {
+                    displayValue = JSON.stringify(JSON.parse(trimmed), null, 2);
+                } catch { /* Kein gültiges JSON – Rohtext anzeigen */ }
+            }
+            input = context.renderer.renderTextArea(displayValue, propDef.placeholder || '');
         } else if (propDef.type === 'number') {
             // VALIDIERUNG: Number-Inputs bekommen nativen type='number' + Constraints
             // FIX: Bei Binding-Werten auf type='text' umschalten
@@ -275,6 +284,18 @@ export class StandardPropertyRenderer {
             }
 
             let newVal: any = propDef.type === 'number' && !isBinding ? Number(rawVal) : rawVal;
+
+            // JSON-Felder werden als Objekt/Array gespeichert, nicht als String
+            if (propDef.type === 'json' && !isBinding && rawVal !== '') {
+                try {
+                    newVal = JSON.parse(rawVal);
+                } catch {
+                    hintEl.textContent = 'Ungültiges JSON – Änderung nicht gespeichert';
+                    hintEl.style.display = 'block';
+                    input.classList.add('inspector-input-error');
+                    return;
+                }
+            }
 
             // Auto-Clamp bei Number-Werten
             if (propDef.type === 'number' && !isBinding && !isNaN(newVal)) {
@@ -365,7 +386,7 @@ export class StandardPropertyRenderer {
 
         input.onchange = submitChange;
 
-        if (propDef.type === 'textarea' || propDef.multiline) {
+        if (propDef.type === 'textarea' || propDef.multiline || propDef.type === 'json') {
             const wrapper = document.createElement('div');
             wrapper.style.display = 'flex';
             wrapper.style.flexDirection = 'column';

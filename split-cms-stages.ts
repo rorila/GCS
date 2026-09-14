@@ -1,0 +1,17 @@
+import fs from 'node:fs';import {projectStore} from './src/services/ProjectStore';
+const file='game-server/public/projects/GCS-CMS.json',p=JSON.parse(fs.readFileSync(file,'utf8'));if(p.stages.some(s=>s.id==='stage_profile'))throw Error('Profil-Stage existiert bereits');fs.copyFileSync(file,file+'.before-stage-split');projectStore.setProject(p);
+const set=(target,path,value)=>projectStore.dispatch({type:'SET_PROPERTY',target,path,value}),bp=p.stages.find(s=>s.type==='blueprint'),main=p.stages.find(s=>s.id==='stage_main');
+const isProfile=o=>o.name.startsWith('Profil')||['AvatarDateiWaehlen','AvatarHochladen','AvatarAbbrechen'].includes(o.name);
+const moved=main.objects.filter(isProfile).map(o=>({...o,visible:true})),shared=['Titel','Hinweis','Abmelden'].map(name=>{const o=structuredClone(main.objects.find(o=>o.name===name));o.id='profile_shared_'+name;o.visible=true;if(name==='Titel')o.text='👤 Mein Bereich';return o});
+const profile={id:'stage_profile',name:'Mein Bereich',type:'standard',grid:structuredClone(main.grid),objects:[...shared,...moved],tasks:[],actions:[],variables:[],features:(main.features||[]).filter(f=>['personal-profile','avatar-upload'].includes(f.id)),flowCharts:{},startAnimation:'none'};
+set(main,'objects',main.objects.filter(o=>!isProfile(o)));set(main,'name','Spielhaus · Einwahl und Galerie');set(main,'features',(main.features||[]).filter(f=>!['personal-profile','avatar-upload'].includes(f.id)));set(p,'stages',[...p.stages,profile]);
+const actions=[{id:'cms_nav_profile',name:'Act_Zur_Profil_Stage_Wechseln',type:'navigate_stage',stageId:'stage_profile',reset:false},{id:'cms_nav_main',name:'Act_Zur_Spielhaus_Stage_Wechseln',type:'navigate_stage',stageId:'stage_main',reset:false},{id:'cms_profile_title',name:'Act_Profilnamen_Im_Spielhaus_Anzeigen',type:'property',changes:{'Titel.text':'${ProfilAntwort.avatar}  ${ProfilAntwort.name}'}}];set(bp,'actions',[...bp.actions,...actions]);
+const task=name=>bp.tasks.find(t=>t.name===name),ref=name=>({type:'action',name});
+set(task('Profil_Anzeigen'),'actionSequence',[ref(actions[0].name),...task('Profil_Anzeigen').actionSequence]);
+set(task('Profil_Zurueck'),'actionSequence',[{type:'task',name:'Avatar_Abbrechen'},ref(actions[1].name),ref(actions[2].name),{type:'task',name:'Raeume'}]);
+set(task('LoginZeigen'),'actionSequence',[ref(actions[1].name),...task('LoginZeigen').actionSequence.filter(s=>s.name!=='Profil_Verbergen')]);
+for(const name of ['Act_Profilfelder_Anzeigen','Act_Avatarupload_Anzeigen']){const a=bp.actions.find(a=>a.name===name);set(a,'changes',Object.fromEntries(Object.entries(a.changes).filter(([key])=>!key.endsWith('.visible'))));}
+const titleAction=bp.actions.find(a=>a.name==='Act_Profilfelder_Anzeigen');set(titleAction,'changes',{...titleAction.changes,'Titel.text':'${ProfilAntwort.avatar}  ${ProfilAntwort.name}'});
+for(const name of ['Act_Profilfelder_Verbergen','Act_Avatarupload_Verbergen']){const a=bp.actions.find(a=>a.name===name);if(a)set(a,'changes',{})}
+for(const story of p.userStories?.userStories||[])if(['personal-profile','avatar-upload'].includes(story.featureId))set(story,'relatedStages',['stage_profile']);
+set(p,'activeStageId','stage_main');fs.writeFileSync(file,JSON.stringify(p,null,2));const h='public/cms.html';fs.copyFileSync(h,h+'.before-stage-split');let s=fs.readFileSync(h,'utf8'),a=s.indexOf('window.PROJECT=')+15,b=s.indexOf('</script>',a);fs.writeFileSync(h,s.slice(0,a)+JSON.stringify(p).replace(/</g,'\\u003c')+s.slice(b));console.log('Zwei sichtbare Stages plus gemeinsame Blueprint-Dienste.');

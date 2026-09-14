@@ -1,0 +1,29 @@
+{
+  "passed": 24,
+  "checks": [
+    "Ein Blueprint und keine vererbende Main-Stage",
+    "Acht Oberflächen und vier Server-Stages",
+    "Definitionen besitzen projektweit eindeutige IDs",
+    "stage_blueprint: Feature-Eltern vorhanden",
+    "stage_main: Feature-Eltern vorhanden",
+    "stage_gallery: Feature-Eltern vorhanden",
+    "stage_profile: Feature-Eltern vorhanden",
+    "stage_admin_login: Feature-Eltern vorhanden",
+    "stage_admin: Feature-Eltern vorhanden",
+    "stage_house: Feature-Eltern vorhanden",
+    "stage_super: Feature-Eltern vorhanden",
+    "stage_library: Feature-Eltern vorhanden",
+    "stage_server_login: Feature-Eltern vorhanden",
+    "stage_server_admin_login: Feature-Eltern vorhanden",
+    "stage_server_profile: Feature-Eltern vorhanden",
+    "stage_server_uploads: Feature-Eltern vorhanden",
+    "Use Cases zeigen auf vorhandene Features",
+    "Server-Konfiguration gezielt aus gemeinsamer Datei",
+    "Native Navigation öffnet Anmelde-Stage",
+    "Alle Verwaltungswechsel ohne neues Projekt oder Seitenreload",
+    "Keine fremden Oberflächenelemente in Anmeldung",
+    "Server-Stages werden nicht im Browser geladen",
+    "Rückkehr zur Emoji-Stage",
+    "Keine Browserfehler"
+  ]
+}

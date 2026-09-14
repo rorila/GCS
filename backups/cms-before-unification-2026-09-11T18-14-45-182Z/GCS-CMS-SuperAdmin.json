@@ -19,7 +19,25 @@
       "id": "stage_blueprint",
       "name": "Hausdienste",
       "type": "blueprint",
-      "objects": [],
+      "objects": [
+        {
+          "className": "TTimer",
+          "name": "InitialLaden",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "interval": 350,
+          "enabled": true,
+          "maxInterval": 1,
+          "currentInterval": 0,
+          "style": {},
+          "id": "super_initial_load",
+          "events": {
+            "onTimer": "Sperre_Haeuser"
+          }
+        }
+      ],
       "tasks": [
         {
           "name": "HaeuserTask",
@@ -1262,7 +1280,11 @@
           "type": "property",
           "changes": {
             "Busy": 0,
-            "Status.text": "${Antwort.message}"
+            "Status.text": "Laden fehlgeschlagen. CMS-Dienst starten oder neu anmelden.",
+            "Karte0.visible": false,
+            "Karte1.visible": false,
+            "Karte2.visible": false,
+            "Karte3.visible": false
           }
         },
         {

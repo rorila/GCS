@@ -8,6 +8,7 @@ const logger = Logger.get('ActionReferences', 'Runtime_Execution');
  */
 export const REFERENCE_SOURCES = new Set([
     'objects',
+    'object_lists',
     'variables',
     'objects_and_services',
     'objects_and_variables',
