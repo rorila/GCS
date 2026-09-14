@@ -6,6 +6,7 @@ import { IRenderContext } from './IRenderContext';
 import { EmojiPickerRenderer } from './EmojiPickerRenderer';
 import { TableRenderer } from './TableRenderer';
 import { TetrisRenderer } from './TetrisRenderer';
+import { GridBoardRenderer } from './GridBoardRenderer';
 import { SpriteRenderer } from './SpriteRenderer';
 import { ShapeRenderer } from './ShapeRenderer';
 import { InputRenderer } from './InputRenderer';
@@ -679,6 +680,7 @@ export class StageObjectRenderer {
         else if (className === 'TButton') TextObjectRenderer.renderButton(ctx, el, obj, isNew);
         else if (className === 'TEmojiPicker') EmojiPickerRenderer.renderEmojiPicker(el, obj, this.ctx.host.grid.cellSize, this.ctx.host.onEvent?.bind(this.ctx.host));
         else if (className === 'TTetris') TetrisRenderer.renderTetris(el, obj);
+        else if (className === 'TGridBoard') GridBoardRenderer.renderGridBoard(el, obj, this.ctx.host.onEvent?.bind(this.ctx.host));
         else if (className === 'TTable' || className === 'TObjectList') {
             if (!this.ctx.host.runMode) obj.setDataContext?.(this.ctx.objects);
             TableRenderer.renderTable(el, obj, this.ctx.host.onEvent?.bind(this.ctx.host), this.ctx.host.grid.cellSize);

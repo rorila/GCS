@@ -147,6 +147,7 @@ export class DialogDomainHelper {
             'TTabControl': ['selectTab'],
             'TStageController': ['goToStage', 'goToMainStage', 'goToFirstStage', 'nextStage', 'previousStage'],
             'TTetris': ['startGame', 'resetGame', 'togglePause', 'pauseGame', 'resumeGame', 'moveLeft', 'moveRight', 'rotatePiece', 'rotatePieceCCW', 'softDrop', 'hardDrop'],
+            'TGridBoard': ['setCell', 'getCell', 'fillAll', 'clearBoard', 'countFilled', 'canPlaceShape', 'placeShape', 'removeShape', 'findFullRows', 'removeRows', 'clearFullRows', 'setOverlay', 'clearOverlay', 'setGhost', 'clearGhost', 'setOverlayText'],
         };
 
         return methodMap[className] || [];

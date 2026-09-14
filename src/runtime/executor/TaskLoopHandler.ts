@@ -6,6 +6,20 @@ export class TaskLoopHandler {
     private static logger = Logger.get('TaskLoopHandler', 'Runtime_Execution');
     private static readonly MAX_ITERATIONS = 1000;
 
+    /**
+     * Schreibt eine Schleifenvariable in vars/globalVars UND synchronisiert ein
+     * evtl. deklariertes TVariable-Objekt in objects — interpolate()
+     * sucht dort zuerst und wuerde sonst den veralteten .value liefern.
+     */
+    private static syncLoopVar(name: string, value: any, vars: Record<string, any>, globalVars: Record<string, any>, objects?: any[]): void {
+        vars[name] = value;
+        globalVars[name] = value;
+        const varObj = objects?.find((o: any) =>
+            (o.name === name || o.id === name) &&
+            (o.isVariable === true || o.className?.includes('Variable')));
+        if (varObj) varObj.value = value;
+    }
+
     public static async handleWhile(
         item: any,
         vars: Record<string, any>,
@@ -13,7 +27,8 @@ export class TaskLoopHandler {
         contextObj: any,
         depth: number,
         parentId: string | undefined,
-        executeBody: (body: any[], vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string) => Promise<void>
+        executeBody: (body: any[], vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string) => Promise<void>,
+        _objects?: any[]
     ): Promise<void> {
         if (!item.condition || !item.body) {
             TaskLoopHandler.logger.warn('WHILE loop missing condition or body');
@@ -38,7 +53,8 @@ export class TaskLoopHandler {
         contextObj: any,
         depth: number,
         parentId: string | undefined,
-        executeBody: (body: any[], vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string) => Promise<void>
+        executeBody: (body: any[], vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string) => Promise<void>,
+        objects?: any[]
     ): Promise<void> {
         if (!item.iteratorVar || !item.body) {
             TaskLoopHandler.logger.warn('FOR loop missing iteratorVar or body');
@@ -55,8 +71,7 @@ export class TaskLoopHandler {
                 TaskLoopHandler.logger.error(`FOR loop exceeded max iterations(${this.MAX_ITERATIONS})`);
                 break;
             }
-            vars[item.iteratorVar] = i;
-            globalVars[item.iteratorVar] = i;
+            this.syncLoopVar(item.iteratorVar, i, vars, globalVars, objects);
             await executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
         }
         TaskLoopHandler.logger.info(`FOR loop completed after ${iterations} iterations`);
@@ -69,7 +84,8 @@ export class TaskLoopHandler {
         contextObj: any,
         depth: number,
         parentId: string | undefined,
-        executeBody: (body: any[], vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string) => Promise<void>
+        executeBody: (body: any[], vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string) => Promise<void>,
+        objects?: any[]
     ): Promise<void> {
         if (!item.sourceArray || !item.itemVar || !item.body) {
             TaskLoopHandler.logger.warn('FOREACH loop missing sourceArray, itemVar, or body');
@@ -79,7 +95,14 @@ export class TaskLoopHandler {
         // Der Variablen-Picker traegt Namen teils als ${Name} ein.
         const arrayName = String(item.sourceArray).replace(/^\$\{\s*/, '').replace(/\s*\}$/, '').trim();
 
-        const raw = vars[arrayName] !== undefined ? vars[arrayName] : globalVars[arrayName];
+        let raw = vars[arrayName] !== undefined ? vars[arrayName] : globalVars[arrayName];
+        // Fallback: Collection-/Service-Objekte (TListVariable, TStringMap, TObjectList)
+        // liegen ggf. nur in objects — wie bei resolveCollection in CollectionActions.
+        if (raw === undefined) {
+            raw = objects?.find((o: any) =>
+                (o.name === arrayName || o.id === arrayName) &&
+                (o.isVariable === true || o.isService === true || o.className?.includes('Variable')));
+        }
 
         // GameRuntime legt jede Komponente zusaetzlich unter ihrem Namen in die
         // Vars — dort steckt also z.B. die TObjectList selbst, kein Array.
@@ -94,11 +117,9 @@ export class TaskLoopHandler {
                     TaskLoopHandler.logger.error(`FOREACH loop exceeded max iterations(${this.MAX_ITERATIONS})`);
                     break;
                 }
-                vars[item.itemVar] = element;
-                globalVars[item.itemVar] = element;
+                this.syncLoopVar(item.itemVar, element, vars, globalVars, objects);
                 if (item.indexVar) {
-                    vars[item.indexVar] = idx;
-                    globalVars[item.indexVar] = idx;
+                    this.syncLoopVar(item.indexVar, idx, vars, globalVars, objects);
                 }
                 await executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
                 idx++;
@@ -132,24 +153,19 @@ export class TaskLoopHandler {
 
             // itemVar bekommt je nach Modus den Key, Value oder Value (bei entries: Key via keyVar)
             if (mode === 'keys') {
-                vars[item.itemVar] = key;
-                globalVars[item.itemVar] = key;
+                this.syncLoopVar(item.itemVar, key, vars, globalVars, objects);
             } else if (mode === 'values') {
-                vars[item.itemVar] = value;
-                globalVars[item.itemVar] = value;
+                this.syncLoopVar(item.itemVar, value, vars, globalVars, objects);
             } else {
                 // 'entries': itemVar = Value, keyVar = Key
-                vars[item.itemVar] = value;
-                globalVars[item.itemVar] = value;
+                this.syncLoopVar(item.itemVar, value, vars, globalVars, objects);
                 if (item.keyVar) {
-                    vars[item.keyVar] = key;
-                    globalVars[item.keyVar] = key;
+                    this.syncLoopVar(item.keyVar, key, vars, globalVars, objects);
                 }
             }
 
             if (item.indexVar) {
-                vars[item.indexVar] = idx;
-                globalVars[item.indexVar] = idx;
+                this.syncLoopVar(item.indexVar, idx, vars, globalVars, objects);
             }
 
             await executeBody(item.body, vars, globalVars, contextObj, depth, parentId);

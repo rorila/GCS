@@ -17,7 +17,7 @@ export class TetrisRenderer {
             canvas = document.createElement('canvas');
             canvas.className = 'tetris-canvas';
             canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;';
-            el.style.position = 'relative';
+            if (el.style.position !== 'absolute') el.style.position = 'relative';
             el.style.overflow = 'hidden';
             el.appendChild(canvas);
         }

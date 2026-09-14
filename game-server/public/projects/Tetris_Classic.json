@@ -1,0 +1,3992 @@
+{
+  "meta": {
+    "id": "tetris-classic",
+    "name": "Tetris Classic",
+    "version": "1.0.0",
+    "author": "Rolf Rieckmann / Devin",
+    "description": "Tetris komplett mit GCS-Bordmitteln: TGridBoard + TListVariable (7-Bag) + TStringMap (Rotationsdaten) + Flow-Tasks.",
+    "_sourcePath": "projects/Tetris_Classic.json"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#070b16"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Globale Dienste",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "stage_blueprint_Tastatur",
+          "name": "Tastatur",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_ArrowLeft": "SteuerungLinks",
+            "onKeyDown_KeyA": "SteuerungLinks",
+            "onKeyDown_ArrowRight": "SteuerungRechts",
+            "onKeyDown_KeyD": "SteuerungRechts",
+            "onKeyDown_ArrowUp": "SteinDrehen",
+            "onKeyDown_KeyW": "SteinDrehen",
+            "onKeyDown_ArrowDown": "SteinSenken",
+            "onKeyDown_KeyS": "SteinSenken",
+            "onKeyDown_Space": "StartOderDrop",
+            "onKeyDown_Enter": "StartOderDrop",
+            "onKeyDown_KeyP": "PauseWechsel"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TListVariable",
+          "id": "stage_blueprint_SteinTypen",
+          "name": "SteinTypen",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": [
+            "I",
+            "J",
+            "L",
+            "O",
+            "S",
+            "T",
+            "Z"
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "stage_blueprint_Bag",
+          "name": "Bag",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": []
+        },
+        {
+          "className": "TListVariable",
+          "id": "stage_blueprint_Kicks",
+          "name": "Kicks",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": [
+            0,
+            -1,
+            1,
+            -2,
+            2
+          ]
+        },
+        {
+          "className": "TStringMap",
+          "id": "stage_blueprint_Steine",
+          "name": "Steine",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#00897b",
+            "borderColor": "#00695c",
+            "borderWidth": 2
+          },
+          "entries": {
+            "I_0": "[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]",
+            "I_1": "[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]]",
+            "I_2": "[[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]]",
+            "I_3": "[[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]",
+            "J_0": "[[1,0,0],[1,1,1],[0,0,0]]",
+            "J_1": "[[0,1,1],[0,1,0],[0,1,0]]",
+            "J_2": "[[0,0,0],[1,1,1],[0,0,1]]",
+            "J_3": "[[0,1,0],[0,1,0],[1,1,0]]",
+            "L_0": "[[0,0,1],[1,1,1],[0,0,0]]",
+            "L_1": "[[0,1,0],[0,1,0],[0,1,1]]",
+            "L_2": "[[0,0,0],[1,1,1],[1,0,0]]",
+            "L_3": "[[1,1,0],[0,1,0],[0,1,0]]",
+            "O_0": "[[1,1],[1,1]]",
+            "O_1": "[[1,1],[1,1]]",
+            "O_2": "[[1,1],[1,1]]",
+            "O_3": "[[1,1],[1,1]]",
+            "S_0": "[[0,1,1],[1,1,0],[0,0,0]]",
+            "S_1": "[[0,1,0],[0,1,1],[0,0,1]]",
+            "S_2": "[[0,0,0],[0,1,1],[1,1,0]]",
+            "S_3": "[[1,0,0],[1,1,0],[0,1,0]]",
+            "T_0": "[[0,1,0],[1,1,1],[0,0,0]]",
+            "T_1": "[[0,1,0],[0,1,1],[0,1,0]]",
+            "T_2": "[[0,0,0],[1,1,1],[0,1,0]]",
+            "T_3": "[[0,1,0],[1,1,0],[0,1,0]]",
+            "Z_0": "[[1,1,0],[0,1,1],[0,0,0]]",
+            "Z_1": "[[0,0,1],[0,1,1],[0,1,0]]",
+            "Z_2": "[[0,0,0],[1,1,0],[0,1,1]]",
+            "Z_3": "[[0,1,0],[1,1,0],[1,0,0]]"
+          }
+        },
+        {
+          "className": "TStringMap",
+          "id": "stage_blueprint_Farben",
+          "name": "Farben",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#00897b",
+            "borderColor": "#00695c",
+            "borderWidth": 2
+          },
+          "entries": {
+            "I": "1",
+            "J": "2",
+            "L": "3",
+            "O": "4",
+            "S": "5",
+            "T": "6",
+            "Z": "7"
+          }
+        },
+        {
+          "className": "TStringMap",
+          "id": "stage_blueprint_PunkteTabelle",
+          "name": "PunkteTabelle",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#00897b",
+            "borderColor": "#00695c",
+            "borderWidth": 2
+          },
+          "entries": {
+            "1": "100",
+            "2": "300",
+            "3": "500",
+            "4": "800"
+          }
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "className": "TStringVariable",
+          "id": "tc_var_Status",
+          "name": "Status",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "ready",
+          "value": "ready",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_Punkte",
+          "name": "Punkte",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_Reihen",
+          "name": "Reihen",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_Level",
+          "name": "Level",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 1,
+          "value": 1,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_Highscore",
+          "name": "Highscore",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "tc_var_AktivTyp",
+          "name": "AktivTyp",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_AktivRot",
+          "name": "AktivRot",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_AktivX",
+          "name": "AktivX",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_AktivY",
+          "name": "AktivY",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_AktivFarbe",
+          "name": "AktivFarbe",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 1,
+          "value": 1,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "tc_var_AktivMatrix",
+          "name": "AktivMatrix",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "tc_var_TestMatrix",
+          "name": "TestMatrix",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "tc_var_NaechsterTyp",
+          "name": "NaechsterTyp",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "tc_var_NaechsteMatrix",
+          "name": "NaechsteMatrix",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_NaechsteFarbe",
+          "name": "NaechsteFarbe",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 1,
+          "value": 1,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_NeuX",
+          "name": "NeuX",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_NeuY",
+          "name": "NeuY",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_NeueRot",
+          "name": "NeueRot",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_NeuLevel",
+          "name": "NeuLevel",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 1,
+          "value": 1,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_NeuIntervall",
+          "name": "NeuIntervall",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 700,
+          "value": 700,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_TestX",
+          "name": "TestX",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_GeistY",
+          "name": "GeistY",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_PruefY",
+          "name": "PruefY",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "tc_var_Passt",
+          "name": "Passt",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "tc_var_GeistFrei",
+          "name": "GeistFrei",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_Geloescht",
+          "name": "Geloescht",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_Basis",
+          "name": "Basis",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_BagLen",
+          "name": "BagLen",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_Kick",
+          "name": "Kick",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "tc_var_Typ",
+          "name": "Typ",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_Gedreht",
+          "name": "Gedreht",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "tc_var_FallWeiter",
+          "name": "FallWeiter",
+          "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "System internal flag to track unsaved changes",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#070b16"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Tetris Classic",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "stage_main_Titel",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 1,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#8ab4ff",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "🧱 TETRIS · CLASSIC"
+        },
+        {
+          "className": "TGridBoard",
+          "id": "stage_main_Spielfeld",
+          "name": "Spielfeld",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 22,
+          "y": 2,
+          "width": 20,
+          "height": 36,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#0b1020",
+            "borderColor": "#1f2a4a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "cols": 10,
+          "rows": 20,
+          "palette": [
+            "#101736",
+            "#22d3ee",
+            "#3b82f6",
+            "#f97316",
+            "#facc15",
+            "#22c55e",
+            "#a855f7",
+            "#ef4444"
+          ],
+          "cells": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "gridLines": true,
+          "gridColor": "rgba(255,255,255,0.05)",
+          "overlayText": "TETRIS\nLeertaste = Start"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_LblPunkte",
+          "name": "LblPunkte",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 46,
+          "y": 5,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "PUNKTE  ${Punkte}"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_LblReihen",
+          "name": "LblReihen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 46,
+          "y": 8,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "REIHEN  ${Reihen}"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_LblLevel",
+          "name": "LblLevel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 45,
+          "y": 11,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "LEVEL  ${Level}"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_LblBest",
+          "name": "LblBest",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 45,
+          "y": 14,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#94a3b8",
+            "fontSize": 15,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "BEST  ${Highscore}"
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_LblNext",
+          "name": "LblNext",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 46,
+          "y": 17,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#facc15",
+            "fontSize": 15,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "NÄCHSTES"
+        },
+        {
+          "className": "TGridBoard",
+          "id": "stage_main_Vorschau",
+          "name": "Vorschau",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 44,
+          "y": 19,
+          "width": 8,
+          "height": 8,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#141e3e",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": 6
+          },
+          "cols": 4,
+          "rows": 4,
+          "palette": [
+            "#101736",
+            "#22d3ee",
+            "#3b82f6",
+            "#f97316",
+            "#facc15",
+            "#22c55e",
+            "#a855f7",
+            "#ef4444"
+          ],
+          "cells": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "gridLines": true,
+          "gridColor": "transparent",
+          "overlayText": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "stage_main_Hilfe",
+          "name": "Hilfe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 46,
+          "y": 25,
+          "width": 14,
+          "height": 9,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#64748b",
+            "fontSize": 12,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "← →  bewegen\n↑     drehen\n↓     senken\nLEER  fallen\nP     Pause"
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_BtnStart",
+          "name": "BtnStart",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "StartOderDrop"
+          },
+          "visible": true,
+          "x": 22,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#dbeafe",
+            "fontSize": 13,
+            "backgroundColor": "#1e3a5f",
+            "borderColor": "#3b82f6",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "▶ START",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_BtnPause",
+          "name": "BtnPause",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "PauseWechsel"
+          },
+          "visible": true,
+          "x": 31,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fde68a",
+            "fontSize": 13,
+            "backgroundColor": "#3a3418",
+            "borderColor": "#a5853b",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "⏸ PAUSE",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_BtnNeu",
+          "name": "BtnNeu",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SpielStarten"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#dcfff0",
+            "fontSize": 13,
+            "backgroundColor": "#20453f",
+            "borderColor": "#416e60",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "↻ NEU",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_TouchDrehen",
+          "name": "TouchDrehen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SteinDrehen"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 25,
+          "width": 5,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#c7d2fe",
+            "fontSize": 13,
+            "backgroundColor": "#1a2440",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "↻",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_TouchFallen",
+          "name": "TouchFallen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SteinFallen"
+          },
+          "visible": true,
+          "x": 11,
+          "y": 25,
+          "width": 5,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#c7d2fe",
+            "fontSize": 13,
+            "backgroundColor": "#1a2440",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "⤓",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_TouchLinks",
+          "name": "TouchLinks",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SteuerungLinks"
+          },
+          "visible": true,
+          "x": 4,
+          "y": 30,
+          "width": 5,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#c7d2fe",
+            "fontSize": 13,
+            "backgroundColor": "#1a2440",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "◀",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "stage_main_TouchRechts",
+          "name": "TouchRechts",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "SteuerungRechts"
+          },
+          "visible": true,
+          "x": 11,
+          "y": 30,
+          "width": 5,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#c7d2fe",
+            "fontSize": 13,
+            "backgroundColor": "#1a2440",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7
+          },
+          "text": "▶",
+          "icon": ""
+        },
+        {
+          "className": "TTimer",
+          "id": "stage_main_Takt",
+          "name": "Takt",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "TaktSchritt"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 3,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 700,
+          "enabled": false,
+          "maxInterval": 0,
+          "currentInterval": 0
+        }
+      ],
+      "tasks": [
+        {
+          "name": "SpielStarten",
+          "description": "Neue Runde: Board leeren, Bag mischen, ersten Stein spawnen, Takt an.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_BoardLeeren"
+            },
+            {
+              "type": "action",
+              "name": "Act_OverlayWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_GhostWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_TextAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_StartWerte"
+            },
+            {
+              "type": "action",
+              "name": "Act_BagLeeren"
+            },
+            {
+              "type": "foreach",
+              "name": "ForEach: Typ in SteinTypen",
+              "sourceArray": "SteinTypen",
+              "itemVar": "Typ",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_BagFuellen"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Act_BagMischen"
+            },
+            {
+              "type": "task",
+              "name": "NaechsterZiehen"
+            },
+            {
+              "type": "task",
+              "name": "SteinSpawnen"
+            },
+            {
+              "type": "action",
+              "name": "Act_TaktAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_spielstarten"
+        },
+        {
+          "name": "TaktSchritt",
+          "description": "Gravity-Takt: Stein eine Zeile senken oder setzen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SteinRunter"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_taktschritt"
+        },
+        {
+          "name": "SteinRunter",
+          "description": "Senkt den Stein oder setzt ihn bei Kollision.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_NeuY"
+            },
+            {
+              "type": "action",
+              "name": "Act_PasstRunter"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Passt == true",
+              "condition": {
+                "variable": "Passt",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_YNeu"
+                },
+                {
+                  "type": "task",
+                  "name": "OverlayZeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "SteinSetzen"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinrunter"
+        },
+        {
+          "name": "SteinSenken",
+          "description": "Soft Drop: eine Zeile senken (+1 Punkt) oder setzen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_NeuY"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PasstRunter"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Passt == true",
+                  "condition": {
+                    "variable": "Passt",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_YNeu"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_PunkteSoft"
+                    },
+                    {
+                      "type": "task",
+                      "name": "OverlayZeigen"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "task",
+                      "name": "SteinSetzen"
+                    }
+                  ]
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinsenken"
+        },
+        {
+          "name": "SteinFallen",
+          "description": "Hard Drop: bis zur Landeposition fallen (+2 Punkte je Zeile), dann setzen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_FallFlag"
+                },
+                {
+                  "type": "while",
+                  "name": "While: FallWeiter == 1",
+                  "condition": {
+                    "variable": "FallWeiter",
+                    "operator": "==",
+                    "value": "1"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_NeuY"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_PasstRunter"
+                    },
+                    {
+                      "type": "condition",
+                      "name": "Branch: Passt == true",
+                      "condition": {
+                        "variable": "Passt",
+                        "operator": "==",
+                        "value": true
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_YNeu"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_PunkteHard"
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "action",
+                          "name": "Act_FallStopp"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "task",
+                  "name": "SteinSetzen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinfallen"
+        },
+        {
+          "name": "SteinSetzen",
+          "description": "Stein ins Board schreiben, volle Reihen loeschen, Wertung und Level.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SteinSetzen"
+            },
+            {
+              "type": "action",
+              "name": "Act_OverlayWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_GhostWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_VolleReihen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Geloescht > 0",
+              "condition": {
+                "variable": "Geloescht",
+                "operator": ">",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_ReihenPlus"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_BasisLesen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PunktePlus"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_NeuLevel"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: NeuLevel != ${Level}",
+                  "condition": {
+                    "variable": "NeuLevel",
+                    "operator": "!=",
+                    "value": "${Level}"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_LevelSetzen"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_IntervallNeu"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TaktIntervall"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TaktAn"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "task",
+              "name": "SteinSpawnen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinsetzen"
+        },
+        {
+          "name": "SteinSpawnen",
+          "description": "Naechsten Stein aus dem Bag holen; bei Kollision Game Over.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_TypSetzen"
+            },
+            {
+              "type": "action",
+              "name": "Act_FarbeLesen"
+            },
+            {
+              "type": "action",
+              "name": "Act_SpawnPos"
+            },
+            {
+              "type": "task",
+              "name": "NaechsterZiehen"
+            },
+            {
+              "type": "action",
+              "name": "Act_MatrixLesen"
+            },
+            {
+              "type": "action",
+              "name": "Act_PasstHier"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Passt == false",
+              "condition": {
+                "variable": "Passt",
+                "operator": "==",
+                "value": false
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SpielEnde"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "OverlayZeigen"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinspawnen"
+        },
+        {
+          "name": "NaechsterZiehen",
+          "description": "Bag nachfuellen (7-Bag) falls leer und naechsten Typ ziehen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_BagLaenge"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: BagLen == 0",
+              "condition": {
+                "variable": "BagLen",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "foreach",
+                  "name": "ForEach: Typ in SteinTypen",
+                  "sourceArray": "SteinTypen",
+                  "itemVar": "Typ",
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_BagFuellen"
+                    }
+                  ]
+                },
+                {
+                  "type": "action",
+                  "name": "Act_BagMischen"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "Act_BagPop"
+            },
+            {
+              "type": "action",
+              "name": "Act_NaechsteMatrix"
+            },
+            {
+              "type": "action",
+              "name": "Act_NaechsteFarbe"
+            },
+            {
+              "type": "action",
+              "name": "Act_VorschauLeeren"
+            },
+            {
+              "type": "action",
+              "name": "Act_VorschauZeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_naechsterziehen"
+        },
+        {
+          "name": "OverlayZeigen",
+          "description": "Aktiven Stein und Ghost-Landeposition darstellen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_OverlayZeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_GeistStart"
+            },
+            {
+              "type": "action",
+              "name": "Act_YplusEins"
+            },
+            {
+              "type": "action",
+              "name": "Act_PasstGeist"
+            },
+            {
+              "type": "while",
+              "name": "While: GeistFrei == true",
+              "condition": {
+                "variable": "GeistFrei",
+                "operator": "==",
+                "value": true
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_GeistRunter"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_YplusEins"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PasstGeist"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Act_GhostZeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_overlayzeigen"
+        },
+        {
+          "name": "SteuerungLinks",
+          "description": "Stein eine Spalte nach links.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_NeuXLinks"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PasstSeite"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Passt == true",
+                  "condition": {
+                    "variable": "Passt",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_XNeu"
+                    },
+                    {
+                      "type": "task",
+                      "name": "OverlayZeigen"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steuerunglinks"
+        },
+        {
+          "name": "SteuerungRechts",
+          "description": "Stein eine Spalte nach rechts.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_NeuXRechts"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PasstSeite"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Passt == true",
+                  "condition": {
+                    "variable": "Passt",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_XNeu"
+                    },
+                    {
+                      "type": "task",
+                      "name": "OverlayZeigen"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steuerungrechts"
+        },
+        {
+          "name": "SteinDrehen",
+          "description": "Stein drehen (CW) mit einfachen Wall-Kicks [0,-1,1,-2,2].",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_NeueRot"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TestLesen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_GedrehtNull"
+                },
+                {
+                  "type": "foreach",
+                  "name": "ForEach: Kick in Kicks",
+                  "sourceArray": "Kicks",
+                  "itemVar": "Kick",
+                  "body": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: Gedreht == 0",
+                      "condition": {
+                        "variable": "Gedreht",
+                        "operator": "==",
+                        "value": "0"
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_TestX"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_PasstDreh"
+                        },
+                        {
+                          "type": "condition",
+                          "name": "Branch: Passt == true",
+                          "condition": {
+                            "variable": "Passt",
+                            "operator": "==",
+                            "value": true
+                          },
+                          "then": [
+                            {
+                              "type": "action",
+                              "name": "Act_DrehUehlernehmen"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Act_MatrixSetzen"
+                            }
+                          ],
+                          "else": []
+                        }
+                      ],
+                      "else": []
+                    }
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Gedreht == 1",
+                  "condition": {
+                    "variable": "Gedreht",
+                    "operator": "==",
+                    "value": "1"
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "OverlayZeigen"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steindrehen"
+        },
+        {
+          "name": "PauseWechsel",
+          "description": "Pause umschalten (nur waehrend oder nach Pause).",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_StatusPause"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TaktAus"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TextPause"
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == paused",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "paused"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_StatusWeiter"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TextAus"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TaktAn"
+                    }
+                  ],
+                  "else": []
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_pausewechsel"
+        },
+        {
+          "name": "StartOderDrop",
+          "description": "Leertaste: im Spiel Hard Drop, in Pause weiter, sonst neue Runde.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SteinFallen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == paused",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "paused"
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "PauseWechsel"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "task",
+                      "name": "SpielStarten"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_startoderdrop"
+        },
+        {
+          "name": "SpielEnde",
+          "description": "Game Over: Takt aus, Highscore sichern, Hinweis zeigen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_StatusGameOver"
+            },
+            {
+              "type": "action",
+              "name": "Act_TaktAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_OverlayWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_GhostWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_Highscore"
+            },
+            {
+              "type": "action",
+              "name": "Act_TextGameOver"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_spielende"
+        }
+      ],
+      "actions": [
+        {
+          "name": "Act_BoardLeeren",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearBoard",
+          "params": [],
+          "id": "6dddae89-f2dc-4ec0-bd15-5cc3ad1f404e",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_OverlayWeg",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearOverlay",
+          "params": [],
+          "id": "68fe6c44-8c54-46aa-9149-fd218c16912e",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_GhostWeg",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearGhost",
+          "params": [],
+          "id": "91c8e1f7-648f-408b-bdcb-bc8fbf90f444",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_TextAus",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            ""
+          ],
+          "id": "d4e59d72-2b6c-47ca-8064-5d04d7ba95b0",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_TextPause",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            "⏸ PAUSE\nP = weiter"
+          ],
+          "id": "4c09be47-b32c-4424-bcc7-0531b42a8546",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_TextGameOver",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            "GAME OVER\nPunkte: ${Punkte}\n↻ Leertaste = neu"
+          ],
+          "id": "75326742-02c9-4eaa-ac1b-8fe7436911db",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_BagLeeren",
+          "type": "list_clear",
+          "target": "Bag",
+          "id": "58c0c71b-424a-49b8-8f7c-6a53f8a5c8ca",
+          "target_ref": "stage_blueprint_Bag"
+        },
+        {
+          "name": "Act_BagFuellen",
+          "type": "list_push",
+          "target": "Bag",
+          "value": "${Typ}",
+          "id": "4b12d4ab-bbf7-4886-95f1-d3f6ffd0d0ae",
+          "target_ref": "stage_blueprint_Bag"
+        },
+        {
+          "name": "Act_BagMischen",
+          "type": "list_shuffle",
+          "target": "Bag",
+          "id": "a4e9a490-1df3-4701-ba68-c7cae5889a90",
+          "target_ref": "stage_blueprint_Bag"
+        },
+        {
+          "name": "Act_BagLaenge",
+          "type": "list_length",
+          "target": "Bag",
+          "resultVariable": "BagLen",
+          "id": "cb565a08-d171-4211-a9d6-7a2b58b8a101",
+          "target_ref": "stage_blueprint_Bag",
+          "resultVariable_ref": "tc_var_BagLen"
+        },
+        {
+          "name": "Act_BagPop",
+          "type": "list_pop",
+          "target": "Bag",
+          "resultVariable": "NaechsterTyp",
+          "id": "50da18c0-df69-4a0b-adaa-c4bf85e7fdb4",
+          "target_ref": "stage_blueprint_Bag",
+          "resultVariable_ref": "tc_var_NaechsterTyp"
+        },
+        {
+          "name": "Act_StartWerte",
+          "type": "property",
+          "changes": {
+            "Status": "playing",
+            "Punkte": 0,
+            "Reihen": 0,
+            "Level": 1
+          },
+          "id": "0515c622-55eb-40f0-8b4e-23ad0d128160"
+        },
+        {
+          "name": "Act_TaktAn",
+          "type": "property",
+          "changes": {
+            "Takt.enabled": true
+          },
+          "id": "a42fe936-258e-4422-aa8d-0657eb7d0585"
+        },
+        {
+          "name": "Act_TaktAus",
+          "type": "property",
+          "changes": {
+            "Takt.enabled": false
+          },
+          "id": "d4619b43-7b99-4db6-9374-a8d12e393c15"
+        },
+        {
+          "name": "Act_TaktIntervall",
+          "type": "property",
+          "changes": {
+            "Takt.interval": "${NeuIntervall}",
+            "Takt.enabled": false
+          },
+          "id": "39232e0b-c649-40e8-b3df-b1d7485130a5"
+        },
+        {
+          "name": "Act_StatusPause",
+          "type": "property",
+          "changes": {
+            "Status": "paused"
+          },
+          "id": "05fe2525-e240-4415-a3a4-770e34e7c15f"
+        },
+        {
+          "name": "Act_StatusWeiter",
+          "type": "property",
+          "changes": {
+            "Status": "playing"
+          },
+          "id": "7cf74be2-2e98-4017-a739-28f2d2fa6105"
+        },
+        {
+          "name": "Act_StatusGameOver",
+          "type": "property",
+          "changes": {
+            "Status": "gameover"
+          },
+          "id": "ab4eb7ef-6dfd-41d0-8a65-65d85db59b17"
+        },
+        {
+          "name": "Act_SpawnPos",
+          "type": "property",
+          "changes": {
+            "AktivRot": 0,
+            "AktivX": 3,
+            "AktivY": 0
+          },
+          "id": "7085f206-4739-4b4b-91ff-10cee978a10d"
+        },
+        {
+          "name": "Act_TypSetzen",
+          "type": "property",
+          "changes": {
+            "AktivTyp": "${NaechsterTyp}"
+          },
+          "id": "642fa1c7-30ab-444f-84d4-e096140749cc"
+        },
+        {
+          "name": "Act_MatrixSetzen",
+          "type": "property",
+          "changes": {
+            "AktivMatrix": "${TestMatrix}"
+          },
+          "id": "b1a0e2fa-560d-4b00-b7df-ff18e693098e"
+        },
+        {
+          "name": "Act_GeistStart",
+          "type": "property",
+          "changes": {
+            "GeistY": "${AktivY}"
+          },
+          "id": "40eed909-10ee-421f-9fc5-9d8b4c71d689"
+        },
+        {
+          "name": "Act_NeuY",
+          "type": "calculate",
+          "formula": "AktivY + 1",
+          "resultVariable": "NeuY",
+          "id": "9bb6b867-4f38-4fd2-b584-04283c63253c",
+          "resultVariable_ref": "tc_var_NeuY"
+        },
+        {
+          "name": "Act_NeuXLinks",
+          "type": "calculate",
+          "formula": "AktivX - 1",
+          "resultVariable": "NeuX",
+          "id": "05d04b2e-2523-40c2-afc6-534267fe151e",
+          "resultVariable_ref": "tc_var_NeuX"
+        },
+        {
+          "name": "Act_NeuXRechts",
+          "type": "calculate",
+          "formula": "AktivX + 1",
+          "resultVariable": "NeuX",
+          "id": "4f50c4a8-2345-41be-b9d5-55168f488027",
+          "resultVariable_ref": "tc_var_NeuX"
+        },
+        {
+          "name": "Act_YplusEins",
+          "type": "calculate",
+          "formula": "GeistY + 1",
+          "resultVariable": "PruefY",
+          "id": "59e6550a-7b98-4483-aad0-605d386c1efc",
+          "resultVariable_ref": "tc_var_PruefY"
+        },
+        {
+          "name": "Act_GeistRunter",
+          "type": "calculate",
+          "formula": "PruefY",
+          "resultVariable": "GeistY",
+          "id": "29275bbe-4a50-4b99-9aa4-b6a8bd79179c",
+          "resultVariable_ref": "tc_var_GeistY"
+        },
+        {
+          "name": "Act_NeueRot",
+          "type": "calculate",
+          "formula": "(AktivRot + 1) % 4",
+          "resultVariable": "NeueRot",
+          "id": "5935bb9c-eba3-4ce4-bdc1-a573b5c79297",
+          "resultVariable_ref": "tc_var_NeueRot"
+        },
+        {
+          "name": "Act_TestX",
+          "type": "calculate",
+          "formula": "AktivX + Kick",
+          "resultVariable": "TestX",
+          "id": "2f71af54-8fd5-4a9b-bd6c-8a6388fcf2ad",
+          "resultVariable_ref": "tc_var_TestX"
+        },
+        {
+          "name": "Act_ReihenPlus",
+          "type": "calculate",
+          "formula": "Reihen + Geloescht",
+          "resultVariable": "Reihen",
+          "id": "51df2680-1c8a-44e4-afdf-667bc69adf4b",
+          "resultVariable_ref": "tc_var_Reihen"
+        },
+        {
+          "name": "Act_PunktePlus",
+          "type": "calculate",
+          "formula": "Punkte + Basis * Level",
+          "resultVariable": "Punkte",
+          "id": "1af51345-5213-4ab1-84c3-36958ea7b736",
+          "resultVariable_ref": "tc_var_Punkte"
+        },
+        {
+          "name": "Act_PunkteSoft",
+          "type": "calculate",
+          "formula": "Punkte + 1",
+          "resultVariable": "Punkte",
+          "id": "3ddf066a-2027-4cf3-822c-6709c201d13a",
+          "resultVariable_ref": "tc_var_Punkte"
+        },
+        {
+          "name": "Act_PunkteHard",
+          "type": "calculate",
+          "formula": "Punkte + 2",
+          "resultVariable": "Punkte",
+          "id": "67650b87-cddd-4ea0-9844-f252fc43ee25",
+          "resultVariable_ref": "tc_var_Punkte"
+        },
+        {
+          "name": "Act_NeuLevel",
+          "type": "calculate",
+          "formula": "(Reihen - Reihen % 10) / 10 + 1",
+          "resultVariable": "NeuLevel",
+          "id": "3f363999-8968-4f00-9ead-b8c50210f329",
+          "resultVariable_ref": "tc_var_NeuLevel"
+        },
+        {
+          "name": "Act_LevelSetzen",
+          "type": "calculate",
+          "formula": "NeuLevel",
+          "resultVariable": "Level",
+          "id": "16b8fe9e-8869-4625-bc34-008aadd8c0ee",
+          "resultVariable_ref": "tc_var_Level"
+        },
+        {
+          "name": "Act_IntervallNeu",
+          "type": "calculate",
+          "formula": "(700 - (Level - 1) * 70) < 80 ? 80 : 700 - (Level - 1) * 70",
+          "resultVariable": "NeuIntervall",
+          "id": "c86fedc0-e7c2-49fa-89e1-57346773efdd",
+          "resultVariable_ref": "tc_var_NeuIntervall"
+        },
+        {
+          "name": "Act_Highscore",
+          "type": "calculate",
+          "formula": "(Punkte > Highscore) ? Punkte : Highscore",
+          "resultVariable": "Highscore",
+          "id": "0692bb02-88bc-463d-9326-9779c3244c82",
+          "resultVariable_ref": "tc_var_Highscore"
+        },
+        {
+          "name": "Act_TestXLinks",
+          "type": "calculate",
+          "formula": "AktivX",
+          "resultVariable": "TestX",
+          "id": "38acce7e-3bd3-4de3-94c8-e9789264977c",
+          "resultVariable_ref": "tc_var_TestX"
+        },
+        {
+          "name": "Act_PasstRunter",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${NeuY}"
+          ],
+          "resultVariable": "Passt",
+          "id": "048bf3a8-0975-42f1-8d5e-084fd522237b",
+          "target_ref": "stage_main_Spielfeld",
+          "resultVariable_ref": "tc_var_Passt"
+        },
+        {
+          "name": "Act_PasstHier",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${AktivY}"
+          ],
+          "resultVariable": "Passt",
+          "id": "cf2707d2-98b6-49ff-adb2-614bd943683c",
+          "target_ref": "stage_main_Spielfeld",
+          "resultVariable_ref": "tc_var_Passt"
+        },
+        {
+          "name": "Act_PasstSeite",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${AktivMatrix}",
+            "${NeuX}",
+            "${AktivY}"
+          ],
+          "resultVariable": "Passt",
+          "id": "c246eacd-35ec-42be-b389-086934d9e18d",
+          "target_ref": "stage_main_Spielfeld",
+          "resultVariable_ref": "tc_var_Passt"
+        },
+        {
+          "name": "Act_PasstDreh",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${TestMatrix}",
+            "${TestX}",
+            "${AktivY}"
+          ],
+          "resultVariable": "Passt",
+          "id": "fa5f0e62-13dd-443a-8aef-82cbf2d4e2e4",
+          "target_ref": "stage_main_Spielfeld",
+          "resultVariable_ref": "tc_var_Passt"
+        },
+        {
+          "name": "Act_PasstGeist",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${PruefY}"
+          ],
+          "resultVariable": "GeistFrei",
+          "id": "ef70ca7b-3bfe-4cd7-9664-46b8294ab2f6",
+          "target_ref": "stage_main_Spielfeld",
+          "resultVariable_ref": "tc_var_GeistFrei"
+        },
+        {
+          "name": "Act_SteinSetzen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "placeShape",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${AktivY}",
+            "${AktivFarbe}"
+          ],
+          "id": "e5f2d1ed-106e-4b0a-929a-1880b8fe5110",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_VolleReihen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearFullRows",
+          "params": [],
+          "resultVariable": "Geloescht",
+          "id": "3c1e6249-73bb-4a08-8711-39a9fb26c9e1",
+          "target_ref": "stage_main_Spielfeld",
+          "resultVariable_ref": "tc_var_Geloescht"
+        },
+        {
+          "name": "Act_OverlayZeigen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlay",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${AktivY}",
+            "${AktivFarbe}"
+          ],
+          "id": "7f5e18f5-6ede-4ae3-8016-72df440a2bd1",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_GhostZeigen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setGhost",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${GeistY}",
+            "${AktivFarbe}"
+          ],
+          "id": "d5842b20-ec6a-40f0-8e79-b5e3117d1459",
+          "target_ref": "stage_main_Spielfeld"
+        },
+        {
+          "name": "Act_FarbeLesen",
+          "type": "map_get",
+          "target": "Farben",
+          "key": "${AktivTyp}",
+          "resultVariable": "AktivFarbe",
+          "id": "09537fa8-c057-4212-82cb-b7821fdd3796",
+          "target_ref": "stage_blueprint_Farben",
+          "resultVariable_ref": "tc_var_AktivFarbe"
+        },
+        {
+          "name": "Act_MatrixLesen",
+          "type": "map_get",
+          "target": "Steine",
+          "key": "${AktivTyp}_${AktivRot}",
+          "resultVariable": "AktivMatrix",
+          "id": "bc79868a-7fb8-44a0-83bd-f14b4a3f2fd9",
+          "target_ref": "stage_blueprint_Steine",
+          "resultVariable_ref": "tc_var_AktivMatrix"
+        },
+        {
+          "name": "Act_TestLesen",
+          "type": "map_get",
+          "target": "Steine",
+          "key": "${AktivTyp}_${NeueRot}",
+          "resultVariable": "TestMatrix",
+          "id": "fcedab9c-6115-4137-992b-c089f93de95d",
+          "target_ref": "stage_blueprint_Steine",
+          "resultVariable_ref": "tc_var_TestMatrix"
+        },
+        {
+          "name": "Act_NaechsteMatrix",
+          "type": "map_get",
+          "target": "Steine",
+          "key": "${NaechsterTyp}_0",
+          "resultVariable": "NaechsteMatrix",
+          "id": "2ba383c7-b665-4366-b027-6e85e0da6dd7",
+          "target_ref": "stage_blueprint_Steine",
+          "resultVariable_ref": "tc_var_NaechsteMatrix"
+        },
+        {
+          "name": "Act_NaechsteFarbe",
+          "type": "map_get",
+          "target": "Farben",
+          "key": "${NaechsterTyp}",
+          "resultVariable": "NaechsteFarbe",
+          "id": "4319b5c4-a9e4-422e-8fec-81aa812b7d26",
+          "target_ref": "stage_blueprint_Farben",
+          "resultVariable_ref": "tc_var_NaechsteFarbe"
+        },
+        {
+          "name": "Act_VorschauLeeren",
+          "type": "call_method",
+          "target": "Vorschau",
+          "method": "clearBoard",
+          "params": [],
+          "id": "3774aec6-aec1-4bac-a702-4568074156f5",
+          "target_ref": "stage_main_Vorschau"
+        },
+        {
+          "name": "Act_VorschauZeigen",
+          "type": "call_method",
+          "target": "Vorschau",
+          "method": "placeShape",
+          "params": [
+            "${NaechsteMatrix}",
+            0,
+            0,
+            "${NaechsteFarbe}"
+          ],
+          "id": "819b00fe-379f-45c3-a12a-b077d9685bd5",
+          "target_ref": "stage_main_Vorschau"
+        },
+        {
+          "name": "Act_BasisLesen",
+          "type": "map_get",
+          "target": "PunkteTabelle",
+          "key": "${Geloescht}",
+          "resultVariable": "Basis",
+          "id": "9fe9eca3-5ae6-4884-8d09-b44dac5b166e",
+          "target_ref": "stage_blueprint_PunkteTabelle",
+          "resultVariable_ref": "tc_var_Basis"
+        },
+        {
+          "name": "Act_FallFlag",
+          "type": "property",
+          "changes": {
+            "FallWeiter": "1"
+          },
+          "id": "70026986-0b91-45aa-bf68-2137085b0817"
+        },
+        {
+          "name": "Act_FallStopp",
+          "type": "property",
+          "changes": {
+            "FallWeiter": "0"
+          },
+          "id": "0b00ad31-a624-479b-9cc9-faad96a06983"
+        },
+        {
+          "name": "Act_GedrehtNull",
+          "type": "property",
+          "changes": {
+            "Gedreht": "0"
+          },
+          "id": "ab8b9027-6a84-4653-b52c-2a7874f780a2"
+        },
+        {
+          "name": "Act_GedrehtEins",
+          "type": "property",
+          "changes": {
+            "Gedreht": "1"
+          },
+          "id": "5e82f61a-e2db-4668-ba23-6e35117d778d"
+        },
+        {
+          "name": "Act_RotSetzen",
+          "type": "property",
+          "changes": {
+            "AktivRot": "${NeueRot}"
+          },
+          "id": "08934333-467c-436c-b651-276e1d8b5171"
+        },
+        {
+          "name": "Act_XSetzen",
+          "type": "property",
+          "changes": {
+            "AktivX": "${TestX}"
+          },
+          "id": "f2b20694-34ca-4ce3-b1eb-4e8b554f1ac8"
+        },
+        {
+          "name": "Act_XNeu",
+          "type": "property",
+          "changes": {
+            "AktivX": "${NeuX}"
+          },
+          "id": "80990927-2ab4-4416-895f-3a2e199f2387"
+        },
+        {
+          "name": "Act_YNeu",
+          "type": "property",
+          "changes": {
+            "AktivY": "${NeuY}"
+          },
+          "id": "f7be8c14-374b-4c9a-9d88-ab952a65e7fe"
+        },
+        {
+          "name": "Act_DrehUehlernehmen",
+          "type": "property",
+          "changes": {
+            "AktivRot": "${NeueRot}",
+            "AktivX": "${TestX}",
+            "Gedreht": 1
+          },
+          "id": "ba93cdcb-dbe3-453f-b757-14c8d41979a3"
+        }
+      ],
+      "variables": [],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#141e3e"
+      },
+      "features": [
+        {
+          "id": "feature_tc_raster",
+          "name": "Raster & Board",
+          "description": "TGridBoard als generischer Raster-Baustein: Zellen-Matrix, Palette, Overlay und Ghost.",
+          "tags": [
+            "Tetris",
+            "GridBoard"
+          ],
+          "userStoryIds": [
+            "tc_raster"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "feature_tc_steine",
+          "name": "Steine & 7-Bag",
+          "description": "Rotationsdaten in TStringMap, 7-Bag ueber TListVariable (shuffle/pop).",
+          "tags": [
+            "Tetris",
+            "Daten"
+          ],
+          "userStoryIds": [
+            "tc_steine"
+          ],
+          "blueprintTaskNames": [
+            "NaechsterZiehen",
+            "SteinSpawnen",
+            "SteinDrehen"
+          ]
+        },
+        {
+          "id": "feature_tc_steuerung",
+          "name": "Steuerung",
+          "description": "Tastatur und Bildschirmtasten steuern den Stein ueber canPlaceShape-Pruefungen.",
+          "tags": [
+            "Tetris",
+            "Input"
+          ],
+          "userStoryIds": [
+            "tc_steuerung"
+          ],
+          "blueprintTaskNames": [
+            "SteuerungLinks",
+            "SteuerungRechts",
+            "SteinSenken",
+            "SteinFallen",
+            "StartOderDrop"
+          ]
+        },
+        {
+          "id": "feature_tc_wertung",
+          "name": "Reihen & Wertung",
+          "description": "clearFullRows, Punkte-Tabelle (100/300/500/800 × Level) und Tempo-Steigerung.",
+          "tags": [
+            "Tetris",
+            "Score"
+          ],
+          "userStoryIds": [
+            "tc_wertung"
+          ],
+          "blueprintTaskNames": [
+            "SteinSetzen"
+          ]
+        },
+        {
+          "id": "feature_tc_ablauf",
+          "name": "Spielablauf",
+          "description": "Start-Overlay, Pause, Game Over und Neustart.",
+          "tags": [
+            "Tetris",
+            "Ablauf"
+          ],
+          "userStoryIds": [
+            "tc_ablauf"
+          ],
+          "blueprintTaskNames": [
+            "SpielStarten",
+            "PauseWechsel",
+            "SpielEnde",
+            "TaktSchritt",
+            "OverlayZeigen"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "tc_raster",
+        "title": "Raster & Board",
+        "description": "Als Spieler möchte ich das Spielfeld als klares Raster sehen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "10×20 Zellen als Matrix",
+          "Palette bildet Werte auf Farben ab",
+          "Overlay zeigt aktiven Stein",
+          "Ghost zeigt Landeposition"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_raster",
+        "plannedActions": []
+      },
+      {
+        "id": "tc_steine",
+        "title": "Steine & 7-Bag",
+        "description": "Als Spieler möchte ich fairen Stein-Nachschub und saubere Rotation.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "7-Bag: jede Serie enthält alle 7 Typen",
+          "4 Rotationsstufen je Stein als Daten",
+          "Wall-Kicks 0,-1,1,-2,2"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Steine",
+          "Farben",
+          "Bag",
+          "SteinTypen",
+          "Kicks"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_steine",
+        "plannedActions": []
+      },
+      {
+        "id": "tc_steuerung",
+        "title": "Steuerung",
+        "description": "Als Spieler möchte ich per Tastatur und Buttons steuern.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Pfeile/WASD bewegen, drehen, senken",
+          "Leertaste = Hard Drop / Start",
+          "P = Pause",
+          "Touch-Buttons rufen dieselben Tasks"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Tastatur",
+          "BtnStart",
+          "BtnPause",
+          "BtnNeu",
+          "TouchLinks",
+          "TouchRechts",
+          "TouchDrehen",
+          "TouchFallen"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_steuerung",
+        "plannedActions": []
+      },
+      {
+        "id": "tc_wertung",
+        "title": "Reihen & Wertung",
+        "description": "Als Spieler möchte ich volle Reihen auflösen und Punkte sammeln.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "clearFullRows liefert 0–4 Reihen",
+          "Punkte 100/300/500/800 × Level",
+          "Alle 10 Reihen Level-Up + schnellerer Takt"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld",
+          "PunkteTabelle",
+          "Takt"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_wertung",
+        "plannedActions": []
+      },
+      {
+        "id": "tc_ablauf",
+        "title": "Spielablauf",
+        "description": "Als Spieler möchte ich starten, pausieren und neu beginnen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Start-Overlay mit Hinweis",
+          "Pause-Overlay",
+          "Game-Over mit Punkten und Highscore",
+          "Neustart per Leertaste"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld",
+          "Takt"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_ablauf",
+        "plannedActions": []
+      }
+    ]
+  },
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  }
+}

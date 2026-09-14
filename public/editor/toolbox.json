@@ -191,6 +191,11 @@
           "type": "Tetris",
           "icon": "🧱",
           "label": "Tetris"
+        },
+        {
+          "type": "GridBoard",
+          "icon": "▦",
+          "label": "Grid Board"
         }
       ]
     },

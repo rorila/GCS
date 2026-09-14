@@ -134,23 +134,28 @@ export function registerMiscActions() {
             return PropertyHelper.interpolate(String(p), combinedContext, context.objects);
         });
 
+        // resultVariable in vars/contextVars schreiben und ein evtl. deklariertes
+        // TVariable-Objekt synchronisieren — interpolate() sucht dort zuerst.
+        const writeResult = (result: any) => {
+            context.vars[action.resultVariable] = result;
+            context.contextVars[action.resultVariable] = result;
+            const varObj = context.objects?.find((o: any) =>
+                (o.name === action.resultVariable || o.id === action.resultVariable) &&
+                (o.isVariable === true || o.className?.includes('Variable')));
+            if (varObj) varObj.value = result;
+        };
+
         const targetObj = resolveTarget(targetName, context.objects, context.vars, context.eventData);
         if (targetObj && typeof (targetObj as any)[methodName] === 'function') {
             const result = await (targetObj as any)[methodName](...resolvedParams);
-            if (action.resultVariable) {
-                context.vars[action.resultVariable] = result;
-                context.contextVars[action.resultVariable] = result;
-            }
+            if (action.resultVariable) writeResult(result);
             runtimeLogger.info(`${targetName}.${methodName}(${resolvedParams.length} Parameter) aufgerufen.`);
             return;
         }
 
         if (serviceRegistry.has(targetName)) {
             const result = await serviceRegistry.call(targetName, methodName, resolvedParams);
-            if (action.resultVariable) {
-                context.vars[action.resultVariable] = result;
-                context.contextVars[action.resultVariable] = result;
-            }
+            if (action.resultVariable) writeResult(result);
             runtimeLogger.info(`Service ${targetName}.${methodName}(${resolvedParams.length} Parameter) aufgerufen.`);
             return;
         }

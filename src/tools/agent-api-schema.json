@@ -82,7 +82,8 @@
             "enum": [
                 "TButton", "TLabel", "TEdit", "TPanel", "TGroupPanel", "TImage",
                 "TSprite", "TSpriteTemplate", "TProgressBar", "TCheckbox", "TTable",
-                "TDataStore", "TDataList", "TTimer", "TObjectList"
+                "TDataStore", "TDataList", "TTimer", "TObjectList", "TTetris",
+                "TGridBoard"
             ]
         }
     }

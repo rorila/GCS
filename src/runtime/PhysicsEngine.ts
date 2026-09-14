@@ -20,7 +20,9 @@ type BoundsLike = {
 export class PhysicsEngine {
     /**
      * Löst eine Kollision zwischen zwei Sprites durch Push-Out auf.
-     * Das schnellere Sprite (nach Betrag der Geschwindigkeit) wird bewegt.
+     * Das schnellere Sprite (nach Betrag der Geschwindigkeit) wird bewegt;
+     * seine Geschwindigkeit auf der aufgelösten Achse wird genullt, damit
+     * z.B. Gravitation nicht ungebremst weiter aufschaukelt.
      */
     public static resolveSpriteCollision(
         spriteA: TSprite,
@@ -30,14 +32,18 @@ export class PhysicsEngine {
         if (overlap.side === 'left' || overlap.side === 'right') {
             if (Math.abs(spriteA.velocityX) >= Math.abs(spriteB.velocityX)) {
                 spriteA.x -= (overlap.side === 'left' ? -1 : 1) * overlap.depth;
+                spriteA.velocityX = 0;
             } else {
                 spriteB.x += (overlap.side === 'left' ? -1 : 1) * overlap.depth;
+                spriteB.velocityX = 0;
             }
         } else {
             if (Math.abs(spriteA.velocityY) >= Math.abs(spriteB.velocityY)) {
                 spriteA.y -= (overlap.side === 'top' ? -1 : 1) * overlap.depth;
+                spriteA.velocityY = 0;
             } else {
                 spriteB.y += (overlap.side === 'top' ? -1 : 1) * overlap.depth;
+                spriteB.velocityY = 0;
             }
         }
     }
@@ -57,11 +63,15 @@ export class PhysicsEngine {
             sprite.x -= (hitSide === 'left' ? -1 : 1) * depth;
             if (boundaryMode === 'bounce') {
                 sprite.velocityX = -sprite.velocityX;
+            } else {
+                sprite.velocityX = 0;
             }
         } else {
             sprite.y -= (hitSide === 'top' ? -1 : 1) * depth;
             if (boundaryMode === 'bounce') {
                 sprite.velocityY = -sprite.velocityY;
+            } else {
+                sprite.velocityY = 0;
             }
         }
 

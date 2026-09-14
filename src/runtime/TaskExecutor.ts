@@ -807,21 +807,21 @@ export class TaskExecutor {
      * WHILE loop: Execute body while condition is true
      */
     private async handleWhile(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
-        await TaskLoopHandler.handleWhile(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this));
+        await TaskLoopHandler.handleWhile(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this), this.actionExecutor.getObjects());
     }
 
     /**
      * FOR loop: Execute body for each value from 'from' to 'to'
      */
     private async handleFor(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
-        await TaskLoopHandler.handleFor(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this));
+        await TaskLoopHandler.handleFor(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this), this.actionExecutor.getObjects());
     }
 
     /**
      * FOREACH loop: Execute body for each item in array
      */
     private async handleForeach(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
-        await TaskLoopHandler.handleForeach(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this));
+        await TaskLoopHandler.handleForeach(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this), this.actionExecutor.getObjects());
     }
 
     /**

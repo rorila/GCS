@@ -1,0 +1,2349 @@
+{
+  "meta": {
+    "id": "tetris-classic",
+    "name": "Tetris Classic",
+    "version": "1.0.0",
+    "author": "Rolf Rieckmann / Devin",
+    "description": "Tetris komplett mit GCS-Bordmitteln: TGridBoard + TListVariable (7-Bag) + TStringMap (Rotationsdaten) + Flow-Tasks."
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#070b16"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Globale Dienste",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TInputController",
+          "name": "Tastatur",
+          "enabled": true,
+          "isHiddenInRun": true,
+          "isService": true,
+          "x": 1,
+          "y": 1,
+          "events": {
+            "onKeyDown_ArrowLeft": "SteuerungLinks",
+            "onKeyDown_KeyA": "SteuerungLinks",
+            "onKeyDown_ArrowRight": "SteuerungRechts",
+            "onKeyDown_KeyD": "SteuerungRechts",
+            "onKeyDown_ArrowUp": "SteinDrehen",
+            "onKeyDown_KeyW": "SteinDrehen",
+            "onKeyDown_ArrowDown": "SteinSenken",
+            "onKeyDown_KeyS": "SteinSenken",
+            "onKeyDown_Space": "StartOderDrop",
+            "onKeyDown_Enter": "StartOderDrop",
+            "onKeyDown_KeyP": "PauseWechsel"
+          },
+          "id": "stage_blueprint_Tastatur"
+        },
+        {
+          "className": "TListVariable",
+          "name": "SteinTypen",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "items": [
+            "I",
+            "J",
+            "L",
+            "O",
+            "S",
+            "T",
+            "Z"
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "name": "Bag",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "items": []
+        },
+        {
+          "className": "TListVariable",
+          "name": "Kicks",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "items": [
+            0,
+            -1,
+            1,
+            -2,
+            2
+          ]
+        },
+        {
+          "className": "TStringMap",
+          "name": "Steine",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "entries": {
+            "I_0": "[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]",
+            "I_1": "[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]]",
+            "I_2": "[[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]]",
+            "I_3": "[[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]",
+            "J_0": "[[1,0,0],[1,1,1],[0,0,0]]",
+            "J_1": "[[0,1,1],[0,1,0],[0,1,0]]",
+            "J_2": "[[0,0,0],[1,1,1],[0,0,1]]",
+            "J_3": "[[0,1,0],[0,1,0],[1,1,0]]",
+            "L_0": "[[0,0,1],[1,1,1],[0,0,0]]",
+            "L_1": "[[0,1,0],[0,1,0],[0,1,1]]",
+            "L_2": "[[0,0,0],[1,1,1],[1,0,0]]",
+            "L_3": "[[1,1,0],[0,1,0],[0,1,0]]",
+            "O_0": "[[1,1],[1,1]]",
+            "O_1": "[[1,1],[1,1]]",
+            "O_2": "[[1,1],[1,1]]",
+            "O_3": "[[1,1],[1,1]]",
+            "S_0": "[[0,1,1],[1,1,0],[0,0,0]]",
+            "S_1": "[[0,1,0],[0,1,1],[0,0,1]]",
+            "S_2": "[[0,0,0],[0,1,1],[1,1,0]]",
+            "S_3": "[[1,0,0],[1,1,0],[0,1,0]]",
+            "T_0": "[[0,1,0],[1,1,1],[0,0,0]]",
+            "T_1": "[[0,1,0],[0,1,1],[0,1,0]]",
+            "T_2": "[[0,0,0],[1,1,1],[0,1,0]]",
+            "T_3": "[[0,1,0],[1,1,0],[0,1,0]]",
+            "Z_0": "[[1,1,0],[0,1,1],[0,0,0]]",
+            "Z_1": "[[0,0,1],[0,1,1],[0,1,0]]",
+            "Z_2": "[[0,0,0],[1,1,0],[0,1,1]]",
+            "Z_3": "[[0,1,0],[1,1,0],[1,0,0]]"
+          }
+        },
+        {
+          "className": "TStringMap",
+          "name": "Farben",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "entries": {
+            "I": "1",
+            "J": "2",
+            "L": "3",
+            "O": "4",
+            "S": "5",
+            "T": "6",
+            "Z": "7"
+          }
+        },
+        {
+          "className": "TStringMap",
+          "name": "PunkteTabelle",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "entries": {
+            "1": "100",
+            "2": "300",
+            "3": "500",
+            "4": "800"
+          }
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "name": "Status",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "ready",
+          "defaultValue": "ready",
+          "value": "ready",
+          "scope": "global",
+          "id": "tc_var_Status"
+        },
+        {
+          "name": "Punkte",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_Punkte"
+        },
+        {
+          "name": "Reihen",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_Reihen"
+        },
+        {
+          "name": "Level",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 1,
+          "defaultValue": 1,
+          "value": 1,
+          "scope": "global",
+          "id": "tc_var_Level"
+        },
+        {
+          "name": "Highscore",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_Highscore"
+        },
+        {
+          "name": "AktivTyp",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "tc_var_AktivTyp"
+        },
+        {
+          "name": "AktivRot",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_AktivRot"
+        },
+        {
+          "name": "AktivX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_AktivX"
+        },
+        {
+          "name": "AktivY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_AktivY"
+        },
+        {
+          "name": "AktivFarbe",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 1,
+          "defaultValue": 1,
+          "value": 1,
+          "scope": "global",
+          "id": "tc_var_AktivFarbe"
+        },
+        {
+          "name": "AktivMatrix",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "tc_var_AktivMatrix"
+        },
+        {
+          "name": "TestMatrix",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "tc_var_TestMatrix"
+        },
+        {
+          "name": "NaechsterTyp",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "tc_var_NaechsterTyp"
+        },
+        {
+          "name": "NeuX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_NeuX"
+        },
+        {
+          "name": "NeuY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_NeuY"
+        },
+        {
+          "name": "NeueRot",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_NeueRot"
+        },
+        {
+          "name": "NeuLevel",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 1,
+          "defaultValue": 1,
+          "value": 1,
+          "scope": "global",
+          "id": "tc_var_NeuLevel"
+        },
+        {
+          "name": "NeuIntervall",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 700,
+          "defaultValue": 700,
+          "value": 700,
+          "scope": "global",
+          "id": "tc_var_NeuIntervall"
+        },
+        {
+          "name": "TestX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_TestX"
+        },
+        {
+          "name": "GeistY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_GeistY"
+        },
+        {
+          "name": "PruefY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_PruefY"
+        },
+        {
+          "name": "Passt",
+          "type": "boolean",
+          "isVariable": true,
+          "className": "TBooleanVariable",
+          "initialValue": false,
+          "defaultValue": false,
+          "value": false,
+          "scope": "global",
+          "id": "tc_var_Passt"
+        },
+        {
+          "name": "GeistFrei",
+          "type": "boolean",
+          "isVariable": true,
+          "className": "TBooleanVariable",
+          "initialValue": false,
+          "defaultValue": false,
+          "value": false,
+          "scope": "global",
+          "id": "tc_var_GeistFrei"
+        },
+        {
+          "name": "Geloescht",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_Geloescht"
+        },
+        {
+          "name": "Basis",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_Basis"
+        },
+        {
+          "name": "BagLen",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_BagLen"
+        },
+        {
+          "name": "Kick",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_Kick"
+        },
+        {
+          "name": "Typ",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "tc_var_Typ"
+        },
+        {
+          "name": "Gedreht",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_Gedreht"
+        },
+        {
+          "name": "FallWeiter",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "tc_var_FallWeiter"
+        }
+      ],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#070b16"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Tetris Classic",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "name": "Titel",
+          "x": 2,
+          "y": 1,
+          "width": 16,
+          "height": 2,
+          "text": "🧱 TETRIS · CLASSIC",
+          "style": {
+            "color": "#8ab4ff",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Titel"
+        },
+        {
+          "className": "TGridBoard",
+          "name": "Spielfeld",
+          "x": 22,
+          "y": 2,
+          "width": 20,
+          "height": 36,
+          "cols": 10,
+          "rows": 20,
+          "palette": [
+            "#101736",
+            "#22d3ee",
+            "#3b82f6",
+            "#f97316",
+            "#facc15",
+            "#22c55e",
+            "#a855f7",
+            "#ef4444"
+          ],
+          "gridLines": true,
+          "overlayText": "TETRIS\nLeertaste = Start",
+          "style": {
+            "backgroundColor": "#0b1020",
+            "borderColor": "#1f2a4a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "id": "stage_main_Spielfeld"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblPunkte",
+          "x": 46,
+          "y": 5,
+          "width": 14,
+          "height": 2,
+          "text": "PUNKTE  ${Punkte}",
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblPunkte"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblReihen",
+          "x": 46,
+          "y": 8,
+          "width": 14,
+          "height": 2,
+          "text": "REIHEN  ${Reihen}",
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblReihen"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblLevel",
+          "x": 46,
+          "y": 11,
+          "width": 14,
+          "height": 2,
+          "text": "LEVEL  ${Level}",
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblLevel"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblBest",
+          "x": 46,
+          "y": 14,
+          "width": 14,
+          "height": 2,
+          "text": "BEST  ${Highscore}",
+          "style": {
+            "color": "#94a3b8",
+            "fontSize": 15,
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblBest"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblNext",
+          "x": 46,
+          "y": 17,
+          "width": 14,
+          "height": 2,
+          "text": "NÄCHSTES  ${NaechsterTyp}",
+          "style": {
+            "color": "#facc15",
+            "fontSize": 15,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblNext"
+        },
+        {
+          "className": "TLabel",
+          "name": "Hilfe",
+          "x": 46,
+          "y": 22,
+          "width": 14,
+          "height": 9,
+          "text": "← →  bewegen\n↑     drehen\n↓     senken\nLEER  fallen\nP     Pause",
+          "style": {
+            "color": "#64748b",
+            "fontSize": 12,
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Hilfe"
+        },
+        {
+          "className": "TButton",
+          "name": "BtnStart",
+          "x": 22,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "text": "▶ START",
+          "style": {
+            "backgroundColor": "#1e3a5f",
+            "color": "#dbeafe",
+            "borderColor": "#3b82f6",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "StartOderDrop"
+          },
+          "id": "stage_main_BtnStart"
+        },
+        {
+          "className": "TButton",
+          "name": "BtnPause",
+          "x": 31,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "text": "⏸ PAUSE",
+          "style": {
+            "backgroundColor": "#3a3418",
+            "color": "#fde68a",
+            "borderColor": "#a5853b",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "PauseWechsel"
+          },
+          "id": "stage_main_BtnPause"
+        },
+        {
+          "className": "TButton",
+          "name": "BtnNeu",
+          "x": 40,
+          "y": 38,
+          "width": 8,
+          "height": 2,
+          "text": "↻ NEU",
+          "style": {
+            "backgroundColor": "#20453f",
+            "color": "#dcfff0",
+            "borderColor": "#416e60",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "SpielStarten"
+          },
+          "id": "stage_main_BtnNeu"
+        },
+        {
+          "className": "TButton",
+          "name": "TouchDrehen",
+          "x": 4,
+          "y": 25,
+          "width": 5,
+          "height": 3,
+          "text": "↻",
+          "style": {
+            "backgroundColor": "#1a2440",
+            "color": "#c7d2fe",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "SteinDrehen"
+          },
+          "id": "stage_main_TouchDrehen"
+        },
+        {
+          "className": "TButton",
+          "name": "TouchFallen",
+          "x": 11,
+          "y": 25,
+          "width": 5,
+          "height": 3,
+          "text": "⤓",
+          "style": {
+            "backgroundColor": "#1a2440",
+            "color": "#c7d2fe",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "SteinFallen"
+          },
+          "id": "stage_main_TouchFallen"
+        },
+        {
+          "className": "TButton",
+          "name": "TouchLinks",
+          "x": 4,
+          "y": 30,
+          "width": 5,
+          "height": 3,
+          "text": "◀",
+          "style": {
+            "backgroundColor": "#1a2440",
+            "color": "#c7d2fe",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "SteuerungLinks"
+          },
+          "id": "stage_main_TouchLinks"
+        },
+        {
+          "className": "TButton",
+          "name": "TouchRechts",
+          "x": 11,
+          "y": 30,
+          "width": 5,
+          "height": 3,
+          "text": "▶",
+          "style": {
+            "backgroundColor": "#1a2440",
+            "color": "#c7d2fe",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "SteuerungRechts"
+          },
+          "id": "stage_main_TouchRechts"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "SpielStarten",
+          "description": "Neue Runde: Board leeren, Bag mischen, ersten Stein spawnen, Takt an.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_BoardLeeren"
+            },
+            {
+              "type": "action",
+              "name": "Act_OverlayWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_GhostWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_TextAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_StartWerte"
+            },
+            {
+              "type": "action",
+              "name": "Act_BagLeeren"
+            },
+            {
+              "type": "foreach",
+              "name": "ForEach: Typ in SteinTypen",
+              "sourceArray": "SteinTypen",
+              "itemVar": "Typ",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_BagFuellen"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Act_BagMischen"
+            },
+            {
+              "type": "task",
+              "name": "NaechsterZiehen"
+            },
+            {
+              "type": "task",
+              "name": "SteinSpawnen"
+            },
+            {
+              "type": "action",
+              "name": "Act_TaktAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_spielstarten"
+        },
+        {
+          "name": "TaktSchritt",
+          "description": "Gravity-Takt: Stein eine Zeile senken oder setzen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SteinRunter"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_taktschritt"
+        },
+        {
+          "name": "SteinRunter",
+          "description": "Senkt den Stein oder setzt ihn bei Kollision.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_NeuY"
+            },
+            {
+              "type": "action",
+              "name": "Act_PasstRunter"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Passt == true",
+              "condition": {
+                "variable": "Passt",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_YNeu"
+                },
+                {
+                  "type": "task",
+                  "name": "OverlayZeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "SteinSetzen"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinrunter"
+        },
+        {
+          "name": "SteinSenken",
+          "description": "Soft Drop: eine Zeile senken (+1 Punkt) oder setzen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_NeuY"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PasstRunter"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Passt == true",
+                  "condition": {
+                    "variable": "Passt",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_YNeu"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_PunkteSoft"
+                    },
+                    {
+                      "type": "task",
+                      "name": "OverlayZeigen"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "task",
+                      "name": "SteinSetzen"
+                    }
+                  ]
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinsenken"
+        },
+        {
+          "name": "SteinFallen",
+          "description": "Hard Drop: bis zur Landeposition fallen (+2 Punkte je Zeile), dann setzen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_FallFlag"
+                },
+                {
+                  "type": "while",
+                  "name": "While: FallWeiter == 1",
+                  "condition": {
+                    "variable": "FallWeiter",
+                    "operator": "==",
+                    "value": "1"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_NeuY"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_PasstRunter"
+                    },
+                    {
+                      "type": "condition",
+                      "name": "Branch: Passt == true",
+                      "condition": {
+                        "variable": "Passt",
+                        "operator": "==",
+                        "value": true
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_YNeu"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_PunkteHard"
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "action",
+                          "name": "Act_FallStopp"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "task",
+                  "name": "SteinSetzen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinfallen"
+        },
+        {
+          "name": "SteinSetzen",
+          "description": "Stein ins Board schreiben, volle Reihen loeschen, Wertung und Level.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SteinSetzen"
+            },
+            {
+              "type": "action",
+              "name": "Act_OverlayWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_GhostWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_VolleReihen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Geloescht > 0",
+              "condition": {
+                "variable": "Geloescht",
+                "operator": ">",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_ReihenPlus"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_BasisLesen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PunktePlus"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_NeuLevel"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: NeuLevel != ${Level}",
+                  "condition": {
+                    "variable": "NeuLevel",
+                    "operator": "!=",
+                    "value": "${Level}"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_LevelSetzen"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_IntervallNeu"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TaktIntervall"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TaktAn"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "task",
+              "name": "SteinSpawnen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinsetzen"
+        },
+        {
+          "name": "SteinSpawnen",
+          "description": "Naechsten Stein aus dem Bag holen; bei Kollision Game Over.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_TypSetzen"
+            },
+            {
+              "type": "action",
+              "name": "Act_FarbeLesen"
+            },
+            {
+              "type": "action",
+              "name": "Act_SpawnPos"
+            },
+            {
+              "type": "task",
+              "name": "NaechsterZiehen"
+            },
+            {
+              "type": "action",
+              "name": "Act_MatrixLesen"
+            },
+            {
+              "type": "action",
+              "name": "Act_PasstHier"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Passt == false",
+              "condition": {
+                "variable": "Passt",
+                "operator": "==",
+                "value": false
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SpielEnde"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "OverlayZeigen"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steinspawnen"
+        },
+        {
+          "name": "NaechsterZiehen",
+          "description": "Bag nachfuellen (7-Bag) falls leer und naechsten Typ ziehen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_BagLaenge"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: BagLen == 0",
+              "condition": {
+                "variable": "BagLen",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "foreach",
+                  "name": "ForEach: Typ in SteinTypen",
+                  "sourceArray": "SteinTypen",
+                  "itemVar": "Typ",
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_BagFuellen"
+                    }
+                  ]
+                },
+                {
+                  "type": "action",
+                  "name": "Act_BagMischen"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "action",
+              "name": "Act_BagPop"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_naechsterziehen"
+        },
+        {
+          "name": "OverlayZeigen",
+          "description": "Aktiven Stein und Ghost-Landeposition darstellen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_OverlayZeigen"
+            },
+            {
+              "type": "action",
+              "name": "Act_GeistStart"
+            },
+            {
+              "type": "action",
+              "name": "Act_YplusEins"
+            },
+            {
+              "type": "action",
+              "name": "Act_PasstGeist"
+            },
+            {
+              "type": "while",
+              "name": "While: GeistFrei == true",
+              "condition": {
+                "variable": "GeistFrei",
+                "operator": "==",
+                "value": true
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_GeistRunter"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_YplusEins"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PasstGeist"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Act_GhostZeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_overlayzeigen"
+        },
+        {
+          "name": "SteuerungLinks",
+          "description": "Stein eine Spalte nach links.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_NeuXLinks"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PasstSeite"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Passt == true",
+                  "condition": {
+                    "variable": "Passt",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_XNeu"
+                    },
+                    {
+                      "type": "task",
+                      "name": "OverlayZeigen"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steuerunglinks"
+        },
+        {
+          "name": "SteuerungRechts",
+          "description": "Stein eine Spalte nach rechts.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_NeuXRechts"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PasstSeite"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Passt == true",
+                  "condition": {
+                    "variable": "Passt",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_XNeu"
+                    },
+                    {
+                      "type": "task",
+                      "name": "OverlayZeigen"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steuerungrechts"
+        },
+        {
+          "name": "SteinDrehen",
+          "description": "Stein drehen (CW) mit einfachen Wall-Kicks [0,-1,1,-2,2].",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_NeueRot"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TestLesen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_GedrehtNull"
+                },
+                {
+                  "type": "foreach",
+                  "name": "ForEach: Kick in Kicks",
+                  "sourceArray": "Kicks",
+                  "itemVar": "Kick",
+                  "body": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: Gedreht == 0",
+                      "condition": {
+                        "variable": "Gedreht",
+                        "operator": "==",
+                        "value": "0"
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_TestX"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_PasstDreh"
+                        },
+                        {
+                          "type": "condition",
+                          "name": "Branch: Passt == true",
+                          "condition": {
+                            "variable": "Passt",
+                            "operator": "==",
+                            "value": true
+                          },
+                          "then": [
+                            {
+                              "type": "action",
+                              "name": "Act_DrehUehlernehmen"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Act_MatrixSetzen"
+                            }
+                          ],
+                          "else": []
+                        }
+                      ],
+                      "else": []
+                    }
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Gedreht == 1",
+                  "condition": {
+                    "variable": "Gedreht",
+                    "operator": "==",
+                    "value": "1"
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "OverlayZeigen"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_steindrehen"
+        },
+        {
+          "name": "PauseWechsel",
+          "description": "Pause umschalten (nur waehrend oder nach Pause).",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_StatusPause"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TaktAus"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TextPause"
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == paused",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "paused"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_StatusWeiter"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TextAus"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TaktAn"
+                    }
+                  ],
+                  "else": []
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_pausewechsel"
+        },
+        {
+          "name": "StartOderDrop",
+          "description": "Leertaste: im Spiel Hard Drop, in Pause weiter, sonst neue Runde.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "SteinFallen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == paused",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "paused"
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "PauseWechsel"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "task",
+                      "name": "SpielStarten"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_startoderdrop"
+        },
+        {
+          "name": "SpielEnde",
+          "description": "Game Over: Takt aus, Highscore sichern, Hinweis zeigen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_StatusGameOver"
+            },
+            {
+              "type": "action",
+              "name": "Act_TaktAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_OverlayWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_GhostWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_Highscore"
+            },
+            {
+              "type": "action",
+              "name": "Act_TextGameOver"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "tc_spielende"
+        }
+      ],
+      "actions": [
+        {
+          "name": "Act_BoardLeeren",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearBoard",
+          "params": []
+        },
+        {
+          "name": "Act_OverlayWeg",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearOverlay",
+          "params": []
+        },
+        {
+          "name": "Act_GhostWeg",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearGhost",
+          "params": []
+        },
+        {
+          "name": "Act_TextAus",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            ""
+          ]
+        },
+        {
+          "name": "Act_TextPause",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            "⏸ PAUSE\nP = weiter"
+          ]
+        },
+        {
+          "name": "Act_TextGameOver",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            "GAME OVER\nPunkte: ${Punkte}\n↻ Leertaste = neu"
+          ]
+        },
+        {
+          "name": "Act_BagLeeren",
+          "type": "list_clear",
+          "target": "Bag"
+        },
+        {
+          "name": "Act_BagFuellen",
+          "type": "list_push",
+          "target": "Bag",
+          "value": "${Typ}"
+        },
+        {
+          "name": "Act_BagMischen",
+          "type": "list_shuffle",
+          "target": "Bag"
+        },
+        {
+          "name": "Act_BagLaenge",
+          "type": "list_length",
+          "target": "Bag",
+          "resultVariable": "BagLen"
+        },
+        {
+          "name": "Act_BagPop",
+          "type": "list_pop",
+          "target": "Bag",
+          "resultVariable": "NaechsterTyp"
+        },
+        {
+          "name": "Act_StartWerte",
+          "type": "property",
+          "changes": {
+            "Status": "playing",
+            "Punkte": 0,
+            "Reihen": 0,
+            "Level": 1
+          }
+        },
+        {
+          "name": "Act_TaktAn",
+          "type": "property",
+          "changes": {
+            "Takt.enabled": true
+          }
+        },
+        {
+          "name": "Act_TaktAus",
+          "type": "property",
+          "changes": {
+            "Takt.enabled": false
+          }
+        },
+        {
+          "name": "Act_TaktIntervall",
+          "type": "property",
+          "changes": {
+            "Takt.interval": "${NeuIntervall}",
+            "Takt.enabled": false
+          }
+        },
+        {
+          "name": "Act_StatusPause",
+          "type": "property",
+          "changes": {
+            "Status": "paused"
+          }
+        },
+        {
+          "name": "Act_StatusWeiter",
+          "type": "property",
+          "changes": {
+            "Status": "playing"
+          }
+        },
+        {
+          "name": "Act_StatusGameOver",
+          "type": "property",
+          "changes": {
+            "Status": "gameover"
+          }
+        },
+        {
+          "name": "Act_SpawnPos",
+          "type": "property",
+          "changes": {
+            "AktivRot": 0,
+            "AktivX": 3,
+            "AktivY": 0
+          }
+        },
+        {
+          "name": "Act_TypSetzen",
+          "type": "set_variable",
+          "variableName": "AktivTyp",
+          "value": "${NaechsterTyp}"
+        },
+        {
+          "name": "Act_MatrixSetzen",
+          "type": "set_variable",
+          "variableName": "AktivMatrix",
+          "value": "${TestMatrix}"
+        },
+        {
+          "name": "Act_GeistStart",
+          "type": "set_variable",
+          "variableName": "GeistY",
+          "value": "${AktivY}"
+        },
+        {
+          "name": "Act_NeuY",
+          "type": "calculate",
+          "formula": "AktivY + 1",
+          "resultVariable": "NeuY"
+        },
+        {
+          "name": "Act_NeuXLinks",
+          "type": "calculate",
+          "formula": "AktivX - 1",
+          "resultVariable": "NeuX"
+        },
+        {
+          "name": "Act_NeuXRechts",
+          "type": "calculate",
+          "formula": "AktivX + 1",
+          "resultVariable": "NeuX"
+        },
+        {
+          "name": "Act_YplusEins",
+          "type": "calculate",
+          "formula": "GeistY + 1",
+          "resultVariable": "PruefY"
+        },
+        {
+          "name": "Act_GeistRunter",
+          "type": "calculate",
+          "formula": "PruefY",
+          "resultVariable": "GeistY"
+        },
+        {
+          "name": "Act_NeueRot",
+          "type": "calculate",
+          "formula": "(AktivRot + 1) % 4",
+          "resultVariable": "NeueRot"
+        },
+        {
+          "name": "Act_TestX",
+          "type": "calculate",
+          "formula": "AktivX + Kick",
+          "resultVariable": "TestX"
+        },
+        {
+          "name": "Act_ReihenPlus",
+          "type": "calculate",
+          "formula": "Reihen + Geloescht",
+          "resultVariable": "Reihen"
+        },
+        {
+          "name": "Act_PunktePlus",
+          "type": "calculate",
+          "formula": "Punkte + Basis * Level",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_PunkteSoft",
+          "type": "calculate",
+          "formula": "Punkte + 1",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_PunkteHard",
+          "type": "calculate",
+          "formula": "Punkte + 2",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_NeuLevel",
+          "type": "calculate",
+          "formula": "(Reihen - Reihen % 10) / 10 + 1",
+          "resultVariable": "NeuLevel"
+        },
+        {
+          "name": "Act_LevelSetzen",
+          "type": "calculate",
+          "formula": "NeuLevel",
+          "resultVariable": "Level"
+        },
+        {
+          "name": "Act_IntervallNeu",
+          "type": "calculate",
+          "formula": "(700 - (Level - 1) * 70) < 80 ? 80 : 700 - (Level - 1) * 70",
+          "resultVariable": "NeuIntervall"
+        },
+        {
+          "name": "Act_Highscore",
+          "type": "calculate",
+          "formula": "(Punkte > Highscore) ? Punkte : Highscore",
+          "resultVariable": "Highscore"
+        },
+        {
+          "name": "Act_TestXLinks",
+          "type": "calculate",
+          "formula": "AktivX",
+          "resultVariable": "TestX"
+        },
+        {
+          "name": "Act_PasstRunter",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${NeuY}"
+          ],
+          "resultVariable": "Passt"
+        },
+        {
+          "name": "Act_PasstHier",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${AktivY}"
+          ],
+          "resultVariable": "Passt"
+        },
+        {
+          "name": "Act_PasstSeite",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${AktivMatrix}",
+            "${NeuX}",
+            "${AktivY}"
+          ],
+          "resultVariable": "Passt"
+        },
+        {
+          "name": "Act_PasstDreh",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${TestMatrix}",
+            "${TestX}",
+            "${AktivY}"
+          ],
+          "resultVariable": "Passt"
+        },
+        {
+          "name": "Act_PasstGeist",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "canPlaceShape",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${PruefY}"
+          ],
+          "resultVariable": "GeistFrei"
+        },
+        {
+          "name": "Act_SteinSetzen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "placeShape",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${AktivY}",
+            "${AktivFarbe}"
+          ]
+        },
+        {
+          "name": "Act_VolleReihen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearFullRows",
+          "params": [],
+          "resultVariable": "Geloescht"
+        },
+        {
+          "name": "Act_OverlayZeigen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlay",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${AktivY}",
+            "${AktivFarbe}"
+          ]
+        },
+        {
+          "name": "Act_GhostZeigen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setGhost",
+          "params": [
+            "${AktivMatrix}",
+            "${AktivX}",
+            "${GeistY}",
+            "${AktivFarbe}"
+          ]
+        },
+        {
+          "name": "Act_FarbeLesen",
+          "type": "map_get",
+          "target": "Farben",
+          "key": "${AktivTyp}",
+          "resultVariable": "AktivFarbe"
+        },
+        {
+          "name": "Act_MatrixLesen",
+          "type": "map_get",
+          "target": "Steine",
+          "key": "${AktivTyp}_${AktivRot}",
+          "resultVariable": "AktivMatrix"
+        },
+        {
+          "name": "Act_TestLesen",
+          "type": "map_get",
+          "target": "Steine",
+          "key": "${AktivTyp}_${NeueRot}",
+          "resultVariable": "TestMatrix"
+        },
+        {
+          "name": "Act_BasisLesen",
+          "type": "map_get",
+          "target": "PunkteTabelle",
+          "key": "${Geloescht}",
+          "resultVariable": "Basis"
+        },
+        {
+          "name": "Act_FallFlag",
+          "type": "set_variable",
+          "variableName": "FallWeiter",
+          "value": "1"
+        },
+        {
+          "name": "Act_FallStopp",
+          "type": "set_variable",
+          "variableName": "FallWeiter",
+          "value": "0"
+        },
+        {
+          "name": "Act_GedrehtNull",
+          "type": "set_variable",
+          "variableName": "Gedreht",
+          "value": "0"
+        },
+        {
+          "name": "Act_GedrehtEins",
+          "type": "set_variable",
+          "variableName": "Gedreht",
+          "value": "1"
+        },
+        {
+          "name": "Act_RotSetzen",
+          "type": "set_variable",
+          "variableName": "AktivRot",
+          "value": "${NeueRot}"
+        },
+        {
+          "name": "Act_XSetzen",
+          "type": "set_variable",
+          "variableName": "AktivX",
+          "value": "${TestX}"
+        },
+        {
+          "name": "Act_XNeu",
+          "type": "set_variable",
+          "variableName": "AktivX",
+          "value": "${NeuX}"
+        },
+        {
+          "name": "Act_YNeu",
+          "type": "set_variable",
+          "variableName": "AktivY",
+          "value": "${NeuY}"
+        },
+        {
+          "name": "Act_DrehUehlernehmen",
+          "type": "property",
+          "changes": {
+            "AktivRot": "${NeueRot}",
+            "AktivX": "${TestX}",
+            "Gedreht": 1
+          }
+        }
+      ],
+      "variables": [],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#070b16"
+      },
+      "features": [
+        {
+          "id": "feature_tc_raster",
+          "name": "Raster & Board",
+          "description": "TGridBoard als generischer Raster-Baustein: Zellen-Matrix, Palette, Overlay und Ghost.",
+          "tags": [
+            "Tetris",
+            "GridBoard"
+          ],
+          "userStoryIds": [
+            "tc_raster"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "feature_tc_steine",
+          "name": "Steine & 7-Bag",
+          "description": "Rotationsdaten in TStringMap, 7-Bag ueber TListVariable (shuffle/pop).",
+          "tags": [
+            "Tetris",
+            "Daten"
+          ],
+          "userStoryIds": [
+            "tc_steine"
+          ],
+          "blueprintTaskNames": [
+            "NaechsterZiehen",
+            "SteinSpawnen",
+            "SteinDrehen"
+          ]
+        },
+        {
+          "id": "feature_tc_steuerung",
+          "name": "Steuerung",
+          "description": "Tastatur und Bildschirmtasten steuern den Stein ueber canPlaceShape-Pruefungen.",
+          "tags": [
+            "Tetris",
+            "Input"
+          ],
+          "userStoryIds": [
+            "tc_steuerung"
+          ],
+          "blueprintTaskNames": [
+            "SteuerungLinks",
+            "SteuerungRechts",
+            "SteinSenken",
+            "SteinFallen",
+            "StartOderDrop"
+          ]
+        },
+        {
+          "id": "feature_tc_wertung",
+          "name": "Reihen & Wertung",
+          "description": "clearFullRows, Punkte-Tabelle (100/300/500/800 × Level) und Tempo-Steigerung.",
+          "tags": [
+            "Tetris",
+            "Score"
+          ],
+          "userStoryIds": [
+            "tc_wertung"
+          ],
+          "blueprintTaskNames": [
+            "SteinSetzen"
+          ]
+        },
+        {
+          "id": "feature_tc_ablauf",
+          "name": "Spielablauf",
+          "description": "Start-Overlay, Pause, Game Over und Neustart.",
+          "tags": [
+            "Tetris",
+            "Ablauf"
+          ],
+          "userStoryIds": [
+            "tc_ablauf"
+          ],
+          "blueprintTaskNames": [
+            "SpielStarten",
+            "PauseWechsel",
+            "SpielEnde",
+            "TaktSchritt",
+            "OverlayZeigen"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "tc_raster",
+        "title": "Raster & Board",
+        "description": "Als Spieler möchte ich das Spielfeld als klares Raster sehen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "10×20 Zellen als Matrix",
+          "Palette bildet Werte auf Farben ab",
+          "Overlay zeigt aktiven Stein",
+          "Ghost zeigt Landeposition"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_raster"
+      },
+      {
+        "id": "tc_steine",
+        "title": "Steine & 7-Bag",
+        "description": "Als Spieler möchte ich fairen Stein-Nachschub und saubere Rotation.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "7-Bag: jede Serie enthält alle 7 Typen",
+          "4 Rotationsstufen je Stein als Daten",
+          "Wall-Kicks 0,-1,1,-2,2"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Steine",
+          "Farben",
+          "Bag",
+          "SteinTypen",
+          "Kicks"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_steine"
+      },
+      {
+        "id": "tc_steuerung",
+        "title": "Steuerung",
+        "description": "Als Spieler möchte ich per Tastatur und Buttons steuern.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Pfeile/WASD bewegen, drehen, senken",
+          "Leertaste = Hard Drop / Start",
+          "P = Pause",
+          "Touch-Buttons rufen dieselben Tasks"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Tastatur",
+          "BtnStart",
+          "BtnPause",
+          "BtnNeu",
+          "TouchLinks",
+          "TouchRechts",
+          "TouchDrehen",
+          "TouchFallen"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_steuerung"
+      },
+      {
+        "id": "tc_wertung",
+        "title": "Reihen & Wertung",
+        "description": "Als Spieler möchte ich volle Reihen auflösen und Punkte sammeln.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "clearFullRows liefert 0–4 Reihen",
+          "Punkte 100/300/500/800 × Level",
+          "Alle 10 Reihen Level-Up + schnellerer Takt"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld",
+          "PunkteTabelle",
+          "Takt"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_wertung"
+      },
+      {
+        "id": "tc_ablauf",
+        "title": "Spielablauf",
+        "description": "Als Spieler möchte ich starten, pausieren und neu beginnen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Start-Overlay mit Hinweis",
+          "Pause-Overlay",
+          "Game-Over mit Punkten und Highscore",
+          "Neustart per Leertaste"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "tetris-classic",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld",
+          "Takt"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_tc_ablauf"
+      }
+    ]
+  }
+}

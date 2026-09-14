@@ -1,0 +1,35 @@
+import fs from 'node:fs';
+import {projectStore} from './src/services/ProjectStore';
+const file='game-server/public/projects/Super_Mario_Bros_.json';
+fs.copyFileSync(file,'backups/Super_Mario_Bros-before-images-'+Date.now()+'.json');
+const p=JSON.parse(fs.readFileSync(file,'utf8'));projectStore.setProject(p);
+const dir='public/images/SuperMario';fs.mkdirSync(dir,{recursive:true});
+const svg=(body:string,w=16,h=16)=>`<svg xmlns="http://www.w3.org/2000/svg" width="${w*4}" height="${h*4}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">${body}</svg>`;
+const rect=(x:number,y:number,w:number,h:number,c:string)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`;
+const mario=svg(rect(4,1,8,3,'#e42d25')+rect(2,4,13,2,'#e42d25')+rect(4,6,8,7,'#ffc18a')+rect(3,6,3,5,'#743c22')+rect(10,6,2,3,'#25202a')+rect(10,9,5,2,'#ffc18a')+rect(7,11,7,2,'#743c22')+rect(3,14,10,9,'#e42d25')+rect(5,14,2,9,'#2269ba')+rect(10,14,2,9,'#2269ba')+rect(1,17,3,6,'#ffc18a')+rect(13,17,3,6,'#ffc18a')+rect(4,21,9,5,'#2269ba')+rect(4,26,4,4,'#2269ba')+rect(10,26,3,4,'#2269ba')+rect(2,29,6,3,'#743c22')+rect(10,29,6,3,'#743c22')+rect(6,20,1,2,'#ffd54b')+rect(10,20,1,2,'#ffd54b'),16,32);
+const goomba=svg('<path d="M5 1h6v2h2v3h2v6H1V6h2V3h2z" fill="#ad582b"/>'+rect(3,6,4,4,'#fff4d3')+rect(9,6,4,4,'#fff4d3')+rect(5,7,2,3,'#241a18')+rect(9,7,2,3,'#241a18')+rect(5,11,6,3,'#f1c18d')+rect(1,13,6,3,'#482b20')+rect(9,13,6,3,'#482b20'));
+const coin=svg('<path d="M6 1h4l3 3v8l-3 3H6l-3-3V4z" fill="#a86104"/><path d="M6 1h3l3 3v7l-3 3H6l-3-3V4z" fill="#ffcf32"/>'+rect(6,3,2,9,'#fff1a0')+rect(9,4,1,7,'#d28a0b'));
+const brick=rect(0,0,16,16,'#65361f')+rect(1,1,14,6,'#c8713c')+rect(1,9,6,6,'#c8713c')+rect(9,9,6,6,'#c8713c')+rect(1,1,14,1,'#f3aa69');
+const question=svg(rect(0,0,16,16,'#8e4d0c')+rect(1,1,14,14,'#ffb52e')+rect(2,2,12,1,'#ffe59a')+'<path d="M5 5V4h6v4H9v3H7V8h2V6H7v1H5z" fill="#fff0b6"/>'+rect(7,12,2,2,'#fff0b6'));
+const used=svg(rect(0,0,16,16,'#593a28')+rect(1,1,14,14,'#a27651')+rect(3,3,1,1,'#493020')+rect(12,3,1,1,'#493020')+rect(3,12,1,1,'#493020')+rect(12,12,1,1,'#493020'));
+function art(o:any):string{const n=o.name,w=Math.max(8,Math.round(o.width*16)),h=Math.max(8,Math.round(o.height*16));
+ if(n==='Mario')return mario;if(n.startsWith('Goomba'))return goomba;if(n.startsWith('Muenze'))return coin;if(n.startsWith('Frage'))return question;
+ if(/Boden|Treppe|Ziegel|Plattform/.test(n))return svg('<defs><pattern id="b" width="16" height="16" patternUnits="userSpaceOnUse">'+brick+'</pattern></defs><rect width="100%" height="100%" fill="url(#b)"/>',w,h);
+ if(n.startsWith('Roehre'))return svg(rect(2,0,28,h,'#124b19')+rect(4,0,24,h,'#299328')+rect(5,0,5,h,'#9dda43')+rect(24,0,3,h,'#1d651c')+rect(0,0,32,9,'#124b19')+rect(1,1,30,6,'#47b933')+rect(3,1,5,6,'#c3ee68'),32,h);
+ if(n.startsWith('Wolke'))return svg('<path d="M0 10h4V6h6V2h12v4h8v4h8v10H0z" fill="#e1f6ff"/><path d="M2 10h5V7h6V4h7v4h8v4h7v5H2z" fill="white"/>',40,22);
+ if(n.startsWith('Huegel'))return svg('<path d="M0 24L12 8l8-8 10 8 18 16z" fill="#168546"/><path d="M3 24L20 3l17 21z" fill="#4fb545"/>'+rect(17,12,2,3,'#186d3a')+rect(26,18,2,3,'#186d3a'),48,24);
+ if(n.startsWith('Busch'))return svg('<path d="M0 16V8h4V4h6V1h8v4h6V2h8v5h6v9z" fill="#17783c"/><path d="M2 14V9h4V6h6V3h4v4h10V4h4v5h6v5z" fill="#57c34a"/>',40,16);
+ if(n==='FlaggePfahl')return svg(rect(2,0,4,160,'#f4ecd5')+rect(6,0,2,160,'#9abc8c'),8,160);
+ if(n==='FlaggeTuch')return svg('<path d="M24 0V16H0z" fill="#f5fff0"/><circle cx="17" cy="9" r="3" fill="#29903e"/>',24,16);
+ if(n==='FlaggeKugel')return svg('<circle cx="8" cy="8" r="7" fill="#42b344"/><circle cx="6" cy="5" r="2" fill="#a6ea6a"/>');
+ if(n==='SchlossTuer')return svg('<path d="M0 48V12Q16-10 32 12V48z" fill="#281f25"/>',32,48);
+ if(n==='Schloss')return svg('<defs><pattern id="b" width="16" height="16" patternUnits="userSpaceOnUse">'+brick+'</pattern></defs><path d="M0 80V24h8V12h8v12h8V8h8V0h8v8h8V0h8v8h8V0h8v8h8v16h8V12h8v12h8v56z" fill="url(#b)"/>'+rect(24,35,9,15,'#281f25')+rect(70,35,9,15,'#281f25'),104,80);
+ throw Error(n);
+}
+let count=0;function walk(list:any[]){for(const o of list){if(o.className==='TSprite'){const a=art(o);fs.writeFileSync(dir+'/'+o.name+'.svg',a);projectStore.dispatch({type:'SET_PROPERTY',target:o,path:'backgroundImage',value:'data:image/svg+xml;base64,'+Buffer.from(a).toString('base64')});projectStore.dispatch({type:'SET_PROPERTY',target:o,path:'objectFit',value:'fill'});count++;}walk(o.children||[]);}}
+for(const s of p.stages)walk(s.objects||[]);
+const stage=p.stages.find((s:any)=>s.id==='stage_main');
+const usedImage='data:image/svg+xml;base64,'+Buffer.from(used).toString('base64');
+projectStore.dispatch({type:'SET_PROPERTY',target:stage.actions.find((a:any)=>a.name==='Act_BlockVerbraucht'),path:'changes',value:{'self.benutzt':1,'self.backgroundImage':usedImage}});
+for(const o of stage.objects)if(o.className==='TLabel')projectStore.dispatch({type:'SET_PROPERTY',target:o,path:'zIndex',value:100});
+fs.writeFileSync(file,JSON.stringify(p,null,2));console.log('Sprites: '+count);

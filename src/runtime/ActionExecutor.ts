@@ -27,6 +27,10 @@ export class ActionExecutor {
         this.objects = objects;
     }
 
+    public getObjects(): any[] {
+        return this.objects;
+    }
+
     public setTaskExecutor(taskExecutor: any): void {
         this.taskExecutor = taskExecutor;
     }

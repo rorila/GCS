@@ -7,14 +7,16 @@ export function isSensitiveKey(key:string):boolean{return debugSecretKey.test(ke
 const knownSecrets=new Set<string>();
 function remember(value:any){if(typeof value==='string'&&value.length>=8){knownSecrets.add(value);if(value.startsWith('Bearer '))knownSecrets.add(value.slice(7));while(knownSecrets.size>512)knownSecrets.delete(knownSecrets.values().next().value!);}}
 function maskText(value:string){for(const secret of knownSecrets)value=value.split(secret).join('[maskiert]');return value;}
-export function redactDebug(value:any,depth=0):any {
+export function redactDebug(value:any,depth=0,state={seen:new WeakSet<object>(),remaining:2000}):any {
+ if(--state.remaining<0)return "[Umfang begrenzt]";
+ if(value && typeof value === "object"){if(state.seen.has(value))return "[Bereits erfasst]";state.seen.add(value);}
  if(depth>8)return '[Tiefe begrenzt]';
  if(typeof value==='string'){
-  try{if(value.length<16384&&/^[\[{]/.test(value.trim()))return redactDebug(JSON.parse(value),depth+1);}catch{}
+  try{if(value.length<16384&&/^[\[{]/.test(value.trim()))return redactDebug(JSON.parse(value),depth+1,state);}catch{}
   return maskText(value).replace(/([?&](?:token|ticket|password|secret|code|key)=)[^&#\s]*/gi,'$1[maskiert]').slice(0,8192);
  }
- if(Array.isArray(value))return value.slice(0,100).map(v=>redactDebug(v,depth+1));
- if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).slice(0,100).map(([key,item])=>{if(isSensitiveKey(key)||(key==='value'&&isSensitiveKey(String(value.name||value.variableName||'')))){remember(item);return [key,'[maskiert]'];}return [key,redactDebug(item,depth+1)];}));
+ if(Array.isArray(value))return value.slice(0,100).map(v=>redactDebug(v,depth+1,state));
+ if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).slice(0,100).map(([key,item])=>{if(isSensitiveKey(key)||(key==='value'&&isSensitiveKey(String(value.name||value.variableName||'')))){remember(item);return [key,'[maskiert]'];}return [key,redactDebug(item,depth+1,state)];}));
  return value;
 }
 export function redactDebugMessage(message:string):string {

@@ -1,0 +1,4959 @@
+{
+  "meta": {
+    "id": "super-mario",
+    "name": "Super Mario Bros.",
+    "version": "1.0.0",
+    "author": "Rolf Rieckmann / Devin",
+    "description": "2D-Plattformer komplett mit GCS-Bordmitteln: TGroupPanel als scrollbare Welt + TSprite-Physik (Push-Out) + Flow-Tasks."
+  },
+  "stage": {
+    "grid": {
+      "cols": 40,
+      "rows": 22,
+      "cellSize": 26,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#5c94fc"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Globale Dienste",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TInputController",
+          "name": "Tastatur",
+          "enabled": true,
+          "isHiddenInRun": true,
+          "isService": true,
+          "x": 1,
+          "y": 1,
+          "events": {
+            "onKeyDown_ArrowLeft": "LinksDruck",
+            "onKeyDown_KeyA": "LinksDruck",
+            "onKeyUp_ArrowLeft": "LinksLos",
+            "onKeyUp_KeyA": "LinksLos",
+            "onKeyDown_ArrowRight": "RechtsDruck",
+            "onKeyDown_KeyD": "RechtsDruck",
+            "onKeyUp_ArrowRight": "RechtsLos",
+            "onKeyUp_KeyD": "RechtsLos",
+            "onKeyDown_Space": "SprungOderStart",
+            "onKeyDown_ArrowUp": "SprungOderStart",
+            "onKeyDown_KeyW": "SprungOderStart",
+            "onKeyDown_Enter": "SprungOderStart"
+          },
+          "id": "stage_blueprint_Tastatur"
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "name": "Status",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "ready",
+          "defaultValue": "ready",
+          "value": "ready",
+          "scope": "global",
+          "id": "sm_var_Status"
+        },
+        {
+          "name": "Punkte",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sm_var_Punkte"
+        },
+        {
+          "name": "Muenzen",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sm_var_Muenzen"
+        },
+        {
+          "name": "Leben",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 3,
+          "defaultValue": 3,
+          "value": 3,
+          "scope": "global",
+          "id": "sm_var_Leben"
+        },
+        {
+          "name": "TasteLinks",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sm_var_TasteLinks"
+        },
+        {
+          "name": "TasteRechts",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sm_var_TasteRechts"
+        },
+        {
+          "name": "AmBoden",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sm_var_AmBoden"
+        },
+        {
+          "name": "Unbesiegbar",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sm_var_Unbesiegbar"
+        }
+      ],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 40,
+        "rows": 22,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#5c94fc"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Super Mario Bros.",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "name": "LblPunkte",
+          "x": 1,
+          "y": 0.5,
+          "width": 10,
+          "height": 1,
+          "text": "MARIO  ${Punkte}",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblPunkte"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblMuenzen",
+          "x": 12,
+          "y": 0.5,
+          "width": 9,
+          "height": 1,
+          "text": "MUENZEN x${Muenzen}",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblMuenzen"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblLeben",
+          "x": 22,
+          "y": 0.5,
+          "width": 8,
+          "height": 1,
+          "text": "LEBEN x${Leben}",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblLeben"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblWelt",
+          "x": 31,
+          "y": 0.5,
+          "width": 7,
+          "height": 1,
+          "text": "WELT 1-1",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblWelt"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblInfo",
+          "x": 8,
+          "y": 5,
+          "width": 24,
+          "height": 8,
+          "text": "SUPER MARIO BROS.\n\nPfeile / WASD = laufen\nLEER = springen\n\nLEER/ENTER = START",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 18,
+            "fontWeight": "bold",
+            "backgroundColor": "rgba(0,0,0,0.45)",
+            "borderWidth": 0,
+            "borderRadius": 10
+          },
+          "id": "stage_main_LblInfo"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblEnde",
+          "visible": false,
+          "x": 8,
+          "y": 7,
+          "width": 24,
+          "height": 6,
+          "text": "",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 22,
+            "fontWeight": "bold",
+            "backgroundColor": "rgba(0,0,0,0.55)",
+            "borderWidth": 0,
+            "borderRadius": 10
+          },
+          "id": "stage_main_LblEnde"
+        },
+        {
+          "className": "TGroupPanel",
+          "name": "Welt",
+          "x": 0,
+          "y": 0,
+          "width": 220,
+          "height": 22,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "children": [
+            {
+              "className": "TSprite",
+              "name": "BodenG0",
+              "x": 0,
+              "y": 19,
+              "width": 30,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#3faa2f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenG0_0"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenE0",
+              "x": 0,
+              "y": 20,
+              "width": 30,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#8b5a2b",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenE0_1"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenG1",
+              "x": 34,
+              "y": 19,
+              "width": 23,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#3faa2f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenG1_2"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenE1",
+              "x": 34,
+              "y": 20,
+              "width": 23,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#8b5a2b",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenE1_3"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenG2",
+              "x": 60,
+              "y": 19,
+              "width": 10,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#3faa2f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenG2_4"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenE2",
+              "x": 60,
+              "y": 20,
+              "width": 10,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#8b5a2b",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenE2_5"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenG3",
+              "x": 73,
+              "y": 19,
+              "width": 25,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#3faa2f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenG3_6"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenE3",
+              "x": 73,
+              "y": 20,
+              "width": 25,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#8b5a2b",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenE3_7"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenG4",
+              "x": 102,
+              "y": 19,
+              "width": 35,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#3faa2f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenG4_8"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenE4",
+              "x": 102,
+              "y": 20,
+              "width": 35,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#8b5a2b",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenE4_9"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenG5",
+              "x": 140,
+              "y": 19,
+              "width": 28,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#3faa2f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenG5_10"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenE5",
+              "x": 140,
+              "y": 20,
+              "width": 28,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#8b5a2b",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenE5_11"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenG6",
+              "x": 172,
+              "y": 19,
+              "width": 48,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#3faa2f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenG6_12"
+            },
+            {
+              "className": "TSprite",
+              "name": "BodenE6",
+              "x": 172,
+              "y": 20,
+              "width": 48,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#8b5a2b",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_BodenE6_13"
+            },
+            {
+              "className": "TSprite",
+              "name": "Roehre0",
+              "x": 27,
+              "y": 17,
+              "width": 2,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#1e9e1e",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Roehre0_14"
+            },
+            {
+              "className": "TSprite",
+              "name": "Roehre1",
+              "x": 40,
+              "y": 16,
+              "width": 2,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#1e9e1e",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Roehre1_15"
+            },
+            {
+              "className": "TSprite",
+              "name": "Roehre2",
+              "x": 46,
+              "y": 15,
+              "width": 2,
+              "height": 4,
+              "shape": "rect",
+              "spriteColor": "#1e9e1e",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Roehre2_16"
+            },
+            {
+              "className": "TSprite",
+              "name": "Roehre3",
+              "x": 52,
+              "y": 14,
+              "width": 2,
+              "height": 5,
+              "shape": "rect",
+              "spriteColor": "#1e9e1e",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Roehre3_17"
+            },
+            {
+              "className": "TSprite",
+              "name": "Roehre4",
+              "x": 88,
+              "y": 16,
+              "width": 2,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#1e9e1e",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Roehre4_18"
+            },
+            {
+              "className": "TSprite",
+              "name": "Roehre5",
+              "x": 118,
+              "y": 17,
+              "width": 2,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#1e9e1e",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Roehre5_19"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeA0",
+              "x": 78,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeA0_20"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeA1",
+              "x": 79,
+              "y": 17,
+              "width": 1,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeA1_21"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeA2",
+              "x": 80,
+              "y": 16,
+              "width": 1,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeA2_22"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeA3",
+              "x": 81,
+              "y": 15,
+              "width": 1,
+              "height": 4,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeA3_23"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeB0",
+              "x": 82,
+              "y": 15,
+              "width": 1,
+              "height": 4,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeB0_24"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeB1",
+              "x": 83,
+              "y": 16,
+              "width": 1,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeB1_25"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeB2",
+              "x": 84,
+              "y": 17,
+              "width": 1,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeB2_26"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeB3",
+              "x": 85,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeB3_27"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeC0",
+              "x": 143,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeC0_28"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeC1",
+              "x": 144,
+              "y": 17,
+              "width": 1,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeC1_29"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeC2",
+              "x": 145,
+              "y": 16,
+              "width": 1,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeC2_30"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeC3",
+              "x": 146,
+              "y": 15,
+              "width": 1,
+              "height": 4,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeC3_31"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeD0",
+              "x": 149,
+              "y": 15,
+              "width": 1,
+              "height": 4,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeD0_32"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeD1",
+              "x": 150,
+              "y": 16,
+              "width": 1,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeD1_33"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeD2",
+              "x": 151,
+              "y": 17,
+              "width": 1,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeD2_34"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeD3",
+              "x": 152,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeD3_35"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeZiel0",
+              "x": 186,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeZiel0_36"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeZiel1",
+              "x": 187,
+              "y": 17,
+              "width": 1,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeZiel1_37"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeZiel2",
+              "x": 188,
+              "y": 16,
+              "width": 1,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeZiel2_38"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeZiel3",
+              "x": 189,
+              "y": 15,
+              "width": 1,
+              "height": 4,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeZiel3_39"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeZiel4",
+              "x": 190,
+              "y": 14,
+              "width": 1,
+              "height": 5,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeZiel4_40"
+            },
+            {
+              "className": "TSprite",
+              "name": "TreppeZiel5",
+              "x": 191,
+              "y": 13,
+              "width": 1,
+              "height": 6,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_TreppeZiel5_41"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform0",
+              "x": 30,
+              "y": 14,
+              "width": 5,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform0_42"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform1",
+              "x": 57,
+              "y": 13,
+              "width": 4,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform1_43"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform2",
+              "x": 69,
+              "y": 14,
+              "width": 4,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform2_44"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform3",
+              "x": 98,
+              "y": 13,
+              "width": 5,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform3_45"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform4",
+              "x": 105,
+              "y": 12,
+              "width": 12,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform4_46"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform5",
+              "x": 121,
+              "y": 12,
+              "width": 10,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform5_47"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform6",
+              "x": 137,
+              "y": 13,
+              "width": 4,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform6_48"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform7",
+              "x": 168,
+              "y": 13,
+              "width": 4,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform7_49"
+            },
+            {
+              "className": "TSprite",
+              "name": "Plattform8",
+              "x": 154,
+              "y": 9,
+              "width": 5,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Plattform8_50"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelA18",
+              "x": 18,
+              "y": 14,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelA18_51"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelA20",
+              "x": 20,
+              "y": 14,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelA20_52"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelA22",
+              "x": 22,
+              "y": 14,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelA22_53"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelB126",
+              "x": 126,
+              "y": 9,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelB126_54"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelB127",
+              "x": 127,
+              "y": 9,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelB127_55"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelB129",
+              "x": 129,
+              "y": 9,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelB129_56"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelB131",
+              "x": 131,
+              "y": 9,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelB131_57"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelB132",
+              "x": 132,
+              "y": 9,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelB132_58"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelC155",
+              "x": 155,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelC155_59"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelC157",
+              "x": 157,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelC157_60"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelC158",
+              "x": 158,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelC158_61"
+            },
+            {
+              "className": "TSprite",
+              "name": "ZiegelC159",
+              "x": 159,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_ZiegelC159_62"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage0",
+              "x": 19,
+              "y": 14,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage0_63"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage1",
+              "x": 21,
+              "y": 14,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage1_64"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage2",
+              "x": 20,
+              "y": 10,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage2_65"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage3",
+              "x": 92,
+              "y": 13,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage3_66"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage4",
+              "x": 128,
+              "y": 9,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage4_67"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage5",
+              "x": 130,
+              "y": 9,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage5_68"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage6",
+              "x": 156,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage6_69"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage7",
+              "x": 176,
+              "y": 13,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage7_70"
+            },
+            {
+              "className": "TSprite",
+              "name": "Frage8",
+              "x": 178,
+              "y": 13,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "sm_Frage8_71"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze0",
+              "x": 8,
+              "y": 16,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze0_72"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze1",
+              "x": 9,
+              "y": 15,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze1_73"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze2",
+              "x": 10,
+              "y": 14,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze2_74"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze3",
+              "x": 11,
+              "y": 15,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze3_75"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze4",
+              "x": 12,
+              "y": 16,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze4_76"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze5",
+              "x": 16,
+              "y": 13,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze5_77"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze6",
+              "x": 24,
+              "y": 14,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze6_78"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze7",
+              "x": 40,
+              "y": 13,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze7_79"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze8",
+              "x": 46,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze8_80"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze9",
+              "x": 52,
+              "y": 11,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze9_81"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze10",
+              "x": 32,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze10_82"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze11",
+              "x": 58,
+              "y": 11,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze11_83"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze12",
+              "x": 71,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze12_84"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze13",
+              "x": 100,
+              "y": 11,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze13_85"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze14",
+              "x": 138,
+              "y": 11,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze14_86"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze15",
+              "x": 169,
+              "y": 11,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze15_87"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze16",
+              "x": 106,
+              "y": 10,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze16_88"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze17",
+              "x": 109,
+              "y": 10,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze17_89"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze18",
+              "x": 112,
+              "y": 10,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze18_90"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze19",
+              "x": 115,
+              "y": 10,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze19_91"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze20",
+              "x": 118,
+              "y": 10,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze20_92"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze21",
+              "x": 155,
+              "y": 7,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze21_93"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze22",
+              "x": 157,
+              "y": 7,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze22_94"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze23",
+              "x": 188,
+              "y": 12,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze23_95"
+            },
+            {
+              "className": "TSprite",
+              "name": "Muenze24",
+              "x": 193,
+              "y": 11,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "sm_Muenze24_96"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba0",
+              "x": 25,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba0_97"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba1",
+              "x": 44,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba1_98"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba2",
+              "x": 55,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba2_99"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba3",
+              "x": 76,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba3_100"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba4",
+              "x": 93,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba4_101"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba5",
+              "x": 112,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba5_102"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba6",
+              "x": 133,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba6_103"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba7",
+              "x": 150,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba7_104"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba8",
+              "x": 163,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba8_105"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba9",
+              "x": 181,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba9_106"
+            },
+            {
+              "className": "TSprite",
+              "name": "Goomba10",
+              "x": 184,
+              "y": 18,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "sm_Goomba10_107"
+            },
+            {
+              "className": "TSprite",
+              "name": "FlaggePfahl",
+              "x": 196,
+              "y": 9,
+              "width": 0.5,
+              "height": 10,
+              "shape": "rect",
+              "spriteColor": "#2d5016",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "ZielErreicht"
+              },
+              "id": "sm_FlaggePfahl_108"
+            },
+            {
+              "className": "TSprite",
+              "name": "FlaggeTuch",
+              "x": 194.5,
+              "y": 10,
+              "width": 1.5,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#d21f26",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_FlaggeTuch_109"
+            },
+            {
+              "className": "TSprite",
+              "name": "FlaggeKugel",
+              "x": 195.8,
+              "y": 8.4,
+              "width": 0.8,
+              "height": 0.8,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_FlaggeKugel_110"
+            },
+            {
+              "className": "TSprite",
+              "name": "Schloss",
+              "x": 204,
+              "y": 14,
+              "width": 7,
+              "height": 5,
+              "shape": "rect",
+              "spriteColor": "#7a5230",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Schloss_111"
+            },
+            {
+              "className": "TSprite",
+              "name": "SchlossTuer",
+              "x": 207,
+              "y": 16,
+              "width": 2,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#3a2410",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_SchlossTuer_112"
+            },
+            {
+              "className": "TSprite",
+              "name": "Wolke0",
+              "x": 6,
+              "y": 3,
+              "width": 4,
+              "height": 1.5,
+              "shape": "circle",
+              "spriteColor": "#ffffff",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Wolke0_113"
+            },
+            {
+              "className": "TSprite",
+              "name": "Wolke1",
+              "x": 34,
+              "y": 5,
+              "width": 4,
+              "height": 1.5,
+              "shape": "circle",
+              "spriteColor": "#ffffff",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Wolke1_114"
+            },
+            {
+              "className": "TSprite",
+              "name": "Wolke2",
+              "x": 66,
+              "y": 4,
+              "width": 4,
+              "height": 1.5,
+              "shape": "circle",
+              "spriteColor": "#ffffff",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Wolke2_115"
+            },
+            {
+              "className": "TSprite",
+              "name": "Wolke3",
+              "x": 96,
+              "y": 3,
+              "width": 4,
+              "height": 1.5,
+              "shape": "circle",
+              "spriteColor": "#ffffff",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Wolke3_116"
+            },
+            {
+              "className": "TSprite",
+              "name": "Wolke4",
+              "x": 126,
+              "y": 5,
+              "width": 4,
+              "height": 1.5,
+              "shape": "circle",
+              "spriteColor": "#ffffff",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Wolke4_117"
+            },
+            {
+              "className": "TSprite",
+              "name": "Wolke5",
+              "x": 156,
+              "y": 3,
+              "width": 4,
+              "height": 1.5,
+              "shape": "circle",
+              "spriteColor": "#ffffff",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Wolke5_118"
+            },
+            {
+              "className": "TSprite",
+              "name": "Wolke6",
+              "x": 186,
+              "y": 5,
+              "width": 4,
+              "height": 1.5,
+              "shape": "circle",
+              "spriteColor": "#ffffff",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Wolke6_119"
+            },
+            {
+              "className": "TSprite",
+              "name": "Huegel0",
+              "x": 4,
+              "y": 16,
+              "width": 7,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#2e7d32",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Huegel0_120"
+            },
+            {
+              "className": "TSprite",
+              "name": "Huegel1",
+              "x": 64,
+              "y": 17,
+              "width": 5,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#2e7d32",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Huegel1_121"
+            },
+            {
+              "className": "TSprite",
+              "name": "Huegel2",
+              "x": 144,
+              "y": 16,
+              "width": 8,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#2e7d32",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Huegel2_122"
+            },
+            {
+              "className": "TSprite",
+              "name": "Huegel3",
+              "x": 199,
+              "y": 17,
+              "width": 6,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#2e7d32",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Huegel3_123"
+            },
+            {
+              "className": "TSprite",
+              "name": "Busch0",
+              "x": 14,
+              "y": 18,
+              "width": 3,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#34a34f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Busch0_124"
+            },
+            {
+              "className": "TSprite",
+              "name": "Busch1",
+              "x": 84,
+              "y": 18,
+              "width": 4,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#34a34f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Busch1_125"
+            },
+            {
+              "className": "TSprite",
+              "name": "Busch2",
+              "x": 160,
+              "y": 18,
+              "width": 3,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#34a34f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "sm_Busch2_126"
+            },
+            {
+              "className": "TSprite",
+              "name": "Mario",
+              "x": 3,
+              "y": 15,
+              "width": 1,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#e23636",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollisionBottom": "Landen",
+                "onBoundaryHit": "MarioAmRand"
+              },
+              "id": "sm_Mario_127"
+            }
+          ],
+          "id": "stage_main_Welt"
+        },
+        {
+          "className": "TGameLoop",
+          "name": "Loop",
+          "x": 1,
+          "y": 20,
+          "width": 4,
+          "height": 2,
+          "targetFPS": 60,
+          "boundaryMode": "event-only",
+          "isService": true,
+          "isHiddenInRun": true,
+          "style": {},
+          "id": "stage_main_Loop"
+        },
+        {
+          "className": "TTimer",
+          "name": "FrameTakt",
+          "x": 6,
+          "y": 20,
+          "width": 4,
+          "height": 2,
+          "interval": 16,
+          "enabled": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "style": {},
+          "events": {
+            "onTimer": "Frame"
+          },
+          "id": "stage_main_FrameTakt"
+        },
+        {
+          "className": "TTimer",
+          "name": "UnsichtbarTakt",
+          "x": 11,
+          "y": 20,
+          "width": 4,
+          "height": 2,
+          "interval": 2000,
+          "enabled": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "style": {},
+          "events": {
+            "onTimer": "UnbesiegbarAus"
+          },
+          "id": "stage_main_UnsichtbarTakt"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "SpielStarten",
+          "description": "Neue Runde: Werte, Mario-Position, Kamera und Frame-Takt.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_StartWerte"
+            },
+            {
+              "type": "action",
+              "name": "Act_MarioReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_WeltReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_InfoAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_FrameAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_spielstarten"
+        },
+        {
+          "name": "LinksDruck",
+          "description": "Pfeil links / A gedrueckt.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_LinksAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_linksdruck"
+        },
+        {
+          "name": "LinksLos",
+          "description": "Pfeil links / A losgelassen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_LinksAus"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_linkslos"
+        },
+        {
+          "name": "RechtsDruck",
+          "description": "Pfeil rechts / D gedrueckt.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_RechtsAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_rechtsdruck"
+        },
+        {
+          "name": "RechtsLos",
+          "description": "Pfeil rechts / D losgelassen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_RechtsAus"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_rechtslos"
+        },
+        {
+          "name": "SprungOderStart",
+          "description": "Leertaste: springen, sonst Start/Neustart.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: AmBoden == 1",
+                  "condition": {
+                    "variable": "AmBoden",
+                    "operator": "==",
+                    "value": 1
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_Sprung"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == ready",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "ready"
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "SpielStarten"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "action",
+                      "name": "Act_NeuStarten"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_sprungoderstart"
+        },
+        {
+          "name": "Frame",
+          "description": "Pro Frame: Eingabe anwenden, Falldeckel, Boden-Falloff, Kamera.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_VX"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Mario.velocityY > 0.45",
+                  "condition": {
+                    "variable": "Mario.velocityY",
+                    "operator": ">",
+                    "value": 0.45
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_FallDeckel"
+                    }
+                  ],
+                  "else": []
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Mario.velocityY > 0.01",
+                  "condition": {
+                    "variable": "Mario.velocityY",
+                    "operator": ">",
+                    "value": 0.01
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_BodenWeg"
+                    }
+                  ],
+                  "else": []
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Kamera"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_frame"
+        },
+        {
+          "name": "Landen",
+          "description": "Mario landet auf einer Flaeche (onCollisionBottom).",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_BodenAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_landen"
+        },
+        {
+          "name": "MarioAmRand",
+          "description": "Mario verlaesst die Welt nach unten (Grube) -> Tod.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == bottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Gestorben"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_marioamrand"
+        },
+        {
+          "name": "MuenzeGenommen",
+          "description": "Muenze eingesammelt (nur durch Mario, einmalig).",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: other == Mario",
+              "condition": {
+                "variable": "other",
+                "operator": "==",
+                "value": "Mario"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: self.visible == true",
+                  "condition": {
+                    "variable": "self.visible",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_MuenzeWeg"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_MuenzenPlus"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Punkte50"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_muenzegenommen"
+        },
+        {
+          "name": "FrageBlockGetroffen",
+          "description": "?-Block von unten angestossen -> Muenze, einmalig.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == bottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: other == Mario",
+                  "condition": {
+                    "variable": "other",
+                    "operator": "==",
+                    "value": "Mario"
+                  },
+                  "then": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: self.benutzt != 1",
+                      "condition": {
+                        "variable": "self.benutzt",
+                        "operator": "!=",
+                        "value": 1
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_BlockVerbraucht"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_MuenzenPlus"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_Punkte200"
+                        }
+                      ],
+                      "else": []
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_frageblockgetroffen"
+        },
+        {
+          "name": "GoombaBeruehrt",
+          "description": "Goomba-Kontakt: von oben = Stomp, seitlich = Schaden.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: other == Mario",
+              "condition": {
+                "variable": "other",
+                "operator": "==",
+                "value": "Mario"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: hitSide == top",
+                  "condition": {
+                    "variable": "hitSide",
+                    "operator": "==",
+                    "value": "top"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_GegnerWeg"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_SprungBounce"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Punkte100"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: Unbesiegbar == 0",
+                      "condition": {
+                        "variable": "Unbesiegbar",
+                        "operator": "==",
+                        "value": 0
+                      },
+                      "then": [
+                        {
+                          "type": "task",
+                          "name": "Gestorben"
+                        }
+                      ],
+                      "else": []
+                    }
+                  ]
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_goombaberuehrt"
+        },
+        {
+          "name": "GoombaWendeLinks",
+          "description": "Goomba stoesst links an -> nach rechts laufen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WendeRechts"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_goombawendelinks"
+        },
+        {
+          "name": "GoombaWendeRechts",
+          "description": "Goomba stoesst rechts an -> nach links laufen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WendeLinks"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_goombawenderechts"
+        },
+        {
+          "name": "Gestorben",
+          "description": "Leben abziehen; Respawn oder Game Over.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_LebenMinus"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Leben > 0",
+                  "condition": {
+                    "variable": "Leben",
+                    "operator": ">",
+                    "value": 0
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_MarioReset"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_WeltReset"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_UnbesiegbarAn"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "action",
+                      "name": "Act_StatusGameOver"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_EndeVerlieren"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_FrameAus"
+                    }
+                  ]
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_gestorben"
+        },
+        {
+          "name": "ZielErreicht",
+          "description": "Flaggenpfahl beruehrt -> Level gewonnen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: other == Mario",
+              "condition": {
+                "variable": "other",
+                "operator": "==",
+                "value": "Mario"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == playing",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "playing"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_StatusGewonnen"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Punkte1000"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_EndeGewinnen"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_FrameAus"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_zielerreicht"
+        },
+        {
+          "name": "UnbesiegbarAus",
+          "description": "Respawn-Schutzzeit beenden.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_UnbesiegbarAus"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sm_unbesiegbaraus"
+        }
+      ],
+      "actions": [
+        {
+          "name": "Act_StartWerte",
+          "type": "property",
+          "changes": {
+            "Status": "playing",
+            "Punkte": 0,
+            "Muenzen": 0,
+            "Leben": 3,
+            "TasteLinks": 0,
+            "TasteRechts": 0,
+            "AmBoden": 0,
+            "Unbesiegbar": 0
+          }
+        },
+        {
+          "name": "Act_MarioReset",
+          "type": "property",
+          "changes": {
+            "Mario.x": 3,
+            "Mario.y": 15,
+            "Mario.velocityX": 0,
+            "Mario.velocityY": 0,
+            "Mario.visible": 1
+          }
+        },
+        {
+          "name": "Act_WeltReset",
+          "type": "property",
+          "changes": {
+            "Welt.x": 0
+          }
+        },
+        {
+          "name": "Act_InfoAus",
+          "type": "property",
+          "changes": {
+            "LblInfo.visible": 0,
+            "LblEnde.visible": 0
+          }
+        },
+        {
+          "name": "Act_FrameAn",
+          "type": "property",
+          "changes": {
+            "FrameTakt.enabled": 1
+          }
+        },
+        {
+          "name": "Act_FrameAus",
+          "type": "property",
+          "changes": {
+            "FrameTakt.enabled": 0
+          }
+        },
+        {
+          "name": "Act_LinksAn",
+          "type": "property",
+          "changes": {
+            "TasteLinks": 1,
+            "TasteRechts": 0
+          }
+        },
+        {
+          "name": "Act_LinksAus",
+          "type": "property",
+          "changes": {
+            "TasteLinks": 0
+          }
+        },
+        {
+          "name": "Act_RechtsAn",
+          "type": "property",
+          "changes": {
+            "TasteRechts": 1,
+            "TasteLinks": 0
+          }
+        },
+        {
+          "name": "Act_RechtsAus",
+          "type": "property",
+          "changes": {
+            "TasteRechts": 0
+          }
+        },
+        {
+          "name": "Act_Sprung",
+          "type": "property",
+          "changes": {
+            "Mario.velocityY": -0.55,
+            "AmBoden": 0
+          }
+        },
+        {
+          "name": "Act_BodenAn",
+          "type": "property",
+          "changes": {
+            "AmBoden": 1
+          }
+        },
+        {
+          "name": "Act_BodenWeg",
+          "type": "property",
+          "changes": {
+            "AmBoden": 0
+          }
+        },
+        {
+          "name": "Act_VX",
+          "type": "calculate",
+          "formula": "TasteRechts == 1 ? 0.13 : (TasteLinks == 1 ? -0.13 : 0)",
+          "resultVariable": "Mario.velocityX"
+        },
+        {
+          "name": "Act_FallDeckel",
+          "type": "property",
+          "changes": {
+            "Mario.velocityY": 0.45
+          }
+        },
+        {
+          "name": "Act_Kamera",
+          "type": "calculate",
+          "formula": "Math.min(0, Math.max(-180, 16 - Mario.x))",
+          "resultVariable": "Welt.x"
+        },
+        {
+          "name": "Act_MuenzeWeg",
+          "type": "property",
+          "changes": {
+            "self.visible": 0
+          }
+        },
+        {
+          "name": "Act_MuenzenPlus",
+          "type": "calculate",
+          "formula": "Muenzen + 1",
+          "resultVariable": "Muenzen"
+        },
+        {
+          "name": "Act_Punkte50",
+          "type": "calculate",
+          "formula": "Punkte + 50",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_Punkte100",
+          "type": "calculate",
+          "formula": "Punkte + 100",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_Punkte200",
+          "type": "calculate",
+          "formula": "Punkte + 200",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_Punkte1000",
+          "type": "calculate",
+          "formula": "Punkte + 1000",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_BlockVerbraucht",
+          "type": "property",
+          "changes": {
+            "self.benutzt": 1,
+            "self.spriteColor": "#7a5230"
+          }
+        },
+        {
+          "name": "Act_GegnerWeg",
+          "type": "property",
+          "changes": {
+            "self.visible": 0
+          }
+        },
+        {
+          "name": "Act_SprungBounce",
+          "type": "property",
+          "changes": {
+            "Mario.velocityY": -0.12
+          }
+        },
+        {
+          "name": "Act_WendeRechts",
+          "type": "property",
+          "changes": {
+            "self.velocityX": 0.035
+          }
+        },
+        {
+          "name": "Act_WendeLinks",
+          "type": "property",
+          "changes": {
+            "self.velocityX": -0.035
+          }
+        },
+        {
+          "name": "Act_LebenMinus",
+          "type": "calculate",
+          "formula": "Leben - 1",
+          "resultVariable": "Leben"
+        },
+        {
+          "name": "Act_UnbesiegbarAn",
+          "type": "property",
+          "changes": {
+            "Unbesiegbar": 1,
+            "UnsichtbarTakt.enabled": 1
+          }
+        },
+        {
+          "name": "Act_UnbesiegbarAus",
+          "type": "property",
+          "changes": {
+            "Unbesiegbar": 0,
+            "UnsichtbarTakt.enabled": 0
+          }
+        },
+        {
+          "name": "Act_StatusGameOver",
+          "type": "property",
+          "changes": {
+            "Status": "gameover",
+            "Mario.visible": 0,
+            "Mario.velocityX": 0,
+            "Mario.velocityY": 0
+          }
+        },
+        {
+          "name": "Act_StatusGewonnen",
+          "type": "property",
+          "changes": {
+            "Status": "gewonnen",
+            "Mario.velocityX": 0
+          }
+        },
+        {
+          "name": "Act_EndeVerlieren",
+          "type": "property",
+          "changes": {
+            "LblEnde.text": "GAME OVER\nENTER = Neustart",
+            "LblEnde.visible": 1
+          }
+        },
+        {
+          "name": "Act_EndeGewinnen",
+          "type": "property",
+          "changes": {
+            "LblEnde.text": "LEVEL GESCHAFFT!\n+1000 Punkte\nENTER = Neustart",
+            "LblEnde.visible": 1
+          }
+        },
+        {
+          "name": "Act_NeuStarten",
+          "type": "restart_game"
+        }
+      ],
+      "variables": [],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 40,
+        "rows": 22,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#5c94fc"
+      },
+      "features": [
+        {
+          "id": "feature_sm_welt",
+          "name": "Scrollbare Welt",
+          "description": "TGroupPanel als Level-Container: alle Objekte scrollen gemeinsam ueber Welt.x (Kamera folgt Mario).",
+          "tags": [
+            "Mario",
+            "Kamera"
+          ],
+          "userStoryIds": [
+            "sm_welt"
+          ],
+          "blueprintTaskNames": [
+            "Frame"
+          ]
+        },
+        {
+          "id": "feature_sm_physik",
+          "name": "Plattform-Physik",
+          "description": "Schwerkraft, Sprung, Landen und Waende ueber TSprite-Physik + Engine-Push-Out (pro Frame).",
+          "tags": [
+            "Mario",
+            "Physik"
+          ],
+          "userStoryIds": [
+            "sm_physik"
+          ],
+          "blueprintTaskNames": [
+            "SprungOderStart",
+            "Landen",
+            "LinksDruck",
+            "RechtsDruck",
+            "LinksLos",
+            "RechtsLos"
+          ]
+        },
+        {
+          "id": "feature_sm_gegner",
+          "name": "Gegner",
+          "description": "Goombas laufen, wenden an Waenden, fallen in Gruben; Stomp vs. Schaden ueber hitSide.",
+          "tags": [
+            "Mario",
+            "Gegner"
+          ],
+          "userStoryIds": [
+            "sm_gegner"
+          ],
+          "blueprintTaskNames": [
+            "GoombaBeruehrt",
+            "GoombaWendeLinks",
+            "GoombaWendeRechts"
+          ]
+        },
+        {
+          "id": "feature_sm_sammeln",
+          "name": "Muenzen & Bloecke",
+          "description": "Muenzen einsammeln, ?-Bloecke von unten aktivieren (einmalig).",
+          "tags": [
+            "Mario",
+            "Sammeln"
+          ],
+          "userStoryIds": [
+            "sm_sammeln"
+          ],
+          "blueprintTaskNames": [
+            "MuenzeGenommen",
+            "FrageBlockGetroffen"
+          ]
+        },
+        {
+          "id": "feature_sm_ablauf",
+          "name": "Spielablauf",
+          "description": "Start, Leben/Respawn mit Schutzzeit, Game Over, Ziel-Flagge, Neustart.",
+          "tags": [
+            "Mario",
+            "Ablauf"
+          ],
+          "userStoryIds": [
+            "sm_ablauf"
+          ],
+          "blueprintTaskNames": [
+            "SpielStarten",
+            "Gestorben",
+            "MarioAmRand",
+            "ZielErreicht",
+            "UnbesiegbarAus"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "sm_welt",
+        "title": "Scrollbare Welt",
+        "description": "Als Spieler folgt mir die Kamera durch ein langes Level.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Welt ist 220 Zellen breit, Viewport 40",
+          "Welt.x folgt Mario ab Schwellwert",
+          "HUD bleibt fix"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Welt",
+          "Loop",
+          "FrameTakt"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sm_welt"
+      },
+      {
+        "id": "sm_physik",
+        "title": "Plattform-Physik",
+        "description": "Als Spieler laufe, springe und lande ich stabil auf Plattformen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Gravitation + Sprung-Impuls",
+          "Push-Out pro Frame = stabiles Stehen",
+          "Kopf anstossen, Waende stoppen",
+          "Fallgeschwindigkeit gedeckelt"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Mario",
+          "Tastatur"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sm_physik"
+      },
+      {
+        "id": "sm_gegner",
+        "title": "Gegner",
+        "description": "Als Spieler kaempfe ich gegen laufende Goombas.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Goombas laufen links, wenden an Waenden",
+          "Stomp von oben toetet + Bounce",
+          "Seitentreffer kostet ein Leben"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Goomba0"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sm_gegner"
+      },
+      {
+        "id": "sm_sammeln",
+        "title": "Muenzen & Bloecke",
+        "description": "Als Spieler sammle ich Muenzen und aktiviere ?-Bloecke.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Muenzen verschwinden bei Beruehrung (+50)",
+          "?-Block von unten = Muenze (+200), einmalig",
+          "Verbrauchte Bloecke wechseln Farbe"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Muenze0",
+          "Frage0"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sm_sammeln"
+      },
+      {
+        "id": "sm_ablauf",
+        "title": "Spielablauf",
+        "description": "Als Spieler starte ich, verliere Leben und erreiche die Flagge.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "3 Leben, Respawn mit Schutzzeit",
+          "Grube = Tod",
+          "Flagge = Level geschafft",
+          "ENTER = Neustart"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "FlaggePfahl",
+          "UnsichtbarTakt",
+          "LblEnde"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sm_ablauf"
+      }
+    ]
+  }
+}

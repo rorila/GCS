@@ -1,0 +1,1699 @@
+{
+  "meta": {
+    "id": "snake-grid",
+    "name": "Snake Grid",
+    "version": "1.0.0",
+    "author": "Rolf Rieckmann / Devin",
+    "description": "Snake auf TGridBoard-Basis: 16x12 Raster, Positionslisten statt Sprites, Kollision per getCell."
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#08151b"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Globale Dienste",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TInputController",
+          "name": "Tastatur",
+          "enabled": true,
+          "isHiddenInRun": true,
+          "isService": true,
+          "x": 1,
+          "y": 1,
+          "events": {
+            "onKeyDown_ArrowLeft": "RichtungLinks",
+            "onKeyDown_KeyA": "RichtungLinks",
+            "onKeyDown_ArrowRight": "RichtungRechts",
+            "onKeyDown_KeyD": "RichtungRechts",
+            "onKeyDown_ArrowUp": "RichtungOben",
+            "onKeyDown_KeyW": "RichtungOben",
+            "onKeyDown_ArrowDown": "RichtungUnten",
+            "onKeyDown_KeyS": "RichtungUnten",
+            "onKeyDown_Space": "StartOderNeu",
+            "onKeyDown_Enter": "StartOderNeu",
+            "onKeyDown_KeyP": "PauseWechsel"
+          },
+          "id": "stage_blueprint_Tastatur"
+        },
+        {
+          "className": "TListVariable",
+          "name": "SchlangeX",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "id": "stage_blueprint_SchlangeX",
+          "items": []
+        },
+        {
+          "className": "TListVariable",
+          "name": "SchlangeY",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "id": "stage_blueprint_SchlangeY",
+          "items": []
+        },
+        {
+          "className": "TRandomVariable",
+          "name": "ZufallX",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "id": "stage_blueprint_ZufallX",
+          "min": 0,
+          "max": 15,
+          "isInteger": true
+        },
+        {
+          "className": "TRandomVariable",
+          "name": "ZufallY",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "style": {},
+          "id": "stage_blueprint_ZufallY",
+          "min": 0,
+          "max": 11,
+          "isInteger": true
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "name": "Status",
+          "type": "string",
+          "isVariable": true,
+          "className": "TStringVariable",
+          "initialValue": "ready",
+          "defaultValue": "ready",
+          "value": "ready",
+          "scope": "global",
+          "id": "sg_var_Status"
+        },
+        {
+          "name": "Score",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_Score"
+        },
+        {
+          "name": "Laenge",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 1,
+          "defaultValue": 1,
+          "value": 1,
+          "scope": "global",
+          "id": "sg_var_Laenge"
+        },
+        {
+          "name": "KopfX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 6,
+          "defaultValue": 6,
+          "value": 6,
+          "scope": "global",
+          "id": "sg_var_KopfX"
+        },
+        {
+          "name": "KopfY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 6,
+          "defaultValue": 6,
+          "value": 6,
+          "scope": "global",
+          "id": "sg_var_KopfY"
+        },
+        {
+          "name": "DX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 1,
+          "defaultValue": 1,
+          "value": 1,
+          "scope": "global",
+          "id": "sg_var_DX"
+        },
+        {
+          "name": "DY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_DY"
+        },
+        {
+          "name": "WunschDX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 1,
+          "defaultValue": 1,
+          "value": 1,
+          "scope": "global",
+          "id": "sg_var_WunschDX"
+        },
+        {
+          "name": "WunschDY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_WunschDY"
+        },
+        {
+          "name": "Abgebogen",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_Abgebogen"
+        },
+        {
+          "name": "NeuX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_NeuX"
+        },
+        {
+          "name": "NeuY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_NeuY"
+        },
+        {
+          "name": "ZellWert",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_ZellWert"
+        },
+        {
+          "name": "FutterX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_FutterX"
+        },
+        {
+          "name": "FutterY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_FutterY"
+        },
+        {
+          "name": "Belegt",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_Belegt"
+        },
+        {
+          "name": "TailX",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_TailX"
+        },
+        {
+          "name": "TailY",
+          "type": "integer",
+          "isVariable": true,
+          "className": "TIntegerVariable",
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "sg_var_TailY"
+        }
+      ],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#08151b"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Snake Grid",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "name": "Titel",
+          "x": 2,
+          "y": 1,
+          "width": 14,
+          "height": 2,
+          "text": "🐍 SNAKE · GRID",
+          "style": {
+            "color": "#4ade80",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Titel"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblScore",
+          "x": 46,
+          "y": 4,
+          "width": 14,
+          "height": 2,
+          "text": "SCORE  ${Score}",
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 17,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblScore"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblLaenge",
+          "x": 46,
+          "y": 7,
+          "width": 14,
+          "height": 2,
+          "text": "LÄNGE  ${Laenge}",
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 17,
+            "fontWeight": "600",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblLaenge"
+        },
+        {
+          "className": "TLabel",
+          "name": "Hilfe",
+          "x": 46,
+          "y": 12,
+          "width": 14,
+          "height": 6,
+          "text": "Pfeile/WASD  lenken\nLEER  Start\nP  Pause",
+          "style": {
+            "color": "#64748b",
+            "fontSize": 12,
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_Hilfe"
+        },
+        {
+          "className": "TGridBoard",
+          "name": "Spielfeld",
+          "x": 15,
+          "y": 4,
+          "width": 30,
+          "height": 26,
+          "cols": 16,
+          "rows": 12,
+          "palette": [
+            "#0b1420",
+            "#4ade80",
+            "#f87171",
+            "#86efac"
+          ],
+          "gridLines": true,
+          "overlayText": "SNAKE\nLeertaste = Start",
+          "style": {
+            "backgroundColor": "#0b1420",
+            "borderColor": "#1f3a2a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "id": "stage_main_Spielfeld"
+        },
+        {
+          "className": "TTimer",
+          "name": "Takt",
+          "x": 1,
+          "y": 3,
+          "width": 4,
+          "height": 2,
+          "interval": 200,
+          "enabled": false,
+          "maxInterval": 0,
+          "currentInterval": 0,
+          "isService": true,
+          "isHiddenInRun": true,
+          "style": {},
+          "events": {
+            "onTimer": "Ticken"
+          },
+          "id": "stage_main_Takt"
+        },
+        {
+          "className": "TButton",
+          "name": "BtnStart",
+          "x": 20,
+          "y": 32,
+          "width": 8,
+          "height": 2,
+          "text": "▶ START",
+          "style": {
+            "backgroundColor": "#20453f",
+            "color": "#dcfff0",
+            "borderColor": "#416e60",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "StartOderNeu"
+          },
+          "id": "stage_main_BtnStart"
+        },
+        {
+          "className": "TButton",
+          "name": "BtnPause",
+          "x": 29,
+          "y": 32,
+          "width": 8,
+          "height": 2,
+          "text": "⏸ PAUSE",
+          "style": {
+            "backgroundColor": "#3a3418",
+            "color": "#fde68a",
+            "borderColor": "#a5853b",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "PauseWechsel"
+          },
+          "id": "stage_main_BtnPause"
+        },
+        {
+          "className": "TButton",
+          "name": "BtnNeu",
+          "x": 38,
+          "y": 32,
+          "width": 8,
+          "height": 2,
+          "text": "↻ NEU",
+          "style": {
+            "backgroundColor": "#1e3a5f",
+            "color": "#dbeafe",
+            "borderColor": "#3b82f6",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "SpielStarten"
+          },
+          "id": "stage_main_BtnNeu"
+        },
+        {
+          "className": "TButton",
+          "name": "TouchOben",
+          "x": 4,
+          "y": 24,
+          "width": 5,
+          "height": 3,
+          "text": "▲",
+          "style": {
+            "backgroundColor": "#1a2440",
+            "color": "#c7d2fe",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "RichtungOben"
+          },
+          "id": "stage_main_TouchOben"
+        },
+        {
+          "className": "TButton",
+          "name": "TouchLinks",
+          "x": 2,
+          "y": 28,
+          "width": 5,
+          "height": 3,
+          "text": "◀",
+          "style": {
+            "backgroundColor": "#1a2440",
+            "color": "#c7d2fe",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "RichtungLinks"
+          },
+          "id": "stage_main_TouchLinks"
+        },
+        {
+          "className": "TButton",
+          "name": "TouchUnten",
+          "x": 4,
+          "y": 32,
+          "width": 5,
+          "height": 3,
+          "text": "▼",
+          "style": {
+            "backgroundColor": "#1a2440",
+            "color": "#c7d2fe",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "RichtungUnten"
+          },
+          "id": "stage_main_TouchUnten"
+        },
+        {
+          "className": "TButton",
+          "name": "TouchRechts",
+          "x": 6,
+          "y": 28,
+          "width": 5,
+          "height": 3,
+          "text": "▶",
+          "style": {
+            "backgroundColor": "#1a2440",
+            "color": "#c7d2fe",
+            "borderColor": "#334166",
+            "borderWidth": 1,
+            "borderRadius": 7,
+            "fontSize": 13
+          },
+          "events": {
+            "onClick": "RichtungRechts"
+          },
+          "id": "stage_main_TouchRechts"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "SpielStarten",
+          "description": "Neue Runde: Board leeren, Schlange auf Startposition, Futter legen, Takt an.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_BoardLeeren"
+            },
+            {
+              "type": "action",
+              "name": "Act_TextAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_StartWerte"
+            },
+            {
+              "type": "action",
+              "name": "Act_ListeLeerX"
+            },
+            {
+              "type": "action",
+              "name": "Act_ListeLeerY"
+            },
+            {
+              "type": "action",
+              "name": "Act_StartPushX"
+            },
+            {
+              "type": "action",
+              "name": "Act_StartPushY"
+            },
+            {
+              "type": "action",
+              "name": "Act_StartKopf"
+            },
+            {
+              "type": "task",
+              "name": "FutterNeu"
+            },
+            {
+              "type": "action",
+              "name": "Act_TaktAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_spielstarten"
+        },
+        {
+          "name": "Ticken",
+          "description": "Takt: Richtung anwenden und Schritt ausfuehren.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_RichtungAnwenden"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_NeuX"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_NeuY"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ZelleLesen"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: ZellWert == 2",
+                  "condition": {
+                    "variable": "ZellWert",
+                    "operator": "==",
+                    "value": 2
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "Fressen"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: ZellWert == 0",
+                      "condition": {
+                        "variable": "ZellWert",
+                        "operator": "==",
+                        "value": 0
+                      },
+                      "then": [
+                        {
+                          "type": "task",
+                          "name": "Bewegen"
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "task",
+                          "name": "SpielEnde"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_ticken"
+        },
+        {
+          "name": "Bewegen",
+          "description": "Normaler Schritt: Kopf vor, Schwanz weg.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_KopfAlt"
+            },
+            {
+              "type": "action",
+              "name": "Act_KopfPushX"
+            },
+            {
+              "type": "action",
+              "name": "Act_KopfPushY"
+            },
+            {
+              "type": "action",
+              "name": "Act_TailPopX"
+            },
+            {
+              "type": "action",
+              "name": "Act_TailPopY"
+            },
+            {
+              "type": "action",
+              "name": "Act_SchwanzWeg"
+            },
+            {
+              "type": "action",
+              "name": "Act_KopfSetzen"
+            },
+            {
+              "type": "action",
+              "name": "Act_KopfNeu"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_bewegen"
+        },
+        {
+          "name": "Fressen",
+          "description": "Futter erreicht: wachsen, Punkte, neues Futter.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_KopfAlt"
+            },
+            {
+              "type": "action",
+              "name": "Act_KopfPushX"
+            },
+            {
+              "type": "action",
+              "name": "Act_KopfPushY"
+            },
+            {
+              "type": "action",
+              "name": "Act_KopfSetzen"
+            },
+            {
+              "type": "action",
+              "name": "Act_KopfNeu"
+            },
+            {
+              "type": "action",
+              "name": "Act_ScorePlus"
+            },
+            {
+              "type": "action",
+              "name": "Act_LaengePlus"
+            },
+            {
+              "type": "task",
+              "name": "FutterNeu"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_fressen"
+        },
+        {
+          "name": "FutterNeu",
+          "description": "Zufaellige freie Zelle fuer das Futter suchen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_ZufallX"
+            },
+            {
+              "type": "action",
+              "name": "Act_ZufallY"
+            },
+            {
+              "type": "action",
+              "name": "Act_FutterX"
+            },
+            {
+              "type": "action",
+              "name": "Act_FutterY"
+            },
+            {
+              "type": "action",
+              "name": "Act_FutterLesen"
+            },
+            {
+              "type": "while",
+              "name": "While: Belegt != 0",
+              "condition": {
+                "variable": "Belegt",
+                "operator": "!=",
+                "value": 0
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_ZufallX"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ZufallY"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FutterX"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FutterY"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FutterLesen"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Act_FutterSetzen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_futterneu"
+        },
+        {
+          "name": "RichtungLinks",
+          "description": "Wunsch nach links (nicht aus Rechtslauf).",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Abgebogen == 0",
+                  "condition": {
+                    "variable": "Abgebogen",
+                    "operator": "==",
+                    "value": 0
+                  },
+                  "then": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: DX != 1",
+                      "condition": {
+                        "variable": "DX",
+                        "operator": "!=",
+                        "value": 1
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_WunschLinks"
+                        }
+                      ],
+                      "else": []
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_richtunglinks"
+        },
+        {
+          "name": "RichtungRechts",
+          "description": "Wunsch nach rechts (nicht aus Linkslauf).",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Abgebogen == 0",
+                  "condition": {
+                    "variable": "Abgebogen",
+                    "operator": "==",
+                    "value": 0
+                  },
+                  "then": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: DX != -1",
+                      "condition": {
+                        "variable": "DX",
+                        "operator": "!=",
+                        "value": -1
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_WunschRechts"
+                        }
+                      ],
+                      "else": []
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_richtungrechts"
+        },
+        {
+          "name": "RichtungOben",
+          "description": "Wunsch nach oben (nicht aus Abwaertslauf).",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Abgebogen == 0",
+                  "condition": {
+                    "variable": "Abgebogen",
+                    "operator": "==",
+                    "value": 0
+                  },
+                  "then": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: DY != 1",
+                      "condition": {
+                        "variable": "DY",
+                        "operator": "!=",
+                        "value": 1
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_WunschOben"
+                        }
+                      ],
+                      "else": []
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_richtungoben"
+        },
+        {
+          "name": "RichtungUnten",
+          "description": "Wunsch nach unten (nicht aus Aufwaertslauf).",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Abgebogen == 0",
+                  "condition": {
+                    "variable": "Abgebogen",
+                    "operator": "==",
+                    "value": 0
+                  },
+                  "then": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: DY != -1",
+                      "condition": {
+                        "variable": "DY",
+                        "operator": "!=",
+                        "value": -1
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_WunschUnten"
+                        }
+                      ],
+                      "else": []
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_richtungunten"
+        },
+        {
+          "name": "PauseWechsel",
+          "description": "Pause umschalten.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_StatusPause"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TaktAus"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TextPause"
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == paused",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "paused"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_StatusWeiter"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TextAus"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_TaktAn"
+                    }
+                  ],
+                  "else": []
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_pausewechsel"
+        },
+        {
+          "name": "StartOderNeu",
+          "description": "Leertaste: in Pause fortsetzen, sonst neue Runde starten.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == paused",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "paused"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "PauseWechsel"
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status != playing",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "!=",
+                    "value": "playing"
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "SpielStarten"
+                    }
+                  ],
+                  "else": []
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_startoderneu"
+        },
+        {
+          "name": "SpielEnde",
+          "description": "Game Over: Takt aus und Hinweis zeigen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_StatusEnde"
+            },
+            {
+              "type": "action",
+              "name": "Act_TaktAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_TextGameOver"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "sg_spielende"
+        }
+      ],
+      "actions": [
+        {
+          "name": "Act_BoardLeeren",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "clearBoard",
+          "params": []
+        },
+        {
+          "name": "Act_TextAus",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            ""
+          ]
+        },
+        {
+          "name": "Act_TextPause",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            "⏸ PAUSE\nP = weiter"
+          ]
+        },
+        {
+          "name": "Act_TextGameOver",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setOverlayText",
+          "params": [
+            "GAME OVER\nScore: ${Score}\n↻ Leertaste = neu"
+          ]
+        },
+        {
+          "name": "Act_KopfSetzen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setCell",
+          "params": [
+            "${NeuX}",
+            "${NeuY}",
+            "3"
+          ]
+        },
+        {
+          "name": "Act_KopfAlt",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setCell",
+          "params": [
+            "${KopfX}",
+            "${KopfY}",
+            "1"
+          ]
+        },
+        {
+          "name": "Act_SchwanzWeg",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setCell",
+          "params": [
+            "${TailX}",
+            "${TailY}",
+            "0"
+          ]
+        },
+        {
+          "name": "Act_StartKopf",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setCell",
+          "params": [
+            "${KopfX}",
+            "${KopfY}",
+            "3"
+          ]
+        },
+        {
+          "name": "Act_ZelleLesen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "getCell",
+          "params": [
+            "${NeuX}",
+            "${NeuY}"
+          ],
+          "resultVariable": "ZellWert"
+        },
+        {
+          "name": "Act_FutterLesen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "getCell",
+          "params": [
+            "${FutterX}",
+            "${FutterY}"
+          ],
+          "resultVariable": "Belegt"
+        },
+        {
+          "name": "Act_FutterSetzen",
+          "type": "call_method",
+          "target": "Spielfeld",
+          "method": "setCell",
+          "params": [
+            "${FutterX}",
+            "${FutterY}",
+            "2"
+          ]
+        },
+        {
+          "name": "Act_ZufallX",
+          "type": "call_method",
+          "target": "ZufallX",
+          "method": "generate",
+          "params": []
+        },
+        {
+          "name": "Act_ZufallY",
+          "type": "call_method",
+          "target": "ZufallY",
+          "method": "generate",
+          "params": []
+        },
+        {
+          "name": "Act_FutterX",
+          "type": "property",
+          "changes": {
+            "FutterX": "${ZufallX}"
+          }
+        },
+        {
+          "name": "Act_FutterY",
+          "type": "property",
+          "changes": {
+            "FutterY": "${ZufallY}"
+          }
+        },
+        {
+          "name": "Act_KopfPushX",
+          "type": "list_push",
+          "target": "SchlangeX",
+          "value": "${NeuX}"
+        },
+        {
+          "name": "Act_KopfPushY",
+          "type": "list_push",
+          "target": "SchlangeY",
+          "value": "${NeuY}"
+        },
+        {
+          "name": "Act_StartPushX",
+          "type": "list_push",
+          "target": "SchlangeX",
+          "value": "${KopfX}"
+        },
+        {
+          "name": "Act_StartPushY",
+          "type": "list_push",
+          "target": "SchlangeY",
+          "value": "${KopfY}"
+        },
+        {
+          "name": "Act_TailPopX",
+          "type": "list_remove",
+          "target": "SchlangeX",
+          "index": "0",
+          "resultVariable": "TailX"
+        },
+        {
+          "name": "Act_TailPopY",
+          "type": "list_remove",
+          "target": "SchlangeY",
+          "index": "0",
+          "resultVariable": "TailY"
+        },
+        {
+          "name": "Act_ListeLeerX",
+          "type": "list_clear",
+          "target": "SchlangeX"
+        },
+        {
+          "name": "Act_ListeLeerY",
+          "type": "list_clear",
+          "target": "SchlangeY"
+        },
+        {
+          "name": "Act_NeuX",
+          "type": "calculate",
+          "formula": "KopfX + DX",
+          "resultVariable": "NeuX"
+        },
+        {
+          "name": "Act_NeuY",
+          "type": "calculate",
+          "formula": "KopfY + DY",
+          "resultVariable": "NeuY"
+        },
+        {
+          "name": "Act_ScorePlus",
+          "type": "calculate",
+          "formula": "Score + 10",
+          "resultVariable": "Score"
+        },
+        {
+          "name": "Act_LaengePlus",
+          "type": "calculate",
+          "formula": "Laenge + 1",
+          "resultVariable": "Laenge"
+        },
+        {
+          "name": "Act_RichtungAnwenden",
+          "type": "property",
+          "changes": {
+            "DX": "${WunschDX}",
+            "DY": "${WunschDY}"
+          }
+        },
+        {
+          "name": "Act_KopfNeu",
+          "type": "property",
+          "changes": {
+            "KopfX": "${NeuX}",
+            "KopfY": "${NeuY}",
+            "Abgebogen": 0
+          }
+        },
+        {
+          "name": "Act_StartWerte",
+          "type": "property",
+          "changes": {
+            "Status": "playing",
+            "Score": 0,
+            "Laenge": 1,
+            "KopfX": 6,
+            "KopfY": 6,
+            "DX": 1,
+            "DY": 0,
+            "WunschDX": 1,
+            "WunschDY": 0,
+            "Abgebogen": 0
+          }
+        },
+        {
+          "name": "Act_TaktAn",
+          "type": "property",
+          "changes": {
+            "Takt.enabled": true
+          }
+        },
+        {
+          "name": "Act_TaktAus",
+          "type": "property",
+          "changes": {
+            "Takt.enabled": false
+          }
+        },
+        {
+          "name": "Act_StatusPause",
+          "type": "property",
+          "changes": {
+            "Status": "paused"
+          }
+        },
+        {
+          "name": "Act_StatusWeiter",
+          "type": "property",
+          "changes": {
+            "Status": "playing"
+          }
+        },
+        {
+          "name": "Act_StatusEnde",
+          "type": "property",
+          "changes": {
+            "Status": "gameover"
+          }
+        },
+        {
+          "name": "Act_WunschLinks",
+          "type": "property",
+          "changes": {
+            "WunschDX": -1,
+            "WunschDY": 0,
+            "Abgebogen": 1
+          }
+        },
+        {
+          "name": "Act_WunschRechts",
+          "type": "property",
+          "changes": {
+            "WunschDX": 1,
+            "WunschDY": 0,
+            "Abgebogen": 1
+          }
+        },
+        {
+          "name": "Act_WunschOben",
+          "type": "property",
+          "changes": {
+            "WunschDX": 0,
+            "WunschDY": -1,
+            "Abgebogen": 1
+          }
+        },
+        {
+          "name": "Act_WunschUnten",
+          "type": "property",
+          "changes": {
+            "WunschDX": 0,
+            "WunschDY": 1,
+            "Abgebogen": 1
+          }
+        }
+      ],
+      "variables": [],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#08151b"
+      },
+      "features": [
+        {
+          "id": "feature_sg_raster",
+          "name": "Raster & Board",
+          "description": "TGridBoard 16x12: Schlange, Futter und Kopf als Zellwerte, Kollision per getCell.",
+          "tags": [
+            "Snake",
+            "GridBoard"
+          ],
+          "userStoryIds": [
+            "sg_raster"
+          ],
+          "blueprintTaskNames": []
+        },
+        {
+          "id": "feature_sg_bewegung",
+          "name": "Bewegung & Wachstum",
+          "description": "TTimer-Takt verschiebt Kopf/Schwanz ueber SchlangeX/Y-Listen; Futter laesst die Schlange wachsen.",
+          "tags": [
+            "Snake",
+            "Timer"
+          ],
+          "userStoryIds": [
+            "sg_bewegung"
+          ],
+          "blueprintTaskNames": [
+            "Ticken",
+            "Bewegen",
+            "Fressen",
+            "FutterNeu"
+          ]
+        },
+        {
+          "id": "feature_sg_richtung",
+          "name": "Richtungswechsel",
+          "description": "Pfeile/WASD/Buttons; ein Wechsel pro Takt, kein direkter Rueckwaertslauf.",
+          "tags": [
+            "Snake",
+            "Input"
+          ],
+          "userStoryIds": [
+            "sg_richtung"
+          ],
+          "blueprintTaskNames": [
+            "RichtungLinks",
+            "RichtungRechts",
+            "RichtungOben",
+            "RichtungUnten"
+          ]
+        },
+        {
+          "id": "feature_sg_ablauf",
+          "name": "Spielablauf",
+          "description": "Start-Overlay, Pause, Game Over bei Wand- oder Selbstkollision, Neustart.",
+          "tags": [
+            "Snake",
+            "Ablauf"
+          ],
+          "userStoryIds": [
+            "sg_ablauf"
+          ],
+          "blueprintTaskNames": [
+            "SpielStarten",
+            "PauseWechsel",
+            "StartOderNeu",
+            "SpielEnde"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "sg_raster",
+        "title": "Raster & Board",
+        "description": "Als Spieler möchte ich Schlange und Futter auf einem klaren Raster sehen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "16×12 Zellen",
+          "Kopf heller als Körper",
+          "Futter rot",
+          "Kollision über getCell (frei/Körper/Futter/Wand)"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "snake-grid",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sg_raster"
+      },
+      {
+        "id": "sg_bewegung",
+        "title": "Bewegung & Wachstum",
+        "description": "Als Spieler möchte ich, dass die Schlange sich taktweise bewegt und beim Fressen wächst.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Timer-Takt bewegt den Kopf",
+          "Schwanz folgt über Positionslisten",
+          "Futter lässt wachsen und zählt Punkte",
+          "Futter erscheint nur auf freien Zellen"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "snake-grid",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld",
+          "Takt",
+          "SchlangeX",
+          "SchlangeY",
+          "ZufallX",
+          "ZufallY"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sg_bewegung"
+      },
+      {
+        "id": "sg_richtung",
+        "title": "Richtungswechsel",
+        "description": "Als Spieler möchte ich die Richtung sicher wechseln ohne Rückwärtseinbruch.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Max. ein Richtungswechsel pro Takt",
+          "Kein direkter 180°-Wechsel",
+          "Tastatur und Buttons"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "snake-grid",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Tastatur",
+          "TouchOben",
+          "TouchLinks",
+          "TouchUnten",
+          "TouchRechts"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sg_richtung"
+      },
+      {
+        "id": "sg_ablauf",
+        "title": "Spielablauf",
+        "description": "Als Spieler möchte ich starten, pausieren und nach Game Over neu starten.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Start-Overlay",
+          "Pause per P oder Button",
+          "Game Over bei Wand/Selbstkollision",
+          "Neustart per Leertaste"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "snake-grid",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Spielfeld",
+          "Takt",
+          "BtnStart",
+          "BtnPause",
+          "BtnNeu"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_sg_ablauf"
+      }
+    ]
+  }
+}

@@ -114,6 +114,14 @@ export class CollisionManager {
 
                 const overlap = spriteA.getCollisionOverlap(spriteB);
                 if (overlap) {
+                    // Push-Out wird JEDEN Frame aufgeloest, bevor der Cooldown greift.
+                    // Der Cooldown drosselt nur die Events — lag die Aufloesung dahinter,
+                    // sanken Sprites bis zu 200ms in solide Kacheln ein (instabiles Stehen).
+                    const wantsPushOut = (spriteA as any).pushOutOnCollision || (spriteB as any).pushOutOnCollision;
+                    if (wantsPushOut) {
+                        PhysicsEngine.resolveSpriteCollision(spriteA, spriteB, overlap);
+                    }
+
                     const now = performance.now();
                     const pairKey = `${spriteA.id}_${spriteB.id}`;
                     const lastCollision = this.collisionCooldowns.get(pairKey) || 0;
@@ -121,11 +129,6 @@ export class CollisionManager {
                     if (now - lastCollision < this.COLLISION_COOLDOWN_MS) continue;
 
                     this.collisionCooldowns.set(pairKey, now);
-
-                    const wantsPushOut = (spriteA as any).pushOutOnCollision || (spriteB as any).pushOutOnCollision;
-                    if (wantsPushOut) {
-                        PhysicsEngine.resolveSpriteCollision(spriteA, spriteB, overlap);
-                    }
 
                     if (this.eventCallback) {
                         this.eventCallback(spriteA.id, 'onCollision', {
@@ -228,13 +231,6 @@ export class CollisionManager {
                 }
 
                 if (isColliding) {
-                    const now = performance.now();
-                    const pairKey = `panel_${sprite.id}_${panel.id}`;
-                    const lastCollision = this.collisionCooldowns.get(pairKey) || 0;
-
-                    if (now - lastCollision < this.COLLISION_COOLDOWN_MS) continue;
-                    this.collisionCooldowns.set(pairKey, now);
-
                     const dx = (spriteHb.x + spriteHb.w / 2) - (panelHitbox.x + panelHitbox.w / 2);
                     const dy = (spriteHb.y + spriteHb.h / 2) - (panelHitbox.y + panelHitbox.h / 2);
                     const combinedHalfWidths = (spriteHb.w + panelHitbox.w) / 2;
@@ -276,6 +272,19 @@ export class CollisionManager {
                     const contactX = contactLeft + (contactRight - contactLeft) / 2;
                     const contactY = contactTop + (contactBottom - contactTop) / 2;
 
+                    // Push-Out JEDEN Frame, vor dem Cooldown — siehe Sprite-Pfad oben.
+                    const wantsPushOut = (sprite as any).pushOutOnCollision || (panel as any).pushOutOnCollision;
+                    if (wantsPushOut) {
+                        PhysicsEngine.resolvePanelCollision(sprite, hitSide, depth, this.boundaryMode);
+                    }
+
+                    const now = performance.now();
+                    const pairKey = `panel_${sprite.id}_${panel.id}`;
+                    const lastCollision = this.collisionCooldowns.get(pairKey) || 0;
+
+                    if (now - lastCollision < this.COLLISION_COOLDOWN_MS) continue;
+                    this.collisionCooldowns.set(pairKey, now);
+
                     if (this.eventCallback) {
                         this.eventCallback(sprite.id, 'onCollision', {
                             other: panel.name,
@@ -286,11 +295,6 @@ export class CollisionManager {
                         });
                         this.eventCallback(sprite.id, `onCollision${this.capitalize(hitSide)}`, { other: panel });
                         this.collidedThisFrame.add(sprite.id);
-                    }
-
-                    const wantsPushOut = (sprite as any).pushOutOnCollision || (panel as any).pushOutOnCollision;
-                    if (wantsPushOut) {
-                        PhysicsEngine.resolvePanelCollision(sprite, hitSide, depth, this.boundaryMode);
                     }
                 }
             }
