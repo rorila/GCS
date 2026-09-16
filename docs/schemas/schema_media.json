@@ -2,6 +2,56 @@
   "$module": "media",
   "description": "Media-Komponenten (Audio, Video, ImageList)",
   "components": {
+    "TImageSplitter": {
+      "description": "Bildaufteiler mit Live-Vorschau. Zerlegt ein Bild logisch in gleich grosse Rechtecke, ohne die Quelldatei zu veraendern. Ausgabe als Ausschnitt-Datensaetze, nicht als Stage-Objekte.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "imageSource": { "type": "string", "default": "", "description": "Bilddatei aus dem Image-Picker" },
+        "rows": { "type": "number", "default": 2, "min": 1, "max": 32, "step": 1 },
+        "columns": { "type": "number", "default": 3, "min": 1, "max": 32, "step": 1 },
+        "pieceCount": { "type": "number", "readonly": true, "description": "Zeilen mal Spalten" },
+        "showLines": { "type": "boolean", "default": true },
+        "lineColor": { "type": "string", "default": "#ffffff" },
+        "previewGap": { "type": "number", "default": 0, "min": 0, "max": 100, "description": "Vorschau-Abstand in Bildpixeln vor Skalierung; ohne Einfluss auf Ausschnitte" },
+        "outputList": { "type": "string", "default": "", "description": "Name oder ID einer TObjectList. Explizite Erzeugung ersetzt records, recordKey=id und sourceMode=records." }
+      },
+      "methods": [
+        { "name": "generatePieces", "description": "Asynchrones Laden und Erzeugen. Liefert Ausschnitt-Datensaetze und schreibt sie in outputList. Felder: id, index, row, column, matchValue (r0_c0), source, sourceWidth, sourceHeight, x, y, width, height. Koordinaten in Original-Bildpixeln, Zeile/Spalte nullbasiert. Fehler lassen bestehende Datensaetze unveraendert." }
+      ],
+      "events": [],
+      "example": {
+        "className": "TImageSplitter", "name": "Bildaufteiler", "x": 2, "y": 2, "width": 24, "height": 16,
+        "imageSource": "./images/puzzle-neu.svg", "rows": 2, "columns": 3,
+        "showLines": true, "previewGap": 0, "outputList": "PuzzleTeile"
+      }
+    },
+
+    "TImageGallery": {
+      "description": "Bildergalerie mit Live-Vorschau. Zeigt alle Bilder eines Unterordners aus public/images (Medienmanifest) als kindgerechtes Kachelraster. Anklicken markiert ein Bild und loest onSelectionChanged mit { path, file } aus.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "folder": { "type": "string", "default": "", "description": "Unterordner unter public/images (Manifest-Schluessel). Leer = oberste Ebene." },
+        "columns": { "type": "number", "default": 4, "min": 1, "max": 10, "step": 1 },
+        "tileHeight": { "type": "number", "default": 5, "min": 2, "max": 20, "step": 0.5, "description": "Kachelhoehe in Rasterzellen" },
+        "gap": { "type": "number", "default": 12, "min": 0, "max": 60, "description": "Abstand in Pixeln" },
+        "selectionColor": { "type": "string", "default": "#ffb300" },
+        "showFileNames": { "type": "boolean", "default": false },
+        "selectedImage": { "type": "string", "default": "", "readonly": true, "description": "Relativer Pfad des gewaehlten Bildes, z. B. ./images/ordner/datei.png" }
+      },
+      "methods": [
+        { "name": "selectImage", "description": "Setzt selectedImage programmgesteuert und rendert neu." },
+        { "name": "getSelectedImage", "description": "Liefert den relativen Pfad des gewaehlten Bildes." }
+      ],
+      "events": ["onSelectionChanged"],
+      "example": {
+        "className": "TImageGallery", "name": "Galerie", "x": 2, "y": 4, "width": 44, "height": 18,
+        "folder": "memory Tierbilder für kleine Kinder", "columns": 4, "tileHeight": 5,
+        "gap": 12, "selectionColor": "#ffb300",
+        "events": { "onSelectionChanged": "BildGewaehlt" }
+      }
+    },
 
     "TAudio": {
       "description": "Audio-Player. Spielt Soundeffekte oder Musik ab.",

@@ -6,6 +6,8 @@ import { TVirtualGamepad } from '../components/TVirtualGamepad';
 import { TAudio } from '../components/TAudio';
 import { TImage } from '../components/TImage';
 import { TImageList } from '../components/TImageList';
+import { TImageSplitter } from '../components/TImageSplitter';
+import { TImageGallery } from '../components/TImageGallery';
 import { TSprite } from '../components/TSprite';
 import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { TButton } from '../components/TButton';
@@ -120,6 +122,8 @@ export class ComponentRegistry {
         this.register('TAudio', TAudio);
         this.register('TImage', TImage);
         this.register('TImageList', TImageList);
+        this.register('TImageSplitter', TImageSplitter);
+        this.register('TImageGallery', TImageGallery);
         this.register('TSprite', TSprite);
         this.register('TSpriteTemplate', TSpriteTemplate);
         this.register('TButton', TButton);
@@ -221,6 +225,8 @@ export class ComponentRegistry {
         this.typeMapping.set('Audio', 'TAudio');
         this.typeMapping.set('Image', 'TImage');
         this.typeMapping.set('ImageList', 'TImageList');
+        this.typeMapping.set('ImageSplitter', 'TImageSplitter');
+        this.typeMapping.set('ImageGallery', 'TImageGallery');
         this.typeMapping.set('Video', 'TVideo');
         this.typeMapping.set('Link', 'TLink');
         this.typeMapping.set('SplashScreen', 'TSplashScreen');

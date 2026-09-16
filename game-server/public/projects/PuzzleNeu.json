@@ -1,0 +1,1412 @@
+{
+  "meta": {
+    "id": "puzzle-neu",
+    "name": "PuzzleNeu",
+    "version": "0.1.0",
+    "description": "Schritt 2: Galerie-Stage zur Bildauswahl + Bildaufteiler. Das Kind wählt in der Galerie ein Bild aus dem Ordner 'memory Tierbilder für kleine Kinder'; 'Dieses Bild nehmen' überträgt es an den Bildaufteiler. Teile weiterhin explizit über 'Teile erzeugen' generieren. Noch keine Spiellogik.",
+    "_sourcePath": "projects/PuzzleNeu.json"
+  },
+  "activeStageId": "stage_main",
+  "stage": {
+    "grid": {
+      "cols": 48,
+      "rows": 28,
+      "cellSize": 26,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#101827"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 48,
+        "rows": 28,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#101827"
+      },
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "pn_stagectrl",
+          "name": "StageController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "variables": [
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "System internal flag to track unsaved changes",
+          "visible": true,
+          "x": 9,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "pn_var_gewaehltes_bild",
+          "name": "GewaehltesBild",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "Relativer Pfad des in der Galerie gewählten Bildes",
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        }
+      ],
+      "tasks": [
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "GalerieOeffnen",
+          "description": "Oeffnet die Galerie-Stage (Button 'Bild auswaehlen' auf der HauptStage).",
+          "actionSequence": [
+            {
+              "type": "navigate_stage",
+              "name": "Stage -> stage_galerie",
+              "stageId": "stage_galerie",
+              "reset": false
+            }
+          ],
+          "id": "pn_task_galerie_oeffnen"
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "GalerieInit",
+          "description": "Wird bei jedem Betreten der Galerie ausgefuehrt (GalerieStart.onStart): HauptStage-Objekte ausblenden, da sie zur Laufzeit eingemischt werden.",
+          "actionSequence": [
+            {
+              "type": "property",
+              "name": "Hauptobjekte ausblenden",
+              "changes": {
+                "Bildaufteiler.visible": "false",
+                "BtnBildAuswaehlen.visible": "false"
+              }
+            }
+          ],
+          "id": "pn_task_galerie_init"
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "BildGewaehlt",
+          "description": "Speichert den Pfad des angeklickten Galeriebildes (onSelectionChanged liefert path).",
+          "actionSequence": [
+            {
+              "type": "property",
+              "name": "Pfad merken",
+              "changes": {
+                "GewaehltesBild": "${path}"
+              }
+            }
+          ],
+          "id": "pn_task_bild_gewaehlt"
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "BildUebernehmen",
+          "description": "Uebernimmt das gewaehlte Bild in den Bildaufteiler und wechselt zur HauptStage.",
+          "actionSequence": [
+            {
+              "name": "Hauptobjekte einblenden",
+              "type": "action"
+            },
+            {
+              "name": "Stage -> stage_main",
+              "type": "action"
+            }
+          ],
+          "id": "pn_task_bild_uebernehmen",
+          "flowLayout": {
+            "BildUebernehmen": {
+              "x": 40,
+              "y": 40
+            },
+            "GewaehltesBild !=": {
+              "x": 360,
+              "y": 60
+            },
+            "Bild -> Bildaufteiler": {
+              "x": 640,
+              "y": 60
+            },
+            "Hauptobjekte einblenden": {
+              "x": 40,
+              "y": 140
+            },
+            "Stage -> stage_main": {
+              "x": 40,
+              "y": 240
+            }
+          },
+          "standaloneNodes": [
+            {
+              "id": "auto_condition_0_1789534807055",
+              "type": "condition",
+              "x": 360,
+              "y": 60,
+              "width": 240,
+              "height": 60,
+              "properties": {
+                "name": "GewaehltesBild !=",
+                "details": "",
+                "description": "",
+                "text": "GewaehltesBild !="
+              },
+              "data": {
+                "condition": {
+                  "variable": "GewaehltesBild",
+                  "operator": "!=",
+                  "value": ""
+                }
+              }
+            },
+            {
+              "id": "auto_action_1_1789534807055",
+              "type": "action",
+              "x": 640,
+              "y": 60,
+              "width": 200,
+              "height": 60,
+              "properties": {
+                "name": "Bild -> Bildaufteiler",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Bild -> Bildaufteiler",
+                "type": "property",
+                "isLinked": true
+              }
+            }
+          ],
+          "standaloneConnections": [
+            {
+              "id": "conn_1789534807071_307",
+              "startX": 0,
+              "startY": 0,
+              "endX": 0,
+              "endY": 0,
+              "startTargetId": "auto_condition_0_1789534807055",
+              "endTargetId": "auto_action_1_1789534807055",
+              "data": {
+                "startAnchorType": "true",
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "ZurueckZumSplitter",
+          "description": "Galerie verlassen ohne Auswahl zu uebernehmen.",
+          "actionSequence": [
+            {
+              "type": "property",
+              "name": "Hauptobjekte einblenden",
+              "changes": {
+                "Bildaufteiler.visible": "true",
+                "BtnBildAuswaehlen.visible": "true"
+              }
+            },
+            {
+              "type": "navigate_stage",
+              "name": "Stage -> stage_main",
+              "stageId": "stage_main",
+              "reset": false
+            }
+          ],
+          "id": "pn_task_zurueck"
+        }
+      ],
+      "actions": [
+        {
+          "id": "auto_property_1_1789496721188",
+          "details": "",
+          "type": "property",
+          "name": "Bild -> Bildaufteiler",
+          "changes": {
+            "Bildaufteiler.imageSource": "${GewaehltesBild}"
+          },
+          "showDetails": false,
+          "target": ""
+        },
+        {
+          "id": "auto_property_2_1789496721188",
+          "details": "",
+          "type": "property",
+          "name": "Hauptobjekte einblenden",
+          "changes": {
+            "Bildaufteiler.visible": "true",
+            "BtnBildAuswaehlen.visible": "true"
+          },
+          "showDetails": false,
+          "target": ""
+        },
+        {
+          "id": "auto_navigate_stage_3_1789496721188",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "Stage -> stage_main",
+          "stageId": "stage_main",
+          "reset": false,
+          "showDetails": false,
+          "actionType": "navigate_stage"
+        }
+      ],
+      "events": {},
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_main",
+      "name": "Puzzle - Bildaufteiler",
+      "type": "main",
+      "grid": {
+        "cols": 48,
+        "rows": 28,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#101827"
+      },
+      "objects": [
+        {
+          "className": "TImageSplitter",
+          "id": "puzzleneu_splitter",
+          "name": "Bildaufteiler",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 19,
+          "height": 25,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#182235",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageSource": "${GewaehltesBild}",
+          "rows": 5,
+          "columns": 5,
+          "showLines": true,
+          "lineColor": "#ffffff",
+          "previewGap": 0,
+          "outputList": "PuzzleTeile"
+        },
+        {
+          "className": "TButton",
+          "id": "pn_btn_bild_auswaehlen",
+          "name": "BtnBildAuswaehlen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GalerieOeffnen"
+          },
+          "visible": true,
+          "x": 20,
+          "y": 3,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "600",
+            "backgroundColor": "#2f6fed",
+            "borderColor": "#1d4fb8",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "Bild auswählen",
+          "icon": ""
+        },
+        {
+          "className": "TObjectList",
+          "id": "puzzleneu_pieces",
+          "name": "PuzzleTeile",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 32,
+          "y": 2,
+          "width": 13,
+          "height": 22,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "backgroundColor": "#214052",
+            "borderColor": "#477084",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [
+            {
+              "id": "puzzleneu_splitter_r0_c0",
+              "index": 0,
+              "row": 0,
+              "column": 0,
+              "matchValue": "r0_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c1",
+              "index": 1,
+              "row": 0,
+              "column": 1,
+              "matchValue": "r0_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c2",
+              "index": 2,
+              "row": 0,
+              "column": 2,
+              "matchValue": "r0_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c3",
+              "index": 3,
+              "row": 0,
+              "column": 3,
+              "matchValue": "r0_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c4",
+              "index": 4,
+              "row": 0,
+              "column": 4,
+              "matchValue": "r0_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c0",
+              "index": 5,
+              "row": 1,
+              "column": 0,
+              "matchValue": "r1_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c1",
+              "index": 6,
+              "row": 1,
+              "column": 1,
+              "matchValue": "r1_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c2",
+              "index": 7,
+              "row": 1,
+              "column": 2,
+              "matchValue": "r1_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c3",
+              "index": 8,
+              "row": 1,
+              "column": 3,
+              "matchValue": "r1_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c4",
+              "index": 9,
+              "row": 1,
+              "column": 4,
+              "matchValue": "r1_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c0",
+              "index": 10,
+              "row": 2,
+              "column": 0,
+              "matchValue": "r2_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c1",
+              "index": 11,
+              "row": 2,
+              "column": 1,
+              "matchValue": "r2_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c2",
+              "index": 12,
+              "row": 2,
+              "column": 2,
+              "matchValue": "r2_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c3",
+              "index": 13,
+              "row": 2,
+              "column": 3,
+              "matchValue": "r2_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c4",
+              "index": 14,
+              "row": 2,
+              "column": 4,
+              "matchValue": "r2_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c0",
+              "index": 15,
+              "row": 3,
+              "column": 0,
+              "matchValue": "r3_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c1",
+              "index": 16,
+              "row": 3,
+              "column": 1,
+              "matchValue": "r3_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c2",
+              "index": 17,
+              "row": 3,
+              "column": 2,
+              "matchValue": "r3_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c3",
+              "index": 18,
+              "row": 3,
+              "column": 3,
+              "matchValue": "r3_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c4",
+              "index": 19,
+              "row": 3,
+              "column": 4,
+              "matchValue": "r3_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c0",
+              "index": 20,
+              "row": 4,
+              "column": 0,
+              "matchValue": "r4_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c1",
+              "index": 21,
+              "row": 4,
+              "column": 1,
+              "matchValue": "r4_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c2",
+              "index": 22,
+              "row": 4,
+              "column": 2,
+              "matchValue": "r4_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c3",
+              "index": 23,
+              "row": 4,
+              "column": 3,
+              "matchValue": "r4_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c4",
+              "index": 24,
+              "row": 4,
+              "column": 4,
+              "matchValue": "r4_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            }
+          ],
+          "columns": [
+            {
+              "field": "index",
+              "label": "Index",
+              "width": "60px"
+            },
+            {
+              "field": "row",
+              "label": "Zeile",
+              "width": "60px"
+            },
+            {
+              "field": "column",
+              "label": "Spalte",
+              "width": "60px"
+            },
+            {
+              "field": "matchValue",
+              "label": "Matchwert",
+              "width": "1fr"
+            }
+          ],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "sourceMode": "records",
+          "records": [
+            {
+              "id": "puzzleneu_splitter_r0_c0",
+              "index": 0,
+              "row": 0,
+              "column": 0,
+              "matchValue": "r0_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c1",
+              "index": 1,
+              "row": 0,
+              "column": 1,
+              "matchValue": "r0_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c2",
+              "index": 2,
+              "row": 0,
+              "column": 2,
+              "matchValue": "r0_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c3",
+              "index": 3,
+              "row": 0,
+              "column": 3,
+              "matchValue": "r0_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c4",
+              "index": 4,
+              "row": 0,
+              "column": 4,
+              "matchValue": "r0_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 0,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c0",
+              "index": 5,
+              "row": 1,
+              "column": 0,
+              "matchValue": "r1_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c1",
+              "index": 6,
+              "row": 1,
+              "column": 1,
+              "matchValue": "r1_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c2",
+              "index": 7,
+              "row": 1,
+              "column": 2,
+              "matchValue": "r1_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c3",
+              "index": 8,
+              "row": 1,
+              "column": 3,
+              "matchValue": "r1_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c4",
+              "index": 9,
+              "row": 1,
+              "column": 4,
+              "matchValue": "r1_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 128,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c0",
+              "index": 10,
+              "row": 2,
+              "column": 0,
+              "matchValue": "r2_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c1",
+              "index": 11,
+              "row": 2,
+              "column": 1,
+              "matchValue": "r2_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c2",
+              "index": 12,
+              "row": 2,
+              "column": 2,
+              "matchValue": "r2_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c3",
+              "index": 13,
+              "row": 2,
+              "column": 3,
+              "matchValue": "r2_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c4",
+              "index": 14,
+              "row": 2,
+              "column": 4,
+              "matchValue": "r2_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 256,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c0",
+              "index": 15,
+              "row": 3,
+              "column": 0,
+              "matchValue": "r3_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c1",
+              "index": 16,
+              "row": 3,
+              "column": 1,
+              "matchValue": "r3_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c2",
+              "index": 17,
+              "row": 3,
+              "column": 2,
+              "matchValue": "r3_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c3",
+              "index": 18,
+              "row": 3,
+              "column": 3,
+              "matchValue": "r3_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r3_c4",
+              "index": 19,
+              "row": 3,
+              "column": 4,
+              "matchValue": "r3_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 384,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c0",
+              "index": 20,
+              "row": 4,
+              "column": 0,
+              "matchValue": "r4_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 0,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c1",
+              "index": 21,
+              "row": 4,
+              "column": 1,
+              "matchValue": "r4_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 85.4,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c2",
+              "index": 22,
+              "row": 4,
+              "column": 2,
+              "matchValue": "r4_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 170.8,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c3",
+              "index": 23,
+              "row": 4,
+              "column": 3,
+              "matchValue": "r4_c3",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 256.20000000000005,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            },
+            {
+              "id": "puzzleneu_splitter_r4_c4",
+              "index": 24,
+              "row": 4,
+              "column": 4,
+              "matchValue": "r4_c4",
+              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+              "sourceWidth": 427,
+              "sourceHeight": 640,
+              "x": 341.6,
+              "y": 512,
+              "width": 85.4,
+              "height": 128
+            }
+          ],
+          "recordKey": "id",
+          "fields": [],
+          "items": [],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "recordData": {}
+        }
+      ],
+      "variables": [],
+      "tasks": [],
+      "actions": [],
+      "events": {},
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_galerie",
+      "name": "Galerie",
+      "type": "standard",
+      "grid": {
+        "cols": 48,
+        "rows": 28,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#101827"
+      },
+      "objects": [
+        {
+          "className": "TPanel",
+          "id": "pn_galerie_start",
+          "name": "GalerieStart",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onStart": "GalerieInit"
+          },
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TLabel",
+          "id": "pn_galerie_titel",
+          "name": "LblGalerieTitel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 1,
+          "width": 30,
+          "height": 2.5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 28,
+            "fontWeight": "800",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Wähle dein Puzzlebild"
+        },
+        {
+          "className": "TImageGallery",
+          "id": "pn_galerie",
+          "name": "Galerie",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onSelectionChanged": "BildGewaehlt"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 4,
+          "width": 44,
+          "height": 18,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#182235",
+            "borderColor": "#2c3a56",
+            "borderWidth": 1,
+            "borderRadius": 10
+          },
+          "folder": "memory Tierbilder für kleine Kinder",
+          "columns": 4,
+          "tileHeight": 5,
+          "gap": 12,
+          "selectionColor": "#ffb300",
+          "showFileNames": false,
+          "selectedImage": ""
+        },
+        {
+          "className": "TButton",
+          "id": "pn_btn_bild_nehmen",
+          "name": "BtnBildNehmen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "BildUebernehmen"
+          },
+          "visible": true,
+          "x": 15,
+          "y": 23,
+          "width": 16,
+          "height": 2.5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "backgroundColor": "#2ecc60",
+            "borderColor": "#1f9e48",
+            "borderWidth": 1,
+            "borderRadius": 10
+          },
+          "text": "Dieses Bild nehmen",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "pn_btn_galerie_zurueck",
+          "name": "BtnGalerieZurueck",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ZurueckZumSplitter"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#3d4a68",
+            "borderColor": "#2c3a56",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "Zurück",
+          "icon": ""
+        }
+      ],
+      "variables": [],
+      "tasks": [],
+      "actions": [],
+      "events": {},
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    }
+  ],
+  "objects": [],
+  "variables": [],
+  "tasks": [],
+  "actions": [],
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "elements": [],
+    "connections": []
+  }
+}

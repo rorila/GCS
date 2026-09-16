@@ -268,6 +268,7 @@ export class InspectorHost implements IInspectorContext {
     public setProject(project: GameProject): void {
         this.project = project;
         if (this.eventHandler) this.eventHandler.setProject(project);
+        if (this.actionHandler) this.actionHandler.setProject(project);
     }
 
     public onObjectUpdate: ((event?: any) => void) | null = null;

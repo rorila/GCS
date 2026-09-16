@@ -330,4 +330,88 @@ export class InputRenderer {
             select.style.fontWeight = (obj.style?.fontWeight === true || obj.style?.fontWeight === 'bold') ? 'bold' : 'normal';
         }
     }
+
+    /**
+     * Rendert TSlider als modern gestyltes <input type="range">.
+     * Feuert onChange mit { value } — nur im Run-Modus bedienbar.
+     */
+    public static renderSlider(ctx: IRenderContext, el: HTMLElement, obj: any, isNew: boolean): void {
+        const accent = obj.accentColor || '#4fc3f7';
+        if (isNew) {
+            el.innerHTML = '';
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex';
+            wrap.style.alignItems = 'center';
+            wrap.style.gap = '8px';
+            wrap.style.width = '100%';
+            wrap.style.height = '100%';
+            wrap.style.boxSizing = 'border-box';
+
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.className = 'gcs-slider';
+            input.style.flex = '1';
+            input.style.minWidth = '0';
+            input.style.height = '100%';
+            input.style.margin = '0';
+            input.style.cursor = 'pointer';
+            input.style.accentColor = accent;
+            input.style.appearance = 'auto';
+
+            const out = document.createElement('span');
+            out.className = 'gcs-slider-value';
+            out.style.minWidth = '2.4em';
+            out.style.textAlign = 'right';
+            out.style.fontVariantNumeric = 'tabular-nums';
+
+            wrap.appendChild(input);
+            wrap.appendChild(out);
+            el.appendChild(wrap);
+
+            if (!ctx.host.runMode) {
+                wrap.style.pointerEvents = 'none';
+                wrap.style.userSelect = 'none';
+            }
+        }
+
+        const input = el.querySelector('input[type="range"]') as HTMLInputElement;
+        const out = el.querySelector('.gcs-slider-value') as HTMLElement;
+        if (!input) return;
+
+        const min = obj.min ?? 0;
+        const max = obj.max ?? 100;
+        input.min = String(min);
+        input.max = String(max);
+        input.step = String(obj.step ?? 1);
+        if (parseFloat(input.value) !== obj.value) input.value = String(obj.value ?? min);
+        input.style.accentColor = accent;
+        if (obj.orientation === 'vertical') {
+            input.style.writingMode = 'vertical-lr';
+            input.style.direction = 'rtl';
+            input.style.width = 'auto';
+        } else {
+            input.style.writingMode = '';
+            input.style.direction = '';
+        }
+
+        if (out) {
+            out.textContent = obj.showValue === false ? '' : String(obj.value ?? min);
+            out.style.display = obj.showValue === false ? 'none' : '';
+            out.style.color = obj.style?.color || '#000000';
+            out.style.fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : ctx.scaleFontSize(13);
+            out.style.fontFamily = obj.style?.fontFamily || 'inherit';
+        }
+
+        if (ctx.host.runMode) {
+            input.oninput = (e) => {
+                e.stopPropagation();
+                const v = parseFloat(input.value);
+                obj.value = v;
+                if (out) out.textContent = String(v);
+                if (ctx.host.onEvent) {
+                    ctx.host.onEvent(obj.id, 'onChange', { value: v });
+                }
+            };
+        }
+    }
 }

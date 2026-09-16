@@ -71,6 +71,16 @@
       "expanded": false,
       "items": [
         {
+          "type": "ImageSplitter",
+          "icon": "IS",
+          "label": "Bildaufteiler"
+        },
+        {
+          "type": "ImageGallery",
+          "icon": "IG",
+          "label": "Bildergalerie"
+        },
+        {
           "type": "Image",
           "icon": "🖼️",
           "label": "Image"
@@ -130,6 +140,11 @@
           "type": "DataList",
           "icon": "📑",
           "label": "Data List"
+        },
+        {
+          "type": "Slider",
+          "icon": "🎚️",
+          "label": "Slider"
         }
       ]
     },

@@ -1,0 +1,3232 @@
+{
+  "meta": {
+    "id": "super-mario-templates",
+    "name": "Super Mario Bros. (Templates)",
+    "version": "1.0.0",
+    "author": "Rolf Rieckmann / Devin",
+    "description": "Wie SuperMario, aber Level-Objekte werden zur Laufzeit aus TSpriteTemplates (SpritePool) gespawnt. Gleiches Layout, gleiche Optik."
+  },
+  "stage": {
+    "grid": {
+      "cols": 40,
+      "rows": 22,
+      "cellSize": 26,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#5c94fc"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Globale Dienste",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TInputController",
+          "name": "Tastatur",
+          "enabled": true,
+          "isHiddenInRun": true,
+          "isService": true,
+          "x": 1,
+          "y": 1,
+          "events": {
+            "onKeyDown_ArrowLeft": "LinksDruck",
+            "onKeyDown_KeyA": "LinksDruck",
+            "onKeyUp_ArrowLeft": "LinksLos",
+            "onKeyUp_KeyA": "LinksLos",
+            "onKeyDown_ArrowRight": "RechtsDruck",
+            "onKeyDown_KeyD": "RechtsDruck",
+            "onKeyUp_ArrowRight": "RechtsLos",
+            "onKeyUp_KeyD": "RechtsLos",
+            "onKeyDown_Space": "SprungOderStart",
+            "onKeyDown_ArrowUp": "SprungOderStart",
+            "onKeyDown_KeyW": "SprungOderStart",
+            "onKeyDown_Enter": "SprungOderStart"
+          },
+          "id": "stage_blueprint_Tastatur"
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "name": "Status",
+          "type": "string",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TStringVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": "ready",
+          "defaultValue": "ready",
+          "value": "ready",
+          "scope": "global",
+          "id": "smt_var_Status"
+        },
+        {
+          "name": "Punkte",
+          "type": "integer",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TIntegerVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "smt_var_Punkte"
+        },
+        {
+          "name": "Muenzen",
+          "type": "integer",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TIntegerVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "smt_var_Muenzen"
+        },
+        {
+          "name": "Leben",
+          "type": "integer",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TIntegerVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": 3,
+          "defaultValue": 3,
+          "value": 3,
+          "scope": "global",
+          "id": "smt_var_Leben"
+        },
+        {
+          "name": "TasteLinks",
+          "type": "integer",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TIntegerVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "smt_var_TasteLinks"
+        },
+        {
+          "name": "TasteRechts",
+          "type": "integer",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TIntegerVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "smt_var_TasteRechts"
+        },
+        {
+          "name": "AmBoden",
+          "type": "integer",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TIntegerVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "smt_var_AmBoden"
+        },
+        {
+          "name": "Unbesiegbar",
+          "type": "integer",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TIntegerVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": 0,
+          "defaultValue": 0,
+          "value": 0,
+          "scope": "global",
+          "id": "smt_var_Unbesiegbar"
+        },
+        {
+          "name": "TmpTpl",
+          "type": "string",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TStringVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "smt_var_TmpTpl"
+        },
+        {
+          "name": "TmpName",
+          "type": "string",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TStringVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "initialValue": "",
+          "defaultValue": "",
+          "value": "",
+          "scope": "global",
+          "id": "smt_var_TmpName"
+        },
+        {
+          "name": "LevelDaten",
+          "type": "list",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "className": "TListVariable",
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "draggable": false,
+          "droppable": false,
+          "collisionEnabled": false,
+          "style": {},
+          "scope": "global",
+          "id": "smt_var_LevelDaten",
+          "items": [
+            {
+              "tpl": "TplBodenG",
+              "n": 0,
+              "x": 0,
+              "y": 19,
+              "w": 30,
+              "h": 1
+            },
+            {
+              "tpl": "TplBodenE",
+              "n": 0,
+              "x": 0,
+              "y": 20,
+              "w": 30,
+              "h": 2
+            },
+            {
+              "tpl": "TplBodenG",
+              "n": 1,
+              "x": 34,
+              "y": 19,
+              "w": 23,
+              "h": 1
+            },
+            {
+              "tpl": "TplBodenE",
+              "n": 1,
+              "x": 34,
+              "y": 20,
+              "w": 23,
+              "h": 2
+            },
+            {
+              "tpl": "TplBodenG",
+              "n": 2,
+              "x": 60,
+              "y": 19,
+              "w": 10,
+              "h": 1
+            },
+            {
+              "tpl": "TplBodenE",
+              "n": 2,
+              "x": 60,
+              "y": 20,
+              "w": 10,
+              "h": 2
+            },
+            {
+              "tpl": "TplBodenG",
+              "n": 3,
+              "x": 73,
+              "y": 19,
+              "w": 25,
+              "h": 1
+            },
+            {
+              "tpl": "TplBodenE",
+              "n": 3,
+              "x": 73,
+              "y": 20,
+              "w": 25,
+              "h": 2
+            },
+            {
+              "tpl": "TplBodenG",
+              "n": 4,
+              "x": 102,
+              "y": 19,
+              "w": 35,
+              "h": 1
+            },
+            {
+              "tpl": "TplBodenE",
+              "n": 4,
+              "x": 102,
+              "y": 20,
+              "w": 35,
+              "h": 2
+            },
+            {
+              "tpl": "TplBodenG",
+              "n": 5,
+              "x": 140,
+              "y": 19,
+              "w": 28,
+              "h": 1
+            },
+            {
+              "tpl": "TplBodenE",
+              "n": 5,
+              "x": 140,
+              "y": 20,
+              "w": 28,
+              "h": 2
+            },
+            {
+              "tpl": "TplBodenG",
+              "n": 6,
+              "x": 172,
+              "y": 19,
+              "w": 48,
+              "h": 1
+            },
+            {
+              "tpl": "TplBodenE",
+              "n": 6,
+              "x": 172,
+              "y": 20,
+              "w": 48,
+              "h": 2
+            },
+            {
+              "tpl": "TplRoehre",
+              "n": 0,
+              "x": 27,
+              "y": 17,
+              "w": 2,
+              "h": 2
+            },
+            {
+              "tpl": "TplRoehre",
+              "n": 1,
+              "x": 40,
+              "y": 16,
+              "w": 2,
+              "h": 3
+            },
+            {
+              "tpl": "TplRoehre",
+              "n": 2,
+              "x": 46,
+              "y": 15,
+              "w": 2,
+              "h": 4
+            },
+            {
+              "tpl": "TplRoehre",
+              "n": 3,
+              "x": 52,
+              "y": 14,
+              "w": 2,
+              "h": 5
+            },
+            {
+              "tpl": "TplRoehre",
+              "n": 4,
+              "x": 88,
+              "y": 16,
+              "w": 2,
+              "h": 3
+            },
+            {
+              "tpl": "TplRoehre",
+              "n": 5,
+              "x": 118,
+              "y": 17,
+              "w": 2,
+              "h": 2
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 0,
+              "x": 78,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 1,
+              "x": 79,
+              "y": 17,
+              "w": 1,
+              "h": 2
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 2,
+              "x": 80,
+              "y": 16,
+              "w": 1,
+              "h": 3
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 3,
+              "x": 81,
+              "y": 15,
+              "w": 1,
+              "h": 4
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 4,
+              "x": 82,
+              "y": 15,
+              "w": 1,
+              "h": 4
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 5,
+              "x": 83,
+              "y": 16,
+              "w": 1,
+              "h": 3
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 6,
+              "x": 84,
+              "y": 17,
+              "w": 1,
+              "h": 2
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 7,
+              "x": 85,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 8,
+              "x": 143,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 9,
+              "x": 144,
+              "y": 17,
+              "w": 1,
+              "h": 2
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 10,
+              "x": 145,
+              "y": 16,
+              "w": 1,
+              "h": 3
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 11,
+              "x": 146,
+              "y": 15,
+              "w": 1,
+              "h": 4
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 12,
+              "x": 149,
+              "y": 15,
+              "w": 1,
+              "h": 4
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 13,
+              "x": 150,
+              "y": 16,
+              "w": 1,
+              "h": 3
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 14,
+              "x": 151,
+              "y": 17,
+              "w": 1,
+              "h": 2
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 15,
+              "x": 152,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 16,
+              "x": 186,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 17,
+              "x": 187,
+              "y": 17,
+              "w": 1,
+              "h": 2
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 18,
+              "x": 188,
+              "y": 16,
+              "w": 1,
+              "h": 3
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 19,
+              "x": 189,
+              "y": 15,
+              "w": 1,
+              "h": 4
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 20,
+              "x": 190,
+              "y": 14,
+              "w": 1,
+              "h": 5
+            },
+            {
+              "tpl": "TplTreppe",
+              "n": 21,
+              "x": 191,
+              "y": 13,
+              "w": 1,
+              "h": 6
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 0,
+              "x": 30,
+              "y": 14,
+              "w": 5,
+              "h": 1
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 1,
+              "x": 57,
+              "y": 13,
+              "w": 4,
+              "h": 1
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 2,
+              "x": 69,
+              "y": 14,
+              "w": 4,
+              "h": 1
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 3,
+              "x": 98,
+              "y": 13,
+              "w": 5,
+              "h": 1
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 4,
+              "x": 105,
+              "y": 12,
+              "w": 12,
+              "h": 1
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 5,
+              "x": 121,
+              "y": 12,
+              "w": 10,
+              "h": 1
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 6,
+              "x": 137,
+              "y": 13,
+              "w": 4,
+              "h": 1
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 7,
+              "x": 168,
+              "y": 13,
+              "w": 4,
+              "h": 1
+            },
+            {
+              "tpl": "TplPlattform",
+              "n": 8,
+              "x": 154,
+              "y": 9,
+              "w": 5,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 0,
+              "x": 18,
+              "y": 14,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 1,
+              "x": 20,
+              "y": 14,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 2,
+              "x": 22,
+              "y": 14,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 3,
+              "x": 126,
+              "y": 9,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 4,
+              "x": 127,
+              "y": 9,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 5,
+              "x": 129,
+              "y": 9,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 6,
+              "x": 131,
+              "y": 9,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 7,
+              "x": 132,
+              "y": 9,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 8,
+              "x": 155,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 9,
+              "x": 157,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 10,
+              "x": 158,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplZiegel",
+              "n": 11,
+              "x": 159,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 0,
+              "x": 19,
+              "y": 14,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 1,
+              "x": 21,
+              "y": 14,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 2,
+              "x": 20,
+              "y": 10,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 3,
+              "x": 92,
+              "y": 13,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 4,
+              "x": 128,
+              "y": 9,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 5,
+              "x": 130,
+              "y": 9,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 6,
+              "x": 156,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 7,
+              "x": 176,
+              "y": 13,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFrage",
+              "n": 8,
+              "x": 178,
+              "y": 13,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 0,
+              "x": 8,
+              "y": 16,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 1,
+              "x": 9,
+              "y": 15,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 2,
+              "x": 10,
+              "y": 14,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 3,
+              "x": 11,
+              "y": 15,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 4,
+              "x": 12,
+              "y": 16,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 5,
+              "x": 16,
+              "y": 13,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 6,
+              "x": 24,
+              "y": 14,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 7,
+              "x": 40,
+              "y": 13,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 8,
+              "x": 46,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 9,
+              "x": 52,
+              "y": 11,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 10,
+              "x": 32,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 11,
+              "x": 58,
+              "y": 11,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 12,
+              "x": 71,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 13,
+              "x": 100,
+              "y": 11,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 14,
+              "x": 138,
+              "y": 11,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 15,
+              "x": 169,
+              "y": 11,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 16,
+              "x": 106,
+              "y": 10,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 17,
+              "x": 109,
+              "y": 10,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 18,
+              "x": 112,
+              "y": 10,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 19,
+              "x": 115,
+              "y": 10,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 20,
+              "x": 118,
+              "y": 10,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 21,
+              "x": 155,
+              "y": 7,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 22,
+              "x": 157,
+              "y": 7,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 23,
+              "x": 188,
+              "y": 12,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplMuenze",
+              "n": 24,
+              "x": 193,
+              "y": 11,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 0,
+              "x": 25,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 1,
+              "x": 44,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 2,
+              "x": 55,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 3,
+              "x": 76,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 4,
+              "x": 93,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 5,
+              "x": 112,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 6,
+              "x": 133,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 7,
+              "x": 150,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 8,
+              "x": 163,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 9,
+              "x": 181,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplGoomba",
+              "n": 10,
+              "x": 184,
+              "y": 18,
+              "w": 1,
+              "h": 1
+            },
+            {
+              "tpl": "TplFlaggePfahl",
+              "n": 0,
+              "x": 196,
+              "y": 9,
+              "w": 0.5,
+              "h": 10
+            },
+            {
+              "tpl": "TplFlaggeTuch",
+              "n": 0,
+              "x": 194.5,
+              "y": 10,
+              "w": 1.5,
+              "h": 1
+            },
+            {
+              "tpl": "TplFlaggeKugel",
+              "n": 0,
+              "x": 195.8,
+              "y": 8.4,
+              "w": 0.8,
+              "h": 0.8
+            },
+            {
+              "tpl": "TplSchloss",
+              "n": 0,
+              "x": 204,
+              "y": 14,
+              "w": 7,
+              "h": 5
+            },
+            {
+              "tpl": "TplSchlossTuer",
+              "n": 0,
+              "x": 207,
+              "y": 16,
+              "w": 2,
+              "h": 3
+            },
+            {
+              "tpl": "TplWolke",
+              "n": 0,
+              "x": 6,
+              "y": 3,
+              "w": 4,
+              "h": 1.5
+            },
+            {
+              "tpl": "TplWolke",
+              "n": 1,
+              "x": 34,
+              "y": 5,
+              "w": 4,
+              "h": 1.5
+            },
+            {
+              "tpl": "TplWolke",
+              "n": 2,
+              "x": 66,
+              "y": 4,
+              "w": 4,
+              "h": 1.5
+            },
+            {
+              "tpl": "TplWolke",
+              "n": 3,
+              "x": 96,
+              "y": 3,
+              "w": 4,
+              "h": 1.5
+            },
+            {
+              "tpl": "TplWolke",
+              "n": 4,
+              "x": 126,
+              "y": 5,
+              "w": 4,
+              "h": 1.5
+            },
+            {
+              "tpl": "TplWolke",
+              "n": 5,
+              "x": 156,
+              "y": 3,
+              "w": 4,
+              "h": 1.5
+            },
+            {
+              "tpl": "TplWolke",
+              "n": 6,
+              "x": 186,
+              "y": 5,
+              "w": 4,
+              "h": 1.5
+            },
+            {
+              "tpl": "TplHuegel",
+              "n": 0,
+              "x": 4,
+              "y": 16,
+              "w": 7,
+              "h": 3
+            },
+            {
+              "tpl": "TplHuegel",
+              "n": 1,
+              "x": 64,
+              "y": 17,
+              "w": 5,
+              "h": 2
+            },
+            {
+              "tpl": "TplHuegel",
+              "n": 2,
+              "x": 144,
+              "y": 16,
+              "w": 8,
+              "h": 3
+            },
+            {
+              "tpl": "TplHuegel",
+              "n": 3,
+              "x": 199,
+              "y": 17,
+              "w": 6,
+              "h": 2
+            },
+            {
+              "tpl": "TplBusch",
+              "n": 0,
+              "x": 14,
+              "y": 18,
+              "w": 3,
+              "h": 1
+            },
+            {
+              "tpl": "TplBusch",
+              "n": 1,
+              "x": 84,
+              "y": 18,
+              "w": 4,
+              "h": 1
+            },
+            {
+              "tpl": "TplBusch",
+              "n": 2,
+              "x": 160,
+              "y": 18,
+              "w": 3,
+              "h": 1
+            }
+          ]
+        }
+      ],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 40,
+        "rows": 22,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#5c94fc"
+      }
+    },
+    {
+      "id": "stage_main",
+      "name": "Super Mario Bros. (Templates)",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TLabel",
+          "name": "LblPunkte",
+          "x": 1,
+          "y": 0.5,
+          "width": 10,
+          "height": 1,
+          "text": "MARIO  ${Punkte}",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblPunkte"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblMuenzen",
+          "x": 12,
+          "y": 0.5,
+          "width": 9,
+          "height": 1,
+          "text": "MUENZEN x${Muenzen}",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblMuenzen"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblLeben",
+          "x": 22,
+          "y": 0.5,
+          "width": 8,
+          "height": 1,
+          "text": "LEBEN x${Leben}",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblLeben"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblWelt",
+          "x": 31,
+          "y": 0.5,
+          "width": 7,
+          "height": 1,
+          "text": "WELT 1-1",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "id": "stage_main_LblWelt"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblInfo",
+          "x": 8,
+          "y": 5,
+          "width": 24,
+          "height": 8,
+          "text": "SUPER MARIO BROS.\n\nPfeile / WASD = laufen\nLEER = springen\n\nLEER/ENTER = START",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 18,
+            "fontWeight": "bold",
+            "backgroundColor": "rgba(0,0,0,0.45)",
+            "borderWidth": 0,
+            "borderRadius": 10
+          },
+          "id": "stage_main_LblInfo"
+        },
+        {
+          "className": "TLabel",
+          "name": "LblEnde",
+          "visible": false,
+          "x": 8,
+          "y": 7,
+          "width": 24,
+          "height": 6,
+          "text": "",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 22,
+            "fontWeight": "bold",
+            "backgroundColor": "rgba(0,0,0,0.55)",
+            "borderWidth": 0,
+            "borderRadius": 10
+          },
+          "id": "stage_main_LblEnde"
+        },
+        {
+          "className": "TGroupPanel",
+          "name": "Welt",
+          "x": 0,
+          "y": 0,
+          "width": 220,
+          "height": 22,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderWidth": 0
+          },
+          "events": {
+            "onStart": "SpielInit"
+          },
+          "children": [
+            {
+              "className": "TSprite",
+              "name": "Mario",
+              "x": 3,
+              "y": 17,
+              "width": 1,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#e23636",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "default",
+              "pushOutOnCollision": false,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollisionBottom": "Landen",
+                "onBoundaryHit": "MarioAmRand"
+              },
+              "id": "smt_Mario",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSIxMjgiIHZpZXdCb3g9IjAgMCAxNiAzMiIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cmVjdCB4PSI0IiB5PSIxIiB3aWR0aD0iOCIgaGVpZ2h0PSIzIiBmaWxsPSIjZTQyZDI1Ii8+PHJlY3QgeD0iMiIgeT0iNCIgd2lkdGg9IjEzIiBoZWlnaHQ9IjIiIGZpbGw9IiNlNDJkMjUiLz48cmVjdCB4PSI0IiB5PSI2IiB3aWR0aD0iOCIgaGVpZ2h0PSI3IiBmaWxsPSIjZmZjMThhIi8+PHJlY3QgeD0iMyIgeT0iNiIgd2lkdGg9IjMiIGhlaWdodD0iNSIgZmlsbD0iIzc0M2MyMiIvPjxyZWN0IHg9IjEwIiB5PSI2IiB3aWR0aD0iMiIgaGVpZ2h0PSIzIiBmaWxsPSIjMjUyMDJhIi8+PHJlY3QgeD0iMTAiIHk9IjkiIHdpZHRoPSI1IiBoZWlnaHQ9IjIiIGZpbGw9IiNmZmMxOGEiLz48cmVjdCB4PSI3IiB5PSIxMSIgd2lkdGg9IjciIGhlaWdodD0iMiIgZmlsbD0iIzc0M2MyMiIvPjxyZWN0IHg9IjMiIHk9IjE0IiB3aWR0aD0iMTAiIGhlaWdodD0iOSIgZmlsbD0iI2U0MmQyNSIvPjxyZWN0IHg9IjUiIHk9IjE0IiB3aWR0aD0iMiIgaGVpZ2h0PSI5IiBmaWxsPSIjMjI2OWJhIi8+PHJlY3QgeD0iMTAiIHk9IjE0IiB3aWR0aD0iMiIgaGVpZ2h0PSI5IiBmaWxsPSIjMjI2OWJhIi8+PHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIzIiBoZWlnaHQ9IjYiIGZpbGw9IiNmZmMxOGEiLz48cmVjdCB4PSIxMyIgeT0iMTciIHdpZHRoPSIzIiBoZWlnaHQ9IjYiIGZpbGw9IiNmZmMxOGEiLz48cmVjdCB4PSI0IiB5PSIyMSIgd2lkdGg9IjkiIGhlaWdodD0iNSIgZmlsbD0iIzIyNjliYSIvPjxyZWN0IHg9IjQiIHk9IjI2IiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMjI2OWJhIi8+PHJlY3QgeD0iMTAiIHk9IjI2IiB3aWR0aD0iMyIgaGVpZ2h0PSI0IiBmaWxsPSIjMjI2OWJhIi8+PHJlY3QgeD0iMiIgeT0iMjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjMiIGZpbGw9IiM3NDNjMjIiLz48cmVjdCB4PSIxMCIgeT0iMjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjMiIGZpbGw9IiM3NDNjMjIiLz48cmVjdCB4PSI2IiB5PSIyMCIgd2lkdGg9IjEiIGhlaWdodD0iMiIgZmlsbD0iI2ZmZDU0YiIvPjxyZWN0IHg9IjEwIiB5PSIyMCIgd2lkdGg9IjEiIGhlaWdodD0iMiIgZmlsbD0iI2ZmZDU0YiIvPjwvc3ZnPg==",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplBodenG",
+              "x": 0,
+              "y": 24,
+              "width": 30,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#3faa2f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "poolSize": 7,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplBodenG",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIwIiBoZWlnaHQ9IjY0IiB2aWV3Qm94PSIwIDAgNDgwIDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxkZWZzPjxwYXR0ZXJuIGlkPSJiIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iIzY1MzYxZiIvPjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIxNCIgaGVpZ2h0PSI2IiBmaWxsPSIjYzg3MTNjIi8+PHJlY3QgeD0iMSIgeT0iOSIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iI2M4NzEzYyIvPjxyZWN0IHg9IjkiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiNjODcxM2MiLz48cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMTQiIGhlaWdodD0iMSIgZmlsbD0iI2YzYWE2OSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNiKSIvPjwvc3ZnPg==",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplBodenE",
+              "x": 0,
+              "y": 24,
+              "width": 30,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#8b5a2b",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "poolSize": 7,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplBodenE",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIwIiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDQ4MCAzMiIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48ZGVmcz48cGF0dGVybiBpZD0iYiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9IiM2NTM2MWYiLz48cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMTQiIGhlaWdodD0iNiIgZmlsbD0iI2M4NzEzYyIvPjxyZWN0IHg9IjEiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiNjODcxM2MiLz48cmVjdCB4PSI5IiB5PSI5IiB3aWR0aD0iNiIgaGVpZ2h0PSI2IiBmaWxsPSIjYzg3MTNjIi8+PHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjEiIGZpbGw9IiNmM2FhNjkiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYikiLz48L3N2Zz4=",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplRoehre",
+              "x": 0,
+              "y": 24,
+              "width": 2,
+              "height": 2,
+              "shape": "rect",
+              "spriteColor": "#1e9e1e",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "poolSize": 6,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplRoehre",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMzIgMzIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+PHJlY3QgeD0iMiIgeT0iMCIgd2lkdGg9IjI4IiBoZWlnaHQ9IjMyIiBmaWxsPSIjMTI0YjE5Ii8+PHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjMyIiBmaWxsPSIjMjk5MzI4Ii8+PHJlY3QgeD0iNSIgeT0iMCIgd2lkdGg9IjUiIGhlaWdodD0iMzIiIGZpbGw9IiM5ZGRhNDMiLz48cmVjdCB4PSIyNCIgeT0iMCIgd2lkdGg9IjMiIGhlaWdodD0iMzIiIGZpbGw9IiMxZDY1MWMiLz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMzIiIGhlaWdodD0iOSIgZmlsbD0iIzEyNGIxOSIvPjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIzMCIgaGVpZ2h0PSI2IiBmaWxsPSIjNDdiOTMzIi8+PHJlY3QgeD0iMyIgeT0iMSIgd2lkdGg9IjUiIGhlaWdodD0iNiIgZmlsbD0iI2MzZWU2OCIvPjwvc3ZnPg==",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplTreppe",
+              "x": 0,
+              "y": 24,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "poolSize": 22,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplTreppe",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDE2IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxkZWZzPjxwYXR0ZXJuIGlkPSJiIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iIzY1MzYxZiIvPjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIxNCIgaGVpZ2h0PSI2IiBmaWxsPSIjYzg3MTNjIi8+PHJlY3QgeD0iMSIgeT0iOSIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iI2M4NzEzYyIvPjxyZWN0IHg9IjkiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiNjODcxM2MiLz48cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMTQiIGhlaWdodD0iMSIgZmlsbD0iI2YzYWE2OSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNiKSIvPjwvc3ZnPg==",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplPlattform",
+              "x": 0,
+              "y": 24,
+              "width": 5,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#c98a3d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "poolSize": 9,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplPlattform",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMjAiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA4MCAxNiIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48ZGVmcz48cGF0dGVybiBpZD0iYiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9IiM2NTM2MWYiLz48cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMTQiIGhlaWdodD0iNiIgZmlsbD0iI2M4NzEzYyIvPjxyZWN0IHg9IjEiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiNjODcxM2MiLz48cmVjdCB4PSI5IiB5PSI5IiB3aWR0aD0iNiIgaGVpZ2h0PSI2IiBmaWxsPSIjYzg3MTNjIi8+PHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjEiIGZpbGw9IiNmM2FhNjkiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYikiLz48L3N2Zz4=",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplZiegel",
+              "x": 0,
+              "y": 24,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#b5651d",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "poolSize": 12,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplZiegel",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDE2IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxkZWZzPjxwYXR0ZXJuIGlkPSJiIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iIzY1MzYxZiIvPjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIxNCIgaGVpZ2h0PSI2IiBmaWxsPSIjYzg3MTNjIi8+PHJlY3QgeD0iMSIgeT0iOSIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iI2M4NzEzYyIvPjxyZWN0IHg9IjkiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiNjODcxM2MiLz48cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMTQiIGhlaWdodD0iMSIgZmlsbD0iI2YzYWE2OSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNiKSIvPjwvc3ZnPg==",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplFrage",
+              "x": 0,
+              "y": 24,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#f5b301",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "poolSize": 9,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "FrageBlockGetroffen"
+              },
+              "id": "smt_TplFrage",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDE2IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iIzhlNGQwYyIvPjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgZmlsbD0iI2ZmYjUyZSIvPjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxIiBmaWxsPSIjZmZlNTlhIi8+PHBhdGggZD0iTTUgNVY0aDZ2NEg5djNIN1Y4aDJWNkg3djFINXoiIGZpbGw9IiNmZmYwYjYiLz48cmVjdCB4PSI3IiB5PSIxMiIgd2lkdGg9IjIiIGhlaWdodD0iMiIgZmlsbD0iI2ZmZjBiNiIvPjwvc3ZnPg==",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplMuenze",
+              "x": 0,
+              "y": 24,
+              "width": 1,
+              "height": 1,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": false,
+              "poolSize": 25,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "MuenzeGenommen"
+              },
+              "id": "smt_TplMuenze",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDE2IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGQ9Ik02IDFoNGwzIDN2OGwtMyAzSDZsLTMtM1Y0eiIgZmlsbD0iI2E4NjEwNCIvPjxwYXRoIGQ9Ik02IDFoM2wzIDN2N2wtMyAzSDZsLTMtM1Y0eiIgZmlsbD0iI2ZmY2YzMiIvPjxyZWN0IHg9IjYiIHk9IjMiIHdpZHRoPSIyIiBoZWlnaHQ9IjkiIGZpbGw9IiNmZmYxYTAiLz48cmVjdCB4PSI5IiB5PSI0IiB3aWR0aD0iMSIgaGVpZ2h0PSI3IiBmaWxsPSIjZDI4YTBiIi8+PC9zdmc+",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplGoomba",
+              "x": 0,
+              "y": 24,
+              "width": 1,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#7a3b12",
+              "velocityX": -0.035,
+              "velocityY": 0,
+              "gravity": 1.5,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "gegner",
+              "pushOutOnCollision": true,
+              "poolSize": 11,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "GoombaBeruehrt",
+                "onCollisionLeft": "GoombaWendeLinks",
+                "onCollisionRight": "GoombaWendeRechts"
+              },
+              "id": "smt_TplGoomba",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDE2IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGQ9Ik01IDFoNnYyaDJ2M2gydjZIMVY2aDJWM2gyeiIgZmlsbD0iI2FkNTgyYiIvPjxyZWN0IHg9IjMiIHk9IjYiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmY0ZDMiLz48cmVjdCB4PSI5IiB5PSI2IiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmNGQzIi8+PHJlY3QgeD0iNSIgeT0iNyIgd2lkdGg9IjIiIGhlaWdodD0iMyIgZmlsbD0iIzI0MWExOCIvPjxyZWN0IHg9IjkiIHk9IjciIHdpZHRoPSIyIiBoZWlnaHQ9IjMiIGZpbGw9IiMyNDFhMTgiLz48cmVjdCB4PSI1IiB5PSIxMSIgd2lkdGg9IjYiIGhlaWdodD0iMyIgZmlsbD0iI2YxYzE4ZCIvPjxyZWN0IHg9IjEiIHk9IjEzIiB3aWR0aD0iNiIgaGVpZ2h0PSIzIiBmaWxsPSIjNDgyYjIwIi8+PHJlY3QgeD0iOSIgeT0iMTMiIHdpZHRoPSI2IiBoZWlnaHQ9IjMiIGZpbGw9IiM0ODJiMjAiLz48L3N2Zz4=",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplFlaggePfahl",
+              "x": 0,
+              "y": 24,
+              "width": 0.5,
+              "height": 10,
+              "shape": "rect",
+              "spriteColor": "#2d5016",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": true,
+              "collisionGroup": "level",
+              "pushOutOnCollision": true,
+              "poolSize": 1,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {
+                "onCollision": "ZielErreicht"
+              },
+              "id": "smt_TplFlaggePfahl",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSI2NDAiIHZpZXdCb3g9IjAgMCA4IDE2MCIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cmVjdCB4PSIyIiB5PSIwIiB3aWR0aD0iNCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNmNGVjZDUiLz48cmVjdCB4PSI2IiB5PSIwIiB3aWR0aD0iMiIgaGVpZ2h0PSIxNjAiIGZpbGw9IiM5YWJjOGMiLz48L3N2Zz4=",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplFlaggeTuch",
+              "x": 0,
+              "y": 24,
+              "width": 1.5,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#d21f26",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "poolSize": 1,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplFlaggeTuch",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGQ9Ik0yNCAwVjE2SDB6IiBmaWxsPSIjZjVmZmYwIi8+PGNpcmNsZSBjeD0iMTciIGN5PSI5IiByPSIzIiBmaWxsPSIjMjk5MDNlIi8+PC9zdmc+",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplFlaggeKugel",
+              "x": 0,
+              "y": 24,
+              "width": 0.8,
+              "height": 0.8,
+              "shape": "circle",
+              "spriteColor": "#ffd700",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "poolSize": 1,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplFlaggeKugel",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDE2IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxjaXJjbGUgY3g9IjgiIGN5PSI4IiByPSI3IiBmaWxsPSIjNDJiMzQ0Ii8+PGNpcmNsZSBjeD0iNiIgY3k9IjUiIHI9IjIiIGZpbGw9IiNhNmVhNmEiLz48L3N2Zz4=",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplSchloss",
+              "x": 0,
+              "y": 24,
+              "width": 7,
+              "height": 5,
+              "shape": "rect",
+              "spriteColor": "#7a5230",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "poolSize": 1,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplSchloss",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MTYiIGhlaWdodD0iMzIwIiB2aWV3Qm94PSIwIDAgMTA0IDgwIiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxkZWZzPjxwYXR0ZXJuIGlkPSJiIiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iIzY1MzYxZiIvPjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIxNCIgaGVpZ2h0PSI2IiBmaWxsPSIjYzg3MTNjIi8+PHJlY3QgeD0iMSIgeT0iOSIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iI2M4NzEzYyIvPjxyZWN0IHg9IjkiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiNjODcxM2MiLz48cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMTQiIGhlaWdodD0iMSIgZmlsbD0iI2YzYWE2OSIvPjwvcGF0dGVybj48L2RlZnM+PHBhdGggZD0iTTAgODBWMjRoOFYxMmg4djEyaDhWOGg4VjBoOHY4aDhWMGg4djhoOFYwaDh2OGg4djE2aDhWMTJoOHYxMmg4djU2eiIgZmlsbD0idXJsKCNiKSIvPjxyZWN0IHg9IjI0IiB5PSIzNSIgd2lkdGg9IjkiIGhlaWdodD0iMTUiIGZpbGw9IiMyODFmMjUiLz48cmVjdCB4PSI3MCIgeT0iMzUiIHdpZHRoPSI5IiBoZWlnaHQ9IjE1IiBmaWxsPSIjMjgxZjI1Ii8+PC9zdmc+",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplSchlossTuer",
+              "x": 0,
+              "y": 24,
+              "width": 2,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#3a2410",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "poolSize": 1,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplSchlossTuer",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMzIgNDgiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+PHBhdGggZD0iTTAgNDhWMTJRMTYtMTAgMzIgMTJWNDh6IiBmaWxsPSIjMjgxZjI1Ii8+PC9zdmc+",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplWolke",
+              "x": 0,
+              "y": 24,
+              "width": 4,
+              "height": 1.5,
+              "shape": "circle",
+              "spriteColor": "#ffffff",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "poolSize": 7,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplWolke",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAiIGhlaWdodD0iODgiIHZpZXdCb3g9IjAgMCA0MCAyMiIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cGF0aCBkPSJNMCAxMGg0VjZoNlYyaDEydjRoOHY0aDh2MTBIMHoiIGZpbGw9IiNlMWY2ZmYiLz48cGF0aCBkPSJNMiAxMGg1VjdoNlY0aDd2NGg4djRoN3Y1SDJ6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplHuegel",
+              "x": 0,
+              "y": 24,
+              "width": 7,
+              "height": 3,
+              "shape": "rect",
+              "spriteColor": "#2e7d32",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "poolSize": 4,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplHuegel",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA0OCAyNCIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cGF0aCBkPSJNMCAyNEwxMiA4bDgtOCAxMCA4IDE4IDE2eiIgZmlsbD0iIzE2ODU0NiIvPjxwYXRoIGQ9Ik0zIDI0TDIwIDNsMTcgMjF6IiBmaWxsPSIjNGZiNTQ1Ii8+PHJlY3QgeD0iMTciIHk9IjEyIiB3aWR0aD0iMiIgaGVpZ2h0PSIzIiBmaWxsPSIjMTg2ZDNhIi8+PHJlY3QgeD0iMjYiIHk9IjE4IiB3aWR0aD0iMiIgaGVpZ2h0PSIzIiBmaWxsPSIjMTg2ZDNhIi8+PC9zdmc+",
+              "objectFit": "fill"
+            },
+            {
+              "className": "TSpriteTemplate",
+              "name": "TplBusch",
+              "x": 0,
+              "y": 24,
+              "width": 3,
+              "height": 1,
+              "shape": "rect",
+              "spriteColor": "#34a34f",
+              "velocityX": 0,
+              "velocityY": 0,
+              "gravity": 0,
+              "lerpSpeed": 0.1,
+              "collisionEnabled": false,
+              "collisionGroup": "level",
+              "pushOutOnCollision": false,
+              "poolSize": 3,
+              "autoRecycle": false,
+              "lifetime": 0,
+              "appearanceMode": "simple",
+              "visible": true,
+              "draggable": false,
+              "droppable": false,
+              "scope": "stage",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0
+              },
+              "events": {},
+              "id": "smt_TplBusch",
+              "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA0MCAxNiIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cGF0aCBkPSJNMCAxNlY4aDRWNGg2VjFoOHY0aDZWMmg4djVoNnY5eiIgZmlsbD0iIzE3NzgzYyIvPjxwYXRoIGQ9Ik0yIDE0VjloNFY2aDZWM2g0djRoMTBWNGg0djVoNnY1eiIgZmlsbD0iIzU3YzM0YSIvPjwvc3ZnPg==",
+              "objectFit": "fill"
+            }
+          ],
+          "id": "stage_main_Welt"
+        },
+        {
+          "className": "TGameLoop",
+          "name": "Loop",
+          "x": 1,
+          "y": 20,
+          "width": 4,
+          "height": 2,
+          "targetFPS": 60,
+          "boundaryMode": "event-only",
+          "isService": true,
+          "isHiddenInRun": true,
+          "style": {},
+          "id": "stage_main_Loop"
+        },
+        {
+          "className": "TTimer",
+          "name": "FrameTakt",
+          "x": 6,
+          "y": 20,
+          "width": 4,
+          "height": 2,
+          "interval": 16,
+          "enabled": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "style": {},
+          "events": {
+            "onTimer": "Frame"
+          },
+          "id": "stage_main_FrameTakt"
+        },
+        {
+          "className": "TTimer",
+          "name": "UnsichtbarTakt",
+          "x": 11,
+          "y": 20,
+          "width": 4,
+          "height": 2,
+          "interval": 2000,
+          "enabled": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "style": {},
+          "events": {
+            "onTimer": "UnbesiegbarAus"
+          },
+          "id": "stage_main_UnsichtbarTakt"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "SpielInit",
+          "description": "Beim Laden (Welt.onStart): Level bauen + Startbild zeigen. Laueft vor dem ersten Tastendruck.",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "LevelBauen"
+            },
+            {
+              "type": "action",
+              "name": "Act_MarioReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_WeltReset"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_spielinit"
+        },
+        {
+          "name": "SpielStarten",
+          "description": "Neue Runde: Werte, Mario-Physik an, Kamera und Frame-Takt.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_StartWerte"
+            },
+            {
+              "type": "action",
+              "name": "Act_MarioReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_WeltReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_GravAn"
+            },
+            {
+              "type": "action",
+              "name": "Act_InfoAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_FrameAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_spielstarten"
+        },
+        {
+          "name": "LevelBauen",
+          "description": "Baut das Level: je LevelDaten-Eintrag eine Pool-Instanz spawnen.",
+          "actionSequence": [
+            {
+              "type": "foreach",
+              "name": "ForEach: Eintrag in LevelDaten",
+              "sourceArray": "LevelDaten",
+              "itemVar": "Eintrag",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_TmpTpl"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_TmpName"
+                },
+                {
+                  "type": "spawn_object",
+                  "name": "Act_SpawnEintrag",
+                  "templateId": "${TmpTpl}",
+                  "x": "${Eintrag.x}",
+                  "y": "${Eintrag.y}"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_SpawnSize"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_levelbauen"
+        },
+        {
+          "name": "LinksDruck",
+          "description": "Pfeil links / A gedrueckt.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_LinksAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_linksdruck"
+        },
+        {
+          "name": "LinksLos",
+          "description": "Pfeil links / A losgelassen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_LinksAus"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_linkslos"
+        },
+        {
+          "name": "RechtsDruck",
+          "description": "Pfeil rechts / D gedrueckt.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_RechtsAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_rechtsdruck"
+        },
+        {
+          "name": "RechtsLos",
+          "description": "Pfeil rechts / D losgelassen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_RechtsAus"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_rechtslos"
+        },
+        {
+          "name": "SprungOderStart",
+          "description": "Leertaste: springen, sonst Start/Neustart.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: AmBoden == 1",
+                  "condition": {
+                    "variable": "AmBoden",
+                    "operator": "==",
+                    "value": 1
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_Sprung"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == ready",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "ready"
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "SpielStarten"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "action",
+                      "name": "Act_NeuStarten"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_sprungoderstart"
+        },
+        {
+          "name": "Frame",
+          "description": "Pro Frame: Eingabe anwenden, Falldeckel, Boden-Falloff, Kamera.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_VX"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Mario.velocityY > 0.45",
+                  "condition": {
+                    "variable": "Mario.velocityY",
+                    "operator": ">",
+                    "value": 0.45
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_FallDeckel"
+                    }
+                  ],
+                  "else": []
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Mario.velocityY > 0.01",
+                  "condition": {
+                    "variable": "Mario.velocityY",
+                    "operator": ">",
+                    "value": 0.01
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_BodenWeg"
+                    }
+                  ],
+                  "else": []
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Kamera"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_frame"
+        },
+        {
+          "name": "Landen",
+          "description": "Mario landet auf einer Flaeche (onCollisionBottom).",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_BodenAn"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_landen"
+        },
+        {
+          "name": "MarioAmRand",
+          "description": "Mario verlaesst die Welt nach unten (Grube) -> Tod.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == bottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Gestorben"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_marioamrand"
+        },
+        {
+          "name": "MuenzeGenommen",
+          "description": "Muenze eingesammelt (nur durch Mario, einmalig) -> Pool-Release.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: other == Mario",
+              "condition": {
+                "variable": "other",
+                "operator": "==",
+                "value": "Mario"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: self.visible == true",
+                  "condition": {
+                    "variable": "self.visible",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "destroy_object",
+                      "name": "Act_MuenzeRelease",
+                      "target": "self"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_MuenzenPlus"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Punkte50"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_muenzegenommen"
+        },
+        {
+          "name": "FrageBlockGetroffen",
+          "description": "?-Block von unten angestossen -> Muenze, einmalig.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: hitSide == bottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: other == Mario",
+                  "condition": {
+                    "variable": "other",
+                    "operator": "==",
+                    "value": "Mario"
+                  },
+                  "then": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: self.benutzt != 1",
+                      "condition": {
+                        "variable": "self.benutzt",
+                        "operator": "!=",
+                        "value": 1
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "Act_BlockVerbraucht"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_MuenzenPlus"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_Punkte200"
+                        }
+                      ],
+                      "else": []
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_frageblockgetroffen"
+        },
+        {
+          "name": "GoombaBeruehrt",
+          "description": "Goomba-Kontakt: von oben = Stomp, seitlich = Schaden.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: other == Mario",
+              "condition": {
+                "variable": "other",
+                "operator": "==",
+                "value": "Mario"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: hitSide == top",
+                  "condition": {
+                    "variable": "hitSide",
+                    "operator": "==",
+                    "value": "top"
+                  },
+                  "then": [
+                    {
+                      "type": "destroy_object",
+                      "name": "Act_GegnerRelease",
+                      "target": "self"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_SprungBounce"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Punkte100"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "condition",
+                      "name": "Branch: Unbesiegbar == 0",
+                      "condition": {
+                        "variable": "Unbesiegbar",
+                        "operator": "==",
+                        "value": 0
+                      },
+                      "then": [
+                        {
+                          "type": "task",
+                          "name": "Gestorben"
+                        }
+                      ],
+                      "else": []
+                    }
+                  ]
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_goombaberuehrt"
+        },
+        {
+          "name": "GoombaWendeLinks",
+          "description": "Goomba stoesst links an -> nach rechts laufen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WendeRechts"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_goombawendelinks"
+        },
+        {
+          "name": "GoombaWendeRechts",
+          "description": "Goomba stoesst rechts an -> nach links laufen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WendeLinks"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_goombawenderechts"
+        },
+        {
+          "name": "Gestorben",
+          "description": "Leben abziehen; Respawn oder Game Over.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Status == playing",
+              "condition": {
+                "variable": "Status",
+                "operator": "==",
+                "value": "playing"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_LebenMinus"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Leben > 0",
+                  "condition": {
+                    "variable": "Leben",
+                    "operator": ">",
+                    "value": 0
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_MarioReset"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_WeltReset"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_UnbesiegbarAn"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "action",
+                      "name": "Act_StatusGameOver"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_EndeVerlieren"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_FrameAus"
+                    }
+                  ]
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_gestorben"
+        },
+        {
+          "name": "ZielErreicht",
+          "description": "Flaggenpfahl beruehrt -> Level gewonnen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: other == Mario",
+              "condition": {
+                "variable": "other",
+                "operator": "==",
+                "value": "Mario"
+              },
+              "then": [
+                {
+                  "type": "condition",
+                  "name": "Branch: Status == playing",
+                  "condition": {
+                    "variable": "Status",
+                    "operator": "==",
+                    "value": "playing"
+                  },
+                  "then": [
+                    {
+                      "type": "action",
+                      "name": "Act_StatusGewonnen"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Punkte1000"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_EndeGewinnen"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_FrameAus"
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_zielerreicht"
+        },
+        {
+          "name": "UnbesiegbarAus",
+          "description": "Respawn-Schutzzeit beenden.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_UnbesiegbarAus"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "smt_unbesiegbaraus"
+        }
+      ],
+      "actions": [
+        {
+          "name": "Act_StartWerte",
+          "type": "property",
+          "changes": {
+            "Status": "playing",
+            "Punkte": 0,
+            "Muenzen": 0,
+            "Leben": 3,
+            "TasteLinks": 0,
+            "TasteRechts": 0,
+            "AmBoden": 0,
+            "Unbesiegbar": 0
+          }
+        },
+        {
+          "name": "Act_MarioReset",
+          "type": "property",
+          "changes": {
+            "Mario.x": 3,
+            "Mario.y": 17,
+            "Mario.velocityX": 0,
+            "Mario.velocityY": 0,
+            "Mario.visible": 1
+          }
+        },
+        {
+          "name": "Act_GravAn",
+          "type": "property",
+          "changes": {
+            "Mario.gravity": 1.5
+          }
+        },
+        {
+          "name": "Act_WeltReset",
+          "type": "property",
+          "changes": {
+            "Welt.x": 0
+          }
+        },
+        {
+          "name": "Act_InfoAus",
+          "type": "property",
+          "changes": {
+            "LblInfo.visible": 0,
+            "LblEnde.visible": 0
+          }
+        },
+        {
+          "name": "Act_FrameAn",
+          "type": "property",
+          "changes": {
+            "FrameTakt.enabled": 1
+          }
+        },
+        {
+          "name": "Act_FrameAus",
+          "type": "property",
+          "changes": {
+            "FrameTakt.enabled": 0
+          }
+        },
+        {
+          "name": "Act_LinksAn",
+          "type": "property",
+          "changes": {
+            "TasteLinks": 1,
+            "TasteRechts": 0
+          }
+        },
+        {
+          "name": "Act_LinksAus",
+          "type": "property",
+          "changes": {
+            "TasteLinks": 0
+          }
+        },
+        {
+          "name": "Act_RechtsAn",
+          "type": "property",
+          "changes": {
+            "TasteRechts": 1,
+            "TasteLinks": 0
+          }
+        },
+        {
+          "name": "Act_RechtsAus",
+          "type": "property",
+          "changes": {
+            "TasteRechts": 0
+          }
+        },
+        {
+          "name": "Act_Sprung",
+          "type": "property",
+          "changes": {
+            "Mario.velocityY": -0.55,
+            "AmBoden": 0
+          }
+        },
+        {
+          "name": "Act_BodenAn",
+          "type": "property",
+          "changes": {
+            "AmBoden": 1
+          }
+        },
+        {
+          "name": "Act_BodenWeg",
+          "type": "property",
+          "changes": {
+            "AmBoden": 0
+          }
+        },
+        {
+          "name": "Act_VX",
+          "type": "calculate",
+          "formula": "TasteRechts == 1 ? 0.13 : (TasteLinks == 1 ? -0.13 : 0)",
+          "resultVariable": "Mario.velocityX"
+        },
+        {
+          "name": "Act_FallDeckel",
+          "type": "property",
+          "changes": {
+            "Mario.velocityY": 0.45
+          }
+        },
+        {
+          "name": "Act_Kamera",
+          "type": "calculate",
+          "formula": "Math.min(0, Math.max(-180, 16 - Mario.x))",
+          "resultVariable": "Welt.x"
+        },
+        {
+          "name": "Act_MuenzenPlus",
+          "type": "calculate",
+          "formula": "Muenzen + 1",
+          "resultVariable": "Muenzen"
+        },
+        {
+          "name": "Act_Punkte50",
+          "type": "calculate",
+          "formula": "Punkte + 50",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_Punkte100",
+          "type": "calculate",
+          "formula": "Punkte + 100",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_Punkte200",
+          "type": "calculate",
+          "formula": "Punkte + 200",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_Punkte1000",
+          "type": "calculate",
+          "formula": "Punkte + 1000",
+          "resultVariable": "Punkte"
+        },
+        {
+          "name": "Act_BlockVerbraucht",
+          "type": "property",
+          "changes": {
+            "self.benutzt": 1,
+            "self.backgroundImage": "",
+            "self.spriteColor": "#7a5230"
+          }
+        },
+        {
+          "name": "Act_SprungBounce",
+          "type": "property",
+          "changes": {
+            "Mario.velocityY": -0.12
+          }
+        },
+        {
+          "name": "Act_WendeRechts",
+          "type": "property",
+          "changes": {
+            "self.velocityX": 0.035
+          }
+        },
+        {
+          "name": "Act_WendeLinks",
+          "type": "property",
+          "changes": {
+            "self.velocityX": -0.035
+          }
+        },
+        {
+          "name": "Act_LebenMinus",
+          "type": "calculate",
+          "formula": "Leben - 1",
+          "resultVariable": "Leben"
+        },
+        {
+          "name": "Act_UnbesiegbarAn",
+          "type": "property",
+          "changes": {
+            "Unbesiegbar": 1,
+            "UnsichtbarTakt.enabled": 1
+          }
+        },
+        {
+          "name": "Act_UnbesiegbarAus",
+          "type": "property",
+          "changes": {
+            "Unbesiegbar": 0,
+            "UnsichtbarTakt.enabled": 0
+          }
+        },
+        {
+          "name": "Act_StatusGameOver",
+          "type": "property",
+          "changes": {
+            "Status": "gameover",
+            "Mario.visible": 0,
+            "Mario.velocityX": 0,
+            "Mario.velocityY": 0
+          }
+        },
+        {
+          "name": "Act_StatusGewonnen",
+          "type": "property",
+          "changes": {
+            "Status": "gewonnen",
+            "Mario.velocityX": 0
+          }
+        },
+        {
+          "name": "Act_EndeVerlieren",
+          "type": "property",
+          "changes": {
+            "LblEnde.text": "GAME OVER\nENTER = Neustart",
+            "LblEnde.visible": 1
+          }
+        },
+        {
+          "name": "Act_EndeGewinnen",
+          "type": "property",
+          "changes": {
+            "LblEnde.text": "LEVEL GESCHAFFT!\n+1000 Punkte\nENTER = Neustart",
+            "LblEnde.visible": 1
+          }
+        },
+        {
+          "name": "Act_TmpTpl",
+          "type": "calculate",
+          "formula": "Eintrag.tpl",
+          "resultVariable": "TmpTpl"
+        },
+        {
+          "name": "Act_TmpName",
+          "type": "calculate",
+          "formula": "Eintrag.tpl + \"_pool_\" + Eintrag.n",
+          "resultVariable": "TmpName"
+        },
+        {
+          "name": "Act_SpawnSize",
+          "type": "property",
+          "changes": {
+            "${TmpName}.width": "${Eintrag.w}",
+            "${TmpName}.height": "${Eintrag.h}"
+          }
+        },
+        {
+          "name": "Act_NeuStarten",
+          "type": "restart_game"
+        }
+      ],
+      "variables": [],
+      "flowCharts": [],
+      "events": {},
+      "grid": {
+        "cols": 40,
+        "rows": 22,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#5c94fc"
+      },
+      "features": [
+        {
+          "id": "feature_smt_templates",
+          "name": "Sprite-Templates & Pool",
+          "description": "Alle Level-Objekte entstehen zur Laufzeit aus TSpriteTemplates via SpritePool (spawn_object) statt als statische Kinder.",
+          "tags": [
+            "Mario",
+            "Templates"
+          ],
+          "userStoryIds": [
+            "smt_templates"
+          ],
+          "blueprintTaskNames": [
+            "LevelBauen"
+          ]
+        },
+        {
+          "id": "feature_smt_welt",
+          "name": "Scrollbare Welt",
+          "description": "TGroupPanel als Level-Container: Templates + Instanzen scrollen gemeinsam ueber Welt.x.",
+          "tags": [
+            "Mario",
+            "Kamera"
+          ],
+          "userStoryIds": [
+            "smt_welt"
+          ],
+          "blueprintTaskNames": [
+            "Frame"
+          ]
+        },
+        {
+          "id": "feature_smt_physik",
+          "name": "Plattform-Physik",
+          "description": "Schwerkraft, Sprung, Landen ueber TSprite-Physik + Engine-Push-Out (geerbt vom Template).",
+          "tags": [
+            "Mario",
+            "Physik"
+          ],
+          "userStoryIds": [
+            "smt_physik"
+          ],
+          "blueprintTaskNames": [
+            "SprungOderStart",
+            "Landen",
+            "LinksDruck",
+            "RechtsDruck",
+            "LinksLos",
+            "RechtsLos"
+          ]
+        },
+        {
+          "id": "feature_smt_gegner",
+          "name": "Gegner & Sammeln",
+          "description": "Goombas/Muenzen/?-Bloecke als Pool-Instanzen; destroy_object released in den Pool.",
+          "tags": [
+            "Mario",
+            "Gegner"
+          ],
+          "userStoryIds": [
+            "smt_gegner"
+          ],
+          "blueprintTaskNames": [
+            "GoombaBeruehrt",
+            "GoombaWendeLinks",
+            "GoombaWendeRechts",
+            "MuenzeGenommen",
+            "FrageBlockGetroffen"
+          ]
+        },
+        {
+          "id": "feature_smt_ablauf",
+          "name": "Spielablauf",
+          "description": "Start, Leben/Respawn mit Schutzzeit, Game Over, Ziel-Flagge, Neustart.",
+          "tags": [
+            "Mario",
+            "Ablauf"
+          ],
+          "userStoryIds": [
+            "smt_ablauf"
+          ],
+          "blueprintTaskNames": [
+            "SpielStarten",
+            "Gestorben",
+            "MarioAmRand",
+            "ZielErreicht",
+            "UnbesiegbarAus"
+          ]
+        }
+      ]
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": [
+      {
+        "id": "smt_templates",
+        "title": "Level aus Sprite-Templates",
+        "description": "Als Entwickler moechte ich das Level aus TSpriteTemplates bauen statt duplizierte Sprites zu pflegen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "17 Templates statt 127 statischer Objekte",
+          "LevelBauen spawnt aus LevelDaten-Liste",
+          "Pool-Instanzen erben Physik/Bilder/Events vom Template"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario-templates",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "TplBodenG",
+          "TplGoomba",
+          "TplMuenze",
+          "LevelDaten"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_smt_templates"
+      },
+      {
+        "id": "smt_welt",
+        "title": "Scrollbare Welt",
+        "description": "Als Spieler folgt mir die Kamera durch ein langes Level.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Pool-Instanzen erben parentId=Welt",
+          "Welt.x folgt Mario ab Schwellwert",
+          "HUD bleibt fix"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario-templates",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Welt",
+          "Loop",
+          "FrameTakt"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_smt_welt"
+      },
+      {
+        "id": "smt_physik",
+        "title": "Plattform-Physik",
+        "description": "Als Spieler laufe, springe und lande ich stabil auf Plattformen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Gravitation + Sprung-Impuls",
+          "Push-Out pro Frame = stabiles Stehen",
+          "Pool-Tiles tragen pushOutOnCollision"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario-templates",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "Mario",
+          "Tastatur"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_smt_physik"
+      },
+      {
+        "id": "smt_gegner",
+        "title": "Gegner & Sammeln",
+        "description": "Als Spieler kaempfe ich gegen Goombas und sammle Muenzen.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "Stomp released Goomba in den Pool",
+          "Muenze released in den Pool (+50)",
+          "?-Block einmalig (+200)"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario-templates",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "TplGoomba",
+          "TplMuenze",
+          "TplFrage"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_smt_gegner"
+      },
+      {
+        "id": "smt_ablauf",
+        "title": "Spielablauf",
+        "description": "Als Spieler starte ich, verliere Leben und erreiche die Flagge.",
+        "priority": "high",
+        "status": "done",
+        "acceptanceCriteria": [
+          "3 Leben, Respawn mit Schutzzeit",
+          "Grube = Tod",
+          "Flagge = Level geschafft",
+          "ENTER = Neustart"
+        ],
+        "relatedStages": [
+          "stage_main",
+          "stage_blueprint"
+        ],
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "projectId": "super-mario-templates",
+        "updatedAt": "2026-09-13T00:00:00.000Z",
+        "relatedComponents": [
+          "TplFlaggePfahl",
+          "UnsichtbarTakt",
+          "LblEnde"
+        ],
+        "relatedVariables": [],
+        "interactions": [],
+        "featureId": "feature_smt_ablauf"
+      }
+    ]
+  }
+}

@@ -37,6 +37,12 @@ Die Gliedeurng folgt den im `UseCaseManager` definierten Kern-Kategorien.
 - **Spezial UI:** `TImage`, `TShape`, `TTable`, `TStatusBar`, `TToast`, `TVideo`, `TPlaybackControls`
 - **Kern-Dateien:** `src/components/*.ts`
 
+### Bildaufteiler (TImageSplitter)
+- **Beschreibung:** Bilddatei im Inspector wählen, Zeilen und Spalten konfigurieren und die rechteckigen Ausschnitte direkt auf der Stage sehen. Seitenverhältnis bleibt erhalten; Trennlinien und Vorschau-Abstand sind einstellbar. Erst „Teile erzeugen“ schreibt Ausschnitt-Datensätze mit Matchwerten in eine ausgewählte `TObjectList`. Keine Puzzle-Spiellogik und keine Änderung der Quelldatei.
+- **Kern-Dateien:** `src/components/TImageSplitter.ts`, `src/utils/ImageSplitterModel.ts`, `src/editor/services/renderers/ImageSplitterRenderer.ts`, `src/editor/inspector/ImageSplitterActions.ts`
+- **Prüfung:** `node --import tsx --test tests/image_splitter.test.ts`
+- **Beispielprojekt:** `game-server/public/projects/PuzzleNeu.json`
+
 ### Logik-Komponenten (Variablen & unsichtbare Objekte)
 - **Beschreibung:** Komponenten, die Zustand oder Logik halten, aber nicht gerendert werden.
 - **Variablen:** `TIntegerVariable`, `TStringVariable`, `TBooleanVariable`, `TListVariable`, `TRandomVariable`

@@ -18,6 +18,7 @@ import { ImageListEditorDialog } from './ImageListEditorDialog';
 import { ObjectListPickerDialog } from './ObjectListPickerDialog';
 import { projectStore } from '../../services/ProjectStore';
 import { ActionRegistry } from '../../runtime/ActionRegistry';
+import { generateImageSplitterPieces } from './ImageSplitterActions';
 
 const logger = Logger.get('InspectorActionHandler');
 
@@ -34,6 +35,10 @@ export class InspectorActionHandler {
         private project: GameProject,
         private host: InspectorHost
     ) { }
+
+    public setProject(project: GameProject): void {
+        this.project = project;
+    }
 
     /**
      * Dispatches button actions to specialized methods
@@ -87,6 +92,10 @@ export class InspectorActionHandler {
                 break;
             case 'openRichTextEditor':
                 await this.handleOpenRichTextEditor(selectedObject);
+                break;
+            case 'generateImageSplitterPieces':
+                await generateImageSplitterPieces(this.resolveOriginalObject(selectedObject), this.project);
+                this.host.update(selectedObject);
                 break;
             case 'parallaxAddLayer':
                 this.handleAddParallaxLayer(selectedObject);

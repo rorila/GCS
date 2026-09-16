@@ -7,6 +7,8 @@ import { EmojiPickerRenderer } from './EmojiPickerRenderer';
 import { TableRenderer } from './TableRenderer';
 import { TetrisRenderer } from './TetrisRenderer';
 import { GridBoardRenderer } from './GridBoardRenderer';
+import { ImageSplitterRenderer } from './ImageSplitterRenderer';
+import { ImageGalleryRenderer } from './ImageGalleryRenderer';
 import { SpriteRenderer } from './SpriteRenderer';
 import { ShapeRenderer } from './ShapeRenderer';
 import { InputRenderer } from './InputRenderer';
@@ -713,6 +715,9 @@ export class StageObjectRenderer {
         else if (className === 'TVideo') SpecialComponentRenderer.renderVideo(specialCtx, el, obj);
         else if (className === 'TLink') SpecialComponentRenderer.renderLink(specialCtx, el, obj);
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
+        else if (className === 'TSlider') InputRenderer.renderSlider(ctx, el, obj, isNew);
+        else if (className === 'TImageSplitter') ImageSplitterRenderer.render(el, obj);
+        else if (className === 'TImageGallery') ImageGalleryRenderer.render(ctx, el, obj);
         else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) TextObjectRenderer.renderLabel(ctx, el, obj);
     }
 

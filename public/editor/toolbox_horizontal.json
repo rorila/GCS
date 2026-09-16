@@ -65,6 +65,16 @@
       "name": "Media",
       "items": [
         {
+          "type": "ImageSplitter",
+          "icon": "IS",
+          "label": "Bildaufteiler"
+        },
+        {
+          "type": "ImageGallery",
+          "icon": "IG",
+          "label": "Bildergalerie"
+        },
+        {
           "type": "Image",
           "icon": "🖼️",
           "label": "Image"
@@ -113,6 +123,11 @@
           "type": "Table",
           "icon": "📊",
           "label": "Table"
+        },
+        {
+          "type": "Slider",
+          "icon": "🎚️",
+          "label": "Slider"
         }
       ]
     },

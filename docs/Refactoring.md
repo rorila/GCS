@@ -373,4 +373,4 @@ Die ursprünglich über 1.000 Zeilen großen Dateien liegen jetzt unter diesem L
 
 ### Hinweis zur Datei
 
-Diese Datei wurde aus den verfügbaren Fragmenten neu zusammengestellt. Etwaige fehlende Detailabschnitte zwischen den ursprünglichen Etappen 1-6 beruhen auf der vorherigen Beschädigung/Teilstands-Sicherung. Die wesentlichen Kriterien (Limit, APIs, Tests, Reihenfolge) wurden durch die Umsetzung erfüllt.
+Diese Datei wurde aus den verfügbaren Fragmenten neu zusammengestellt. Etwaige fehlende Detailabschnitte zwischen den ursprünglichen Etappen 1-6 beruhen auf der vorherigen Beschädigung/Teilstands-Sicherung. Die wesentlichen Kriterien (Limit, APIs, Tests, Reihenfolge) wurden durch die Umsetzung erfüllt.Splash wird angezeigt.

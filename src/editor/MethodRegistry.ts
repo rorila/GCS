@@ -32,6 +32,7 @@ export const MethodRegistry: Record<string, MethodParamDef[]> = {
         { name: 'message', type: 'string', label: 'Nachricht' },
         { name: 'type', type: 'select', label: 'Typ', options: ['info', 'success', 'warning', 'error'], default: 'info' }
     ],
+    'generatePieces': [],
     'play': [],
     'hide': [],
     'toggle': [],

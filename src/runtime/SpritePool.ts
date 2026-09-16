@@ -85,6 +85,11 @@ export class SpritePool {
                 // Sprite-Properties vom Template übernehmen
                 velocityX: 0,           // Velocity wird erst bei acquire gesetzt
                 velocityY: 0,
+                gravity: (template as any).gravity,
+                pushOutOnCollision: (template as any).pushOutOnCollision,
+                appearanceMode: (template as any).appearanceMode,
+                // Scroll-/Kollisionsgruppe: Template als Container-Kind → Instanzen reiten mit
+                parentId: (template as any).parentId,
                 collisionEnabled: template.collisionEnabled,
                 collisionGroup: template.collisionGroup,
                 shape: template.shape,
