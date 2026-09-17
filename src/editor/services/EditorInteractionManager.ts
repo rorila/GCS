@@ -90,8 +90,12 @@ export class EditorInteractionManager {
 
         stage.onObjectMove = (id: string, newX: number, newY: number, newParentId?: string | null) => {
             if (stage.runMode) {
-                if (this.host.runtimeObjects) {
-                    const runtimeObj = this.host.runtimeObjects.find(ro => ro.id === id);
+                // Live-Objekte der Runtime abfragen: runtimeObjects ist nur eine
+                // Snapshot-Kopie und kennt z.B. nach SpritePool-Reset neu erzeugte
+                // Instanzen nicht — Drag wuerde sonst still ins Leere laufen.
+                const runtimeObjs = (this.host as any).runManager?.runtime?.getObjects?.() || this.host.runtimeObjects;
+                if (runtimeObjs) {
+                    const runtimeObj = runtimeObjs.find((ro: any) => ro.id === id || ro.name === id);
                     if (runtimeObj) {
                         runtimeObj.x = newX;
                         runtimeObj.y = newY;

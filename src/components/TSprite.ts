@@ -22,6 +22,13 @@ export class TSprite extends TWindow {
     // Image support (optional sprite graphic)
     private _backgroundImage: string = '';
     private _objectFit: ImageFit = IMAGE_DEFAULTS.objectFit;
+    public sourceWidth: number = 0;
+    public sourceHeight: number = 0;
+    public sourceRectX: number = 0;
+    public sourceRectY: number = 0;
+    public sourceRectWidth: number = 0;
+    public sourceRectHeight: number = 0;
+    public matchValue: string | number = '';
 
     // TImageList support
     public imageListId: string = '';
@@ -45,11 +52,11 @@ export class TSprite extends TWindow {
     public videoPlaybackRate: number = 1;
 
     /** Aktive Darstellungsart im Inspector (simple | spritesheet | animation | video) */
-    private _appearanceMode: 'simple' | 'spritesheet' | 'animation' | 'video' | '' = '';
-    get appearanceMode(): 'simple' | 'spritesheet' | 'animation' | 'video' {
+    private _appearanceMode: 'simple' | 'spritesheet' | 'animation' | 'video' | 'sourceRect' | '' = '';
+    get appearanceMode(): 'simple' | 'spritesheet' | 'animation' | 'video' | 'sourceRect' {
         return this._appearanceMode || (this.animationId ? 'animation' : (this.imageListId ? 'spritesheet' : (this.videoSource ? 'video' : 'simple')));
     }
-    set appearanceMode(value: 'simple' | 'spritesheet' | 'animation' | 'video') {
+    set appearanceMode(value: 'simple' | 'spritesheet' | 'animation' | 'video' | 'sourceRect') {
         this._appearanceMode = value;
     }
 
@@ -75,6 +82,8 @@ export class TSprite extends TWindow {
     public templateId: string = '';
     public templateName: string = '';
     public isPoolInstance: boolean = false;
+    public spawnX: number = 0;
+    public spawnY: number = 0;
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
@@ -108,6 +117,8 @@ export class TSprite extends TWindow {
         const props: TPropertyDef[] = [
             ...super.getInspectorProperties(),
             // Motion group
+            { name: 'spawnX', label: 'Startposition X', type: 'number', readonly: true, serializable: false, group: 'Motion' },
+            { name: 'spawnY', label: 'Startposition Y', type: 'number', readonly: true, serializable: false, group: 'Motion' },
             { name: 'velocityX', label: 'Velocity X', type: 'number', group: 'Motion' },
             { name: 'velocityY', label: 'Velocity Y', type: 'number', group: 'Motion' },
             { name: 'gravity', label: 'Gravity', type: 'number', group: 'Motion' },
@@ -119,10 +130,17 @@ export class TSprite extends TWindow {
             // Appearance group
             { name: 'shape', label: 'Shape', type: 'select', group: 'Appearance', options: ['rect', 'circle'] },
             { name: 'spriteColor', label: 'Sprite Color', type: 'color', group: 'Appearance' },
-            { name: 'appearanceMode', label: 'Aktive Darstellungsart', type: 'select', group: 'Appearance', options: ['simple', 'spritesheet', 'animation', 'video'], defaultValue: 'simple', hint: 'Welche Darstellung zur Laufzeit verwendet wird' },
+            { name: 'appearanceMode', label: 'Aktive Darstellungsart', type: 'select', group: 'Appearance', options: ['simple', 'spritesheet', 'animation', 'video', 'sourceRect'], defaultValue: 'simple', hint: 'Welche Darstellung zur Laufzeit verwendet wird' },
             { name: 'sepImage', label: 'Einfaches Bild', type: 'separator', group: 'Appearance', serializable: false, editorOnly: true },
             { name: 'backgroundImage', label: 'Sprite Image', type: 'image_picker', group: 'Appearance' },
             { name: 'objectFit', label: 'Image Fit', type: 'select', group: 'Appearance', options: ['cover', 'contain', 'fill', 'none'] },
+            { name: 'sourceWidth', label: 'Originalbreite (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
+            { name: 'sourceHeight', label: 'Originalhoehe (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
+            { name: 'sourceRectX', label: 'Ausschnitt X (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
+            { name: 'sourceRectY', label: 'Ausschnitt Y (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
+            { name: 'sourceRectWidth', label: 'Ausschnittbreite (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
+            { name: 'sourceRectHeight', label: 'Ausschnitthoehe (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
+            { name: 'matchValue', label: 'Match-Wert', type: 'string', group: 'DATEN' },
             { name: 'sepSpritesheet', label: 'Sprite-Sheet', type: 'separator', group: 'Appearance', serializable: false, editorOnly: true },
             { name: 'imageListId', label: 'Sprite Sheet', type: 'select', source: 'imageLists', group: 'Appearance', hint: 'Verknüpft das Sprite mit einer TImageList' },
             { name: 'imageIndex', label: 'Frame Index', type: 'number', min: 0, step: 1, group: 'Appearance', hint: '0-basierter Index des Frames aus der TImageList' },
@@ -340,6 +358,13 @@ export class TSprite extends TWindow {
         return {
             ...super.toDTO(),
             appearanceMode: this.appearanceMode,
+            sourceWidth: this.sourceWidth,
+            sourceHeight: this.sourceHeight,
+            sourceRectX: this.sourceRectX,
+            sourceRectY: this.sourceRectY,
+            sourceRectWidth: this.sourceRectWidth,
+            sourceRectHeight: this.sourceRectHeight,
+            matchValue: this.matchValue,
             imageListId: this.imageListId,
             imageIndex: this.imageIndex,
             animationId: this.animationId,

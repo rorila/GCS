@@ -142,6 +142,8 @@ class UniversalPlayer implements StageHost {
     private dragTarget: ComponentData | null = null;
     private dragPhantom: ComponentData | null = null;
     private isDragging: boolean = false;
+    private dragPointerId: number | null = null;
+    private dragElement: HTMLElement | null = null;
     private dragOffset: { x: number, y: number } = { x: 0, y: 0 };
     private scalingRafId: number | null = null;
 
@@ -186,6 +188,9 @@ class UniversalPlayer implements StageHost {
         window.addEventListener('pointerdown', (e) => this.handleMouseDown(e));
         window.addEventListener('pointermove', (e) => this.handleMouseMove(e));
         window.addEventListener('pointerup', (e) => this.handleMouseUp(e));
+        window.addEventListener('pointercancel', (e) => this.handleMouseUp(e, true));
+        window.addEventListener('lostpointercapture', (e) => this.handleMouseUp(e, true));
+        window.addEventListener('blur', () => this.handleMouseUp(undefined, true));
 
         // 4. Determine initial project
         const params = new URLSearchParams(window.location.search);
@@ -771,18 +776,23 @@ class UniversalPlayer implements StageHost {
     // ─────────────────────────────────────────────
 
     private handleMouseDown(e: MouseEvent | PointerEvent) {
-        if (!this.runtime) return;
+        if (!this.runtime || this.isDragging || e.button !== 0) return;
 
         // Find game object under pointer/mouse
-        const el = (e.target as HTMLElement).closest('.game-object');
+        const el = (e.target as HTMLElement).closest('.game-object') as HTMLElement | null;
         if (!el) return;
 
-        const obj = this.runtime.getObjects().find(o => o.id === el.id);
+        // Der Renderer markiert Objekte ueber data-id, nicht ueber die DOM-id.
+        const objId = el.getAttribute('data-id');
+        const obj = this.runtime.getObjects().find(o => o.id === objId || o.name === objId);
         if (!obj || !obj.draggable) return;
+        e.preventDefault();
+        this.dragPointerId = 'pointerId' in e ? e.pointerId : null;
+        this.dragElement = el;
 
         // Pointer Capture: Drag funktioniert auch wenn Finger das Element verlässt
-        if ('setPointerCapture' in (e.target as Element) && 'pointerId' in e) {
-            (e.target as Element).setPointerCapture((e as PointerEvent).pointerId);
+        if (this.dragPointerId !== null) {
+            el.setPointerCapture(this.dragPointerId);
         }
 
         logger.info(`[Player] Start dragging: ${obj.name} (mode: ${obj.dragMode})`);
@@ -808,6 +818,11 @@ class UniversalPlayer implements StageHost {
 
     private handleMouseMove(e: MouseEvent | PointerEvent) {
         if (!this.isDragging || !this.dragTarget || !this.runtime) return;
+        if ('pointerId' in e && this.dragPointerId !== e.pointerId) return;
+        if (e.buttons === 0) {
+            this.handleMouseUp(e, true);
+            return;
+        }
 
         const coords = this.screenToGrid(e.clientX, e.clientY);
         this.dragTarget.x = coords.x - this.dragOffset.x;
@@ -818,19 +833,28 @@ class UniversalPlayer implements StageHost {
         this.renderer.updateSpritePositions([this.dragTarget]);
     }
 
-    private handleMouseUp(e: MouseEvent | PointerEvent) {
+    private handleMouseUp(e?: MouseEvent | PointerEvent, cancelled = false) {
         if (!this.isDragging || !this.runtime) return;
+        if (e && 'pointerId' in e && this.dragPointerId !== e.pointerId) return;
 
-        const originalTarget = this.dragPhantom ? (this.dragTarget as any)?._original : this.dragTarget;
+        const draggedTarget = this.dragTarget;
+        const phantom = this.dragPhantom;
+        const originalTarget = phantom ? (draggedTarget as any)?._original : draggedTarget;
+        if (e && !cancelled && draggedTarget) {
+            const coords = this.screenToGrid(e.clientX, e.clientY);
+            draggedTarget.x = coords.x - this.dragOffset.x;
+            draggedTarget.y = coords.y - this.dragOffset.y;
+        }
 
         // Find drop target (must be droppable and not the dragged object itself)
-        const elementsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
+        const elementsAtPoint = e && !cancelled ? document.elementsFromPoint(e.clientX, e.clientY) : [];
         let dropTargetObj: ComponentData | null = null;
 
         for (const el of elementsAtPoint) {
-            const gameObjEl = (el as HTMLElement).closest('.game-object');
-            if (gameObjEl && this.dragTarget && gameObjEl.id !== this.dragTarget.id) {
-                const found = this.runtime.getObjects().find(o => o.id === gameObjEl.id);
+            const gameObjEl = (el as HTMLElement).closest('.game-object') as HTMLElement | null;
+            const gameObjId = gameObjEl?.getAttribute('data-id');
+            if (gameObjEl && draggedTarget && gameObjId !== draggedTarget.id) {
+                const found = this.runtime.getObjects().find(o => o.id === gameObjId || o.name === gameObjId);
                 if (found && found.droppable) {
                     dropTargetObj = found;
                     break;
@@ -838,7 +862,19 @@ class UniversalPlayer implements StageHost {
             }
         }
 
-        if (dropTargetObj) {
+        // Cleanup
+        const captureElement = this.dragElement;
+        const pointerId = this.dragPointerId;
+        this.isDragging = false;
+        this.dragTarget = null;
+        this.dragPhantom = null;
+        this.dragElement = null;
+        this.dragPointerId = null;
+        if (pointerId !== null && captureElement?.hasPointerCapture(pointerId)) {
+            captureElement.releasePointerCapture(pointerId);
+        }
+
+        if (dropTargetObj && originalTarget) {
             logger.info(`[Player] Dropped ${originalTarget.name} on ${dropTargetObj.name}`);
             this.runtime.handleEvent(dropTargetObj.id, 'onDrop', {
                 draggedId: originalTarget.id,
@@ -846,15 +882,16 @@ class UniversalPlayer implements StageHost {
                 draggedObj: originalTarget
             });
         }
-
-        // Cleanup
-        if (this.dragPhantom) {
-            this.runtime.removeObject(this.dragPhantom.id);
+        if (originalTarget && !phantom) {
+            this.runtime.handleEvent(originalTarget.id, 'onDragEnd', {
+                draggedId: originalTarget.id,
+                draggedName: originalTarget.name,
+                draggedObj: originalTarget,
+                dropTargetId: dropTargetObj?.id || null,
+                cancelled
+            });
         }
-
-        this.isDragging = false;
-        this.dragTarget = null;
-        this.dragPhantom = null;
+        if (phantom) this.runtime.removeObject(phantom.id);
 
         this.render();
     }

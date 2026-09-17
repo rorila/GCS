@@ -7,6 +7,7 @@ import { TAudio } from '../components/TAudio';
 import { TImage } from '../components/TImage';
 import { TImageList } from '../components/TImageList';
 import { TImageSplitter } from '../components/TImageSplitter';
+import { TPuzzleBoard } from '../components/TPuzzleBoard';
 import { TImageGallery } from '../components/TImageGallery';
 import { TSprite } from '../components/TSprite';
 import { TSpriteTemplate } from '../components/TSpriteTemplate';
@@ -123,6 +124,7 @@ export class ComponentRegistry {
         this.register('TImage', TImage);
         this.register('TImageList', TImageList);
         this.register('TImageSplitter', TImageSplitter);
+        this.register('TPuzzleBoard', TPuzzleBoard);
         this.register('TImageGallery', TImageGallery);
         this.register('TSprite', TSprite);
         this.register('TSpriteTemplate', TSpriteTemplate);
@@ -226,6 +228,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Image', 'TImage');
         this.typeMapping.set('ImageList', 'TImageList');
         this.typeMapping.set('ImageSplitter', 'TImageSplitter');
+        this.typeMapping.set('PuzzleBoard', 'TPuzzleBoard');
         this.typeMapping.set('ImageGallery', 'TImageGallery');
         this.typeMapping.set('Video', 'TVideo');
         this.typeMapping.set('Link', 'TLink');

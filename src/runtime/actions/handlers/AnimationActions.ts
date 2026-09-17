@@ -165,11 +165,15 @@ export function registerAnimationActions() {
         if (target) {
             const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, context.objects));
             const toY = Number(PropertyHelper.interpolate(String(action.y), combinedContext, context.objects));
+            const lockDuringMove = action.lockDuringMove === true || action.lockDuringMove === 'true';
+            const draggable = target.draggable;
+            const onComplete = lockDuringMove ? () => { target.draggable = draggable; } : undefined;
+            if (lockDuringMove) target.draggable = false;
             if (typeof target.moveTo === 'function') {
-                target.moveTo(toX, toY, action.duration || 500, action.easing || 'easeOut');
+                target.moveTo(toX, toY, action.duration || 500, action.easing || 'easeOut', onComplete);
             } else {
                 AnimationManager.getInstance().addTween(target, 'x', toX, action.duration || 500, action.easing || 'easeOut');
-                AnimationManager.getInstance().addTween(target, 'y', toY, action.duration || 500, action.easing || 'easeOut');
+                AnimationManager.getInstance().addTween(target, 'y', toY, action.duration || 500, action.easing || 'easeOut', onComplete);
             }
         }
     }, {
@@ -180,6 +184,7 @@ export function registerAnimationActions() {
             { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects', allowVariableBinding: true, hint: 'Objektname, "self" oder ${Var} mit Objekt-ID/Name' },
             { name: 'x', label: 'Ziel-X', type: 'number' },
             { name: 'y', label: 'Ziel-Y', type: 'number' },
+            { name: 'lockDuringMove', label: 'Während Bewegung nicht ziehbar', type: 'boolean', defaultValue: false },
             { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500 },
             { name: 'easing', label: 'Easing', type: 'select', source: 'easing-functions', defaultValue: 'easeOut' }
         ]

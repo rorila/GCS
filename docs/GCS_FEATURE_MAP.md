@@ -43,6 +43,12 @@ Die Gliedeurng folgt den im `UseCaseManager` definierten Kern-Kategorien.
 - **Prüfung:** `node --import tsx --test tests/image_splitter.test.ts`
 - **Beispielprojekt:** `game-server/public/projects/PuzzleNeu.json`
 
+### Sprite-Bildausschnitte aus Records
+- **Beschreibung:** `TSprite.appearanceMode = sourceRect` zeigt ein explizites Pixelrechteck aus `backgroundImage`. `sourceWidth/sourceHeight` beschreiben das Originalbild, `sourceRectX/Y/Width/Height` den Ausschnitt; Stage-Position und Darstellungsgröße bleiben unabhängig. Ungültige Quellrechtecke werden nicht gezeichnet. `TSpriteTemplate` übergibt beim Spawn eigene Ausschnittwerte und `matchValue` an jede Instanz. Die bestehenden Darstellungsarten bleiben verfügbar.
+- **PuzzleNeu:** Sichtbarer Methodenaufruf `Bildaufteiler.generatePieces()`, danach ForEach über `PuzzleTeile`: Record-Werte ins Template übertragen und Sprite spawnen. Keine Bildkopien und keine TImageList-Abhängigkeit für diese Darstellung.
+- **Kern-Dateien:** `src/components/TSprite.ts`, `src/runtime/SpriteGeometry.ts`, `src/runtime/SpritePool.ts`, `src/editor/services/renderers/SpriteRenderer.ts`
+- **Prüfung:** `node --import tsx --test tests/puzzle_neu_flow.test.ts`; Browser-Regression in `tests/e2e/17_PuzzleSourceRect.spec.ts`.
+
 ### Logik-Komponenten (Variablen & unsichtbare Objekte)
 - **Beschreibung:** Komponenten, die Zustand oder Logik halten, aber nicht gerendert werden.
 - **Variablen:** `TIntegerVariable`, `TStringVariable`, `TBooleanVariable`, `TListVariable`, `TRandomVariable`

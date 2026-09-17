@@ -17,7 +17,8 @@ export async function generateImageSplitterPieces(obj: any, project: GameProject
         if (!source) throw new Error('Der Bildaufteiler ist nicht auf der aktiven Stage verfügbar.');
         const target = objects.find(o => o.className === 'TObjectList' && (o.id === source.outputList || o.name === source.outputList));
         if (!target) throw new Error('Bitte eine TObjectList auf dieser Stage oder der Blueprint-Stage als Ausgabeliste auswählen.');
-        const config = { id: source.id, imageSource: source.imageSource, rows: source.rows, columns: source.columns };
+        const aspect = source.coverToAspect && Number(source.height) ? Number(source.width) / Number(source.height) : undefined;
+        const config = { id: source.id, imageSource: source.imageSource, rows: source.rows, columns: source.columns, targetAspect: aspect };
         const outputList = source.outputList;
         const stageId = project.activeStageId;
         const oldRecords = JSON.stringify(target.records || []);

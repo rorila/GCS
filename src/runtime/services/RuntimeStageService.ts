@@ -211,6 +211,7 @@ export class RuntimeStageService {
                 gridConfig,
                 objects: runtime.objects,
                 contextVars: runtime.contextVars,
+                resetSpritePool: (template: any) => runtime.objectService.resetSpritePool(runtime, template),
                 addObject: (obj: any) => {
                     runtime.objects.push(obj);
                     if (runtime.reactiveRuntime && obj.name) {

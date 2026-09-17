@@ -3,6 +3,8 @@ export interface ImageSplitConfig {
     imageSource: string;
     rows: number;
     columns: number;
+    /** Ziel-Seitenverhaeltnis (Breite/Hoehe) fuer Cover-Crop. Fehlt es, wird das ganze Bild verwendet. */
+    targetAspect?: number;
 }
 
 export interface ImagePiece {
@@ -36,16 +38,40 @@ export function createImagePieces(config: ImageSplitConfig, sourceWidth: number,
     if (![sourceWidth, sourceHeight].every(n => Number.isFinite(n) && n > 0)) {
         throw new Error('Das Bild hat keine gültige Größe.');
     }
-    const width = sourceWidth / config.columns;
-    const height = sourceHeight / config.rows;
+    const imageAspect = sourceWidth / sourceHeight;
+    const targetAspect = Number(config.targetAspect) || imageAspect;
+    let cropX = 0, cropY = 0, cropW = sourceWidth, cropH = sourceHeight;
+    if (imageAspect > targetAspect) {
+        // Bild ist breiter als Ziel -> linke/rechte Ränder abschneiden
+        cropW = sourceHeight * targetAspect;
+        cropX = (sourceWidth - cropW) / 2;
+    } else if (imageAspect < targetAspect) {
+        // Bild ist hoeher als Ziel -> obere/untere Ränder abschneiden
+        cropH = sourceWidth / targetAspect;
+        cropY = (sourceHeight - cropH) / 2;
+    }
+    const width = cropW / config.columns;
+    const height = cropH / config.rows;
     return Array.from({ length: config.rows * config.columns }, (_, index) => {
         const row = Math.floor(index / config.columns), column = index % config.columns;
         return {
             id: `${config.id}_r${row}_c${column}`, index, row, column,
             matchValue: `r${row}_c${column}`, source: config.imageSource,
-            sourceWidth, sourceHeight, x: column * width, y: row * height, width, height
+            sourceWidth, sourceHeight,
+            x: cropX + column * width,
+            y: cropY + row * height,
+            width, height
         };
     });
+}
+
+export function fitImageBounds(sourceWidth: number, sourceHeight: number, boxWidth: number, boxHeight: number) {
+    if (![sourceWidth, sourceHeight, boxWidth, boxHeight].every(n => Number.isFinite(n) && n > 0)) {
+        return { x: 0, y: 0, width: boxWidth, height: boxHeight };
+    }
+    const scale = Math.min(boxWidth / sourceWidth, boxHeight / sourceHeight);
+    const width = sourceWidth * scale, height = sourceHeight * scale;
+    return { x: (boxWidth - width) / 2, y: (boxHeight - height) / 2, width, height };
 }
 
 export function resolveSplitterImageSource(source: string): string {
@@ -82,9 +108,8 @@ export function loadSplitterImage(source: string): Promise<{ width: number; heig
 }
 
 export async function prepareImagePieces(config: ImageSplitConfig): Promise<ImagePiece[]> {
-    const snapshot = { ...config };
-    const error = validateImageSplit(snapshot);
+    const error = validateImageSplit(config);
     if (error) throw new Error(error);
-    const size = await loadSplitterImage(snapshot.imageSource);
-    return createImagePieces(snapshot, size.width, size.height);
+    const size = await loadSplitterImage(config.imageSource);
+    return createImagePieces(config, size.width, size.height);
 }

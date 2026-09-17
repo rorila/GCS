@@ -9,6 +9,7 @@ const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 export function registerObjectPoolActions() {
     // ─── OBJECT POOL ACTIONS ───────────────────────────────────────
     actionRegistry.register('spawn_object', (action, context) => {
+        console.log(`[PUZZLE-DIAG] spawn_object Action: templateId="${action.templateId}" x="${action.x}" y="${action.y}" callback=${!!context.spawnObject}`);
         if (!context.spawnObject) {
             runtimeLogger.warn('spawn_object: kein spawnObject-Callback verfügbar');
             return null;

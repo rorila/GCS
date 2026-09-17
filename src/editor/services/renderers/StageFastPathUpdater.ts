@@ -376,7 +376,12 @@ export class StageFastPathUpdater {
 
         for (const obj of mergedObjectsArray) {
             const el = this.getCachedElement(obj.id);
-            if (!el) continue;
+            if (!el) {
+                if (obj.isPoolInstance && obj.visible) {
+                    console.log(`[PUZZLE-DIAG] Kein DOM-Element für Pool-Sprite ${obj.id} (visible=${obj.visible})`);
+                }
+                continue;
+            }
             const fp = ((el as any)._fp ||= {});
 
             // Rekursive Parent-Positionierung berücksichtigen!

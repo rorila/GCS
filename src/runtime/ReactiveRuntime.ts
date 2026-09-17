@@ -86,6 +86,16 @@ export class ReactiveRuntime {
     }
 
     /**
+     * Entfernt ein Objekt aus der Registry (z.B. verworfene Pool-Instanzen).
+     */
+    public unregisterObject(idOrName: string): void {
+        const obj = this.objectsById.get(idOrName) || this.objectsByName.get(idOrName);
+        if (!obj) return;
+        this.objectsById.delete(obj.id || idOrName);
+        this.objectsByName.delete(obj.name || idOrName);
+    }
+
+    /**
      * Gets a variable value
      */
     getVariable(name: string): any {

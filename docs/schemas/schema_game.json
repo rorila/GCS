@@ -16,7 +16,15 @@
         "shape":            { "type": "select",  "default": "rect", "options": ["rect", "circle"] },
         "spriteColor":      { "type": "color",   "default": "#ff6b6b" },
         "backgroundImage":  { "type": "string",  "default": "", "description": "Sprite-Bild URL" },
-        "objectFit":        { "type": "select",  "default": "contain", "options": ["cover", "contain", "fill", "none"] }
+        "objectFit":        { "type": "select",  "default": "contain", "options": ["cover", "contain", "fill", "none"] },
+        "appearanceMode": { "type": "select", "default": "simple", "options": ["simple", "spritesheet", "animation", "video", "sourceRect"], "description": "sourceRect zeigt ein explizites Pixelrechteck aus backgroundImage, ohne TImageList." },
+        "sourceWidth": { "type": "number", "default": 0, "description": "Breite des Originalbildes in Pixeln; fuer sourceRect erforderlich." },
+        "sourceHeight": { "type": "number", "default": 0, "description": "Hoehe des Originalbildes in Pixeln; fuer sourceRect erforderlich." },
+        "sourceRectX": { "type": "number", "default": 0, "description": "Linker Rand des Ausschnitts im Originalbild, unabhaengig von Stage-x." },
+        "sourceRectY": { "type": "number", "default": 0, "description": "Oberer Rand des Ausschnitts im Originalbild, unabhaengig von Stage-y." },
+        "sourceRectWidth": { "type": "number", "default": 0, "description": "Ausschnittbreite in Pixeln, muss positiv sein." },
+        "sourceRectHeight": { "type": "number", "default": 0, "description": "Ausschnitthoehe in Pixeln, muss positiv sein." },
+        "matchValue": { "type": "string", "default": "", "description": "Fachlicher Zuordnungswert, z.B. r0_c1. Wird beim Spawn aus dem Template kopiert." }
       },
       "methods": [],
       "events": ["onCollision", "onCollisionLeft", "onCollisionRight", "onCollisionTop", "onCollisionBottom", "onBoundaryHit"],
@@ -36,7 +44,13 @@
         "autoRecycle":{ "type": "boolean", "default": true, "description": "Automatisch älteste Instanz recyceln, wenn Pool voll ist" },
         "lifetime":   { "type": "number",  "default": 0, "description": "Lebensdauer in Millisekunden (0=unendlich)" }
       },
-      "methods": [],
+      "methods": [
+        {
+          "name": "resetPool",
+          "description": "Verwirft alle bisherigen Pool-Instanzen dieses Templates und baut den Pool mit der aktuellen poolSize neu auf. Danach stehen wieder poolSize freie Instanzen für spawn_object bereit. Nur der eigene Pool wird zurückgesetzt.",
+          "params": []
+        }
+      ],
       "events": [],
       "example": {
         "className": "TSpriteTemplate", "name": "BulletTemplate", "x": 0, "y": 0, "width": 1, "height": 1,
@@ -46,6 +60,42 @@
       "warnings": [
         "⚠️ TSpriteTemplate ist zur Laufzeit unsichtbar.",
         "⚠️ Nutze die Action 'spawn_object', um eine Instanz zu platzieren."
+      ]
+    },
+
+    "TPuzzleBoard": {
+      "description": "Zielablage für Puzzleteile (Kleinkind-Modus). Zeigt das Zielbild transparent als Orientierungshilfe; Teile rasten in der Nähe ihrer Zielzelle ein und werden arretiert.",
+      "stage": "main",
+      "category": "game",
+      "properties": {
+        "imageSource":  { "type": "string", "default": "", "description": "Zielbild, z.B. ${GewaehltesBild}" },
+        "columns":      { "type": "number", "default": 2, "description": "Spalten des Zielrasters, z.B. ${Bildaufteiler.columns}" },
+        "rows":         { "type": "number", "default": 2, "description": "Zeilen des Zielrasters, z.B. ${Bildaufteiler.rows}" },
+        "ghostOpacity": { "type": "number", "default": 0.3, "description": "Deckkraft des Geisterbilds (0-1)" },
+        "snapRadius":   { "type": "number", "default": 4, "description": "Einrast-Genauigkeit in Grid-Zellen" },
+        "placedCount":  { "type": "number", "default": 0, "description": "Anzahl eingerasteter Teile (Laufzeit)" }
+      },
+      "methods": [
+        {
+          "name": "tryPlacePiece",
+          "description": "Prüft ob ein Puzzleteil nahe genug an seiner Zielzelle liegt (snapRadius) und rastet es ein. Zielzelle aus imageIndex bzw. matchValue r{row}_c{col}.",
+          "params": ["piece"]
+        },
+        {
+          "name": "resetBoard",
+          "description": "Setzt placedCount zurück (z.B. vor einem neuen Durchlauf).",
+          "params": []
+        }
+      ],
+      "events": ["onDrop", "onPiecePlaced", "onComplete"],
+      "example": {
+        "className": "TPuzzleBoard", "name": "Zielplattform", "x": 25, "y": 1, "width": 19, "height": 25,
+        "droppable": true, "imageSource": "${GewaehltesBild}", "columns": "${Bildaufteiler.columns}", "rows": "${Bildaufteiler.rows}",
+        "ghostOpacity": 0.3, "snapRadius": 4,
+        "events": { "onDrop": "TeilAblegen", "onComplete": "PuzzleGewonnen" }
+      },
+      "warnings": [
+        "⚠️ onDrop erhält draggedObj/draggedId — typischer Flow: Task 'TeilAblegen' ruft call_method Zielplattform.tryPlacePiece(${draggedObj})."
       ]
     }
 

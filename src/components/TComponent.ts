@@ -25,6 +25,7 @@ export interface IRuntimeComponent {
         contextVars?: Record<string, any>;
         spawnObject?: (templateId: string, x?: number, y?: number) => any;
         destroyObject?: (instanceId: string) => void;
+        resetSpritePool?: (template: any) => number;
     }): void;
 
     onRuntimeStart?(): void;

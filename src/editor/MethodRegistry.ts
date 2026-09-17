@@ -33,6 +33,12 @@ export const MethodRegistry: Record<string, MethodParamDef[]> = {
         { name: 'type', type: 'select', label: 'Typ', options: ['info', 'success', 'warning', 'error'], default: 'info' }
     ],
     'generatePieces': [],
+    'resetPool': [],
+    'tryPlacePiece': [
+        { name: 'piece', type: 'string', label: 'Puzzleteil (Objekt)' }
+    ],
+    'resetBoard': [],
+    'shuffle': [],
     'play': [],
     'hide': [],
     'toggle': [],

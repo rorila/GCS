@@ -67,6 +67,7 @@ export class SpritePool {
 
         const createdSprites: TSprite[] = [];
 
+        console.log(`[PUZZLE-DIAG] Pool-Init "${template.name}": poolSize=${poolSize} (roh: ${JSON.stringify(template.poolSize)})`);
         logger.info(`Initialisiere Pool für "${template.name}" mit ${poolSize} Instanzen (Original: ${template.poolSize})`);
 
         const entries: PoolEntry[] = [];
@@ -95,11 +96,26 @@ export class SpritePool {
                 shape: template.shape,
                 spriteColor: template.spriteColor,
                 lerpSpeed: template.lerpSpeed,
+                // Interaktion/Darstellung vom Template vererben, sonst sind
+                // Pool-Instanzen weder draggable noch korrekt gestylt.
+                draggable: (template as any).draggable,
+                droppable: (template as any).droppable,
+                dragMode: (template as any).dragMode,
+                zIndex: (template as any).zIndex,
+                rotation: (template as any).rotation,
+                style: (template as any).style ? { ...(template as any).style } : undefined,
                 imageListId: template.imageListId,
                 // Ausdrücke wie ${Var} dürfen nicht in die Instanz kopiert werden — sonst
                 // erhielte jede Instanz ein eigenes Live-Binding. Der konkrete Wert wird
                 // erst beim Spawn in acquire() gesetzt.
                 imageIndex: SpritePool.resolveNumeric(template.imageIndex),
+                sourceWidth: SpritePool.resolveNumeric(template.sourceWidth),
+                sourceHeight: SpritePool.resolveNumeric(template.sourceHeight),
+                sourceRectX: SpritePool.resolveNumeric(template.sourceRectX),
+                sourceRectY: SpritePool.resolveNumeric(template.sourceRectY),
+                sourceRectWidth: SpritePool.resolveNumeric(template.sourceRectWidth),
+                sourceRectHeight: SpritePool.resolveNumeric(template.sourceRectHeight),
+                matchValue: template.matchValue,
                 animationId: template.animationId,
                 // Hitbox-Einstellungen vom Template übernehmen
                 customHitbox: template.customHitbox,
@@ -200,16 +216,31 @@ export class SpritePool {
             return null;
         }
 
-        // 4. Instanz konfigurieren
-        const sprite = entry.sprite;
+        // 4. Instanz konfigurieren. Nach der Reaktiv-Initialisierung muss der
+        // Proxy beschrieben werden, sonst sieht der Renderer die Änderungen nicht.
+        const sprite = (entry.sprite as any).__proxy__ || entry.sprite;
         sprite.x = x;
         sprite.y = y;
+        sprite.spawnX = x;
+        sprite.spawnY = y;
+        // width/height koennen im Flow zur Laufzeit am Template gesetzt werden
+        // (z.B. Zellgroesse aus einem Bildaufteiler) — beim Spawn uebernehmen.
+        sprite.width = SpritePool.resolveNumeric(template.width);
+        sprite.height = SpritePool.resolveNumeric(template.height);
         sprite.velocityX = template.velocityX;
         sprite.velocityY = template.velocityY;
         sprite.imageIndex = SpritePool.resolveNumeric(template.imageIndex);
         sprite.imageListId = template.imageListId;
         sprite.animationId = template.animationId;
-        if (template.backgroundImage) {
+        sprite.appearanceMode = template.appearanceMode;
+        sprite.sourceWidth = SpritePool.resolveNumeric(template.sourceWidth);
+        sprite.sourceHeight = SpritePool.resolveNumeric(template.sourceHeight);
+        sprite.sourceRectX = SpritePool.resolveNumeric(template.sourceRectX);
+        sprite.sourceRectY = SpritePool.resolveNumeric(template.sourceRectY);
+        sprite.sourceRectWidth = SpritePool.resolveNumeric(template.sourceRectWidth);
+        sprite.sourceRectHeight = SpritePool.resolveNumeric(template.sourceRectHeight);
+        sprite.matchValue = template.matchValue;
+        if (template.backgroundImage || template.appearanceMode === 'sourceRect') {
             sprite.backgroundImage = template.backgroundImage;
             sprite.objectFit = template.objectFit;
         }
@@ -217,6 +248,7 @@ export class SpritePool {
 
         entry.busy = true;
         entry.acquiredAt = performance.now();
+        console.log(`[PUZZLE-DIAG] acquire "${pool.templateName}" → ${sprite.name} @ (${x},${y}) visible=${sprite.visible} imageIndex=${sprite.imageIndex} proxy=${!!(entry.sprite as any).__proxy__}`);
 
         logger.debug(
             `Pool "${pool.templateName}": acquire → ${sprite.name} @ (${x}, ${y}) imageIndex=${sprite.imageIndex}`
@@ -319,6 +351,19 @@ export class SpritePool {
     }
 
     /**
+     * Entfernt den Pool eines einzelnen Templates und liefert dessen
+     * bisherige Instanzen zurueck (zum Entfernen aus der Objektliste/DOM).
+     * Andere Template-Pools bleiben unveraendert.
+     */
+    public removePool(templateId: string): TSprite[] {
+        const pool = this.pools.get(templateId);
+        if (!pool) return [];
+        this.pools.delete(templateId);
+        logger.info(`Pool "${pool.templateName}" entfernt (${pool.entries.length} Instanzen)`);
+        return pool.entries.map(e => e.sprite);
+    }
+
+    /**
      * Pool komplett verwerfen (Cleanup bei Runtime-Destroy).
      */
     public destroy(): void {
@@ -330,11 +375,12 @@ export class SpritePool {
     // ─────────────────────────────────────────────
 
     private releaseEntry(entry: PoolEntry): void {
-        entry.sprite.visible = false;
-        entry.sprite.x = -100;
-        entry.sprite.y = -100;
-        entry.sprite.velocityX = 0;
-        entry.sprite.velocityY = 0;
+        const sprite = (entry.sprite as any).__proxy__ || entry.sprite;
+        sprite.visible = false;
+        sprite.x = -100;
+        sprite.y = -100;
+        sprite.velocityX = 0;
+        sprite.velocityY = 0;
         entry.busy = false;
         entry.acquiredAt = 0;
 

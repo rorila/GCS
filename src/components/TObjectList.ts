@@ -97,6 +97,24 @@ export class TObjectList extends TTable implements IRuntimeComponent {
         this.selectedIndex = -1; this.selectedKey = ''; this.selectedRecord = null;
     }
 
+    /**
+     * Mischt die Datensaetze zufaellig (Fisher-Yates), in-place.
+     * Da `data` dieselbe Referenz wie `records` ist, bleiben alle
+     * Zugriffswege konsistent. Ueber call_method im Flow nutzbar.
+     * @returns Anzahl der gemischten Eintraege.
+     */
+    public shuffle(): number {
+        const arr = this.sourceMode === 'records' ? this.records : this.items;
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        if (this.sourceMode === 'records') this.data = this.records;
+        else this.rebuildData(this._runtimeObjects);
+        this.selectedIndex = -1; this.selectedKey = ''; this.selectedRecord = null;
+        return arr.length;
+    }
+
     // --- Record-Verwaltung ---
 
     /** Konvertiert einen Rohwert in den deklarierten Feldtyp. */

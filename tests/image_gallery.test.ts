@@ -81,15 +81,12 @@ test('PuzzleNeu enthaelt Galerie-Stage, Navigation und unveraenderte Splitter-Da
     const bildVar = bpVars.find((v: any) => v.name === 'GewaehltesBild');
     assert.ok(bildVar && bildVar.isVariable);
     const taskNames = blueprint.tasks.map((t: any) => t.name);
-    for (const name of ['GalerieOeffnen', 'GalerieInit', 'BildGewaehlt', 'BildUebernehmen', 'SplitterInit', 'ZurueckZumSplitter']) {
+    for (const name of ['GalerieOeffnen', 'GalerieInit', 'BildGewaehlt', 'BildUebernehmen', 'ZurueckZumSplitter', 'GeneratePuzzleSprites']) {
         assert.ok(taskNames.includes(name), `Task ${name} fehlt`);
     }
     const uebernehmen = blueprint.tasks.find((t: any) => t.name === 'BildUebernehmen');
-    assert.deepEqual(uebernehmen.actionSequence.map((a: any) => a.type), ['property', 'navigate_stage']);
-    assert.equal(uebernehmen.actionSequence[1].stageId, 'stage_main');
-    const init = blueprint.tasks.find((t: any) => t.name === 'SplitterInit');
-    assert.equal(init.actionSequence[0].type, 'condition');
-    assert.equal(init.actionSequence[0].then[0].changes['Bildaufteiler.imageSource'], '${GewaehltesBild}');
+    assert.deepEqual(uebernehmen.actionSequence.map((a: any) => a.name), ['Hauptobjekte einblenden', 'Stage -> stage_main']);
+    assert.ok(blueprint.actions.find((a: any) => a.name === 'Stage -> stage_main' && a.stageId === 'stage_main'));
 
     const galleryObjects = hydrateObjects(galerie.objects);
     const gallery = galleryObjects.find(o => o.className === 'TImageGallery') as TImageGallery;
@@ -103,7 +100,7 @@ test('PuzzleNeu enthaelt Galerie-Stage, Navigation und unveraenderte Splitter-Da
     const list = mainObjects.find(o => o.className === 'TObjectList') as TObjectList;
     const navBtn = mainObjects.find(o => o.name === 'BtnBildAuswaehlen');
     assert.equal(navBtn.events.onClick, 'GalerieOeffnen');
-    assert.equal(mainObjects.find(o => o.name === 'SplitterStart').events.onStart, 'SplitterInit');
+    assert.equal(splitter.imageSource, '${GewaehltesBild}');
     assert.equal(splitter.rows, 5);
     assert.equal(splitter.columns, 5);
     assert.equal(list.records.length, 25);

@@ -1,6 +1,7 @@
 import { Logger } from '../../utils/Logger';
 import type { GameRuntime } from '../GameRuntime';
 import { GameLoopManager } from '../GameLoopManager';
+import { PropertyHelper } from '../PropertyHelper';
 import { DESIGN_VALUES } from '../../components/TComponent';
 const logger = Logger.get('RuntimeReactiveService', 'Runtime_Execution');
 
@@ -68,10 +69,12 @@ export class RuntimeReactiveService {
                 const isGlobalVar = obj.scope === 'global' || (obj.name && (obj.name in runtime.variableManager.projectVariables));
     
                 if (!isGlobalVar) {
-                    if (obj.value !== undefined) {
-                        runtime.contextVars[obj.name] = obj.value;
-                    } else if (Array.isArray((obj as any).items)) {
-                        runtime.contextVars[obj.name] = (obj as any).items;
+                    // resolveValue liefert den eigentlichen Inhalt: Bei TObjectList
+                    // waere obj.value die (leere) items-ID-Liste, nicht die Records —
+                    // das leerte die Stage-Variable und Bindings wie ${Liste.length}.
+                    const content = PropertyHelper.resolveValue(obj);
+                    if (content !== undefined) {
+                        runtime.contextVars[obj.name] = content;
                     }
                 }
             });
@@ -86,8 +89,13 @@ export class RuntimeReactiveService {
             // das Layout), dürfen aber keine Live-Watcher erhalten — sonst würden bereits
             // gespawnte Instanzen bei jeder Variablenänderung mitaktualisiert.
             const once = obj?.isPoolInstance === true;
-    
-            const skipProps = ['id', 'name', 'className', 'parentId', 'constructor', 'Tasks'];
+
+            // 'poolSize' ist eine Pool-Konfiguration, kein Anzeige-Property:
+            // SpritePool.init wertet den Ausdruck beim (Neu-)Aufbau des Pools
+            // aus. Ein Live-Binding wuerde den Ausdruck mit dem zum
+            // Auswertezeitpunkt gueltigen Wert ueberschreiben — z.B. 0, wenn
+            // die Quell-Liste beim Stage-Wechsel kurzzeitig leer ist.
+            const skipProps = ['id', 'name', 'className', 'parentId', 'constructor', 'Tasks', 'poolSize'];
     
             const bindProps = (target: any, pathPrefix: string = '') => {
                 if (!target || typeof target !== 'object') return;
@@ -184,7 +192,10 @@ export class RuntimeReactiveService {
                             runtime.reactiveRuntime.getWatcher().addGlobalListener(
                                 (obj: any, prop: string) => {
                                     if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') {
-                                        if (prop === 'x' || prop === 'y') {
+                                        if (prop === 'x' || prop === 'y' || prop === 'visible') {
+                                            // 'visible' muss ebenfalls rendern: spawn_object setzt
+                                            // visible=true als LETZTE Zuweisung in acquire(). Ohne
+                                            // diesen Fall bleibt das Pool-Sprite auf display:none.
                                             GameLoopManager.getInstance().requestRender();
                                         } else if (prop === 'imageListId' || prop === 'imageIndex') {
                                             GameLoopManager.getInstance().markSpriteDirty(obj);

@@ -1,5 +1,8 @@
 import { TSprite } from './TSprite';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TSpriteTemplate', 'ObjectPooling');
 
 /**
  * TSpriteTemplate – Blueprint-Vorlage für Object-Pooling.
@@ -39,6 +42,9 @@ export class TSpriteTemplate extends TSprite {
      */
     public lifetime: number = 0;
 
+    /** Runtime-Callbacks, gesetzt via initRuntime(). */
+    private runtimeCallbacks: { resetSpritePool?: (template: TSpriteTemplate) => number } | null = null;
+
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
         // Templates sind im Run-Modus unsichtbar, sollen aber im Edit-Modus normal sichtbar sein
@@ -56,6 +62,30 @@ export class TSpriteTemplate extends TSprite {
             { name: 'autoRecycle', label: 'Auto Recycle', type: 'boolean', group: 'Pool Settings' },
             { name: 'lifetime', label: 'Lifetime (Sek.)', type: 'number', group: 'Pool Settings' },
         ];
+    }
+
+    public initRuntime(callbacks: { resetSpritePool?: (template: TSpriteTemplate) => number }): void {
+        this.runtimeCallbacks = callbacks;
+    }
+
+    public onRuntimeStop(): void {
+        this.runtimeCallbacks = null;
+    }
+
+    /**
+     * Setzt den eigenen Sprite-Pool zurueck: alle bisherigen Instanzen werden
+     * verworfen und anhand der aktuellen poolSize neu erzeugt. Danach stehen
+     * wieder `poolSize` freie, unsichtbare Instanzen fuer spawn_object bereit.
+     * Nur der Pool dieses Templates wird zurueckgesetzt.
+     * Ueber die Action "Methode aufrufen" (call_method) im Flow nutzbar.
+     * @returns Anzahl der neu bereitgestellten Pool-Instanzen.
+     */
+    public resetPool(): number {
+        if (!this.runtimeCallbacks?.resetSpritePool) {
+            logger.warn(`resetPool: Keine Runtime-Verbindung fuer "${this.name}" – wurde die Runtime gestartet?`);
+            return 0;
+        }
+        return this.runtimeCallbacks.resetSpritePool(this) ?? 0;
     }
 
     public getEvents(): string[] {

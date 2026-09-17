@@ -155,6 +155,34 @@ export class GameLoopManager implements ILoopHost {
     }
 
     /**
+     * Synchronisiert die internen Objekt-Listen mit einer geaenderten
+     * Runtime-Objektliste (z.B. nach einem Pool-Reset zur Laufzeit),
+     * ohne den Loop zu stoppen oder Konfiguration zu verlieren.
+     */
+    public syncObjects(objects: TWindow[]): void {
+        this.sprites = objects.filter((obj): obj is TSprite =>
+            obj.className === 'TSprite' || obj.constructor.name === 'TSprite'
+        );
+        // Interpolations-Startwerte nur fuer neue Sprites setzen, damit
+        // laufende Interpolationen bestehender Sprites nicht springen.
+        this.sprites.forEach(sprite => {
+            if (sprite.previousX === undefined) {
+                sprite.previousX = sprite.x;
+                sprite.previousY = sprite.y;
+                sprite.renderX = sprite.x;
+                sprite.renderY = sprite.y;
+            }
+        });
+        this.inputControllers = objects.filter(obj =>
+            obj.className === 'TInputController' || obj.constructor?.name === 'TInputController'
+        );
+        this.panels = objects.filter(obj =>
+            obj.className === 'TPanel' || obj.className === 'TGroupPanel' || obj.constructor?.name === 'TPanel' || obj.constructor?.name === 'TGroupPanel'
+        );
+        this.runtimeUpdatables = objects.filter((obj: any) => typeof obj.onRuntimeUpdate === 'function');
+    }
+
+    /**
      * Start the game loop
      */
     public start(): void {
@@ -300,6 +328,12 @@ export class GameLoopManager implements ILoopHost {
         }
         if (state === 'sleeping') {
             this.lifecycle.wakeUp();
+            // Nach dem Aufwecken einmalig zeichnen: processFrame rendert nur bei
+            // "Arbeit" (Bewegung/Animation/Timer). Ein statisches Sprite, das z.B.
+            // per spawn_object sichtbar geschaltet wurde, ginge sonst unter — der
+            // Loop schliese nach IDLE_THRESHOLD Leerframes wieder ein, ohne je
+            // die Änderung ins DOM geschrieben zu haben.
+            this.renderLoop.render(this.sprites, this.renderLoop.getAndClearDirtySprites());
             return;
         }
 

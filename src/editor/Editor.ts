@@ -498,7 +498,8 @@ export class Editor implements IViewHost {
             this.autoSaveToLocalStorage(); // ARC-FIX: Persist property changes to disk!
 
             // FIX: Sprite-Bilder sofort auf der Stage aktualisieren, wenn Medien-Eigenschaften geändert werden
-            const spriteMediaProps = ['animationId', 'imageListId', 'imageIndex', 'appearanceMode', 'videoSource'];
+            const spriteMediaProps = ['animationId', 'imageListId', 'imageIndex', 'appearanceMode', 'videoSource',
+                'sourceWidth', 'sourceHeight', 'sourceRectX', 'sourceRectY', 'sourceRectWidth', 'sourceRectHeight'];
             if (spriteMediaProps.includes(update.propertyName) &&
                 (update.object?.className === 'TSprite' || update.object?.className === 'TSpriteTemplate')) {
                 this.render();

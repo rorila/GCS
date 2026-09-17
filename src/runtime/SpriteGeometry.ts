@@ -224,6 +224,21 @@ export class SpriteGeometry {
         return { width: frameW * cols, height: frameH * rws };
     }
 
+    public static sourceRect(
+        sourceWidth: number, sourceHeight: number,
+        x: number, y: number, width: number, height: number
+    ): { widthPercent: number; heightPercent: number; tx: number; ty: number } | null {
+        if (![sourceWidth, sourceHeight, x, y, width, height].every(Number.isFinite)
+            || sourceWidth <= 0 || sourceHeight <= 0 || width <= 0 || height <= 0
+            || x < 0 || y < 0 || x + width > sourceWidth + 1e-7 || y + height > sourceHeight + 1e-7) return null;
+        return {
+            widthPercent: sourceWidth / width * 100,
+            heightPercent: sourceHeight / height * 100,
+            tx: -x / sourceWidth * 100,
+            ty: -y / sourceHeight * 100
+        };
+    }
+
     private static gcd(a: number, b: number): number {
         let x = Math.abs(a);
         let y = Math.abs(b);

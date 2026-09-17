@@ -276,6 +276,9 @@ export class FlowAction extends FlowElement {
     }
     public set target(v: string) { this.applyChange('target', v); }
 
+    public get lockDuringMove(): boolean { return this.getActionDefinition()?.lockDuringMove === true; }
+    public set lockDuringMove(v: boolean) { this.applyChange('lockDuringMove', v); }
+
     // Direct changes accessor — CRITICAL: Der Inspector ruft
     // PropertyHelper.getPropertyValue(obj, 'changes') auf und braucht
     // das Objekt direkt (nicht als JSON-String).

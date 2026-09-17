@@ -6,7 +6,7 @@
     "description": "Schritt 2: Galerie-Stage zur Bildauswahl + Bildaufteiler. Das Kind wählt in der Galerie ein Bild aus dem Ordner 'memory Tierbilder für kleine Kinder'; 'Dieses Bild nehmen' überträgt es an den Bildaufteiler. Teile weiterhin explizit über 'Teile erzeugen' generieren. Noch keine Spiellogik.",
     "_sourcePath": "projects/PuzzleNeu.json"
   },
-  "activeStageId": "stage_main",
+  "activeStageId": "stage_blueprint",
   "stage": {
     "grid": {
       "cols": 48,
@@ -92,8 +92,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         },
         {
@@ -123,8 +123,8 @@
             "borderWidth": 1
           },
           "type": "string",
-          "defaultValue": "",
-          "value": "",
+          "defaultValue": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+          "value": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
           "objectModel": ""
         }
       ],
@@ -155,7 +155,8 @@
               "name": "Hauptobjekte ausblenden",
               "changes": {
                 "Bildaufteiler.visible": "false",
-                "BtnBildAuswaehlen.visible": "false"
+                "BtnBildAuswaehlen.visible": "false",
+                "BtnPuzzleSpritesErzeugen.visible": "false"
               }
             }
           ],
@@ -283,7 +284,8 @@
               "name": "Hauptobjekte einblenden",
               "changes": {
                 "Bildaufteiler.visible": "true",
-                "BtnBildAuswaehlen.visible": "true"
+                "BtnBildAuswaehlen.visible": "true",
+                "BtnPuzzleSpritesErzeugen.visible": "true"
               }
             },
             {
@@ -294,6 +296,181 @@
             }
           ],
           "id": "pn_task_zurueck"
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "ResetPuzzleSprites",
+          "description": "Setzt den Sprite-Pool von PuzzleTeilTemplate zurueck: bisherige Instanzen werden verworfen und der Pool mit der aktuellen poolSize neu aufgebaut.",
+          "actionSequence": [
+            {
+              "name": "Pool von PuzzleTeilTemplate zuruecksetzen",
+              "type": "action"
+            }
+          ],
+          "id": "pn_task_reset_puzzle_sprites",
+          "flowLayout": {
+            "ResetPuzzleSprites": {
+              "x": 40,
+              "y": 40
+            },
+            "Pool von PuzzleTeilTemplate zuruecksetzen": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "GeneratePuzzleSprites",
+          "description": "Aktualisiert PuzzleTeile aus dem Bildaufteiler und erzeugt pro Record ein Sprite mit eigener Bildquelle, Quellrechteck und Match-Wert.",
+          "actionSequence": [
+            {
+              "name": "Bildaufteiler aktualisiert PuzzleTeile",
+              "type": "action"
+            },
+            {
+              "name": "ResetPuzzleSprites",
+              "type": "task"
+            },
+            {
+              "name": "PuzzleTeile mischen",
+              "type": "action"
+            },
+            {
+              "type": "foreach",
+              "body": [
+                {
+                  "name": "Bildausschnitt aus Datensatz ins Template",
+                  "type": "action"
+                },
+                {
+                  "name": "Puzzle-Sprite erzeugen",
+                  "type": "action"
+                }
+              ],
+              "sourceArray": "PuzzleTeile",
+              "itemVar": "PuzzleTeil",
+              "indexVar": "PuzzleTeilIndex",
+              "name": "Fuer jedes Puzzleteil"
+            }
+          ],
+          "id": "pn_task_generate_puzzle_sprites",
+          "flowLayout": {
+            "GeneratePuzzleSprites": {
+              "x": 40,
+              "y": 40
+            },
+            "Bildaufteiler aktualisiert PuzzleTeile": {
+              "x": 40,
+              "y": 140
+            },
+            "ResetPuzzleSprites": {
+              "x": 40,
+              "y": 240
+            },
+            "PuzzleTeile mischen": {
+              "x": 40,
+              "y": 330
+            },
+            "Fuer jedes Puzzleteil": {
+              "x": 40,
+              "y": 430
+            },
+            "Bildausschnitt aus Datensatz ins Template": {
+              "x": 320,
+              "y": 430
+            },
+            "Puzzle-Sprite erzeugen": {
+              "x": 340,
+              "y": 570
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "TeilAblegen",
+          "description": "Beim Loslassen auf der Zielplattform einrasten; andernfalls mit Bewegen zu zum ursprünglichen Startplatz zurückkehren.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Auf Zielplattform abgelegt",
+              "condition": {
+                "variable": "dropTargetId",
+                "operator": "==",
+                "value": "pn_zielplattform"
+              },
+              "then": [
+                {
+                  "name": "Teil einrasten lassen",
+                  "type": "action"
+                }
+              ]
+            },
+            {
+              "type": "condition",
+              "name": "Teil nicht eingerastet",
+              "condition": {
+                "variable": "self.draggable",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "name": "Teil zum Startplatz bewegen",
+                  "type": "action"
+                }
+              ]
+            }
+          ],
+          "id": "pn_task_teil_ablegen",
+          "flowLayout": {
+            "TeilAblegen": {
+              "x": 40,
+              "y": 40
+            },
+            "Auf Zielplattform abgelegt": {
+              "x": 40,
+              "y": 140
+            },
+            "Teil einrasten lassen": {
+              "x": 360,
+              "y": 240
+            },
+            "Teil nicht eingerastet": {
+              "x": 40,
+              "y": 380
+            },
+            "Teil zum Startplatz bewegen": {
+              "x": 360,
+              "y": 480
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "PuzzleGewonnen",
+          "description": "Alle Puzzleteile liegen korrekt auf der Zielplattform: Erfolgsmeldung anzeigen.",
+          "actionSequence": [
+            {
+              "name": "Erfolg anzeigen",
+              "type": "action"
+            }
+          ],
+          "id": "pn_task_puzzle_gewonnen",
+          "flowLayout": {
+            "PuzzleGewonnen": {
+              "x": 40,
+              "y": 40
+            },
+            "Erfolg anzeigen": {
+              "x": 40,
+              "y": 140
+            }
+          }
         }
       ],
       "actions": [
@@ -315,7 +492,8 @@
           "name": "Hauptobjekte einblenden",
           "changes": {
             "Bildaufteiler.visible": "true",
-            "BtnBildAuswaehlen.visible": "true"
+            "BtnBildAuswaehlen.visible": "true",
+            "BtnPuzzleSpritesErzeugen.visible": "true"
           },
           "showDetails": false,
           "target": ""
@@ -329,6 +507,109 @@
           "reset": false,
           "showDetails": false,
           "actionType": "navigate_stage"
+        },
+        {
+          "id": "pn_action_generate_records",
+          "type": "call_method",
+          "name": "Bildaufteiler aktualisiert PuzzleTeile",
+          "target": "Bildaufteiler",
+          "method": "generatePieces",
+          "params": [],
+          "target_ref": "puzzleneu_splitter"
+        },
+        {
+          "id": "pn_action_reset_pool",
+          "type": "call_method",
+          "name": "Pool von PuzzleTeilTemplate zuruecksetzen",
+          "target": "PuzzleTeilTemplate",
+          "method": "resetPool",
+          "params": [],
+          "target_ref": "pn_puzzle_teil_template"
+        },
+        {
+          "id": "pn_action_shuffle_pieces",
+          "type": "call_method",
+          "name": "PuzzleTeile mischen",
+          "target": "PuzzleTeile",
+          "method": "shuffle",
+          "params": [],
+          "target_ref": "puzzleneu_pieces"
+        },
+        {
+          "id": "pn_action_try_place",
+          "type": "call_method",
+          "name": "Teil einrasten lassen",
+          "target": "Zielplattform",
+          "method": "tryPlacePiece",
+          "params": [
+            "${draggedObj}"
+          ],
+          "resultVariable": "TeilAbgelegt",
+          "target_ref": "pn_zielplattform"
+        },
+        {
+          "id": "pn_action_return_piece",
+          "type": "move_to",
+          "name": "Teil zum Startplatz bewegen",
+          "target": "self",
+          "x": "${draggedObj.spawnX}",
+          "y": "${draggedObj.spawnY}",
+          "duration": 500,
+          "easing": "easeOut",
+          "lockDuringMove": true
+        },
+        {
+          "id": "pn_action_win_toast",
+          "type": "call_method",
+          "name": "Erfolg anzeigen",
+          "target": "Toaster",
+          "method": "show",
+          "params": [
+            "Geschafft! Das Puzzle ist fertig!",
+            "success"
+          ]
+        },
+        {
+          "id": "auto_property_1_1789572738566",
+          "details": "",
+          "type": "property",
+          "name": "Bildausschnitt aus Datensatz ins Template",
+          "changes": {
+            "PuzzleTeilTemplate.backgroundImage": "${PuzzleTeil.source}",
+            "PuzzleTeilTemplate.sourceWidth": "${PuzzleTeil.sourceWidth}",
+            "PuzzleTeilTemplate.sourceHeight": "${PuzzleTeil.sourceHeight}",
+            "PuzzleTeilTemplate.sourceRectX": "${PuzzleTeil.x}",
+            "PuzzleTeilTemplate.sourceRectY": "${PuzzleTeil.y}",
+            "PuzzleTeilTemplate.sourceRectWidth": "${PuzzleTeil.width}",
+            "PuzzleTeilTemplate.sourceRectHeight": "${PuzzleTeil.height}",
+            "PuzzleTeilTemplate.matchValue": "${PuzzleTeil.matchValue}",
+            "PuzzleTeilTemplate.imageIndex": "${PuzzleTeil.index}",
+            "PuzzleTeilTemplate.width": "${Bildaufteiler.fittedPieceWidth}",
+            "PuzzleTeilTemplate.height": "${Bildaufteiler.fittedPieceHeight}"
+          },
+          "showDetails": false,
+          "target": ""
+        },
+        {
+          "id": "auto_spawn_object_2_1789572738566",
+          "details": "",
+          "type": "spawn_object",
+          "name": "Puzzle-Sprite erzeugen",
+          "templateId": "PuzzleTeilTemplate",
+          "x": "${Bildaufteiler.x + Bildaufteiler.imageBounds.x + (PuzzleTeilIndex % Bildaufteiler.columns) * Bildaufteiler.fittedPieceWidth}",
+          "y": "${Bildaufteiler.y + Bildaufteiler.imageBounds.y + Math.floor(PuzzleTeilIndex / Bildaufteiler.columns) * Bildaufteiler.fittedPieceHeight}",
+          "showDetails": false,
+          "spawnMode": "normal",
+          "templateId_ref": "pn_puzzle_teil_template"
+        },
+        {
+          "id": "node-1789672667391",
+          "details": "",
+          "type": "property",
+          "name": "action",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
         }
       ],
       "events": {},
@@ -355,7 +636,7 @@
         "rows": 28,
         "cellSize": 26,
         "visible": false,
-        "snapToGrid": true,
+        "snapToGrid": false,
         "backgroundColor": "#101827"
       },
       "objects": [
@@ -364,13 +645,14 @@
           "id": "puzzleneu_splitter",
           "name": "Bildaufteiler",
           "scope": "stage",
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 1,
+          "x": 0,
           "y": 1,
-          "width": 19,
+          "width": 22.692307692307693,
           "height": 25,
           "zIndex": 0,
           "rotation": 0,
@@ -384,10 +666,110 @@
           "imageSource": "${GewaehltesBild}",
           "rows": 5,
           "columns": 5,
+          "coverToAspect": false,
           "showLines": true,
           "lineColor": "#ffffff",
           "previewGap": 0,
           "outputList": "PuzzleTeile"
+        },
+        {
+          "className": "TImageList",
+          "id": "pn_puzzle_bild_frames",
+          "name": "PuzzleBildFrames",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 22,
+          "y": 12,
+          "width": 8,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "${GewaehltesBild}",
+          "objectFit": "contain",
+          "alt": "Puzzlebild-Frames",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": "${Bildaufteiler.columns}",
+          "imageCountVertical": "${Bildaufteiler.rows}",
+          "currentImageNumber": 0,
+          "maxImageCount": null
+        },
+        {
+          "className": "TSpriteTemplate",
+          "id": "pn_puzzle_teil_template",
+          "name": "PuzzleTeilTemplate",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": true,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onDragEnd": "TeilAblegen"
+          },
+          "visible": true,
+          "x": 22.28846153846154,
+          "y": 14.115384615384615,
+          "width": 5.023076923076923,
+          "height": 6.407692307692307,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#ffffff",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "transparent",
+          "appearanceMode": "sourceRect",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "matchValue": "",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0,
+          "poolSize": "${PuzzleTeile.length}",
+          "autoRecycle": false,
+          "lifetime": 0
         },
         {
           "className": "TButton",
@@ -401,8 +783,8 @@
             "onClick": "GalerieOeffnen"
           },
           "visible": true,
-          "x": 20,
-          "y": 3,
+          "x": 15,
+          "y": 26,
           "width": 9,
           "height": 2,
           "zIndex": 0,
@@ -422,6 +804,69 @@
           "icon": ""
         },
         {
+          "className": "TPuzzleBoard",
+          "id": "pn_zielplattform",
+          "name": "Zielplattform",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": true,
+          "dragMode": "move",
+          "events": {
+            "onComplete": "PuzzleGewonnen"
+          },
+          "visible": true,
+          "x": 24.71153846153846,
+          "y": 1,
+          "width": "${Bildaufteiler.width}",
+          "height": "${Bildaufteiler.height}",
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#182235",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageSource": "${GewaehltesBild}",
+          "columns": "${Bildaufteiler.columns}",
+          "rows": "${Bildaufteiler.rows}",
+          "ghostOpacity": 0.05,
+          "snapRadius": 4
+        },
+        {
+          "className": "TButton",
+          "id": "pn_btn_puzzle_sprites_erzeugen",
+          "name": "BtnPuzzleSpritesErzeugen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GeneratePuzzleSprites"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 26,
+          "width": 11,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#15915f",
+            "borderColor": "#0e6844",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "Puzzle-Sprites erzeugen",
+          "icon": ""
+        },
+        {
           "className": "TObjectList",
           "id": "puzzleneu_pieces",
           "name": "PuzzleTeile",
@@ -433,8 +878,8 @@
           "dragMode": "move",
           "description": "",
           "visible": true,
-          "x": 32,
-          "y": 2,
+          "x": 33,
+          "y": 1,
           "width": 13,
           "height": 22,
           "zIndex": 0,
@@ -460,13 +905,13 @@
               "row": 0,
               "column": 0,
               "matchValue": "r0_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
               "y": 0,
-              "width": 85.4,
-              "height": 128
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r0_c1",
@@ -474,13 +919,13 @@
               "row": 0,
               "column": 1,
               "matchValue": "r0_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
               "y": 0,
-              "width": 85.4,
-              "height": 128
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r0_c2",
@@ -488,321 +933,97 @@
               "row": 0,
               "column": 2,
               "matchValue": "r0_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
               "y": 0,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r0_c3",
-              "index": 3,
-              "row": 0,
-              "column": 3,
-              "matchValue": "r0_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 0,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r0_c4",
-              "index": 4,
-              "row": 0,
-              "column": 4,
-              "matchValue": "r0_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 0,
-              "width": 85.4,
-              "height": 128
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r1_c0",
-              "index": 5,
+              "index": 3,
               "row": 1,
               "column": 0,
               "matchValue": "r1_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r1_c1",
-              "index": 6,
+              "index": 4,
               "row": 1,
               "column": 1,
               "matchValue": "r1_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r1_c2",
-              "index": 7,
+              "index": 5,
               "row": 1,
               "column": 2,
               "matchValue": "r1_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r1_c3",
-              "index": 8,
-              "row": 1,
-              "column": 3,
-              "matchValue": "r1_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r1_c4",
-              "index": 9,
-              "row": 1,
-              "column": 4,
-              "matchValue": "r1_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r2_c0",
-              "index": 10,
+              "index": 6,
               "row": 2,
               "column": 0,
               "matchValue": "r2_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r2_c1",
-              "index": 11,
+              "index": 7,
               "row": 2,
               "column": 1,
               "matchValue": "r2_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r2_c2",
-              "index": 12,
+              "index": 8,
               "row": 2,
               "column": 2,
               "matchValue": "r2_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r2_c3",
-              "index": 13,
-              "row": 2,
-              "column": 3,
-              "matchValue": "r2_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r2_c4",
-              "index": 14,
-              "row": 2,
-              "column": 4,
-              "matchValue": "r2_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c0",
-              "index": 15,
-              "row": 3,
-              "column": 0,
-              "matchValue": "r3_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c1",
-              "index": 16,
-              "row": 3,
-              "column": 1,
-              "matchValue": "r3_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c2",
-              "index": 17,
-              "row": 3,
-              "column": 2,
-              "matchValue": "r3_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c3",
-              "index": 18,
-              "row": 3,
-              "column": 3,
-              "matchValue": "r3_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c4",
-              "index": 19,
-              "row": 3,
-              "column": 4,
-              "matchValue": "r3_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c0",
-              "index": 20,
-              "row": 4,
-              "column": 0,
-              "matchValue": "r4_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c1",
-              "index": 21,
-              "row": 4,
-              "column": 1,
-              "matchValue": "r4_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c2",
-              "index": 22,
-              "row": 4,
-              "column": 2,
-              "matchValue": "r4_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c3",
-              "index": 23,
-              "row": 4,
-              "column": 3,
-              "matchValue": "r4_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c4",
-              "index": 24,
-              "row": 4,
-              "column": 4,
-              "matchValue": "r4_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
             }
           ],
           "columns": [
@@ -849,13 +1070,13 @@
               "row": 0,
               "column": 0,
               "matchValue": "r0_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
               "y": 0,
-              "width": 85.4,
-              "height": 128
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r0_c1",
@@ -863,13 +1084,13 @@
               "row": 0,
               "column": 1,
               "matchValue": "r0_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
               "y": 0,
-              "width": 85.4,
-              "height": 128
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r0_c2",
@@ -877,321 +1098,97 @@
               "row": 0,
               "column": 2,
               "matchValue": "r0_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
               "y": 0,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r0_c3",
-              "index": 3,
-              "row": 0,
-              "column": 3,
-              "matchValue": "r0_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 0,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r0_c4",
-              "index": 4,
-              "row": 0,
-              "column": 4,
-              "matchValue": "r0_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 0,
-              "width": 85.4,
-              "height": 128
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r1_c0",
-              "index": 5,
+              "index": 3,
               "row": 1,
               "column": 0,
               "matchValue": "r1_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r1_c1",
-              "index": 6,
+              "index": 4,
               "row": 1,
               "column": 1,
               "matchValue": "r1_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r1_c2",
-              "index": 7,
+              "index": 5,
               "row": 1,
               "column": 2,
               "matchValue": "r1_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r1_c3",
-              "index": 8,
-              "row": 1,
-              "column": 3,
-              "matchValue": "r1_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r1_c4",
-              "index": 9,
-              "row": 1,
-              "column": 4,
-              "matchValue": "r1_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 128,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r2_c0",
-              "index": 10,
+              "index": 6,
               "row": 2,
               "column": 0,
               "matchValue": "r2_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r2_c1",
-              "index": 11,
+              "index": 7,
               "row": 2,
               "column": 1,
               "matchValue": "r2_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
             },
             {
               "id": "puzzleneu_splitter_r2_c2",
-              "index": 12,
+              "index": 8,
               "row": 2,
               "column": 2,
               "matchValue": "r2_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r2_c3",
-              "index": 13,
-              "row": 2,
-              "column": 3,
-              "matchValue": "r2_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r2_c4",
-              "index": 14,
-              "row": 2,
-              "column": 4,
-              "matchValue": "r2_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 256,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c0",
-              "index": 15,
-              "row": 3,
-              "column": 0,
-              "matchValue": "r3_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c1",
-              "index": 16,
-              "row": 3,
-              "column": 1,
-              "matchValue": "r3_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c2",
-              "index": 17,
-              "row": 3,
-              "column": 2,
-              "matchValue": "r3_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c3",
-              "index": 18,
-              "row": 3,
-              "column": 3,
-              "matchValue": "r3_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r3_c4",
-              "index": 19,
-              "row": 3,
-              "column": 4,
-              "matchValue": "r3_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 384,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c0",
-              "index": 20,
-              "row": 4,
-              "column": 0,
-              "matchValue": "r4_c0",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 0,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c1",
-              "index": 21,
-              "row": 4,
-              "column": 1,
-              "matchValue": "r4_c1",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 85.4,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c2",
-              "index": 22,
-              "row": 4,
-              "column": 2,
-              "matchValue": "r4_c2",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 170.8,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c3",
-              "index": 23,
-              "row": 4,
-              "column": 3,
-              "matchValue": "r4_c3",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 256.20000000000005,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
-            },
-            {
-              "id": "puzzleneu_splitter_r4_c4",
-              "index": 24,
-              "row": 4,
-              "column": 4,
-              "matchValue": "r4_c4",
-              "source": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
-              "sourceWidth": 427,
-              "sourceHeight": 640,
-              "x": 341.6,
-              "y": 512,
-              "width": 85.4,
-              "height": 128
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
             }
           ],
           "recordKey": "id",
@@ -1205,7 +1202,17 @@
       ],
       "variables": [],
       "tasks": [],
-      "actions": [],
+      "actions": [
+        {
+          "id": "node-1789579521958",
+          "details": "",
+          "type": "property",
+          "name": "action",
+          "showDetails": false,
+          "target": "",
+          "changes": {}
+        }
+      ],
       "events": {},
       "flowCharts": {}
     },

@@ -16,6 +16,7 @@ export class StageInteractionManager {
     private dragStart: { x: number, y: number } | null = null;
     private dragStartRel: { x: number, y: number } | null = null;
     private dragObjId: string | null = null;
+    private dragObjStartGrid: { x: number, y: number } | null = null;
     private initialSize: { w: number, h: number } | null = null;
     private initialPos: { left: number, top: number } | null = null;
     private isCopyDrag: boolean = false;
@@ -252,6 +253,14 @@ export class StageInteractionManager {
                         this.dragStart = { x: e.clientX, y: e.clientY };
                         this.isDragging = true;
                         this.dragObjId = id;
+                        // Ohne diese beiden Startwerte brechen mousemove/mouseup
+                        // im Run-Modus still ab — dragStartRel war frueher nur im
+                        // Editor-Pfad gesetzt. dragObjStartGrid merkt die Objekt-
+                        // position in Zellen, weil Run-Mode-Elemente ueber CSS
+                        // 'translate' positioniert werden und el.style.left dort 0 ist.
+                        const coords = this.getRelativeCoordinates(e);
+                        this.dragStartRel = { x: coords.x, y: coords.y };
+                        this.dragObjStartGrid = { x: obj.x || 0, y: obj.y || 0 };
 
                         if (obj.dragMode === 'copy') {
                             this.isCopyDrag = true;
@@ -535,14 +544,48 @@ export class StageInteractionManager {
                     const el = this.host.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
                     if (el) {
                         el.style.transform = '';
-                        const gridX = this.snap(parseFloat(el.style.left || '0') + dx);
-                        const gridY = this.snap(parseFloat(el.style.top || '0') + dy);
+                        const cellSize = this.host.grid.cellSize || 20;
+                        const startX = (this.dragObjStartGrid?.x || 0) * cellSize;
+                        const startY = (this.dragObjStartGrid?.y || 0) * cellSize;
+                        const gridX = this.snap(startX + dx);
+                        const gridY = this.snap(startY + dy);
                         if (this.isCopyDrag && this.host.onObjectCopy) this.host.onObjectCopy(this.dragObjId, Math.max(0, gridX), Math.max(0, gridY));
                         else if (!this.isCopyDrag && this.host.onObjectMove) this.host.onObjectMove(this.dragObjId, Math.max(0, gridX), Math.max(0, gridY));
+
+                        // Drop-Erkennung wie im Standalone-Player: liegt unter dem
+                        // Loslass-Punkt ein droppable Objekt, wird sein onDrop-Event
+                        // gefeuert (z.B. Puzzle-Zielablage mit Snap-Logik).
+                        if (!this.isCopyDrag && this.host.onEvent) {
+                            const draggedObj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === this.dragObjId);
+                            let dropTargetId: string | null = null;
+                            for (const elAtPoint of document.elementsFromPoint(e.clientX, e.clientY)) {
+                                const targetEl = (elAtPoint as HTMLElement).closest('.game-object') as HTMLElement | null;
+                                const targetId = targetEl?.getAttribute('data-id');
+                                if (!targetEl || !targetId || targetId === this.dragObjId) continue;
+                                const targetObj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === targetId);
+                                if (targetObj && targetObj.droppable) {
+                                    dropTargetId = targetId;
+                                    this.host.onEvent(targetId, 'onDrop', {
+                                        draggedId: this.dragObjId,
+                                        draggedName: draggedObj?.name || this.dragObjId,
+                                        draggedObj,
+                                        x: coords.x, y: coords.y
+                                    });
+                                    break;
+                                }
+                            }
+                            this.host.onEvent(this.dragObjId, 'onDragEnd', {
+                                draggedId: this.dragObjId,
+                                draggedName: draggedObj?.name || this.dragObjId,
+                                draggedObj,
+                                dropTargetId,
+                                x: coords.x, y: coords.y
+                            });
+                        }
                     }
                 }
                 if (this.dragGhost) { this.dragGhost.remove(); this.dragGhost = null; }
-                this.isCopyDrag = false; this.isDragging = false; this.dragObjId = null; this.dragStart = null;
+                this.isCopyDrag = false; this.isDragging = false; this.dragObjId = null; this.dragStart = null; this.dragStartRel = null; this.dragObjStartGrid = null;
             }
             return;
         }

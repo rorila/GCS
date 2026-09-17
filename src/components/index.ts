@@ -34,6 +34,7 @@ export * from './THeartbeat';
 export * from './TImage';
 export * from './TImageList';
 export * from './TImageSplitter';
+export * from './TPuzzleBoard';
 export * from './TImageGallery';
 export * from './TInfoWindow';
 export * from './TInputController';

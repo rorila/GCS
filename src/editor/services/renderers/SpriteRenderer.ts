@@ -23,7 +23,8 @@ export class SpriteRenderer {
         const appearanceMode = obj.appearanceMode || (obj.animationId ? 'animation' : (obj.imageListId ? 'spritesheet' : (obj.videoSource ? 'video' : (obj.backgroundImage ? 'simple' : 'simple'))));
         let imageListId = obj.imageListId || '';
         const useImageList = appearanceMode === 'spritesheet' || appearanceMode === 'animation';
-        const hasDirectImage = appearanceMode === 'simple' && !!obj.backgroundImage;
+        const hasSourceRect = appearanceMode === 'sourceRect';
+        const hasDirectImage = (appearanceMode === 'simple' || hasSourceRect) && !!obj.backgroundImage;
         const hasVideo = appearanceMode === 'video' && !!obj.videoSource;
 
         // Bei Animation: TAnimation auflösen und deren imageListId verwenden
@@ -85,7 +86,7 @@ export class SpriteRenderer {
             el.style.borderColor = 'transparent';
 
             let imgEl = el.querySelector('.sprite-image-layer') as HTMLElement;
-            const expectedTag = hasVideo ? 'video' : (imageListObj ? 'div' : 'img');
+            const expectedTag = hasVideo ? 'video' : (imageListObj || hasSourceRect ? 'div' : 'img');
 
             let bgImg = '';
             let src = '';
@@ -124,11 +125,12 @@ export class SpriteRenderer {
                 (el as any)._spritePathLogged = true;
             }
 
-            const isCorrectLayer = imgEl && imgEl.tagName.toLowerCase() === expectedTag;
+            const isCorrectLayer = imgEl && imgEl.tagName.toLowerCase() === expectedTag
+                && (imgEl.dataset.sourceRect === 'true') === hasSourceRect;
             if (!isCorrectLayer) {
                 if (imgEl) imgEl.remove();
 
-                if (imageListObj) {
+                if (imageListObj || hasSourceRect) {
                     imgEl = document.createElement('div');
                     // Maske: zeigt genau ein Frame-Fenster des Blatts.
                     imgEl.style.overflow = 'hidden';
@@ -145,6 +147,7 @@ export class SpriteRenderer {
                 }
 
                 imgEl.className = 'sprite-image-layer';
+                imgEl.dataset.sourceRect = String(hasSourceRect);
                 imgEl.style.position = 'absolute';
                 imgEl.style.top = '0';
                 imgEl.style.left = '0';
@@ -157,7 +160,9 @@ export class SpriteRenderer {
                 el.appendChild(imgEl);
             }
 
-            if (imageListObj) {
+            if (hasSourceRect) {
+                SpriteRenderer.renderSourceRect(imgEl, obj, src, ctx.host.grid.cellSize);
+            } else if (imageListObj) {
                 const hCount = imageListObj.imageCountHorizontal || 1;
                 const vCount = imageListObj.imageCountVertical || 1;
                 const rawIndex = appearanceMode === 'animation'
@@ -365,6 +370,43 @@ export class SpriteRenderer {
         sheet.style.backfaceVisibility = 'hidden';
         sheet.style.pointerEvents = 'none';
         return sheet;
+    }
+
+    private static renderSourceRect(mask: HTMLElement, obj: any, src: string, cellSize: number): void {
+        const sw = Number(obj.sourceWidth), sh = Number(obj.sourceHeight);
+        const x = Number(obj.sourceRectX), y = Number(obj.sourceRectY);
+        const w = Number(obj.sourceRectWidth), h = Number(obj.sourceRectHeight);
+        const rect = SpriteGeometry.sourceRect(sw, sh, x, y, w, h);
+        const boxWidth = Number(obj.width), boxHeight = Number(obj.height);
+        if (!rect || !Number.isFinite(boxWidth) || !Number.isFinite(boxHeight) || boxWidth <= 0 || boxHeight <= 0) {
+            mask.style.display = 'none';
+            return;
+        }
+        const sheet = mask.querySelector('.sprite-sheet-layer') as HTMLElement;
+        const cache = sheet as any;
+        if (cache._bgSrc !== src) {
+            cache._bgSrc = src;
+            sheet.style.backgroundImage = `url("${SpriteRenderer.encodeImageUrl(src)}")`;
+        }
+        const frameAspect = w / h, boxAspect = boxWidth / boxHeight;
+        let fit = SpriteGeometry.containFit(frameAspect, boxAspect);
+        if (obj.objectFit === 'fill') {
+            fit = { widthPercent: 100, heightPercent: 100, leftPercent: 0, topPercent: 0 };
+        } else if (obj.objectFit === 'cover' || obj.objectFit === 'none') {
+            const widthPercent = obj.objectFit === 'none' ? w / (boxWidth * cellSize) * 100 : Math.max(100, frameAspect / boxAspect * 100);
+            const heightPercent = obj.objectFit === 'none' ? h / (boxHeight * cellSize) * 100 : Math.max(100, boxAspect / frameAspect * 100);
+            fit = { widthPercent, heightPercent, leftPercent: (100 - widthPercent) / 2, topPercent: (100 - heightPercent) / 2 };
+        }
+        mask.style.width = `${fit.widthPercent}%`;
+        mask.style.height = `${fit.heightPercent}%`;
+        mask.style.left = `${fit.leftPercent}%`;
+        mask.style.top = `${fit.topPercent}%`;
+        sheet.style.width = `${rect.widthPercent}%`;
+        sheet.style.height = `${rect.heightPercent}%`;
+        sheet.style.backgroundSize = '100% 100%';
+        sheet.style.transform = `translate(${rect.tx}%, ${rect.ty}%)`;
+        cache._frame = { col: x / w, row: y / h, hCount: sw / w, vCount: sh / h };
+        mask.style.display = '';
     }
 
     private static encodeImageUrl(url: string): string {

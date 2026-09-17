@@ -8,6 +8,7 @@ import { TableRenderer } from './TableRenderer';
 import { TetrisRenderer } from './TetrisRenderer';
 import { GridBoardRenderer } from './GridBoardRenderer';
 import { ImageSplitterRenderer } from './ImageSplitterRenderer';
+import { PuzzleBoardRenderer } from './PuzzleBoardRenderer';
 import { ImageGalleryRenderer } from './ImageGalleryRenderer';
 import { SpriteRenderer } from './SpriteRenderer';
 import { ShapeRenderer } from './ShapeRenderer';
@@ -382,7 +383,14 @@ export class StageObjectRenderer {
                 };
             };
 
-            if (hasDragStart || hasDragEnd) {
+            if (obj.draggable || el.dataset.pointerDrag === 'true') {
+                el.dataset.pointerDrag = 'true';
+                el.draggable = false;
+                el.ondragstart = (e: DragEvent) => { e.preventDefault(); e.stopPropagation(); };
+                el.ondragend = null;
+                el.style.touchAction = 'none';
+                el.style.userSelect = 'none';
+            } else if (hasDragStart || hasDragEnd) {
                 el.draggable = true;
                 if (hasDragStart) {
                     el.ondragstart = (e: DragEvent) => {
@@ -598,11 +606,12 @@ export class StageObjectRenderer {
             (el as any).runModeTraceDone = true;
         }
 
-        if (bgImg && (className === 'TSprite' || className === 'TSpriteTemplate')) {
+        if (className === 'TSprite' || className === 'TSpriteTemplate') {
             el.style.background = bgColor;
             el.style.backgroundImage = 'none';
             const spriteFp = (el as any)._fp;
             if (spriteFp) spriteFp.bgImage = undefined;
+            return;
         }
 
         if (bgImg) {
@@ -717,6 +726,7 @@ export class StageObjectRenderer {
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
         else if (className === 'TSlider') InputRenderer.renderSlider(ctx, el, obj, isNew);
         else if (className === 'TImageSplitter') ImageSplitterRenderer.render(el, obj);
+        else if (className === 'TPuzzleBoard') PuzzleBoardRenderer.render(el, obj);
         else if (className === 'TImageGallery') ImageGalleryRenderer.render(ctx, el, obj);
         else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) TextObjectRenderer.renderLabel(ctx, el, obj);
     }

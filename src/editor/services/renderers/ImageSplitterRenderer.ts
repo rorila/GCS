@@ -4,6 +4,9 @@ interface PreviewConfig extends ImageSplitConfig {
     showLines?: boolean;
     lineColor?: string;
     previewGap?: number;
+    coverToAspect?: boolean;
+    width?: number;
+    height?: number;
 }
 
 interface PreviewState {
@@ -18,11 +21,13 @@ const svgNS = 'http://www.w3.org/2000/svg';
 
 export class ImageSplitterRenderer {
     public static render(el: HTMLElement, obj: PreviewConfig): void {
+        const aspect = obj.coverToAspect && Number(obj.height) ? Number(obj.width) / Number(obj.height) : undefined;
         const config = {
             id: obj.id, imageSource: obj.imageSource || '', rows: obj.rows ?? 2, columns: obj.columns ?? 3,
+            targetAspect: aspect,
             showLines: obj.showLines !== false, lineColor: obj.lineColor || '#ffffff', previewGap: obj.previewGap ?? 0
         };
-        const key = JSON.stringify(config);
+        const key = JSON.stringify({ ...config, targetAspect: aspect });
         const previous = previews.get(el);
         if (previous?.key === key && previous.content.parentElement === el) return;
         let content = previous?.content;
@@ -54,8 +59,18 @@ export class ImageSplitterRenderer {
     public static createPreview(config: PreviewConfig, width: number, height: number): SVGSVGElement {
         const pieces = createImagePieces(config, width, height);
         const gap = Number.isFinite(config.previewGap) ? Math.max(0, Math.min(100, config.previewGap!)) : 0;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const piece of pieces) {
+            minX = Math.min(minX, piece.x);
+            minY = Math.min(minY, piece.y);
+            maxX = Math.max(maxX, piece.x + piece.width);
+            maxY = Math.max(maxY, piece.y + piece.height);
+        }
+        // Add gaps between tiles for outer viewBox
+        const totalW = (maxX - minX) + (config.columns - 1) * gap;
+        const totalH = (maxY - minY) + (config.rows - 1) * gap;
         const svg = document.createElementNS(svgNS, 'svg');
-        svg.setAttribute('viewBox', `0 0 ${width + (config.columns - 1) * gap} ${height + (config.rows - 1) * gap}`);
+        svg.setAttribute('viewBox', `${minX} ${minY} ${totalW} ${totalH}`);
         svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
         svg.setAttribute('width', '100%');
         svg.setAttribute('height', '100%');
@@ -79,7 +94,10 @@ export class ImageSplitterRenderer {
             tile.appendChild(image);
             if (config.showLines !== false) {
                 const line = document.createElementNS(svgNS, 'rect');
-                for (const name of ['x', 'y', 'width', 'height'] as const) line.setAttribute(name, String(piece[name]));
+                line.setAttribute('x', '0');
+                line.setAttribute('y', '0');
+                line.setAttribute('width', String(piece.width));
+                line.setAttribute('height', String(piece.height));
                 line.setAttribute('fill', 'none');
                 line.setAttribute('stroke', config.lineColor || '#ffffff');
                 line.setAttribute('stroke-width', '2');

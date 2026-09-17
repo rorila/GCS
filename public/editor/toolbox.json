@@ -76,6 +76,11 @@
           "label": "Bildaufteiler"
         },
         {
+          "type": "PuzzleBoard",
+          "icon": "🧩",
+          "label": "Puzzle-Ablage"
+        },
+        {
           "type": "ImageGallery",
           "icon": "IG",
           "label": "Bildergalerie"

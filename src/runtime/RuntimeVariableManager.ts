@@ -87,12 +87,15 @@ export class RuntimeVariableManager {
 
         variableObjects.forEach(v => {
             // Convert component to a "variable definition" like structure for importVariables
+            const componentValue = v.className === 'TObjectList' && v.sourceMode === 'records'
+                ? (v.records || v.data || [])
+                : (v.value !== undefined ? v.value : (v.entries || v.items || v.data));
             const vDef = {
                 id: v.id,
                 name: v.name,
                 scope: v.scope || 'stage',
-                value: v.value !== undefined ? v.value : (v.entries || v.items || v.data),
-                defaultValue: v.defaultValue !== undefined ? v.defaultValue : (v.value !== undefined ? v.value : (v.entries || v.items || v.data)),
+                value: componentValue,
+                defaultValue: v.defaultValue !== undefined ? v.defaultValue : componentValue,
                 isInteger: v.isInteger !== undefined ? v.isInteger : (v.className === 'TIntegerVariable' || v.className === 'TRandomVariable'),
                 threshold: v.threshold,
                 comparison: v.comparison,
@@ -175,6 +178,29 @@ export class RuntimeVariableManager {
         });
     }
 
+    /**
+     * Loest einen gespeicherten Variablenwert gegen die Live-Komponente auf.
+     * Listen-Komponenten (TObjectList & Co.) ersetzen ihr Daten-Array zur
+     * Laufzeit (z.B. replaceRecords) — stageVariables/projectVariables halten
+     * nur den Import-Snapshot, sodass ForEach und ${Liste.length} sonst auf
+     * veralteten Datensaetzen arbeiten wuerden.
+     */
+    private resolveStoredValue(stored: any, prop: string): any {
+        if (!Array.isArray(stored)) return stored;
+        const component = (this.host as any).objects?.find((o: any) =>
+            (o.name === prop || o.id === prop) && o.isVariable === true);
+        if (!component) return stored;
+        // Records-Modus: records ist die kanonische Quelle (data kann nach
+        // der Hydration noch leer sein, bis rebuildData gelaufen ist).
+        if (component.sourceMode === 'records' && Array.isArray(component.records)) {
+            return component.records;
+        }
+        if (Array.isArray(component.data)) return component.data;
+        if (Array.isArray(component.records)) return component.records;
+        if (Array.isArray(component.items)) return component.items;
+        return stored;
+    }
+
     public createStageProxy(stage: any): any {
         return new Proxy({}, {
             get: (_target, prop: string) => {
@@ -203,8 +229,8 @@ export class RuntimeVariableManager {
                 if (prop === 'global') return this.projectVariables;
                 if (prop === 'stage') return this.stageVariables;
 
-                if (prop in this.stageVariables) return this.stageVariables[prop];
-                if (prop in this.projectVariables) return this.projectVariables[prop];
+                if (prop in this.stageVariables) return this.resolveStoredValue(this.stageVariables[prop], prop);
+                if (prop in this.projectVariables) return this.resolveStoredValue(this.projectVariables[prop], prop);
                 return undefined;
             },
             set: (_target, prop: string, value: any) => {
@@ -277,6 +303,11 @@ export class RuntimeVariableManager {
                         // TObjectList uses .data for its array content
                         if (JSON.stringify(component.data) !== JSON.stringify(value)) {
                             component.data = value;
+                            // Records-Modus: records ist die kanonische Quelle —
+                            // resolveStoredValue liest sie bevorzugt.
+                            if (component.sourceMode === 'records' && Array.isArray(component.records)) {
+                                component.records = value;
+                            }
                             componentUpdated = true;
                             RuntimeVariableManager.logger.debug(`[Sync] ${prop} → component.data (${value.length} items)`);
                         }

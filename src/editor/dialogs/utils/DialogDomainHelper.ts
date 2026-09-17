@@ -71,7 +71,9 @@ export class DialogDomainHelper {
             return Array.from(new Set(props));
         }
 
-        const objects = projectObjectRegistry.getObjects();
+        // 'all': Aktionsziele koennen auf anderen Stages liegen (z.B. Blueprint-Flow
+        // referenziert Template auf stage_main) — sonst leere Methoden-/Propertyliste.
+        const objects = projectObjectRegistry.getObjects('all');
         const objData = objects.find(o => o.name === objectName);
         if (!objData) return ["x", "y", "width", "height", "caption", "text", "style.visible"];
 
@@ -103,13 +105,13 @@ export class DialogDomainHelper {
                 methods.push("roll");
             }
             if (vt.includes('list')) {
-                methods.push("add", "remove", "clear", "contains", "sort");
+                methods.push("add", "remove", "clear", "contains", "sort", "shuffle");
             }
 
             return Array.from(new Set(methods));
         }
 
-        const objects = projectObjectRegistry.getObjects();
+        const objects = projectObjectRegistry.getObjects('all');
         const objData = objects.find(o => o.name === objectName);
         if (!objData) {
             const serviceMethods = serviceRegistry.listMethods(objectName);
@@ -137,6 +139,9 @@ export class DialogDomainHelper {
             'TCard': ['show', 'hide', 'toggle', 'moveTo', 'flip'],
             'TImage': ['setSrc', 'show', 'hide', 'moveTo', 'flip'],
             'TImageSplitter': ['generatePieces'],
+            'TSpriteTemplate': ['resetPool'],
+            'TPuzzleBoard': ['tryPlacePiece', 'resetBoard'],
+            'TObjectList': ['shuffle'],
             'TImageGallery': ['selectImage', 'getSelectedImage'],
             'TVideo': ['play', 'pause', 'stop', 'setSrc', 'moveTo'],
             'TLink': ['open', 'show', 'hide', 'moveTo'],

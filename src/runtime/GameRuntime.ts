@@ -217,6 +217,7 @@ public start() {
             contextVars: this.contextVars,
             spawnObject: (templateId: string, x?: number, y?: number) => this.spawnObject(templateId, x, y),
             destroyObject: (instanceId: string) => this.destroyObject(instanceId),
+            resetSpritePool: (template: any) => this.objectService.resetSpritePool(this, template),
             markSpriteDirty: (sprite: any) => GameLoopManager.getInstance().markSpriteDirty(sprite),
             // Feature C: TForEach-Callbacks für dynamisches Spawning/Destroying
             addObject: (obj: any) => {
