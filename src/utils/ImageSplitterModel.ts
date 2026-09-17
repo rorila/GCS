@@ -1,3 +1,5 @@
+import { createPuzzleEdges } from './PuzzleShape';
+
 export interface ImageSplitConfig {
     id: string;
     imageSource: string;
@@ -5,6 +7,7 @@ export interface ImageSplitConfig {
     columns: number;
     /** Ziel-Seitenverhaeltnis (Breite/Hoehe) fuer Cover-Crop. Fehlt es, wird das ganze Bild verwendet. */
     targetAspect?: number;
+    pieceShape?: 'rectangle' | 'puzzle';
 }
 
 export interface ImagePiece {
@@ -20,6 +23,7 @@ export interface ImagePiece {
     y: number;
     width: number;
     height: number;
+    puzzleEdges?: string;
 }
 
 export function validateImageSplit(config: ImageSplitConfig): string | null {
@@ -52,6 +56,7 @@ export function createImagePieces(config: ImageSplitConfig, sourceWidth: number,
     }
     const width = cropW / config.columns;
     const height = cropH / config.rows;
+    const edges = config.pieceShape === 'puzzle' ? createPuzzleEdges(config.rows, config.columns) : [];
     return Array.from({ length: config.rows * config.columns }, (_, index) => {
         const row = Math.floor(index / config.columns), column = index % config.columns;
         return {
@@ -60,7 +65,8 @@ export function createImagePieces(config: ImageSplitConfig, sourceWidth: number,
             sourceWidth, sourceHeight,
             x: cropX + column * width,
             y: cropY + row * height,
-            width, height
+            width, height,
+            puzzleEdges: edges[index] || ''
         };
     });
 }

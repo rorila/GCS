@@ -28,6 +28,7 @@ export class TSprite extends TWindow {
     public sourceRectY: number = 0;
     public sourceRectWidth: number = 0;
     public sourceRectHeight: number = 0;
+    public puzzleEdges: string = '';
     public matchValue: string | number = '';
 
     // TImageList support
@@ -140,6 +141,7 @@ export class TSprite extends TWindow {
             { name: 'sourceRectY', label: 'Ausschnitt Y (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
             { name: 'sourceRectWidth', label: 'Ausschnittbreite (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
             { name: 'sourceRectHeight', label: 'Ausschnitthoehe (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
+            { name: 'puzzleEdges', label: 'Puzzlekanten', type: 'string', group: 'BILDAUSSCHNITT', hint: 'Oben,rechts,unten,links: 0 = gerade, 1 = Zapfen, -1 = Einbuchtung. Leer = Rechteck.' },
             { name: 'matchValue', label: 'Match-Wert', type: 'string', group: 'DATEN' },
             { name: 'sepSpritesheet', label: 'Sprite-Sheet', type: 'separator', group: 'Appearance', serializable: false, editorOnly: true },
             { name: 'imageListId', label: 'Sprite Sheet', type: 'select', source: 'imageLists', group: 'Appearance', hint: 'Verknüpft das Sprite mit einer TImageList' },
@@ -364,6 +366,7 @@ export class TSprite extends TWindow {
             sourceRectY: this.sourceRectY,
             sourceRectWidth: this.sourceRectWidth,
             sourceRectHeight: this.sourceRectHeight,
+            puzzleEdges: this.puzzleEdges,
             matchValue: this.matchValue,
             imageListId: this.imageListId,
             imageIndex: this.imageIndex,

@@ -2,12 +2,14 @@ import { TWindow } from './TWindow';
 import { TPropertyDef } from '../model/InspectorTypes';
 import { ImagePiece, prepareImagePieces, fitImageBounds } from '../utils/ImageSplitterModel';
 import { ComponentRegistry } from '../utils/ComponentRegistry';
+import { PUZZLE_TAB_DEPTH } from '../utils/PuzzleShape';
 
 export class TImageSplitter extends TWindow {
     public className = 'TImageSplitter';
     public imageSource = '';
     public rows = 2;
     public columns = 3;
+    public pieceShape: 'rectangle' | 'puzzle' = 'rectangle';
     /** Aktiv: Ausschnitte werden auf das Seitenverhaeltnis des Splitters zugeschnitten (cover), damit Teile ihre Box komplett fuellen. */
     public coverToAspect = false;
     public showLines = true;
@@ -26,6 +28,22 @@ export class TImageSplitter extends TWindow {
 
     public get fittedPieceWidth(): number { return this.imageBounds.width / Math.max(1, Number(this.columns) || 1); }
     public get fittedPieceHeight(): number { return this.imageBounds.height / Math.max(1, Number(this.rows) || 1); }
+
+    public get trayLayout() {
+        const bounds = this.imageBounds;
+        const w = this.fittedPieceWidth, h = this.fittedPieceHeight;
+        if (this.pieceShape !== 'puzzle') return { x: bounds.x, y: bounds.y, width: w, height: h, stepX: w, stepY: h };
+        const cols = Math.max(1, Number(this.columns) || 1), rows = Math.max(1, Number(this.rows) || 1);
+        const tab = Math.min(w, h) * (PUZZLE_TAB_DEPTH + 0.01), gap = Math.min(w, h) * 0.08;
+        const totalW = cols * (w + 2 * tab) + (cols - 1) * gap;
+        const totalH = rows * (h + 2 * tab) + (rows - 1) * gap;
+        return {
+            x: Math.max(0, (Number(this.width) - totalW) / 2) + tab,
+            y: Math.max(0, (Number(this.height) - totalH) / 2) + tab,
+            width: w, height: h,
+            stepX: w + 2 * tab + gap, stepY: h + 2 * tab + gap
+        };
+    }
 
     constructor(name: string, x: number, y: number, width = 24, height = 16) {
         super(name, x, y, width, height);
@@ -46,6 +64,7 @@ export class TImageSplitter extends TWindow {
             { name: 'imageSource', label: 'Bildquelle', type: 'image_picker', group: 'BILD' },
             { name: 'rows', label: 'Zeilen', type: 'number', min: 1, max: 32, step: 1, group: 'AUFTEILUNG' },
             { name: 'columns', label: 'Spalten', type: 'number', min: 1, max: 32, step: 1, group: 'AUFTEILUNG' },
+            { name: 'pieceShape', label: 'Teileform', type: 'select', options: ['rectangle', 'puzzle'], group: 'AUFTEILUNG', hint: 'rectangle = Rechtecke, puzzle = klassische Puzzleteile mit passenden Zapfen.' },
             { name: 'pieceCount', label: 'Anzahl der Teile', type: 'number', readonly: true, serializable: false, group: 'AUFTEILUNG' },
             { name: 'coverToAspect', label: 'Auf Splitter-Seitenverhältnis zuschneiden', type: 'boolean', group: 'VORSCHAU', hint: 'Teile füllen ihre Boxen; Randbereiche des Bildes werden beschnitten.' },
             { name: 'showLines', label: 'Trennlinien anzeigen', type: 'boolean', group: 'VORSCHAU' },
@@ -57,7 +76,7 @@ export class TImageSplitter extends TWindow {
     }
 
     public applyChange(propertyName: string, newValue: any, oldValue?: any): boolean {
-        return ['rows', 'columns'].includes(propertyName) || super.applyChange(propertyName, newValue, oldValue);
+        return ['rows', 'columns', 'pieceShape'].includes(propertyName) || super.applyChange(propertyName, newValue, oldValue);
     }
 
     public initRuntime(callbacks: { objects: any[]; render?: () => void }): void {
@@ -71,11 +90,12 @@ export class TImageSplitter extends TWindow {
         const target = this._objects.find(o => o.className === 'TObjectList' && (o.id === this.outputList || o.name === this.outputList));
         if (!target || typeof target.replaceRecords !== 'function') throw new Error('Bitte eine gültige TObjectList als Ausgabeliste auswählen.');
         const generation = ++this._generation;
-        const aspect = this.coverToAspect && Number(this.height) ? Number(this.width) / Number(this.height) : undefined;
-        const config = { id: this.id, imageSource: this.imageSource, rows: this.rows, columns: this.columns, targetAspect: aspect };
+        const cover = this.coverToAspect;
+        const aspect = cover && Number(this.height) ? Number(this.width) / Number(this.height) : undefined;
+        const config = { id: this.id, imageSource: this.imageSource, rows: this.rows, columns: this.columns, targetAspect: aspect, pieceShape: this.pieceShape };
         const outputList = this.outputList;
         const pieces = await prepareImagePieces(config);
-        if (generation !== this._generation || outputList !== this.outputList || config.imageSource !== this.imageSource || config.rows !== this.rows || config.columns !== this.columns) {
+        if (generation !== this._generation || outputList !== this.outputList || config.imageSource !== this.imageSource || config.rows !== this.rows || config.columns !== this.columns || config.pieceShape !== this.pieceShape || cover !== this.coverToAspect) {
             throw new Error('Die Konfiguration wurde während der Erzeugung geändert. Bitte erneut erzeugen.');
         }
         this._sourceWidth = pieces[0].sourceWidth;

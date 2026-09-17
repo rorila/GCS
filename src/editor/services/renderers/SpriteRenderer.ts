@@ -3,6 +3,7 @@ import { projectObjectRegistry } from '../../../services/registry/ObjectRegistry
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { SpriteGeometry } from '../../../runtime/SpriteGeometry';
 import { ImageMetaCache } from '../../../runtime/ImageMetaCache';
+import { PuzzlePieceRenderer } from './PuzzlePieceRenderer';
 import { Logger } from '../../../utils/Logger';
 
 const spriteLogger = Logger.get('SpriteRenderer', 'Asset_Diagnostics');
@@ -26,6 +27,7 @@ export class SpriteRenderer {
         const hasSourceRect = appearanceMode === 'sourceRect';
         const hasDirectImage = (appearanceMode === 'simple' || hasSourceRect) && !!obj.backgroundImage;
         const hasVideo = appearanceMode === 'video' && !!obj.videoSource;
+        if (!hasSourceRect || !hasDirectImage) PuzzlePieceRenderer.clear(el);
 
         // Bei Animation: TAnimation auflösen und deren imageListId verwenden
         if (appearanceMode === 'animation' && obj.animationId) {
@@ -124,6 +126,9 @@ export class SpriteRenderer {
                 spriteLogger.info(`[PATH-DIAG] Sprite "${obj.name}" (${obj.id}): raw="${bgImg.substring(0, 80)}" → resolved="${src.substring(0, 120)}" runMode=${ctx.host.runMode}`);
                 (el as any)._spritePathLogged = true;
             }
+
+            if (hasSourceRect && PuzzlePieceRenderer.render(el, obj, src, ctx.host.runMode)) return;
+            PuzzlePieceRenderer.clear(el);
 
             const isCorrectLayer = imgEl && imgEl.tagName.toLowerCase() === expectedTag
                 && (imgEl.dataset.sourceRect === 'true') === hasSourceRect;

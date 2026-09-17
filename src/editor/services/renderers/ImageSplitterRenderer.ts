@@ -1,4 +1,5 @@
 import { ImageSplitConfig, createImagePieces, loadSplitterImage, resolveSplitterImageSource, validateImageSplit } from '../../../utils/ImageSplitterModel';
+import { PuzzlePieceRenderer } from './PuzzlePieceRenderer';
 
 interface PreviewConfig extends ImageSplitConfig {
     showLines?: boolean;
@@ -24,7 +25,7 @@ export class ImageSplitterRenderer {
         const aspect = obj.coverToAspect && Number(obj.height) ? Number(obj.width) / Number(obj.height) : undefined;
         const config = {
             id: obj.id, imageSource: obj.imageSource || '', rows: obj.rows ?? 2, columns: obj.columns ?? 3,
-            targetAspect: aspect,
+            targetAspect: aspect, pieceShape: obj.pieceShape,
             showLines: obj.showLines !== false, lineColor: obj.lineColor || '#ffffff', previewGap: obj.previewGap ?? 0
         };
         const key = JSON.stringify({ ...config, targetAspect: aspect });
@@ -77,6 +78,14 @@ export class ImageSplitterRenderer {
         svg.setAttribute('aria-label', `Bildaufteilung: ${config.rows} Zeilen, ${config.columns} Spalten`);
         const source = resolveSplitterImageSource(config.imageSource);
         for (const piece of pieces) {
+            if (piece.puzzleEdges) {
+                const tile = PuzzlePieceRenderer.createSvg(piece, source, config.showLines !== false ? config.lineColor || '#ffffff' : '')!;
+                tile.setAttribute('data-piece-index', String(piece.index));
+                tile.setAttribute('x', String(piece.x - Number(tile.dataset.padding) + piece.column * gap));
+                tile.setAttribute('y', String(piece.y - Number(tile.dataset.padding) + piece.row * gap));
+                svg.appendChild(tile);
+                continue;
+            }
             const tile = document.createElementNS(svgNS, 'svg');
             tile.setAttribute('data-piece-index', String(piece.index));
             tile.setAttribute('x', String(piece.x + piece.column * gap));

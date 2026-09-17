@@ -499,7 +499,7 @@ export class Editor implements IViewHost {
 
             // FIX: Sprite-Bilder sofort auf der Stage aktualisieren, wenn Medien-Eigenschaften geändert werden
             const spriteMediaProps = ['animationId', 'imageListId', 'imageIndex', 'appearanceMode', 'videoSource',
-                'sourceWidth', 'sourceHeight', 'sourceRectX', 'sourceRectY', 'sourceRectWidth', 'sourceRectHeight'];
+                'sourceWidth', 'sourceHeight', 'sourceRectX', 'sourceRectY', 'sourceRectWidth', 'sourceRectHeight', 'puzzleEdges'];
             if (spriteMediaProps.includes(update.propertyName) &&
                 (update.object?.className === 'TSprite' || update.object?.className === 'TSpriteTemplate')) {
                 this.render();

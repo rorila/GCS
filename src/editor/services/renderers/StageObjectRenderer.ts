@@ -741,7 +741,7 @@ export class StageObjectRenderer {
             }
         } else {
             el.classList.remove('selected');
-            el.style.overflow = 'hidden';
+            el.style.overflow = el.dataset.puzzlePiece === 'true' ? 'visible' : 'hidden';
             el.style.outline = 'none';
             el.querySelectorAll('.resize-handle').forEach(h => h.remove());
         }

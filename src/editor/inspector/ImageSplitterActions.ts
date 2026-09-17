@@ -18,13 +18,14 @@ export async function generateImageSplitterPieces(obj: any, project: GameProject
         const target = objects.find(o => o.className === 'TObjectList' && (o.id === source.outputList || o.name === source.outputList));
         if (!target) throw new Error('Bitte eine TObjectList auf dieser Stage oder der Blueprint-Stage als Ausgabeliste auswählen.');
         const aspect = source.coverToAspect && Number(source.height) ? Number(source.width) / Number(source.height) : undefined;
-        const config = { id: source.id, imageSource: source.imageSource, rows: source.rows, columns: source.columns, targetAspect: aspect };
+        const config = { id: source.id, imageSource: source.imageSource, rows: source.rows, columns: source.columns, targetAspect: aspect, pieceShape: source.pieceShape };
+        const cover = source.coverToAspect;
         const outputList = source.outputList;
         const stageId = project.activeStageId;
         const oldRecords = JSON.stringify(target.records || []);
         if ((target.records?.length || target.items?.length) && !await ConfirmDialog.show(`Die Ausgabeliste "${target.name}" enthält bereits Daten. Durch die neu erzeugten Bildteile ersetzen?`)) return;
         const pieces = await prepareImagePieces(config);
-        if (projectStore.getProject() !== project || stageId !== project.activeStageId || outputList !== source.outputList || config.imageSource !== source.imageSource || config.rows !== source.rows || config.columns !== source.columns || JSON.stringify(target.records || []) !== oldRecords) {
+        if (projectStore.getProject() !== project || stageId !== project.activeStageId || outputList !== source.outputList || config.imageSource !== source.imageSource || config.rows !== source.rows || config.columns !== source.columns || config.pieceShape !== source.pieceShape || cover !== source.coverToAspect || JSON.stringify(target.records || []) !== oldRecords) {
             throw new Error('Projekt, Konfiguration oder Ausgabeliste wurde inzwischen geändert. Bitte erneut erzeugen.');
         }
         const success = projectStore.dispatch({

@@ -6,11 +6,11 @@
     "description": "Schritt 2: Galerie-Stage zur Bildauswahl + Bildaufteiler. Das Kind wählt in der Galerie ein Bild aus dem Ordner 'memory Tierbilder für kleine Kinder'; 'Dieses Bild nehmen' überträgt es an den Bildaufteiler. Teile weiterhin explizit über 'Teile erzeugen' generieren. Noch keine Spiellogik.",
     "_sourcePath": "projects/PuzzleNeu.json"
   },
-  "activeStageId": "stage_blueprint",
+  "activeStageId": "stage_main",
   "stage": {
     "grid": {
-      "cols": 48,
-      "rows": 28,
+      "cols": 60,
+      "rows": 40,
       "cellSize": 26,
       "visible": false,
       "snapToGrid": true,
@@ -92,8 +92,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {
@@ -395,34 +395,36 @@
           "description": "Beim Loslassen auf der Zielplattform einrasten; andernfalls mit Bewegen zu zum ursprünglichen Startplatz zurückkehren.",
           "actionSequence": [
             {
-              "type": "condition",
               "name": "Auf Zielplattform abgelegt",
               "condition": {
                 "variable": "dropTargetId",
                 "operator": "==",
                 "value": "pn_zielplattform"
               },
-              "then": [
+              "type": "condition",
+              "body": [
                 {
                   "name": "Teil einrasten lassen",
                   "type": "action"
                 }
-              ]
+              ],
+              "elseBody": []
             },
             {
-              "type": "condition",
               "name": "Teil nicht eingerastet",
               "condition": {
                 "variable": "self.draggable",
                 "operator": "==",
                 "value": true
               },
-              "then": [
+              "type": "condition",
+              "body": [
                 {
                   "name": "Teil zum Startplatz bewegen",
                   "type": "action"
                 }
-              ]
+              ],
+              "elseBody": []
             }
           ],
           "id": "pn_task_teil_ablegen",
@@ -436,16 +438,16 @@
               "y": 140
             },
             "Teil einrasten lassen": {
-              "x": 360,
-              "y": 240
+              "x": 340,
+              "y": 140
             },
             "Teil nicht eingerastet": {
               "x": 40,
-              "y": 380
+              "y": 240
             },
             "Teil zum Startplatz bewegen": {
-              "x": 360,
-              "y": 480
+              "x": 340,
+              "y": 240
             }
           }
         },
@@ -457,7 +459,9 @@
           "actionSequence": [
             {
               "name": "Erfolg anzeigen",
-              "type": "action"
+              "type": "action",
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             }
           ],
           "id": "pn_task_puzzle_gewonnen",
@@ -582,10 +586,11 @@
             "PuzzleTeilTemplate.sourceRectY": "${PuzzleTeil.y}",
             "PuzzleTeilTemplate.sourceRectWidth": "${PuzzleTeil.width}",
             "PuzzleTeilTemplate.sourceRectHeight": "${PuzzleTeil.height}",
+            "PuzzleTeilTemplate.puzzleEdges": "${PuzzleTeil.puzzleEdges}",
             "PuzzleTeilTemplate.matchValue": "${PuzzleTeil.matchValue}",
             "PuzzleTeilTemplate.imageIndex": "${PuzzleTeil.index}",
-            "PuzzleTeilTemplate.width": "${Bildaufteiler.fittedPieceWidth}",
-            "PuzzleTeilTemplate.height": "${Bildaufteiler.fittedPieceHeight}"
+            "PuzzleTeilTemplate.width": "${Bildaufteiler.trayLayout.width}",
+            "PuzzleTeilTemplate.height": "${Bildaufteiler.trayLayout.height}"
           },
           "showDetails": false,
           "target": ""
@@ -596,20 +601,11 @@
           "type": "spawn_object",
           "name": "Puzzle-Sprite erzeugen",
           "templateId": "PuzzleTeilTemplate",
-          "x": "${Bildaufteiler.x + Bildaufteiler.imageBounds.x + (PuzzleTeilIndex % Bildaufteiler.columns) * Bildaufteiler.fittedPieceWidth}",
-          "y": "${Bildaufteiler.y + Bildaufteiler.imageBounds.y + Math.floor(PuzzleTeilIndex / Bildaufteiler.columns) * Bildaufteiler.fittedPieceHeight}",
+          "x": "${Bildaufteiler.x + Bildaufteiler.trayLayout.x + (PuzzleTeilIndex % Bildaufteiler.columns) * Bildaufteiler.trayLayout.stepX}",
+          "y": "${Bildaufteiler.y + Bildaufteiler.trayLayout.y + Math.floor(PuzzleTeilIndex / Bildaufteiler.columns) * Bildaufteiler.trayLayout.stepY}",
           "showDetails": false,
           "spawnMode": "normal",
           "templateId_ref": "pn_puzzle_teil_template"
-        },
-        {
-          "id": "node-1789672667391",
-          "details": "",
-          "type": "property",
-          "name": "action",
-          "showDetails": false,
-          "target": "",
-          "changes": {}
         }
       ],
       "events": {},
@@ -632,8 +628,8 @@
       "name": "Puzzle - Bildaufteiler",
       "type": "main",
       "grid": {
-        "cols": 48,
-        "rows": 28,
+        "cols": 60,
+        "rows": 40,
         "cellSize": 26,
         "visible": false,
         "snapToGrid": false,
@@ -650,8 +646,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 0,
-          "y": 1,
+          "x": 3.0775792568963687,
+          "y": 7.155813015505303,
           "width": 22.692307692307693,
           "height": 25,
           "zIndex": 0,
@@ -664,8 +660,9 @@
             "borderWidth": 0
           },
           "imageSource": "${GewaehltesBild}",
-          "rows": 5,
-          "columns": 5,
+          "rows": 2,
+          "columns": 2,
+          "pieceShape": "puzzle",
           "coverToAspect": false,
           "showLines": true,
           "lineColor": "#ffffff",
@@ -750,6 +747,7 @@
           "sourceRectY": 0,
           "sourceRectWidth": 0,
           "sourceRectHeight": 0,
+          "puzzleEdges": "",
           "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
@@ -784,7 +782,7 @@
           },
           "visible": true,
           "x": 15,
-          "y": 26,
+          "y": 38,
           "width": 9,
           "height": 2,
           "zIndex": 0,
@@ -815,8 +813,8 @@
             "onComplete": "PuzzleGewonnen"
           },
           "visible": true,
-          "x": 24.71153846153846,
-          "y": 1,
+          "x": 34.923060518577586,
+          "y": 7.502077497627476,
           "width": "${Bildaufteiler.width}",
           "height": "${Bildaufteiler.height}",
           "zIndex": 0,
@@ -847,7 +845,7 @@
           },
           "visible": true,
           "x": 2,
-          "y": 26,
+          "y": 38,
           "width": 11,
           "height": 2,
           "zIndex": 0,
@@ -1202,17 +1200,7 @@
       ],
       "variables": [],
       "tasks": [],
-      "actions": [
-        {
-          "id": "node-1789579521958",
-          "details": "",
-          "type": "property",
-          "name": "action",
-          "showDetails": false,
-          "target": "",
-          "changes": {}
-        }
-      ],
+      "actions": [],
       "events": {},
       "flowCharts": {}
     },

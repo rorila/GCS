@@ -115,6 +115,7 @@ export class SpritePool {
                 sourceRectY: SpritePool.resolveNumeric(template.sourceRectY),
                 sourceRectWidth: SpritePool.resolveNumeric(template.sourceRectWidth),
                 sourceRectHeight: SpritePool.resolveNumeric(template.sourceRectHeight),
+                puzzleEdges: template.puzzleEdges,
                 matchValue: template.matchValue,
                 animationId: template.animationId,
                 // Hitbox-Einstellungen vom Template übernehmen
@@ -239,6 +240,7 @@ export class SpritePool {
         sprite.sourceRectY = SpritePool.resolveNumeric(template.sourceRectY);
         sprite.sourceRectWidth = SpritePool.resolveNumeric(template.sourceRectWidth);
         sprite.sourceRectHeight = SpritePool.resolveNumeric(template.sourceRectHeight);
+        sprite.puzzleEdges = template.puzzleEdges;
         sprite.matchValue = template.matchValue;
         if (template.backgroundImage || template.appearanceMode === 'sourceRect') {
             sprite.backgroundImage = template.backgroundImage;

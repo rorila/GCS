@@ -24,6 +24,7 @@
         "sourceRectY": { "type": "number", "default": 0, "description": "Oberer Rand des Ausschnitts im Originalbild, unabhaengig von Stage-y." },
         "sourceRectWidth": { "type": "number", "default": 0, "description": "Ausschnittbreite in Pixeln, muss positiv sein." },
         "sourceRectHeight": { "type": "number", "default": 0, "description": "Ausschnitthoehe in Pixeln, muss positiv sein." },
+        "puzzleEdges": { "type": "string", "default": "", "description": "Optionale Form fuer sourceRect: oben,rechts,unten,links mit 0=gerade, 1=Zapfen, -1=Einbuchtung. Leer zeichnet ein Rechteck. Die Rasterzelle bleibt Positionsanker; SVG zeichnet inklusive benachbartem Bildinhalt ueberstehende Zapfen und verwendet die Form fuer Pointer-Hit-Tests." },
         "matchValue": { "type": "string", "default": "", "description": "Fachlicher Zuordnungswert, z.B. r0_c1. Wird beim Spawn aus dem Template kopiert." }
       },
       "methods": [],
