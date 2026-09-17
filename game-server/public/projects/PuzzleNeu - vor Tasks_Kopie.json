@@ -1,0 +1,1403 @@
+{
+  "meta": {
+    "id": "puzzle-neu",
+    "name": "PuzzleNeu",
+    "version": "0.1.0",
+    "description": "Schritt 2: Galerie-Stage zur Bildauswahl + Bildaufteiler. Das Kind wählt in der Galerie ein Bild aus dem Ordner 'memory Tierbilder für kleine Kinder'; 'Dieses Bild nehmen' überträgt es an den Bildaufteiler. Teile weiterhin explizit über 'Teile erzeugen' generieren. Noch keine Spiellogik.",
+    "_sourcePath": "projects/PuzzleNeu.json"
+  },
+  "activeStageId": "stage_blueprint",
+  "stage": {
+    "grid": {
+      "cols": 48,
+      "rows": 28,
+      "cellSize": 26,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#101827"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 48,
+        "rows": 28,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#101827"
+      },
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "pn_stagectrl",
+          "name": "StageController",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "variables": [
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "System internal flag to track unsaved changes",
+          "visible": true,
+          "x": 9,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "pn_var_gewaehltes_bild",
+          "name": "GewaehltesBild",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "Relativer Pfad des in der Galerie gewählten Bildes",
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+          "value": "./images/memory Tierbilder für kleine Kinder/ai-generated-7734145_640.jpg",
+          "objectModel": ""
+        }
+      ],
+      "tasks": [
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "GalerieOeffnen",
+          "description": "Oeffnet die Galerie-Stage (Button 'Bild auswaehlen' auf der HauptStage).",
+          "actionSequence": [
+            {
+              "type": "navigate_stage",
+              "name": "Stage -> stage_galerie",
+              "stageId": "stage_galerie",
+              "reset": false
+            }
+          ],
+          "id": "pn_task_galerie_oeffnen"
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "GalerieInit",
+          "description": "Wird bei jedem Betreten der Galerie ausgefuehrt (GalerieStart.onStart): HauptStage-Objekte ausblenden, da sie zur Laufzeit eingemischt werden.",
+          "actionSequence": [
+            {
+              "type": "property",
+              "name": "Hauptobjekte ausblenden",
+              "changes": {
+                "Bildaufteiler.visible": "false",
+                "BtnBildAuswaehlen.visible": "false",
+                "BtnPuzzleSpritesErzeugen.visible": "false"
+              }
+            }
+          ],
+          "id": "pn_task_galerie_init"
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "BildGewaehlt",
+          "description": "Speichert den Pfad des angeklickten Galeriebildes (onSelectionChanged liefert path).",
+          "actionSequence": [
+            {
+              "type": "property",
+              "name": "Pfad merken",
+              "changes": {
+                "GewaehltesBild": "${path}"
+              }
+            }
+          ],
+          "id": "pn_task_bild_gewaehlt"
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "BildUebernehmen",
+          "description": "Uebernimmt das gewaehlte Bild in den Bildaufteiler und wechselt zur HauptStage.",
+          "actionSequence": [
+            {
+              "name": "Hauptobjekte einblenden",
+              "type": "action"
+            },
+            {
+              "name": "Stage -> stage_main",
+              "type": "action"
+            }
+          ],
+          "id": "pn_task_bild_uebernehmen",
+          "flowLayout": {
+            "BildUebernehmen": {
+              "x": 40,
+              "y": 40
+            },
+            "GewaehltesBild !=": {
+              "x": 360,
+              "y": 60
+            },
+            "Bild -> Bildaufteiler": {
+              "x": 640,
+              "y": 60
+            },
+            "Hauptobjekte einblenden": {
+              "x": 40,
+              "y": 140
+            },
+            "Stage -> stage_main": {
+              "x": 40,
+              "y": 240
+            }
+          },
+          "standaloneNodes": [
+            {
+              "id": "auto_condition_0_1789534807055",
+              "type": "condition",
+              "x": 360,
+              "y": 60,
+              "width": 240,
+              "height": 60,
+              "properties": {
+                "name": "GewaehltesBild !=",
+                "details": "",
+                "description": "",
+                "text": "GewaehltesBild !="
+              },
+              "data": {
+                "condition": {
+                  "variable": "GewaehltesBild",
+                  "operator": "!=",
+                  "value": ""
+                }
+              }
+            },
+            {
+              "id": "auto_action_1_1789534807055",
+              "type": "action",
+              "x": 640,
+              "y": 60,
+              "width": 200,
+              "height": 60,
+              "properties": {
+                "name": "Bild -> Bildaufteiler",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Bild -> Bildaufteiler",
+                "type": "property",
+                "isLinked": true
+              }
+            }
+          ],
+          "standaloneConnections": [
+            {
+              "id": "conn_1789534807071_307",
+              "startX": 0,
+              "startY": 0,
+              "endX": 0,
+              "endY": 0,
+              "startTargetId": "auto_condition_0_1789534807055",
+              "endTargetId": "auto_action_1_1789534807055",
+              "data": {
+                "startAnchorType": "true",
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "ZurueckZumSplitter",
+          "description": "Galerie verlassen ohne Auswahl zu uebernehmen.",
+          "actionSequence": [
+            {
+              "type": "property",
+              "name": "Hauptobjekte einblenden",
+              "changes": {
+                "Bildaufteiler.visible": "true",
+                "BtnBildAuswaehlen.visible": "true",
+                "BtnPuzzleSpritesErzeugen.visible": "true"
+              }
+            },
+            {
+              "type": "navigate_stage",
+              "name": "Stage -> stage_main",
+              "stageId": "stage_main",
+              "reset": false
+            }
+          ],
+          "id": "pn_task_zurueck"
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "ResetPuzzleSprites",
+          "description": "Setzt den Sprite-Pool von PuzzleTeilTemplate zurueck: bisherige Instanzen werden verworfen und der Pool mit der aktuellen poolSize neu aufgebaut.",
+          "actionSequence": [
+            {
+              "name": "Pool von PuzzleTeilTemplate zuruecksetzen",
+              "type": "action"
+            }
+          ],
+          "id": "pn_task_reset_puzzle_sprites",
+          "flowLayout": {
+            "ResetPuzzleSprites": {
+              "x": 40,
+              "y": 40
+            },
+            "Pool von PuzzleTeilTemplate zuruecksetzen": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "GeneratePuzzleSprites",
+          "description": "Aktualisiert PuzzleTeile aus dem Bildaufteiler und erzeugt pro Record ein Sprite mit eigener Bildquelle, Quellrechteck und Match-Wert.",
+          "actionSequence": [
+            {
+              "name": "Bildaufteiler aktualisiert PuzzleTeile",
+              "type": "action"
+            },
+            {
+              "name": "ResetPuzzleSprites",
+              "type": "task"
+            },
+            {
+              "name": "PuzzleTeile mischen",
+              "type": "action"
+            },
+            {
+              "type": "foreach",
+              "body": [
+                {
+                  "name": "Bildausschnitt aus Datensatz ins Template",
+                  "type": "action"
+                },
+                {
+                  "name": "Puzzle-Sprite erzeugen",
+                  "type": "action"
+                }
+              ],
+              "sourceArray": "PuzzleTeile",
+              "itemVar": "PuzzleTeil",
+              "indexVar": "PuzzleTeilIndex",
+              "name": "Fuer jedes Puzzleteil"
+            }
+          ],
+          "id": "pn_task_generate_puzzle_sprites",
+          "flowLayout": {
+            "GeneratePuzzleSprites": {
+              "x": 40,
+              "y": 40
+            },
+            "Bildaufteiler aktualisiert PuzzleTeile": {
+              "x": 40,
+              "y": 140
+            },
+            "ResetPuzzleSprites": {
+              "x": 40,
+              "y": 240
+            },
+            "PuzzleTeile mischen": {
+              "x": 40,
+              "y": 330
+            },
+            "Fuer jedes Puzzleteil": {
+              "x": 40,
+              "y": 430
+            },
+            "Bildausschnitt aus Datensatz ins Template": {
+              "x": 320,
+              "y": 430
+            },
+            "Puzzle-Sprite erzeugen": {
+              "x": 340,
+              "y": 570
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "TeilAblegen",
+          "description": "Beim Loslassen auf der Zielplattform einrasten; andernfalls mit Bewegen zu zum ursprünglichen Startplatz zurückkehren.",
+          "actionSequence": [
+            {
+              "condition": {
+                "variable": "dropTargetId",
+                "operator": "==",
+                "value": "pn_zielplattform"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Teil einrasten lassen",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "variable": "self.draggable",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Teil zum Startplatz bewegen",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ]
+            }
+          ],
+          "id": "pn_task_teil_ablegen",
+          "flowLayout": {
+            "TeilAblegen": {
+              "x": 40,
+              "y": 40
+            },
+            "Auf Zielplattform abgelegt": {
+              "x": 40,
+              "y": 140
+            },
+            "Teil einrasten lassen": {
+              "x": 340,
+              "y": 140
+            },
+            "Teil nicht eingerastet": {
+              "x": 40,
+              "y": 240
+            },
+            "Teil zum Startplatz bewegen": {
+              "x": 340,
+              "y": 240
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "PuzzleGewonnen",
+          "description": "Alle Puzzleteile liegen korrekt auf der Zielplattform: Erfolgsmeldung anzeigen.",
+          "actionSequence": [
+            {
+              "name": "Erfolg anzeigen",
+              "type": "action",
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
+            }
+          ],
+          "id": "pn_task_puzzle_gewonnen",
+          "flowLayout": {
+            "PuzzleGewonnen": {
+              "x": 40,
+              "y": 40
+            },
+            "Erfolg anzeigen": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "auto_property_1_1789496721188",
+          "details": "",
+          "type": "property",
+          "name": "Bild -> Bildaufteiler",
+          "changes": {
+            "Bildaufteiler.imageSource": "${GewaehltesBild}"
+          },
+          "showDetails": false,
+          "target": ""
+        },
+        {
+          "id": "auto_property_2_1789496721188",
+          "details": "",
+          "type": "property",
+          "name": "Hauptobjekte einblenden",
+          "changes": {
+            "Bildaufteiler.visible": "true",
+            "BtnBildAuswaehlen.visible": "true",
+            "BtnPuzzleSpritesErzeugen.visible": "true"
+          },
+          "showDetails": false,
+          "target": ""
+        },
+        {
+          "id": "auto_navigate_stage_3_1789496721188",
+          "details": "",
+          "type": "navigate_stage",
+          "name": "Stage -> stage_main",
+          "stageId": "stage_main",
+          "reset": false,
+          "showDetails": false,
+          "actionType": "navigate_stage"
+        },
+        {
+          "id": "pn_action_generate_records",
+          "type": "call_method",
+          "name": "Bildaufteiler aktualisiert PuzzleTeile",
+          "target": "Bildaufteiler",
+          "method": "generatePieces",
+          "params": [],
+          "target_ref": "puzzleneu_splitter"
+        },
+        {
+          "id": "pn_action_reset_pool",
+          "type": "call_method",
+          "name": "Pool von PuzzleTeilTemplate zuruecksetzen",
+          "target": "PuzzleTeilTemplate",
+          "method": "resetPool",
+          "params": [],
+          "target_ref": "pn_puzzle_teil_template"
+        },
+        {
+          "id": "pn_action_shuffle_pieces",
+          "type": "call_method",
+          "name": "PuzzleTeile mischen",
+          "target": "PuzzleTeile",
+          "method": "shuffle",
+          "params": [],
+          "target_ref": "puzzleneu_pieces"
+        },
+        {
+          "id": "pn_action_try_place",
+          "type": "call_method",
+          "name": "Teil einrasten lassen",
+          "target": "Zielplattform",
+          "method": "tryPlacePiece",
+          "params": [
+            "${draggedObj}"
+          ],
+          "resultVariable": "TeilAbgelegt",
+          "target_ref": "pn_zielplattform"
+        },
+        {
+          "id": "pn_action_return_piece",
+          "type": "move_to",
+          "name": "Teil zum Startplatz bewegen",
+          "target": "self",
+          "x": "${draggedObj.spawnX}",
+          "y": "${draggedObj.spawnY}",
+          "duration": 500,
+          "easing": "easeOut",
+          "lockDuringMove": true
+        },
+        {
+          "id": "pn_action_win_toast",
+          "type": "call_method",
+          "name": "Erfolg anzeigen",
+          "target": "Toaster",
+          "method": "show",
+          "params": [
+            "Geschafft! Das Puzzle ist fertig!",
+            "success"
+          ]
+        },
+        {
+          "id": "auto_property_1_1789572738566",
+          "details": "",
+          "type": "property",
+          "name": "Bildausschnitt aus Datensatz ins Template",
+          "changes": {
+            "PuzzleTeilTemplate.backgroundImage": "${PuzzleTeil.source}",
+            "PuzzleTeilTemplate.sourceWidth": "${PuzzleTeil.sourceWidth}",
+            "PuzzleTeilTemplate.sourceHeight": "${PuzzleTeil.sourceHeight}",
+            "PuzzleTeilTemplate.sourceRectX": "${PuzzleTeil.x}",
+            "PuzzleTeilTemplate.sourceRectY": "${PuzzleTeil.y}",
+            "PuzzleTeilTemplate.sourceRectWidth": "${PuzzleTeil.width}",
+            "PuzzleTeilTemplate.sourceRectHeight": "${PuzzleTeil.height}",
+            "PuzzleTeilTemplate.matchValue": "${PuzzleTeil.matchValue}",
+            "PuzzleTeilTemplate.imageIndex": "${PuzzleTeil.index}",
+            "PuzzleTeilTemplate.width": "${Bildaufteiler.fittedPieceWidth}",
+            "PuzzleTeilTemplate.height": "${Bildaufteiler.fittedPieceHeight}"
+          },
+          "showDetails": false,
+          "target": ""
+        },
+        {
+          "id": "auto_spawn_object_2_1789572738566",
+          "details": "",
+          "type": "spawn_object",
+          "name": "Puzzle-Sprite erzeugen",
+          "templateId": "PuzzleTeilTemplate",
+          "x": "${Bildaufteiler.x + Bildaufteiler.imageBounds.x + (PuzzleTeilIndex % Bildaufteiler.columns) * Bildaufteiler.fittedPieceWidth}",
+          "y": "${Bildaufteiler.y + Bildaufteiler.imageBounds.y + Math.floor(PuzzleTeilIndex / Bildaufteiler.columns) * Bildaufteiler.fittedPieceHeight}",
+          "showDetails": false,
+          "spawnMode": "normal",
+          "templateId_ref": "pn_puzzle_teil_template"
+        }
+      ],
+      "events": {},
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_main",
+      "name": "Puzzle - Bildaufteiler",
+      "type": "main",
+      "grid": {
+        "cols": 48,
+        "rows": 28,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": false,
+        "backgroundColor": "#101827"
+      },
+      "objects": [
+        {
+          "className": "TImageSplitter",
+          "id": "puzzleneu_splitter",
+          "name": "Bildaufteiler",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 1,
+          "width": 22.692307692307693,
+          "height": 25,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#182235",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageSource": "${GewaehltesBild}",
+          "rows": 5,
+          "columns": 5,
+          "coverToAspect": false,
+          "showLines": true,
+          "lineColor": "#ffffff",
+          "previewGap": 0,
+          "outputList": "PuzzleTeile"
+        },
+        {
+          "className": "TImageList",
+          "id": "pn_puzzle_bild_frames",
+          "name": "PuzzleBildFrames",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 22,
+          "y": 12,
+          "width": 8,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "${GewaehltesBild}",
+          "objectFit": "contain",
+          "alt": "Puzzlebild-Frames",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": "${Bildaufteiler.columns}",
+          "imageCountVertical": "${Bildaufteiler.rows}",
+          "currentImageNumber": 0,
+          "maxImageCount": null
+        },
+        {
+          "className": "TSpriteTemplate",
+          "id": "pn_puzzle_teil_template",
+          "name": "PuzzleTeilTemplate",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": true,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onDragEnd": "TeilAblegen"
+          },
+          "visible": true,
+          "x": 22.28846153846154,
+          "y": 14.115384615384615,
+          "width": 5.023076923076923,
+          "height": 6.407692307692307,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#ffffff",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "transparent",
+          "appearanceMode": "sourceRect",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "matchValue": "",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0,
+          "poolSize": "${PuzzleTeile.length}",
+          "autoRecycle": false,
+          "lifetime": 0
+        },
+        {
+          "className": "TButton",
+          "id": "pn_btn_bild_auswaehlen",
+          "name": "BtnBildAuswaehlen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GalerieOeffnen"
+          },
+          "visible": true,
+          "x": 15,
+          "y": 26,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "600",
+            "backgroundColor": "#2f6fed",
+            "borderColor": "#1d4fb8",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "Bild auswählen",
+          "icon": ""
+        },
+        {
+          "className": "TPuzzleBoard",
+          "id": "pn_zielplattform",
+          "name": "Zielplattform",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": true,
+          "dragMode": "move",
+          "events": {
+            "onComplete": "PuzzleGewonnen"
+          },
+          "visible": true,
+          "x": 24.71153846153846,
+          "y": 1,
+          "width": "${Bildaufteiler.width}",
+          "height": "${Bildaufteiler.height}",
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#182235",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageSource": "${GewaehltesBild}",
+          "columns": "${Bildaufteiler.columns}",
+          "rows": "${Bildaufteiler.rows}",
+          "ghostOpacity": 0.05,
+          "snapRadius": 4
+        },
+        {
+          "className": "TButton",
+          "id": "pn_btn_puzzle_sprites_erzeugen",
+          "name": "BtnPuzzleSpritesErzeugen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GeneratePuzzleSprites"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 26,
+          "width": 11,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#15915f",
+            "borderColor": "#0e6844",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "Puzzle-Sprites erzeugen",
+          "icon": ""
+        },
+        {
+          "className": "TObjectList",
+          "id": "puzzleneu_pieces",
+          "name": "PuzzleTeile",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 33,
+          "y": 1,
+          "width": 13,
+          "height": 22,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "backgroundColor": "#214052",
+            "borderColor": "#477084",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [
+            {
+              "id": "puzzleneu_splitter_r0_c0",
+              "index": 0,
+              "row": 0,
+              "column": 0,
+              "matchValue": "r0_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 0,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c1",
+              "index": 1,
+              "row": 0,
+              "column": 1,
+              "matchValue": "r0_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 0,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c2",
+              "index": 2,
+              "row": 0,
+              "column": 2,
+              "matchValue": "r0_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 0,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c0",
+              "index": 3,
+              "row": 1,
+              "column": 0,
+              "matchValue": "r1_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c1",
+              "index": 4,
+              "row": 1,
+              "column": 1,
+              "matchValue": "r1_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c2",
+              "index": 5,
+              "row": 1,
+              "column": 2,
+              "matchValue": "r1_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c0",
+              "index": 6,
+              "row": 2,
+              "column": 0,
+              "matchValue": "r2_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c1",
+              "index": 7,
+              "row": 2,
+              "column": 1,
+              "matchValue": "r2_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c2",
+              "index": 8,
+              "row": 2,
+              "column": 2,
+              "matchValue": "r2_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
+            }
+          ],
+          "columns": [
+            {
+              "field": "index",
+              "label": "Index",
+              "width": "60px"
+            },
+            {
+              "field": "row",
+              "label": "Zeile",
+              "width": "60px"
+            },
+            {
+              "field": "column",
+              "label": "Spalte",
+              "width": "60px"
+            },
+            {
+              "field": "matchValue",
+              "label": "Matchwert",
+              "width": "1fr"
+            }
+          ],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "sourceMode": "records",
+          "records": [
+            {
+              "id": "puzzleneu_splitter_r0_c0",
+              "index": 0,
+              "row": 0,
+              "column": 0,
+              "matchValue": "r0_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 0,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c1",
+              "index": 1,
+              "row": 0,
+              "column": 1,
+              "matchValue": "r0_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 0,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r0_c2",
+              "index": 2,
+              "row": 0,
+              "column": 2,
+              "matchValue": "r0_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 0,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c0",
+              "index": 3,
+              "row": 1,
+              "column": 0,
+              "matchValue": "r1_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c1",
+              "index": 4,
+              "row": 1,
+              "column": 1,
+              "matchValue": "r1_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r1_c2",
+              "index": 5,
+              "row": 1,
+              "column": 2,
+              "matchValue": "r1_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 173,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c0",
+              "index": 6,
+              "row": 2,
+              "column": 0,
+              "matchValue": "r2_c0",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 122.78,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c1",
+              "index": 7,
+              "row": 2,
+              "column": 1,
+              "matchValue": "r2_c1",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 254.26,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
+            },
+            {
+              "id": "puzzleneu_splitter_r2_c2",
+              "index": 8,
+              "row": 2,
+              "column": 2,
+              "matchValue": "r2_c2",
+              "source": "./images/memory Tierbilder für kleine Kinder/butterfly-5153470_640.png",
+              "sourceWidth": 640,
+              "sourceHeight": 519,
+              "x": 385.74,
+              "y": 346,
+              "width": 131.48,
+              "height": 173
+            }
+          ],
+          "recordKey": "id",
+          "fields": [],
+          "items": [],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "recordData": {}
+        }
+      ],
+      "variables": [],
+      "tasks": [],
+      "actions": [],
+      "events": {},
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_galerie",
+      "name": "Galerie",
+      "type": "standard",
+      "grid": {
+        "cols": 48,
+        "rows": 28,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#101827"
+      },
+      "objects": [
+        {
+          "className": "TPanel",
+          "id": "pn_galerie_start",
+          "name": "GalerieStart",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onStart": "GalerieInit"
+          },
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TLabel",
+          "id": "pn_galerie_titel",
+          "name": "LblGalerieTitel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 1,
+          "width": 30,
+          "height": 2.5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 28,
+            "fontWeight": "800",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Wähle dein Puzzlebild"
+        },
+        {
+          "className": "TImageGallery",
+          "id": "pn_galerie",
+          "name": "Galerie",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onSelectionChanged": "BildGewaehlt"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 4,
+          "width": 44,
+          "height": 18,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#182235",
+            "borderColor": "#2c3a56",
+            "borderWidth": 1,
+            "borderRadius": 10
+          },
+          "folder": "memory Tierbilder für kleine Kinder",
+          "columns": 4,
+          "tileHeight": 5,
+          "gap": 12,
+          "selectionColor": "#ffb300",
+          "showFileNames": false,
+          "selectedImage": ""
+        },
+        {
+          "className": "TButton",
+          "id": "pn_btn_bild_nehmen",
+          "name": "BtnBildNehmen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "BildUebernehmen"
+          },
+          "visible": true,
+          "x": 15,
+          "y": 23,
+          "width": 16,
+          "height": 2.5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "backgroundColor": "#2ecc60",
+            "borderColor": "#1f9e48",
+            "borderWidth": 1,
+            "borderRadius": 10
+          },
+          "text": "Dieses Bild nehmen",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "pn_btn_galerie_zurueck",
+          "name": "BtnGalerieZurueck",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ZurueckZumSplitter"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#e2e8f0",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "backgroundColor": "#3d4a68",
+            "borderColor": "#2c3a56",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "Zurück",
+          "icon": ""
+        }
+      ],
+      "variables": [],
+      "tasks": [],
+      "actions": [],
+      "events": {},
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    }
+  ],
+  "objects": [],
+  "variables": [],
+  "tasks": [],
+  "actions": [],
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "elements": [],
+    "connections": []
+  }
+}
