@@ -54,8 +54,8 @@ export class TPuzzleBoard extends TWindow {
         return [
             ...super.getInspectorProperties().filter(p => !['text', 'caption'].includes(p.name)),
             { name: 'imageSource', label: 'Zielbild', type: 'image_picker', group: 'BILD' },
-            { name: 'columns', label: 'Spalten', type: 'number', min: 1, max: 32, step: 1, group: 'RASTER' },
-            { name: 'rows', label: 'Zeilen', type: 'number', min: 1, max: 32, step: 1, group: 'RASTER' },
+            { name: 'columns', label: 'Spalten', type: 'number', min: 1, max: 6, step: 1, group: 'RASTER' },
+            { name: 'rows', label: 'Zeilen', type: 'number', min: 1, max: 6, step: 1, group: 'RASTER' },
             { name: 'ghostOpacity', label: 'Bild-Transparenz', type: 'number', min: 0, max: 1, step: 0.05, group: 'VORSCHAU', hint: '0 = unsichtbar, 1 = voll sichtbar. Hilfestellung fuer die Kinder.' },
             { name: 'snapRadius', label: 'Einrast-Genauigkeit (Zellen)', type: 'number', min: 0.5, max: 12, step: 0.5, group: 'ABLEGEN', hint: 'Wie nahe ein Teil am Zentrum seiner Zielzelle losgelassen werden muss.' },
             { name: 'placedCount', label: 'Gelegte Teile', type: 'number', readonly: true, serializable: false, group: 'STATUS' },

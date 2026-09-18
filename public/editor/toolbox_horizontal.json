@@ -305,6 +305,11 @@
           "label": "ThemeDialog"
         },
         {
+          "type": "Overlay",
+          "icon": "🪟",
+          "label": "Overlay"
+        },
+        {
           "type": "InfoWindow",
           "icon": "ℹ️",
           "label": "InfoWindow"

@@ -52,6 +52,7 @@ export * from './TNumberInput';
 export * from './TNumberLabel';
 export * from './TObjectList';
 export * from './TObjectVariable';
+export * from './TOverlay';
 export * from './TPanel';
 export * from './TParallaxBackground';
 export * from './TRichText';

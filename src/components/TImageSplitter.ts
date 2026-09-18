@@ -10,6 +10,8 @@ export class TImageSplitter extends TWindow {
     public rows = 2;
     public columns = 3;
     public pieceShape: 'rectangle' | 'puzzle' = 'rectangle';
+    /** Zapfentiefe relativ zur Teilegroesse (nur bei pieceShape 'puzzle'). */
+    public tabSize = PUZZLE_TAB_DEPTH;
     /** Aktiv: Ausschnitte werden auf das Seitenverhaeltnis des Splitters zugeschnitten (cover), damit Teile ihre Box komplett fuellen. */
     public coverToAspect = false;
     public showLines = true;
@@ -29,19 +31,32 @@ export class TImageSplitter extends TWindow {
     public get fittedPieceWidth(): number { return this.imageBounds.width / Math.max(1, Number(this.columns) || 1); }
     public get fittedPieceHeight(): number { return this.imageBounds.height / Math.max(1, Number(this.rows) || 1); }
 
+    /** Effektive Zapfentiefe, auf den erlaubten Bereich geklemmt. */
+    public get tabDepth(): number {
+        return Math.min(0.4, Math.max(0.05, Number(this.tabSize) || PUZZLE_TAB_DEPTH));
+    }
+
+    /**
+     * Ablage-Raster fuer gemischte Teile: Passt das komplette Raster inklusive
+     * Zapfen-Ueberhang in die Splitter-Box ein. 'scale' < 1 bedeutet: Teile
+     * werden verkleinert abgelegt und erst beim Aufnehmen auf Zielgroesse
+     * gebracht (fittedPieceWidth/Height).
+     */
     public get trayLayout() {
-        const bounds = this.imageBounds;
         const w = this.fittedPieceWidth, h = this.fittedPieceHeight;
-        if (this.pieceShape !== 'puzzle') return { x: bounds.x, y: bounds.y, width: w, height: h, stepX: w, stepY: h };
         const cols = Math.max(1, Number(this.columns) || 1), rows = Math.max(1, Number(this.rows) || 1);
-        const tab = Math.min(w, h) * (PUZZLE_TAB_DEPTH + 0.01), gap = Math.min(w, h) * 0.08;
-        const totalW = cols * (w + 2 * tab) + (cols - 1) * gap;
-        const totalH = rows * (h + 2 * tab) + (rows - 1) * gap;
+        const tab = this.pieceShape === 'puzzle' ? Math.min(w, h) * (this.tabDepth + 0.01) : 0;
+        const gap = Math.min(w, h) * 0.08;
+        const needW = cols * (w + 2 * tab) + (cols - 1) * gap;
+        const needH = rows * (h + 2 * tab) + (rows - 1) * gap;
+        const boxW = Number(this.width) || 0, boxH = Number(this.height) || 0;
+        const scale = needW > 0 && needH > 0 ? Math.min(1, boxW / needW, boxH / needH) : 1;
         return {
-            x: Math.max(0, (Number(this.width) - totalW) / 2) + tab,
-            y: Math.max(0, (Number(this.height) - totalH) / 2) + tab,
-            width: w, height: h,
-            stepX: w + 2 * tab + gap, stepY: h + 2 * tab + gap
+            x: Math.max(0, (boxW - needW * scale) / 2) + tab * scale,
+            y: Math.max(0, (boxH - needH * scale) / 2) + tab * scale,
+            width: w * scale, height: h * scale,
+            stepX: (w + 2 * tab + gap) * scale, stepY: (h + 2 * tab + gap) * scale,
+            scale
         };
     }
 
@@ -62,9 +77,10 @@ export class TImageSplitter extends TWindow {
         return [
             ...super.getInspectorProperties().filter(p => !['text', 'caption'].includes(p.name)),
             { name: 'imageSource', label: 'Bildquelle', type: 'image_picker', group: 'BILD' },
-            { name: 'rows', label: 'Zeilen', type: 'number', min: 1, max: 32, step: 1, group: 'AUFTEILUNG' },
-            { name: 'columns', label: 'Spalten', type: 'number', min: 1, max: 32, step: 1, group: 'AUFTEILUNG' },
+            { name: 'rows', label: 'Zeilen', type: 'number', min: 1, max: 6, step: 1, group: 'AUFTEILUNG' },
+            { name: 'columns', label: 'Spalten', type: 'number', min: 1, max: 6, step: 1, group: 'AUFTEILUNG' },
             { name: 'pieceShape', label: 'Teileform', type: 'select', options: ['rectangle', 'puzzle'], group: 'AUFTEILUNG', hint: 'rectangle = Rechtecke, puzzle = klassische Puzzleteile mit passenden Zapfen.' },
+            { name: 'tabSize', label: 'Zapfengröße', type: 'number', min: 0.05, max: 0.4, step: 0.01, group: 'AUFTEILUNG', dependsOn: { property: 'pieceShape', value: 'puzzle' }, hint: 'Tiefe der Zapfen relativ zur Teilegröße (0,05–0,40).' },
             { name: 'pieceCount', label: 'Anzahl der Teile', type: 'number', readonly: true, serializable: false, group: 'AUFTEILUNG' },
             { name: 'coverToAspect', label: 'Auf Splitter-Seitenverhältnis zuschneiden', type: 'boolean', group: 'VORSCHAU', hint: 'Teile füllen ihre Boxen; Randbereiche des Bildes werden beschnitten.' },
             { name: 'showLines', label: 'Trennlinien anzeigen', type: 'boolean', group: 'VORSCHAU' },
@@ -76,7 +92,7 @@ export class TImageSplitter extends TWindow {
     }
 
     public applyChange(propertyName: string, newValue: any, oldValue?: any): boolean {
-        return ['rows', 'columns', 'pieceShape'].includes(propertyName) || super.applyChange(propertyName, newValue, oldValue);
+        return ['rows', 'columns', 'pieceShape', 'tabSize'].includes(propertyName) || super.applyChange(propertyName, newValue, oldValue);
     }
 
     public initRuntime(callbacks: { objects: any[]; render?: () => void }): void {
@@ -92,7 +108,7 @@ export class TImageSplitter extends TWindow {
         const generation = ++this._generation;
         const cover = this.coverToAspect;
         const aspect = cover && Number(this.height) ? Number(this.width) / Number(this.height) : undefined;
-        const config = { id: this.id, imageSource: this.imageSource, rows: this.rows, columns: this.columns, targetAspect: aspect, pieceShape: this.pieceShape };
+        const config = { id: this.id, imageSource: this.imageSource, rows: this.rows, columns: this.columns, targetAspect: aspect, pieceShape: this.pieceShape, tabSize: this.tabDepth };
         const outputList = this.outputList;
         const pieces = await prepareImagePieces(config);
         if (generation !== this._generation || outputList !== this.outputList || config.imageSource !== this.imageSource || config.rows !== this.rows || config.columns !== this.columns || config.pieceShape !== this.pieceShape || cover !== this.coverToAspect) {

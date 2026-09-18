@@ -367,6 +367,11 @@
           "label": "Theme Dialog"
         },
         {
+          "type": "Overlay",
+          "icon": "🪟",
+          "label": "Overlay"
+        },
+        {
           "type": "SidePanel",
           "icon": "📌",
           "label": "Side Panel"

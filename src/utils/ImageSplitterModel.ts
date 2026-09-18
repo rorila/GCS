@@ -1,4 +1,4 @@
-import { createPuzzleEdges } from './PuzzleShape';
+import { createPuzzleEdges, PUZZLE_TAB_DEPTH } from './PuzzleShape';
 
 export interface ImageSplitConfig {
     id: string;
@@ -8,6 +8,8 @@ export interface ImageSplitConfig {
     /** Ziel-Seitenverhaeltnis (Breite/Hoehe) fuer Cover-Crop. Fehlt es, wird das ganze Bild verwendet. */
     targetAspect?: number;
     pieceShape?: 'rectangle' | 'puzzle';
+    /** Zapfentiefe relativ zur Teilegroesse (nur bei pieceShape 'puzzle'). */
+    tabSize?: number;
 }
 
 export interface ImagePiece {
@@ -24,13 +26,14 @@ export interface ImagePiece {
     width: number;
     height: number;
     puzzleEdges?: string;
+    puzzleTabDepth?: number;
 }
 
 export function validateImageSplit(config: ImageSplitConfig): string | null {
     if (!String(config.imageSource || '').trim()) return 'Bitte eine Bilddatei auswählen.';
     for (const count of [config.rows, config.columns]) {
-        if (!Number.isInteger(count) || count < 1 || count > 32) {
-            return 'Zeilen und Spalten müssen ganze Zahlen zwischen 1 und 32 sein.';
+        if (!Number.isInteger(count) || count < 1 || count > 6) {
+            return 'Zeilen und Spalten müssen ganze Zahlen zwischen 1 und 6 sein.';
         }
     }
     return null;
@@ -57,6 +60,7 @@ export function createImagePieces(config: ImageSplitConfig, sourceWidth: number,
     const width = cropW / config.columns;
     const height = cropH / config.rows;
     const edges = config.pieceShape === 'puzzle' ? createPuzzleEdges(config.rows, config.columns) : [];
+    const puzzleTabDepth = Math.min(0.4, Math.max(0.05, Number(config.tabSize) || PUZZLE_TAB_DEPTH));
     return Array.from({ length: config.rows * config.columns }, (_, index) => {
         const row = Math.floor(index / config.columns), column = index % config.columns;
         return {
@@ -66,7 +70,8 @@ export function createImagePieces(config: ImageSplitConfig, sourceWidth: number,
             x: cropX + column * width,
             y: cropY + row * height,
             width, height,
-            puzzleEdges: edges[index] || ''
+            puzzleEdges: edges[index] || '',
+            puzzleTabDepth
         };
     });
 }

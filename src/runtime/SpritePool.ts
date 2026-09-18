@@ -116,6 +116,7 @@ export class SpritePool {
                 sourceRectWidth: SpritePool.resolveNumeric(template.sourceRectWidth),
                 sourceRectHeight: SpritePool.resolveNumeric(template.sourceRectHeight),
                 puzzleEdges: template.puzzleEdges,
+                puzzleTabDepth: SpritePool.resolveNumeric((template as any).puzzleTabDepth),
                 matchValue: template.matchValue,
                 animationId: template.animationId,
                 // Hitbox-Einstellungen vom Template übernehmen
@@ -228,6 +229,10 @@ export class SpritePool {
         // (z.B. Zellgroesse aus einem Bildaufteiler) — beim Spawn uebernehmen.
         sprite.width = SpritePool.resolveNumeric(template.width);
         sprite.height = SpritePool.resolveNumeric(template.height);
+        // Spawn-Groesse merken (z.B. fuer verkleinerte Ablageteile, die nach
+        // einer falschen Ablage wieder auf ihre Tray-Groesse schrumpfen).
+        sprite.spawnWidth = sprite.width;
+        sprite.spawnHeight = sprite.height;
         sprite.velocityX = template.velocityX;
         sprite.velocityY = template.velocityY;
         sprite.imageIndex = SpritePool.resolveNumeric(template.imageIndex);
@@ -241,6 +246,7 @@ export class SpritePool {
         sprite.sourceRectWidth = SpritePool.resolveNumeric(template.sourceRectWidth);
         sprite.sourceRectHeight = SpritePool.resolveNumeric(template.sourceRectHeight);
         sprite.puzzleEdges = template.puzzleEdges;
+        sprite.puzzleTabDepth = SpritePool.resolveNumeric((template as any).puzzleTabDepth);
         sprite.matchValue = template.matchValue;
         if (template.backgroundImage || template.appearanceMode === 'sourceRect') {
             sprite.backgroundImage = template.backgroundImage;

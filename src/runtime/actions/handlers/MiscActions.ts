@@ -319,4 +319,26 @@ export function registerMiscActions() {
             { name: 'target', label: 'Theme-Dialog', type: 'select', source: 'theme_dialogs', hint: 'Vorhandener TThemeDialog auf der Stage' }
         ]
     });
+
+    // 26. Overlay schließen (aus einem TOverlay-Projekt heraus)
+    actionRegistry.register('close_overlay', (action, context) => {
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        let result: any = action.result;
+        if (typeof result === 'string') {
+            const interpolated = PropertyHelper.interpolate(result, combinedContext, context.objects);
+            try { result = JSON.parse(interpolated); } catch { result = interpolated; }
+        }
+        const message = { type: 'gcs-overlay-close', result };
+        if (typeof window !== 'undefined') {
+            (window.parent || window).postMessage(message, '*');
+        }
+        runtimeLogger.info('[Action: close_overlay] Overlay geschlossen, Ergebnis gesendet.');
+    }, {
+        type: 'close_overlay',
+        label: 'Overlay schließen',
+        description: 'Schließt das laufende Overlay-Projekt und sendet ein Ergebnis an das Hauptspiel (TOverlay.onOverlayResult).',
+        parameters: [
+            { name: 'result', label: 'Ergebnis (JSON)', type: 'json', hint: '{"richtig": 7, "gesamt": 10} — ${…} wird interpoliert' }
+        ]
+    });
 }

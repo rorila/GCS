@@ -4,12 +4,12 @@ import type { ImagePiece } from '../../../utils/ImageSplitterModel';
 
 const svgNS = 'http://www.w3.org/2000/svg';
 let nextClipId = 0;
-type PieceView = Pick<ImagePiece, 'sourceWidth' | 'sourceHeight' | 'x' | 'y' | 'width' | 'height' | 'puzzleEdges'>;
+type PieceView = Pick<ImagePiece, 'sourceWidth' | 'sourceHeight' | 'x' | 'y' | 'width' | 'height' | 'puzzleEdges' | 'puzzleTabDepth'>;
 const states = new WeakMap<HTMLElement, { key: string; svg: SVGSVGElement; overflow: string; contain: string; pointerEvents: string; border: string }>();
 
 export class PuzzlePieceRenderer {
     public static createSvg(piece: PieceView, source: string, stroke: string, interactive = false): SVGSVGElement | null {
-        const shape = createPuzzleShape(piece.width, piece.height, piece.puzzleEdges);
+        const shape = createPuzzleShape(piece.width, piece.height, piece.puzzleEdges, Number(piece.puzzleTabDepth) || undefined);
         if (!shape) return null;
         const padding = shape.padding + Math.min(piece.width, piece.height) * 0.01;
         const svg = document.createElementNS(svgNS, 'svg');
@@ -58,9 +58,10 @@ export class PuzzlePieceRenderer {
             sourceWidth: Number(obj.sourceWidth), sourceHeight: Number(obj.sourceHeight),
             x: Number(obj.sourceRectX), y: Number(obj.sourceRectY),
             width: Number(obj.sourceRectWidth), height: Number(obj.sourceRectHeight),
-            puzzleEdges: obj.puzzleEdges
+            puzzleEdges: obj.puzzleEdges,
+            puzzleTabDepth: Number(obj.puzzleTabDepth) || 0
         };
-        if (!createPuzzleShape(piece.width, piece.height, piece.puzzleEdges)
+        if (!createPuzzleShape(piece.width, piece.height, piece.puzzleEdges, Number(obj.puzzleTabDepth) || undefined)
             || !SpriteGeometry.sourceRect(piece.sourceWidth, piece.sourceHeight, piece.x, piece.y, piece.width, piece.height)
             || ![Number(obj.width), Number(obj.height)].every(n => Number.isFinite(n) && n > 0)) return false;
         const key = JSON.stringify([piece, source, runMode]);

@@ -67,6 +67,38 @@
         "⚠️ modal ist bei TSidePanel default false (anders als bei TDialogRoot!)",
         "⚠️ centerOnShow und draggableAtRuntime sind automatisch deaktiviert."
       ]
+    },
+
+    "TOverlay": {
+      "description": "Modale Overlay-Karte, die ein ANDERES Projekt in einem iframe hostet (eigene Runtime). Position und Groesse der Komponente bestimmen die Karte; die Stage wird abgedunkelt und optional pausiert.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "overlayProject": { "type": "string",  "default": "", "description": "Projektname ohne .json, z.B. \"Kopfrechnen\". Wird ueber player.html?game= geladen." },
+        "params":         { "type": "json",    "default": "", "description": "Uebergabedaten an das Overlay, z.B. {\"aufgaben\": 10}. Stehen dort als ${…}-Variablen bereit." },
+        "pauseGame":      { "type": "boolean", "default": true, "description": "GameLoop des Hauptspiels einfrieren, solange das Overlay offen ist" },
+        "dimOpacity":     { "type": "number",  "default": 0.5, "description": "Abdunkelung hinter der Karte (0-1)" },
+        "closable":       { "type": "boolean", "default": true, "description": "X-Button oben rechts auf der Karte. false = Kind kann das Overlay nicht selbst schliessen." },
+        "closeOnEscape":  { "type": "boolean", "default": true, "description": "Escape-Taste schliesst das Overlay (ohne Ergebnis)" },
+        "isOpen":         { "type": "boolean", "default": false, "description": "Laufzeit-Status (readonly)" }
+      },
+      "methods": [
+        { "name": "show",  "description": "Overlay oeffnen (via call_method). Optionaler Parameter: JSON-Objekt mit zusaetzlichen Uebergabedaten.", "params": ["params?"] },
+        { "name": "close", "description": "Overlay schliessen, optional mit Ergebnis-Objekt. Feuert onOverlayResult + onOverlayClosed.", "params": ["result?"] }
+      ],
+      "events": ["onOverlayResult", "onOverlayClosed"],
+      "example": {
+        "className": "TOverlay", "name": "MatheOverlay", "x": 12, "y": 6, "width": 24, "height": 20,
+        "visible": false,
+        "overlayProject": "Kopfrechnen", "params": "{\"aufgaben\": 10}", "pauseGame": true, "dimOpacity": 0.5,
+        "events": { "onOverlayResult": "MatheFertig" }
+      },
+      "warnings": [
+        "⚠️ visible=false ist der Default! Die Karte erscheint erst per call_method 'show' und verschwindet bei close wieder.",
+        "⚠️ Das Overlay-Projekt sieht KEINE Objekte des Hauptspiels — nur params rein, Ergebnis ueber Action 'close_overlay' raus.",
+        "⚠️ Das Overlay-Projekt beendet sich ueber die Action 'close_overlay' mit result-JSON; die Felder stehen in onOverlayResult als ${…} bereit.",
+        "⚠️ Die Komponenten-Box ist die Karte — Groesse/Position wie bei jedem Objekt im Inspector einstellen."
+      ]
     }
   }
 }

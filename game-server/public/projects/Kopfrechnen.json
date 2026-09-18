@@ -1,0 +1,977 @@
+{
+  "meta": {
+    "id": "kopfrechnen",
+    "name": "Kopfrechnen",
+    "version": "0.1.0",
+    "description": "Overlay-Projekt: Addition bis 20. Drei Antwort-Buttons pro Aufgabe; Ergebnis (richtig/fehler/gesamt) wird per close_overlay an das Hauptspiel gemeldet. Uebergabedaten: { \"aufgaben\": 10 }.",
+    "_sourcePath": "projects/Kopfrechnen.json"
+  },
+  "activeStageId": "stage_main",
+  "stage": {
+    "grid": {
+      "cols": 24,
+      "rows": 16,
+      "cellSize": 26,
+      "visible": false,
+      "snapToGrid": true,
+      "backgroundColor": "#fdf6e3"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_main",
+      "name": "Kopfrechnen",
+      "type": "main",
+      "grid": {
+        "cols": 30,
+        "rows": 20,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#fdf6e3"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "kr_titel",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 1,
+          "width": 22,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#5b3f8c",
+            "fontSize": 26,
+            "fontWeight": "700",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "🧮 Kopfrechnen"
+        },
+        {
+          "className": "TLabel",
+          "id": "kr_aufgabe",
+          "name": "Aufgabe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 4,
+          "width": 22,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#1f2937",
+            "fontSize": 40,
+            "fontWeight": "800",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "…"
+        },
+        {
+          "className": "TLabel",
+          "id": "kr_feedback",
+          "name": "Feedback",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 7,
+          "width": 22,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#15915f",
+            "fontSize": 20,
+            "fontWeight": "600",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TButton",
+          "id": "kr_btn_a",
+          "name": "BtnAntwortA",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "AntwortGewaehlt"
+          },
+          "visible": true,
+          "x": 7,
+          "y": 10,
+          "width": 6,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 28,
+            "fontWeight": "700",
+            "backgroundColor": "#2f6fed",
+            "borderColor": "#1d4fb8",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "text": "?",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "kr_btn_b",
+          "name": "BtnAntwortB",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "AntwortGewaehlt"
+          },
+          "visible": true,
+          "x": 15,
+          "y": 10,
+          "width": 6,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 28,
+            "fontWeight": "700",
+            "backgroundColor": "#2f6fed",
+            "borderColor": "#1d4fb8",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "text": "?",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "kr_btn_c",
+          "name": "BtnAntwortC",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "AntwortGewaehlt"
+          },
+          "visible": true,
+          "x": 22,
+          "y": 10,
+          "width": 6,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 28,
+            "fontWeight": "700",
+            "backgroundColor": "#2f6fed",
+            "borderColor": "#1d4fb8",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "text": "?",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "kr_fortschritt",
+          "name": "Fortschritt",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 15,
+          "width": 22,
+          "height": 1.5,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#6b7280",
+            "fontSize": 15,
+            "fontWeight": "500",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        }
+      ],
+      "variables": [
+        {
+          "className": "TIntegerVariable",
+          "id": "kr_var_richtig",
+          "name": "Richtig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#c8e6c9",
+            "borderColor": "#81c784",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "kr_var_fehler",
+          "name": "Fehler",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 2,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#ffcdd2",
+            "borderColor": "#e57373",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "kr_var_aufgaben_nr",
+          "name": "AufgabenNr",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#bbdefb",
+            "borderColor": "#64b5f6",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "kr_var_ergebnis",
+          "name": "Ergebnis",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 6,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#fff9c4",
+            "borderColor": "#fff176",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "kr_var_aufgaben",
+          "name": "aufgaben",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "Anzahl der Aufgaben; wird per Overlay-params ueberschrieben",
+          "visible": true,
+          "x": 0,
+          "y": 8,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 10,
+          "value": 20,
+          "objectModel": ""
+        },
+        {
+          "className": "TRandomVariable",
+          "id": "kr_zufall_a",
+          "name": "ZufallA",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 10,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 1,
+          "max": 19,
+          "isInteger": true,
+          "value": 0
+        },
+        {
+          "className": "TRandomVariable",
+          "id": "kr_zufall_b",
+          "name": "ZufallB",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 12,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 0,
+          "max": 20,
+          "isInteger": true,
+          "value": 0
+        },
+        {
+          "className": "TRandomVariable",
+          "id": "kr_zufall_pos",
+          "name": "ZufallPos",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 14,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 1,
+          "max": 3,
+          "isInteger": true,
+          "value": 0
+        }
+      ],
+      "tasks": [
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "NeueAufgabe",
+          "description": "Zaehlt AufgabenNr hoch, wuerfelt A (1-19) und B (0 bis 20-A), zeigt die Aufgabe und verteilt die richtige Antwort per ZufallPos auf einen der drei Buttons.",
+          "actionSequence": [
+            {
+              "name": "AufgabenNr hochzaehlen",
+              "type": "action"
+            },
+            {
+              "name": "Zahl A wuerfeln",
+              "type": "action"
+            },
+            {
+              "name": "B-Maximum aus A",
+              "type": "action"
+            },
+            {
+              "name": "Zahl B wuerfeln",
+              "type": "action"
+            },
+            {
+              "name": "Ergebnis berechnen",
+              "type": "action"
+            },
+            {
+              "name": "Aufgabe zeigen",
+              "type": "action"
+            },
+            {
+              "name": "Distraktor 1 berechnen",
+              "type": "action"
+            },
+            {
+              "name": "Distraktor 2 berechnen",
+              "type": "action"
+            },
+            {
+              "name": "Position wuerfeln",
+              "type": "action"
+            },
+            {
+              "condition": {
+                "variable": "Pos",
+                "operator": "==",
+                "value": 1
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Antworten Variante A",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "variable": "Pos",
+                    "operator": "==",
+                    "value": 2
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Antworten Variante B",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "variable": "Pos",
+                        "operator": "==",
+                        "value": 3
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "Antworten Variante C",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "id": "kr_task_neue_aufgabe",
+          "flowLayout": {
+            "NeueAufgabe": {
+              "x": 40,
+              "y": 40
+            },
+            "AufgabenNr hochzaehlen": {
+              "x": 40,
+              "y": 140
+            },
+            "Zahl A wuerfeln": {
+              "x": 40,
+              "y": 240
+            },
+            "B-Maximum aus A": {
+              "x": 40,
+              "y": 340
+            },
+            "Zahl B wuerfeln": {
+              "x": 40,
+              "y": 440
+            },
+            "Ergebnis berechnen": {
+              "x": 40,
+              "y": 540
+            },
+            "Aufgabe zeigen": {
+              "x": 40,
+              "y": 640
+            },
+            "Distraktor 1 berechnen": {
+              "x": 40,
+              "y": 740
+            },
+            "Distraktor 2 berechnen": {
+              "x": 40,
+              "y": 840
+            },
+            "Position wuerfeln": {
+              "x": 40,
+              "y": 940
+            },
+            "Richtige Antwort auf A": {
+              "x": 40,
+              "y": 1040
+            },
+            "Antworten Variante A": {
+              "x": 320,
+              "y": 1040
+            },
+            "Richtige Antwort auf B": {
+              "x": 40,
+              "y": 1140
+            },
+            "Antworten Variante B": {
+              "x": 320,
+              "y": 1140
+            },
+            "Richtige Antwort auf C": {
+              "x": 40,
+              "y": 1240
+            },
+            "Antworten Variante C": {
+              "x": 320,
+              "y": 1240
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "AntwortGewaehlt",
+          "description": "Vergleicht den matchValue des geklickten Buttons mit dem Ergebnis. Richtig: zaehlen und naechste Aufgabe bzw. Fertig. Falsch: Fehler zaehlen und nochmal versuchen lassen.",
+          "actionSequence": [
+            {
+              "condition": {
+                "variable": "self.matchValue",
+                "operator": "==",
+                "value": "${Ergebnis}",
+                "rightType": "variable"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Richtig zaehlen",
+                  "type": "action"
+                },
+                {
+                  "name": "Feedback Richtig",
+                  "type": "action"
+                },
+                {
+                  "condition": {
+                    "variable": "AufgabenNr",
+                    "operator": ">=",
+                    "value": "${aufgaben}",
+                    "rightType": "variable"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "type": "task",
+                      "name": "Fertig"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "task",
+                      "name": "NeueAufgabe"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": [
+                {
+                  "name": "Fehler zaehlen",
+                  "type": "action"
+                },
+                {
+                  "name": "Feedback Fast",
+                  "type": "action"
+                }
+              ]
+            }
+          ],
+          "id": "kr_task_antwort",
+          "flowLayout": {
+            "AntwortGewaehlt": {
+              "x": 40,
+              "y": 40
+            },
+            "Antwort richtig": {
+              "x": 40,
+              "y": 140
+            },
+            "Richtig zaehlen": {
+              "x": 340,
+              "y": 140
+            },
+            "Feedback Richtig": {
+              "x": 340,
+              "y": 240
+            },
+            "Letzte Aufgabe": {
+              "x": 640,
+              "y": 360
+            },
+            "Fertig": {
+              "x": 920,
+              "y": 360
+            },
+            "NeueAufgabe": {
+              "x": 680,
+              "y": 520
+            },
+            "Fehler zaehlen": {
+              "x": 40,
+              "y": 240
+            },
+            "Feedback Fast": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "Fertig",
+          "description": "Alle Aufgaben beantwortet: Abschluss anzeigen und Ergebnis an das Hauptspiel zurueckmelden.",
+          "actionSequence": [
+            {
+              "name": "Abschluss anzeigen",
+              "type": "action"
+            },
+            {
+              "name": "Ergebnis zurueckmelden",
+              "type": "action"
+            }
+          ],
+          "id": "kr_task_fertig",
+          "flowLayout": {
+            "Fertig": {
+              "x": 40,
+              "y": 40
+            },
+            "Abschluss anzeigen": {
+              "x": 40,
+              "y": 140
+            },
+            "Ergebnis zurueckmelden": {
+              "x": 40,
+              "y": 240
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "kr_action_nr_hoch",
+          "type": "calculate",
+          "name": "AufgabenNr hochzaehlen",
+          "formula": "AufgabenNr + 1",
+          "resultVariable": "AufgabenNr",
+          "resultVariable_ref": "kr_var_aufgaben_nr"
+        },
+        {
+          "id": "kr_action_zahl_a",
+          "type": "call_method",
+          "name": "Zahl A wuerfeln",
+          "target": "ZufallA",
+          "method": "generate",
+          "params": [],
+          "resultVariable": "ZahlA",
+          "target_ref": "kr_zufall_a"
+        },
+        {
+          "id": "kr_action_b_max",
+          "type": "calculate",
+          "name": "B-Maximum aus A",
+          "formula": "20 - ZahlA",
+          "resultVariable": "ZufallB.max"
+        },
+        {
+          "id": "kr_action_ergebnis",
+          "type": "calculate",
+          "name": "Ergebnis berechnen",
+          "formula": "ZahlA + ZahlB",
+          "resultVariable": "Ergebnis",
+          "resultVariable_ref": "kr_var_ergebnis"
+        },
+        {
+          "id": "kr_action_zahl_b",
+          "type": "call_method",
+          "name": "Zahl B wuerfeln",
+          "target": "ZufallB",
+          "method": "generate",
+          "params": [],
+          "resultVariable": "ZahlB",
+          "target_ref": "kr_zufall_b"
+        },
+        {
+          "id": "kr_action_zeigen",
+          "type": "property",
+          "name": "Aufgabe zeigen",
+          "changes": {
+            "Aufgabe.text": "${ZahlA} + ${ZahlB} = ?",
+            "Fortschritt.text": "Aufgabe ${AufgabenNr} von ${aufgaben}",
+            "Feedback.text": ""
+          }
+        },
+        {
+          "id": "kr_action_distrakt1",
+          "type": "calculate",
+          "name": "Distraktor 1 berechnen",
+          "formula": "Ergebnis + 1",
+          "resultVariable": "Distrakt1"
+        },
+        {
+          "id": "kr_action_distrakt2",
+          "type": "calculate",
+          "name": "Distraktor 2 berechnen",
+          "formula": "Ergebnis + 2",
+          "resultVariable": "Distrakt2"
+        },
+        {
+          "id": "kr_action_pos",
+          "type": "call_method",
+          "name": "Position wuerfeln",
+          "target": "ZufallPos",
+          "method": "generate",
+          "params": [],
+          "resultVariable": "Pos",
+          "target_ref": "kr_zufall_pos"
+        },
+        {
+          "id": "kr_action_variante_a",
+          "type": "property",
+          "name": "Antworten Variante A",
+          "changes": {
+            "BtnAntwortA.text": "${Ergebnis}",
+            "BtnAntwortA.matchValue": "${Ergebnis}",
+            "BtnAntwortB.text": "${Distrakt1}",
+            "BtnAntwortB.matchValue": "${Distrakt1}",
+            "BtnAntwortC.text": "${Distrakt2}",
+            "BtnAntwortC.matchValue": "${Distrakt2}"
+          }
+        },
+        {
+          "id": "kr_action_variante_b",
+          "type": "property",
+          "name": "Antworten Variante B",
+          "changes": {
+            "BtnAntwortA.text": "${Distrakt1}",
+            "BtnAntwortA.matchValue": "${Distrakt1}",
+            "BtnAntwortB.text": "${Ergebnis}",
+            "BtnAntwortB.matchValue": "${Ergebnis}",
+            "BtnAntwortC.text": "${Distrakt2}",
+            "BtnAntwortC.matchValue": "${Distrakt2}"
+          }
+        },
+        {
+          "id": "kr_action_variante_c",
+          "type": "property",
+          "name": "Antworten Variante C",
+          "changes": {
+            "BtnAntwortA.text": "${Distrakt1}",
+            "BtnAntwortA.matchValue": "${Distrakt1}",
+            "BtnAntwortB.text": "${Distrakt2}",
+            "BtnAntwortB.matchValue": "${Distrakt2}",
+            "BtnAntwortC.text": "${Ergebnis}",
+            "BtnAntwortC.matchValue": "${Ergebnis}"
+          }
+        },
+        {
+          "id": "kr_action_richtig",
+          "type": "calculate",
+          "name": "Richtig zaehlen",
+          "formula": "Richtig + 1",
+          "resultVariable": "Richtig",
+          "resultVariable_ref": "kr_var_richtig"
+        },
+        {
+          "id": "kr_action_fb_richtig",
+          "type": "property",
+          "name": "Feedback Richtig",
+          "changes": {
+            "Feedback.text": "Richtig! 🎉"
+          }
+        },
+        {
+          "id": "kr_action_fehler",
+          "type": "calculate",
+          "name": "Fehler zaehlen",
+          "formula": "Fehler + 1",
+          "resultVariable": "Fehler",
+          "resultVariable_ref": "kr_var_fehler"
+        },
+        {
+          "id": "kr_action_fb_fehler",
+          "type": "property",
+          "name": "Feedback Fast",
+          "changes": {
+            "Feedback.text": "Fast! Versuch's nochmal."
+          }
+        },
+        {
+          "id": "kr_action_abschluss",
+          "type": "property",
+          "name": "Abschluss anzeigen",
+          "changes": {
+            "Aufgabe.text": "Geschafft! 🎉",
+            "Feedback.text": "${Richtig} von ${aufgaben} richtig",
+            "Fortschritt.text": "Super gemacht!"
+          }
+        },
+        {
+          "id": "kr_action_close",
+          "type": "close_overlay",
+          "name": "Ergebnis zurueckmelden",
+          "result": "{\"richtig\": ${Richtig}, \"fehler\": ${Fehler}, \"gesamt\": ${aufgaben}}"
+        }
+      ],
+      "events": {
+        "onEnter": "NeueAufgabe"
+      },
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    }
+  ],
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "actions": [],
+  "objects": [],
+  "variables": [],
+  "tasks": []
+}

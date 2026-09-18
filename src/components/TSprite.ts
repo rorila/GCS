@@ -29,6 +29,8 @@ export class TSprite extends TWindow {
     public sourceRectWidth: number = 0;
     public sourceRectHeight: number = 0;
     public puzzleEdges: string = '';
+    /** Zapfentiefe relativ zur Teilegroesse; 0 = Standard (PUZZLE_TAB_DEPTH). */
+    public puzzleTabDepth: number = 0;
     public matchValue: string | number = '';
 
     // TImageList support
@@ -85,6 +87,8 @@ export class TSprite extends TWindow {
     public isPoolInstance: boolean = false;
     public spawnX: number = 0;
     public spawnY: number = 0;
+    public spawnWidth: number = 0;
+    public spawnHeight: number = 0;
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
@@ -120,6 +124,8 @@ export class TSprite extends TWindow {
             // Motion group
             { name: 'spawnX', label: 'Startposition X', type: 'number', readonly: true, serializable: false, group: 'Motion' },
             { name: 'spawnY', label: 'Startposition Y', type: 'number', readonly: true, serializable: false, group: 'Motion' },
+            { name: 'spawnWidth', label: 'Startbreite', type: 'number', readonly: true, serializable: false, group: 'Motion' },
+            { name: 'spawnHeight', label: 'Starthöhe', type: 'number', readonly: true, serializable: false, group: 'Motion' },
             { name: 'velocityX', label: 'Velocity X', type: 'number', group: 'Motion' },
             { name: 'velocityY', label: 'Velocity Y', type: 'number', group: 'Motion' },
             { name: 'gravity', label: 'Gravity', type: 'number', group: 'Motion' },
@@ -142,6 +148,7 @@ export class TSprite extends TWindow {
             { name: 'sourceRectWidth', label: 'Ausschnittbreite (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
             { name: 'sourceRectHeight', label: 'Ausschnitthoehe (px)', type: 'number', min: 0, group: 'BILDAUSSCHNITT' },
             { name: 'puzzleEdges', label: 'Puzzlekanten', type: 'string', group: 'BILDAUSSCHNITT', hint: 'Oben,rechts,unten,links: 0 = gerade, 1 = Zapfen, -1 = Einbuchtung. Leer = Rechteck.' },
+            { name: 'puzzleTabDepth', label: 'Zapfentiefe (0=Standard)', type: 'number', min: 0, max: 0.4, step: 0.01, group: 'BILDAUSSCHNITT' },
             { name: 'matchValue', label: 'Match-Wert', type: 'string', group: 'DATEN' },
             { name: 'sepSpritesheet', label: 'Sprite-Sheet', type: 'separator', group: 'Appearance', serializable: false, editorOnly: true },
             { name: 'imageListId', label: 'Sprite Sheet', type: 'select', source: 'imageLists', group: 'Appearance', hint: 'Verknüpft das Sprite mit einer TImageList' },
@@ -224,6 +231,23 @@ export class TSprite extends TWindow {
         }
     }
 
+
+    /**
+     * Skaliert das Sprite auf eine neue Größe und hält dabei den Punkt (px, py)
+     * (in Stage-Zellen) an derselben relativen Position im Element — z.B. den
+     * Mauszeiger beim Aufnehmen eines verkleinert abgelegten Puzzleteils.
+     */
+    public resizeAroundPoint(px: number, py: number, newWidth: number, newHeight: number): void {
+        const w0 = Number(this.width) || 0;
+        const h0 = Number(this.height) || 0;
+        if (!(newWidth > 0) || !(newHeight > 0) || w0 <= 0 || h0 <= 0) return;
+        const fx = Math.min(1, Math.max(0, ((Number(px) || 0) - this.x) / w0));
+        const fy = Math.min(1, Math.max(0, ((Number(py) || 0) - this.y) / h0));
+        this.width = newWidth;
+        this.height = newHeight;
+        this.x = (Number(px) || 0) - fx * newWidth;
+        this.y = (Number(py) || 0) - fy * newHeight;
+    }
 
     /**
      * Ermittelt die logische Hitbox (AABB-Maße und logische Shape).
@@ -367,6 +391,7 @@ export class TSprite extends TWindow {
             sourceRectWidth: this.sourceRectWidth,
             sourceRectHeight: this.sourceRectHeight,
             puzzleEdges: this.puzzleEdges,
+            puzzleTabDepth: this.puzzleTabDepth,
             matchValue: this.matchValue,
             imageListId: this.imageListId,
             imageIndex: this.imageIndex,

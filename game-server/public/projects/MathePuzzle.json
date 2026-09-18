@@ -1,12 +1,12 @@
 {
   "meta": {
-    "id": "puzzle-neu",
-    "name": "PuzzleNeu",
+    "id": "mathe-puzzle",
+    "name": "MathePuzzle",
     "version": "0.1.0",
-    "description": "Schritt 2: Galerie-Stage zur Bildauswahl + Bildaufteiler. Das Kind wählt in der Galerie ein Bild aus dem Ordner 'memory Tierbilder für kleine Kinder'; 'Dieses Bild nehmen' überträgt es an den Bildaufteiler. Teile weiterhin explizit über 'Teile erzeugen' generieren. Noch keine Spiellogik.",
-    "_sourcePath": "projects/PuzzleNeu.json"
+    "description": "PuzzleNeu mit Kopfrechnen-Overlay: Der Button 'Mathe' oeffnet das Projekt 'Kopfrechnen' als modale Overlay-Karte (TOverlay). Das Puzzle pausiert dabei; das Ergebnis kommt per onOverlayResult zurueck.",
+    "_sourcePath": "projects/MathePuzzle.json"
   },
-  "activeStageId": "stage_blueprint",
+  "activeStageId": "stage_main",
   "stage": {
     "grid": {
       "cols": 60,
@@ -100,14 +100,30 @@
           "className": "TBooleanVariable",
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "System internal flag to track unsaved changes",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
           "type": "boolean",
           "defaultValue": true,
           "value": true,
-          "isGlobal": true,
-          "description": "System internal flag to track unsaved changes",
-          "uiScope": "stage",
-          "uiEmoji": "🎭",
-          "usageCount": 0
+          "objectModel": ""
         }
       ],
       "tasks": [
@@ -488,6 +504,54 @@
               "y": 140
             }
           }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "MatheStarten",
+          "description": "Oeffnet das Kopfrechnen-Overlay (Button 'Mathe'). Das Spiel pausiert, solange die Karte offen ist.",
+          "actionSequence": [
+            {
+              "name": "Overlay oeffnen",
+              "type": "action"
+            }
+          ],
+          "id": "mp_task_mathe_starten",
+          "flowLayout": {
+            "MatheStarten": {
+              "x": 40,
+              "y": 40
+            },
+            "Overlay oeffnen": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "params": [],
+          "triggerMode": "local-sync",
+          "name": "MatheFertig",
+          "description": "Wird von MatheOverlay.onOverlayResult ausgeloest: zeigt richtig/gesamt/fehler aus dem Overlay-Ergebnis.",
+          "actionSequence": [
+            {
+              "name": "Ergebnis anzeigen",
+              "type": "action",
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
+            }
+          ],
+          "id": "mp_task_mathe_fertig",
+          "flowLayout": {
+            "MatheFertig": {
+              "x": 40,
+              "y": 40
+            },
+            "Ergebnis anzeigen": {
+              "x": 40,
+              "y": 140
+            }
+          }
         }
       ],
       "actions": [
@@ -607,6 +671,26 @@
           "method": "show",
           "params": [
             "Geschafft! Das Puzzle ist fertig!",
+            "success"
+          ]
+        },
+        {
+          "id": "mp_action_overlay_open",
+          "type": "call_method",
+          "name": "Overlay oeffnen",
+          "target": "MatheOverlay",
+          "method": "show",
+          "params": [],
+          "target_ref": "mp_mathe_overlay"
+        },
+        {
+          "id": "mp_action_result_toast",
+          "type": "call_method",
+          "name": "Ergebnis anzeigen",
+          "target": "Toaster",
+          "method": "show",
+          "params": [
+            "Kopfrechnen: ${richtig} von ${gesamt} richtig (${fehler} Fehler)",
             "success"
           ]
         },
@@ -904,6 +988,108 @@
           },
           "text": "Puzzle-Sprites erzeugen",
           "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "mp_btn_mathe",
+          "name": "BtnMathe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "MatheStarten"
+          },
+          "visible": true,
+          "x": 26,
+          "y": 26,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 15,
+            "fontWeight": "600",
+            "backgroundColor": "#e67e22",
+            "borderColor": "#b85d0e",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "🧮 Mathe",
+          "icon": ""
+        },
+        {
+          "className": "TOverlay",
+          "id": "mp_mathe_overlay",
+          "name": "MatheOverlay",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onOverlayResult": "MatheFertig"
+          },
+          "visible": false,
+          "x": 6.846153846153846,
+          "y": 2.269230769230769,
+          "width": 30,
+          "height": 22,
+          "zIndex": 100,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#334155",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "overlayProject": "UfoShoter4",
+          "params": "{\"aufgaben\": 10}",
+          "pauseGame": true,
+          "dimOpacity": 0.5,
+          "closable": false,
+          "closeOnEscape": false
+        },
+        {
+          "className": "TToast",
+          "id": "mp_toast",
+          "name": "Toast",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 44,
+          "y": 32,
+          "width": 20,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "animation": "slide-left",
+          "position": "bottom-left",
+          "duration": 3000,
+          "maxVisible": 3,
+          "infoColor": "#2196F3",
+          "successColor": "#4CAF50",
+          "warningColor": "#FF9800",
+          "errorColor": "#F44336",
+          "textColor": "#ffffff",
+          "fontSize": 14,
+          "borderRadius": 8,
+          "padding": 12
         },
         {
           "className": "TObjectList",

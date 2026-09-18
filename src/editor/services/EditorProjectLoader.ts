@@ -188,6 +188,14 @@ export class EditorProjectLoader {
         // Global-Ansicht statt den letzten Kontext (localStorage) wiederherzustellen.
         localStorage.setItem('gcs_last_flow_context', 'global');
 
+        // Normalisierung: Top-Level-Arrays garantieren. Manche Projekte halten
+        // alles stage-scoped und besitzen die Root-Keys nicht — der Editor
+        // erwartet sie aber an vielen Stellen (Filter/Find/ForEach).
+        data.objects = data.objects || [];
+        data.variables = data.variables || [];
+        data.tasks = data.tasks || [];
+        data.actions = data.actions || [];
+
         // 3. CENTRAL UPDATE (Replaces reference and notifies managers)
         // Use try-catch because in some Vite HMR/rebuild scenarios, prototype methods
         // may not be available on the host instance
@@ -247,7 +255,7 @@ export class EditorProjectLoader {
 
         // 7. AUTO-SEED & DATA ACCESS
         if (typeof window !== 'undefined') {
-            const dataStores = this.host.project.objects.filter((o: any) => o.className === 'TDataStore');
+            const dataStores = (this.host.project.objects || []).filter((o: any) => o.className === 'TDataStore');
             dataStores.forEach((ds: any) => {
                 const path = ds.storagePath || 'db.json';
                 dataService.seedFromUrl(path, `/api/dev/data/${path}`).then(() => {
@@ -268,7 +276,7 @@ export class EditorProjectLoader {
         setTimeout(() => { this.host.isProjectDirty = false; }, 100);
 
         setTimeout(() => {
-            const toast = this.host.project?.objects.find(o => (o as any).className === 'TToast') as any;
+            const toast = this.host.project?.objects?.find(o => (o as any).className === 'TToast') as any;
             if (toast && typeof toast.success === 'function') {
                 toast.success('Projekt geladen.');
             } else {

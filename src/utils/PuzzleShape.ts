@@ -23,11 +23,15 @@ export function parsePuzzleEdges(value: unknown): PuzzleEdges | null {
     return value.split(',').map(Number) as PuzzleEdges;
 }
 
-export function createPuzzleShape(width: number, height: number, value: unknown): { path: string; padding: number } | null {
+export function createPuzzleShape(width: number, height: number, value: unknown, tabDepth: number = PUZZLE_TAB_DEPTH): { path: string; padding: number } | null {
     const edges = parsePuzzleEdges(value);
     if (!edges || ![width, height].every(n => Number.isFinite(n) && n > 0)) return null;
     const size = Math.min(width, height);
-    const depth = size * PUZZLE_TAB_DEPTH;
+    const clamped = Math.min(0.4, Math.max(0.02, Number(tabDepth) || PUZZLE_TAB_DEPTH));
+    const depth = size * clamped;
+    // Zapfenbreite waechst moderat mit der Tiefe, damit tiefe Zapfen
+    // nicht zu schmalen "Pilzen" werden und kleine nicht zu Brei verlaufen.
+    const uScale = Math.min(1.6, Math.max(0.6, clamped / PUZZLE_TAB_DEPTH));
     const corners = [[0, 0], [width, 0], [width, height], [0, height], [0, 0]];
     const path = ['M 0 0'];
     for (let i = 0; i < 4; i++) {
@@ -35,7 +39,7 @@ export function createPuzzleShape(width: number, height: number, value: unknown)
         const length = Math.hypot(endX - x, endY - y);
         const tx = (endX - x) / length, ty = (endY - y) / length;
         const point = (u: number, v: number) => {
-            const along = length / 2 + u * size, outward = v * depth * edges[i];
+            const along = length / 2 + u * uScale * size, outward = v * depth * edges[i];
             return `${x + tx * along + ty * outward} ${y + ty * along - tx * outward}`;
         };
         if (edges[i] !== 0) {

@@ -21,6 +21,11 @@ export class StageInteractionManager {
     private initialPos: { left: number, top: number } | null = null;
     private isCopyDrag: boolean = false;
     private dragGhost: HTMLElement | null = null;
+    // Nach onDragStart kann ein Flow das Objekt vergroessert/verschoben haben
+    // (z.B. Puzzleteil, das beim Aufnehmen auf Zielgroesse waechst). Beim
+    // naechsten mousemove werden dragStartRel/dragObjStartGrid neu basiert,
+    // damit das Teil nicht zurueckspringt.
+    private dragRebasePending: boolean = false;
 
     // Rectangle Selection
     private isRectSelecting: boolean = false;
@@ -277,6 +282,15 @@ export class StageInteractionManager {
                         }
 
                         if (this.host.onDragStart) this.host.onDragStart(id);
+                        // Runtime-Event wie im iframe-Player feuern, damit
+                        // onDragStart-Flows (z.B. "Teil auf Zielgroesse bringen")
+                        // auch im Editor-Run-View laufen.
+                        const cell = this.host.grid.cellSize || 20;
+                        this.host.onEvent?.(id, 'onDragStart', {
+                            draggedId: id, draggedName: obj.name || id, draggedObj: obj,
+                            x: coords.x / cell, y: coords.y / cell
+                        });
+                        this.dragRebasePending = true;
                         e.preventDefault();
                     }
                 }
@@ -398,6 +412,12 @@ export class StageInteractionManager {
             if (this.isDragging && this.dragObjId && this.dragStartRel) {
                 e.preventDefault();
                 const coords = this.getRelativeCoordinates(e);
+                if (this.dragRebasePending) {
+                    this.dragRebasePending = false;
+                    const dragObj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === this.dragObjId);
+                    if (dragObj) this.dragObjStartGrid = { x: dragObj.x || 0, y: dragObj.y || 0 };
+                    this.dragStartRel = { x: coords.x, y: coords.y };
+                }
                 const dx = coords.x - this.dragStartRel.x;
                 const dy = coords.y - this.dragStartRel.y;
 
@@ -585,7 +605,7 @@ export class StageInteractionManager {
                     }
                 }
                 if (this.dragGhost) { this.dragGhost.remove(); this.dragGhost = null; }
-                this.isCopyDrag = false; this.isDragging = false; this.dragObjId = null; this.dragStart = null; this.dragStartRel = null; this.dragObjStartGrid = null;
+                this.isCopyDrag = false; this.isDragging = false; this.dragObjId = null; this.dragStart = null; this.dragStartRel = null; this.dragObjStartGrid = null; this.dragRebasePending = false;
             }
             return;
         }

@@ -97,8 +97,9 @@ export class SanitizationService {
             });
         }
 
-        const rootTaskCountBefore = project.tasks.length;
-        project.tasks = project.tasks.filter(t => !taskNames.has(t.name));
+        const rootTasks = project.tasks || [];
+        const rootTaskCountBefore = rootTasks.length;
+        project.tasks = rootTasks.filter(t => !taskNames.has(t.name));
         if (project.tasks.length < rootTaskCountBefore) {
             const diffSize = rootTaskCountBefore - project.tasks.length;
             report.push(`${diffSize} doppelte globale Tasks wurden entfernt (bereits in Stages vorhanden).`);
@@ -121,7 +122,7 @@ export class SanitizationService {
             });
         }
 
-        project.tasks.forEach(t => taskNames.add(t.name));
+        (project.tasks || []).forEach(t => taskNames.add(t.name));
         const cleanFlowCharts = (charts: Record<string, any> | undefined, label: string) => {
             if (!charts) return;
             Object.keys(charts).forEach(key => {
@@ -166,7 +167,7 @@ export class SanitizationService {
         this.cleanActionSequences(project);
         report.push('Action-Sequenzen bereinigt');
 
-        const allObjectsScope = [...project.objects, ...(project.variables || [])];
+        const allObjectsScope = [...(project.objects || []), ...(project.variables || [])];
         if (project.stages) {
             project.stages.forEach(s => {
                 if (s.objects) allObjectsScope.push(...s.objects);

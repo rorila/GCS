@@ -145,10 +145,16 @@ class UniversalPlayer implements StageHost {
     private dragPointerId: number | null = null;
     private dragElement: HTMLElement | null = null;
     private dragOffset: { x: number, y: number } = { x: 0, y: 0 };
+    // Nach onDragStart kann ein Flow das gezogene Objekt vergroessert/verschoben
+    // haben (z.B. Puzzleteil, das beim Aufnehmen auf Zielgroesse waechst).
+    // Der Drag-Offset wird dann beim naechsten pointermove neu basiert,
+    // damit das Teil nicht zurueckspringt.
+    private dragRebasePending: boolean = false;
     private scalingRafId: number | null = null;
 
     constructor() {
-        this.element = document.getElementById('run-stage')!;
+        // Alte eingebettete Seiten nutzen noch #stage — Fallback, damit sie weiterlaufen.
+        this.element = (document.getElementById('run-stage') || document.getElementById('stage'))!;
         this.renderer = new StageRenderer(this);
         this.onEvent = (id, ev, data) => {
             if (this.runtime) this.runtime.handleEvent(id, ev, data);
@@ -343,6 +349,25 @@ class UniversalPlayer implements StageHost {
         }
     }
 
+    /**
+     * Überträgt ?params={...}-URL-Daten (TOverlay-Übergabedaten) in die
+     * contextVars der Runtime. Wird vor runtime.start() aufgerufen, damit
+     * onEnter-Tasks die Werte bereits über ${…} lesen können.
+     */
+    private applyOverlayParams(): void {
+        try {
+            const raw = new URLSearchParams(window.location.search).get('params');
+            if (!raw || !this.runtime) return;
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+                Object.assign(this.runtime.contextVars, parsed);
+                logger.info('[UniversalPlayer] Overlay-Übergabedaten angewendet:', Object.keys(parsed));
+            }
+        } catch (e) {
+            logger.warn('[UniversalPlayer] Ungültige ?params=-Daten in der URL.', e);
+        }
+    }
+
     private isImageUrl(s: string): boolean {
         if (!s) return false;
         if (s.startsWith('data:image')) return true;
@@ -461,6 +486,9 @@ class UniversalPlayer implements StageHost {
         });
 
         this.disposeCmsHost = attachCmsGameHost(() => this.runtime);
+
+        // 2b. Overlay-Übergabedaten (?params={"aufgaben":10}) als Kontextvariablen
+        this.applyOverlayParams();
 
         // 3. Update Visuals
         this.setupScaling();
@@ -814,6 +842,9 @@ class UniversalPlayer implements StageHost {
         }
 
         this.runtime.handleEvent(obj.id, 'onDragStart', { x: gridCoords.x, y: gridCoords.y });
+        // Flows laufen async — erst beim naechsten pointermove den Offset
+        // gegen die (evtl. veraenderte) Objektposition neu basieren.
+        this.dragRebasePending = true;
     }
 
     private handleMouseMove(e: MouseEvent | PointerEvent) {
@@ -825,6 +856,10 @@ class UniversalPlayer implements StageHost {
         }
 
         const coords = this.screenToGrid(e.clientX, e.clientY);
+        if (this.dragRebasePending) {
+            this.dragRebasePending = false;
+            this.dragOffset = { x: coords.x - (Number(this.dragTarget.x) || 0), y: coords.y - (Number(this.dragTarget.y) || 0) };
+        }
         this.dragTarget.x = coords.x - this.dragOffset.x;
         this.dragTarget.y = coords.y - this.dragOffset.y;
 
@@ -842,6 +877,10 @@ class UniversalPlayer implements StageHost {
         const originalTarget = phantom ? (draggedTarget as any)?._original : draggedTarget;
         if (e && !cancelled && draggedTarget) {
             const coords = this.screenToGrid(e.clientX, e.clientY);
+            if (this.dragRebasePending) {
+                this.dragRebasePending = false;
+                this.dragOffset = { x: coords.x - (Number(draggedTarget.x) || 0), y: coords.y - (Number(draggedTarget.y) || 0) };
+            }
             draggedTarget.x = coords.x - this.dragOffset.x;
             draggedTarget.y = coords.y - this.dragOffset.y;
         }
@@ -870,6 +909,7 @@ class UniversalPlayer implements StageHost {
         this.dragPhantom = null;
         this.dragElement = null;
         this.dragPointerId = null;
+        this.dragRebasePending = false;
         if (pointerId !== null && captureElement?.hasPointerCapture(pointerId)) {
             captureElement.releasePointerCapture(pointerId);
         }
