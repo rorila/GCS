@@ -1423,6 +1423,35 @@
           "searchProperty": "name",
           "selectedIndex": -1,
           "recordData": {}
+        },
+        {
+          "className": "TAnimation",
+          "id": "obj_1789797399944_5s58wt6ni",
+          "name": "Animation_19",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 17.557692307692307,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageListId": "",
+          "imageCount": 1,
+          "frameDuration": 100,
+          "loop": true,
+          "enabled": true
         }
       ],
       "variables": [],

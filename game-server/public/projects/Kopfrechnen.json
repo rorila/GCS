@@ -238,6 +238,321 @@
             "borderWidth": 0
           },
           "text": ""
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_1789798310779_ogihy1n8q",
+          "name": "Rolf_Sprite",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 7,
+          "height": 12,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "appearanceMode": "spritesheet",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
+          "imageListId": "nachdenken",
+          "imageIndex": 0,
+          "animationId": "nachdenken_anim",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TTimer",
+          "id": "kr_timer_denken",
+          "name": "TimerDenken",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "WiederNachdenken"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 14,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 2500,
+          "enabled": false,
+          "maxInterval": 1,
+          "currentInterval": 0
+        },
+        {
+          "className": "TImageList",
+          "id": "obj_1789803754572_h0fajouxd",
+          "name": "richtig",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 4,
+          "width": 8,
+          "height": 10,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "/images/richtig.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": 3,
+          "imageCountVertical": 2,
+          "currentImageNumber": 0,
+          "maxImageCount": 6
+        },
+        {
+          "className": "TAnimation",
+          "id": "obj_1789803754572_066w8uvoe",
+          "name": "richtig_anim",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageListId": "richtig",
+          "imageCount": 5,
+          "frameDuration": 500,
+          "loop": true,
+          "enabled": true
+        },
+        {
+          "className": "TImageList",
+          "id": "obj_1789804020823_s4gdfz3mg",
+          "name": "nachdenken",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 5,
+          "width": 8,
+          "height": 10,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "/images/nachdenken.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": 2,
+          "imageCountVertical": 2,
+          "currentImageNumber": 0,
+          "maxImageCount": 4
+        },
+        {
+          "className": "TAnimation",
+          "id": "obj_1789804020823_qh65fw1oj",
+          "name": "nachdenken_anim",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageListId": "nachdenken",
+          "imageCount": 3,
+          "frameDuration": 500,
+          "loop": true,
+          "enabled": true
+        },
+        {
+          "className": "TAnimation",
+          "id": "obj_1789804028736_0a3ng1e40",
+          "name": "nachdenken_anim_2",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 14,
+          "y": 2,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageListId": "nachdenken_2",
+          "imageCount": 3,
+          "frameDuration": 500,
+          "loop": true,
+          "enabled": true
+        },
+        {
+          "className": "TImageList",
+          "id": "obj_1789804153175_45pm093xj",
+          "name": "falsch",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 13,
+          "y": 4,
+          "width": 8,
+          "height": 10,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "/images/falsch.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0,
+          "imageCountHorizontal": 3,
+          "imageCountVertical": 2,
+          "currentImageNumber": 0,
+          "maxImageCount": 6
+        },
+        {
+          "className": "TAnimation",
+          "id": "obj_1789804153175_0e8u7fs2p",
+          "name": "falsch_anim",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 2,
+          "width": 2,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "imageListId": "falsch",
+          "imageCount": 6,
+          "frameDuration": 500,
+          "loop": true,
+          "enabled": true
         }
       ],
       "variables": [
@@ -253,7 +568,7 @@
           "dragMode": "move",
           "description": "",
           "visible": true,
-          "x": 0,
+          "x": 25,
           "y": 0,
           "width": 4,
           "height": 2,
@@ -284,7 +599,7 @@
           "dragMode": "move",
           "description": "",
           "visible": true,
-          "x": 0,
+          "x": 25,
           "y": 2,
           "width": 4,
           "height": 2,
@@ -315,7 +630,7 @@
           "dragMode": "move",
           "description": "",
           "visible": true,
-          "x": 0,
+          "x": 25,
           "y": 4,
           "width": 4,
           "height": 2,
@@ -346,7 +661,7 @@
           "dragMode": "move",
           "description": "",
           "visible": true,
-          "x": 0,
+          "x": 25,
           "y": 6,
           "width": 4,
           "height": 2,
@@ -377,7 +692,7 @@
           "dragMode": "move",
           "description": "Anzahl der Aufgaben; wird per Overlay-params ueberschrieben",
           "visible": true,
-          "x": 0,
+          "x": 25,
           "y": 8,
           "width": 4,
           "height": 2,
@@ -408,7 +723,7 @@
           "dragMode": "move",
           "description": "",
           "visible": true,
-          "x": 0,
+          "x": 25,
           "y": 10,
           "width": 4,
           "height": 2,
@@ -439,7 +754,7 @@
           "dragMode": "move",
           "description": "",
           "visible": true,
-          "x": 0,
+          "x": 25,
           "y": 12,
           "width": 4,
           "height": 2,
@@ -470,7 +785,7 @@
           "dragMode": "move",
           "description": "",
           "visible": true,
-          "x": 0,
+          "x": 25,
           "y": 14,
           "width": 4,
           "height": 2,
@@ -673,6 +988,18 @@
                   "type": "action"
                 },
                 {
+                  "name": "Richtig-Anim vorbereiten",
+                  "type": "action"
+                },
+                {
+                  "name": "Richtig-Anim zuruecksetzen",
+                  "type": "action"
+                },
+                {
+                  "name": "Richtig-Anim abspielen",
+                  "type": "action"
+                },
+                {
                   "condition": {
                     "variable": "AufgabenNr",
                     "operator": ">=",
@@ -702,6 +1029,18 @@
                 {
                   "name": "Feedback Fast",
                   "type": "action"
+                },
+                {
+                  "name": "Falsch-Anim vorbereiten",
+                  "type": "action"
+                },
+                {
+                  "name": "Falsch-Anim zuruecksetzen",
+                  "type": "action"
+                },
+                {
+                  "name": "Falsch-Anim abspielen",
+                  "type": "action"
                 }
               ]
             }
@@ -712,29 +1051,41 @@
               "x": 40,
               "y": 40
             },
-            "Antwort richtig": {
+            "self.matchValue == ${Ergebnis}": {
               "x": 40,
               "y": 140
             },
             "Richtig zaehlen": {
-              "x": 340,
+              "x": 380,
               "y": 140
             },
             "Feedback Richtig": {
-              "x": 340,
+              "x": 380,
               "y": 240
             },
-            "Letzte Aufgabe": {
-              "x": 640,
-              "y": 360
+            "Richtig-Anim vorbereiten": {
+              "x": 380,
+              "y": 340
+            },
+            "Richtig-Anim zuruecksetzen": {
+              "x": 380,
+              "y": 440
+            },
+            "Richtig-Anim abspielen": {
+              "x": 380,
+              "y": 540
+            },
+            "AufgabenNr >= ${aufgaben}": {
+              "x": 380,
+              "y": 640
             },
             "Fertig": {
-              "x": 920,
-              "y": 360
+              "x": 740,
+              "y": 640
             },
             "NeueAufgabe": {
-              "x": 680,
-              "y": 520
+              "x": 380,
+              "y": 740
             },
             "Fehler zaehlen": {
               "x": 40,
@@ -743,6 +1094,18 @@
             "Feedback Fast": {
               "x": 40,
               "y": 340
+            },
+            "Falsch-Anim vorbereiten": {
+              "x": 40,
+              "y": 440
+            },
+            "Falsch-Anim zuruecksetzen": {
+              "x": 40,
+              "y": 540
+            },
+            "Falsch-Anim abspielen": {
+              "x": 40,
+              "y": 640
             }
           }
         },
@@ -774,6 +1137,39 @@
             "Ergebnis zurueckmelden": {
               "x": 40,
               "y": 240
+            }
+          }
+        },
+        {
+          "id": "kr_task_wieder_nachdenken",
+          "name": "WiederNachdenken",
+          "description": "TimerDenken.onTimer: Nach einer Einmal-Animation (richtig/falsch) zurueck zur Nachdenken-Schleife.",
+          "actionSequence": [
+            {
+              "name": "Denk-Anim vorbereiten",
+              "type": "action"
+            },
+            {
+              "name": "Denk-Anim zuruecksetzen",
+              "type": "action"
+            },
+            {
+              "name": "Denk-Anim abspielen",
+              "type": "action"
+            }
+          ],
+          "flowLayout": {
+            "Denk-Anim vorbereiten": {
+              "x": 40,
+              "y": 160
+            },
+            "Denk-Anim zuruecksetzen": {
+              "x": 40,
+              "y": 260
+            },
+            "Denk-Anim abspielen": {
+              "x": 40,
+              "y": 360
             }
           }
         }
@@ -942,6 +1338,92 @@
           "type": "close_overlay",
           "name": "Ergebnis zurueckmelden",
           "result": "{\"richtig\": ${Richtig}, \"fehler\": ${Fehler}, \"gesamt\": ${aufgaben}}"
+        },
+        {
+          "id": "kr_action_anim_richtig_prep",
+          "type": "property",
+          "name": "Richtig-Anim vorbereiten",
+          "changes": {
+            "nachdenken_anim.enabled": false,
+            "falsch_anim.enabled": false,
+            "Rolf_Sprite.animationId": "richtig_anim",
+            "TimerDenken.interval": 2500
+          }
+        },
+        {
+          "id": "kr_action_anim_richtig_reset",
+          "type": "call_method",
+          "name": "Richtig-Anim zuruecksetzen",
+          "target": "richtig_anim",
+          "method": "onRuntimeStart",
+          "params": [],
+          "target_ref": "obj_1789799305871_p0o4f1c6o"
+        },
+        {
+          "id": "kr_action_anim_richtig_play",
+          "type": "property",
+          "name": "Richtig-Anim abspielen",
+          "changes": {
+            "richtig_anim.enabled": true,
+            "TimerDenken.enabled": true
+          }
+        },
+        {
+          "id": "kr_action_anim_falsch_prep",
+          "type": "property",
+          "name": "Falsch-Anim vorbereiten",
+          "changes": {
+            "nachdenken_anim.enabled": false,
+            "richtig_anim.enabled": false,
+            "Rolf_Sprite.animationId": "falsch_anim",
+            "TimerDenken.interval": 4000
+          }
+        },
+        {
+          "id": "kr_action_anim_falsch_reset",
+          "type": "call_method",
+          "name": "Falsch-Anim zuruecksetzen",
+          "target": "falsch_anim",
+          "method": "onRuntimeStart",
+          "params": [],
+          "target_ref": "obj_1789799153064_4gp0wo872"
+        },
+        {
+          "id": "kr_action_anim_falsch_play",
+          "type": "property",
+          "name": "Falsch-Anim abspielen",
+          "changes": {
+            "falsch_anim.enabled": true,
+            "TimerDenken.enabled": true
+          }
+        },
+        {
+          "id": "kr_action_anim_denken_prep",
+          "type": "property",
+          "name": "Denk-Anim vorbereiten",
+          "changes": {
+            "richtig_anim.enabled": false,
+            "falsch_anim.enabled": false,
+            "TimerDenken.enabled": false,
+            "Rolf_Sprite.animationId": "nachdenken_anim"
+          }
+        },
+        {
+          "id": "kr_action_anim_denken_reset",
+          "type": "call_method",
+          "name": "Denk-Anim zuruecksetzen",
+          "target": "nachdenken_anim",
+          "method": "onRuntimeStart",
+          "params": [],
+          "target_ref": "obj_1789798529567_hk4n3i3qy"
+        },
+        {
+          "id": "kr_action_anim_denken_play",
+          "type": "property",
+          "name": "Denk-Anim abspielen",
+          "changes": {
+            "nachdenken_anim.enabled": true
+          }
         }
       ],
       "events": {
