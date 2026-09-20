@@ -29,21 +29,20 @@ export class PhysicsEngine {
         spriteB: TSprite,
         overlap: { side: string; depth: number }
     ): void {
+        // Nur die Position korrigieren — die Velocity gehoert dem Flow
+        // (z.B. Breakout: negate velocityX/Y zum Abprallen). Ein Nullen hier
+        // wuerde vor dem Event den Rueckprall verhindern.
         if (overlap.side === 'left' || overlap.side === 'right') {
             if (Math.abs(spriteA.velocityX) >= Math.abs(spriteB.velocityX)) {
                 spriteA.x -= (overlap.side === 'left' ? -1 : 1) * overlap.depth;
-                spriteA.velocityX = 0;
             } else {
                 spriteB.x += (overlap.side === 'left' ? -1 : 1) * overlap.depth;
-                spriteB.velocityX = 0;
             }
         } else {
             if (Math.abs(spriteA.velocityY) >= Math.abs(spriteB.velocityY)) {
                 spriteA.y -= (overlap.side === 'top' ? -1 : 1) * overlap.depth;
-                spriteA.velocityY = 0;
             } else {
                 spriteB.y += (overlap.side === 'top' ? -1 : 1) * overlap.depth;
-                spriteB.velocityY = 0;
             }
         }
     }

@@ -488,7 +488,14 @@ export class StageObjectRenderer {
             }
         }
 
+        // Sichtbarkeits-Entscheidung ist an dieser Stelle final. Einzelne
+        // Komponenten-Renderer (z.B. Platzhalter) schreiben el.style.display
+        // und wuerden versteckte Objekte sonst wieder sichtbar machen.
+        const intendedDisplay = el.style.display;
         this.renderComponentContent(el, obj, className, isNew);
+        if (el.style.display !== intendedDisplay) {
+            el.style.display = intendedDisplay;
+        }
 
         this.ctx.updateSelectionState(el, objId);
     }

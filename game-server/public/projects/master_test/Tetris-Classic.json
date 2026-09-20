@@ -64,7 +64,8 @@
             "S",
             "T",
             "Z"
-          ]
+          ],
+          "id": "stage_blueprint_SteinTypen"
         },
         {
           "className": "TListVariable",
@@ -77,7 +78,8 @@
           "width": 4,
           "height": 2,
           "style": {},
-          "items": []
+          "items": [],
+          "id": "stage_blueprint_Bag"
         },
         {
           "className": "TListVariable",
@@ -96,7 +98,8 @@
             1,
             -2,
             2
-          ]
+          ],
+          "id": "stage_blueprint_Kicks"
         },
         {
           "className": "TStringMap",
@@ -138,7 +141,8 @@
             "Z_1": "[[0,0,1],[0,1,1],[0,1,0]]",
             "Z_2": "[[0,0,0],[1,1,0],[0,1,1]]",
             "Z_3": "[[0,1,0],[1,1,0],[1,0,0]]"
-          }
+          },
+          "id": "stage_blueprint_Steine"
         },
         {
           "className": "TStringMap",
@@ -159,7 +163,8 @@
             "S": "5",
             "T": "6",
             "Z": "7"
-          }
+          },
+          "id": "stage_blueprint_Farben"
         },
         {
           "className": "TStringMap",
@@ -177,7 +182,8 @@
             "2": "300",
             "3": "500",
             "4": "800"
-          }
+          },
+          "id": "stage_blueprint_PunkteTabelle"
         }
       ],
       "tasks": [],
@@ -822,6 +828,319 @@
             "onClick": "SteuerungRechts"
           },
           "id": "stage_main_TouchRechts"
+        },
+        {
+          "className": "TGridBoard",
+          "id": "stage_main_Vorschau",
+          "name": "Vorschau",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 44,
+          "y": 19,
+          "width": 8,
+          "height": 8,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#141e3e",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": 6
+          },
+          "cols": 4,
+          "rows": 4,
+          "palette": [
+            "#101736",
+            "#22d3ee",
+            "#3b82f6",
+            "#f97316",
+            "#facc15",
+            "#22c55e",
+            "#a855f7",
+            "#ef4444"
+          ],
+          "cells": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "gridLines": true,
+          "gridColor": "transparent",
+          "overlayText": ""
+        },
+        {
+          "className": "TTimer",
+          "id": "stage_main_Takt",
+          "name": "Takt",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "TaktSchritt"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 3,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 700,
+          "enabled": false,
+          "maxInterval": 0,
+          "currentInterval": 0
         }
       ],
       "tasks": [
@@ -1262,6 +1581,22 @@
             {
               "type": "action",
               "name": "Act_BagPop"
+            },
+            {
+              "type": "action",
+              "name": "Act_NaechsteMatrix"
+            },
+            {
+              "type": "action",
+              "name": "Act_NaechsteFarbe"
+            },
+            {
+              "type": "action",
+              "name": "Act_VorschauLeeren"
+            },
+            {
+              "type": "action",
+              "name": "Act_VorschauZeigen"
             }
           ],
           "triggerMode": "local-sync",
@@ -2095,6 +2430,49 @@
             "AktivX": "${TestX}",
             "Gedreht": 1
           }
+        },
+        {
+          "name": "Act_NaechsteMatrix",
+          "type": "map_get",
+          "target": "Steine",
+          "key": "${NaechsterTyp}_0",
+          "resultVariable": "NaechsteMatrix",
+          "id": "2ba383c7-b665-4366-b027-6e85e0da6dd7",
+          "target_ref": "stage_blueprint_Steine",
+          "resultVariable_ref": "tc_var_NaechsteMatrix"
+        },
+        {
+          "name": "Act_NaechsteFarbe",
+          "type": "map_get",
+          "target": "Farben",
+          "key": "${NaechsterTyp}",
+          "resultVariable": "NaechsteFarbe",
+          "id": "4319b5c4-a9e4-422e-8fec-81aa812b7d26",
+          "target_ref": "stage_blueprint_Farben",
+          "resultVariable_ref": "tc_var_NaechsteFarbe"
+        },
+        {
+          "name": "Act_VorschauLeeren",
+          "type": "call_method",
+          "target": "Vorschau",
+          "method": "clearBoard",
+          "params": [],
+          "id": "3774aec6-aec1-4bac-a702-4568074156f5",
+          "target_ref": "stage_main_Vorschau"
+        },
+        {
+          "name": "Act_VorschauZeigen",
+          "type": "call_method",
+          "target": "Vorschau",
+          "method": "placeShape",
+          "params": [
+            "${NaechsteMatrix}",
+            0,
+            0,
+            "${NaechsteFarbe}"
+          ],
+          "id": "819b00fe-379f-45c3-a12a-b077d9685bd5",
+          "target_ref": "stage_main_Vorschau"
         }
       ],
       "variables": [],

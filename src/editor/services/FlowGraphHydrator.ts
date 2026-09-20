@@ -67,13 +67,11 @@ export class FlowGraphHydrator {
         } else {
             // =====================================================================
             // DYNAMISCHE FLOW-GENERIERUNG: FlowCharts aus actionSequence erzeugen
-            // Layout-Overrides (flowLayout) werden nachträglich angewendet
+            // Layout wird bei jeder Anzeige neu berechnet (keine Persistenz)
             // =====================================================================
             const task = this.host.getTaskDefinitionByName(this.host.currentFlowContext);
             if (task) {
                 sourceData = this.host.syncManager.generateFlowFromActionSequence(task);
-                // Layout-Overrides anwenden (User-Positionen)
-                this.applyLayoutOverrides(sourceData!, task.flowLayout);
                 // Standalone-Nodes nachladen (nicht in actionSequence, z.B. unverbundene Actions)
                 if (task.standaloneNodes && task.standaloneNodes.length > 0) {
                     sourceData!.elements.push(...task.standaloneNodes);
@@ -83,7 +81,7 @@ export class FlowGraphHydrator {
                     sourceData!.connections.push(...task.standaloneConnections);
                     FlowGraphHydrator.logger.info(`${task.standaloneConnections.length} standalone Connection(s) nachgeladen für "${task.name}"`);
                 }
-                FlowGraphHydrator.logger.info(`Flow dynamisch generiert f\u00fcr "${task.name}" (${sourceData!.elements.length} Nodes). Layout-Overrides: ${task.flowLayout ? Object.keys(task.flowLayout).length : 0}`);
+                FlowGraphHydrator.logger.info(`Flow dynamisch generiert f\u00fcr "${task.name}" (${sourceData!.elements.length} Nodes).`);
             } else {
                 // Task existiert nicht → leerer Flow
                 sourceData = { elements: [], connections: [] };
@@ -278,24 +276,6 @@ export class FlowGraphHydrator {
         FlowGraphHydrator.logger.info(
             `formatOrthogonalLayout fertig: Breite=${normalizedWidth}px, Nodes=${nodes.length}`
         );
-    }
-
-    /**
-     * Wendet gespeicherte Layout-Positionen auf dynamisch generierte Flow-Elemente an.
-     * Jeder Node wird über seinen Namen identifiziert (statt generierter ID).
-     */
-    private applyLayoutOverrides(
-        data: { elements: any[], connections: any[] },
-        layout?: Record<string, { x: number, y: number }>
-    ): void {
-        if (!layout || !data.elements) return;
-        data.elements.forEach(el => {
-            const key = el.properties?.name || el.data?.name || el.data?.taskName;
-            if (key && layout[key]) {
-                el.x = layout[key].x;
-                el.y = layout[key].y;
-            }
-        });
     }
 
     public refreshEmbeddedTask(proxyNode: FlowElement) {

@@ -161,9 +161,18 @@ export class PropertyHelper {
                              && val.className !== 'TTimer' && val.className !== 'TIntervalTimer';
                              
             if (isVarLike) {
-                // Priority 1: Collection Data (for TObjectList, TTable, TList)
-                if (Array.isArray(val.data)) return val.data;
-                if (Array.isArray(val.items)) return val.items;
+                // Priority 1: Collection Data — die kanonische Quelle haengt vom
+                // Modus ab: TObjectList im 'records'-Modus fuehrt records/data,
+                // im 'objects'-Modus fuehrt items (data ist dort nur die
+                // abgeleitete Ansicht und vor rebuildData noch leer).
+                if (val.sourceMode === 'records') {
+                    if (Array.isArray(val.records)) return val.records;
+                    if (Array.isArray(val.data)) return val.data;
+                } else {
+                    if (Array.isArray(val.items)) return val.items;
+                    if (Array.isArray(val.data)) return val.data;
+                }
+                if (Array.isArray(val.records)) return val.records;
 
                 // Priority 2: Map Data (for TStringMap)
                 if (val.entries !== undefined) return val.entries;

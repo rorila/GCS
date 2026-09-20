@@ -161,7 +161,9 @@ export class FlowSyncManager {
                 FlowSyncManager.logger.info(`[TRACE] syncToProject: Synchronisiere Task-Logik für "${currentContext}". Elemente: ${elements.length}`);
                 const visitedSet = this.sequenceBuilder.syncTaskFromFlow(task, elements, connections);
 
-                task.flowLayout = this.parser.extractLayoutOverrides(persistentNodes);
+                // Kein flowLayout-Persistenz: Das Diagramm-Layout wird bei jeder
+                // Anzeige aus der actionSequence neu berechnet (Auto-Layout).
+                delete task.flowLayout;
 
                 const standaloneElements = elements.filter((el: any) => !visitedSet.has(el.id));
 
@@ -187,7 +189,7 @@ export class FlowSyncManager {
                 if ((task as any).flowGraph) delete (task as any).flowGraph;
                 this.cleanupLegacyFlowData(currentContext);
 
-                FlowSyncManager.logger.info(`[TRACE] syncToProject: flowLayout gespeichert für "${currentContext}" (${Object.keys(task.flowLayout).length} Positionen)`);
+                FlowSyncManager.logger.info(`[TRACE] syncToProject: Task "${currentContext}" synchronisiert (Layout: Auto).`);
             }
         }
 

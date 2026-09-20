@@ -65,6 +65,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 1,
           "y": 4,
@@ -137,6 +138,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "width": 6,
           "height": 2,
@@ -165,6 +167,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "width": 6,
           "height": 2,
@@ -193,6 +196,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "width": 6,
           "height": 2,
@@ -221,6 +225,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "width": 6,
           "height": 2,
@@ -249,6 +254,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "width": 6,
           "height": 2,
@@ -271,11 +277,30 @@
           "className": "TBooleanVariable",
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "System internal flag to track unsaved changes",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
           "type": "boolean",
           "defaultValue": true,
           "value": true,
-          "isGlobal": true,
-          "description": "System internal flag to track unsaved changes"
+          "objectModel": ""
         }
       ],
       "flowCharts": {},
@@ -530,6 +555,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -585,6 +619,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -639,6 +682,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -693,6 +745,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -747,6 +808,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -801,6 +871,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -855,6 +934,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -909,6 +997,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -963,6 +1060,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1017,6 +1123,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1071,6 +1186,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1125,6 +1249,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1179,6 +1312,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1233,6 +1375,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1287,6 +1438,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1341,6 +1501,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1395,6 +1564,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1449,6 +1627,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1503,6 +1690,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1557,6 +1753,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1611,6 +1816,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1665,6 +1879,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1719,6 +1942,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1773,6 +2005,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1827,6 +2068,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1881,6 +2131,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1935,6 +2194,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1989,6 +2257,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2043,6 +2320,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2097,6 +2383,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2151,6 +2446,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2205,6 +2509,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2259,6 +2572,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2313,6 +2635,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2367,6 +2698,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2421,6 +2761,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2475,6 +2824,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2529,6 +2887,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2583,6 +2950,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2637,6 +3013,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2691,6 +3076,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2745,6 +3139,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -2772,6 +3175,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 1,
           "y": 1,
@@ -2789,6 +3193,10 @@
             "borderWidth": 2,
             "borderRadius": 4
           },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
           "data": [],
           "columns": [
             {
@@ -2821,6 +3229,9 @@
           "rowHeight": 28,
           "showHeader": true,
           "striped": true,
+          "sourceMode": "objects",
+          "records": [],
+          "recordKey": "id",
           "fields": [
             {
               "name": "zerstoert",
@@ -3266,20 +3677,19 @@
           "description": "Startet einen bereitliegenden Ball oder ein neues Spiel nach dem Ende.",
           "actionSequence": [
             {
-              "type": "condition",
-              "name": "Branch: GameState.state == menu",
               "condition": {
                 "variable": "GameState.state",
                 "operator": "==",
                 "value": "menu"
               },
-              "then": [
+              "type": "condition",
+              "body": [
                 {
                   "type": "task",
                   "name": "Aufschlag"
                 }
               ],
-              "else": [
+              "elseBody": [
                 {
                   "type": "task",
                   "name": "NeustartPruefen"
@@ -3351,8 +3761,8 @@
           "description": "Startet den Ball mit moderater diagonaler Geschwindigkeit.",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "Act_Start"
+              "name": "Act_Start",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -3414,20 +3824,19 @@
           "description": "Die Engine reflektiert an Wänden; unten geht ein Leben verloren.",
           "actionSequence": [
             {
-              "type": "condition",
-              "name": "Branch: hitSide == bottom",
               "condition": {
                 "variable": "hitSide",
                 "operator": "==",
                 "value": "bottom"
               },
-              "then": [
+              "type": "condition",
+              "body": [
                 {
                   "type": "task",
                   "name": "LebenVerlieren"
                 }
               ],
-              "else": []
+              "elseBody": []
             }
           ],
           "triggerMode": "local-sync",
@@ -3520,20 +3929,19 @@
           "description": "Unterscheidet den Schläger von Steinen.",
           "actionSequence": [
             {
-              "type": "condition",
-              "name": "Branch: other == Schlaeger",
               "condition": {
                 "variable": "other",
                 "operator": "==",
                 "value": "Schlaeger"
               },
-              "then": [
+              "type": "condition",
+              "body": [
                 {
                   "type": "task",
                   "name": "SchlaegerKontakt"
                 }
               ],
-              "else": [
+              "elseBody": [
                 {
                   "type": "task",
                   "name": "SteinReflexion"
@@ -3550,16 +3958,16 @@
           "description": "Lenkt den Ball anhand des Treffpunkts; vermeidet flache Flugbahnen.",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "Act_Trefferwinkel"
+              "name": "Act_Trefferwinkel",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "Act_Aufwaerts"
+              "name": "Act_Aufwaerts",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "Act_BallFreistellen"
+              "name": "Act_BallFreistellen",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -3571,68 +3979,67 @@
           "description": "Kehrt abhängig von der Kollisionsseite die richtige Geschwindigkeitskomponente um.",
           "actionSequence": [
             {
-              "type": "condition",
-              "name": "Branch: hitSide == top",
               "condition": {
                 "variable": "hitSide",
                 "operator": "==",
                 "value": "top"
               },
-              "then": [
-                {
-                  "type": "action",
-                  "name": "Act_Reflex_top"
-                }
-              ],
-              "else": []
-            },
-            {
               "type": "condition",
-              "name": "Branch: hitSide == bottom",
-              "condition": {
-                "variable": "hitSide",
-                "operator": "==",
-                "value": "bottom"
-              },
-              "then": [
+              "body": [
                 {
-                  "type": "action",
-                  "name": "Act_Reflex_bottom"
+                  "name": "Act_Reflex_top",
+                  "type": "action"
                 }
               ],
-              "else": []
-            },
-            {
-              "type": "condition",
-              "name": "Branch: hitSide == left",
-              "condition": {
-                "variable": "hitSide",
-                "operator": "==",
-                "value": "left"
-              },
-              "then": [
+              "elseBody": [
                 {
-                  "type": "action",
-                  "name": "Act_Reflex_left"
+                  "condition": {
+                    "variable": "hitSide",
+                    "operator": "==",
+                    "value": "bottom"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Act_Reflex_bottom",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "left"
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "Act_Reflex_left",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "variable": "hitSide",
+                            "operator": "==",
+                            "value": "right"
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "Act_Reflex_right",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
                 }
-              ],
-              "else": []
-            },
-            {
-              "type": "condition",
-              "name": "Branch: hitSide == right",
-              "condition": {
-                "variable": "hitSide",
-                "operator": "==",
-                "value": "right"
-              },
-              "then": [
-                {
-                  "type": "action",
-                  "name": "Act_Reflex_right"
-                }
-              ],
-              "else": []
+              ]
             }
           ],
           "triggerMode": "local-sync",
@@ -3904,20 +4311,19 @@
           "description": "Gemeinsamer Eingang für alle Steine; self ist das auslösende Sprite.",
           "actionSequence": [
             {
-              "type": "condition",
-              "name": "Branch: other == Ball",
               "condition": {
                 "variable": "other",
                 "operator": "==",
                 "value": "Ball"
               },
-              "then": [
+              "type": "condition",
+              "body": [
                 {
                   "type": "task",
                   "name": "SteinPruefen"
                 }
               ],
-              "else": []
+              "elseBody": []
             }
           ],
           "triggerMode": "local-sync",
@@ -3950,25 +4356,7 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "id": "24cf7260-6528-4159-9b63-e65293fdc200",
-          "flowLayout": {
-            "SteinPruefen": {
-              "x": 40,
-              "y": 40
-            },
-            "Act_LeseSteinStatus": {
-              "x": 40,
-              "y": 140
-            },
-            "Branch: SchonZerstoert == false": {
-              "x": 40,
-              "y": 240
-            },
-            "SteinWerten": {
-              "x": 300,
-              "y": 240
-            }
-          }
+          "id": "24cf7260-6528-4159-9b63-e65293fdc200"
         },
         {
           "name": "SteinWerten",
@@ -4173,7 +4561,7 @@
           "name": "Act_Reflex_top",
           "type": "negate",
           "changes": {
-            "Ball.velocityY": 1
+            "Ball.velocityY": false
           },
           "id": "24b5e5a7-9ae8-4398-8aa7-ee9483327217"
         },
@@ -4181,7 +4569,7 @@
           "name": "Act_Reflex_bottom",
           "type": "negate",
           "changes": {
-            "Ball.velocityY": 1
+            "Ball.velocityY": false
           },
           "id": "090c12f3-1bb7-4b53-96a2-bb02725d5f63"
         },
@@ -4189,7 +4577,7 @@
           "name": "Act_Reflex_left",
           "type": "negate",
           "changes": {
-            "Ball.velocityX": 1
+            "Ball.velocityX": false
           },
           "id": "6608b6e2-8893-4bc5-9595-d8ef51f66ea8"
         },
@@ -4197,7 +4585,7 @@
           "name": "Act_Reflex_right",
           "type": "negate",
           "changes": {
-            "Ball.velocityX": 1
+            "Ball.velocityX": false
           },
           "id": "a17a76e8-dbd1-4609-a6c6-361463064f1c"
         },
@@ -4440,6 +4828,18 @@
           ],
           "blueprintTaskNames": []
         }
+      ],
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
       ]
     }
   ],

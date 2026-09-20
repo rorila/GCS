@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {validate}=require('./cms-core.cjs');
+const {validate,canonEmojiSeq,EMOJI_IDS}=require('./cms-core.cjs');
 const {houseApi}=require('./cms-house.cjs');
 const {superApi,enroll}=require('./cms-super.cjs');
 // CMS-Datenspeicher: eigene Domäne, daher kein GameProject-IStorageAdapter.
@@ -30,9 +30,9 @@ function createAdmin(core,dataPath,{store=fileStore(dataPath)}={}){
    // Hauscode beeinflusst weitere Räume: deshalb Hausberechtigung zusätzlich verlangen.
    let house=area;while(house&&house.type!=='house')house=core.db.areas.find(a=>a.id===house.parentId);
    if(!house||!core.can(s,'manageArea',{areaId:house.id})||!people.some(p=>p.id===b.id))return fail(403,'Emoji-Einwahl benötigt die Zuständigkeit für das Haus.');
-   const alphabet=['dog','cat','tree','house','elephant','owl','flower','pig'];if(!Array.isArray(b.sequence)||b.sequence.length!==4||b.sequence.some(e=>!alphabet.includes(e)))return fail(400,'Vier gültige Emoji-IDs erforderlich.');
-   if(core.db.codes.some(c=>c.areaId===house.id&&c.personId!==b.id&&JSON.stringify(c.sequence)===JSON.stringify(b.sequence)))return fail(409,'Diese Emoji-Folge ist bereits vergeben.');
-   commit(s,'emoji-change',area.id,next=>{next.codes=next.codes.filter(c=>!(c.personId===b.id&&c.areaId===house.id));next.codes.push({personId:b.id,areaId:house.id,sequence:b.sequence});for(const request of next.profileRequests||[])if(request.personId===b.id&&request.status==='open')request.status='resolved';});return ok({message:'Emoji-Folge gespeichert'});
+   const sequence=Array.isArray(b.sequence)?canonEmojiSeq(b.sequence):b.sequence;if(!Array.isArray(sequence)||sequence.length!==4||sequence.some(e=>!EMOJI_IDS.includes(e)))return fail(400,'Vier gültige Emoji-IDs erforderlich.');
+   const wanted=JSON.stringify(sequence);if(core.db.codes.some(c=>c.areaId===house.id&&c.personId!==b.id&&JSON.stringify(canonEmojiSeq(c.sequence))===wanted))return fail(409,'Diese Emoji-Folge ist bereits vergeben.');
+   commit(s,'emoji-change',area.id,next=>{next.codes=next.codes.filter(c=>!(c.personId===b.id&&c.areaId===house.id));next.codes.push({personId:b.id,areaId:house.id,sequence});for(const request of next.profileRequests||[])if(request.personId===b.id&&request.status==='open')request.status='resolved';});return ok({message:'Emoji-Folge gespeichert'});
   }
   if(route==='backup'){commit(s,'room-backup',area.id,next=>{next.roomBackups={...(next.roomBackups||{}),[area.id]:{at:new Date().toISOString(),grants:next.grants.filter(g=>g.areaId===area.id),memberships:next.memberships.filter(m=>m.areaId===area.id)}};});return ok({message:'Raumsicherung gespeichert (Mitglieder und Spielefreigaben).'});}
   if(route==='restore'){

@@ -45,7 +45,13 @@ export function resolveTarget(targetName: string, objects: any[], vars: Record<s
     let actualName = cleanTargetName;
     if (cleanTargetName.startsWith('${') && cleanTargetName.endsWith('}')) {
         const varName = cleanTargetName.substring(2, cleanTargetName.length - 1);
-        const v = vars[varName];
+        let v = vars[varName];
+        if (v === undefined) {
+            // Fallback: vars verliert die Objekt-Namensmap (Prototype) beim
+            // Spread-Merge in runTask — das Variable-Objekt selbst ist aber
+            // in objects auffindbar.
+            v = objects?.find(o => o.name === varName || o.id === varName);
+        }
         // TVariable-Objekte ({ name, type, value, className: 'TVariable' }) korrekt entpacken.
         let raw: any = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any).value : v;
 

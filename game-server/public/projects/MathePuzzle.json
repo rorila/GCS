@@ -153,25 +153,32 @@
               "name": "Hauptobjekte ausblenden",
               "changes": {
                 "Bildaufteiler.visible": "false",
-                "BtnBildAuswaehlen.visible": "false",
-                "BtnPuzzleSpritesErzeugen.visible": "false"
+                "BtnBildAuswaehlen.visible": "false"
               }
             }
           ],
           "id": "pn_task_galerie_init"
         },
         {
-          "params": [],
+          "params": [
+            {
+              "name": "path",
+              "type": "string",
+              "label": "path",
+              "default": ""
+            }
+          ],
           "triggerMode": "local-sync",
           "name": "BildGewaehlt",
           "description": "Speichert den Pfad des angeklickten Galeriebildes (onSelectionChanged liefert path).",
           "actionSequence": [
             {
-              "type": "property",
+              "type": "action",
               "name": "Pfad merken",
               "changes": {
                 "GewaehltesBild": "${path}"
-              }
+              },
+              "showDetails": false
             }
           ],
           "id": "pn_task_bild_gewaehlt"
@@ -278,19 +285,12 @@
           "description": "Galerie verlassen ohne Auswahl zu uebernehmen.",
           "actionSequence": [
             {
-              "type": "property",
               "name": "Hauptobjekte einblenden",
-              "changes": {
-                "Bildaufteiler.visible": "true",
-                "BtnBildAuswaehlen.visible": "true",
-                "BtnPuzzleSpritesErzeugen.visible": "true"
-              }
+              "type": "action"
             },
             {
-              "type": "navigate_stage",
               "name": "Stage -> stage_main",
-              "stageId": "stage_main",
-              "reset": false
+              "type": "action"
             }
           ],
           "id": "pn_task_zurueck"
@@ -306,17 +306,7 @@
               "type": "action"
             }
           ],
-          "id": "pn_task_reset_puzzle_sprites",
-          "flowLayout": {
-            "ResetPuzzleSprites": {
-              "x": 40,
-              "y": 40
-            },
-            "Pool von PuzzleTeilTemplate zuruecksetzen": {
-              "x": 40,
-              "y": 140
-            }
-          }
+          "id": "pn_task_reset_puzzle_sprites"
         },
         {
           "params": [],
@@ -329,8 +319,8 @@
               "type": "action"
             },
             {
-              "name": "ResetPuzzleSprites",
-              "type": "task"
+              "type": "task",
+              "name": "ResetPuzzleSprites"
             },
             {
               "name": "PuzzleTeile mischen",
@@ -354,37 +344,7 @@
               "name": "Fuer jedes Puzzleteil"
             }
           ],
-          "id": "pn_task_generate_puzzle_sprites",
-          "flowLayout": {
-            "GeneratePuzzleSprites": {
-              "x": 40,
-              "y": 40
-            },
-            "Bildaufteiler aktualisiert PuzzleTeile": {
-              "x": 40,
-              "y": 140
-            },
-            "ResetPuzzleSprites": {
-              "x": 40,
-              "y": 240
-            },
-            "PuzzleTeile mischen": {
-              "x": 40,
-              "y": 330
-            },
-            "Fuer jedes Puzzleteil": {
-              "x": 40,
-              "y": 430
-            },
-            "Bildausschnitt aus Datensatz ins Template": {
-              "x": 320,
-              "y": 430
-            },
-            "Puzzle-Sprite erzeugen": {
-              "x": 340,
-              "y": 570
-            }
-          }
+          "id": "pn_task_generate_puzzle_sprites"
         },
         {
           "params": [],
@@ -468,17 +428,7 @@
               "type": "action"
             }
           ],
-          "id": "pn_task_teil_aufnehmen",
-          "flowLayout": {
-            "TeilAufnehmen": {
-              "x": 40,
-              "y": 40
-            },
-            "Teil auf Zielgröße bringen": {
-              "x": 40,
-              "y": 140
-            }
-          }
+          "id": "pn_task_teil_aufnehmen"
         },
         {
           "params": [],
@@ -573,8 +523,7 @@
           "name": "Hauptobjekte einblenden",
           "changes": {
             "Bildaufteiler.visible": "true",
-            "BtnBildAuswaehlen.visible": "true",
-            "BtnPuzzleSpritesErzeugen.visible": "true"
+            "BtnBildAuswaehlen.visible": "true"
           },
           "showDetails": false,
           "target": ""
@@ -728,6 +677,17 @@
           "showDetails": false,
           "spawnMode": "normal",
           "templateId_ref": "pn_puzzle_teil_template"
+        },
+        {
+          "id": "auto_property_0_1789806109491",
+          "details": "",
+          "type": "property",
+          "name": "Pfad merken",
+          "changes": {
+            "GewaehltesBild": "${path}"
+          },
+          "showDetails": false,
+          "target": ""
         }
       ],
       "events": {},
@@ -782,10 +742,10 @@
             "borderWidth": 0
           },
           "imageSource": "${GewaehltesBild}",
-          "rows": 4,
+          "rows": 3,
           "columns": 3,
           "pieceShape": "puzzle",
-          "tabSize": 0.25,
+          "tabSize": 0.3,
           "coverToAspect": false,
           "showLines": true,
           "lineColor": "#ffffff",
@@ -959,38 +919,6 @@
         },
         {
           "className": "TButton",
-          "id": "pn_btn_puzzle_sprites_erzeugen",
-          "name": "BtnPuzzleSpritesErzeugen",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "GeneratePuzzleSprites"
-          },
-          "visible": true,
-          "x": 2,
-          "y": 26,
-          "width": 11,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontWeight": "600",
-            "backgroundColor": "#15915f",
-            "borderColor": "#0e6844",
-            "borderWidth": 1,
-            "borderRadius": 8
-          },
-          "text": "Puzzle-Sprites erzeugen",
-          "icon": ""
-        },
-        {
-          "className": "TButton",
           "id": "mp_btn_mathe",
           "name": "BtnMathe",
           "scope": "stage",
@@ -1033,10 +961,10 @@
             "onOverlayResult": "MatheFertig"
           },
           "visible": false,
-          "x": 6.846153846153846,
-          "y": 2.269230769230769,
+          "x": 8.461243590110367,
+          "y": 3.038232458183141,
           "width": 30,
-          "height": 22,
+          "height": 21.307884615384616,
           "zIndex": 100,
           "rotation": 0,
           "align": "NONE",
@@ -1047,7 +975,7 @@
             "borderWidth": 2,
             "borderRadius": 12
           },
-          "overlayProject": "UfoShoter4",
+          "overlayProject": "Tetris_Classic",
           "params": "{\"aufgaben\": 10}",
           "pauseGame": true,
           "dimOpacity": 0.5,
@@ -1423,41 +1351,14 @@
           "searchProperty": "name",
           "selectedIndex": -1,
           "recordData": {}
-        },
-        {
-          "className": "TAnimation",
-          "id": "obj_1789797399944_5s58wt6ni",
-          "name": "Animation_19",
-          "scope": "stage",
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 0,
-          "y": 17.557692307692307,
-          "width": 2,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "imageListId": "",
-          "imageCount": 1,
-          "frameDuration": 100,
-          "loop": true,
-          "enabled": true
         }
       ],
       "variables": [],
       "tasks": [],
       "actions": [],
-      "events": {},
+      "events": {
+        "onEnter": "GeneratePuzzleSprites"
+      },
       "flowCharts": {}
     },
     {

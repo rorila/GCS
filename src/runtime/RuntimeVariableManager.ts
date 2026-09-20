@@ -195,9 +195,11 @@ export class RuntimeVariableManager {
         if (component.sourceMode === 'records' && Array.isArray(component.records)) {
             return component.records;
         }
+        // Objects-Modus: items ist die kanonische Quelle — data ist nur die
+        // abgeleitete Ansicht und ist vor rebuildData noch leer.
+        if (Array.isArray(component.items)) return component.items;
         if (Array.isArray(component.data)) return component.data;
         if (Array.isArray(component.records)) return component.records;
-        if (Array.isArray(component.items)) return component.items;
         return stored;
     }
 
@@ -299,22 +301,21 @@ export class RuntimeVariableManager {
                             component[propPath] = finalValue;
                             componentUpdated = true;
                         }
+                    } else if (component.items !== undefined && Array.isArray(value)) {
+                        // Objects-Modus: items ist die kanonische Quelle.
+                        if (JSON.stringify(component.items) !== JSON.stringify(value)) {
+                            component.items = value;
+                            componentUpdated = true;
+                        }
                     } else if (component.data !== undefined && Array.isArray(value)) {
-                        // TObjectList uses .data for its array content
+                        // Records-Modus u.ä.: data/records ist die kanonische Quelle.
                         if (JSON.stringify(component.data) !== JSON.stringify(value)) {
                             component.data = value;
-                            // Records-Modus: records ist die kanonische Quelle —
-                            // resolveStoredValue liest sie bevorzugt.
                             if (component.sourceMode === 'records' && Array.isArray(component.records)) {
                                 component.records = value;
                             }
                             componentUpdated = true;
                             RuntimeVariableManager.logger.debug(`[Sync] ${prop} → component.data (${value.length} items)`);
-                        }
-                    } else if (component.items !== undefined && Array.isArray(value)) {
-                        if (JSON.stringify(component.items) !== JSON.stringify(value)) {
-                            component.items = value;
-                            componentUpdated = true;
                         }
                     } else if (component.value !== value) {
                         component.value = value;

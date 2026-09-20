@@ -2436,7 +2436,7 @@
         {
           "id": "node-1787766960046",
           "details": "",
-          "type": "action",
+          "type": "property",
           "name": "Act_SetBackImageToFirstCard",
           "showDetails": false,
           "target": "",

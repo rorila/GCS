@@ -40,8 +40,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 7,
-          "y": 1,
+          "x": 3,
+          "y": 2,
           "width": 22,
           "height": 2,
           "zIndex": 0,
@@ -68,11 +68,11 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 7,
-          "y": 4,
+          "x": 6,
+          "y": 6,
           "width": 22,
           "height": 3,
-          "zIndex": 0,
+          "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
@@ -96,8 +96,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 7,
-          "y": 7,
+          "x": 3,
+          "y": 8,
           "width": 22,
           "height": 2,
           "zIndex": 0,
@@ -127,11 +127,11 @@
             "onClick": "AntwortGewaehlt"
           },
           "visible": true,
-          "x": 7,
-          "y": 10,
+          "x": 3,
+          "y": 11,
           "width": 6,
           "height": 4,
-          "zIndex": 0,
+          "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
@@ -159,11 +159,11 @@
             "onClick": "AntwortGewaehlt"
           },
           "visible": true,
-          "x": 15,
-          "y": 10,
+          "x": 11,
+          "y": 11,
           "width": 6,
           "height": 4,
-          "zIndex": 0,
+          "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
@@ -191,11 +191,11 @@
             "onClick": "AntwortGewaehlt"
           },
           "visible": true,
-          "x": 22,
-          "y": 10,
+          "x": 18,
+          "y": 11,
           "width": 6,
           "height": 4,
-          "zIndex": 0,
+          "zIndex": 1,
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
@@ -220,8 +220,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 7,
-          "y": 15,
+          "x": 3,
+          "y": 16,
           "width": 22,
           "height": 1.5,
           "zIndex": 0,
@@ -248,8 +248,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 0,
-          "y": 0,
+          "x": 2,
+          "y": 1,
           "width": 7,
           "height": 12,
           "zIndex": 0,
@@ -305,6 +305,7 @@
           "scope": "stage",
           "isService": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -371,6 +372,7 @@
           "name": "richtig_anim",
           "scope": "stage",
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -460,36 +462,6 @@
           "enabled": true
         },
         {
-          "className": "TAnimation",
-          "id": "obj_1789804028736_0a3ng1e40",
-          "name": "nachdenken_anim_2",
-          "scope": "stage",
-          "isHiddenInRun": true,
-          "isManagedInSidepanel": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 14,
-          "y": 2,
-          "width": 2,
-          "height": 2,
-          "zIndex": 0,
-          "rotation": 0,
-          "align": "NONE",
-          "collisionEnabled": false,
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "imageListId": "nachdenken_2",
-          "imageCount": 3,
-          "frameDuration": 500,
-          "loop": true,
-          "enabled": true
-        },
-        {
           "className": "TImageList",
           "id": "obj_1789804153175_45pm093xj",
           "name": "falsch",
@@ -563,6 +535,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -594,6 +567,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -625,6 +599,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -656,6 +631,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -687,6 +663,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -718,6 +695,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -749,6 +727,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -780,6 +759,7 @@
           "scope": "stage",
           "isVariable": true,
           "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -896,73 +876,7 @@
               ]
             }
           ],
-          "id": "kr_task_neue_aufgabe",
-          "flowLayout": {
-            "NeueAufgabe": {
-              "x": 40,
-              "y": 40
-            },
-            "AufgabenNr hochzaehlen": {
-              "x": 40,
-              "y": 140
-            },
-            "Zahl A wuerfeln": {
-              "x": 40,
-              "y": 240
-            },
-            "B-Maximum aus A": {
-              "x": 40,
-              "y": 340
-            },
-            "Zahl B wuerfeln": {
-              "x": 40,
-              "y": 440
-            },
-            "Ergebnis berechnen": {
-              "x": 40,
-              "y": 540
-            },
-            "Aufgabe zeigen": {
-              "x": 40,
-              "y": 640
-            },
-            "Distraktor 1 berechnen": {
-              "x": 40,
-              "y": 740
-            },
-            "Distraktor 2 berechnen": {
-              "x": 40,
-              "y": 840
-            },
-            "Position wuerfeln": {
-              "x": 40,
-              "y": 940
-            },
-            "Richtige Antwort auf A": {
-              "x": 40,
-              "y": 1040
-            },
-            "Antworten Variante A": {
-              "x": 320,
-              "y": 1040
-            },
-            "Richtige Antwort auf B": {
-              "x": 40,
-              "y": 1140
-            },
-            "Antworten Variante B": {
-              "x": 320,
-              "y": 1140
-            },
-            "Richtige Antwort auf C": {
-              "x": 40,
-              "y": 1240
-            },
-            "Antworten Variante C": {
-              "x": 320,
-              "y": 1240
-            }
-          }
+          "id": "kr_task_neue_aufgabe"
         },
         {
           "params": [],
@@ -1045,69 +959,7 @@
               ]
             }
           ],
-          "id": "kr_task_antwort",
-          "flowLayout": {
-            "AntwortGewaehlt": {
-              "x": 40,
-              "y": 40
-            },
-            "self.matchValue == ${Ergebnis}": {
-              "x": 40,
-              "y": 140
-            },
-            "Richtig zaehlen": {
-              "x": 380,
-              "y": 140
-            },
-            "Feedback Richtig": {
-              "x": 380,
-              "y": 240
-            },
-            "Richtig-Anim vorbereiten": {
-              "x": 380,
-              "y": 340
-            },
-            "Richtig-Anim zuruecksetzen": {
-              "x": 380,
-              "y": 440
-            },
-            "Richtig-Anim abspielen": {
-              "x": 380,
-              "y": 540
-            },
-            "AufgabenNr >= ${aufgaben}": {
-              "x": 380,
-              "y": 640
-            },
-            "Fertig": {
-              "x": 740,
-              "y": 640
-            },
-            "NeueAufgabe": {
-              "x": 380,
-              "y": 740
-            },
-            "Fehler zaehlen": {
-              "x": 40,
-              "y": 240
-            },
-            "Feedback Fast": {
-              "x": 40,
-              "y": 340
-            },
-            "Falsch-Anim vorbereiten": {
-              "x": 40,
-              "y": 440
-            },
-            "Falsch-Anim zuruecksetzen": {
-              "x": 40,
-              "y": 540
-            },
-            "Falsch-Anim abspielen": {
-              "x": 40,
-              "y": 640
-            }
-          }
+          "id": "kr_task_antwort"
         },
         {
           "params": [],
@@ -1124,21 +976,7 @@
               "type": "action"
             }
           ],
-          "id": "kr_task_fertig",
-          "flowLayout": {
-            "Fertig": {
-              "x": 40,
-              "y": 40
-            },
-            "Abschluss anzeigen": {
-              "x": 40,
-              "y": 140
-            },
-            "Ergebnis zurueckmelden": {
-              "x": 40,
-              "y": 240
-            }
-          }
+          "id": "kr_task_fertig"
         },
         {
           "id": "kr_task_wieder_nachdenken",
@@ -1158,20 +996,7 @@
               "type": "action"
             }
           ],
-          "flowLayout": {
-            "Denk-Anim vorbereiten": {
-              "x": 40,
-              "y": 160
-            },
-            "Denk-Anim zuruecksetzen": {
-              "x": 40,
-              "y": 260
-            },
-            "Denk-Anim abspielen": {
-              "x": 40,
-              "y": 360
-            }
-          }
+          "params": []
         }
       ],
       "actions": [
@@ -1441,7 +1266,8 @@
         "onTouchStart",
         "onTouchMove",
         "onTouchEnd"
-      ]
+      ],
+      "startAnimation": "ChaosOut"
     }
   ],
   "userStories": {

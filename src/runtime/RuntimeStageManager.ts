@@ -57,6 +57,16 @@ export class RuntimeStageManager {
         const stageChain: StageDefinition[] = stage ? [stage] : [];
 
         let mergedObjects: any[] = [];
+
+        // Dedup nach id — bei Objekten OHNE id (Altprojekte/Generatoren) wuerde
+        // o.id !== obj.id auf 'undefined !== undefined' hinauslaufen und alle
+        // vorher gemergten Objekte ohne id entfernen. Fallback: Name/Referenz.
+        const dedupPush = (obj: any) => {
+            mergedObjects = mergedObjects.filter(o =>
+                obj.id ? o.id !== obj.id : (o !== obj && o.name !== obj.name));
+            mergedObjects.push(obj);
+            objectIdSet.add(obj.id);
+        };
         let mergedTasks: GameTask[] = [...(this.project.tasks || [])];
         let mergedActions: GameAction[] = [...(this.project.actions || [])];
         let mergedFlowCharts: FlowCharts = { ...(this.project.flowCharts || {}) };
@@ -80,30 +90,20 @@ export class RuntimeStageManager {
                 }
 
                 // Nutze die gecachten, unangetasteten Referenzen!
-                this.cachedGlobalObjects.forEach(obj => {
-                    mergedObjects = mergedObjects.filter(o => o.id !== obj.id);
-                    mergedObjects.push(obj);
-                    objectIdSet.add(obj.id);
-                });
+                this.cachedGlobalObjects.forEach(obj => dedupPush(obj));
             } else {
                 // Lokale Stage -> normales Hydriern
                 const rawObjects = stage.objects || [];
                 const stageObjects = this.flattenWithChildren(isAlreadyHydrated(rawObjects) ? rawObjects : hydrateObjects(rawObjects));
                 
-                stageObjects.forEach(obj => {
-                    mergedObjects = mergedObjects.filter(o => o.id !== obj.id);
-                    mergedObjects.push(obj);
-                    objectIdSet.add(obj.id);
-                });
+                stageObjects.forEach(obj => dedupPush(obj));
 
                 if (stage.variables) {
                     const rawVars = stage.variables;
                     const hydratedVars = isAlreadyHydrated(rawVars) ? rawVars : hydrateObjects(rawVars);
                     hydratedVars.forEach((vObj: any) => {
                         vObj.isVariable = true;
-                        mergedObjects = mergedObjects.filter(o => o.id !== vObj.id);
-                        mergedObjects.push(vObj);
-                        objectIdSet.add(vObj.id);
+                        dedupPush(vObj);
                     });
                 }
             }
