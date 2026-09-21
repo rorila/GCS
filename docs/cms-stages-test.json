@@ -1,5 +1,5 @@
 {
-  "passed": 27,
+  "passed": 30,
   "checks": [
     "Ein Blueprint und keine vererbende Main-Stage",
     "Zehn Oberflächen und fünf Server-Stages",
@@ -22,6 +22,9 @@
     "stage_observer: Feature-Eltern vorhanden",
     "Use Cases zeigen auf vorhandene Features",
     "Server-Konfiguration gezielt aus gemeinsamer Datei",
+    "Editor-Gruppierung: alle Server-Stages in Gruppe \"Server\"",
+    "Editor-Gruppierung: jede Oberfläche außer Blueprint ist gruppiert",
+    "Editor-Gruppierung: Eltern und Beobachter teilen eine Gruppe",
     "Native Navigation öffnet Anmelde-Stage",
     "Alle Verwaltungswechsel ohne neues Projekt oder Seitenreload",
     "Keine fremden Oberflächenelemente in Anmeldung",

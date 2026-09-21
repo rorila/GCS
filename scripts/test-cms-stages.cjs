@@ -7,6 +7,9 @@ const ids=[];for(const s of p.stages)for(const key of ['objects','variables','ta
 for(const s of p.stages){const features=new Set((s.features||[]).map(f=>f.id));check(s.id+': Feature-Eltern vorhanden',(s.features||[]).every(f=>!f.parentId||features.has(f.parentId)));}
 check('Use Cases zeigen auf vorhandene Features',p.userStories.userStories.every(u=>!u.featureId||p.stages.some(s=>u.relatedStages.includes(s.id)&&(s.features||[]).some(f=>f.id===u.featureId))));
 check('Server-Konfiguration gezielt aus gemeinsamer Datei',readWorkflow(file,'stage_server_admin_login').stages[0].objects.some(o=>o.className==='TServerSession'));
+check('Editor-Gruppierung: alle Server-Stages in Gruppe "Server"',p.stages.filter(s=>s.id.startsWith('stage_server_')).every(s=>s.group==='Server'));
+check('Editor-Gruppierung: jede Oberfläche außer Blueprint ist gruppiert',p.stages.filter(s=>s.type!=='blueprint'&&!s.id.startsWith('stage_server_')).every(s=>typeof s.group==='string'&&s.group.length>0));
+check('Editor-Gruppierung: Eltern und Beobachter teilen eine Gruppe',p.stages.find(s=>s.id==='stage_parent').group==='Eltern & Beobachtung'&&p.stages.find(s=>s.id==='stage_observer').group==='Eltern & Beobachtung');
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'gcs-stages-')),app=createServer({dataPath:path.join(dir,'cms.json')}),base='http://127.0.0.1:15188';let browser;
 try{await new Promise(r=>app.server.listen(15188,'127.0.0.1',r));browser=await chromium.launch({channel:'msedge',headless:true});const page=await browser.newPage({viewport:{width:1400,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await page.waitForFunction(()=>window.player?.runtime);await page.waitForTimeout(400);
 await page.evaluate(()=>window.originalProject=window.PROJECT);

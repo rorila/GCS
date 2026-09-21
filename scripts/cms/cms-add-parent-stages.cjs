@@ -313,7 +313,22 @@ if (adminSet && !adminSet.actionSequence.some(s => s.name === 'Branch: Verwaltun
 // Schreiben + Referenzprüfung (Tasks/Actions müssen auflösbar sein)
 // ============================================================
 project.stages = project.stages.filter(s => !['stage_server_parent', 'stage_parent', 'stage_observer'].includes(s.id));
+serverStage.group = 'Server';
+parent.group = 'Eltern & Beobachtung';
+observer.group = 'Eltern & Beobachtung';
 project.stages.push(serverStage, parent, observer);
+
+// Fachliche Gruppierung (E04): deklaratives group-Feld, das der Editor
+// als Menü-Überschrift nutzt. Ungruppierte Stages bleiben flach.
+const GROUPS = {
+  stage_main: 'Spiel', stage_gallery: 'Spiel', stage_library: 'Spiel', stage_profile: 'Spiel',
+  stage_admin_login: 'Verwaltung', stage_admin: 'Verwaltung', stage_house: 'Verwaltung', stage_super: 'Verwaltung',
+  stage_parent: 'Eltern & Beobachtung', stage_observer: 'Eltern & Beobachtung',
+};
+for (const s of project.stages) {
+  if (s.id.startsWith('stage_server_')) s.group = 'Server';
+  else if (GROUPS[s.id]) s.group = GROUPS[s.id];
+}
 
 const problems = [];
 const globalTaskNames = new Set(project.stages.flatMap(x => x.tasks || []).map(t => t.name));

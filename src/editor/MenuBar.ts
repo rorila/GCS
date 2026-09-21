@@ -13,6 +13,8 @@ export interface MenuItem {
     action: string;
     icon?: string;
     active?: boolean;
+    /** Rendert den Eintrag als nicht-klickbare Gruppenüberschrift. */
+    header?: boolean;
 }
 
 export interface Menu {
@@ -273,6 +275,23 @@ export class MenuBar {
     private createMenuItem(item: MenuItem): HTMLElement {
         const el = document.createElement('div');
         el.className = 'menu-item';
+        // Gruppenüberschrift (z.B. Stage-Gruppen aus dem group-Feld):
+        // optisch abgesetzt, nicht klickbar, ohne Hover-Effekt.
+        if (item.header) {
+            el.style.cssText = `
+                padding: 8px 20px 3px;
+                color: #6a9955;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                cursor: default;
+                border-top: 1px solid #3a3a3a;
+                margin-top: 4px;
+            `;
+            el.textContent = item.label;
+            return el;
+        }
         el.style.cssText = `
             display: flex;
             align-items: center;

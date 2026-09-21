@@ -490,13 +490,29 @@ export class EditorMenuManager {
         ];
 
         // Dynamic stage list (Theme-Editor-Stage ausblenden)
+        // Stages mit deklarativem `group`-Feld werden unter einer
+        // Überschrift zusammengefasst; ungruppierte Stages bleiben flach.
         const visibleStages = this.host.project.stages.filter(s => s.type !== 'theme-editor');
-        const stageItems: MenuItem[] = visibleStages.map(s => ({
+        const stageItem = (s: typeof visibleStages[number]): MenuItem => ({
             id: s.id,
             label: s.type === 'blueprint' ? `🏗️ ${s.name} (Blueprint)` : `🎭 ${s.name}`,
             action: `switch-stage-${s.id}`,
             active: s.id === this.host.project.activeStageId
-        }));
+        });
+        const grouped = new Map<string, typeof visibleStages>();
+        for (const s of visibleStages) {
+            const g = (s as { group?: string }).group;
+            if (!g) continue;
+            if (!grouped.has(g)) grouped.set(g, []);
+            grouped.get(g)!.push(s);
+        }
+        const stageItems: MenuItem[] = [
+            ...visibleStages.filter(s => !(s as { group?: string }).group).map(stageItem),
+            ...[...grouped.entries()].flatMap(([group, stages]) => [
+                { id: `group-${group}`, label: group, action: '', header: true } as MenuItem,
+                ...stages.map(stageItem)
+            ])
+        ];
 
         this.host.menuBar.updateMenu('stages', [...baseItems, ...stageItems]);
         this.updateThemesMenu();
@@ -753,7 +769,7 @@ export class EditorMenuManager {
 
                 const typeLabel = document.createElement('span');
                 typeLabel.style.cssText = 'font-size:11px;color:#888;margin-top:2px;';
-                typeLabel.textContent = `ID: ${stage.id} • Typ: ${stage.type}`;
+                typeLabel.textContent = `ID: ${stage.id} • Typ: ${stage.type}${(stage as { group?: string }).group ? ` • Gruppe: ${(stage as { group?: string }).group}` : ''}`;
                 infoCol.appendChild(typeLabel);
                 
                 row.appendChild(infoCol);
