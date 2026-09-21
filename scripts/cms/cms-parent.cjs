@@ -61,8 +61,10 @@ function createParent(core, credentialPath, store, cmsFile, stageId = 'stage_ser
     .reduce((a, s) => a + s.minutes, 0);
 
   // Flache Felder — die GCS-Tabelle kann keine verschachtelten Pfade binden.
+  // Live-Status (P3.3): ohne Heartbeat seit >2min gilt eine Sitzung als getrennt.
   const childCard = id => {
     const p = db.people.find(x => x.id === id), active = db.playSessions.find(s => s.childId === id && ['active', 'paused'].includes(s.status));
+    if (active && Date.now() - new Date(active.lastHeartbeatAt).getTime() > 120000) active.status = 'disconnected';
     const budget = db.timeBudgets.find(t => t.childId === id);
     return {
       id, name: p.name, avatar: p.avatar,

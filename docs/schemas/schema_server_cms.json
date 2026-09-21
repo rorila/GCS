@@ -250,7 +250,8 @@
         "Fehlende Heartbeats führen zu 'disconnected', nicht zu 'ended'",
         "Hintergrund-Tab zählt weiter, solange nicht tatsächlich pausiert",
         "Zeitzone des Budgets gehört zum Kinderprofil; Gerätewechsel erzeugt keinen neuen Tag"
-      ]
+      ],
+      "status": "Implementiert (Phase 3: cms-play.cjs, stage_server_play)"
     },
     "TServerProgress": {
       "description": "Optionale Bewertungsmeldungen der Spiele (E07): versioniertes Schema, eventId-Dedupe, source game|server.",
@@ -295,7 +296,8 @@
         "childId/gameId/houseId/Empfangszeit kommen aus der Sitzung, nie vom Client",
         "Doppelte eventId erzeugt keinen zweiten Eintrag",
         "source='game' und source='server' bleiben unterscheidbar"
-      ]
+      ],
+      "status": "Implementiert (Phase 3: progress-Route mit eventId-Idempotenz)"
     },
     "TServerPrivacy": {
       "description": "Personenexport und Löschung (P1.6, implementiert in cms-privacy.cjs). Löschung = Anonymisierung; Löschliste überlebt Wiederherstellungen.",

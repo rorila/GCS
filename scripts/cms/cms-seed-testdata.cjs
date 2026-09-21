@@ -26,7 +26,7 @@ const db = {
   version: 2,
   areas: [
     { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
-    { id: 'house-sun', name: 'Haus Sonne', type: 'house', parentId: 'root', active: true, avatar: '🏡' },
+    { id: 'house-sun', name: 'Haus Sonne', type: 'house', parentId: 'root', active: true, avatar: '🏡', maxDailyMinutes: 120 },
     { id: 'house-moon', name: 'Haus Mond', type: 'house', parentId: 'root', active: true, avatar: '🏠' },
     { id: 'house-closed', name: 'Haus Nacht (geschlossen)', type: 'house', parentId: 'root', active: false, avatar: '🌙' },
     { id: 'room-sun-play', name: 'Spielraum', type: 'room', parentId: 'house-sun', active: true, avatar: '🎲' },

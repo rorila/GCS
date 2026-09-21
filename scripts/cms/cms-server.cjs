@@ -29,6 +29,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  const parent=createParent(core,credentialPath,store,cmsFile,'stage_server_parent');
  parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
  parent.enrollObserver=b=>enrollObserver(core,credentialPath,b.ticket,b.username,b.password,commit);
+ const play=require('./cms-play.cjs').createPlay(core,store,cmsFile,'stage_server_play');
  const cookie=(req,name)=>(req.headers.cookie||'').split('; ').find(s=>s.startsWith(name+'='))?.slice(name.length+1);
  const accountCookie=token=>`cms_account=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`;
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
@@ -118,7 +119,20 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(uploaded)res.setHeader('Content-Security-Policy',"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'");
     const project=JSON.parse(fs.readFileSync(uploaded||path.join(root,'game-server/public/projects',allowed[game.id]),'utf8'));
     const encoded=JSON.stringify(project).replace(/</g,'\\u003c');res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
-    return res.end('<!doctype html><meta charset="utf-8"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><script>window.PROJECT='+encoded+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
+    // Zeitbuchung nach E06: die Seite meldet alle 30s einen Heartbeat mit ihrem
+    // Launch-Schlüssel (begrenzte Berechtigung, kein Spieler-Token nötig).
+    // window.CMS.report() erlaubt Spielen optionale Bewertungsmeldungen (E07).
+    // Hinweis: hochgeladene Spiele laufen sandboxed mit connect-src 'none' —
+    // Heartbeats gelten nur für geprüfte Referenzspiele.
+    const launchKey=url.pathname.slice(6);
+    const heart='<script>(function(){var K='+JSON.stringify(launchKey)+',overlay=null;'
+     +'function note(t,c){if(!overlay){overlay=document.createElement("div");overlay.style.cssText="position:fixed;inset:0;background:rgba(8,21,27,.92);color:#edf7f4;display:flex;align-items:center;justify-content:center;font:28px Segoe UI;z-index:99999;text-align:center";document.body.appendChild(overlay)}overlay.textContent=t;overlay.style.color=c||"#edf7f4"}'
+     +'function send(a,x){return fetch("/api/cms/play",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({launchKey:K,action:a},x||{}))}).then(function(r){return r.json()}).catch(function(){return{ok:false}})}'
+     +'window.CMS={report:function(m,v,u){return send("progress",{eventId:crypto.randomUUID(),metric:m,value:v,unit:u,schemaVersion:1})},end:function(){return send("end")}};'
+     +'setInterval(function(){send("heartbeat").then(function(r){if(!r.ok)return;if(r.warn==="5min")note("Noch 5 Minuten","#ffd166");if(r.warn==="1min")note("Noch 1 Minute","#ef8354");if(r.warn==="grace")note("Zeit um — wird gespeichert","#ef8354");if(r.ended||r.status==="ended")note("Zeit für heute ist um. Gut gemacht!","#edf7f4")})},30000);'
+     +'addEventListener("pagehide",function(){navigator.sendBeacon("/api/cms/play",new Blob([JSON.stringify({launchKey:K,action:"end"})],{type:"application/json"}))});'
+     +'})();</script>';
+    return res.end('<!doctype html><meta charset="utf-8"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><script>window.PROJECT='+encoded+'</script>'+heart+'<script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
    }
    if(req.method!=='POST'||!url.pathname.startsWith('/api/cms/'))return reply(res,404,{error:'Nicht gefunden'});
    if(req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
@@ -181,8 +195,22 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     return reply(res,200,{ok:true,page,pages:Math.ceil(list.length/4),...slots(list.slice(page*4,page*4+4).map(g=>({id:g.id,label:g.avatar+'  '+g.title,visible:true}))),message:list.length?'🎮 Wähle ein Spiel':'🌱 Hier kommen bald Spiele dazu'});
    }
    if(url.pathname==='/api/cms/launch'){
-    const game=core.db.games.find(g=>g.id===body.gameId);if(!core.can(session,'play',{game,areaId:body.areaId}))return reply(res,403,{ok:false,message:'⛔ Spiel nicht freigegeben'});
-    for(const [key,l]of launches)if(!core.session(l.token))launches.delete(key);const key=crypto.randomBytes(24).toString('hex');launches.set(key,{token:body.token,gameId:game.id,areaId:body.areaId});return reply(res,200,{ok:true,launch:'/play/'+key,message:'▶'});
+    // Launch = Spielsitzungsbeginn (E06): Budget, Einzelsitzung und
+    // Zeitbuchung werden hier erzwungen, nicht erst im Player.
+    const started=play.api(session,'start',body);if(!started.data.ok)return reply(res,started.status,started.data);
+    for(const [key,l]of launches)if(!core.session(l.token))launches.delete(key);const key=crypto.randomBytes(24).toString('hex');
+    launches.set(key,{token:body.token,gameId:body.gameId,areaId:body.areaId,playSessionId:started.data.playSessionId});
+    return reply(res,200,{ok:true,launch:'/play/'+key,...started.data,message:'▶'});
+   }
+   // Sitzungssteuerung aus der /play-Seite: Der Launch-Schlüssel ist die
+   // begrenzte Berechtigung (E08) — die Seite kennt kein Spieler-Token.
+   if(url.pathname==='/api/cms/play'){
+    const launch=launches.get(body.launchKey);const ps=launch&&core.session(launch.token);
+    if(!launch||!ps)return reply(res,401,{ok:false,message:'Spielsitzung abgelaufen.'});
+    if(typeof body.action!=='string')return reply(res,400,{ok:false,message:'Aktion fehlt.'});
+    const result=play.api(ps,body.action,{...body,playSessionId:launch.playSessionId});
+    if(result.status===200&&result.data.status==='ended')launches.delete(body.launchKey);
+    return reply(res,result.status,result.data);
    }
    return reply(res,404,{ok:false,message:'Funktion noch nicht verfügbar'});
   }catch(error){console.error('[CMS]',error.message);if(!res.headersSent)reply(res,500,{ok:false,message:'⚠ Bitte erneut versuchen'});else res.end();}

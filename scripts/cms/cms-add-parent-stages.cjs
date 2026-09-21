@@ -71,6 +71,29 @@ for (const [, taskName, method] of OPS) {
 }
 serverStage.features.push({ id: 'server-parent', name: 'Elternsicht und Beobachter-Aggregat', blueprintTaskNames: OPS.map(([, t]) => t) });
 
+// Server-Stage: Spielsitzungen mit Zeitbuchung (Phase 3, E06/E07/E08).
+const PLAY_OPS = [
+  ['onStart', 'Sitzung_Starten', 'start'],
+  ['onHeartbeat', 'Sitzung_Heartbeat', 'heartbeat'],
+  ['onPause', 'Sitzung_Pausieren', 'pause'],
+  ['onResume', 'Sitzung_Fortsetzen', 'resume'],
+  ['onEnd', 'Sitzung_Beenden', 'end'],
+  ['onProgress', 'Bewertung_Melden', 'progress'],
+];
+const playStage = stageShell('stage_server_play', 'Server · Spielsitzungen und Zeitbudget');
+playStage.objects.push({
+  className: 'TServerPlaySession', id: 'server_play', name: 'Spielsitzungen', scope: 'stage',
+  isService: true, isHiddenInRun: true, executionSide: 'server',
+  events: Object.fromEntries(PLAY_OPS.map(([e, t]) => [e, t])),
+  heartbeatMs: 30000, disconnectGraceMs: 120000, graceMinutes: 2,
+  x: 0, y: 0, width: 12, height: 3,
+});
+for (const [, taskName, method] of PLAY_OPS) {
+  playStage.actions.push({ id: uid('act'), name: 'Act_' + taskName, type: 'call_method', target: 'Spielsitzungen', method, params: [], scope: 'stage', target_ref: 'server_play' });
+  playStage.tasks.push(task(taskName, [{ type: 'action', name: 'Act_' + taskName }]));
+}
+playStage.features.push({ id: 'server-play', name: 'Sitzungszustände, Zeitbuchung, Bewertungsmeldung', blueprintTaskNames: PLAY_OPS.map(([, t]) => t) });
+
 // ============================================================
 // 2. Client-Stage: Eltern · Meine Kinder
 // ============================================================
@@ -312,11 +335,12 @@ if (adminSet && !adminSet.actionSequence.some(s => s.name === 'Branch: Verwaltun
 // ============================================================
 // Schreiben + Referenzprüfung (Tasks/Actions müssen auflösbar sein)
 // ============================================================
-project.stages = project.stages.filter(s => !['stage_server_parent', 'stage_parent', 'stage_observer'].includes(s.id));
+project.stages = project.stages.filter(s => !['stage_server_parent', 'stage_server_play', 'stage_parent', 'stage_observer'].includes(s.id));
 serverStage.group = 'Server';
+playStage.group = 'Server';
 parent.group = 'Eltern & Beobachtung';
 observer.group = 'Eltern & Beobachtung';
-project.stages.push(serverStage, parent, observer);
+project.stages.push(serverStage, playStage, parent, observer);
 
 // Fachliche Gruppierung (E04): deklaratives group-Feld, das der Editor
 // als Menü-Überschrift nutzt. Ungruppierte Stages bleiben flach.
@@ -349,5 +373,5 @@ if (problems.length) { console.error('REFERENZFEHLER:\n' + problems.join('\n'));
 
 fs.writeFileSync(FILE + '.tmp', JSON.stringify(project, null, 2));
 fs.renameSync(FILE + '.tmp', FILE);
-console.log('Stages eingefügt: stage_server_parent, stage_parent, stage_observer');
+console.log('Stages eingefügt: stage_server_parent, stage_server_play, stage_parent, stage_observer');
 console.log('Erweitert: stage_admin_login (Kontexte), HouseAdmin-Stage (Kinder/Eltern/Beobachter)');
