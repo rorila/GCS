@@ -30,6 +30,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
  parent.enrollObserver=b=>enrollObserver(core,credentialPath,b.ticket,b.username,b.password,commit);
  const play=require('./cms-play.cjs').createPlay(core,store,cmsFile,'stage_server_play');
+ const mp=require('./cms-mp.cjs').createMp(core,store,play,cmsFile,'stage_server_mp');
  const cookie=(req,name)=>(req.headers.cookie||'').split('; ').find(s=>s.startsWith(name+'='))?.slice(name.length+1);
  const accountCookie=token=>`cms_account=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`;
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
@@ -184,6 +185,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const result=profile(session,url.pathname.slice('/api/cms/profile/'.length),body,emit);emit('Response senden',{status:200,body:result});return reply(res,200,result);
    }
    if(url.pathname.startsWith('/api/cms/parent/')){const result=parent.api(session,url.pathname.slice('/api/cms/parent/'.length),body);return reply(res,result.status,result.data);}
+   if(url.pathname.startsWith('/api/cms/mp/')){const result=mp.api(session,url.pathname.slice('/api/cms/mp/'.length),body);return reply(res,result.status,result.data);}
    if(url.pathname==='/api/cms/logout'){core.logout(body.token);for(const [key,l]of launches)if(l.token===body.token)launches.delete(key);return reply(res,200,{ok:true});}
    if(url.pathname==='/api/cms/rooms'){
     const list=core.rooms(session.personId),page=Math.max(0,Math.min(Number.isInteger(Number(body.page))?Number(body.page):0,Math.max(0,Math.ceil(list.length/4)-1)));

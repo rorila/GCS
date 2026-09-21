@@ -1,7 +1,7 @@
 // CMS-Schema-Migrationen. Jede Migration ist idempotent und wird einmal pro
 // Versionsgrenze ausgeführt; Reihenfolge strikt aufsteigend. Reihenfolge:
 // up() arbeitet auf einer Kopie, validate() entscheidet über das Ergebnis.
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 // v1 -> v2: Zielmodellkern (E02/E03/E06/E07)
 // - people.kind: 'child'|'adult' (fachliche Grundlage für Eltern-/Kinderlogik)
@@ -39,7 +39,15 @@ function v1_to_v2(db) {
   return db;
 }
 
-const MIGRATIONS = [{ from: 1, to: 2, up: v1_to_v2 }];
+// v2 -> v3: hausinterner Multiplayer (P4) — neue Collection parties.
+function v2_to_v3(db) {
+  db.version = 3;
+  if (!Array.isArray(db.parties)) db.parties = [];
+  db.meta = { ...(db.meta || {}), migratedFrom: 2, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+const MIGRATIONS = [{ from: 1, to: 2, up: v1_to_v2 }, { from: 2, to: 3, up: v2_to_v3 }];
 
 // Führt alle anstehenden Migrationen auf einer Kopie aus (das Original bleibt
 // unverändert, damit Vorher-/Nachher-Vergleich und Backup korrekt greifen).

@@ -23,7 +23,7 @@ const guardian = (childId, guardianId, status = 'confirmed', extra = {}) => ({
 const code = (personId, areaId, seq) => ({ personId, areaId, sequence: seq });
 
 const db = {
-  version: 2,
+  version: 3,
   areas: [
     { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     { id: 'house-sun', name: 'Haus Sonne', type: 'house', parentId: 'root', active: true, avatar: '🏡', maxDailyMinutes: 120 },
@@ -144,6 +144,7 @@ const db = {
     { eventId: 'ev-5', childId: 'child-finn', gameId: 'game-snake', sessionId: 'ps-ended', metric: 'round_complete', value: 1, unit: 'bool', reportedAt: iso(NOW - 80 * MIN), source: 'server', schemaVersion: 1 },
     { eventId: 'ev-dup', childId: 'child-tom', gameId: 'game-snake', sessionId: 'ps-paused', metric: 'tasks_done', value: 5, unit: 'count', reportedAt: iso(NOW - 10 * MIN), source: 'game', schemaVersion: 1 },
   ],
+  parties: [],
   profileRequests: [
     { id: 'req-1', personId: 'child-finn', type: 'access-help', status: 'open', at: iso(NOW - 2 * H) },
     { id: 'req-2', personId: 'child-emil', type: 'access-help', status: 'resolved', at: iso(NOW - 3 * D) },

@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
 const {createServer}=require('./cms/cms-server.cjs'),{readWorkflow}=require('./cms/cms-project.cjs');
 (async()=>{const file=path.resolve('game-server/public/projects/GCS-CMS.json'),p=JSON.parse(fs.readFileSync(file)),checks=[],check=(n,v)=>{assert.ok(v,n);checks.push(n)};
 check('Ein Blueprint und keine vererbende Main-Stage',p.stages.filter(s=>s.type==='blueprint').length===1&&!p.stages.some(s=>s.type==='main'));
-check('Zehn Oberflächen und sechs Server-Stages',p.stages.length===17);
+check('Zehn Oberflächen und sieben Server-Stages',p.stages.length===18);
 const ids=[];for(const s of p.stages)for(const key of ['objects','variables','tasks','actions','features'])for(const x of s[key]||[])if(x.id)ids.push(x.id);check('Definitionen besitzen projektweit eindeutige IDs',new Set(ids).size===ids.length);
 for(const s of p.stages){const features=new Set((s.features||[]).map(f=>f.id));check(s.id+': Feature-Eltern vorhanden',(s.features||[]).every(f=>!f.parentId||features.has(f.parentId)));}
 check('Use Cases zeigen auf vorhandene Features',p.userStories.userStories.every(u=>!u.featureId||p.stages.some(s=>u.relatedStages.includes(s.id)&&(s.features||[]).some(f=>f.id===u.featureId))));

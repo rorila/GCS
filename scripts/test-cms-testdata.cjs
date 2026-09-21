@@ -23,7 +23,7 @@ const loginAs = id => {
   return s && core.session(s.token);
 };
 
-check('Testdaten bleiben Schema v2 (keine Migration nötig)', () => assert.strictEqual(db.version, 2));
+check('Testdaten sind aktuelles Schema (keine Migration nötig)', () => assert.strictEqual(db.version, require('./cms/cms-migrations.cjs').SCHEMA_VERSION));
 
 check('Eltern-Sichtbarkeit: jeder Elternteil sieht nur eigene bestätigte Kinder', () => {
   for (const v of db.testMeta.visibility) {

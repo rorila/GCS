@@ -8,7 +8,7 @@ const GLYPH_TO_ID=new Map(EMOJI_GLYPHS.map((g,i)=>[g,EMOJI_IDS[i]]));
 const canonEmojiSeq=seq=>Array.isArray(seq)?seq.map(v=>GLYPH_TO_ID.get(v)||v):seq;
 function validate(db){
  if(db.version!==SCHEMA_VERSION)throw Error('Unbekannte CMS-Datenversion: '+db.version);
- for(const key of ['people','areas','memberships','roles','guardians','games','grants','codes','invites','timeBudgets','playSessions','progress','deviceGrants'])if(!Array.isArray(db[key]))throw Error('Fehlende Liste: '+key);
+ for(const key of ['people','areas','memberships','roles','guardians','games','grants','codes','invites','timeBudgets','playSessions','progress','deviceGrants','parties'])if(!Array.isArray(db[key]))throw Error('Fehlende Liste: '+key);
  for(const key of ['people','areas','games'])if(new Set(db[key].map(x=>x.id)).size!==db[key].length)throw Error('Doppelte IDs: '+key);
  const person=id=>db.people.some(p=>p.id===id),area=id=>db.areas.some(a=>a.id===id);
  for(const p of db.people)if(!['child','adult'].includes(p.kind))throw Error('Ungültige Personenart: '+p.id);
@@ -22,6 +22,7 @@ function validate(db){
  for(const s of db.playSessions)if(!person(s.childId)||!db.games.some(g=>g.id===s.gameId))throw Error('Ungültige Spielsitzung');
  for(const r of db.progress)if(!person(r.childId)||typeof r.metric!=='string'||typeof r.eventId!=='string')throw Error('Ungültige Bewertung');
  for(const d of db.deviceGrants)if(!area(d.houseId))throw Error('Ungültige Gerätefreigabe');
+ for(const p of db.parties){if(!person(p.hostId)||!area(p.areaId)||!db.games.some(g=>g.id===p.gameId))throw Error('Ungültige Partie');for(const m of p.members||[])if(!person(m.personId))throw Error('Ungültiges Partymitglied');}
  const codes=new Set();for(const c of db.codes){const k=c.areaId+':'+JSON.stringify(canonEmojiSeq(c.sequence));if(!person(c.personId)||!area(c.areaId)||!Array.isArray(c.sequence)||c.sequence.length!==4||codes.has(k))throw Error('Ungültige oder doppelte Emoji-Folge');codes.add(k);}
  return db;
 }

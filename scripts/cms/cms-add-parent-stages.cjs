@@ -94,6 +94,27 @@ for (const [, taskName, method] of PLAY_OPS) {
 }
 playStage.features.push({ id: 'server-play', name: 'Sitzungszustände, Zeitbuchung, Bewertungsmeldung', blueprintTaskNames: PLAY_OPS.map(([, t]) => t) });
 
+// Server-Stage: hausinterner Multiplayer (Phase 4) — Partien/Lobbys.
+const MP_OPS = [
+  ['onList', 'Partie_Liste', 'list'], ['onCreate', 'Partie_Erstellen', 'create'],
+  ['onJoin', 'Partie_Beitreten', 'join'], ['onLeave', 'Partie_Verlassen', 'leave'],
+  ['onState', 'Partie_Status', 'state'], ['onAction', 'Partie_Aktion', 'action'],
+  ['onBegin', 'Partie_Beginnen', 'begin'], ['onEnd', 'Partie_Beenden', 'end'],
+];
+const mpStage = stageShell('stage_server_mp', 'Server · Hausinterner Mehrspieler');
+mpStage.objects.push({
+  className: 'TServerParty', id: 'server_mp', name: 'Partien', scope: 'stage',
+  isService: true, isHiddenInRun: true, executionSide: 'server',
+  events: Object.fromEntries(MP_OPS.map(([e, t]) => [e, t])),
+  maxActionsPerMinute: 120,
+  x: 0, y: 0, width: 12, height: 3,
+});
+for (const [, taskName, method] of MP_OPS) {
+  mpStage.actions.push({ id: uid('act'), name: 'Act_' + taskName, type: 'call_method', target: 'Partien', method, params: [], scope: 'stage', target_ref: 'server_mp' });
+  mpStage.tasks.push(task(taskName, [{ type: 'action', name: 'Act_' + taskName }]));
+}
+mpStage.features.push({ id: 'server-mp', name: 'Lobbys, Beitritt, Aktionslog, Partieende', blueprintTaskNames: MP_OPS.map(([, t]) => t) });
+
 // ============================================================
 // 2. Client-Stage: Eltern · Meine Kinder
 // ============================================================
@@ -335,12 +356,13 @@ if (adminSet && !adminSet.actionSequence.some(s => s.name === 'Branch: Verwaltun
 // ============================================================
 // Schreiben + Referenzprüfung (Tasks/Actions müssen auflösbar sein)
 // ============================================================
-project.stages = project.stages.filter(s => !['stage_server_parent', 'stage_server_play', 'stage_parent', 'stage_observer'].includes(s.id));
+project.stages = project.stages.filter(s => !['stage_server_parent', 'stage_server_play', 'stage_server_mp', 'stage_parent', 'stage_observer'].includes(s.id));
 serverStage.group = 'Server';
 playStage.group = 'Server';
+mpStage.group = 'Server';
 parent.group = 'Eltern & Beobachtung';
 observer.group = 'Eltern & Beobachtung';
-project.stages.push(serverStage, playStage, parent, observer);
+project.stages.push(serverStage, playStage, mpStage, parent, observer);
 
 // Fachliche Gruppierung (E04): deklaratives group-Feld, das der Editor
 // als Menü-Überschrift nutzt. Ungruppierte Stages bleiben flach.

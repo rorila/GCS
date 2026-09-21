@@ -299,6 +299,85 @@
       ],
       "status": "Implementiert (Phase 3: progress-Route mit eventId-Idempotenz)"
     },
+    "TServerParty": {
+      "description": "Hausinterne Mehrspieler-Partie (E04/P4): Lobby, Beitritt, synchronisierter Aktionslog, Ende. Jedes Mitglied spielt über eine eigene TServerPlaySession — Zeitlimits gelten pro Kind.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "minPlayers": {
+          "type": "number",
+          "default": 2
+        },
+        "maxPlayers": {
+          "type": "number",
+          "default": 4
+        },
+        "actionLogLimit": {
+          "type": "number",
+          "default": 500,
+          "description": "Maximale Zahl protokollierter Aktionen pro Partie"
+        }
+      },
+      "methods": [
+        {
+          "name": "list",
+          "description": "Offene Partien eines Raums mit Platzanzeige",
+          "params": ["areaId"]
+        },
+        {
+          "name": "create",
+          "description": "Gastgeber eröffnet Partie; eigene Spielsitzung startet sofort",
+          "params": ["gameId", "areaId"]
+        },
+        {
+          "name": "join",
+          "description": "Beitritt nur in offene Partie, gleiches Haus/Raum, gleiche Spielversion, freies Budget, Platz frei",
+          "params": ["partyId"]
+        },
+        {
+          "name": "begin",
+          "description": "Nur Gastgeber; mindestens minPlayers Mitglieder",
+          "params": ["partyId"]
+        },
+        {
+          "name": "state",
+          "description": "Mitglieder + Verbindungsstatus + Aktionen seit seq (nur für Mitglieder)",
+          "params": ["partyId", "since"]
+        },
+        {
+          "name": "action",
+          "description": "Spielzug eines Mitglieds; nur in 'playing'; fortlaufende seq",
+          "params": ["partyId", "payload"]
+        },
+        {
+          "name": "leave",
+          "description": "Mitglied verlässt Partie; eigene Sitzung endet",
+          "params": ["partyId"]
+        },
+        {
+          "name": "end",
+          "description": "Nur Gastgeber; beendet Partie und alle Mitglieds-Sitzungen",
+          "params": ["partyId"]
+        }
+      ],
+      "events": [
+        "onCreated",
+        "onJoined",
+        "onLeft",
+        "onBegan",
+        "onAction",
+        "onMemberDisconnected",
+        "onEnded"
+      ],
+      "guarantees": [
+        "Teilnahme nur über can('play') — Mitgliedschaft, Freigabe und Version werden serverseitig geprüft",
+        "Keine hausfremden Teilnehmer: Hauszugehörigkeit aus Raum-Daten, nie aus Clientangaben",
+        "Jedes Mitglied hat eine eigene Spielsitzung; Zeitlimit-Verbrauch läuft pro Kind weiter",
+        "Aktionslog ist append-only mit fortlaufender seq; Clients können keine fremden Züge oder Lücken erzeugen",
+        "Versionswechsel des Spiels sperrt neue Beitritte zur laufenden Partie"
+      ],
+      "status": "Implementiert (Phase 4: cms-mp.cjs, stage_server_mp)"
+    },
     "TServerPrivacy": {
       "description": "Personenexport und Löschung (P1.6, implementiert in cms-privacy.cjs). Löschung = Anonymisierung; Löschliste überlebt Wiederherstellungen.",
       "stage": "server",

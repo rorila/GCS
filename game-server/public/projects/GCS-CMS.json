@@ -8217,7 +8217,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-0261fbd4-52fc-4857-aebf-d57858647d59",
+          "id": "cms_button-b5afd852-0464-4895-959a-0b517f8bff41",
           "name": "KinderOeffnen",
           "scope": "stage",
           "draggable": false,
@@ -8245,7 +8245,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-d933adb0-60a7-42c2-b8ac-2c7fe42c8ec6",
+          "id": "cms_button-bb91cdda-9aae-4cf2-9ecf-fcf59e2d65d1",
           "name": "BeobachtungOeffnen",
           "scope": "stage",
           "draggable": false,
@@ -8650,7 +8650,7 @@
           ]
         },
         {
-          "id": "task-611b3208-17a9-40eb-a60c-935ee57b182f",
+          "id": "task-72566eae-58f6-4e09-917e-53d70d5c751f",
           "name": "Kontexte_Anzeigen",
           "description": "Nach erfolgreicher Anmeldung verfügbare Kontexte anbieten",
           "actionSequence": [
@@ -8692,7 +8692,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-d0c34925-a1d4-452f-a8d6-8bde6a55d74c",
+          "id": "task-6376e28c-8438-4089-a6c5-cea42de30b91",
           "name": "Navigation_stage_parent",
           "description": "Navigation_stage_parent",
           "actionSequence": [
@@ -8710,7 +8710,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-63e834c4-a1e0-4067-a1aa-3d6e2a6a63ed",
+          "id": "task-caf670fa-cce0-4fad-a432-5fe3ab60e19a",
           "name": "Navigation_stage_observer",
           "description": "Navigation_stage_observer",
           "actionSequence": [
@@ -8964,7 +8964,25 @@
           "scope": "stage"
         },
         {
-          "id": "act-bd144a96-fc5a-470a-a9ad-43c916b47868",
+          "id": "act-41d13447-ec18-4c8f-a29d-7e365a6d1319",
+          "name": "Act_Kinder_Button_Anzeigen",
+          "type": "property",
+          "changes": {
+            "KinderOeffnen.visible": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-140b630e-8087-4f90-8575-1277a8c97dae",
+          "name": "Act_Beobachter_Button_Anzeigen",
+          "type": "property",
+          "changes": {
+            "BeobachtungOeffnen.visible": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-9ed56857-36d0-4918-9c43-d08bd26cb794",
           "name": "Act_Nav_Parent_Login",
           "type": "navigate_stage",
           "stageId": "stage_parent",
@@ -8972,7 +8990,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-5e80e67a-aaae-45c6-a09b-9a4a4fd5ce29",
+          "id": "act-4f6fcada-c1f7-436d-9632-8dcd023ac1cd",
           "name": "Act_Nav_Observer_Login",
           "type": "navigate_stage",
           "stageId": "stage_observer",
@@ -12843,7 +12861,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-76387376-1b83-4fe2-a107-2292fd12ade9",
+          "id": "cms_button-2cc293a3-5cd1-4920-a04c-3349a5939773",
           "name": "KinderTab",
           "scope": "stage",
           "draggable": false,
@@ -12874,7 +12892,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-6196569a-c1d7-457f-b696-8658bd88e637",
+          "id": "cms_button-46cdbe6c-50b5-427e-97ca-ee6fd31b9026",
           "name": "ElternTab",
           "scope": "stage",
           "draggable": false,
@@ -12905,7 +12923,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-fd8a95da-9f0d-475f-8e55-17b0af8af85a",
+          "id": "cms_button-a574195e-4db0-4c51-92c0-9933671823f0",
           "name": "ElternEinladen",
           "scope": "stage",
           "draggable": false,
@@ -12936,7 +12954,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-fe5fd18a-61c7-4338-9b5f-2a6bd6355d0f",
+          "id": "cms_button-5ae93ff5-a71e-4c1a-ba4d-7fe23c075287",
           "name": "BeobachterEinladen",
           "scope": "stage",
           "draggable": false,
@@ -14118,7 +14136,7 @@
           ]
         },
         {
-          "id": "task-7ac38044-1922-48ac-aa09-91ac30153d7a",
+          "id": "task-f0c0aefa-8b55-4752-9510-7534a5eeda89",
           "name": "KinderTask",
           "description": "KinderTask",
           "actionSequence": [
@@ -14136,7 +14154,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-9cff718b-ac57-4a99-9b9d-7a7b03a0936f",
+          "id": "task-9942f82f-c126-4f63-b7ac-50812ab7743a",
           "name": "ElternTask",
           "description": "ElternTask",
           "actionSequence": [
@@ -14154,7 +14172,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-78967697-3f42-4ecd-834c-943d313ebdb7",
+          "id": "task-2959b465-6591-4e76-b484-7a64b4b51dc3",
           "name": "WaehleKind",
           "description": "WaehleKind",
           "actionSequence": [
@@ -14168,7 +14186,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-5395a295-820f-489e-afb1-d6b85d8ab3d4",
+          "id": "task-d9774a45-4575-4b77-b455-7769de17c9be",
           "name": "WaehleZuordnung",
           "description": "WaehleZuordnung",
           "actionSequence": [
@@ -14182,7 +14200,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-8c72d30c-812b-4f82-9366-5c812ea695f5",
+          "id": "task-72ca5a1d-4125-46d1-a31c-3ba14e8c3e1d",
           "name": "ElternEinladenTask",
           "description": "ElternEinladenTask",
           "actionSequence": [
@@ -14204,7 +14222,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-4570f3ab-9fe3-45c3-9700-049886753a6f",
+          "id": "task-735f91b1-a863-4ff8-ae7e-cdea0f304a5c",
           "name": "BeobachterEinladenTask",
           "description": "BeobachterEinladenTask",
           "actionSequence": [
@@ -14226,7 +14244,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-2a40cb93-e722-4c72-9b00-e86b8d762f89",
+          "id": "task-74686430-6f85-43f0-b11f-58d175afe3ac",
           "name": "GuardianApproveTask",
           "description": "GuardianApproveTask",
           "actionSequence": [
@@ -14265,7 +14283,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-1d3b754a-c900-49e8-b53c-deb5e09cd55f",
+          "id": "task-349df0ca-7462-43e2-a4f0-0ddf8fc3451b",
           "name": "Sperre_Kinder",
           "description": "Sperre_Kinder",
           "actionSequence": [
@@ -14291,7 +14309,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-7f128672-cc0b-4d64-b4af-92eefc3806f6",
+          "id": "task-63d07f7c-10d7-4df4-ae17-b016902f4780",
           "name": "Sperre_Eltern",
           "description": "Sperre_Eltern",
           "actionSequence": [
@@ -14317,7 +14335,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-fe3f604e-3251-4853-804a-d1f87bfcbafb",
+          "id": "task-01f9a036-af97-49dc-b521-83c26ba28422",
           "name": "Sperre_ElternEinladen",
           "description": "Sperre_ElternEinladen",
           "actionSequence": [
@@ -14343,7 +14361,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-47b85d21-4b8b-4ac1-a265-03fdd4ab27a5",
+          "id": "task-5281b10a-bbca-479a-98af-539f8f14f0aa",
           "name": "Sperre_BeobachterEinladen",
           "description": "Sperre_BeobachterEinladen",
           "actionSequence": [
@@ -14783,7 +14801,7 @@
           "reset": false
         },
         {
-          "id": "act-7e35608b-4232-490d-a4d3-e0e55633f436",
+          "id": "act-3a2946ae-2a67-4d93-a96a-45224de66222",
           "name": "Act_Kinder_oeffnen",
           "type": "property",
           "changes": {
@@ -14795,7 +14813,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-d791c8b4-55f9-414e-9501-5c6dec51a4c5",
+          "id": "act-c64bff36-4ee0-4064-a167-5d887a26da9e",
           "name": "Act_Eltern_oeffnen",
           "type": "property",
           "changes": {
@@ -14807,7 +14825,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-9d4e61a1-3d21-4c42-8cc3-e1f7a1cfe6e3",
+          "id": "act-79cc29ed-685c-46d8-9604-90ffeab7db95",
           "name": "Act_Kind_gewaehlt",
           "type": "property",
           "changes": {
@@ -14817,7 +14835,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-f0fd55c5-4f6d-457f-9516-8d23f8e0b7c4",
+          "id": "act-16b0430f-24c6-4f2c-9aa9-3b75e8de1199",
           "name": "Act_Zuordnung_gewaehlt",
           "type": "property",
           "changes": {
@@ -14828,7 +14846,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-5a4a7359-c4e5-43ee-9890-61cd0f5f4f1f",
+          "id": "act-f6b81bc6-18e6-45de-856d-d259ab732b13",
           "name": "Act_Eltern_Einladen_Warten",
           "type": "property",
           "changes": {
@@ -14837,7 +14855,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-db8a515d-111d-47d0-bdc9-7336524d274f",
+          "id": "act-e60354e2-662e-4747-8d4d-25631721b854",
           "name": "Act_Eltern_Einladen_Server",
           "type": "http",
           "url": "/api/cms/admin/parent-invite",
@@ -14852,7 +14870,7 @@
           "queryOperator": "=="
         },
         {
-          "id": "act-722ca158-8974-40ee-a620-e7a138098236",
+          "id": "act-f6e7883d-0fc8-44bc-87d2-12b28db7f7d9",
           "name": "Act_Beobachter_Einladen_Server",
           "type": "http",
           "url": "/api/cms/admin/observer-invite",
@@ -14867,7 +14885,7 @@
           "queryOperator": "=="
         },
         {
-          "id": "act-9f47e2e9-00d0-43d6-9e4f-97393951635c",
+          "id": "act-caee4860-7c82-45eb-9290-86f82c03dd5c",
           "name": "Act_Zuordnung_Bestaetigen_Server",
           "type": "http",
           "url": "/api/cms/admin/guardian-approve",
@@ -15580,7 +15598,7 @@
         },
         {
           "className": "TStringVariable",
-          "id": "cms_var-6c3ae10f-c5ed-4dd8-8f5f-d9d72629c017",
+          "id": "cms_var-b28d83b9-f708-487a-97fb-74dd59e4ab37",
           "name": "Kind",
           "scope": "stage",
           "isVariable": true,
@@ -15606,7 +15624,7 @@
         },
         {
           "className": "TStringVariable",
-          "id": "cms_var-35fc7f0f-aaa6-4ce6-9761-04a69aee0851",
+          "id": "cms_var-f4c41608-a43b-4e30-957d-f713dcbc8eeb",
           "name": "Zuordnung",
           "scope": "stage",
           "isVariable": true,
@@ -22031,7 +22049,7 @@
       ],
       "tasks": [
         {
-          "id": "task-d7eb48dd-5ca2-44d8-8da2-88e54bf66151",
+          "id": "task-6b25ba3d-6499-4eb3-aec0-d0e2008cb6f3",
           "name": "Eltern_Kinder_Laden",
           "description": "Eltern_Kinder_Laden",
           "actionSequence": [
@@ -22045,7 +22063,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-35f6d14e-0ed3-418a-99fa-ee414eb0e989",
+          "id": "task-9b39e99f-83e7-4d5a-9e4c-dc94a6571f92",
           "name": "Eltern_Aktivitaet_Lesen",
           "description": "Eltern_Aktivitaet_Lesen",
           "actionSequence": [
@@ -22059,7 +22077,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-0053e353-af21-4084-bc40-26651ddb971e",
+          "id": "task-db70b52d-f728-4f3a-9176-3bffed39dae2",
           "name": "Eltern_Bewertungen_Lesen",
           "description": "Eltern_Bewertungen_Lesen",
           "actionSequence": [
@@ -22073,7 +22091,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-50f1fb73-6337-4709-9f5a-d4141abec4c3",
+          "id": "task-f589a069-c520-4472-9fe2-c9bfd5f34bd7",
           "name": "Eltern_Budget_Setzen",
           "description": "Eltern_Budget_Setzen",
           "actionSequence": [
@@ -22087,7 +22105,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-bcd889e2-abc2-4ed4-b25f-e093727a08cd",
+          "id": "task-a1ac1056-8785-44b1-9027-97cf35198ef9",
           "name": "Eltern_Budget_Bestaetigen",
           "description": "Eltern_Budget_Bestaetigen",
           "actionSequence": [
@@ -22101,7 +22119,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-f186f739-aacd-4e40-a2a5-40a6913ee7f8",
+          "id": "task-ea34d8af-5e79-4521-8be4-5128c3f4bdcb",
           "name": "Beobachter_Puls_Lesen",
           "description": "Beobachter_Puls_Lesen",
           "actionSequence": [
@@ -22117,7 +22135,7 @@
       ],
       "actions": [
         {
-          "id": "act-94e59da6-8fdb-42ae-a0fe-27f408cdcc6d",
+          "id": "act-8d369538-d907-4df7-ab78-aa71fa312a99",
           "name": "Act_Eltern_Kinder_Laden",
           "type": "call_method",
           "target": "Elternbereich",
@@ -22127,7 +22145,7 @@
           "target_ref": "server_parent"
         },
         {
-          "id": "act-876e9850-c3e3-4f6a-98b8-470868d52fd5",
+          "id": "act-f2578a56-da72-4cc9-942f-f40aaec786fd",
           "name": "Act_Eltern_Aktivitaet_Lesen",
           "type": "call_method",
           "target": "Elternbereich",
@@ -22137,7 +22155,7 @@
           "target_ref": "server_parent"
         },
         {
-          "id": "act-7b3602aa-d35a-4d76-a783-42e704ab3a85",
+          "id": "act-43cadc76-98d1-47e9-b28e-1c35cf295ebd",
           "name": "Act_Eltern_Bewertungen_Lesen",
           "type": "call_method",
           "target": "Elternbereich",
@@ -22147,7 +22165,7 @@
           "target_ref": "server_parent"
         },
         {
-          "id": "act-bfee12e8-19c3-4b85-8dd8-45f12d0b9e55",
+          "id": "act-c15cdf50-6340-4efc-aae3-872bd66eacdc",
           "name": "Act_Eltern_Budget_Setzen",
           "type": "call_method",
           "target": "Elternbereich",
@@ -22157,7 +22175,7 @@
           "target_ref": "server_parent"
         },
         {
-          "id": "act-1f89bef0-4577-4f43-9cab-7417172adfe9",
+          "id": "act-a20d8af4-a237-42eb-89e8-e9b7bf65f353",
           "name": "Act_Eltern_Budget_Bestaetigen",
           "type": "call_method",
           "target": "Elternbereich",
@@ -22167,7 +22185,7 @@
           "target_ref": "server_parent"
         },
         {
-          "id": "act-29e81f2d-ed72-4eeb-b502-5cdda1b8896d",
+          "id": "act-977ac1f7-bff2-4af4-824e-13737a7d4e74",
           "name": "Act_Beobachter_Puls_Lesen",
           "type": "call_method",
           "target": "Elternbereich",
@@ -22237,7 +22255,7 @@
       ],
       "tasks": [
         {
-          "id": "task-95b47bde-e282-4099-866f-6e081d60d767",
+          "id": "task-ee2fca1e-ea5e-4f7b-b859-c8b7ec6307fb",
           "name": "Sitzung_Starten",
           "description": "Sitzung_Starten",
           "actionSequence": [
@@ -22251,7 +22269,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-cdea2684-5125-4343-a19c-cc682b4b02a9",
+          "id": "task-8d077399-d53d-4a8b-9aff-d53dd22ee1b4",
           "name": "Sitzung_Heartbeat",
           "description": "Sitzung_Heartbeat",
           "actionSequence": [
@@ -22265,7 +22283,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-9e18b3fc-a0f4-499d-9527-16e0afc24d6f",
+          "id": "task-9cd6399b-941c-42e4-9410-ea412af48f1d",
           "name": "Sitzung_Pausieren",
           "description": "Sitzung_Pausieren",
           "actionSequence": [
@@ -22279,7 +22297,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-4fad0c4a-c224-460e-b861-a26c3da741f6",
+          "id": "task-81d9fb73-53a6-4afe-8e41-36618ed21812",
           "name": "Sitzung_Fortsetzen",
           "description": "Sitzung_Fortsetzen",
           "actionSequence": [
@@ -22293,7 +22311,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-d6d0cbb7-8259-4f13-ab8e-d48abe008aef",
+          "id": "task-a744d92b-d781-4b72-b62b-c234b74df962",
           "name": "Sitzung_Beenden",
           "description": "Sitzung_Beenden",
           "actionSequence": [
@@ -22307,7 +22325,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-c8f2f59d-f2ab-4d50-9733-8b24ee0e63ee",
+          "id": "task-2c51a2db-22cf-4d81-baf5-becb3580a726",
           "name": "Bewertung_Melden",
           "description": "Bewertung_Melden",
           "actionSequence": [
@@ -22323,7 +22341,7 @@
       ],
       "actions": [
         {
-          "id": "act-78a3e283-6b78-4c34-8160-3654c21958fa",
+          "id": "act-fdc06848-7c1a-4f7e-9042-2e36c46d3aa3",
           "name": "Act_Sitzung_Starten",
           "type": "call_method",
           "target": "Spielsitzungen",
@@ -22333,7 +22351,7 @@
           "target_ref": "server_play"
         },
         {
-          "id": "act-5fd2720e-5bba-4e38-9f43-c13d1dc70233",
+          "id": "act-eead99a5-4d73-4c57-a3df-96259c15d892",
           "name": "Act_Sitzung_Heartbeat",
           "type": "call_method",
           "target": "Spielsitzungen",
@@ -22343,7 +22361,7 @@
           "target_ref": "server_play"
         },
         {
-          "id": "act-0de8b049-78ec-4296-bdc2-7244e77b6d36",
+          "id": "act-404ff300-a0d9-4f69-ad29-427d6475963b",
           "name": "Act_Sitzung_Pausieren",
           "type": "call_method",
           "target": "Spielsitzungen",
@@ -22353,7 +22371,7 @@
           "target_ref": "server_play"
         },
         {
-          "id": "act-723682ca-5304-4ba0-98f0-8850da4470f7",
+          "id": "act-82c97589-c5cc-4aa6-9c93-e0b88bbad791",
           "name": "Act_Sitzung_Fortsetzen",
           "type": "call_method",
           "target": "Spielsitzungen",
@@ -22363,7 +22381,7 @@
           "target_ref": "server_play"
         },
         {
-          "id": "act-2b6d01ee-7543-4673-9b70-19622cc3d2cf",
+          "id": "act-d6eb8942-d53c-4207-87c8-741a41ca8bdd",
           "name": "Act_Sitzung_Beenden",
           "type": "call_method",
           "target": "Spielsitzungen",
@@ -22373,7 +22391,7 @@
           "target_ref": "server_play"
         },
         {
-          "id": "act-ddabcfa6-2c2e-4fa7-9084-532aab5052c5",
+          "id": "act-e94111f6-a723-4bc5-a852-d61d73a2a660",
           "name": "Act_Bewertung_Melden",
           "type": "call_method",
           "target": "Spielsitzungen",
@@ -22404,6 +22422,262 @@
       "group": "Server"
     },
     {
+      "id": "stage_server_mp",
+      "type": "standard",
+      "name": "Server · Hausinterner Mehrspieler",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#122b39"
+      },
+      "objects": [
+        {
+          "className": "TServerParty",
+          "id": "server_mp",
+          "name": "Partien",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "events": {
+            "onList": "Partie_Liste",
+            "onCreate": "Partie_Erstellen",
+            "onJoin": "Partie_Beitreten",
+            "onLeave": "Partie_Verlassen",
+            "onState": "Partie_Status",
+            "onAction": "Partie_Aktion",
+            "onBegin": "Partie_Beginnen",
+            "onEnd": "Partie_Beenden"
+          },
+          "maxActionsPerMinute": 120,
+          "x": 0,
+          "y": 0,
+          "width": 12,
+          "height": 3
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-d2f5aef0-ff81-4210-9f08-6143780e1707",
+          "name": "Partie_Liste",
+          "description": "Partie_Liste",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Partie_Liste"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-f75c0426-6742-4407-bb96-7279aed6cbcc",
+          "name": "Partie_Erstellen",
+          "description": "Partie_Erstellen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Partie_Erstellen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-a801f7a9-1358-4c22-9f6e-3950a91605c2",
+          "name": "Partie_Beitreten",
+          "description": "Partie_Beitreten",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Partie_Beitreten"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-d687899f-4188-4863-bef0-ac55d3083f1f",
+          "name": "Partie_Verlassen",
+          "description": "Partie_Verlassen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Partie_Verlassen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-72af7239-c324-491b-83f3-f9519e914e02",
+          "name": "Partie_Status",
+          "description": "Partie_Status",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Partie_Status"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-e6e4896f-0eac-4db5-bd7f-6380c2d1a89a",
+          "name": "Partie_Aktion",
+          "description": "Partie_Aktion",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Partie_Aktion"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-927d8138-e600-4569-8363-5c2c1d71a24b",
+          "name": "Partie_Beginnen",
+          "description": "Partie_Beginnen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Partie_Beginnen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-01b3f664-fffc-47bd-9be3-c8cc3d98e570",
+          "name": "Partie_Beenden",
+          "description": "Partie_Beenden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Partie_Beenden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        }
+      ],
+      "actions": [
+        {
+          "id": "act-35e55d23-0718-456f-ac8b-63bc0ce028e6",
+          "name": "Act_Partie_Liste",
+          "type": "call_method",
+          "target": "Partien",
+          "method": "list",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_mp"
+        },
+        {
+          "id": "act-60e46bdb-16f3-4606-b91f-8369c3d088fe",
+          "name": "Act_Partie_Erstellen",
+          "type": "call_method",
+          "target": "Partien",
+          "method": "create",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_mp"
+        },
+        {
+          "id": "act-06135885-29fe-4044-b677-b42499d3bc09",
+          "name": "Act_Partie_Beitreten",
+          "type": "call_method",
+          "target": "Partien",
+          "method": "join",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_mp"
+        },
+        {
+          "id": "act-ae4088a6-8619-40b6-8149-70d474cf0080",
+          "name": "Act_Partie_Verlassen",
+          "type": "call_method",
+          "target": "Partien",
+          "method": "leave",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_mp"
+        },
+        {
+          "id": "act-43977964-7765-49b1-8506-3d123bad6ec7",
+          "name": "Act_Partie_Status",
+          "type": "call_method",
+          "target": "Partien",
+          "method": "state",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_mp"
+        },
+        {
+          "id": "act-0ca1983d-6bfe-47cb-b6bd-71071d8b30d9",
+          "name": "Act_Partie_Aktion",
+          "type": "call_method",
+          "target": "Partien",
+          "method": "action",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_mp"
+        },
+        {
+          "id": "act-81475fae-910c-4e65-84e6-288c2d314b0d",
+          "name": "Act_Partie_Beginnen",
+          "type": "call_method",
+          "target": "Partien",
+          "method": "begin",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_mp"
+        },
+        {
+          "id": "act-5fa4a4cf-06dd-48df-8b5c-82538d9204f5",
+          "name": "Act_Partie_Beenden",
+          "type": "call_method",
+          "target": "Partien",
+          "method": "end",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_mp"
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "startAnimation": "none",
+      "features": [
+        {
+          "id": "server-mp",
+          "name": "Lobbys, Beitritt, Aktionslog, Partieende",
+          "blueprintTaskNames": [
+            "Partie_Liste",
+            "Partie_Erstellen",
+            "Partie_Beitreten",
+            "Partie_Verlassen",
+            "Partie_Status",
+            "Partie_Aktion",
+            "Partie_Beginnen",
+            "Partie_Beenden"
+          ]
+        }
+      ],
+      "group": "Server"
+    },
+    {
       "id": "stage_parent",
       "type": "standard",
       "name": "Eltern · Meine Kinder",
@@ -22418,7 +22692,7 @@
       "objects": [
         {
           "className": "TLabel",
-          "id": "cms_label-6a5bdd69-eda9-49d0-b73c-6e5ff7456867",
+          "id": "cms_label-5fc4aead-3d73-460f-baf2-371fe9b4b50f",
           "name": "Titel",
           "scope": "stage",
           "draggable": false,
@@ -22446,7 +22720,7 @@
         },
         {
           "className": "TLabel",
-          "id": "cms_label-975c92e0-3bff-483f-b1bd-14b9edce13c0",
+          "id": "cms_label-fcf6c1a1-f3a5-47bc-a3e7-a8e09e8fbecf",
           "name": "Status",
           "scope": "stage",
           "draggable": false,
@@ -22474,7 +22748,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-f15cb94c-579d-4915-9906-cb2f2d018e81",
+          "id": "cms_button-73ef02c5-6f8a-4146-9a66-f81767d8e842",
           "name": "NeuLaden",
           "scope": "stage",
           "draggable": false,
@@ -22505,7 +22779,7 @@
         },
         {
           "className": "TObjectList",
-          "id": "cms_list-41b42f83-c3d9-4039-b3c0-19616c1912d5",
+          "id": "cms_list-0d8e9829-8671-4642-b82b-4453c18a0fb4",
           "name": "Kinder",
           "scope": "stage",
           "isVariable": true,
@@ -22539,7 +22813,7 @@
         },
         {
           "className": "TTable",
-          "id": "cms_table-fa1a9ac5-8a8c-46e8-be58-6e79a2b6104d",
+          "id": "cms_table-5a00e689-59e3-41d2-a627-3567db089b71",
           "name": "KinderTabelle",
           "scope": "stage",
           "draggable": false,
@@ -22597,7 +22871,7 @@
         },
         {
           "className": "TLabel",
-          "id": "cms_label-e70c1a6f-506a-4c7d-b52c-2dad67aa468a",
+          "id": "cms_label-5568dbaa-27e0-4f56-bb85-b465f841e46b",
           "name": "DetailTitel",
           "scope": "stage",
           "draggable": false,
@@ -22625,7 +22899,7 @@
         },
         {
           "className": "TObjectList",
-          "id": "cms_list-4ee98e85-47d7-40a8-b126-2bc477d70441",
+          "id": "cms_list-a2d9e10e-b565-4f02-a656-0e1f00a4d1ab",
           "name": "Sitzungen",
           "scope": "stage",
           "isVariable": true,
@@ -22659,7 +22933,7 @@
         },
         {
           "className": "TTable",
-          "id": "cms_table-d67a4d15-03e7-477c-b6c0-2cf6eea4d55e",
+          "id": "cms_table-e06d610d-0764-4f7b-8fe8-54a08cbafe46",
           "name": "SitzungTabelle",
           "scope": "stage",
           "draggable": false,
@@ -22711,7 +22985,7 @@
         },
         {
           "className": "TObjectList",
-          "id": "cms_list-9e9dc2cb-c862-4cae-80b0-a214c764e953",
+          "id": "cms_list-956e2dce-fad6-412a-a4e1-b3cd04df9b60",
           "name": "Bewertungen",
           "scope": "stage",
           "isVariable": true,
@@ -22745,7 +23019,7 @@
         },
         {
           "className": "TTable",
-          "id": "cms_table-7d965fac-189e-4e65-8850-f31aa800b793",
+          "id": "cms_table-8b02816b-457a-4947-a91c-7be7a75b6a2f",
           "name": "BewertungTabelle",
           "scope": "stage",
           "draggable": false,
@@ -22803,7 +23077,7 @@
         },
         {
           "className": "TLabel",
-          "id": "cms_label-3fa2b97b-6f6f-44db-acba-84d5da85f276",
+          "id": "cms_label-45468a3a-6bbe-4c7c-b87c-f53cf4538bd8",
           "name": "BudgetTitel",
           "scope": "stage",
           "draggable": false,
@@ -22831,7 +23105,7 @@
         },
         {
           "className": "TEdit",
-          "id": "cms_edit-19979ea2-406d-4a82-b0af-4d0b79672cb8",
+          "id": "cms_edit-7392d8b6-6170-4daa-be8e-f08cf8744e7d",
           "name": "BudgetMinuten",
           "scope": "stage",
           "draggable": false,
@@ -22859,7 +23133,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-d3c8efa8-cbc8-44cc-aa7e-4e6f4ea326ba",
+          "id": "cms_button-7b6a4a06-d0bc-4ecc-9a64-4da1584fca57",
           "name": "BudgetSpeichern",
           "scope": "stage",
           "draggable": false,
@@ -22890,7 +23164,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-793106d0-2ce3-4bc1-898f-6faeb0b9604d",
+          "id": "cms_button-60de444b-92b5-4c05-88ec-0c46d9466370",
           "name": "BudgetBestaetigen",
           "scope": "stage",
           "draggable": false,
@@ -22921,7 +23195,7 @@
         },
         {
           "className": "TLabel",
-          "id": "cms_label-bfca8e15-fe75-4aec-a44b-2b99c71b5317",
+          "id": "cms_label-d19a35eb-e040-483d-9975-f0d29cf45097",
           "name": "BudgetHinweis",
           "scope": "stage",
           "draggable": false,
@@ -22949,7 +23223,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-195a8012-2ead-4a55-94f6-7cdeccbda7e4",
+          "id": "cms_button-c969197d-8539-48d9-8c7f-7f1a48b7138a",
           "name": "Navigation_stage_admin_login",
           "scope": "stage",
           "draggable": false,
@@ -22980,7 +23254,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-b58a54fa-d49f-48c0-8209-63b0dc3d2542",
+          "id": "cms_button-f7a7dfe3-b6f3-471d-9684-f7b9c6e4dd14",
           "name": "Navigation_stage_admin",
           "scope": "stage",
           "draggable": false,
@@ -23011,7 +23285,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-09bab729-943f-4aaa-8533-36aeb19a2e28",
+          "id": "cms_button-5597b6bb-60f9-4db8-b65a-1d9cfc66764a",
           "name": "Navigation_stage_observer",
           "scope": "stage",
           "draggable": false,
@@ -23043,7 +23317,7 @@
       ],
       "tasks": [
         {
-          "id": "task-1f0970ac-c228-43ac-aa7e-a8d215c97592",
+          "id": "task-4f63678e-1d20-46b5-a46c-d1908b26d00e",
           "name": "Kinder_Laden",
           "description": "Kinder_Laden",
           "actionSequence": [
@@ -23082,7 +23356,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-87d1dada-d754-41df-8cd6-d6cc604c5447",
+          "id": "task-245dd1bf-ee29-4eb7-a689-f9cc119011fd",
           "name": "Kinder_Anzeigen",
           "description": "Kinder_Anzeigen",
           "actionSequence": [
@@ -23117,7 +23391,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-9a11358d-63ac-4dff-a5f1-b8f601db5e39",
+          "id": "task-0d9a3a1d-3de0-4fd5-b476-fb3c1652eb80",
           "name": "Kinder_Fehler",
           "description": "Kinder_Fehler",
           "actionSequence": [
@@ -23131,7 +23405,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-f1902f86-89c0-499e-9ecd-047e839e40d7",
+          "id": "task-c2c8b5b3-f83d-45ae-9200-d79026af33ef",
           "name": "Kind_Auswaehlen",
           "description": "Kind_Auswaehlen",
           "actionSequence": [
@@ -23161,7 +23435,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-065e44b5-39a6-4e27-80ac-659cdb6fb1e3",
+          "id": "task-9e34346a-0aab-471a-a5ae-1225afa603bb",
           "name": "Kind_Details_Laden",
           "description": "Kind_Details_Laden",
           "actionSequence": [
@@ -23200,7 +23474,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-70bafb9e-655f-46c6-9184-b72d6fb59ce9",
+          "id": "task-3d0861f8-6267-4383-b436-66d0da3c2f7f",
           "name": "Kind_Details_Anzeigen",
           "description": "Kind_Details_Anzeigen",
           "actionSequence": [
@@ -23243,7 +23517,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-278c6dbf-357d-469b-aaea-e5d15a98ac2a",
+          "id": "task-52eb1c2b-d97f-405a-a59b-04ea29f58a88",
           "name": "Fortschritt_Laden",
           "description": "Fortschritt_Laden",
           "actionSequence": [
@@ -23282,7 +23556,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-b2491c1e-5972-4be5-b90e-d7e4ee6edbd2",
+          "id": "task-fc5fb3b0-e106-41c7-ba98-c6787469b694",
           "name": "Detail_Fehler",
           "description": "Detail_Fehler",
           "actionSequence": [
@@ -23296,7 +23570,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-f3300b1e-01f8-4493-b49b-455644d585ec",
+          "id": "task-75d3d988-1fec-4f18-85a1-5bfc70f02ba0",
           "name": "Budget_Speichern",
           "description": "Budget_Speichern",
           "actionSequence": [
@@ -23335,7 +23609,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-024cf3d3-cda8-4e08-bc2e-94b150c1a3f6",
+          "id": "task-020e9ed8-634e-453f-8ffb-7e9300d28fb7",
           "name": "Budget_Gespeichert",
           "description": "Budget_Gespeichert",
           "actionSequence": [
@@ -23370,7 +23644,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-badc0fdb-efbe-4032-9e5a-bff8b0ed5049",
+          "id": "task-e6f9e826-68fe-4d16-a50b-52b6e71418ca",
           "name": "Budget_Bestaetigen",
           "description": "Budget_Bestaetigen",
           "actionSequence": [
@@ -23409,7 +23683,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-636de867-45e8-471e-8d77-b3227b610e56",
+          "id": "task-6ce7db46-e8ca-4326-9e1f-60058b4db713",
           "name": "Budget_Fehler",
           "description": "Budget_Fehler",
           "actionSequence": [
@@ -23423,7 +23697,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-c605028a-30f4-4354-b1ef-e38f4d0bdc24",
+          "id": "task-354df84e-4528-4d88-89c4-44f7a6e92e93",
           "name": "Sperre_KinderLaden",
           "description": "Sperre_KinderLaden",
           "actionSequence": [
@@ -23449,7 +23723,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-a040fddf-a2b9-41ae-8d11-1cd5e6786832",
+          "id": "task-fbbede60-b90f-4526-a6d0-3d357832d120",
           "name": "Sperre_BudgetSpeichern",
           "description": "Sperre_BudgetSpeichern",
           "actionSequence": [
@@ -23475,7 +23749,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-8e5142a9-0ac4-47c5-ba21-9ac01b2fd27e",
+          "id": "task-65134c08-a810-4a8e-b494-c7dc92548c06",
           "name": "Sperre_BudgetBestaetigen",
           "description": "Sperre_BudgetBestaetigen",
           "actionSequence": [
@@ -23501,7 +23775,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-d1e6460c-a073-4224-8661-cc0e1a2346df",
+          "id": "task-19fc4159-961e-4bbf-82f4-a64395ff0cdf",
           "name": "Navigation_stage_admin_login",
           "description": "Navigation_stage_admin_login",
           "actionSequence": [
@@ -23527,7 +23801,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-44029d8e-4a4a-4308-9a09-19424ef09d68",
+          "id": "task-ed3344c3-b21f-45fc-9193-b1f23887305e",
           "name": "Navigation_stage_admin",
           "description": "Navigation_stage_admin",
           "actionSequence": [
@@ -23553,7 +23827,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-e14d3cff-30de-4026-bbe7-598693953df9",
+          "id": "task-0016e0aa-67a7-4476-a8c0-dd39e276904d",
           "name": "Navigation_stage_observer",
           "description": "Navigation_stage_observer",
           "actionSequence": [
@@ -23581,7 +23855,7 @@
       ],
       "actions": [
         {
-          "id": "act-6685cf34-e39f-4950-b68f-9cfdcbf6a23a",
+          "id": "act-4d83e822-4576-4f80-96ca-ab2455420fdc",
           "name": "Act_Kinder_Warten",
           "type": "property",
           "changes": {
@@ -23591,7 +23865,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-42af9183-6aee-49aa-a376-bd8ffad21de6",
+          "id": "act-8093b590-82c7-4696-bcb7-3499442bf9bd",
           "name": "Act_Kinder_Server",
           "type": "http",
           "url": "/api/cms/parent/my-children",
@@ -23602,7 +23876,7 @@
           "queryOperator": "=="
         },
         {
-          "id": "act-5f98c2a4-fb27-4fab-a13c-b79b3cac9d15",
+          "id": "act-eb70d5d4-de15-418f-86a9-b9b1825102fe",
           "name": "Act_Kinder_Uebernehmen",
           "type": "call_method",
           "target": "Kinder",
@@ -23614,7 +23888,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-ad07977f-9420-4409-a51a-c86abb5249f5",
+          "id": "act-a1279708-724c-4aa7-adee-df7dd5787a00",
           "name": "Act_Kinder_Fertig",
           "type": "property",
           "changes": {
@@ -23625,7 +23899,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-76976a37-b9e3-49cf-bae6-69b114af665e",
+          "id": "act-86543159-a9a3-424b-8f45-8c958e2d04da",
           "name": "Act_Kinder_Datenfehler",
           "type": "property",
           "changes": {
@@ -23635,7 +23909,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-84966b4b-6098-44a6-8ccc-681cc0c27b0f",
+          "id": "act-664dac9a-65a3-402c-b92c-7c2e9ec6442d",
           "name": "Act_Kinder_Fehler_Anzeigen",
           "type": "property",
           "changes": {
@@ -23645,7 +23919,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-294aaf40-ec67-4aa5-bd0f-7c880dcb7972",
+          "id": "act-c61d24e2-3871-46a9-be42-079f3d67f93c",
           "name": "Act_Kind_Uebernehmen",
           "type": "property",
           "changes": {
@@ -23656,7 +23930,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-371fcc1b-159c-4f60-ae14-7907956651ca",
+          "id": "act-e0a785f5-4090-4c7c-898f-bdf8243f33a4",
           "name": "Act_Details_Warten",
           "type": "property",
           "changes": {
@@ -23666,7 +23940,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-bee8c28b-e175-49e6-a85a-de2c5ede57c6",
+          "id": "act-fb9e778d-87da-4205-9240-2d496bfadd0f",
           "name": "Act_Details_Server",
           "type": "http",
           "url": "/api/cms/parent/child-activity",
@@ -23679,7 +23953,7 @@
           "queryOperator": "=="
         },
         {
-          "id": "act-8032b3cd-a942-4142-a47f-f8028cd45077",
+          "id": "act-c7593f18-5001-47c2-abbd-9f57b6413c80",
           "name": "Act_Sitzungen_Uebernehmen",
           "type": "call_method",
           "target": "Sitzungen",
@@ -23691,7 +23965,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-2a2defd5-6868-402b-b901-fa19df56a255",
+          "id": "act-ca61f82e-f2f6-47dc-9cf7-2b98f1cd4adc",
           "name": "Act_Budget_Anzeigen",
           "type": "property",
           "changes": {
@@ -23700,7 +23974,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-397cd368-2b56-474d-9067-0ce7dec750a2",
+          "id": "act-91dbe5bf-cdd3-4bdd-9fc2-04c4a6fe1f0b",
           "name": "Act_Genehmigung_Anzeigen",
           "type": "property",
           "changes": {
@@ -23710,7 +23984,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-db2a7440-d429-4c00-bbb6-7bde4d982ed4",
+          "id": "act-d15ccb34-c673-4507-8942-9bc3377a4eaf",
           "name": "Act_Genehmigung_Verbergen",
           "type": "property",
           "changes": {
@@ -23720,7 +23994,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-34bf88a8-1824-4a4d-b9a1-96f1f78addee",
+          "id": "act-6aeef72d-a600-470c-91d5-12c28a674aa5",
           "name": "Act_Fortschritt_Server",
           "type": "http",
           "url": "/api/cms/parent/child-progress",
@@ -23733,7 +24007,7 @@
           "queryOperator": "=="
         },
         {
-          "id": "act-2b14b166-7f88-4cb2-924f-974865e78791",
+          "id": "act-13451993-30be-47d0-bc36-00af869e031f",
           "name": "Act_Bewertungen_Uebernehmen",
           "type": "call_method",
           "target": "Bewertungen",
@@ -23745,7 +24019,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-1b060366-1604-4d90-b265-36ecff2f4923",
+          "id": "act-9241ade9-26ec-4643-8d8f-0d9f75215ec3",
           "name": "Act_Details_Fertig",
           "type": "property",
           "changes": {
@@ -23755,7 +24029,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-07a1e731-ee4b-43f7-813d-107857f20135",
+          "id": "act-c38477c5-542f-4df5-a47e-e3f5a33aabca",
           "name": "Act_Detail_Fehler",
           "type": "property",
           "changes": {
@@ -23765,7 +24039,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-e81fe0ae-d776-4ad0-af28-ea1b82d740ff",
+          "id": "act-3f91038d-9ce4-41bd-8168-661cc6eed83c",
           "name": "Act_Budget_Warten",
           "type": "property",
           "changes": {
@@ -23775,7 +24049,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-17b1b487-b101-4435-8268-d3af5b605f47",
+          "id": "act-ef9767be-3c71-40c9-8814-1b09a6f3ff26",
           "name": "Act_Budget_Server",
           "type": "http",
           "url": "/api/cms/parent/set-budget",
@@ -23789,7 +24063,7 @@
           "queryOperator": "=="
         },
         {
-          "id": "act-c9793f2a-ed07-4dcf-b6ad-31beef68024f",
+          "id": "act-4c7fe325-4bd3-4510-841f-e2d3a769ec60",
           "name": "Act_Budget_Meldung",
           "type": "property",
           "changes": {
@@ -23799,7 +24073,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-9eac4df7-c678-498d-b193-4f122574b37d",
+          "id": "act-a956d976-7b5b-4e05-ab30-dff678b990e5",
           "name": "Act_Budget_Pending_Anzeigen",
           "type": "property",
           "changes": {
@@ -23809,7 +24083,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-104b7438-ca01-45f7-9f6a-3b33d8191cd9",
+          "id": "act-a7ad2e90-dbfe-4963-9cbf-fb31c69b063b",
           "name": "Act_Budget_Pending_Aus",
           "type": "property",
           "changes": {
@@ -23819,7 +24093,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-b98d13ab-557f-4496-b252-55853d5ec2d0",
+          "id": "act-c7784e6c-2a3d-4893-9974-f901b7e48009",
           "name": "Act_Bestaetigen_Warten",
           "type": "property",
           "changes": {
@@ -23829,7 +24103,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-245ceb61-294f-4c07-830a-73afaf805b91",
+          "id": "act-5481153c-9ec8-4851-802d-069226ec6dd0",
           "name": "Act_Bestaetigen_Server",
           "type": "http",
           "url": "/api/cms/parent/approve-budget",
@@ -23842,7 +24116,7 @@
           "queryOperator": "=="
         },
         {
-          "id": "act-89fad6b1-908f-476b-a7d1-036d318b11a3",
+          "id": "act-4aa3dac0-e377-4f70-8b2e-8fb758fffab9",
           "name": "Act_Bestaetigt",
           "type": "property",
           "changes": {
@@ -23854,7 +24128,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-3858af53-aa63-47fb-8202-cf463c272e9e",
+          "id": "act-a386fdd6-22e3-4d29-97d1-b68acf56c585",
           "name": "Act_Budget_Fehler",
           "type": "property",
           "changes": {
@@ -23864,7 +24138,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-d285277b-9dbf-47b8-809d-27dbdffe671c",
+          "id": "act-a060b3c7-b978-4819-8d67-4a29d7342d15",
           "name": "Act_Nav_Admin_Login",
           "type": "navigate_stage",
           "stageId": "stage_admin_login",
@@ -23872,7 +24146,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-aa54085d-434b-4e0d-bfac-1544057c1a0e",
+          "id": "act-a2c69a8a-f739-49f4-96cc-69d1c8437896",
           "name": "Act_Nav_Admin",
           "type": "navigate_stage",
           "stageId": "stage_admin",
@@ -23880,7 +24154,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-64ec8102-2eed-480e-85b9-8d2561fe71e8",
+          "id": "act-32ee6f93-84a8-40b0-9bda-8ca80763a38c",
           "name": "Act_Nav_Observer",
           "type": "navigate_stage",
           "stageId": "stage_observer",
@@ -23891,7 +24165,7 @@
       "variables": [
         {
           "className": "TStringVariable",
-          "id": "cms_var-e29e29ff-0c0c-4b8b-9a07-43225e39e55c",
+          "id": "cms_var-b22295e2-f478-4cd3-b7e9-94fb97e195ff",
           "name": "Kind",
           "scope": "stage",
           "isVariable": true,
@@ -23917,7 +24191,7 @@
         },
         {
           "className": "TObjectVariable",
-          "id": "cms_var-7614cf6b-bebb-41f7-a205-73caf2b1c3fe",
+          "id": "cms_var-7224b4f0-d4f5-4b2e-ba6f-b62ab57f5ff4",
           "name": "KinderAntwort",
           "scope": "stage",
           "isVariable": true,
@@ -23943,7 +24217,7 @@
         },
         {
           "className": "TBooleanVariable",
-          "id": "cms_var-a188e246-9130-4c75-bb49-ed1b36b26cb8",
+          "id": "cms_var-7bb0bb2d-3dfe-424b-9655-09d2e0d3cab0",
           "name": "KinderGueltig",
           "scope": "stage",
           "isVariable": true,
@@ -23969,7 +24243,7 @@
         },
         {
           "className": "TObjectVariable",
-          "id": "cms_var-8783d22b-599b-41b1-9e28-cac9fdd30404",
+          "id": "cms_var-dcd61464-0ded-4f78-bb2d-35827f8587a0",
           "name": "DetailAntwort",
           "scope": "stage",
           "isVariable": true,
@@ -23995,7 +24269,7 @@
         },
         {
           "className": "TBooleanVariable",
-          "id": "cms_var-95dbcd31-f6ef-4fa5-a922-162867a6d0cd",
+          "id": "cms_var-fea61cbc-2826-4431-892c-8723ce180baa",
           "name": "SitzungsGueltig",
           "scope": "stage",
           "isVariable": true,
@@ -24021,7 +24295,7 @@
         },
         {
           "className": "TObjectVariable",
-          "id": "cms_var-54489d93-e92c-4e23-bfb2-ec6d2ce8edd7",
+          "id": "cms_var-97ebd558-0344-45cf-b4f3-5b54427e110c",
           "name": "FortschrittAntwort",
           "scope": "stage",
           "isVariable": true,
@@ -24047,7 +24321,7 @@
         },
         {
           "className": "TBooleanVariable",
-          "id": "cms_var-efffef1c-b165-4c31-b0ca-01ed47163d82",
+          "id": "cms_var-d7b83875-5529-46af-91c7-ce85b8fb54d4",
           "name": "FortschrittGueltig",
           "scope": "stage",
           "isVariable": true,
@@ -24073,7 +24347,7 @@
         },
         {
           "className": "TObjectVariable",
-          "id": "cms_var-a674294b-6387-49ce-ad3a-bf0c82361d5f",
+          "id": "cms_var-0f749487-81ce-466f-9cfa-30f2dee95add",
           "name": "BudgetAntwort",
           "scope": "stage",
           "isVariable": true,
@@ -24099,7 +24373,7 @@
         },
         {
           "className": "TIntegerVariable",
-          "id": "cms_var-7ebb7de7-431b-4976-a483-0fbe27bfbf2a",
+          "id": "cms_var-bd346752-2589-4021-a604-bda5ccedac59",
           "name": "Busy",
           "scope": "stage",
           "isVariable": true,
@@ -24145,7 +24419,7 @@
       "objects": [
         {
           "className": "TLabel",
-          "id": "cms_label-8bffedb4-11a0-4f71-8560-4ab6b406cb08",
+          "id": "cms_label-881b5270-074e-4332-9eb4-37211f731225",
           "name": "Titel",
           "scope": "stage",
           "draggable": false,
@@ -24173,7 +24447,7 @@
         },
         {
           "className": "TLabel",
-          "id": "cms_label-4c9b5179-7bb0-49c3-a946-f3919327199c",
+          "id": "cms_label-5694b6df-3db8-4088-84b6-a3efc135ea39",
           "name": "Hinweis",
           "scope": "stage",
           "draggable": false,
@@ -24201,7 +24475,7 @@
         },
         {
           "className": "TLabel",
-          "id": "cms_label-44c5fe5d-bcc7-4fdb-980f-d880de9f54c7",
+          "id": "cms_label-3346b7e7-f9ec-4b76-90bf-e3e129900bd3",
           "name": "Status",
           "scope": "stage",
           "draggable": false,
@@ -24229,7 +24503,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-000eb3a6-1b12-42b5-9606-38ab7688b38c",
+          "id": "cms_button-e52cc3ba-7780-42d3-8d3c-76a14f806184",
           "name": "Aktualisieren",
           "scope": "stage",
           "draggable": false,
@@ -24260,7 +24534,7 @@
         },
         {
           "className": "TObjectList",
-          "id": "cms_list-a570ad18-3a06-4be5-85a1-463542b709cc",
+          "id": "cms_list-aaaaea26-9d09-46a8-b803-4e3a971099c4",
           "name": "PulsListe",
           "scope": "stage",
           "isVariable": true,
@@ -24294,7 +24568,7 @@
         },
         {
           "className": "TTable",
-          "id": "cms_table-10c3336d-43b4-43b7-829c-6ba96c3f2c3b",
+          "id": "cms_table-f8aa1e30-58ea-460e-95e8-c89b82c6e127",
           "name": "PulsTabelle",
           "scope": "stage",
           "draggable": false,
@@ -24357,7 +24631,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-4dfdcf11-32b3-4d18-82de-5185c0ab0810",
+          "id": "cms_button-4d2dda86-340b-42ba-bc1a-630be933957b",
           "name": "Navigation_stage_admin_login",
           "scope": "stage",
           "draggable": false,
@@ -24388,7 +24662,7 @@
         },
         {
           "className": "TButton",
-          "id": "cms_button-0363faba-3842-45d2-92bc-398c53b0c29a",
+          "id": "cms_button-4c176433-edae-41d6-9c99-316cea967f3d",
           "name": "Navigation_stage_parent",
           "scope": "stage",
           "draggable": false,
@@ -24420,7 +24694,7 @@
       ],
       "tasks": [
         {
-          "id": "task-25b86e85-3902-4016-892c-b3881013c8c9",
+          "id": "task-6a18f355-7d3c-4781-943b-0dbc390172e8",
           "name": "Puls_Laden",
           "description": "Puls_Laden",
           "actionSequence": [
@@ -24459,7 +24733,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-751f7562-c2dd-4742-be5c-7ef2d86450ae",
+          "id": "task-d1455c3c-bfb3-4640-af4f-d46e6b7e75c6",
           "name": "Puls_Anzeigen",
           "description": "Puls_Anzeigen",
           "actionSequence": [
@@ -24494,7 +24768,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-fe5de740-3663-414b-afd5-dfb3d5ea1c42",
+          "id": "task-8f847077-1ac4-45b2-8e41-dd0c0210689b",
           "name": "Puls_Fehler",
           "description": "Puls_Fehler",
           "actionSequence": [
@@ -24508,7 +24782,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-e351fcfc-f383-469f-9d6f-04a5d4ced76d",
+          "id": "task-4d56a153-29d4-41f6-8798-b1149bfda938",
           "name": "Sperre_PulsLaden",
           "description": "Sperre_PulsLaden",
           "actionSequence": [
@@ -24534,7 +24808,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-4713fa73-c62f-441a-993d-a923beb8ca84",
+          "id": "task-ef610c61-6037-4523-bae2-ca108f8f21c1",
           "name": "Navigation_stage_admin_login",
           "description": "Navigation_stage_admin_login",
           "actionSequence": [
@@ -24560,7 +24834,7 @@
           "scope": "stage"
         },
         {
-          "id": "task-5c5af431-a26c-46ae-b970-a6de3c638ac5",
+          "id": "task-7bb75c3d-f314-4670-866c-9a521f28edda",
           "name": "Navigation_stage_parent",
           "description": "Navigation_stage_parent",
           "actionSequence": [
@@ -24588,7 +24862,7 @@
       ],
       "actions": [
         {
-          "id": "act-db8d33b3-04b0-4753-b1a2-9ab41fda7085",
+          "id": "act-055a68ce-0ab7-4de2-813b-73d32db3c4d1",
           "name": "Act_Puls_Warten",
           "type": "property",
           "changes": {
@@ -24598,7 +24872,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-de1ef134-daf2-4d62-8c10-a07f6665be01",
+          "id": "act-5e20caec-d886-41c1-a610-793b9439c48d",
           "name": "Act_Puls_Server",
           "type": "http",
           "url": "/api/cms/parent/room-pulse",
@@ -24609,7 +24883,7 @@
           "queryOperator": "=="
         },
         {
-          "id": "act-7d73384b-a365-45a4-aaac-7e929c665859",
+          "id": "act-5527df09-22bb-44b2-8a77-8e54a678177e",
           "name": "Act_Puls_Uebernehmen",
           "type": "call_method",
           "target": "PulsListe",
@@ -24621,7 +24895,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-4f5b9167-3c31-45f8-8a01-b3371f720714",
+          "id": "act-4da16b4a-5145-40c7-869e-5cd310380982",
           "name": "Act_Puls_Fertig",
           "type": "property",
           "changes": {
@@ -24632,7 +24906,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-6747f57d-a723-4bf5-a9fc-b07605245c0d",
+          "id": "act-7c17c3ac-46bd-4729-989c-83f7e316f079",
           "name": "Act_Puls_Datenfehler",
           "type": "property",
           "changes": {
@@ -24642,7 +24916,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-9166387a-ba94-4c5b-9587-fe148940fad9",
+          "id": "act-d3a902fa-cbb3-4f34-9f72-1f58d179aba0",
           "name": "Act_Puls_Fehler_Anzeigen",
           "type": "property",
           "changes": {
@@ -24652,7 +24926,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-3d0a5cbe-4be6-4d63-b476-d0b8768667d0",
+          "id": "act-3f1a91da-eed8-48b7-b605-ff934c53ade4",
           "name": "Act_Nav_Admin_Login_Obs",
           "type": "navigate_stage",
           "stageId": "stage_admin_login",
@@ -24660,7 +24934,7 @@
           "scope": "stage"
         },
         {
-          "id": "act-dd4e5eac-4009-4442-9d00-dd10616a43ca",
+          "id": "act-1714a70c-60d7-4a87-93a8-1d374e0c3416",
           "name": "Act_Nav_Parent_Obs",
           "type": "navigate_stage",
           "stageId": "stage_parent",
@@ -24671,7 +24945,7 @@
       "variables": [
         {
           "className": "TObjectVariable",
-          "id": "cms_var-ff0f4bfe-f62e-4028-90d6-063f94247fe2",
+          "id": "cms_var-f0d282dd-a9b9-492d-bce8-3bdcf1fc0986",
           "name": "PulsAntwort",
           "scope": "stage",
           "isVariable": true,
@@ -24697,7 +24971,7 @@
         },
         {
           "className": "TBooleanVariable",
-          "id": "cms_var-29a36f9b-87bb-4852-885c-41fb0f4f8567",
+          "id": "cms_var-49267858-cd57-40db-9cb0-8800b9c9e46a",
           "name": "PulsGueltig",
           "scope": "stage",
           "isVariable": true,
@@ -24723,7 +24997,7 @@
         },
         {
           "className": "TIntegerVariable",
-          "id": "cms_var-67d96bbb-7031-47c9-908f-c681a09aa3a0",
+          "id": "cms_var-044267d2-5990-4bcf-a481-7dfb91c36c47",
           "name": "Busy",
           "scope": "stage",
           "isVariable": true,

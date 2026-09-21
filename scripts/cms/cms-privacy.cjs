@@ -19,6 +19,8 @@ function createPrivacy(core, store) {
       codes: db.codes.filter(c => c.personId === personId).map(c => ({ areaId: c.areaId, sequenceLength: c.sequence.length })),
       timeBudgets: db.timeBudgets.filter(t => t.childId === personId),
       playSessions: db.playSessions.filter(s => s.childId === personId),
+      parties: db.parties.filter(p => p.hostId === personId || p.members.some(m => m.personId === personId))
+        .map(p => ({ id: p.id, gameId: p.gameId, areaId: p.areaId, status: p.status, host: p.hostId === personId, actions: p.actions.filter(a => a.by === personId).length })),
       progress: db.progress.filter(r => r.childId === personId),
       profileRequests: (db.profileRequests || []).filter(r => r.personId === personId),
       invites: db.invites.filter(i => i.personId === personId).map(i => ({ id: i.id, purpose: i.purpose, houseId: i.houseId, expires: i.expires, usedAt: i.usedAt || null })),
@@ -50,6 +52,13 @@ function createPrivacy(core, store) {
       next.invites = next.invites.filter(i => i.personId !== personId);
       for (const i of next.invites) if (i.issuer === personId) i.issuer = '[gelöscht]';
       for (const d of next.deviceGrants || []) if (d.issuedBy === personId) d.issuedBy = '[gelöscht]';
+      // Partien: offene Mitgliedschaft beenden, Aktionslog anonymisieren.
+      // members.personId bleibt (Tombstone in people erhält referentielle
+      // Integrität; Anzeige zeigt den Tombstone-Namen).
+      for (const p of next.parties) {
+        for (const m of p.members) if (m.personId === personId && !m.leftAt) m.leftAt = at;
+        for (const a of p.actions) if (a.by === personId) a.by = '[gelöscht]';
+      }
     });
     store.addDeletion({ personId, at: new Date().toISOString(), actor });
     core.dropPerson(personId);
