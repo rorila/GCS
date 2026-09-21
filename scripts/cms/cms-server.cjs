@@ -5,6 +5,7 @@ if(fs.existsSync(envPath))for(const line of fs.readFileSync(envPath,'utf8').spli
  if(m&&!(m[1] in process.env))process.env[m[1]]=m[2].replace(/^["']|["']$/g,'');
 }
 const {createCore}=require('./cms-core.cjs');
+const {createJsonStore}=require('./cms-store.cjs');
 const {createAdmin}=require('./cms-admin.cjs');
 const {createTraceStore}=require('./cms-trace.cjs');
 const {loadLoginWorkflow}=require('./cms-login-workflow.cjs');
@@ -16,12 +17,12 @@ const {renderCms}=require('./cms-project.cjs');
 const cmsFile=path.join(root,'game-server/public/projects/GCS-CMS.json');
 function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}={}){
  if(!fs.existsSync(dataPath)){fs.mkdirSync(path.dirname(dataPath),{recursive:true});fs.copyFileSync(path.join(__dirname,'cms-demo.json'),dataPath,fs.constants.COPYFILE_EXCL);}
- const core=createCore(JSON.parse(fs.readFileSync(dataPath,'utf8'))),launches=new Map(),attempts=new Map();
- const admin=createAdmin(core,dataPath),traces=createTraceStore(),loginWorkflow=loadLoginWorkflow(cmsFile,'stage_server_login');
+ const store=createJsonStore({dataPath}),core=createCore(store.load()),launches=new Map(),attempts=new Map();
+ const admin=createAdmin(core,dataPath,{store}),traces=createTraceStore(),loginWorkflow=loadLoginWorkflow(cmsFile,'stage_server_login');
  const adminWorkflow=loadAdminWorkflow(cmsFile,'stage_server_admin_login');
  const loginPage=()=>renderCms(cmsFile,'stage_admin_login');
- const profile=createProfile(core,dataPath,cmsFile,'stage_server_profile');
- const uploads=createUploads(core,admin,dataPath,cmsFile,'stage_server_uploads');
+ const profile=createProfile(core,store,cmsFile,'stage_server_profile');
+ const uploads=createUploads(core,admin,store,cmsFile,'stage_server_uploads');
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
  const reply=(res,code,data)=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  const server=http.createServer(async(req,res)=>{

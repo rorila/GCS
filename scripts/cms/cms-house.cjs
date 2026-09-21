@@ -25,7 +25,7 @@ function houseApi(core,s,route,b,commit){
   const name=clean(b.name),avatar=clean(b.avatar,12),rawSeq=typeof b.sequenceText==='string'?b.sequenceText.split(',').map(x=>x.trim()):b.sequence,sequence=Array.isArray(rawSeq)?canonEmojiSeq(rawSeq):rawSeq;
   if(!name||!avatar||!Array.isArray(sequence)||sequence.length!==4||sequence.some(e=>!EMOJI_IDS.includes(e)))return fail(400,'Name, Avatar und vier gültige Bild-IDs angeben.');
   if(core.db.codes.some(c=>c.areaId===house.id&&JSON.stringify(canonEmojiSeq(c.sequence))===JSON.stringify(sequence)))return fail(409,'Emoji-Folge im Haus bereits vergeben.');
-  const id='person-'+crypto.randomUUID();commit(s,'person-create',room.id,next=>{next.people.push({id,name,avatar,active:true});next.memberships.push({personId:id,areaId:room.id,active:true});next.roles.push({personId:id,areaId:room.id,role:'player',active:true});next.codes.push({personId:id,areaId:house.id,sequence});});return ok({id,message:'Spielerprofil angelegt: '+name});
+  const id='person-'+crypto.randomUUID();commit(s,'person-create',room.id,next=>{next.people.push({id,name,avatar,kind:'child',active:true});next.memberships.push({personId:id,areaId:room.id,active:true});next.roles.push({personId:id,areaId:room.id,role:'player',active:true});next.codes.push({personId:id,areaId:house.id,sequence});});return ok({id,message:'Spielerprofil angelegt: '+name});
  }
  if(route==='room-admins')return ok({items:people.map(p=>({id:p.id,label:p.name,active:core.db.roles.some(r=>r.personId===p.id&&r.areaId===room.id&&r.role==='areaAdmin'&&r.active)})),message:house.name+' / '+room.name+' · RaumAdmins'});
  if(route==='room-admin-set'){

@@ -1,0 +1,910 @@
+{
+  "version": 2,
+  "areas": [
+    {
+      "id": "root",
+      "name": "Plattform",
+      "type": "root",
+      "parentId": null,
+      "active": true
+    },
+    {
+      "id": "house-sun",
+      "name": "Haus Sonne",
+      "type": "house",
+      "parentId": "root",
+      "active": true,
+      "avatar": "🏡"
+    },
+    {
+      "id": "house-moon",
+      "name": "Haus Mond",
+      "type": "house",
+      "parentId": "root",
+      "active": true,
+      "avatar": "🏠"
+    },
+    {
+      "id": "house-closed",
+      "name": "Haus Nacht (geschlossen)",
+      "type": "house",
+      "parentId": "root",
+      "active": false,
+      "avatar": "🌙"
+    },
+    {
+      "id": "room-sun-play",
+      "name": "Spielraum",
+      "type": "room",
+      "parentId": "house-sun",
+      "active": true,
+      "avatar": "🎲"
+    },
+    {
+      "id": "room-sun-learn",
+      "name": "Lernraum",
+      "type": "room",
+      "parentId": "house-sun",
+      "active": true,
+      "avatar": "📚"
+    },
+    {
+      "id": "room-sun-closed",
+      "name": "Alter Raum (deaktiviert)",
+      "type": "room",
+      "parentId": "house-sun",
+      "active": false,
+      "avatar": "🚪"
+    },
+    {
+      "id": "room-moon-play",
+      "name": "Mondspielraum",
+      "type": "room",
+      "parentId": "house-moon",
+      "active": true,
+      "avatar": "🌙"
+    }
+  ],
+  "people": [
+    {
+      "id": "super-admin",
+      "name": "Sara SuperAdmin",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "admin-sun",
+      "name": "Anna HausAdmin Sonne",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "admin-parent",
+      "name": "Paul HausAdmin + Vater",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "admin-moon",
+      "name": "Mia HausAdmin Mond",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "teacher-sun",
+      "name": "Tobias Erzieher",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "observer-sun",
+      "name": "Olga Beobachterin",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "parent-lina",
+      "name": "Petra Mutter von Lina",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "parent-multi",
+      "name": "Martin Vater von zwei Kindern",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "parent-tom-a",
+      "name": "Tina Mutter von Tom",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "parent-tom-b",
+      "name": "Tim Vater von Tom",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "adult-revoked",
+      "name": "Rita früherer Kontakt",
+      "avatar": "👤",
+      "kind": "adult",
+      "active": true
+    },
+    {
+      "id": "child-lina",
+      "name": "Lina",
+      "avatar": "🦉",
+      "kind": "child",
+      "active": true
+    },
+    {
+      "id": "child-tom",
+      "name": "Tom",
+      "avatar": "🐘",
+      "kind": "child",
+      "active": true
+    },
+    {
+      "id": "child-finn",
+      "name": "Finn",
+      "avatar": "🐷",
+      "kind": "child",
+      "active": true
+    },
+    {
+      "id": "child-emil",
+      "name": "Emil",
+      "avatar": "🐱",
+      "kind": "child",
+      "active": true
+    },
+    {
+      "id": "child-mia",
+      "name": "Mia (Mond)",
+      "avatar": "🌷",
+      "kind": "child",
+      "active": true
+    },
+    {
+      "id": "child-suspended",
+      "name": "Sven gesperrt",
+      "avatar": "👤",
+      "kind": "child",
+      "active": false
+    },
+    {
+      "id": "child-left",
+      "name": "Lea ausgetreten",
+      "avatar": "👤",
+      "kind": "child",
+      "active": true
+    }
+  ],
+  "memberships": [
+    {
+      "personId": "child-lina",
+      "areaId": "room-sun-play",
+      "active": true
+    },
+    {
+      "personId": "child-lina",
+      "areaId": "room-sun-learn",
+      "active": true
+    },
+    {
+      "personId": "child-tom",
+      "areaId": "room-sun-play",
+      "active": true
+    },
+    {
+      "personId": "child-finn",
+      "areaId": "room-sun-play",
+      "active": true
+    },
+    {
+      "personId": "child-emil",
+      "areaId": "room-sun-learn",
+      "active": true
+    },
+    {
+      "personId": "child-mia",
+      "areaId": "room-moon-play",
+      "active": true
+    },
+    {
+      "personId": "child-suspended",
+      "areaId": "room-sun-play",
+      "active": true
+    },
+    {
+      "personId": "child-left",
+      "areaId": "room-sun-play",
+      "active": false
+    }
+  ],
+  "roles": [
+    {
+      "personId": "super-admin",
+      "areaId": "root",
+      "role": "superAdmin",
+      "active": true
+    },
+    {
+      "personId": "admin-sun",
+      "areaId": "house-sun",
+      "role": "areaAdmin",
+      "active": true
+    },
+    {
+      "personId": "admin-parent",
+      "areaId": "house-sun",
+      "role": "areaAdmin",
+      "active": true
+    },
+    {
+      "personId": "admin-moon",
+      "areaId": "house-moon",
+      "role": "areaAdmin",
+      "active": true
+    },
+    {
+      "personId": "teacher-sun",
+      "areaId": "room-sun-play",
+      "role": "areaAdmin",
+      "active": true
+    },
+    {
+      "personId": "observer-sun",
+      "areaId": "room-sun-play",
+      "role": "observer",
+      "active": true
+    },
+    {
+      "personId": "child-lina",
+      "areaId": "room-sun-play",
+      "role": "player",
+      "active": true
+    },
+    {
+      "personId": "child-lina",
+      "areaId": "room-sun-learn",
+      "role": "player",
+      "active": true
+    },
+    {
+      "personId": "child-tom",
+      "areaId": "room-sun-play",
+      "role": "player",
+      "active": true
+    },
+    {
+      "personId": "child-finn",
+      "areaId": "room-sun-play",
+      "role": "player",
+      "active": true
+    },
+    {
+      "personId": "child-emil",
+      "areaId": "room-sun-learn",
+      "role": "player",
+      "active": true
+    },
+    {
+      "personId": "child-mia",
+      "areaId": "room-moon-play",
+      "role": "player",
+      "active": true
+    }
+  ],
+  "guardians": [
+    {
+      "childId": "child-lina",
+      "guardianId": "parent-lina",
+      "status": "confirmed",
+      "createdAt": "2026-08-22T05:54:23.253Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": null
+    },
+    {
+      "childId": "child-lina",
+      "guardianId": "admin-parent",
+      "status": "confirmed",
+      "createdAt": "2026-08-22T05:54:23.253Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": null
+    },
+    {
+      "childId": "child-finn",
+      "guardianId": "parent-multi",
+      "status": "confirmed",
+      "createdAt": "2026-08-22T05:54:23.253Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": null
+    },
+    {
+      "childId": "child-emil",
+      "guardianId": "parent-multi",
+      "status": "confirmed",
+      "createdAt": "2026-08-22T05:54:23.253Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": null
+    },
+    {
+      "childId": "child-tom",
+      "guardianId": "parent-tom-a",
+      "status": "confirmed",
+      "createdAt": "2026-08-22T05:54:23.253Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": null
+    },
+    {
+      "childId": "child-tom",
+      "guardianId": "parent-tom-b",
+      "status": "confirmed",
+      "createdAt": "2026-08-22T05:54:23.253Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": null
+    },
+    {
+      "childId": "child-tom",
+      "guardianId": "adult-revoked",
+      "status": "revoked",
+      "createdAt": "2026-08-22T05:54:23.253Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": "2026-09-16T05:54:23.253Z"
+    },
+    {
+      "childId": "child-mia",
+      "guardianId": "parent-lina",
+      "status": "pending",
+      "createdAt": "2026-08-22T05:54:23.253Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": null
+    }
+  ],
+  "codes": [
+    {
+      "personId": "child-lina",
+      "areaId": "house-sun",
+      "sequence": [
+        "dog",
+        "cat",
+        "tree",
+        "house"
+      ]
+    },
+    {
+      "personId": "child-tom",
+      "areaId": "house-sun",
+      "sequence": [
+        "owl",
+        "flower",
+        "pig",
+        "elephant"
+      ]
+    },
+    {
+      "personId": "child-finn",
+      "areaId": "house-sun",
+      "sequence": [
+        "cat",
+        "dog",
+        "flower",
+        "tree"
+      ]
+    },
+    {
+      "personId": "child-emil",
+      "areaId": "house-sun",
+      "sequence": [
+        "house",
+        "tree",
+        "owl",
+        "pig"
+      ]
+    },
+    {
+      "personId": "child-mia",
+      "areaId": "house-moon",
+      "sequence": [
+        "dog",
+        "cat",
+        "tree",
+        "house"
+      ]
+    },
+    {
+      "personId": "child-suspended",
+      "areaId": "house-sun",
+      "sequence": [
+        "pig",
+        "pig",
+        "pig",
+        "pig"
+      ]
+    },
+    {
+      "personId": "child-left",
+      "areaId": "house-sun",
+      "sequence": [
+        "flower",
+        "flower",
+        "flower",
+        "flower"
+      ]
+    }
+  ],
+  "games": [
+    {
+      "id": "game-snake",
+      "title": "Snake",
+      "avatar": "🐍",
+      "ownerId": "super-admin",
+      "status": "published",
+      "file": "Snake-Lernprojekt.json",
+      "ratings": false
+    },
+    {
+      "id": "game-math",
+      "title": "Mathe-Abenteuer",
+      "avatar": "🧮",
+      "ownerId": "super-admin",
+      "status": "published",
+      "file": "Kopfrechnen.json",
+      "ratings": true,
+      "metrics": [
+        "tasks_done",
+        "tasks_correct",
+        "hints_used",
+        "round_complete"
+      ]
+    },
+    {
+      "id": "game-mp",
+      "title": "Zahlen-Duell (Multiplayer)",
+      "avatar": "⚔️",
+      "ownerId": "super-admin",
+      "status": "published",
+      "file": "Kopfrechnen.json",
+      "multiplayer": {
+        "minPlayers": 2,
+        "maxPlayers": 4,
+        "scope": "house"
+      }
+    },
+    {
+      "id": "game-draft",
+      "title": "Unfertiges Spiel",
+      "avatar": "🚧",
+      "ownerId": "super-admin",
+      "status": "draft",
+      "file": "Tetris.json"
+    },
+    {
+      "id": "game-blocked",
+      "title": "Gesperrtes Spiel",
+      "avatar": "⛔",
+      "ownerId": "super-admin",
+      "status": "blocked",
+      "file": "Tetris.json"
+    }
+  ],
+  "grants": [
+    {
+      "gameId": "game-snake",
+      "areaId": "room-sun-play",
+      "active": true
+    },
+    {
+      "gameId": "game-math",
+      "areaId": "room-sun-play",
+      "active": true
+    },
+    {
+      "gameId": "game-math",
+      "areaId": "room-sun-learn",
+      "active": true
+    },
+    {
+      "gameId": "game-mp",
+      "areaId": "room-sun-play",
+      "active": true
+    },
+    {
+      "gameId": "game-snake",
+      "areaId": "room-sun-closed",
+      "active": true
+    },
+    {
+      "gameId": "game-snake",
+      "areaId": "room-moon-play",
+      "active": true
+    },
+    {
+      "gameId": "game-draft",
+      "areaId": "room-sun-play",
+      "active": true
+    },
+    {
+      "gameId": "game-snake",
+      "areaId": "room-sun-learn",
+      "active": false
+    }
+  ],
+  "invites": [
+    {
+      "id": "inv-valid",
+      "personId": "parent-lina",
+      "houseId": "house-sun",
+      "purpose": "parent",
+      "issuer": "admin-sun",
+      "hash": "e6ea3dc8ecf89cc19ed6ef3d13ee9b53ebe66f4a6a1f056cf6b458e7e3fdc019",
+      "expires": 1790056463253
+    },
+    {
+      "id": "inv-expired",
+      "personId": "parent-tom-b",
+      "houseId": "house-sun",
+      "purpose": "parent",
+      "issuer": "admin-sun",
+      "hash": "a0550851eb83ca39b06f7213650c2e3a1d944453b77c9122a42e4612cd9fb51c",
+      "expires": 1789966463253
+    },
+    {
+      "id": "inv-used",
+      "personId": "parent-tom-a",
+      "houseId": "house-sun",
+      "purpose": "parent",
+      "issuer": "admin-sun",
+      "hash": "f9f97c1a9a29b55876fce3f8235b06c9e307f011cf699ccde464e2f27f7dc7fc",
+      "expires": 1790056463253,
+      "usedAt": "2026-09-19T05:54:23.253Z"
+    }
+  ],
+  "deviceGrants": [
+    {
+      "id": "dev-valid",
+      "houseId": "house-sun",
+      "label": "Tablet Spielzimmer",
+      "issuedBy": "admin-sun",
+      "expires": 1789998863253,
+      "revoked": false
+    },
+    {
+      "id": "dev-expired",
+      "houseId": "house-sun",
+      "label": "Leih-Tablet",
+      "issuedBy": "admin-sun",
+      "expires": 1789966463253,
+      "revoked": false
+    },
+    {
+      "id": "dev-revoked",
+      "houseId": "house-sun",
+      "label": "Altes Tablet",
+      "issuedBy": "admin-sun",
+      "expires": 1789998863253,
+      "revoked": true
+    }
+  ],
+  "timeBudgets": [
+    {
+      "childId": "child-lina",
+      "dailyMinutes": 45,
+      "windows": [
+        {
+          "from": "14:00",
+          "to": "19:00"
+        }
+      ],
+      "tz": "Europe/Berlin",
+      "warnAt": [
+        5,
+        1
+      ],
+      "graceMinutes": 2,
+      "setBy": "parent-lina",
+      "updatedAt": "2026-09-20T05:54:23.253Z"
+    },
+    {
+      "childId": "child-tom",
+      "dailyMinutes": 30,
+      "windows": [],
+      "tz": "Europe/Berlin",
+      "warnAt": [
+        5,
+        1
+      ],
+      "graceMinutes": 2,
+      "setBy": "parent-tom-a",
+      "updatedAt": "2026-09-20T05:54:23.253Z"
+    },
+    {
+      "childId": "child-finn",
+      "dailyMinutes": 20,
+      "windows": [],
+      "tz": "Europe/Berlin",
+      "warnAt": [
+        5,
+        1
+      ],
+      "graceMinutes": 2,
+      "setBy": "parent-multi",
+      "updatedAt": "2026-09-20T05:54:23.253Z"
+    }
+  ],
+  "playSessions": [
+    {
+      "id": "ps-active",
+      "childId": "child-lina",
+      "gameId": "game-math",
+      "areaId": "room-sun-play",
+      "status": "active",
+      "startedAt": "2026-09-21T05:42:23.253Z",
+      "lastHeartbeatAt": "2026-09-21T05:53:53.253Z",
+      "endedAt": null,
+      "minutes": 12
+    },
+    {
+      "id": "ps-paused",
+      "childId": "child-tom",
+      "gameId": "game-snake",
+      "areaId": "room-sun-play",
+      "status": "paused",
+      "startedAt": "2026-09-21T05:14:23.253Z",
+      "lastHeartbeatAt": "2026-09-21T05:49:23.253Z",
+      "endedAt": null,
+      "minutes": 28
+    },
+    {
+      "id": "ps-disconnected",
+      "childId": "child-emil",
+      "gameId": "game-math",
+      "areaId": "room-sun-learn",
+      "status": "disconnected",
+      "startedAt": "2026-09-21T05:24:23.253Z",
+      "lastHeartbeatAt": "2026-09-21T05:44:23.253Z",
+      "endedAt": null,
+      "minutes": 18
+    },
+    {
+      "id": "ps-ended",
+      "childId": "child-finn",
+      "gameId": "game-snake",
+      "areaId": "room-sun-play",
+      "status": "ended",
+      "startedAt": "2026-09-21T03:54:23.253Z",
+      "lastHeartbeatAt": "2026-09-21T04:34:23.253Z",
+      "endedAt": "2026-09-21T04:34:23.253Z",
+      "minutes": 20
+    },
+    {
+      "id": "ps-yesterday",
+      "childId": "child-lina",
+      "gameId": "game-math",
+      "areaId": "room-sun-play",
+      "status": "ended",
+      "startedAt": "2026-09-20T04:54:23.253Z",
+      "lastHeartbeatAt": "2026-09-20T05:54:23.253Z",
+      "endedAt": "2026-09-20T05:54:23.253Z",
+      "minutes": 30
+    }
+  ],
+  "progress": [
+    {
+      "eventId": "ev-1",
+      "childId": "child-lina",
+      "gameId": "game-math",
+      "sessionId": "ps-active",
+      "metric": "tasks_done",
+      "value": 8,
+      "unit": "count",
+      "reportedAt": "2026-09-21T05:49:23.253Z",
+      "source": "game",
+      "schemaVersion": 1
+    },
+    {
+      "eventId": "ev-2",
+      "childId": "child-lina",
+      "gameId": "game-math",
+      "sessionId": "ps-active",
+      "metric": "tasks_correct",
+      "value": 7,
+      "unit": "count",
+      "reportedAt": "2026-09-21T05:49:23.253Z",
+      "source": "game",
+      "schemaVersion": 1
+    },
+    {
+      "eventId": "ev-3",
+      "childId": "child-lina",
+      "gameId": "game-math",
+      "sessionId": "ps-active",
+      "metric": "hints_used",
+      "value": 2,
+      "unit": "count",
+      "reportedAt": "2026-09-21T05:49:23.253Z",
+      "source": "game",
+      "schemaVersion": 1
+    },
+    {
+      "eventId": "ev-4",
+      "childId": "child-lina",
+      "gameId": "game-math",
+      "sessionId": "ps-active",
+      "metric": "round_complete",
+      "value": 1,
+      "unit": "bool",
+      "reportedAt": "2026-09-21T05:49:23.253Z",
+      "source": "game",
+      "schemaVersion": 1
+    },
+    {
+      "eventId": "ev-5",
+      "childId": "child-finn",
+      "gameId": "game-snake",
+      "sessionId": "ps-ended",
+      "metric": "round_complete",
+      "value": 1,
+      "unit": "bool",
+      "reportedAt": "2026-09-21T04:34:23.253Z",
+      "source": "server",
+      "schemaVersion": 1
+    },
+    {
+      "eventId": "ev-dup",
+      "childId": "child-tom",
+      "gameId": "game-snake",
+      "sessionId": "ps-paused",
+      "metric": "tasks_done",
+      "value": 5,
+      "unit": "count",
+      "reportedAt": "2026-09-21T05:44:23.253Z",
+      "source": "game",
+      "schemaVersion": 1
+    }
+  ],
+  "profileRequests": [
+    {
+      "id": "req-1",
+      "personId": "child-finn",
+      "type": "access-help",
+      "status": "open",
+      "at": "2026-09-21T03:54:23.253Z"
+    },
+    {
+      "id": "req-2",
+      "personId": "child-emil",
+      "type": "access-help",
+      "status": "resolved",
+      "at": "2026-09-18T05:54:23.253Z"
+    }
+  ],
+  "audit": [
+    {
+      "id": "audit-1",
+      "at": "2026-09-11T05:54:23.253Z",
+      "actor": "super-admin",
+      "action": "house-create",
+      "areaId": "root"
+    },
+    {
+      "id": "audit-2",
+      "at": "2026-09-12T05:54:23.253Z",
+      "actor": "admin-sun",
+      "action": "room-create",
+      "areaId": "house-sun"
+    }
+  ],
+  "meta": {
+    "generatedBy": "cms-seed-testdata.cjs",
+    "generatedAt": "2026-09-21T05:54:23.253Z",
+    "purpose": "synthetische Testdaten, keine echten Personen"
+  },
+  "testMeta": {
+    "password": "Nur-Fuer-Tests!2025",
+    "inviteTokens": {
+      "valid": "test-token-valid",
+      "expired": "test-token-expired",
+      "used": "test-token-used"
+    },
+    "visibility": [
+      {
+        "account": "parent-lina",
+        "seesChildren": [
+          "child-lina"
+        ],
+        "notChildren": [
+          "child-finn",
+          "child-tom",
+          "child-emil",
+          "child-mia"
+        ],
+        "pendingOnly": [
+          "child-mia"
+        ]
+      },
+      {
+        "account": "parent-multi",
+        "seesChildren": [
+          "child-finn",
+          "child-emil"
+        ],
+        "notChildren": [
+          "child-lina",
+          "child-tom",
+          "child-mia"
+        ]
+      },
+      {
+        "account": "parent-tom-a",
+        "seesChildren": [
+          "child-tom"
+        ],
+        "notChildren": [
+          "child-lina"
+        ]
+      },
+      {
+        "account": "parent-tom-b",
+        "seesChildren": [
+          "child-tom"
+        ],
+        "notChildren": [
+          "child-lina"
+        ]
+      },
+      {
+        "account": "adult-revoked",
+        "seesChildren": [],
+        "notChildren": [
+          "child-tom"
+        ]
+      },
+      {
+        "account": "admin-sun",
+        "seesChildren": [],
+        "note": "Verwaltungsrolle allein gibt keine Elternsicht"
+      },
+      {
+        "account": "admin-parent",
+        "seesChildren": [
+          "child-lina"
+        ],
+        "note": "nur über Guardian-Beziehung, nicht über areaAdmin"
+      },
+      {
+        "account": "observer-sun",
+        "seesChildren": [],
+        "note": "nur aggregierte Sicht ohne Einzelberechtigung"
+      }
+    ],
+    "negativeCases": [
+      "parent-lina fragt Fortschritt von child-finn -> 403",
+      "Token test-token-expired -> Einladung abgelaufen",
+      "Token test-token-used -> Einladung bereits verwendet",
+      "eventId ev-dup erneut gemeldet -> kein zweiter Eintrag",
+      "child-suspended meldet sich an -> abgelehnt",
+      "child-left in Raum -> keine Mitgliedschaft aktiv",
+      "game-draft Start -> nicht veröffentlicht",
+      "game-blocked -> gesperrt",
+      "deviceGrants dev-expired/dev-revoked -> keine Gerätefreigabe",
+      "room-sun-closed -> inaktiv, kein Spielstart",
+      "house-closed -> gesamtes Haus inaktiv",
+      "ps-yesterday zählt nicht zum heutigen Budget"
+    ]
+  }
+}

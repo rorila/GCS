@@ -1,15 +1,16 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {validate,canonEmojiSeq,EMOJI_IDS}=require('./cms-core.cjs');
+const {canonEmojiSeq,EMOJI_IDS}=require('./cms-core.cjs');
 const {houseApi}=require('./cms-house.cjs');
 const {superApi,enroll}=require('./cms-super.cjs');
 // CMS-Datenspeicher: eigene Domäne, daher kein GameProject-IStorageAdapter.
 function fileStore(dataPath){return {save(next){if(fs.existsSync(dataPath))fs.copyFileSync(dataPath,dataPath+'.previous');const tmp=dataPath+'.tmp';fs.writeFileSync(tmp,JSON.stringify(next,null,2),{mode:0o600});try{fs.renameSync(tmp,dataPath);}catch(e){fs.rmSync(tmp,{force:true});throw e;}}};}
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function createAdmin(core,dataPath,{store=fileStore(dataPath)}={}){
+function createAdmin(core,dataPath,{store}={}){
+ store=store||require('./cms-store.cjs').createJsonStore({dataPath});
  const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json'),sessions=new Map(),attempts=new Map();
  const managed=s=>core.db.areas.filter(a=>a.active&&a.type==='room'&&core.can(s,'manageArea',{areaId:a.id}));
  function readSession(req){const token=(req.headers.cookie||'').split('; ').find(s=>s.startsWith('cms_admin='))?.slice(10),s=sessions.get(token);if(!s||s.expires<Date.now()||!core.db.people.some(p=>p.id===s.personId&&p.active)){sessions.delete(token);return null;}return s;}
- function commit(s,action,areaId,change){const next=structuredClone(core.db);change(next);validate(next);next.audit=[...(next.audit||[]),{id:crypto.randomUUID(),at:new Date().toISOString(),actor:s.personId,action,areaId}];store.save(next);Object.keys(core.db).forEach(k=>delete core.db[k]);Object.assign(core.db,next);}
+ const commit=(s,action,areaId,change)=>store.commit(core.db,{actor:s.personId,action,areaId},change);
  const fail=(status,message)=>({status,data:{ok:false,message}}),ok=data=>({status:200,data:{ok:true,...data}});
  function api(req,route,b){const s=readSession(req);if(!s)return fail(401,'Bitte Verwaltung neu anmelden.');
   if(route==='logout'){for(const [k,v]of sessions)if(v===s)sessions.delete(k);return ok({message:'Abgemeldet'});}
