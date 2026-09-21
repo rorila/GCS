@@ -23,8 +23,12 @@ function loadAdminWorkflow(file,stageId){
    if(checked.session){created=admin.createSession(checked.session);emit('Verwaltungssitzung erstellen',{...meta(session,sa),assurance:'admin',validSeconds:1800,cookie:'[maskiert]'});}
   }
   if(!created)emit('Sitzungserstellung übersprungen',{...meta(session,sa),reason:'Anmeldung nicht erfolgreich'});
+  // Gültige Zugangsdaten ohne Verwaltungsbereich: Konto-Kontexte (Eltern/
+  // Beobachter) werden an den Server weitergereicht — dort entsteht die
+  // Konto-Sitzung. Admins mit Zusatzkontexten bekommen ebenfalls eine.
   const data={ok:!!created,message:created?response.successMessage:requestValid?auth.failureMessage:validation.failureMessage};
-  emit('Response zusammenstellen',{...meta(response,ra),output:data,status:200});return {data,token:created?.token};
+  emit('Response zusammenstellen',{...meta(response,ra),output:data,status:200});
+  return {data,token:created?.token,personId:checked?.session?.personId||checked?.personId,contexts:checked?.contexts||[]};
  }};
 }
 /** Generic runtime host: all dialog content and behavior come from the saved GCS project. */

@@ -12,7 +12,7 @@ const {loadLoginWorkflow}=require('./cms-login-workflow.cjs');
 const {loadAdminWorkflow}=require('./cms-admin-workflow.cjs');
 const {createProfile}=require('./cms-profile.cjs');
 const {createUploads}=require('./cms-uploads.cjs');
-const {createParent,enrollParent}=require('./cms-parent.cjs');
+const {createParent,enrollParent,enrollObserver}=require('./cms-parent.cjs');
 const root=path.resolve(__dirname,'../..');
 const {renderCms}=require('./cms-project.cjs');
 const cmsFile=path.join(root,'game-server/public/projects/GCS-CMS.json');
@@ -26,7 +26,11 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  const uploads=createUploads(core,admin,store,cmsFile,'stage_server_uploads');
  const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json');
  const commit=(s,action,areaId,change)=>store.commit(core.db,{actor:s.personId,action,areaId},change);
- const parent=createParent(core,credentialPath,store);parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
+ const parent=createParent(core,credentialPath,store,cmsFile,'stage_server_parent');
+ parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
+ parent.enrollObserver=b=>enrollObserver(core,credentialPath,b.ticket,b.username,b.password,commit);
+ const cookie=(req,name)=>(req.headers.cookie||'').split('; ').find(s=>s.startsWith(name+'='))?.slice(name.length+1);
+ const accountCookie=token=>`cms_account=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`;
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
  const reply=(res,code,data)=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  const server=http.createServer(async(req,res)=>{
@@ -52,6 +56,23 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    if(req.method==='GET'&&['/admin','/house','/super'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
     return res.end(admin.readSession(req)?renderCms(cmsFile,{'/super':'stage_super','/house':'stage_house','/admin':'stage_admin'}[url.pathname]):loginPage());
+   }
+   // Eltern- und Beobachterbereich: Konto-Sitzung (cms_account), kein Admin-Cookie nötig.
+   if(req.method==='GET'&&['/parent','/observer'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
+    res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
+    const session=core.session(cookie(req,'cms_account'));
+    return res.end(session?renderCms(cmsFile,{'/parent':'stage_parent','/observer':'stage_observer'}[url.pathname]):loginPage());
+   }
+   if(url.pathname==='/observer-enroll'&&['GET','POST'].includes(req.method)){
+    res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
+    if(req.method==='POST'){
+     if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
+     let raw='';for await(const c of req){raw+=c;if(raw.length>2048)return reply(res,413,{error:'Zu groß'});}
+     const result=parent.enrollObserver(Object.fromEntries(new URLSearchParams(raw)));
+     res.statusCode=result.ok?200:400;return res.end('<!doctype html><meta charset="utf-8"><p>'+result.message+'</p><a href="/">Zum CMS</a>');
+    }
+    const ticket=url.searchParams.get('ticket')||'';if(!/^[a-f0-9]{64}$/.test(ticket)){res.statusCode=400;return res.end('Ungültiger Einladungslink.');}
+    return res.end('<!doctype html><html lang="de"><meta charset="utf-8"><title>Beobachterzugang einrichten</title><style>body{background:#122b39;color:white;font:20px Segoe UI;max-width:540px;margin:10vh auto}input,button{display:block;width:100%;padding:14px;margin:12px 0;box-sizing:border-box;font:inherit}</style><h1>Beobachterzugang einrichten</h1><form method="post" action="/observer-enroll"><input type="hidden" name="ticket" value="'+ticket+'"><label>Benutzername<input name="username" required pattern="[a-zA-Z0-9_-]{3,40}" autocomplete="username"></label><label>Passwort (mindestens 12 Zeichen)<input name="password" type="password" minlength="12" maxlength="200" required autocomplete="new-password"></label><button>Zugang anlegen</button></form></html>');
    }
    if(url.pathname==='/parent-enroll'&&['GET','POST'].includes(req.method)){
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
@@ -80,7 +101,9 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(res,413,{error:'Zu groß'});}
     const result=await admin.login(req,Object.fromEntries(new URLSearchParams(raw)));
     if(result.error){res.writeHead(401,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(loginPage());}
-    res.writeHead(303,{'Location':'/admin','Set-Cookie':`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`,'Cache-Control':'no-store'});return res.end();
+    const cookies=[];if(result.token)cookies.push(`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
+    if(result.contexts?.some(c=>c!=='admin')||!result.token){const t=core.issueSession(result.personId,'account');if(t)cookies.push(accountCookie(t));}
+    res.writeHead(303,{'Location':result.token?'/admin':(result.contexts||[]).includes('observer')?'/observer':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
    }
    if(req.method==='GET'&&['/','/runtime-standalone.js','/cms-shell.js'].includes(url.pathname)){
     if(url.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(renderCms(cmsFile,'stage_main',url.searchParams.get('house')));}
@@ -105,15 +128,21 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const trace=traces.begin(req,adminWorkflow.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,body});
     const result=await adminWorkflow.run(admin,req,body,emit);
-    if(result.token)res.setHeader('Set-Cookie',`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
+    // Ein gemeinsamer Erwachsenen-Login (E01): Verwaltung bekommt cms_admin,
+    // jede angemeldete Person mit Eltern-/Beobachterkontext zusätzlich
+    // cms_account — der Kontextwechsel vergibt keine Rechte, nur Sichten.
+    const cookies=[];
+    if(result.token)cookies.push(`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
+    if(result.personId&&result.contexts?.length){
+     const accountToken=core.issueSession(result.personId,'account');
+     if(accountToken){cookies.push(accountCookie(accountToken));
+      // Flache Flags, damit GCS-Bedingungen (Variable == true) direkt prüfen können.
+      result.data={...result.data,ok:true,contexts:result.contexts,admin:result.contexts.includes('admin'),parent:result.contexts.includes('parent'),observer:result.contexts.includes('observer')};
+      if(!result.token)result.data.message='Angemeldet.';}
+    }
+    if(cookies.length)res.setHeader('Set-Cookie',cookies);
     res.once('finish',()=>emit('Response gesendet',{status:200,headers:res.getHeaders(),body:result.data}));
     return reply(res,200,result.data);
-   }
-   if(url.pathname==='/api/cms/account-login'){
-    if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
-    const result=await parent.login(req,body);
-    if(result.error)return reply(res,401,{ok:false,message:result.error});
-    return reply(res,200,{ok:true,token:result.token});
    }
    if(url.pathname==='/api/cms/upload-library')return reply(res,200,uploads.library(req,body));
    if(url.pathname.startsWith('/api/cms/admin/')){
@@ -134,7 +163,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     res.once('finish',()=>emit('Response gesendet',{status:200,headers:{'Content-Type':'application/json; charset=utf-8','X-GCS-Trace-ID':trace?.id},body:result}));
     return reply(res,200,result);
    }
-   const session=core.session(body.token);if(!session)return reply(res,401,{ok:false,message:'🔑 Bitte neu anmelden'});
+   const session=core.session(body.token||cookie(req,'cms_account'));if(!session)return reply(res,401,{ok:false,message:'🔑 Bitte neu anmelden'});
    if(url.pathname.startsWith('/api/cms/profile/')){
     const trace=traces.begin(req,true);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,body});

@@ -1,8 +1,8 @@
 {
-  "passed": 24,
+  "passed": 27,
   "checks": [
     "Ein Blueprint und keine vererbende Main-Stage",
-    "Acht Oberflächen und vier Server-Stages",
+    "Zehn Oberflächen und fünf Server-Stages",
     "Definitionen besitzen projektweit eindeutige IDs",
     "stage_blueprint: Feature-Eltern vorhanden",
     "stage_main: Feature-Eltern vorhanden",
@@ -17,6 +17,9 @@
     "stage_server_admin_login: Feature-Eltern vorhanden",
     "stage_server_profile: Feature-Eltern vorhanden",
     "stage_server_uploads: Feature-Eltern vorhanden",
+    "stage_server_parent: Feature-Eltern vorhanden",
+    "stage_parent: Feature-Eltern vorhanden",
+    "stage_observer: Feature-Eltern vorhanden",
     "Use Cases zeigen auf vorhandene Features",
     "Server-Konfiguration gezielt aus gemeinsamer Datei",
     "Native Navigation öffnet Anmelde-Stage",

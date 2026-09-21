@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {canonEmojiSeq,EMOJI_IDS}=require('./cms-core.cjs');
+const {canonEmojiSeq,EMOJI_IDS,areaActive}=require('./cms-core.cjs');
 const {houseApi}=require('./cms-house.cjs');
 const {superApi,enroll}=require('./cms-super.cjs');
 // CMS-Datenspeicher: eigene Domäne, daher kein GameProject-IStorageAdapter.
@@ -46,12 +46,16 @@ function createAdmin(core,dataPath,{store}={}){
   let entries=[];if(fs.existsSync(credentialPath))entries=JSON.parse(fs.readFileSync(credentialPath,'utf8'));const c=entries.find(c=>c.username===body.username),salt=c?.salt||'00000000000000000000000000000000';
   const hash=await new Promise((resolve,reject)=>crypto.scrypt(String(body.password||''),salt,64,(e,b)=>e?reject(e):resolve(b)));
   const valid=!!c&&crypto.timingSafeEqual(hash,Buffer.from(c.hash,'hex'))&&core.db.people.some(p=>p.id===c.personId&&p.active);emit('Passwort und Person prüfen',{valid:!!valid});if(!valid)return {error:'Anmeldung nicht möglich.'};
-  const s={personId:c.personId,assurance:'admin',expires:Date.now()+1800000};const allowed=core.db.areas.some(a=>a.active&&core.can(s,'manageArea',{areaId:a.id}));emit('Verwaltungszuständigkeit prüfen',{allowed});if(!allowed)return {error:'Keine Verwaltungszuständigkeit.'};verified.add(s);return {session:s};
+  // Kontexte der Person (E01): Verwaltung, Eltern (bestätigte Zuordnung), Beobachtung.
+  const contexts=[];if(core.childrenOf(c.personId).length)contexts.push('parent');if(core.db.roles.some(r=>r.personId===c.personId&&r.role==='observer'&&r.active&&areaActive(core.db,r.areaId)))contexts.push('observer');
+  const s={personId:c.personId,assurance:'admin',expires:Date.now()+1800000};const allowed=core.db.areas.some(a=>a.active&&core.can(s,'manageArea',{areaId:a.id}));emit('Verwaltungszuständigkeit prüfen',{allowed});
+  if(!allowed)return contexts.length?{personId:c.personId,contexts}:{error:'Keine Verwaltungszuständigkeit.'};
+  verified.add(s);return {session:s,contexts:['admin',...contexts]};
  }
  const verified=new WeakSet();
  function createSession(s){if(!verified.has(s))throw Error('Nicht geprüfte Verwaltungssitzung');verified.delete(s);const now=Date.now();for(const [k,v]of sessions)if(v.expires<now)sessions.delete(k);const token=crypto.randomBytes(32).toString('hex');sessions.set(token,s);return {token};
  }
- async function login(req,body){const checked=await verify(req,body);return checked.error?checked:createSession(checked.session);}
+ async function login(req,body){const checked=await verify(req,body);return checked.session?{...createSession(checked.session),personId:checked.session.personId,contexts:checked.contexts}:checked;}
  return {api,verify,createSession,login,readSession,enroll:(b)=>enroll(core,credentialPath,b.ticket,b.username,b.password,commit)};
 }
 module.exports={createAdmin,fileStore};

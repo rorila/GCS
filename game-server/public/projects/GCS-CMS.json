@@ -8211,6 +8211,62 @@
           },
           "text": "Spiele",
           "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-c376d81c-c613-4a2c-99e5-b21156087274",
+          "name": "KinderOeffnen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 12,
+          "y": 35,
+          "width": 40,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Meine Kinder öffnen →",
+          "icon": "",
+          "events": {
+            "onClick": "Navigation_stage_parent"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-231dd51f-bb31-4a2a-b1a9-333fba879f4f",
+          "name": "BeobachtungOeffnen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 12,
+          "y": 38,
+          "width": 40,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Beobachtung öffnen →",
+          "icon": "",
+          "events": {
+            "onClick": "Navigation_stage_observer"
+          }
         }
       ],
       "tasks": [
@@ -8339,6 +8395,10 @@
             {
               "type": "action",
               "name": "Act_Erfolg_Und_Verwaltungslink_Anzeigen"
+            },
+            {
+              "type": "task",
+              "name": "Kontexte_Anzeigen"
             }
           ],
           "triggerMode": "local-sync",
@@ -8585,6 +8645,84 @@
               "else": []
             }
           ]
+        },
+        {
+          "id": "task-124b9a9e-63ff-420c-97a2-8bdda7c9ba60",
+          "name": "Kontexte_Anzeigen",
+          "description": "Nach erfolgreicher Anmeldung verfügbare Kontexte anbieten",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.parent == true",
+              "condition": {
+                "variable": "Antwort.parent",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Kinder_Button_Anzeigen"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.observer == true",
+              "condition": {
+                "variable": "Antwort.observer",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Beobachter_Button_Anzeigen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-af751017-26e9-4160-9eba-ab6965d73e35",
+          "name": "Navigation_stage_parent",
+          "description": "Navigation_stage_parent",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Nav_Parent_Login"
+            },
+            {
+              "type": "task",
+              "name": "Kinder_Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-c69749b5-43c2-4941-b087-8089c6476b21",
+          "name": "Navigation_stage_observer",
+          "description": "Navigation_stage_observer",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Nav_Observer_Login"
+            },
+            {
+              "type": "task",
+              "name": "Puls_Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
         }
       ],
       "actions": [
@@ -8731,6 +8869,58 @@
           "type": "navigate_stage",
           "stageId": "stage_library",
           "reset": false
+        },
+        {
+          "id": "act-4abf7a54-4196-408b-a07c-48c699230621",
+          "name": "Act_Kinder_Button_Anzeigen",
+          "type": "property",
+          "changes": {
+            "KinderOeffnen.visible": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-7322b61a-e3e2-455a-bca2-4c6d43893604",
+          "name": "Act_Beobachter_Button_Anzeigen",
+          "type": "property",
+          "changes": {
+            "BeobachtungOeffnen.visible": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-cf8b794e-e8e6-4ff3-b792-5a6f3e6f423f",
+          "name": "Act_Kinder_Button_Anzeigen",
+          "type": "property",
+          "changes": {
+            "KinderOeffnen.visible": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-b0bb777d-3f68-4653-8ea8-91c6854d50be",
+          "name": "Act_Beobachter_Button_Anzeigen",
+          "type": "property",
+          "changes": {
+            "BeobachtungOeffnen.visible": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-1792f005-07c1-4acc-9064-6c0b6ff76e77",
+          "name": "Act_Nav_Parent_Login",
+          "type": "navigate_stage",
+          "stageId": "stage_parent",
+          "reset": false,
+          "scope": "stage"
+        },
+        {
+          "id": "act-1aa19abe-554a-49b8-af95-8721814a474c",
+          "name": "Act_Nav_Observer_Login",
+          "type": "navigate_stage",
+          "stageId": "stage_observer",
+          "reset": false,
+          "scope": "stage"
         }
       ],
       "variables": [
@@ -12591,6 +12781,130 @@
           },
           "text": "Spiele",
           "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-b9e823e8-0a0d-46a9-a912-53ff7a8f4619",
+          "name": "KinderTab",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 15,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "Kinder",
+          "icon": "",
+          "events": {
+            "onClick": "Sperre_Kinder"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-fa8a567e-e2c2-4cf9-9b73-278f9d98ff6c",
+          "name": "ElternTab",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 20,
+          "y": 15,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "Eltern",
+          "icon": "",
+          "events": {
+            "onClick": "Sperre_Eltern"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-9d952cfe-7a9d-4520-8df7-eef03cfe9e1d",
+          "name": "ElternEinladen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 36,
+          "y": 15,
+          "width": 11,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "Einladen",
+          "icon": "",
+          "events": {
+            "onClick": "Sperre_ElternEinladen"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-3427b690-7eba-420d-a988-219c985962de",
+          "name": "BeobachterEinladen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 49,
+          "y": 15,
+          "width": 11,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "Beobachter",
+          "icon": "",
+          "events": {
+            "onClick": "Sperre_BeobachterEinladen"
+          }
         }
       ],
       "tasks": [
@@ -12782,12 +13096,55 @@
                   "name": "WaehleRaum"
                 }
               ],
-              "else": [
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: VerwaltungsModus == house-children",
+              "condition": {
+                "variable": "VerwaltungsModus",
+                "operator": "==",
+                "value": "house-children"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "WaehleKind"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: VerwaltungsModus == guardian-pending",
+              "condition": {
+                "variable": "VerwaltungsModus",
+                "operator": "==",
+                "value": "guardian-pending"
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "WaehleZuordnung"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "condition",
+              "name": "Branch: VerwaltungsModus == room-admins",
+              "condition": {
+                "variable": "VerwaltungsModus",
+                "operator": "==",
+                "value": "room-admins"
+              },
+              "then": [
                 {
                   "type": "task",
                   "name": "AdminFrage"
                 }
-              ]
+              ],
+              "else": []
             }
           ],
           "triggerMode": "local-sync",
@@ -12828,35 +13185,52 @@
           "description": "RaumAdmin-Zuweisung vergeben oder entziehen",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "Act_RaumAdmin_Zuweisung_vergeben_oder_entziehen__Neuen_Aktivstatus_Berechnen"
-            },
-            {
-              "type": "action",
-              "name": "Act_RaumAdmin_Zuweisung_vergeben_oder_entziehen__Eingabe_Sperren_Und_Warten_Anzeigen"
-            },
-            {
-              "type": "action",
-              "name": "Act_RaumAdmin_Zuweisung_vergeben_oder_entziehen__Server_RaumAdmin_Zuweisung_Speichern"
-            },
-            {
               "type": "condition",
-              "name": "Branch: Antwort.ok == true",
+              "name": "Branch: VerwaltungsModus == guardian-pending",
               "condition": {
-                "variable": "Antwort.ok",
+                "variable": "VerwaltungsModus",
                 "operator": "==",
-                "value": true
+                "value": "guardian-pending"
               },
               "then": [
                 {
                   "type": "task",
-                  "name": "AdminsTask"
+                  "name": "GuardianApproveTask"
                 }
               ],
               "else": [
                 {
-                  "type": "task",
-                  "name": "Fehler"
+                  "type": "action",
+                  "name": "Act_RaumAdmin_Zuweisung_vergeben_oder_entziehen__Neuen_Aktivstatus_Berechnen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_RaumAdmin_Zuweisung_vergeben_oder_entziehen__Eingabe_Sperren_Und_Warten_Anzeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_RaumAdmin_Zuweisung_vergeben_oder_entziehen__Server_RaumAdmin_Zuweisung_Speichern"
+                },
+                {
+                  "type": "condition",
+                  "name": "Branch: Antwort.ok == true",
+                  "condition": {
+                    "variable": "Antwort.ok",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "AdminsTask"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "task",
+                      "name": "Fehler"
+                    }
+                  ]
                 }
               ]
             }
@@ -13683,6 +14057,257 @@
               "else": []
             }
           ]
+        },
+        {
+          "id": "task-9e83dd6f-d299-4ecd-9fa1-e3fbc19eede0",
+          "name": "KinderTask",
+          "description": "KinderTask",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Kinder_oeffnen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-08bda1e0-124d-4159-813f-4bc5b3db0de1",
+          "name": "ElternTask",
+          "description": "ElternTask",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_oeffnen"
+            },
+            {
+              "type": "task",
+              "name": "Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-b1702ae7-0896-49da-938f-f6f8e79eb7de",
+          "name": "WaehleKind",
+          "description": "WaehleKind",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Kind_gewaehlt"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-518a084c-c2da-4557-a1aa-c86e6a4d31e3",
+          "name": "WaehleZuordnung",
+          "description": "WaehleZuordnung",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Zuordnung_gewaehlt"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-1becae87-b07a-4733-bc93-933dff31c870",
+          "name": "ElternEinladenTask",
+          "description": "ElternEinladenTask",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_Einladen_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Eltern_Einladen_Server"
+            },
+            {
+              "type": "task",
+              "name": "Meldung"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-86265bb6-2447-4d1f-a63f-6407632112fa",
+          "name": "BeobachterEinladenTask",
+          "description": "BeobachterEinladenTask",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_Einladen_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Beobachter_Einladen_Server"
+            },
+            {
+              "type": "task",
+              "name": "Meldung"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-dbeaec32-2045-4525-bba9-042bdbc849a7",
+          "name": "GuardianApproveTask",
+          "description": "GuardianApproveTask",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_Einladen_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Zuordnung_Bestaetigen_Server"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: Antwort.ok == true",
+              "condition": {
+                "variable": "Antwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "ElternTask"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-7c63cf66-7cb8-4157-be5c-1c0aed7d30a9",
+          "name": "Sperre_Kinder",
+          "description": "Sperre_Kinder",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "KinderTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-bec6628d-1a00-4af7-80e5-c55a19b0bc74",
+          "name": "Sperre_Eltern",
+          "description": "Sperre_Eltern",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "ElternTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-8df074ea-73bb-443c-8aaa-88ff9616e5fd",
+          "name": "Sperre_ElternEinladen",
+          "description": "Sperre_ElternEinladen",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "ElternEinladenTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-5bfb31f9-67f1-4df9-a7a1-50167601dc7e",
+          "name": "Sperre_BeobachterEinladen",
+          "description": "Sperre_BeobachterEinladen",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "BeobachterEinladenTask"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
         }
       ],
       "actions": [
@@ -14097,6 +14722,104 @@
           "type": "navigate_stage",
           "stageId": "stage_library",
           "reset": false
+        },
+        {
+          "id": "act-3ff95f66-75fa-481a-b72f-807ffb0a82d4",
+          "name": "Act_Kinder_oeffnen",
+          "type": "property",
+          "changes": {
+            "Seite": 0,
+            "Confirm.visible": false,
+            "VerwaltungsModus": "house-children",
+            "Status.text": "Kind wählen, Elternname eingeben, dann „Einladen“."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-158f2130-9bfd-4d45-a6df-d2f8a1bdceb2",
+          "name": "Act_Eltern_oeffnen",
+          "type": "property",
+          "changes": {
+            "Seite": 0,
+            "Confirm.visible": false,
+            "VerwaltungsModus": "guardian-pending",
+            "Status.text": "Ausstehende Zuordnung wählen und mit „Confirm“ bestätigen."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-675ef006-06b8-4a69-9465-289c9aee1516",
+          "name": "Act_Kind_gewaehlt",
+          "type": "property",
+          "changes": {
+            "Kind": "${Auswahl}",
+            "Status.text": "Kind ${AuswahlName} gewählt — Elternname eingeben und „Einladen“."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-e0a09bc9-eb28-49c8-8f64-e41b7b050c63",
+          "name": "Act_Zuordnung_gewaehlt",
+          "type": "property",
+          "changes": {
+            "Zuordnung": "${Auswahl}",
+            "Confirm.visible": true,
+            "Status.text": "Zuordnung gewählt — mit „Confirm“ bestätigen."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-04bdb130-e9da-4799-a731-e252578328f3",
+          "name": "Act_Eltern_Einladen_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-88d2332d-c97d-4f9e-a001-c5179b659a9c",
+          "name": "Act_Eltern_Einladen_Server",
+          "type": "http",
+          "url": "/api/cms/admin/parent-invite",
+          "method": "POST",
+          "body": {
+            "houseId": "${Haus}",
+            "childId": "${Kind}",
+            "name": "${NameEingabe.text}"
+          },
+          "resultVariable": "Antwort",
+          "scope": "stage",
+          "queryOperator": "=="
+        },
+        {
+          "id": "act-f9e27867-dd3d-47a1-a4de-45dadeb45732",
+          "name": "Act_Beobachter_Einladen_Server",
+          "type": "http",
+          "url": "/api/cms/admin/observer-invite",
+          "method": "POST",
+          "body": {
+            "houseId": "${Haus}",
+            "areaId": "${Raum}",
+            "name": "${NameEingabe.text}"
+          },
+          "resultVariable": "Antwort",
+          "scope": "stage",
+          "queryOperator": "=="
+        },
+        {
+          "id": "act-b092185d-4522-4614-96f6-1c5a198bf886",
+          "name": "Act_Zuordnung_Bestaetigen_Server",
+          "type": "http",
+          "url": "/api/cms/admin/guardian-approve",
+          "method": "POST",
+          "body": {
+            "houseId": "${Haus}",
+            "id": "${Zuordnung}"
+          },
+          "resultVariable": "Antwort",
+          "scope": "stage",
+          "queryOperator": "=="
         }
       ],
       "variables": [
@@ -14794,6 +15517,58 @@
           "type": "boolean",
           "defaultValue": false,
           "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "cms_var-c0bcb195-240f-46b6-b4f0-f54e4a3cd292",
+          "name": "Kind",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "cms_var-ea4c1af3-f54b-4bd7-b950-ae058211e9f6",
+          "name": "Zuordnung",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
           "objectModel": ""
         }
       ],
@@ -21150,6 +21925,2559 @@
           ]
         }
       ]
+    },
+    {
+      "id": "stage_server_parent",
+      "type": "standard",
+      "name": "Server · Eltern- und Beobachterzugang",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#122b39"
+      },
+      "objects": [
+        {
+          "className": "TServerParentAccount",
+          "id": "server_parent",
+          "name": "Elternbereich",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "executionSide": "server",
+          "events": {
+            "onChildren": "Eltern_Kinder_Laden",
+            "onActivity": "Eltern_Aktivitaet_Lesen",
+            "onProgress": "Eltern_Bewertungen_Lesen",
+            "onSetBudget": "Eltern_Budget_Setzen",
+            "onApproveBudget": "Eltern_Budget_Bestaetigen",
+            "onPulse": "Beobachter_Puls_Lesen"
+          },
+          "readMessage": "Daten nur für bestätigt zugeordnete Kinder.",
+          "failureMessage": "Aktion nicht möglich.",
+          "x": 0,
+          "y": 0,
+          "width": 12,
+          "height": 3
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-567cf6ac-d15e-4823-b4fa-bd6d6be93696",
+          "name": "Eltern_Kinder_Laden",
+          "description": "Eltern_Kinder_Laden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_Kinder_Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-c29381be-5cbb-4954-aa94-467a45d2fc7e",
+          "name": "Eltern_Aktivitaet_Lesen",
+          "description": "Eltern_Aktivitaet_Lesen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_Aktivitaet_Lesen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-54ff6500-716f-40a6-adc5-4281b4468933",
+          "name": "Eltern_Bewertungen_Lesen",
+          "description": "Eltern_Bewertungen_Lesen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_Bewertungen_Lesen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-38672f03-cb79-4ca7-b61c-7806b1495199",
+          "name": "Eltern_Budget_Setzen",
+          "description": "Eltern_Budget_Setzen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_Budget_Setzen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-4488d537-db6b-4dec-93c7-4b672b109d96",
+          "name": "Eltern_Budget_Bestaetigen",
+          "description": "Eltern_Budget_Bestaetigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eltern_Budget_Bestaetigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-e1e9155d-1446-4004-b99e-b14ad7bb71c5",
+          "name": "Beobachter_Puls_Lesen",
+          "description": "Beobachter_Puls_Lesen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Beobachter_Puls_Lesen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        }
+      ],
+      "actions": [
+        {
+          "id": "act-238222d1-c595-4567-baff-cf76ed32b47f",
+          "name": "Act_Eltern_Kinder_Laden",
+          "type": "call_method",
+          "target": "Elternbereich",
+          "method": "children",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_parent"
+        },
+        {
+          "id": "act-60870489-f906-47c3-877d-3c1e66f669aa",
+          "name": "Act_Eltern_Aktivitaet_Lesen",
+          "type": "call_method",
+          "target": "Elternbereich",
+          "method": "activity",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_parent"
+        },
+        {
+          "id": "act-2de67f64-7a45-40ef-b264-0c0db4a4d541",
+          "name": "Act_Eltern_Bewertungen_Lesen",
+          "type": "call_method",
+          "target": "Elternbereich",
+          "method": "progress",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_parent"
+        },
+        {
+          "id": "act-1ac9c65c-3759-4a88-8759-6a699a54a89f",
+          "name": "Act_Eltern_Budget_Setzen",
+          "type": "call_method",
+          "target": "Elternbereich",
+          "method": "setBudget",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_parent"
+        },
+        {
+          "id": "act-d875e4f9-cb51-493d-9154-b3a29743eb68",
+          "name": "Act_Eltern_Budget_Bestaetigen",
+          "type": "call_method",
+          "target": "Elternbereich",
+          "method": "approveBudget",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_parent"
+        },
+        {
+          "id": "act-f8bc427f-0823-4e26-b589-eae3912b58d1",
+          "name": "Act_Beobachter_Puls_Lesen",
+          "type": "call_method",
+          "target": "Elternbereich",
+          "method": "pulse",
+          "params": [],
+          "scope": "stage",
+          "target_ref": "server_parent"
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "startAnimation": "none",
+      "features": [
+        {
+          "id": "server-parent",
+          "name": "Elternsicht und Beobachter-Aggregat",
+          "blueprintTaskNames": [
+            "Eltern_Kinder_Laden",
+            "Eltern_Aktivitaet_Lesen",
+            "Eltern_Bewertungen_Lesen",
+            "Eltern_Budget_Setzen",
+            "Eltern_Budget_Bestaetigen",
+            "Beobachter_Puls_Lesen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stage_parent",
+      "type": "standard",
+      "name": "Eltern · Meine Kinder",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#122b39"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "cms_label-02b24c23-8be9-4791-9e80-1d0a80e91dd6",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 2,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 28,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "MEINE KINDER"
+        },
+        {
+          "className": "TLabel",
+          "id": "cms_label-df093be7-1b36-4f36-a618-2c189ce74755",
+          "name": "Status",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 5,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 20,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-65178b30-83f5-46d1-b9d2-4630e921c2ad",
+          "name": "NeuLaden",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 44,
+          "y": 5,
+          "width": 12,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "↻ Aktualisieren",
+          "icon": "",
+          "events": {
+            "onClick": "Sperre_KinderLaden"
+          }
+        },
+        {
+          "className": "TObjectList",
+          "id": "cms_list-12466d73-2112-4d72-a816-43892c5792b1",
+          "name": "Kinder",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "Bestätigt zugeordnete Kinder; Datenquelle der KinderTabelle.",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 20,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": []
+        },
+        {
+          "className": "TTable",
+          "id": "cms_table-b2fe3f8e-77f6-41ea-9446-620c5899a49a",
+          "name": "KinderTabelle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 8,
+          "width": 28,
+          "height": 15,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 20,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "Kinder",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "field": "avatar",
+              "label": "",
+              "width": "70px"
+            },
+            {
+              "field": "name",
+              "label": "Kind"
+            },
+            {
+              "field": "spiel",
+              "label": "Spiel"
+            },
+            {
+              "field": "heute",
+              "label": "Heute (Min)"
+            }
+          ],
+          "displayMode": "cards",
+          "rowHeight": 58,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1,
+          "events": {
+            "onSelect": "Kind_Auswaehlen"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "cms_label-58df7951-96fe-4a5c-ac6b-3d3ea68b830a",
+          "name": "DetailTitel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 36,
+          "y": 8,
+          "width": 24,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 20,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "AKTIVITÄT & BEWERTUNGEN"
+        },
+        {
+          "className": "TObjectList",
+          "id": "cms_list-3ac68d30-0b72-4c0c-b675-5a7fb856962f",
+          "name": "Sitzungen",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "Letzte Spielsitzungen des gewählten Kindes.",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 20,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": []
+        },
+        {
+          "className": "TTable",
+          "id": "cms_table-766e612e-9ba7-47b7-a4de-0f5c1558e727",
+          "name": "SitzungTabelle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 36,
+          "y": 11,
+          "width": 24,
+          "height": 9,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 20,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "Sitzungen",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "field": "title",
+              "label": "Spiel"
+            },
+            {
+              "field": "status",
+              "label": "Status"
+            },
+            {
+              "field": "minutes",
+              "label": "Min",
+              "width": "60px"
+            }
+          ],
+          "displayMode": "cards",
+          "rowHeight": 58,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1,
+          "events": {}
+        },
+        {
+          "className": "TObjectList",
+          "id": "cms_list-0f593fe4-aa84-400c-94bf-37a627ab120a",
+          "name": "Bewertungen",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "Gemeldete Bewertungen des gewählten Kindes.",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 20,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": []
+        },
+        {
+          "className": "TTable",
+          "id": "cms_table-0da7588b-f28e-40a7-b6d5-0a0c07f208e6",
+          "name": "BewertungTabelle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 36,
+          "y": 21,
+          "width": 24,
+          "height": 9,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 20,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "Bewertungen",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "field": "metric",
+              "label": "Metrik"
+            },
+            {
+              "field": "value",
+              "label": "Wert",
+              "width": "60px"
+            },
+            {
+              "field": "unit",
+              "label": "Einheit",
+              "width": "80px"
+            },
+            {
+              "field": "source",
+              "label": "Quelle",
+              "width": "80px"
+            }
+          ],
+          "displayMode": "cards",
+          "rowHeight": 58,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1,
+          "events": {}
+        },
+        {
+          "className": "TLabel",
+          "id": "cms_label-d401f8e8-6762-48d4-8390-13b84994dcf2",
+          "name": "BudgetTitel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 25,
+          "width": 28,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 20,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "ZEITBUDGET (MINUTEN PRO TAG)"
+        },
+        {
+          "className": "TEdit",
+          "id": "cms_edit-11d05b4c-2632-457e-bc02-a7959428a8c9",
+          "name": "BudgetMinuten",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 28,
+          "width": 10,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#cccccc",
+            "borderWidth": 1
+          },
+          "text": "",
+          "inputType": "number",
+          "placeholder": "Minuten",
+          "maxLength": 4
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-f68dae50-2b8a-45e9-a7ef-b4dfe85a184f",
+          "name": "BudgetSpeichern",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 28,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "Budget speichern",
+          "icon": "",
+          "events": {
+            "onClick": "Sperre_BudgetSpeichern"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-445d0856-8fab-476a-8609-668b2c01bea2",
+          "name": "BudgetBestaetigen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 16,
+          "y": 32,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "Änderung bestätigen",
+          "icon": "",
+          "events": {
+            "onClick": "Sperre_BudgetBestaetigen"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "cms_label-dc996c65-7a35-4b9d-a3a7-2f77f6e47491",
+          "name": "BudgetHinweis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 34,
+          "y": 28,
+          "width": 26,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 15,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-0887d3a0-89c7-4a90-bc48-5300514a9548",
+          "name": "Navigation_stage_admin_login",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 37,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "🔑 Anmeldung",
+          "icon": "",
+          "events": {
+            "onClick": "Navigation_stage_admin_login"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-8f9159bb-3ee7-4d17-bf8b-268dbc94ad6f",
+          "name": "Navigation_stage_admin",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 20,
+          "y": 37,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "🛠 Verwaltung",
+          "icon": "",
+          "events": {
+            "onClick": "Navigation_stage_admin"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-baf03d1a-4589-4021-9276-edbf99c4c026",
+          "name": "Navigation_stage_observer",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 36,
+          "y": 37,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "👁 Beobachtung",
+          "icon": "",
+          "events": {
+            "onClick": "Navigation_stage_observer"
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-fe3616de-f10d-42dd-bab1-e5111ef97674",
+          "name": "Kinder_Laden",
+          "description": "Kinder_Laden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Kinder_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Kinder_Server"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: KinderAntwort.ok == true",
+              "condition": {
+                "variable": "KinderAntwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Kinder_Anzeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Kinder_Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-f4b4c699-39d8-44f5-99cc-d960cadb05cb",
+          "name": "Kinder_Anzeigen",
+          "description": "Kinder_Anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Kinder_Uebernehmen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: KinderGueltig == true",
+              "condition": {
+                "variable": "KinderGueltig",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Kinder_Fertig"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "Act_Kinder_Datenfehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-8c8ef37f-1ca9-4883-9b91-231120e2255a",
+          "name": "Kinder_Fehler",
+          "description": "Kinder_Fehler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Kinder_Fehler_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-6e727eb5-1b94-44a5-8d29-7abe894cb4e5",
+          "name": "Kind_Auswaehlen",
+          "description": "Kind_Auswaehlen",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Kind_Uebernehmen"
+                },
+                {
+                  "type": "task",
+                  "name": "Kind_Details_Laden"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-c6104e74-cc6a-4d5d-b4cd-52456b2b8869",
+          "name": "Kind_Details_Laden",
+          "description": "Kind_Details_Laden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Details_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Details_Server"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: DetailAntwort.ok == true",
+              "condition": {
+                "variable": "DetailAntwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Kind_Details_Anzeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Detail_Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-d77f13bf-5287-42ff-a82e-1098a95a7402",
+          "name": "Kind_Details_Anzeigen",
+          "description": "Kind_Details_Anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Sitzungen_Uebernehmen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Budget_Anzeigen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: DetailAntwort.pendingApproval == true",
+              "condition": {
+                "variable": "DetailAntwort.pendingApproval",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Genehmigung_Anzeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "Act_Genehmigung_Verbergen"
+                }
+              ]
+            },
+            {
+              "type": "task",
+              "name": "Fortschritt_Laden"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-74efa7fd-4441-4498-af1c-33b941424334",
+          "name": "Fortschritt_Laden",
+          "description": "Fortschritt_Laden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Fortschritt_Server"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: FortschrittAntwort.ok == true",
+              "condition": {
+                "variable": "FortschrittAntwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Bewertungen_Uebernehmen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Details_Fertig"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Detail_Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-27649efd-3e94-457c-824c-3477d8d39025",
+          "name": "Detail_Fehler",
+          "description": "Detail_Fehler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Detail_Fehler"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-eedc48b6-ec09-4010-a8d4-9745495a0c58",
+          "name": "Budget_Speichern",
+          "description": "Budget_Speichern",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Budget_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Budget_Server"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: BudgetAntwort.ok == true",
+              "condition": {
+                "variable": "BudgetAntwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Budget_Gespeichert"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Budget_Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-e7160ef8-df82-4b8b-b163-7ee265fd493d",
+          "name": "Budget_Gespeichert",
+          "description": "Budget_Gespeichert",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Budget_Meldung"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: BudgetAntwort.pending == true",
+              "condition": {
+                "variable": "BudgetAntwort.pending",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Budget_Pending_Anzeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "Act_Budget_Pending_Aus"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-f690b96c-0c35-486d-b3da-d0ac4917784b",
+          "name": "Budget_Bestaetigen",
+          "description": "Budget_Bestaetigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Bestaetigen_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Bestaetigen_Server"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: BudgetAntwort.ok == true",
+              "condition": {
+                "variable": "BudgetAntwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Bestaetigt"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Budget_Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-7d8ff5d4-c71f-4eee-8217-c5d6ef86b642",
+          "name": "Budget_Fehler",
+          "description": "Budget_Fehler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Budget_Fehler"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-4eccae35-5ecf-4350-9d9f-d9e86aee2cd2",
+          "name": "Sperre_KinderLaden",
+          "description": "Sperre_KinderLaden",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Kinder_Laden"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-473de312-f5dd-45ab-9d6a-83ae80a37dc1",
+          "name": "Sperre_BudgetSpeichern",
+          "description": "Sperre_BudgetSpeichern",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Budget_Speichern"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-792e184e-9dfb-4967-8456-403f3530446f",
+          "name": "Sperre_BudgetBestaetigen",
+          "description": "Sperre_BudgetBestaetigen",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Budget_Bestaetigen"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-fb699d13-0df5-44f1-bd04-551816907674",
+          "name": "Navigation_stage_admin_login",
+          "description": "Navigation_stage_admin_login",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Nav_Admin_Login"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-5cbbc559-da81-45a6-83d3-7bb3b44a6e00",
+          "name": "Navigation_stage_admin",
+          "description": "Navigation_stage_admin",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Nav_Admin"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-634595a9-5af9-423c-a62c-ba603c5411a4",
+          "name": "Navigation_stage_observer",
+          "description": "Navigation_stage_observer",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Nav_Observer"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        }
+      ],
+      "actions": [
+        {
+          "id": "act-178de606-ad5f-4c45-8100-8ff55facf800",
+          "name": "Act_Kinder_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Kinder werden geladen …"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-dac80ac0-8b23-4936-885c-dd10290baf57",
+          "name": "Act_Kinder_Server",
+          "type": "http",
+          "url": "/api/cms/parent/my-children",
+          "method": "POST",
+          "body": {},
+          "resultVariable": "KinderAntwort",
+          "scope": "stage",
+          "queryOperator": "=="
+        },
+        {
+          "id": "act-34bf0e39-c720-4d0a-a3d1-72f6ad0aa8da",
+          "name": "Act_Kinder_Uebernehmen",
+          "type": "call_method",
+          "target": "Kinder",
+          "method": "tryReplaceRecords",
+          "params": [
+            "${KinderAntwort.items}"
+          ],
+          "resultVariable": "KinderGueltig",
+          "scope": "stage"
+        },
+        {
+          "id": "act-05c80230-d5ab-4bf9-b061-34ce0424c148",
+          "name": "Act_Kinder_Fertig",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "KinderTabelle.visible": true,
+            "Status.text": "${KinderAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-37f14437-8e61-416c-a28e-9870c62ab156",
+          "name": "Act_Kinder_Datenfehler",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "Antwortdaten ungültig."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-d9116be1-ffdd-4617-af46-cc8e0617e1e2",
+          "name": "Act_Kinder_Fehler_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${KinderAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-b3d3cd55-1800-478c-8cb0-97bef0eef5c8",
+          "name": "Act_Kind_Uebernehmen",
+          "type": "property",
+          "changes": {
+            "Kind": "${KinderTabelle.selectedKey}",
+            "BudgetBestaetigen.visible": false,
+            "BudgetHinweis.text": ""
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-0070d43e-564b-4eb9-bd1b-2d480d2e132a",
+          "name": "Act_Details_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Aktivität wird geladen …"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-503982b1-b3cb-4f4a-8429-04a606d027f2",
+          "name": "Act_Details_Server",
+          "type": "http",
+          "url": "/api/cms/parent/child-activity",
+          "method": "POST",
+          "body": {
+            "childId": "${Kind}"
+          },
+          "resultVariable": "DetailAntwort",
+          "scope": "stage",
+          "queryOperator": "=="
+        },
+        {
+          "id": "act-446db8bf-8864-4634-8e5c-e926cc452cca",
+          "name": "Act_Sitzungen_Uebernehmen",
+          "type": "call_method",
+          "target": "Sitzungen",
+          "method": "tryReplaceRecords",
+          "params": [
+            "${DetailAntwort.sessions}"
+          ],
+          "resultVariable": "SitzungsGueltig",
+          "scope": "stage"
+        },
+        {
+          "id": "act-6adf366b-b439-4be5-834c-ce9d366a634d",
+          "name": "Act_Budget_Anzeigen",
+          "type": "property",
+          "changes": {
+            "BudgetMinuten.text": "${DetailAntwort.budgetMinutes}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-d63bd45a-c7b8-469f-b2aa-a42b21935525",
+          "name": "Act_Genehmigung_Anzeigen",
+          "type": "property",
+          "changes": {
+            "BudgetBestaetigen.visible": true,
+            "BudgetHinweis.text": "Budgetänderung wartet auf ein zweites Elternteil."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-4d480265-3299-4013-a8b2-d421402bf7c4",
+          "name": "Act_Genehmigung_Verbergen",
+          "type": "property",
+          "changes": {
+            "BudgetBestaetigen.visible": false,
+            "BudgetHinweis.text": ""
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-d47647b4-9e77-437e-94d6-1b4e47d8f6df",
+          "name": "Act_Fortschritt_Server",
+          "type": "http",
+          "url": "/api/cms/parent/child-progress",
+          "method": "POST",
+          "body": {
+            "childId": "${Kind}"
+          },
+          "resultVariable": "FortschrittAntwort",
+          "scope": "stage",
+          "queryOperator": "=="
+        },
+        {
+          "id": "act-b1cd4a53-dc6d-4c13-87ce-8a685bccc047",
+          "name": "Act_Bewertungen_Uebernehmen",
+          "type": "call_method",
+          "target": "Bewertungen",
+          "method": "tryReplaceRecords",
+          "params": [
+            "${FortschrittAntwort.items}"
+          ],
+          "resultVariable": "FortschrittGueltig",
+          "scope": "stage"
+        },
+        {
+          "id": "act-af42bc7b-7849-4f35-a2ea-3061087c4499",
+          "name": "Act_Details_Fertig",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "Bereit."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-0a4b817b-d3c2-4a00-984d-da153f5e0c60",
+          "name": "Act_Detail_Fehler",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${DetailAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-72943319-cc80-493b-b9e0-838d3558627a",
+          "name": "Act_Budget_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Budget wird gespeichert …"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-955a06cf-c26c-4aa5-8175-7a80cea2e432",
+          "name": "Act_Budget_Server",
+          "type": "http",
+          "url": "/api/cms/parent/set-budget",
+          "method": "POST",
+          "body": {
+            "childId": "${Kind}",
+            "dailyMinutes": "${BudgetMinuten.text}"
+          },
+          "resultVariable": "BudgetAntwort",
+          "scope": "stage",
+          "queryOperator": "=="
+        },
+        {
+          "id": "act-0cf70002-0571-464b-a3ca-260989fb10d1",
+          "name": "Act_Budget_Meldung",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${BudgetAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-fb7cc7df-7e0d-4352-82a3-f9a83c78472e",
+          "name": "Act_Budget_Pending_Anzeigen",
+          "type": "property",
+          "changes": {
+            "BudgetBestaetigen.visible": true,
+            "BudgetHinweis.text": "Lockerung wartet auf Zustimmung eines zweiten Elternteils."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-f454835a-e682-42b7-946c-1c1e09d4a170",
+          "name": "Act_Budget_Pending_Aus",
+          "type": "property",
+          "changes": {
+            "BudgetBestaetigen.visible": false,
+            "BudgetHinweis.text": ""
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-4a19cbff-80b0-4beb-a7ca-4d974affbed2",
+          "name": "Act_Bestaetigen_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Änderung wird bestätigt …"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-ab1945ad-219e-4988-95c0-d3880a767e90",
+          "name": "Act_Bestaetigen_Server",
+          "type": "http",
+          "url": "/api/cms/parent/approve-budget",
+          "method": "POST",
+          "body": {
+            "childId": "${Kind}"
+          },
+          "resultVariable": "BudgetAntwort",
+          "scope": "stage",
+          "queryOperator": "=="
+        },
+        {
+          "id": "act-d0e11ef4-ce57-4141-9ddc-2194e61a26f4",
+          "name": "Act_Bestaetigt",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "BudgetBestaetigen.visible": false,
+            "BudgetHinweis.text": "",
+            "Status.text": "${BudgetAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-d8ecb074-998f-4bd7-ade3-7bf29b370b8a",
+          "name": "Act_Budget_Fehler",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${BudgetAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-1c6a57a9-96fc-4990-8fd7-2e8b85dbd2a6",
+          "name": "Act_Nav_Admin_Login",
+          "type": "navigate_stage",
+          "stageId": "stage_admin_login",
+          "reset": false,
+          "scope": "stage"
+        },
+        {
+          "id": "act-e9d576f0-413f-41c5-b7fe-db7654964717",
+          "name": "Act_Nav_Admin",
+          "type": "navigate_stage",
+          "stageId": "stage_admin",
+          "reset": false,
+          "scope": "stage"
+        },
+        {
+          "id": "act-17ade9de-9cb6-4797-9a2d-6d55fc4097f5",
+          "name": "Act_Nav_Observer",
+          "type": "navigate_stage",
+          "stageId": "stage_observer",
+          "reset": false,
+          "scope": "stage"
+        }
+      ],
+      "variables": [
+        {
+          "className": "TStringVariable",
+          "id": "cms_var-1a865210-0894-430f-ad64-971be78e28f4",
+          "name": "Kind",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "cms_var-549ed8ab-213e-4c49-aa8b-f4265a21b619",
+          "name": "KinderAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "object",
+          "defaultValue": null,
+          "value": null,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "cms_var-d788974e-1baa-4dde-aa50-53f9d9551583",
+          "name": "KinderGueltig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "cms_var-a75604e4-7621-4a13-ace1-0fb7db0fa6f1",
+          "name": "DetailAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "object",
+          "defaultValue": null,
+          "value": null,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "cms_var-351d5d4e-8cee-4ea4-bd38-5ea71070f798",
+          "name": "SitzungsGueltig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "cms_var-6048b399-57d4-451b-98b1-6c4df3c77224",
+          "name": "FortschrittAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "object",
+          "defaultValue": null,
+          "value": null,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "cms_var-a8e85781-c77f-43ef-9e64-770d076ab6f8",
+          "name": "FortschrittGueltig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "cms_var-54f5a911-5d1e-4239-b997-1337d9f475d0",
+          "name": "BudgetAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "object",
+          "defaultValue": null,
+          "value": null,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "cms_var-513d8095-fd72-480e-96c1-5c0b6697ea38",
+          "name": "Busy",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "startAnimation": "none",
+      "features": []
+    },
+    {
+      "id": "stage_observer",
+      "type": "standard",
+      "name": "Beobachter · Übersicht",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#122b39"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "cms_label-f7e97628-5aad-4247-a5bf-56234b6d8a77",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 2,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 28,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "BEOBACHTUNG"
+        },
+        {
+          "className": "TLabel",
+          "id": "cms_label-b82c3aff-c20f-44a1-a659-1641a21f77b9",
+          "name": "Hinweis",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 5,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 15,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Nur zusammengefasste Zahlen — keine Einzelpersonen."
+        },
+        {
+          "className": "TLabel",
+          "id": "cms_label-a5f8abb3-730d-4e1d-b3e1-c229c5b32a2c",
+          "name": "Status",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 7,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 20,
+            "fontWeight": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-685bc12c-6c59-46f4-95e3-87823b3a7544",
+          "name": "Aktualisieren",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 46,
+          "y": 7,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "↻ Aktualisieren",
+          "icon": "",
+          "events": {
+            "onClick": "Sperre_PulsLaden"
+          }
+        },
+        {
+          "className": "TObjectList",
+          "id": "cms_list-fa68a386-c227-4381-a889-8cd4e0543299",
+          "name": "PulsListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "Aggregierte Raumzahlen der eigenen Beobachtungsbereiche.",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 20,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": []
+        },
+        {
+          "className": "TTable",
+          "id": "cms_table-c3c98934-66cc-40b3-9bfd-01993f8eee1f",
+          "name": "PulsTabelle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 10,
+          "width": 56,
+          "height": 20,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 20,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "PulsListe",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "field": "bereich",
+              "label": "Bereich"
+            },
+            {
+              "field": "connected",
+              "label": "Verbunden",
+              "width": "110px"
+            },
+            {
+              "field": "playing",
+              "label": "Spielend",
+              "width": "100px"
+            },
+            {
+              "field": "paused",
+              "label": "Pausiert",
+              "width": "100px"
+            },
+            {
+              "field": "disconnected",
+              "label": "Getrennt",
+              "width": "100px"
+            }
+          ],
+          "displayMode": "cards",
+          "rowHeight": 58,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1,
+          "events": {}
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-f9dba96d-a06e-4730-9ca5-7ddb83c016a3",
+          "name": "Navigation_stage_admin_login",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 37,
+          "width": 14,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "🔑 Anmeldung",
+          "icon": "",
+          "events": {
+            "onClick": "Navigation_stage_admin_login"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "cms_button-150fd273-bca2-415d-9099-b21caa6125da",
+          "name": "Navigation_stage_parent",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 20,
+          "y": 37,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "backgroundColor": "#285464",
+            "borderColor": "#76c6bb",
+            "borderWidth": 2,
+            "borderRadius": 18
+          },
+          "text": "👨‍👩‍👧 Meine Kinder",
+          "icon": "",
+          "events": {
+            "onClick": "Navigation_stage_parent"
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-019e3266-3392-42c4-a321-5566eed97124",
+          "name": "Puls_Laden",
+          "description": "Puls_Laden",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Puls_Warten"
+            },
+            {
+              "type": "action",
+              "name": "Act_Puls_Server"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: PulsAntwort.ok == true",
+              "condition": {
+                "variable": "PulsAntwort.ok",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Puls_Anzeigen"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "Puls_Fehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-b2a1efbc-5951-42b4-9a65-e10c880ecec8",
+          "name": "Puls_Anzeigen",
+          "description": "Puls_Anzeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Puls_Uebernehmen"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: PulsGueltig == true",
+              "condition": {
+                "variable": "PulsGueltig",
+                "operator": "==",
+                "value": true
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Puls_Fertig"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "Act_Puls_Datenfehler"
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-27808b79-8e3a-475c-bca6-69acc04f8180",
+          "name": "Puls_Fehler",
+          "description": "Puls_Fehler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Puls_Fehler_Anzeigen"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-17f93c5f-ffdf-483b-93bc-210ab4e14edc",
+          "name": "Sperre_PulsLaden",
+          "description": "Sperre_PulsLaden",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "Puls_Laden"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-cf479f3c-17e4-48e1-9128-2ba577043e71",
+          "name": "Navigation_stage_admin_login",
+          "description": "Navigation_stage_admin_login",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Nav_Admin_Login_Obs"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "task-9ef3462d-2eb9-459a-bdd7-92d4c39b896c",
+          "name": "Navigation_stage_parent",
+          "description": "Navigation_stage_parent",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: Busy == 0",
+              "condition": {
+                "variable": "Busy",
+                "operator": "==",
+                "value": 0
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "Act_Nav_Parent_Obs"
+                }
+              ],
+              "else": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        }
+      ],
+      "actions": [
+        {
+          "id": "act-16790257-8d9e-4bfb-a3a7-c327b6ed929c",
+          "name": "Act_Puls_Warten",
+          "type": "property",
+          "changes": {
+            "Busy": 1,
+            "Status.text": "Übersicht wird geladen …"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-53e2ad55-1695-45df-8a4b-1d08c97a7e5d",
+          "name": "Act_Puls_Server",
+          "type": "http",
+          "url": "/api/cms/parent/room-pulse",
+          "method": "POST",
+          "body": {},
+          "resultVariable": "PulsAntwort",
+          "scope": "stage",
+          "queryOperator": "=="
+        },
+        {
+          "id": "act-f1712917-b2b5-484c-8138-4f8d705adf47",
+          "name": "Act_Puls_Uebernehmen",
+          "type": "call_method",
+          "target": "PulsListe",
+          "method": "tryReplaceRecords",
+          "params": [
+            "${PulsAntwort.items}"
+          ],
+          "resultVariable": "PulsGueltig",
+          "scope": "stage"
+        },
+        {
+          "id": "act-becf4c01-eaed-4f85-95cc-cabf65cca147",
+          "name": "Act_Puls_Fertig",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "PulsTabelle.visible": true,
+            "Status.text": "${PulsAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-2ef23d05-d917-45f8-8c66-d14ce7778673",
+          "name": "Act_Puls_Datenfehler",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "Antwortdaten ungültig."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-d166660b-090e-4ef9-b203-0be4d5847186",
+          "name": "Act_Puls_Fehler_Anzeigen",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "Status.text": "${PulsAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "act-17225515-9a4e-4179-aa76-4c7a820049ff",
+          "name": "Act_Nav_Admin_Login_Obs",
+          "type": "navigate_stage",
+          "stageId": "stage_admin_login",
+          "reset": false,
+          "scope": "stage"
+        },
+        {
+          "id": "act-48ad9cb5-1fdd-4fa5-b39f-3876c9dc76f4",
+          "name": "Act_Nav_Parent_Obs",
+          "type": "navigate_stage",
+          "stageId": "stage_parent",
+          "reset": false,
+          "scope": "stage"
+        }
+      ],
+      "variables": [
+        {
+          "className": "TObjectVariable",
+          "id": "cms_var-e5454d55-ea83-4c24-8719-d54bb02ceaa6",
+          "name": "PulsAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "object",
+          "defaultValue": null,
+          "value": null,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "cms_var-2291cf79-6528-4b9b-99e7-95f8432d0e11",
+          "name": "PulsGueltig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "cms_var-584bc34f-c20d-47c3-a6ce-ba6814387929",
+          "name": "Busy",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {},
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "startAnimation": "none",
+      "features": []
     }
   ],
   "objects": [],

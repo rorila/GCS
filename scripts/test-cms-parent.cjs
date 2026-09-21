@@ -5,7 +5,8 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
 const { createJsonStore } = require('./cms/cms-store.cjs');
 const { createCore } = require('./cms/cms-core.cjs');
 const { houseApi } = require('./cms/cms-house.cjs');
-const { createParent, enrollParent } = require('./cms/cms-parent.cjs');
+const { createParent, enrollParent, enrollObserver } = require('./cms/cms-parent.cjs');
+const { createAdmin } = require('./cms/cms-admin.cjs');
 const { buildDb, TEST_PASSWORD } = require('./cms/cms-seed-testdata.cjs');
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cms-parent-'));
@@ -259,6 +260,109 @@ await check('Unbekannte Route → 404 (mit berechtigtem Kind)', () => {
   assert.strictEqual(api(accountSession('parent-tom-b'), 'admin-backdoor', { childId: 'child-tom' }).status, 404);
   // ohne Berechtigung greift die 403-Hürde zuerst
   assert.strictEqual(api(linaSession, 'admin-backdoor').status, 403);
+});
+
+// --- Observer-Einladung: eigener Pfad, kein Kindbezug ---
+let observerLink;
+await check('observer-invite: HouseAdmin lädt Beobachter für eigenen Raum ein', () => {
+  const r = house(adminSession('admin-sun'), 'observer-invite', { houseId: 'house-sun', areaId: 'room-sun-play', name: 'Neue Beobachterin' });
+  assert.strictEqual(r.status, 200);
+  observerLink = r.data.link;
+  const tokenHash = crypto.createHash('sha256').update(observerLink.split('ticket=')[1]).digest('hex');
+  const inv = db.invites.find(i => i.hash === tokenHash);
+  assert.ok(inv && inv.purpose === 'observer' && inv.areaId === 'room-sun-play' && !inv.childId, 'Observer-Einladung ohne Kindbezug');
+});
+
+await check('observer-invite: fremdes Haus → 403', () => {
+  assert.strictEqual(house(adminSession('admin-sun'), 'observer-invite', { houseId: 'house-moon', areaId: 'room-moon-play', name: 'X' }).status, 403);
+});
+
+await check('enrollObserver: Zugang anlegen aktiviert Beobachterrolle', () => {
+  const r = enrollObserver(core, credentialPath, observerLink.split('ticket=')[1], 'beob-neu', TEST_PASSWORD + '-neu', commit);
+  assert.strictEqual(r.ok, true);
+  const inv = db.invites.find(i => i.link === undefined && i.purpose === 'observer' && i.usedAt);
+  assert.ok(inv, 'Einladung als verwendet markiert');
+  assert.ok(db.roles.some(x => x.personId === inv.personId && x.role === 'observer' && x.areaId === 'room-sun-play' && x.active), 'Beobachterrolle aktiv');
+  assert.ok(!db.guardians.some(g => g.guardianId === inv.personId), 'keine Guardian-Beziehung erzeugt');
+});
+
+await check('enrollObserver: Ticket nur einmal nutzbar', () => {
+  const r = enrollObserver(core, credentialPath, observerLink.split('ticket=')[1], 'beob.nochmal', TEST_PASSWORD + '-neu', commit);
+  assert.strictEqual(r.ok, false);
+});
+
+await check('enrollObserver: falscher Token wird abgewiesen', () => {
+  const r = enrollObserver(core, credentialPath, 'a'.repeat(64), 'beob.x', TEST_PASSWORD + '-neu', commit);
+  assert.strictEqual(r.ok, false);
+});
+
+// --- HouseAdmin-Listen für die Stage ---
+await check('house-children: nur aktive Kinder des eigenen Hauses', () => {
+  const r = house(adminSession('admin-sun'), 'house-children', { houseId: 'house-sun' });
+  assert.strictEqual(r.status, 200);
+  assert.ok(r.data.items.length >= 2 && r.data.items.every(i => i.id && i.label), 'flache Kartenliste');
+  assert.ok(!r.data.items.some(i => i.id === 'child-mia'), 'kein Kind aus fremdem Haus');
+});
+
+await check('guardian-pending: Composite-IDs für die Tabelle', () => {
+  const r = house(adminSession('admin-sun'), 'guardian-pending', { houseId: 'house-sun' });
+  assert.strictEqual(r.status, 200);
+  const pending = db.guardians.filter(g => g.status === 'pending' && db.people.find(p => p.id === g.childId)?.houseId === undefined || g.status === 'pending');
+  assert.ok(r.data.items.every(i => i.id.includes(':') && i.childId && i.guardianId), 'id = childId:guardianId');
+});
+
+// --- Kontext-Login (gemeinsamer Erwachsenen-Login) ---
+// parent-lina ist hier unbrauchbar (Zuordnung wurde oben widerrufen) —
+// parent-tom-a hat weiterhin eine bestätigte Beziehung zu child-tom.
+const admin = createAdmin(core, dataPath, { store });
+{
+  const creds = JSON.parse(fs.readFileSync(credentialPath, 'utf8'));
+  const salt = crypto.randomBytes(16).toString('hex');
+  creds.push({ personId: 'parent-tom-a', username: 'eltern.tom', salt, hash: crypto.scryptSync(TEST_PASSWORD, salt, 64).toString('hex') });
+  fs.writeFileSync(credentialPath, JSON.stringify(creds));
+}
+await check('Kontext-Login: Elternteil ohne Verwaltung → parent-Kontext, kein Admin-Token', async () => {
+  const r = await admin.login(fakeReq, { username: 'eltern.tom', password: TEST_PASSWORD });
+  assert.ok(r.personId && !r.token, 'keine Verwaltungssitzung');
+  assert.deepStrictEqual(r.contexts, ['parent']);
+});
+
+await check('Kontext-Login: Beobachter → observer-Kontext', async () => {
+  const r = await admin.login(fakeReq, { username: 'beob-neu', password: TEST_PASSWORD + '-neu' });
+  assert.ok(r.personId && !r.token);
+  assert.deepStrictEqual(r.contexts, ['observer']);
+});
+
+await check('Kontext-Login: HouseAdmin+Elternteil → admin und parent', async () => {
+  const creds = JSON.parse(fs.readFileSync(credentialPath, 'utf8'));
+  const salt = crypto.randomBytes(16).toString('hex');
+  creds.push({ personId: 'admin-parent', username: 'admin.paul', salt, hash: crypto.scryptSync(TEST_PASSWORD, salt, 64).toString('hex') });
+  fs.writeFileSync(credentialPath, JSON.stringify(creds));
+  const r = await admin.login(fakeReq, { username: 'admin.paul', password: TEST_PASSWORD });
+  assert.ok(r.token, 'Verwaltungssitzung ausgestellt');
+  assert.ok(r.contexts.includes('admin') && r.contexts.includes('parent'), 'beide Kontexte gemeldet');
+});
+
+await check('Kontext-Login: falsches Passwort → generischer Fehler', async () => {
+  const r = await admin.login(fakeReq, { username: 'eltern.tom', password: 'falsch-falsch-falsch' });
+  assert.ok(r.error && !r.personId);
+});
+
+// --- Workflow-Validierung gegen die GCS-Projektdatei ---
+const cmsFile = path.resolve('game-server/public/projects/GCS-CMS.json');
+await check('Workflow: stage_server_parent wird aus Projekt validiert', () => {
+  createParent(core, credentialPath, store, cmsFile, 'stage_server_parent');
+});
+await check('Workflow: fehlende Stage wirft beim Laden', () => {
+  assert.throws(() => createParent(core, credentialPath, store, cmsFile, 'stage_gibt_es_nicht'), /CMS-Stage fehlt/);
+});
+await check('Workflow: falsche Action-Methode wirft beim Laden', () => {
+  const broken = JSON.parse(fs.readFileSync(cmsFile, 'utf8'));
+  const stage = broken.stages.find(s => s.id === 'stage_server_parent');
+  stage.actions.find(a => a.method === 'children').method = 'childrenBroken';
+  const tmp = path.join(dir, 'broken.json');
+  fs.writeFileSync(tmp, JSON.stringify(broken));
+  assert.throws(() => createParent(core, credentialPath, store, tmp, 'stage_server_parent'), /Ungültiger Eltern-Workflow/);
 });
 
 const failed = results.filter(r => r[0] === 'FEHLER');

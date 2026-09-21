@@ -2,7 +2,7 @@
 // Gleicher Zugangsdatenspeicher wie Verwaltung, aber assurance 'account' —
 // kein Verwaltungszugang. Elternsicht nur über bestätigte Guardian-Beziehung.
 const fs = require('node:fs'), crypto = require('node:crypto');
-const { childrenOf, guardiansOf } = require('./cms-core.cjs');
+const { childrenOf, guardiansOf, within } = require('./cms-core.cjs');
 
 const ok = d => ({ status: 200, data: { ok: true, ...d } });
 const fail = (status, message) => ({ status, data: { ok: false, message } });
@@ -20,7 +20,31 @@ async function verifyCredentials(credentialPath, username, password) {
   return c && crypto.timingSafeEqual(hash, Buffer.from(c.hash, 'hex')) ? c : null;
 }
 
-function createParent(core, credentialPath, store) {
+// Route ↔ Ereignis ↔ Methode der TServerParentAccount-Komponente
+// (stage_server_parent). Volle Validierung wie bei TServerProfile:
+// ohne passende Stage/Task/Action kein Serverstart.
+const WORKFLOW_OPS = {
+  'my-children': ['onChildren', 'children'], 'child-activity': ['onActivity', 'activity'],
+  'child-progress': ['onProgress', 'progress'], 'set-budget': ['onSetBudget', 'setBudget'],
+  'approve-budget': ['onApproveBudget', 'approveBudget'], 'room-pulse': ['onPulse', 'pulse'],
+};
+
+function loadParentWorkflow(cmsFile, stageId) {
+  const stage = require('./cms-project.cjs').readWorkflow(cmsFile, stageId).stages[0];
+  const node = (stage.objects || []).find(o => o.className === 'TServerParentAccount');
+  if (!node) throw Error('TServerParentAccount fehlt in ' + stageId);
+  for (const [route, [event, method]] of Object.entries(WORKFLOW_OPS)) {
+    const task = (stage.tasks || []).find(t => t.name === node.events?.[event]);
+    const step = task?.actionSequence?.[0];
+    const action = (stage.actions || []).find(a => a.name === step?.name);
+    if (step?.type !== 'action' || action?.type !== 'call_method' || action.target !== node.name || action.method !== method)
+      throw Error('Ungültiger Eltern-Workflow: ' + event + ' (' + route + ' → ' + method + ')');
+  }
+  return { stage, node };
+}
+
+function createParent(core, credentialPath, store, cmsFile, stageId = 'stage_server_parent') {
+  if (cmsFile) loadParentWorkflow(cmsFile, stageId);
   const db = core.db, attempts = new Map();
 
   async function login(req, body) {
@@ -36,11 +60,17 @@ function createParent(core, credentialPath, store) {
     .filter(s => s.childId === childId && new Date(s.startedAt).toDateString() === new Date().toDateString())
     .reduce((a, s) => a + s.minutes, 0);
 
+  // Flache Felder — die GCS-Tabelle kann keine verschachtelten Pfade binden.
   const childCard = id => {
     const p = db.people.find(x => x.id === id), active = db.playSessions.find(s => s.childId === id && ['active', 'paused'].includes(s.status));
     const budget = db.timeBudgets.find(t => t.childId === id);
     return {
       id, name: p.name, avatar: p.avatar,
+      spiel: active ? (db.games.find(g => g.id === active.gameId)?.title || active.gameId) : '—',
+      status: active ? active.status : 'ruht',
+      heute: todayMinutes(id),
+      budget: budget?.dailyMinutes ?? null,
+      pendingApproval: !!budget?.pendingBudget,
       playing: active ? { gameId: active.gameId, title: db.games.find(g => g.id === active.gameId)?.title, status: active.status, minutes: active.minutes } : null,
       todayMinutes: todayMinutes(id),
       budgetMinutes: budget?.dailyMinutes ?? null,
@@ -50,16 +80,21 @@ function createParent(core, credentialPath, store) {
 
   function api(session, route, b) {
     // Beobachter-Sicht (E01): nur aggregierte Zahlen, keine Personen.
+    // Ohne areaId: Übersicht aller Räume mit eigener Beobachterrolle.
     if (route === 'room-pulse') {
+      const pulse = areaId => {
+        const memberIds = db.memberships.filter(m => m.areaId === areaId && m.active && db.people.some(p => p.id === m.personId && p.active)).map(m => m.personId);
+        const sessions = db.playSessions.filter(s => memberIds.includes(s.childId) && s.areaId === areaId);
+        return { connected: memberIds.length, playing: sessions.filter(s => s.status === 'active').length, paused: sessions.filter(s => s.status === 'paused').length, disconnected: sessions.filter(s => s.status === 'disconnected').length };
+      };
+      if (!b.areaId) {
+        const areas = db.roles.filter(r => r.personId === session.personId && r.role === 'observer' && r.active)
+          .flatMap(r => db.areas.filter(a => a.active && a.type === 'room' && within(db, a.id, r.areaId)))
+          .map(a => ({ id: a.id, bereich: a.name, ...pulse(a.id) }));
+        return ok({ items: areas, message: 'Aggregierte Übersicht deiner Beobachtungsbereiche' });
+      }
       if (!core.can(session, 'observe', { areaId: b.areaId })) return fail(403, 'Keine Beobachter-Berechtigung für diesen Raum.');
-      const memberIds = db.memberships.filter(m => m.areaId === b.areaId && m.active && db.people.some(p => p.id === m.personId && p.active)).map(m => m.personId);
-      const sessions = db.playSessions.filter(s => memberIds.includes(s.childId) && s.areaId === b.areaId);
-      return ok({
-        connected: memberIds.length,
-        playing: sessions.filter(s => s.status === 'active').length,
-        paused: sessions.filter(s => s.status === 'paused').length,
-        disconnected: sessions.filter(s => s.status === 'disconnected').length,
-      });
+      return ok(pulse(b.areaId));
     }
     // Ab hier: Eltern-Endpunkte — Kind muss bestätigt zugeordnet sein.
     if (route === 'my-children') return ok({ items: childrenOf(db, session.personId).map(childCard) });
@@ -144,4 +179,27 @@ function enrollParent(core, credentialPath, ticket, username, password, commit) 
   return { ok: true, message: pending ? 'Zugang eingerichtet. Deine Kinderzuordnung wartet noch auf die Bestätigung durch einen zweiten Verantwortlichen.' : 'Zugang eingerichtet. Jetzt als Elternteil anmelden.' };
 }
 
-module.exports = { createParent, enrollParent };
+// Beobachter-Einladung einlösen (purpose 'observer'): Zugang anlegen und die
+// in der Einladung hinterlegte Beobachterrolle aktivieren — kein Kindbezug.
+function enrollObserver(core, credentialPath, ticket, username, password, commit) {
+  const failMsg = message => ({ ok: false, message });
+  if (!/^[a-f0-9]{64}$/.test(ticket || '') || !/^[a-zA-Z0-9_-]{3,40}$/.test(username || '') || typeof password !== 'string' || password.length < 12 || password.length > 200)
+    return failMsg('Gültigen Link, Benutzernamen (3–40 Zeichen) und Passwort (12–200 Zeichen) angeben.');
+  const hash = crypto.createHash('sha256').update(ticket).digest('hex');
+  const invite = (core.db.invites || []).find(i => i.purpose === 'observer' && i.hash === hash && i.expires > Date.now() && !i.usedAt);
+  if (!invite || !invite.areaId || !core.db.areas.some(a => a.id === invite.areaId && a.active) || !core.db.people.some(p => p.id === invite.personId && p.active)) return failMsg('Link ist abgelaufen, verwendet oder nicht mehr freigegeben.');
+  const entries = readCredentials(credentialPath);
+  if (entries.some(c => c.personId === invite.personId || c.username === username)) return failMsg('Zugang besteht bereits oder Benutzername ist vergeben.');
+  const salt = crypto.randomBytes(16).toString('hex');
+  entries.push({ personId: invite.personId, username, salt, hash: crypto.scryptSync(password, salt, 64).toString('hex') });
+  fs.writeFileSync(credentialPath + '.tmp', JSON.stringify(entries, null, 2), { mode: 0o600 });
+  fs.renameSync(credentialPath + '.tmp', credentialPath);
+  commit({ personId: invite.personId }, 'observer-enrolled', invite.houseId, next => {
+    next.invites.find(i => i.hash === hash).usedAt = new Date().toISOString();
+    if (!next.roles.some(r => r.personId === invite.personId && r.areaId === invite.areaId && r.role === 'observer'))
+      next.roles.push({ personId: invite.personId, areaId: invite.areaId, role: 'observer', active: true });
+  });
+  return { ok: true, message: 'Beobachterzugang eingerichtet. Jetzt anmelden.' };
+}
+
+module.exports = { createParent, enrollParent, enrollObserver, WORKFLOW_OPS, loadParentWorkflow };

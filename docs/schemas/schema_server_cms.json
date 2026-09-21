@@ -7,43 +7,108 @@
     "category": "server"
   },
   "components": {
-
     "TServerAuthorize": {
       "description": "Zentrale Rechteprüfung als sichtbarer Workflow-Schritt. Prüft Fähigkeit + Geltungsbereich + ggf. Eltern-Kind-Beziehung über can().",
       "stage": "server",
       "category": "server",
       "properties": {
-        "action":   { "type": "string", "default": "", "description": "Zu prüfende Fähigkeit: play, manageArea, viewChild, viewProgress, moderate, publish, ..." },
-        "scope":    { "type": "string", "default": "", "description": "Kontext: areaId, childId oder gameId — je nach action" },
-        "denyMessage": { "type": "string", "default": "Nicht erlaubt.", "description": "Antwort bei Ablehnung" }
+        "action": {
+          "type": "string",
+          "default": "",
+          "description": "Zu prüfende Fähigkeit: play, manageArea, viewChild, viewProgress, moderate, publish, ..."
+        },
+        "scope": {
+          "type": "string",
+          "default": "",
+          "description": "Kontext: areaId, childId oder gameId — je nach action"
+        },
+        "denyMessage": {
+          "type": "string",
+          "default": "Nicht erlaubt.",
+          "description": "Antwort bei Ablehnung"
+        }
       },
       "methods": [
-        { "name": "check", "description": "Prüft die Berechtigung der aktuellen Sitzung. Gibt {allowed, reason} zurück; wirft nicht.", "params": ["session"] }
+        {
+          "name": "check",
+          "description": "Prüft die Berechtigung der aktuellen Sitzung. Gibt {allowed, reason} zurück; wirft nicht.",
+          "params": [
+            "session"
+          ]
+        }
       ],
-      "events": ["onDenied"],
+      "events": [
+        "onDenied"
+      ],
       "guarantees": [
         "Kein Datenzugriff ohne vorherigen erfolgreichen check() im selben Request",
         "viewChild/viewProgress ausschließlich über bestätigte Guardian-Beziehung",
         "Verwaltungsrollen verleihen keine Elternsicht"
       ]
     },
-
     "TServerGuardian": {
       "description": "Eltern-Kind-Beziehungen: Abfrage, Einladung, Bestätigung, Widerruf. Implementiert das Zwei-Bestätigungs-Verfahren (E02).",
       "stage": "server",
       "category": "server",
       "properties": {
-        "requireSecondApprover": { "type": "boolean", "default": true, "description": "Eigene Zuordnung darf nie allein freigegeben werden" },
-        "pendingVisible": { "type": "boolean", "default": false, "description": "Ausstehende Zuordnungen gewähren keine Sicht" }
+        "requireSecondApprover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Eigene Zuordnung darf nie allein freigegeben werden"
+        },
+        "pendingVisible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ausstehende Zuordnungen gewähren keine Sicht"
+        }
       },
       "methods": [
-        { "name": "childrenOf", "description": "Bestätigte Kinder eines Elternteils (nur status=confirmed)", "params": ["personId"] },
-        { "name": "guardiansOf", "description": "Bestätigte Elternteile eines Kindes", "params": ["childId"] },
-        { "name": "propose", "description": "HouseAdmin schlägt Zuordnung vor; erzeugt pending + Einladung", "params": ["childId", "guardianId"] },
-        { "name": "confirm", "description": "Elternteil bestätigt; bei Selbstzuordnung zusätzliche zweite Bestätigung nötig", "params": ["guardianId", "childId", "confirmerId"] },
-        { "name": "revoke", "description": "Widerruf; entzieht sofort alle abgeleiteten Zugriffe", "params": ["guardianId", "childId"] }
+        {
+          "name": "childrenOf",
+          "description": "Bestätigte Kinder eines Elternteils (nur status=confirmed)",
+          "params": [
+            "personId"
+          ]
+        },
+        {
+          "name": "guardiansOf",
+          "description": "Bestätigte Elternteile eines Kindes",
+          "params": [
+            "childId"
+          ]
+        },
+        {
+          "name": "propose",
+          "description": "HouseAdmin schlägt Zuordnung vor; erzeugt pending + Einladung",
+          "params": [
+            "childId",
+            "guardianId"
+          ]
+        },
+        {
+          "name": "confirm",
+          "description": "Elternteil bestätigt; bei Selbstzuordnung zusätzliche zweite Bestätigung nötig",
+          "params": [
+            "guardianId",
+            "childId",
+            "confirmerId"
+          ]
+        },
+        {
+          "name": "revoke",
+          "description": "Widerruf; entzieht sofort alle abgeleiteten Zugriffe",
+          "params": [
+            "guardianId",
+            "childId"
+          ]
+        }
       ],
-      "events": ["onProposed", "onConfirmed", "onRevoked", "onDisputed"],
+      "events": [
+        "onProposed",
+        "onConfirmed",
+        "onRevoked",
+        "onDisputed"
+      ],
       "guarantees": [
         "status=revoked oder pending gibt niemals Sicht",
         "HouseAdmin kann eigene Guardian-Zuordnung nicht allein freigeben",
@@ -52,46 +117,134 @@
       ],
       "status": "Kern implementiert (childrenOf/guardiansOf in cms-core); propose/confirm/revoke in Phase 2"
     },
-
     "TServerRateLimit": {
       "description": "Konfigurierbares Versuchslimit pro Endpunkt/Schlüssel — ersetzt verteilte attempts-Maps.",
       "stage": "server",
       "category": "server",
       "properties": {
-        "maxAttempts":  { "type": "number", "default": 10, "description": "Versuche im Fenster" },
-        "windowMs":     { "type": "number", "default": 60000, "description": "Zeitfenster in Millisekunden" },
-        "keyBy":        { "type": "select", "default": "ip", "options": ["ip", "session", "account"], "description": "Begrenzungsschlüssel" },
-        "blockMessage": { "type": "string", "default": "Bitte kurz warten." }
+        "maxAttempts": {
+          "type": "number",
+          "default": 10,
+          "description": "Versuche im Fenster"
+        },
+        "windowMs": {
+          "type": "number",
+          "default": 60000,
+          "description": "Zeitfenster in Millisekunden"
+        },
+        "keyBy": {
+          "type": "select",
+          "default": "ip",
+          "options": [
+            "ip",
+            "session",
+            "account"
+          ],
+          "description": "Begrenzungsschlüssel"
+        },
+        "blockMessage": {
+          "type": "string",
+          "default": "Bitte kurz warten."
+        }
       },
       "methods": [
-        { "name": "attempt", "description": "Zählt einen Versuch; gibt {allowed, retryAfterMs} zurück", "params": ["key"] },
-        { "name": "reset", "description": "Setzt den Zähler eines Schlüssels zurück (z.B. nach erfolgreicher Anmeldung)", "params": ["key"] }
+        {
+          "name": "attempt",
+          "description": "Zählt einen Versuch; gibt {allowed, retryAfterMs} zurück",
+          "params": [
+            "key"
+          ]
+        },
+        {
+          "name": "reset",
+          "description": "Setzt den Zähler eines Schlüssels zurück (z.B. nach erfolgreicher Anmeldung)",
+          "params": [
+            "key"
+          ]
+        }
       ],
-      "events": ["onBlocked"],
+      "events": [
+        "onBlocked"
+      ],
       "guarantees": [
         "Limit greift auch dann, wenn der Flow-Schritt fehlt (Endpunkt-Adapter fragt die Komponente immer)",
         "Kurze Emoji-Codes erhalten strengere Limits als Passwort-Zugänge"
       ]
     },
-
     "TServerPlaySession": {
       "description": "Spielsitzung mit Heartbeat und Zeitbuchung (E06): start/pause/resume/heartbeat/end. Höchstens eine aktive Sitzung pro Kind; Buchung über alle Geräte und Häuser gemeinsam.",
       "stage": "server",
       "category": "server",
       "properties": {
-        "heartbeatMs":     { "type": "number", "default": 30000, "description": "Maximales Heartbeat-Intervall" },
-        "disconnectGraceMs": { "type": "number", "default": 120000, "description": "Fortsetzungsfrist bei Verbindungsverlust (danach 'disconnected')" },
-        "graceMinutes":    { "type": "number", "default": 2, "description": "Abschlussfrist nach Budgetende" }
+        "heartbeatMs": {
+          "type": "number",
+          "default": 30000,
+          "description": "Maximales Heartbeat-Intervall"
+        },
+        "disconnectGraceMs": {
+          "type": "number",
+          "default": 120000,
+          "description": "Fortsetzungsfrist bei Verbindungsverlust (danach 'disconnected')"
+        },
+        "graceMinutes": {
+          "type": "number",
+          "default": 2,
+          "description": "Abschlussfrist nach Budgetende"
+        }
       },
       "methods": [
-        { "name": "start", "description": "Neue Sitzung; prüft Budget, Zeitfenster, Mitgliedschaft, Freigabe; lehnt zweite aktive Sitzung ab", "params": ["childId", "gameId", "areaId"] },
-        { "name": "heartbeat", "description": "Lebenszeichen; verlängert Sitzung, buch Zeit", "params": ["sessionId"] },
-        { "name": "pause", "description": "Echte bestätigte Pause — zählt nicht als Spielzeit", "params": ["sessionId"] },
-        { "name": "resume", "description": "Pause beenden; prüft Budget erneut", "params": ["sessionId"] },
-        { "name": "end", "description": "Sitzung beenden; finale Zeitbuchung", "params": ["sessionId"] },
-        { "name": "status", "description": "active|paused|disconnected|ended + Restbudget", "params": ["sessionId"] }
+        {
+          "name": "start",
+          "description": "Neue Sitzung; prüft Budget, Zeitfenster, Mitgliedschaft, Freigabe; lehnt zweite aktive Sitzung ab",
+          "params": [
+            "childId",
+            "gameId",
+            "areaId"
+          ]
+        },
+        {
+          "name": "heartbeat",
+          "description": "Lebenszeichen; verlängert Sitzung, buch Zeit",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "pause",
+          "description": "Echte bestätigte Pause — zählt nicht als Spielzeit",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "resume",
+          "description": "Pause beenden; prüft Budget erneut",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "end",
+          "description": "Sitzung beenden; finale Zeitbuchung",
+          "params": [
+            "sessionId"
+          ]
+        },
+        {
+          "name": "status",
+          "description": "active|paused|disconnected|ended + Restbudget",
+          "params": [
+            "sessionId"
+          ]
+        }
       ],
-      "events": ["onWarn5", "onWarn1", "onBudgetExhausted", "onDisconnected", "onEnded"],
+      "events": [
+        "onWarn5",
+        "onWarn1",
+        "onBudgetExhausted",
+        "onDisconnected",
+        "onEnded"
+      ],
       "guarantees": [
         "Zeitbuchung nur aus serverseitigen Zeitstempeln, nie aus Client-Angaben",
         "Fehlende Heartbeats führen zu 'disconnected', nicht zu 'ended'",
@@ -99,37 +252,76 @@
         "Zeitzone des Budgets gehört zum Kinderprofil; Gerätewechsel erzeugt keinen neuen Tag"
       ]
     },
-
     "TServerProgress": {
       "description": "Optionale Bewertungsmeldungen der Spiele (E07): versioniertes Schema, eventId-Dedupe, source game|server.",
       "stage": "server",
       "category": "server",
       "properties": {
-        "schemaVersion": { "type": "number", "default": 1 },
-        "metrics":       { "type": "string", "default": "tasks_done,tasks_correct,hints_used,round_complete", "description": "Erlaubte Metrik-Kennungen" }
+        "schemaVersion": {
+          "type": "number",
+          "default": 1
+        },
+        "metrics": {
+          "type": "string",
+          "default": "tasks_done,tasks_correct,hints_used,round_complete",
+          "description": "Erlaubte Metrik-Kennungen"
+        }
       },
       "methods": [
-        { "name": "report", "description": "Meldung entgegennehmen; Kind/Spiel/Version aus Sitzung ableiten; eventId-Duplikate verwerfen", "params": ["sessionId", "metric", "value", "unit", "eventId"] },
-        { "name": "listFor", "description": "Bewertungen eines Kindes — nur für bestätigte Elternteile (TServerAuthorize viewProgress)", "params": ["childId"] }
+        {
+          "name": "report",
+          "description": "Meldung entgegennehmen; Kind/Spiel/Version aus Sitzung ableiten; eventId-Duplikate verwerfen",
+          "params": [
+            "sessionId",
+            "metric",
+            "value",
+            "unit",
+            "eventId"
+          ]
+        },
+        {
+          "name": "listFor",
+          "description": "Bewertungen eines Kindes — nur für bestätigte Elternteile (TServerAuthorize viewProgress)",
+          "params": [
+            "childId"
+          ]
+        }
       ],
-      "events": ["onReported", "onDuplicateRejected"],
+      "events": [
+        "onReported",
+        "onDuplicateRejected"
+      ],
       "guarantees": [
         "childId/gameId/houseId/Empfangszeit kommen aus der Sitzung, nie vom Client",
         "Doppelte eventId erzeugt keinen zweiten Eintrag",
         "source='game' und source='server' bleiben unterscheidbar"
       ]
     },
-
     "TServerPrivacy": {
       "description": "Personenexport und Löschung (P1.6, implementiert in cms-privacy.cjs). Löschung = Anonymisierung; Löschliste überlebt Wiederherstellungen.",
       "stage": "server",
       "category": "server",
       "properties": {},
       "methods": [
-        { "name": "exportPerson", "description": "Alle personenbezogenen Daten einer Person; Zugangsdaten nur als Metadaten, nie im Klartext", "params": ["personId"] },
-        { "name": "deletePerson", "description": "Anonymisiert Person, entfernt personenbezogene Kanten, schreibt Tombstone; verweigert Löschung von Spieleigentümern", "params": ["actor", "personId"] }
+        {
+          "name": "exportPerson",
+          "description": "Alle personenbezogenen Daten einer Person; Zugangsdaten nur als Metadaten, nie im Klartext",
+          "params": [
+            "personId"
+          ]
+        },
+        {
+          "name": "deletePerson",
+          "description": "Anonymisiert Person, entfernt personenbezogene Kanten, schreibt Tombstone; verweigert Löschung von Spieleigentümern",
+          "params": [
+            "actor",
+            "personId"
+          ]
+        }
       ],
-      "events": ["onDeleted"],
+      "events": [
+        "onDeleted"
+      ],
       "guarantees": [
         "Audit-Einträge bleiben (pseudonyme ID), Bewertungsinhalte werden entfernt",
         "Restore alter Sicherungen bringt Gelöschtes nicht zurück",
@@ -137,43 +329,175 @@
       ],
       "status": "implementiert"
     },
-
     "TServerInvite": {
       "description": "Generalisierte Einladungen (aus adminInvites): purpose admin-setup|parent|observer|device; einmalig, befristet, gehasht gespeichert.",
       "stage": "server",
       "category": "server",
       "properties": {
-        "ttlMs": { "type": "number", "default": 86400000, "description": "Gültigkeitsdauer (24h)" }
+        "ttlMs": {
+          "type": "number",
+          "default": 86400000,
+          "description": "Gültigkeitsdauer (24h)"
+        }
       },
       "methods": [
-        { "name": "create", "description": "Einladung erzeugen; gibt Klartext-Token zurück, speichert nur sha256-Hash", "params": ["personId", "houseId", "purpose", "issuer"] },
-        { "name": "redeem", "description": "Token einlösen; prüft Hash, Ablauf, usedAt und dass der Aussteller noch berechtigt ist", "params": ["token"] }
+        {
+          "name": "create",
+          "description": "Einladung erzeugen; gibt Klartext-Token zurück, speichert nur sha256-Hash",
+          "params": [
+            "personId",
+            "houseId",
+            "purpose",
+            "issuer"
+          ]
+        },
+        {
+          "name": "redeem",
+          "description": "Token einlösen; prüft Hash, Ablauf, usedAt und dass der Aussteller noch berechtigt ist",
+          "params": [
+            "token"
+          ]
+        }
       ],
-      "events": ["onCreated", "onRedeemed", "onExpired"],
+      "events": [
+        "onCreated",
+        "onRedeemed",
+        "onExpired"
+      ],
       "guarantees": [
         "Nur Hash gespeichert; Token nur einmal ausgegeben",
         "Einmalig: usedAt verhindert Wiederverwendung",
         "Einladung verfällt, wenn Aussteller-Berechtigung entzogen wird"
       ]
     },
-
     "TServerDeviceGrant": {
       "description": "Befristete Gerätefreigaben für gemeinsam genutzte Geräte (E05): sichtbar, widerrufbar, begrenzt auf ein Haus.",
       "stage": "server",
       "category": "server",
       "properties": {
-        "maxDurationMs": { "type": "number", "default": 28800000, "description": "Maximale Freigabedauer (8h)" }
+        "maxDurationMs": {
+          "type": "number",
+          "default": 28800000,
+          "description": "Maximale Freigabedauer (8h)"
+        }
       },
       "methods": [
-        { "name": "grant", "description": "Gerät für ein Haus freigeben", "params": ["houseId", "label", "issuedBy", "durationMs"] },
-        { "name": "revoke", "description": "Freigabe sofort entziehen", "params": ["grantId"] },
-        { "name": "check", "description": "Ist dieses Gerät aktuell für dieses Haus freigegeben?", "params": ["deviceId", "houseId"] }
+        {
+          "name": "grant",
+          "description": "Gerät für ein Haus freigeben",
+          "params": [
+            "houseId",
+            "label",
+            "issuedBy",
+            "durationMs"
+          ]
+        },
+        {
+          "name": "revoke",
+          "description": "Freigabe sofort entziehen",
+          "params": [
+            "grantId"
+          ]
+        },
+        {
+          "name": "check",
+          "description": "Ist dieses Gerät aktuell für dieses Haus freigegeben?",
+          "params": [
+            "deviceId",
+            "houseId"
+          ]
+        }
       ],
-      "events": ["onGranted", "onRevoked", "onExpired"],
+      "events": [
+        "onGranted",
+        "onRevoked",
+        "onExpired"
+      ],
       "guarantees": [
         "Abgelaufene oder widerrufene Freigaben erlauben keinen Zugang",
         "Gerätefreigabe ersetzt niemals die Emoji-Anmeldung des Kindes"
       ]
+    },
+    "TServerParentAccount": {
+      "description": "Eltern- und Beobachterkonto: Kinderliste, Aktivität, Bewertungen, Zeitbudget, Raum-Aggregat. Implementiert in cms-parent.cjs; Events/Tasks/Actions werden aus stage_server_parent geladen und beim Start validiert (loadParentWorkflow).",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "readMessage": {
+          "type": "string",
+          "default": "Daten nur für bestätigt zugeordnete Kinder."
+        },
+        "failureMessage": {
+          "type": "string",
+          "default": "Aktion nicht möglich."
+        }
+      },
+      "methods": [
+        {
+          "name": "children",
+          "description": "Bestätigt zugeordnete Kinder des Kontos (flache Karten für TTable)",
+          "params": [
+            "session"
+          ]
+        },
+        {
+          "name": "activity",
+          "description": "Aktuelles Spiel, Status, heutige Minuten, Budget des Kindes",
+          "params": [
+            "session",
+            "childId"
+          ]
+        },
+        {
+          "name": "progress",
+          "description": "Gemeldete Bewertungen des Kindes",
+          "params": [
+            "session",
+            "childId"
+          ]
+        },
+        {
+          "name": "setBudget",
+          "description": "Zeitbudget setzen; Lockerung erzeugt pendingBudget (Zweitbestätigung)",
+          "params": [
+            "session",
+            "childId",
+            "dailyMinutes"
+          ]
+        },
+        {
+          "name": "approveBudget",
+          "description": "Zweites Elternteil bestätigt ausstehende Lockerung",
+          "params": [
+            "session",
+            "childId"
+          ]
+        },
+        {
+          "name": "pulse",
+          "description": "Aggregierte Raumzahlen für Beobachter (keine Personen)",
+          "params": [
+            "session",
+            "areaId?"
+          ]
+        }
+      ],
+      "events": [
+        "onChildren",
+        "onActivity",
+        "onProgress",
+        "onSetBudget",
+        "onApproveBudget",
+        "onPulse"
+      ],
+      "guarantees": [
+        "Elternsicht ausschließlich über guardians mit status=confirmed",
+        "Beobachter-Aggregat enthält niemals Personen-, Spiel- oder Bewertungsdaten einzelner Kinder",
+        "Selbstbestätigung (proposedBy == session) wird mit 409 abgewiesen",
+        "Budget-Lockerung wirkt erst nach Zustimmung eines zweiten Elternteils",
+        "Sitzung mit assurance=account gewährt keinen Verwaltungszugang"
+      ],
+      "status": "Implementiert (Phase 2)"
     }
   }
 }

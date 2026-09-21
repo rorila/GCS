@@ -41,6 +41,7 @@ const db = {
     person('admin-moon', 'Mia HausAdmin Mond', 'adult'),
     person('teacher-sun', 'Tobias Erzieher', 'adult'),
     person('observer-sun', 'Olga Beobachterin', 'adult'),
+    person('observer-neu', 'Neue Beobachterin (Einladung offen)', 'adult'),
     person('parent-lina', 'Petra Mutter von Lina', 'adult'),
     person('parent-multi', 'Martin Vater von zwei Kindern', 'adult'),
     person('parent-tom-a', 'Tina Mutter von Tom', 'adult'),
@@ -115,6 +116,7 @@ const db = {
     { id: 'inv-valid', personId: 'parent-tom-b', childId: 'child-emil', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-valid'), expires: NOW + 24 * H },
     { id: 'inv-expired', personId: 'parent-tom-b', childId: 'child-tom', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-expired'), expires: NOW - H },
     { id: 'inv-used', personId: 'parent-tom-a', childId: 'child-tom', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-used'), expires: NOW + 24 * H, usedAt: iso(NOW - 2 * D) },
+    { id: 'inv-observer', personId: 'observer-neu', houseId: 'house-sun', areaId: 'room-sun-learn', purpose: 'observer', issuer: 'admin-sun', hash: hash('test-token-observer'), expires: NOW + 24 * H },
   ],
   deviceGrants: [
     { id: 'dev-valid', houseId: 'house-sun', label: 'Tablet Spielzimmer', issuedBy: 'admin-sun', expires: NOW + 8 * H, revoked: false },
@@ -154,7 +156,7 @@ const db = {
   // Erwartete Sichtbarkeit pro Testkonto — Referenz für Tests und manuelle Prüfung.
   testMeta: {
     password: TEST_PASSWORD,
-    inviteTokens: { valid: 'test-token-valid', expired: 'test-token-expired', used: 'test-token-used' },
+    inviteTokens: { valid: 'test-token-valid', expired: 'test-token-expired', used: 'test-token-used', observer: 'test-token-observer' },
     visibility: [
       { account: 'parent-lina', seesChildren: ['child-lina'], notChildren: ['child-finn', 'child-tom', 'child-emil', 'child-mia'], pendingOnly: ['child-mia'] },
       { account: 'parent-multi', seesChildren: ['child-finn', 'child-emil'], notChildren: ['child-lina', 'child-tom', 'child-mia'] },
