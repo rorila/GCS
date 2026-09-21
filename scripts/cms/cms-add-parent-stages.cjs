@@ -353,6 +353,29 @@ if (adminSet && !adminSet.actionSequence.some(s => s.name === 'Branch: Verwaltun
   ];
 }
 
+// SuperAdmin landet direkt auf stage_super — der Umweg über die
+// Raum-Stage ist für ihn fachlich falsch (er hat Verwaltung gewählt).
+const loginStage = project.stages.find(s => s.id === 'stage_admin_login');
+// SuperAdmin wird nach erfolgreicher Anmeldung sofort weitergeleitet —
+// ohne den Zwischenschritt über die Erfolgsansicht (er hat Verwaltung
+// gewählt, die Kontext-Auswahl ist für ihn ohne Belang).
+const loginErfolg = loginStage.tasks.find(t => t.name === 'Anmeldung_Erfolgreich');
+if (loginErfolg && !JSON.stringify(loginErfolg).includes('Act_Navigation_stage_super')) {
+  loginErfolg.actionSequence = [
+    cond('Antwort.super', true,
+      [{ type: 'action', name: 'Act_Navigation_stage_super' }],
+      loginErfolg.actionSequence),
+  ];
+}
+const navVerwaltung = loginStage.tasks.find(t => t.name === 'Navigation_VerwaltungOeffnen');
+if (navVerwaltung && !JSON.stringify(navVerwaltung).includes('Act_Navigation_stage_super')) {
+  navVerwaltung.actionSequence = busyGuard([
+    cond('Antwort.super', true,
+      [{ type: 'action', name: 'Act_Navigation_stage_super' }],
+      [{ type: 'action', name: 'Act_Navigation_VerwaltungOeffnen' }]),
+  ]);
+}
+
 // ============================================================
 // Schreiben + Referenzprüfung (Tasks/Actions müssen auflösbar sein)
 // ============================================================

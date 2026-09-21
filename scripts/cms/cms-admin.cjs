@@ -50,12 +50,14 @@ function createAdmin(core,dataPath,{store}={}){
   const contexts=[];if(core.childrenOf(c.personId).length)contexts.push('parent');if(core.db.roles.some(r=>r.personId===c.personId&&r.role==='observer'&&r.active&&areaActive(core.db,r.areaId)))contexts.push('observer');
   const s={personId:c.personId,assurance:'admin',expires:Date.now()+1800000};const allowed=core.db.areas.some(a=>a.active&&core.can(s,'manageArea',{areaId:a.id}));emit('Verwaltungszuständigkeit prüfen',{allowed});
   if(!allowed)return contexts.length?{personId:c.personId,contexts}:{error:'Keine Verwaltungszuständigkeit.'};
-  verified.add(s);return {session:s,contexts:['admin',...contexts]};
+  // SuperAdmin landet direkt auf der SuperAdmin-Stage (E01: kein Umweg).
+  const isSuper=core.db.roles.some(r=>r.personId===c.personId&&r.role==='superAdmin'&&r.areaId==='root'&&r.active);
+  verified.add(s);return {session:s,contexts:['admin',...contexts],super:isSuper};
  }
  const verified=new WeakSet();
  function createSession(s){if(!verified.has(s))throw Error('Nicht geprüfte Verwaltungssitzung');verified.delete(s);const now=Date.now();for(const [k,v]of sessions)if(v.expires<now)sessions.delete(k);const token=crypto.randomBytes(32).toString('hex');sessions.set(token,s);return {token};
  }
- async function login(req,body){const checked=await verify(req,body);return checked.session?{...createSession(checked.session),personId:checked.session.personId,contexts:checked.contexts}:checked;}
+ async function login(req,body){const checked=await verify(req,body);return checked.session?{...createSession(checked.session),personId:checked.session.personId,contexts:checked.contexts,super:checked.super}:checked;}
  return {api,verify,createSession,login,readSession,enroll:(b)=>enroll(core,credentialPath,b.ticket,b.username,b.password,commit)};
 }
 module.exports={createAdmin,fileStore};

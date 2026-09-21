@@ -28,7 +28,7 @@ function loadAdminWorkflow(file,stageId){
   // Konto-Sitzung. Admins mit Zusatzkontexten bekommen ebenfalls eine.
   const data={ok:!!created,message:created?response.successMessage:requestValid?auth.failureMessage:validation.failureMessage};
   emit('Response zusammenstellen',{...meta(response,ra),output:data,status:200});
-  return {data,token:created?.token,personId:checked?.session?.personId||checked?.personId,contexts:checked?.contexts||[]};
+  return {data,token:created?.token,personId:checked?.session?.personId||checked?.personId,contexts:checked?.contexts||[],super:!!checked?.super};
  }};
 }
 /** Generic runtime host: all dialog content and behavior come from the saved GCS project. */

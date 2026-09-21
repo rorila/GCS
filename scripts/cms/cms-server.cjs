@@ -105,7 +105,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(result.error){res.writeHead(401,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(loginPage());}
     const cookies=[];if(result.token)cookies.push(`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
     if(result.contexts?.some(c=>c!=='admin')||!result.token){const t=core.issueSession(result.personId,'account');if(t)cookies.push(accountCookie(t));}
-    res.writeHead(303,{'Location':result.token?'/admin':(result.contexts||[]).includes('observer')?'/observer':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
+    res.writeHead(303,{'Location':result.token?(result.super?'/super':'/admin'):(result.contexts||[]).includes('observer')?'/observer':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
    }
    if(req.method==='GET'&&['/','/runtime-standalone.js','/cms-shell.js'].includes(url.pathname)){
     if(url.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(renderCms(cmsFile,'stage_main',url.searchParams.get('house')));}
@@ -156,7 +156,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
      const accountToken=core.issueSession(result.personId,'account');
      if(accountToken){cookies.push(accountCookie(accountToken));
       // Flache Flags, damit GCS-Bedingungen (Variable == true) direkt prüfen können.
-      result.data={...result.data,ok:true,contexts:result.contexts,admin:result.contexts.includes('admin'),parent:result.contexts.includes('parent'),observer:result.contexts.includes('observer')};
+      result.data={...result.data,ok:true,contexts:result.contexts,admin:result.contexts.includes('admin'),parent:result.contexts.includes('parent'),observer:result.contexts.includes('observer'),super:!!result.super};
       if(!result.token)result.data.message='Angemeldet.';}
     }
     if(cookies.length)res.setHeader('Set-Cookie',cookies);

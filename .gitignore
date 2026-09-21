@@ -81,3 +81,5 @@ game-server/private-training/
 # Python-Cache
 __pycache__/
 *.py[cod]
+game-server/data/backups/
+game-server/data/test/cms-admin-auth.json
