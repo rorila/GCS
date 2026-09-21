@@ -17,11 +17,11 @@ function createAdmin(core,dataPath,{store}={}){
   const superResult=superApi(core,s,route,b,commit,credentialPath);if(superResult)return superResult;
   const houseResult=houseApi(core,s,route,b,commit);if(houseResult)return houseResult;
   const areas=managed(s);if(!areas.length)return fail(403,'Keine Verwaltungszuständigkeit.');
-  if(route==='rooms')return ok({items:areas.map(a=>({id:a.id,label:a.name,active:true})),message:'Raum zur Verwaltung wählen'});
+  if(route==='rooms')return ok({items:areas.map(a=>({id:a.id,label:a.name,name:a.name,active:true})),message:'Raum zur Verwaltung wählen'});
   const area=areas.find(a=>a.id===b.areaId);if(!area)return fail(403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.');
   const people=core.db.people.filter(p=>p.active&&core.db.memberships.some(m=>m.personId===p.id&&areas.some(a=>a.id===m.areaId)));
-  if(route==='games')return ok({items:core.db.games.filter(g=>g.status==='published').map(g=>({id:g.id,label:g.title,active:core.db.grants.some(x=>x.gameId===g.id&&x.areaId===area.id&&x.active)})),message:area.name+' · Spielefreigaben'});
-  if(route==='members')return ok({items:people.map(p=>({id:p.id,label:(core.db.profileRequests?.some(x=>x.personId===p.id&&x.status==='open')?'🆘 Zugangshilfe · ':'')+p.name+' ('+p.id+')',active:core.db.memberships.some(m=>m.personId===p.id&&m.areaId===area.id&&m.active)})),message:area.name+' · Mitglieder'});
+  if(route==='games')return ok({items:core.db.games.filter(g=>g.status==='published').map(g=>({id:g.id,label:g.title,name:g.title,active:core.db.grants.some(x=>x.gameId===g.id&&x.areaId===area.id&&x.active)})),message:area.name+' · Spielefreigaben'});
+  if(route==='members')return ok({items:people.map(p=>({id:p.id,name:p.name,label:(core.db.profileRequests?.some(x=>x.personId===p.id&&x.status==='open')?'🆘 Zugangshilfe · ':'')+p.name+' ('+p.id+')',active:core.db.memberships.some(m=>m.personId===p.id&&m.areaId===area.id&&m.active)})),message:area.name+' · Mitglieder'});
   if(route==='grant'||route==='membership'){
    if(typeof b.active!=='boolean')return fail(400,'Aktiver Zustand fehlt.');const isGame=route==='grant';
    if(isGame?!core.db.games.some(g=>g.id===b.id&&g.status==='published'):!people.some(p=>p.id===b.id))return fail(403,'Eintrag nicht verfügbar.');

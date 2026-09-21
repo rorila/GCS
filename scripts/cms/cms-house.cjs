@@ -14,6 +14,13 @@ function houseApi(core,s,route,b,commit){
   const id='room-'+crypto.randomUUID();commit(s,'room-create',house.id,next=>next.areas.push({id,name,type:'room',parentId:house.id,avatar:'🚪',active:true}));return ok({id,message:'Raum angelegt: '+name});
  }
  const people=core.db.people.filter(p=>p.active&&core.db.memberships.some(m=>m.personId===p.id&&rooms.some(r=>r.id===m.areaId)));
+ // Erwachsene mit Bezug zum Haus (Rollen im Haus oder bestätigte Elternschaft
+ // eines Haus-Kindes) — Kandidatenpool für Verwaltungsrollen. Kinder sind
+ // grundsätzlich keine Verwaltungskandidaten.
+ const adults=core.db.people.filter(p=>p.active&&p.kind!=='child'&&(
+  core.db.roles.some(r=>r.personId===p.id&&(r.areaId===house.id||rooms.some(rr=>rr.id===r.areaId)))||
+  core.db.guardians.some(g=>g.guardianId===p.id&&g.status==='confirmed'&&core.db.memberships.some(m=>m.personId===g.childId&&m.active&&rooms.some(r=>r.id===m.areaId)))));
+ const adultMark=p=>core.db.roles.some(r=>r.personId===p.id&&r.areaId===house.id&&r.role==='areaAdmin'&&r.active)?' · HouseAdmin':core.db.roles.some(r=>r.personId===p.id&&r.role==='areaAdmin'&&r.active&&rooms.some(rr=>rr.id===r.areaId))?' · Erzieher':core.db.roles.some(r=>r.personId===p.id&&r.role==='observer'&&r.active&&rooms.some(rr=>rr.id===r.areaId))?' · Beobachter':core.db.guardians.some(g=>g.guardianId===p.id&&g.status==='confirmed')?' · Elternteil':'';
  if(route==='house-people')return ok({items:people.map(p=>({id:p.id,label:p.name,name:p.name,active:true})),message:house.name+' · Personen'});
  // Eltern-Aufnahme (E02): HouseAdmin schlägt Guardian-Zuordnung vor und erzeugt
  // eine Einladung. Der Elternteil bestätigt durch Einrichtung seines Zugangs.
@@ -86,9 +93,9 @@ function houseApi(core,s,route,b,commit){
   if(core.db.codes.some(c=>c.areaId===house.id&&JSON.stringify(canonEmojiSeq(c.sequence))===JSON.stringify(sequence)))return fail(409,'Emoji-Folge im Haus bereits vergeben.');
   const id='person-'+crypto.randomUUID();commit(s,'person-create',room.id,next=>{next.people.push({id,name,avatar,kind:'child',active:true});next.memberships.push({personId:id,areaId:room.id,active:true});next.roles.push({personId:id,areaId:room.id,role:'player',active:true});next.codes.push({personId:id,areaId:house.id,sequence});});return ok({id,message:'Spielerprofil angelegt: '+name});
  }
- if(route==='room-admins')return ok({items:people.map(p=>({id:p.id,label:p.name,active:core.db.roles.some(r=>r.personId===p.id&&r.areaId===room.id&&r.role==='areaAdmin'&&r.active)})),message:house.name+' / '+room.name+' · RaumAdmins'});
+ if(route==='room-admins')return ok({items:adults.map(p=>({id:p.id,label:p.name+adultMark(p),name:p.name,active:core.db.roles.some(r=>r.personId===p.id&&r.areaId===room.id&&r.role==='areaAdmin'&&r.active)})),message:house.name+' / '+room.name+' · RaumAdmins'});
  if(route==='room-admin-set'){
-  if(typeof b.active!=='boolean'||b.confirm!==true)return fail(400,'Admin-Zuweisung ausdrücklich bestätigen.');if(!people.some(p=>p.id===b.personId))return fail(403,'Person nicht im Haus verfügbar.');
+  if(typeof b.active!=='boolean'||b.confirm!==true)return fail(400,'Admin-Zuweisung ausdrücklich bestätigen.');if(!adults.some(p=>p.id===b.personId))return fail(403,'Person ist diesem Haus nicht zugeordnet.');
   commit(s,'room-admin-set',room.id,next=>{let role=next.roles.find(r=>r.personId===b.personId&&r.areaId===room.id&&r.role==='areaAdmin');if(!role){role={personId:b.personId,areaId:room.id,role:'areaAdmin',active:false};next.roles.push(role);}role.active=b.active;});return ok({message:b.active?'RaumAdmin zugewiesen. Eigener Verwaltungszugang erforderlich.':'RaumAdmin-Zuständigkeit entzogen.'});
  }
  return fail(404,'Unbekannte Hausaktion.');

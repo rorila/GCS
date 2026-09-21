@@ -4,7 +4,7 @@ if(fs.existsSync(envPath))for(const line of fs.readFileSync(envPath,'utf8').spli
  const m=line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
  if(m&&!(m[1] in process.env))process.env[m[1]]=m[2].replace(/^["']|["']$/g,'');
 }
-const {createCore}=require('./cms-core.cjs');
+const {createCore,areaActive}=require('./cms-core.cjs');
 const {createJsonStore}=require('./cms-store.cjs');
 const {createAdmin}=require('./cms-admin.cjs');
 const {createTraceStore}=require('./cms-trace.cjs');
@@ -170,7 +170,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(body.confirm==='true')body.confirm=true;
     const result=admin.api(req,url.pathname.slice('/api/cms/admin/'.length),body);
     if(result.data.link)result.data.link=`http://${req.headers.host}${result.data.link}`;
-    if(result.data.items){const items=result.data.items;const page=Math.max(0,Math.min(Number.isInteger(Number(body.page))?Number(body.page):0,Math.max(0,Math.ceil(items.length/4)-1)));Object.assign(result.data,{page,pages:Math.ceil(items.length/4)},slots(items.slice(page*4,page*4+4).map(i=>({...i,label:(url.pathname.endsWith('/rooms')?'':i.active?'✓  ':'○  ')+i.label,visible:true,next:!i.active}))));delete result.data.items;}
+    if(result.data.items){const items=result.data.items;const page=Math.max(0,Math.min(Number.isInteger(Number(body.page))?Number(body.page):0,Math.max(0,Math.ceil(items.length/4)-1)));Object.assign(result.data,{page,pages:Math.ceil(items.length/4),total:items.length},slots(items.slice(page*4,page*4+4).map(i=>({...i,label:(url.pathname.endsWith('/rooms')?'':i.active?'✓  ':'○  ')+i.label,visible:true,next:!i.active}))));}
     return reply(res,result.status,result.data);
    }
    if(url.pathname==='/api/cms/login'){
@@ -201,6 +201,24 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(typeof body.op!=='string')return reply(res,400,{ok:false,message:'Aktion fehlt.'});
     const result=mp.api(ps,body.op,{...body,areaId:launch.areaId});
     return reply(res,result.status,result.data);
+   }
+   // Kontexte der aktuellen Anmeldung — steuert nur die Sichtbarkeit der
+   // Bereichsnavigation (kein Recht; Server prüft weiterhin jede Aktion).
+   // Liefert immer 200, damit Stages ohne Sitzung schlicht keine Zusatz-
+   // navigation anzeigen.
+   if(url.pathname==='/api/cms/contexts'){
+    const adminS=admin.readSession(req),accS=core.session(cookie(req,'cms_account'));
+    const personId=adminS?.personId||accS?.personId;
+    const person=personId&&core.db.people.find(p=>p.id===personId&&p.active);
+    const flags={admin:false,house:false,super:false,parent:false,observer:false};
+    if(person){
+     const role=(r,areaId)=>core.db.roles.some(x=>x.personId===personId&&x.role===r&&x.areaId===areaId&&x.active&&areaActive(core.db,x.areaId));
+     if(adminS){flags.super=role('superAdmin','root');flags.admin=flags.super||core.db.roles.some(r=>r.personId===personId&&r.role==='areaAdmin'&&r.active&&areaActive(core.db,r.areaId));flags.house=flags.super||core.db.roles.some(r=>r.personId===personId&&r.role==='areaAdmin'&&r.active&&core.db.areas.find(a=>a.id===r.areaId)?.type==='house'&&areaActive(core.db,r.areaId));}
+     flags.parent=!!accS&&core.childrenOf(personId).length>0;
+     flags.observer=!!accS&&core.db.roles.some(r=>r.personId===personId&&r.role==='observer'&&r.active&&areaActive(core.db,r.areaId));
+     flags.verwaltung=flags.admin||flags.house;
+    }
+    return reply(res,200,{ok:true,...flags,name:person?.name||''});
    }
    const session=core.session(body.token||cookie(req,'cms_account'));if(!session)return reply(res,401,{ok:false,message:'🔑 Bitte neu anmelden'});
    if(url.pathname.startsWith('/api/cms/profile/')){

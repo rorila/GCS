@@ -1,8 +1,8 @@
 {
-  "passed": 32,
+  "passed": 35,
   "checks": [
     "Ein Blueprint und keine vererbende Main-Stage",
-    "Zehn Oberflächen und sieben Server-Stages",
+    "Dreizehn Oberflächen und sieben Server-Stages",
     "Definitionen besitzen projektweit eindeutige IDs",
     "stage_blueprint: Feature-Eltern vorhanden",
     "stage_main: Feature-Eltern vorhanden",
@@ -22,6 +22,9 @@
     "stage_server_mp: Feature-Eltern vorhanden",
     "stage_parent: Feature-Eltern vorhanden",
     "stage_observer: Feature-Eltern vorhanden",
+    "stage_super_houses: Feature-Eltern vorhanden",
+    "stage_super_house: Feature-Eltern vorhanden",
+    "stage_super_admins: Feature-Eltern vorhanden",
     "Use Cases zeigen auf vorhandene Features",
     "Server-Konfiguration gezielt aus gemeinsamer Datei",
     "Editor-Gruppierung: alle Server-Stages in Gruppe \"Server\"",

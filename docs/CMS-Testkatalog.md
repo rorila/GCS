@@ -46,36 +46,40 @@
 
 ## 1 · SuperAdmin (`super`)
 
-### 1.1 Anmeldung
-- [ ] `/admin` → `super` + Passwort → landet **sofort** auf `stage_super` (SuperAdmin-Stage, kein Zwischenschritt)
-- [ ] Direkt-URL `/super` → SuperAdmin-Stage erscheint ebenfalls
+### 1.1 Anmeldung & Übersicht (Landingpage `stage_super`)
+- [ ] `/admin` → `super` + Passwort → landet **sofort** auf `stage_super` (Übersicht, kein Zwischenschritt)
+- [ ] Direkt-URL `/super` → Übersicht erscheint ebenfalls
 - [ ] Falsches Passwort → generische Fehlermeldung, keine Details
 - [ ] Nach 10 Fehlversuchen → Rate-Limit (429, „Bitte kurz warten")
+- [ ] **Sidebar links:** Einträge „Übersicht · Häuser · SuperAdmins · Meine Spiele · Anmeldung", aktiver Eintrag mit `▸` markiert — auf **allen** Super-Stages identisch
+- [ ] **Aufgabenkarten:** drei Karten (Häuser / SuperAdmins / Meine Spiele) führen in die jeweilige Unter-Stage
+- [ ] **Kennzahlen:** „Häuser: X aktiv von Y · SuperAdmins: Z"
 
-### 1.2 Häuser verwalten (CRUD) — **nur auf `/super` (stage_super), nicht auf der HouseAdmin-Stage**
-- [ ] **Listenansicht:** Hausliste + Feld „Hausname" + „Anlegen" — kein Personenblock, kein Speichern/An-Aus
-- [ ] **Anlegen:** Neues Haus „Haus Regenbogen" → erscheint in der Liste, **kein** Sprung in die Detailansicht
+### 1.2 Häuser verwalten (`stage_super_houses`)
+- [ ] **Tabelle:** Häuser als Zeilen mit Spalten *Haus · HouseAdmins · Personen · Räume · Aktiv* (Zusatzinfos direkt sichtbar)
+- [ ] **Karten ⇄ Tabelle:** „⇄ als Karten"-Button schaltet die Ansicht um — Karten zeigen dieselben Zusatzinfos; zurückschalten möglich
+- [ ] **Anlegen:** Feld „Hausname" + „Anlegen" → neues Haus erscheint als Tabellenzeile
 - [ ] **Doppelt:** gleichen Namen nochmal → Fehler „existiert bereits"
-- [ ] **Auswählen:** Haus anklicken → Detailansicht (HouseAdmin-Liste des Hauses); dort **kein** „Anlegen"-Button
-- [ ] **Ändern:** Haus umbenennen → Name übernommen
+- [ ] **Zeile anklicken** (oder Karte) → `stage_super_house` mit Kontextpfad „Plattform › Häuser › <Name>"
+
+### 1.3 Haus-Details & HouseAdmins (`stage_super_house`)
+- [ ] „← Häuser" (oder Sidebar) führt zurück zur Übersichtsliste — Hausauswahl bleibt während des Besuchs erhalten
+- [ ] **Ändern:** Haus umbenennen → Name übernommen (auch im Kontextpfad)
 - [ ] **Deaktivieren:** „Haus Mond" deaktivieren → HouseAdmin `admin.mond` kann sich **nicht** mehr anmelden; Kind Mia **nicht** mehr per Emoji einloggen
 - [ ] **Reaktivieren:** Haus Mond wieder aktivieren → beide Zugänge funktionieren wieder
+- [ ] **Spieler-Link:** Button erzeugt Einwahllink `/?house=…` für das Haus
+- [ ] **HouseAdmin-Tabelle:** Personen mit Spalten *Name · Zugang · Weitere Häuser · Admin*
+- [ ] Neue Person anlegen → erscheint in der Tabelle
+- [ ] Person in Tabelle wählen → „Einladen" erzeugt Einrichtungslink (24 h gültig); **zweites** Öffnen → „bereits verwendet"
+- [ ] Zuständigkeit: Zeile wählen → Bestätigungsbutton → zuweisen/entziehen; Entzug wirkt sofort (auch in laufender Sitzung)
 
-### 1.3 HouseAdmin einrichten (in der Detailansicht eines gewählten Hauses)
-- [ ] Neue Person anlegen (z. B. „Neue Hausleitung")
-- [ ] Einrichtungslink erzeugen → Link wird angezeigt (24 h gültig)
-- [ ] Link einmal öffnen → Einrichtung möglich; **zweites** Öffnen → „bereits verwendet"
-- [ ] Zuständigkeit zuweisen mit expliziter Bestätigung → Person sieht nur ihr Haus
-- [ ] Zuständigkeit ohne Bestätigung → wird abgelehnt
-- [ ] Zuständigkeit entziehen → Admin verliert Zugriff sofort (auch in laufender Sitzung)
-
-### 1.3a SuperAdmins verwalten (Tab „SuperAdmins")
-- [ ] Tab „SuperAdmins" → Liste aller Personen mit SuperAdmin-Markierung
-- [ ] Person anklicken + bestätigen → SuperAdmin-Rolle vergeben (plattformweit)
+### 1.4 SuperAdmins verwalten (`stage_super_admins`)
+- [ ] Tabelle aller Personen mit Spalten *Name · Zugang · SuperAdmin* (Kartenansicht umschaltbar)
+- [ ] Zeile wählen + bestätigen → SuperAdmin-Rolle vergeben (plattformweit)
 - [ ] Eigene SuperAdmin-Rolle entziehen → wird abgelehnt („eigene Rolle kann nicht entzogen werden")
 - [ ] SuperAdmin-Einladungslink für neue Person → Einrichtung → Login landet auf `stage_super`
 
-### 1.4 Spielekatalog
+### 1.5 Spielekatalog (`stage_library`, Sidebar ebenfalls vorhanden)
 - [ ] Spielliste zeigt alle 5 Spiele mit Status (published/draft/blocked)
 - [ ] Spiel „Unfertiges Spiel" ist `draft` → Kinder sehen es nicht
 
@@ -88,36 +92,39 @@
 ## 2 · HouseAdmin (`admin.sonne`)
 
 ### 2.1 Anmeldung & Bereich
-- [ ] `/admin` → `admin.sonne` → nur „Haus Sonne" wählbar, **kein** „Haus Mond"
-- [ ] Direkter Aufruf fremder Haus-ID → 403
+- [ ] `/admin` → `admin.sonne` → Erfolgsansicht → „Verwaltung öffnen" → landet auf der Raumverwaltung
+- [ ] Navigation „Haus" → Hausverwaltung; bei **einem** Haus wird dieses automatisch geöffnet (keine Zwischenwahl)
+- [ ] Hausliste lädt **automatisch** beim Öffnen der Stage — kein manueller „Laden"-Klick nötig
+- [ ] Fremdes Haus per Direktaufruf (manipulierte `houseId`) → 403
 
-### 2.2 Räume (CRUD)
-- [ ] **Anlegen:** Raum „Familienraum Test" → erscheint, aktiv
+### 2.2 Räume (Tab „Räume")
+- [ ] **Anlegen:** Raum „Familienraum Test" → erscheint in der Liste, aktiv
 - [ ] **Doppelt:** gleicher Name → abgelehnt
-- [ ] **Ändern:** umbenennen + deaktivieren → Status sichtbar
+- [ ] **Ändern:** Raum anklicken → umbenennen + deaktivieren → „Speichern"/„An-Aus" → Status sichtbar
 - [ ] Deaktivierter Raum: Kinder sehen ihn nicht in ihrer Raumliste; kein Spielstart
 - [ ] Reaktivieren → wieder sichtbar
 
-### 2.3 Kinder & Profile (CRUD)
-- [ ] Kinderliste zeigt nur Kinder des eigenen Hauses
-- [ ] Neues Profil anlegen → Emoji-Code vergeben → Kind kann sich anmelden
+### 2.3 Kinder & Profile
+- [ ] Tab „Räume" → Raum wählen → Formular „Neues Spielerprofil": Name, Avatar, 4 Bild-IDs → „Profil anlegen"
+- [ ] Tab „Kinder" → Liste zeigt nur Kinder des eigenen Hauses
 - [ ] **Doppelte Emoji-Folge** (z. B. Linas Code nochmal vergeben) → abgelehnt
-- [ ] Person deaktivieren → deren Login schlägt fehl
+- [ ] Kind kann sich nach dem Anlegen sofort per Emoji anmelden
 
 ### 2.4 Spielfreigaben
-- [ ] Snake für Spielraum aktivieren → Kind sieht es in der Liste
+- [ ] Raumverwaltung (`/admin`): Snake für Spielraum aktivieren → Kind sieht es in der Liste
 - [ ] Freigabe entziehen → Spielstart verweigert, auch **in laufender Sitzung**
 
 ### 2.5 Eltern-Einladung + Zweitbestätigung
-- [ ] Tab „Eltern" → Kind wählen (z. B. Emil) → „Einladen" → Link erscheint
-- [ ] Neue Zuordnung steht als `ausstehend` in der Liste
+- [ ] Tab „Kinder" → Kind wählen (z. B. Emil) → Elternname eingeben → „Elternteil einladen" → Link erscheint
+- [ ] Tab „Eltern" → neue Zuordnung steht als `ausstehend` in der Liste
 - [ ] **Selbstbestätigung verboten:** die Person, die eingeladen hat, kann nicht selbst bestätigen → 409
 - [ ] Zweiter HouseAdmin (`admin.paul`) bestätigt die Zuordnung → Status `bestätigt`
 - [ ] **Erst danach** sieht der Elternteil das Kind
 
-### 2.6 Beobachter einladen
-- [ ] Tab „Beobachter" → Raum wählen + Name → Einladungslink
-- [ ] Beobachter-Einladung ist **raumgebunden** (kein Haus-Zugriff)
+### 2.6 Beobachter einladen + Zuständigkeiten (Tab „Zuständigkeiten")
+- [ ] Raum wählen (Tab „Räume") → Tab „Zuständigkeiten" → RaumAdmin-Liste des Raums (nur Erwachsene mit Hausbezug, Kinder tauchen nicht auf)
+- [ ] Beobachter: Name eingeben → „Beobachter einladen" → Einladungslink (**raumgebunden**, kein Haus-Zugriff)
+- [ ] RaumAdmin anklicken + bestätigen → Zuständigkeit vergeben/entzogen; wirkt sofort
 
 ### 2.7 Abgrenzung
 - [ ] HouseAdmin sieht keine Kinder anderer Häuser
@@ -127,10 +134,12 @@
 
 ## 3 · Erzieher / RaumAdmin (`erzieher.tobias`)
 
-- [ ] `/admin` → Login → nur „Spielraum" Sonne sichtbar (nicht Lernraum, nicht Mond)
+- [ ] `/admin` → Login → „Verwaltung öffnen" → Raumliste lädt automatisch; bei **einem** Raum wird dieser direkt geöffnet
+- [ ] Nur „Spielraum" Sonne sichtbar (nicht Lernraum, nicht Mond)
 - [ ] Spielfreigaben im eigenen Raum ändern → wirkt sofort
-- [ ] **Kein** Zugriff auf Hausverwaltung (Räume anlegen, Eltern einladen → verweigert)
+- [ ] **Kein** Zugriff auf Hausverwaltung (Räume anlegen, Eltern einladen → verweigert; Nav-Button „Haus" ausgeblendet)
 - [ ] **Keine** Delegation möglich (kann keine weiteren Admins ernennen)
+- [ ] Emoji-Code-Werkzeuge nur mit Hausrecht sichtbar (Tobias sieht sie nicht)
 - [ ] Raumsicherung speichern → nach Freigabe-Änderung „wiederherstellen" → alte Freigaben zurück
 - [ ] Entzug der RaumAdmin-Rolle (durch HouseAdmin) → Tobias verliert Zugriff sofort
 
@@ -140,7 +149,8 @@
 
 ### 4.1 Gemeinsamer Erwachsenen-Login
 - [ ] `/admin` → `eltern.petra` → **kein** Verwaltungszugang, aber Kontext-Button „Meine Kinder"
-- [ ] `admin.paul` → bekommt **beide** Kontexte („Haus verwalten" + „Meine Kinder") — sichtbarer Wechsel
+- [ ] Kinderliste lädt **automatisch** beim Öffnen — kein „Laden"-Klick nötig
+- [ ] `admin.paul` → bekommt **beide** Kontexte („Haus verwalten" + „Meine Kinder") — sichtbarer Wechsel; in der Elternansicht sind Verwaltungs-Nav-Buttons sichtbar, bei `eltern.petra` nicht
 - [ ] `beobachter.olga` → Kontext „Beobachtung"
 - [ ] `kontakt.rita` → Login ok, aber Kinderliste leer (widerrufene Beziehung)
 
@@ -182,7 +192,8 @@
 - [ ] Ticket zweimal nutzen → „bereits verwendet"
 
 ### 5.2 Sicht (nur Aggregate)
-- [ ] `beobachter.olga` → „Beobachtung" → Zahlen pro Raum: verbunden/spielend/pausiert/getrennt
+- [ ] `beobachter.olga` → „Beobachtung" → Aggregatliste lädt **automatisch** beim Öffnen
+- [ ] Zahlen pro Raum: verbunden/spielend/pausiert/getrennt
 - [ ] **Keine** Namen, keine Einzelkinder, keine Bewertungen
 - [ ] Direktaufruf Eltern-Endpunkt → 403
 
