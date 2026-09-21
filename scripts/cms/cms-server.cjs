@@ -116,16 +116,20 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const launch=launches.get(url.pathname.slice(6)),session=launch&&core.session(launch.token),game=launch&&core.db.games.find(g=>g.id===launch.gameId);
     if(!launch||!session||!core.can(session,'play',{game,areaId:launch.areaId}))return reply(res,403,{error:'Spiel nicht freigegeben'});
     // Erste Ausbaustufe: nur die zwei geprüften lokalen Lernprojekte; keine freien Uploads.
-    const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json'},uploaded=uploads.game(game);if(!uploaded&&(!allowed[game.id]||allowed[game.id]!==game.file))return reply(res,403,{error:'Projekt nicht zugelassen'});
+    const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json','game-mp':'ZahlenDuell.json'},uploaded=uploads.game(game);if(!uploaded&&(!allowed[game.id]||allowed[game.id]!==game.file))return reply(res,403,{error:'Projekt nicht zugelassen'});
     if(uploaded)res.setHeader('Content-Security-Policy',"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'");
     const project=JSON.parse(fs.readFileSync(uploaded||path.join(root,'game-server/public/projects',allowed[game.id]),'utf8'));
+    const launchKey=url.pathname.slice(6);
+    // Spiele erhalten ihren Launch-Schluessel als Projektvariable CMS_LAUNCH —
+    // so koennen sie deklarative http-Actions gegen /api/cms/play und
+    // /api/cms/party richten, ohne das Sitzungstoken zu kennen (E08).
+    for(const st of project.stages||[])for(const v of st.variables||[])if(v.name==='CMS_LAUNCH')v.value=launchKey;
     const encoded=JSON.stringify(project).replace(/</g,'\\u003c');res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
     // Zeitbuchung nach E06: die Seite meldet alle 30s einen Heartbeat mit ihrem
     // Launch-Schlüssel (begrenzte Berechtigung, kein Spieler-Token nötig).
     // window.CMS.report() erlaubt Spielen optionale Bewertungsmeldungen (E07).
     // Hinweis: hochgeladene Spiele laufen sandboxed mit connect-src 'none' —
     // Heartbeats gelten nur für geprüfte Referenzspiele.
-    const launchKey=url.pathname.slice(6);
     const heart='<script>(function(){var K='+JSON.stringify(launchKey)+',overlay=null;'
      +'function note(t,c){if(!overlay){overlay=document.createElement("div");overlay.style.cssText="position:fixed;inset:0;background:rgba(8,21,27,.92);color:#edf7f4;display:flex;align-items:center;justify-content:center;font:28px Segoe UI;z-index:99999;text-align:center";document.body.appendChild(overlay)}overlay.textContent=t;overlay.style.color=c||"#edf7f4"}'
      +'function send(a,x){return fetch("/api/cms/play",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({launchKey:K,action:a},x||{}))}).then(function(r){return r.json()}).catch(function(){return{ok:false}})}'
@@ -178,6 +182,26 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     res.once('finish',()=>emit('Response gesendet',{status:200,headers:{'Content-Type':'application/json; charset=utf-8','X-GCS-Trace-ID':trace?.id},body:result}));
     return reply(res,200,result);
    }
+   // Sitzungssteuerung aus der /play-Seite: Der Launch-Schlüssel ist die
+   // begrenzte Berechtigung (E08) — die Seite kennt kein Spieler-Token.
+   // Diese Endpunkte stehen bewusst VOR dem allgemeinen Sitzungscheck.
+   if(url.pathname==='/api/cms/play'){
+    const launch=launches.get(body.launchKey);const ps=launch&&core.session(launch.token);
+    if(!launch||!ps)return reply(res,401,{ok:false,message:'Spielsitzung abgelaufen.'});
+    if(typeof body.action!=='string')return reply(res,400,{ok:false,message:'Aktion fehlt.'});
+    const result=play.api(ps,body.action,{...body,playSessionId:launch.playSessionId});
+    if(result.status===200&&result.data.status==='ended')launches.delete(body.launchKey);
+    return reply(res,result.status,result.data);
+   }
+   // Mehrspieler aus dem Spiel heraus (P4.5): areaId kommt aus dem
+   // Launch-Grant, nie vom Client.
+   if(url.pathname==='/api/cms/party'){
+    const launch=launches.get(body.launchKey);const ps=launch&&core.session(launch.token);
+    if(!launch||!ps)return reply(res,401,{ok:false,message:'Spielsitzung abgelaufen.'});
+    if(typeof body.op!=='string')return reply(res,400,{ok:false,message:'Aktion fehlt.'});
+    const result=mp.api(ps,body.op,{...body,areaId:launch.areaId});
+    return reply(res,result.status,result.data);
+   }
    const session=core.session(body.token||cookie(req,'cms_account'));if(!session)return reply(res,401,{ok:false,message:'🔑 Bitte neu anmelden'});
    if(url.pathname.startsWith('/api/cms/profile/')){
     const trace=traces.begin(req,true);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
@@ -203,16 +227,6 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     for(const [key,l]of launches)if(!core.session(l.token))launches.delete(key);const key=crypto.randomBytes(24).toString('hex');
     launches.set(key,{token:body.token,gameId:body.gameId,areaId:body.areaId,playSessionId:started.data.playSessionId});
     return reply(res,200,{ok:true,launch:'/play/'+key,...started.data,message:'▶'});
-   }
-   // Sitzungssteuerung aus der /play-Seite: Der Launch-Schlüssel ist die
-   // begrenzte Berechtigung (E08) — die Seite kennt kein Spieler-Token.
-   if(url.pathname==='/api/cms/play'){
-    const launch=launches.get(body.launchKey);const ps=launch&&core.session(launch.token);
-    if(!launch||!ps)return reply(res,401,{ok:false,message:'Spielsitzung abgelaufen.'});
-    if(typeof body.action!=='string')return reply(res,400,{ok:false,message:'Aktion fehlt.'});
-    const result=play.api(ps,body.action,{...body,playSessionId:launch.playSessionId});
-    if(result.status===200&&result.data.status==='ended')launches.delete(body.launchKey);
-    return reply(res,result.status,result.data);
    }
    return reply(res,404,{ok:false,message:'Funktion noch nicht verfügbar'});
   }catch(error){console.error('[CMS]',error.message);if(!res.headersSent)reply(res,500,{ok:false,message:'⚠ Bitte erneut versuchen'});else res.end();}

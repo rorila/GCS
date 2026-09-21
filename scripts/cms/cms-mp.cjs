@@ -48,6 +48,15 @@ function createMp(core, store, play, cmsFile, stageId = 'stage_server_mp') {
 
   const houseOf = areaId => db.areas.find(a => a.id === db.areas.find(r => r.id === areaId)?.parentId)?.id;
 
+  // Beitritt aus einer laufenden Spielsitzung heraus (Lobby im Spiel):
+  // die vorhandene Session fuer dasselbe Spiel wird wiederverwendet,
+  // sonst startet die normale Sitzungslogik (Budget, Einzelsitzung).
+  const ensureSession = (session, gameId, areaId) => {
+    const live = db.playSessions.find(s => s.childId === session.personId && s.gameId === gameId && s.areaId === areaId && ['active', 'paused'].includes(s.status));
+    if (live) return { status: 200, data: { ok: true, playSessionId: live.id } };
+    return play.api(session, 'start', { gameId, areaId });
+  };
+
   function api(session, route, b) {
     // Offene Partien des Raums — nur für eigene Räume sichtbar.
     if (route === 'list') {
@@ -62,7 +71,7 @@ function createMp(core, store, play, cmsFile, stageId = 'stage_server_mp') {
       if (!game?.multiplayer) return fail(400, 'Dieses Spiel ist nicht für mehrere gedacht.');
       if (!core.can(session, 'play', { game, areaId: b.areaId })) return fail(403, 'Spiel nicht freigegeben.');
       if (db.parties.some(p => p.status !== 'ended' && p.members.some(m => m.personId === session.personId && !m.leftAt))) return fail(409, 'Du bist bereits in einer Partie.');
-      const started = play.api(session, 'start', { gameId: game.id, areaId: b.areaId });
+      const started = ensureSession(session, game.id, b.areaId);
       if (!started.data.ok) return { status: started.status, data: started.data };
       const id = 'party-' + crypto.randomUUID();
       store.commit(db, { actor: session.personId, action: 'party-create', areaId: b.areaId }, next => {
@@ -87,7 +96,7 @@ function createMp(core, store, play, cmsFile, stageId = 'stage_server_mp') {
       if (!core.can(session, 'play', { game, areaId: p.areaId })) return fail(403, 'Kein Zutritt zu dieser Partie.');
       const max = game.multiplayer?.maxPlayers;
       if (max && activeMembers(p).length >= max) return fail(409, 'Partie ist voll.');
-      const started = play.api(session, 'start', { gameId: p.gameId, areaId: p.areaId });
+      const started = ensureSession(session, p.gameId, p.areaId);
       if (!started.data.ok) return { status: started.status, data: started.data };
       store.commit(db, { actor: session.personId, action: 'party-join', areaId: p.areaId }, next => {
         next.parties.find(x => x.id === p.id).members.push({ personId: session.personId, playSessionId: started.data.playSessionId, joinedAt: new Date().toISOString() });
@@ -110,9 +119,14 @@ function createMp(core, store, play, cmsFile, stageId = 'stage_server_mp') {
 
     if (route === 'state') {
       const since = Number(b.since) || 0;
+      const members = activeMembers(p).map(m => ({ ...memberCard(m), host: m.personId === p.hostId }));
       return ok({
         status: p.status,
-        members: activeMembers(p).map(m => ({ ...memberCard(m), host: m.personId === p.hostId })),
+        members,
+        // Flache Ableitungen fuer deklarative Clients (kein JSON-Pfad ins Array noetig).
+        memberCount: members.length,
+        memberNames: members.map(m => m.name).join(', '),
+        youAreHost: session.personId === p.hostId,
         actions: p.actions.filter(a => a.seq > since),
         lastSeq: p.actions.length ? p.actions[p.actions.length - 1].seq : 0,
       });

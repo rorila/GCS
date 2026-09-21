@@ -190,6 +190,60 @@ await check('partie voll: maxPlayers wird erzwungen', () => {
   api(sess('child-tom'), 'leave', { partyId: p3.data.partyId });
 });
 
+// ── E2E über den echten HTTP-Server (P4.5): zwei „Geräte", Launch→Party. ──
+await check('e2e: zwei Kinder synchronisieren über Launch-Party-Endpunkt', async () => {
+  const { createServer } = require('./cms/cms-server.cjs');
+  const dir2 = fs.mkdtempSync(path.join(os.tmpdir(), 'cms-mp-e2e-'));
+  const dp2 = path.join(dir2, 'cms.json');
+  const seed = buildDb();
+  // Aktive Seed-Sitzungen beenden, damit der Launch eine neue Sitzung startet.
+  for (const s of seed.playSessions) if (['active', 'paused'].includes(s.status)) { s.status = 'ended'; s.endedAt = new Date().toISOString(); }
+  fs.writeFileSync(dp2, JSON.stringify(seed));
+  const app = createServer({ dataPath: dp2 });
+  try {
+    await new Promise(r => app.server.listen(15199, '127.0.0.1', r));
+    const base = 'http://127.0.0.1:15199';
+    const post = async (route, body = {}) => {
+      const r = await fetch(base + '/api/cms/' + route, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify(body) });
+      return { status: r.status, data: await r.json() };
+    };
+    // Zwei Kinder melden sich per Emoji-Code an (zwei „Geräte").
+    const tom = (await post('login', { areaId: 'house-sun', sequence: ['owl', 'flower', 'pig', 'elephant'] })).data;
+    const lina = (await post('login', { areaId: 'house-sun', sequence: ['dog', 'cat', 'tree', 'house'] })).data;
+    assert.ok(tom.token && lina.token, 'beide angemeldet');
+    // Beide starten das Mehrspieler-Spiel — je eine eigene Spielsitzung.
+    const launchTom = (await post('launch', { token: tom.token, gameId: 'game-mp', areaId: 'room-sun-play' })).data;
+    const launchLina = (await post('launch', { token: lina.token, gameId: 'game-mp', areaId: 'room-sun-play' })).data;
+    assert.ok(launchTom.launch && launchLina.launch, 'beide Launch-Links');
+    const keyTom = launchTom.launch.slice(6), keyLina = launchLina.launch.slice(6);
+    // Tom erstellt die Partie aus dem Spiel heraus (Session wird wiederverwendet).
+    const created = await post('party', { launchKey: keyTom, op: 'create', gameId: 'game-mp' });
+    assert.strictEqual(created.status, 200, 'create via launchKey');
+    const pid = created.data.partyId;
+    // Lina sieht die offene Partie und tritt bei.
+    const listed = await post('party', { launchKey: keyLina, op: 'list' });
+    assert.ok(listed.data.items.some(i => i.id === pid), 'Partie sichtbar');
+    assert.strictEqual((await post('party', { launchKey: keyLina, op: 'join', partyId: pid })).status, 200, 'join via launchKey');
+    // Tom startet; beide lesen denselben Stand.
+    assert.strictEqual((await post('party', { launchKey: keyTom, op: 'begin', partyId: pid })).status, 200);
+    const st1 = await post('party', { launchKey: keyLina, op: 'state', partyId: pid, since: 0 });
+    assert.strictEqual(st1.data.memberCount, 2);
+    assert.strictEqual(st1.data.youAreHost, false, 'lina ist nicht Host');
+    // Aufgabe vom Host, Antwort vom Gast — beide sehen beide Züge.
+    await post('party', { launchKey: keyTom, op: 'action', partyId: pid, payload: { zug: 'aufgabe', a: 3, b: 4 } });
+    await post('party', { launchKey: keyLina, op: 'action', partyId: pid, payload: { zug: 'antwort', ok: true } });
+    const st2 = await post('party', { launchKey: keyTom, op: 'state', partyId: pid, since: 1 });
+    assert.strictEqual(st2.data.actions.length, 1, 'nur Delta seit seq=1');
+    assert.strictEqual(st2.data.actions[0].payload.zug, 'antwort');
+    // Fremder Launch-Key bekommt nichts; fremdes Haus kommt nicht rein.
+    assert.strictEqual((await post('party', { launchKey: 'x'.repeat(48), op: 'state', partyId: pid })).status, 401, 'ungültiger Key → 401');
+    assert.strictEqual((await post('party', { launchKey: keyTom, op: 'action', partyId: 'party-fremd', payload: {} })).status, 404, 'fremde Partie → 404');
+    await post('party', { launchKey: keyTom, op: 'end', partyId: pid });
+  } finally {
+    await new Promise(r => app.server.close(r));
+  }
+});
+
 const failed = results.filter(r => r[0] === 'FEHLER');
 for (const [s, n] of results) console.log(s.padEnd(7), n);
 console.log(`\n${results.length - failed.length}/${results.length} bestanden`);

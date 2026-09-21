@@ -98,7 +98,7 @@ const db = {
   games: [
     { id: 'game-snake', title: 'Snake', avatar: '🐍', ownerId: 'super-admin', status: 'published', file: 'Snake-Lernprojekt.json', ratings: false },
     { id: 'game-math', title: 'Mathe-Abenteuer', avatar: '🧮', ownerId: 'super-admin', status: 'published', file: 'Kopfrechnen.json', ratings: true, metrics: ['tasks_done', 'tasks_correct', 'hints_used', 'round_complete'] },
-    { id: 'game-mp', title: 'Zahlen-Duell (Multiplayer)', avatar: '⚔️', ownerId: 'super-admin', status: 'published', file: 'Kopfrechnen.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' } },
+    { id: 'game-mp', title: 'Zahlen-Duell (Multiplayer)', avatar: '⚔️', ownerId: 'super-admin', status: 'published', file: 'ZahlenDuell.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' } },
     { id: 'game-draft', title: 'Unfertiges Spiel', avatar: '🚧', ownerId: 'super-admin', status: 'draft', file: 'Tetris.json' },
     { id: 'game-blocked', title: 'Gesperrtes Spiel', avatar: '⛔', ownerId: 'super-admin', status: 'blocked', file: 'Tetris.json' },
   ],

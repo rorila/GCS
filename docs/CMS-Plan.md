@@ -623,7 +623,7 @@ Voraussetzung: geschützte Spielsitzungen, Versionen und vertrauenswürdige Ver�
 - P4.2: Uploadprüfung, Medienbibliothek und Paketimport/-export schrittweise ergänzen.
 - P4.3: Gruppen, Lobby-Beitritt, Synchronisation, Reconnect und Ende einer Partie umsetzen. — **umgesetzt**: `TServerParty` (`cms-mp.cjs`, `stage_server_mp`), Schema v3 mit `parties`-Collection, Polling-Synchronisation über sequenzierten Aktionslog.
 - P4.4: Zeitlimits und Abbruchregeln mit mehreren Teilnehmern integrieren. — **umgesetzt**: jedes Mitglied spielt über eine eigene `TServerPlaySession`; Budget/Grace gelten pro Kind; `state` meldet Verbindungsstatus aller Mitglieder.
-- P4.5: Ein kooperatives Mathe-Referenzspiel über unterschiedliche Geräte prüfen. — offen.
+- P4.5: Ein kooperatives Mathe-Referenzspiel über unterschiedliche Geräte prüfen. — **umgesetzt**: `ZahlenDuell.json` (kooperatives Kopfrechnen, Team-Punktzahl, Gastgeber sendet Aufgaben über den Aktionslog); Synchronisation über `/api/cms/party` mit Launch-Schlüssel statt Spieler-Token; E2E-Nachweis mit zwei Sitzungen in `test-cms-mp.cjs`.
 
 **Abnahme:** Keine hausfremden Teilnehmer; gleiche freigegebene Spielversion;
 plausibles Verhalten bei Verbindungsabbruch, Versionsrücknahme und Zeitlimit.
