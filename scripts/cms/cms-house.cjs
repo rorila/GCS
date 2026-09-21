@@ -1,7 +1,7 @@
 const crypto=require('node:crypto');
 const {within,areaActive,canonEmojiSeq,EMOJI_IDS}=require('./cms-core.cjs');
 function houseApi(core,s,route,b,commit){
- const routes=['houses','house-rooms','room-create','room-update','person-create','house-people','room-admins','room-admin-set'];if(!routes.includes(route))return null;
+ const routes=['houses','house-rooms','room-create','room-update','person-create','house-people','room-admins','room-admin-set','parent-invite','guardian-approve'];if(!routes.includes(route))return null;
  const ok=data=>({status:200,data:{ok:true,...data}}),fail=(status,message)=>({status,data:{ok:false,message}});
  const houses=core.db.areas.filter(a=>a.type==='house'&&areaActive(core.db,a.id)&&core.can(s,'manageArea',{areaId:a.id}));
  if(route==='houses')return ok({items:houses.map(h=>({id:h.id,label:h.name,name:h.name,active:true})),message:'Hausverwaltung · eigenes Haus wählen'});
@@ -15,6 +15,37 @@ function houseApi(core,s,route,b,commit){
  }
  const people=core.db.people.filter(p=>p.active&&core.db.memberships.some(m=>m.personId===p.id&&rooms.some(r=>r.id===m.areaId)));
  if(route==='house-people')return ok({items:people.map(p=>({id:p.id,label:p.name,name:p.name,active:true})),message:house.name+' · Personen'});
+ // Eltern-Aufnahme (E02): HouseAdmin schlägt Guardian-Zuordnung vor und erzeugt
+ // eine Einladung. Der Elternteil bestätigt durch Einrichtung seines Zugangs.
+ // Selbsteinladung bleibt bis zur Bestätigung durch einen anderen Verantwortlichen 'pending'.
+ if(route==='parent-invite'){
+  const name=clean(b.name),childId=typeof b.childId==='string'?b.childId:null;
+  if(!name||!childId)return fail(400,'Name des Elternteils und Kind angeben.');
+  const child=core.db.people.find(p=>p.id===childId&&p.active&&p.kind==='child'&&core.db.memberships.some(m=>m.personId===childId&&m.active&&rooms.some(r=>r.id===m.areaId)));
+  if(!child)return fail(403,'Kind gehört nicht zu diesem Haus.');
+  let personId=typeof b.personId==='string'?b.personId:null;
+  if(personId&&!core.db.people.some(p=>p.id===personId&&p.active))return fail(404,'Person nicht gefunden.');
+  if(!personId){personId='person-'+crypto.randomUUID();commit(s,'parent-create',house.id,next=>next.people.push({id:personId,name,avatar:'👤',kind:'adult',active:true}));}
+  if(core.db.guardians.some(g=>g.childId===childId&&g.guardianId===personId&&g.status==='confirmed'))return fail(409,'Zuordnung ist bereits bestätigt.');
+  const token=crypto.randomBytes(32).toString('hex'),pid=personId;
+  commit(s,'parent-invite',house.id,next=>{
+   let g=next.guardians.find(g=>g.childId===childId&&g.guardianId===pid);
+   if(!g){g={childId,guardianId:pid,status:'pending',createdAt:new Date().toISOString(),confirmedBy:null,revokedAt:null};next.guardians.push(g);}else{g.status='pending';g.revokedAt=null;}
+   next.invites=next.invites.filter(i=>!(i.purpose==='parent'&&i.personId===pid&&i.childId===childId));
+   next.invites.push({id:'invite-'+crypto.randomUUID(),personId:pid,childId,houseId:house.id,purpose:'parent',issuer:s.personId,hash:crypto.createHash('sha256').update(token).digest('hex'),expires:Date.now()+86400000});
+  });
+  return ok({link:'/parent-enroll?ticket='+token,message:personId===s.personId?'Selbstzuordnung vorgemerkt — Bestätigung durch einen zweiten Verantwortlichen erforderlich.':'Einladung erstellt; 24 Stunden gültig, einmal verwendbar.'});
+ }
+ // Zweite Bestätigung bei Selbstzuordnung (E02): der Bestätigende darf nicht
+ // der Aussteller der Zuordnung sein und muss selbst Hauszuständigkeit haben.
+ if(route==='guardian-approve'){
+  const g=core.db.guardians.find(g=>g.childId===b.childId&&g.guardianId===b.guardianId&&g.status==='pending');
+  if(!g)return fail(404,'Keine ausstehende Zuordnung.');
+  if(!core.db.memberships.some(m=>m.personId===b.childId&&m.active&&rooms.some(r=>r.id===m.areaId)))return fail(403,'Kind gehört nicht zu diesem Haus.');
+  if(b.guardianId===s.personId)return fail(409,'Eigene Zuordnung kann nicht selbst bestätigt werden.');
+  commit(s,'guardian-approve',house.id,next=>{const ng=next.guardians.find(x=>x.childId===b.childId&&x.guardianId===b.guardianId);ng.status='confirmed';ng.confirmedBy=s.personId;ng.confirmedAt=new Date().toISOString();});
+  return ok({message:'Eltern-Kind-Zuordnung bestätigt.'});
+ }
  const room=rooms.find(r=>r.id===b.areaId);if(!room)return fail(403,'Raum gehört nicht zu diesem Haus.');
  if(route==='room-update'){
   const name=clean(b.name);if(!name||typeof b.active!=='boolean')return fail(400,'Name und aktiven Zustand angeben.');if(rooms.some(r=>r.id!==room.id&&r.name.toLocaleLowerCase()===name.toLocaleLowerCase()))return fail(409,'Raumname bereits vergeben.');

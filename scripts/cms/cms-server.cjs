@@ -12,6 +12,7 @@ const {loadLoginWorkflow}=require('./cms-login-workflow.cjs');
 const {loadAdminWorkflow}=require('./cms-admin-workflow.cjs');
 const {createProfile}=require('./cms-profile.cjs');
 const {createUploads}=require('./cms-uploads.cjs');
+const {createParent,enrollParent}=require('./cms-parent.cjs');
 const root=path.resolve(__dirname,'../..');
 const {renderCms}=require('./cms-project.cjs');
 const cmsFile=path.join(root,'game-server/public/projects/GCS-CMS.json');
@@ -23,6 +24,9 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  const loginPage=()=>renderCms(cmsFile,'stage_admin_login');
  const profile=createProfile(core,store,cmsFile,'stage_server_profile');
  const uploads=createUploads(core,admin,store,cmsFile,'stage_server_uploads');
+ const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json');
+ const commit=(s,action,areaId,change)=>store.commit(core.db,{actor:s.personId,action,areaId},change);
+ const parent=createParent(core,credentialPath,store);parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
  const reply=(res,code,data)=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  const server=http.createServer(async(req,res)=>{
@@ -48,6 +52,17 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    if(req.method==='GET'&&['/admin','/house','/super'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
     return res.end(admin.readSession(req)?renderCms(cmsFile,{'/super':'stage_super','/house':'stage_house','/admin':'stage_admin'}[url.pathname]):loginPage());
+   }
+   if(url.pathname==='/parent-enroll'&&['GET','POST'].includes(req.method)){
+    res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
+    if(req.method==='POST'){
+     if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
+     let raw='';for await(const c of req){raw+=c;if(raw.length>2048)return reply(res,413,{error:'Zu groß'});}
+     const result=parent.enroll(Object.fromEntries(new URLSearchParams(raw)));
+     res.statusCode=result.ok?200:400;return res.end('<!doctype html><meta charset="utf-8"><p>'+result.message+'</p><a href="/">Zum CMS</a>');
+    }
+    const ticket=url.searchParams.get('ticket')||'';if(!/^[a-f0-9]{64}$/.test(ticket)){res.statusCode=400;return res.end('Ungültiger Einladungslink.');}
+    return res.end('<!doctype html><html lang="de"><meta charset="utf-8"><title>Elternzugang einrichten</title><style>body{background:#122b39;color:white;font:20px Segoe UI;max-width:540px;margin:10vh auto}input,button{display:block;width:100%;padding:14px;margin:12px 0;box-sizing:border-box;font:inherit}</style><h1>Elternzugang einrichten</h1><form method="post" action="/parent-enroll"><input type="hidden" name="ticket" value="'+ticket+'"><label>Benutzername<input name="username" required pattern="[a-zA-Z0-9_-]{3,40}" autocomplete="username"></label><label>Passwort (mindestens 12 Zeichen)<input name="password" type="password" minlength="12" maxlength="200" required autocomplete="new-password"></label><button>Zugang anlegen</button></form></html>');
    }
    if(url.pathname==='/admin-enroll'&&['GET','POST'].includes(req.method)){
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
@@ -94,6 +109,12 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     res.once('finish',()=>emit('Response gesendet',{status:200,headers:res.getHeaders(),body:result.data}));
     return reply(res,200,result.data);
    }
+   if(url.pathname==='/api/cms/account-login'){
+    if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
+    const result=await parent.login(req,body);
+    if(result.error)return reply(res,401,{ok:false,message:result.error});
+    return reply(res,200,{ok:true,token:result.token});
+   }
    if(url.pathname==='/api/cms/upload-library')return reply(res,200,uploads.library(req,body));
    if(url.pathname.startsWith('/api/cms/admin/')){
     if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{ok:false,message:'Ungültiger Anfrageursprung.'});
@@ -119,6 +140,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,body});
     const result=profile(session,url.pathname.slice('/api/cms/profile/'.length),body,emit);emit('Response senden',{status:200,body:result});return reply(res,200,result);
    }
+   if(url.pathname.startsWith('/api/cms/parent/')){const result=parent.api(session,url.pathname.slice('/api/cms/parent/'.length),body);return reply(res,result.status,result.data);}
    if(url.pathname==='/api/cms/logout'){core.logout(body.token);for(const [key,l]of launches)if(l.token===body.token)launches.delete(key);return reply(res,200,{ok:true});}
    if(url.pathname==='/api/cms/rooms'){
     const list=core.rooms(session.personId),page=Math.max(0,Math.min(Number.isInteger(Number(body.page))?Number(body.page):0,Math.max(0,Math.ceil(list.length/4)-1)));

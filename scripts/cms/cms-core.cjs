@@ -38,6 +38,8 @@ function can(db,session,action,{areaId,game,childId}={}){
  if(action==='play')return game?.status==='published'&&rooms(db,session.personId).some(r=>r.id===areaId)&&db.grants.some(g=>g.gameId===game.id&&g.areaId===areaId&&g.active);
  // Elternsicht: nur über bestätigte Beziehung, unabhängig von assurance/ Rolle.
  if(action==='viewChild'||action==='viewProgress')return childrenOf(db,session.personId).includes(childId);
+ // Beobachter: eigene Rolle auf Raum/Haus, kein Admin-Zugang nötig (E01).
+ if(action==='observe')return db.roles.some(r=>r.personId===session.personId&&r.role==='observer'&&r.active&&areaActive(db,r.areaId)&&within(db,areaId,r.areaId));
  if(session.assurance!=='admin')return false;
  const roles=db.roles.filter(r=>r.personId===session.personId&&r.active&&areaActive(db,r.areaId));
  if(action==='moderate')return roles.some(r=>r.role==='oversight'&&r.areaId==='root');
@@ -48,6 +50,9 @@ function can(db,session,action,{areaId,game,childId}={}){
 function createCore(db){validate(db);const sessions=new Map();
  function login(areaId,sequence,onStep=()=>{}){const wanted=JSON.stringify(canonEmojiSeq(sequence));const c=db.codes.find(c=>c.areaId===areaId&&JSON.stringify(canonEmojiSeq(c.sequence))===wanted);onStep('Zugangsdaten zuordnen',{output:{matched:!!c}});if(!c)return null;const personActive=active(db,c.personId),houseActive=areaActive(db,areaId);onStep('Person und Bereich prüfen',{output:{personActive,houseActive}});if(!personActive||!houseActive)return null;const token=crypto.randomBytes(32).toString('hex');sessions.set(token,{personId:c.personId,assurance:'profile',expires:Date.now()+3600000});onStep('Spielersitzung erstellen',{output:{personId:c.personId,assurance:'profile',validSeconds:3600}});return {token,person:db.people.find(p=>p.id===c.personId)};}
  function session(token){const s=sessions.get(token);if(!s||s.expires<=Date.now()||!active(db,s.personId)){sessions.delete(token);return null;}return s;}
- return {db,login,session,logout:token=>sessions.delete(token),dropPerson:id=>{for(const [t,s]of sessions)if(s.personId===id)sessions.delete(t);},rooms:id=>rooms(db,id),childrenOf:id=>childrenOf(db,id),guardiansOf:id=>guardiansOf(db,id),can:(s,a,c)=>can(db,s,a,c)};
+ // Verifizierte Konto-Sitzung (Eltern/Beobachter): Aufrufer muss Zugangsdaten
+ // selbst geprüft haben — issueSession prüft nichts.
+ function issueSession(personId,assurance='account',ttlMs=3600000){if(!active(db,personId))return null;const token=crypto.randomBytes(32).toString('hex');sessions.set(token,{personId,assurance,expires:Date.now()+ttlMs});return token;}
+ return {db,login,session,logout:token=>sessions.delete(token),dropPerson:id=>{for(const [t,s]of sessions)if(s.personId===id)sessions.delete(t);},rooms:id=>rooms(db,id),childrenOf:id=>childrenOf(db,id),guardiansOf:id=>guardiansOf(db,id),issueSession,can:(s,a,c)=>can(db,s,a,c)};
 }
 module.exports={areaActive,validate,within,can,rooms,childrenOf,guardiansOf,createCore,canonEmojiSeq,EMOJI_IDS};

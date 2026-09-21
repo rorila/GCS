@@ -314,7 +314,7 @@
       "childId": "child-lina",
       "guardianId": "parent-lina",
       "status": "confirmed",
-      "createdAt": "2026-08-22T05:54:23.253Z",
+      "createdAt": "2026-08-22T06:09:00.117Z",
       "confirmedBy": "admin-sun",
       "revokedAt": null
     },
@@ -322,7 +322,7 @@
       "childId": "child-lina",
       "guardianId": "admin-parent",
       "status": "confirmed",
-      "createdAt": "2026-08-22T05:54:23.253Z",
+      "createdAt": "2026-08-22T06:09:00.117Z",
       "confirmedBy": "admin-sun",
       "revokedAt": null
     },
@@ -330,7 +330,7 @@
       "childId": "child-finn",
       "guardianId": "parent-multi",
       "status": "confirmed",
-      "createdAt": "2026-08-22T05:54:23.253Z",
+      "createdAt": "2026-08-22T06:09:00.117Z",
       "confirmedBy": "admin-sun",
       "revokedAt": null
     },
@@ -338,7 +338,7 @@
       "childId": "child-emil",
       "guardianId": "parent-multi",
       "status": "confirmed",
-      "createdAt": "2026-08-22T05:54:23.253Z",
+      "createdAt": "2026-08-22T06:09:00.117Z",
       "confirmedBy": "admin-sun",
       "revokedAt": null
     },
@@ -346,7 +346,7 @@
       "childId": "child-tom",
       "guardianId": "parent-tom-a",
       "status": "confirmed",
-      "createdAt": "2026-08-22T05:54:23.253Z",
+      "createdAt": "2026-08-22T06:09:00.117Z",
       "confirmedBy": "admin-sun",
       "revokedAt": null
     },
@@ -354,7 +354,7 @@
       "childId": "child-tom",
       "guardianId": "parent-tom-b",
       "status": "confirmed",
-      "createdAt": "2026-08-22T05:54:23.253Z",
+      "createdAt": "2026-08-22T06:09:00.117Z",
       "confirmedBy": "admin-sun",
       "revokedAt": null
     },
@@ -362,15 +362,23 @@
       "childId": "child-tom",
       "guardianId": "adult-revoked",
       "status": "revoked",
-      "createdAt": "2026-08-22T05:54:23.253Z",
+      "createdAt": "2026-08-22T06:09:00.117Z",
       "confirmedBy": "admin-sun",
-      "revokedAt": "2026-09-16T05:54:23.253Z"
+      "revokedAt": "2026-09-16T06:09:00.117Z"
     },
     {
       "childId": "child-mia",
       "guardianId": "parent-lina",
       "status": "pending",
-      "createdAt": "2026-08-22T05:54:23.253Z",
+      "createdAt": "2026-08-22T06:09:00.117Z",
+      "confirmedBy": "admin-sun",
+      "revokedAt": null
+    },
+    {
+      "childId": "child-emil",
+      "guardianId": "parent-tom-b",
+      "status": "pending",
+      "createdAt": "2026-08-22T06:09:00.117Z",
       "confirmedBy": "admin-sun",
       "revokedAt": null
     }
@@ -547,31 +555,34 @@
   "invites": [
     {
       "id": "inv-valid",
-      "personId": "parent-lina",
+      "personId": "parent-tom-b",
+      "childId": "child-emil",
       "houseId": "house-sun",
       "purpose": "parent",
       "issuer": "admin-sun",
       "hash": "e6ea3dc8ecf89cc19ed6ef3d13ee9b53ebe66f4a6a1f056cf6b458e7e3fdc019",
-      "expires": 1790056463253
+      "expires": 1790057340117
     },
     {
       "id": "inv-expired",
       "personId": "parent-tom-b",
+      "childId": "child-tom",
       "houseId": "house-sun",
       "purpose": "parent",
       "issuer": "admin-sun",
       "hash": "a0550851eb83ca39b06f7213650c2e3a1d944453b77c9122a42e4612cd9fb51c",
-      "expires": 1789966463253
+      "expires": 1789967340117
     },
     {
       "id": "inv-used",
       "personId": "parent-tom-a",
+      "childId": "child-tom",
       "houseId": "house-sun",
       "purpose": "parent",
       "issuer": "admin-sun",
       "hash": "f9f97c1a9a29b55876fce3f8235b06c9e307f011cf699ccde464e2f27f7dc7fc",
-      "expires": 1790056463253,
-      "usedAt": "2026-09-19T05:54:23.253Z"
+      "expires": 1790057340117,
+      "usedAt": "2026-09-19T06:09:00.117Z"
     }
   ],
   "deviceGrants": [
@@ -580,7 +591,7 @@
       "houseId": "house-sun",
       "label": "Tablet Spielzimmer",
       "issuedBy": "admin-sun",
-      "expires": 1789998863253,
+      "expires": 1789999740117,
       "revoked": false
     },
     {
@@ -588,7 +599,7 @@
       "houseId": "house-sun",
       "label": "Leih-Tablet",
       "issuedBy": "admin-sun",
-      "expires": 1789966463253,
+      "expires": 1789967340117,
       "revoked": false
     },
     {
@@ -596,7 +607,7 @@
       "houseId": "house-sun",
       "label": "Altes Tablet",
       "issuedBy": "admin-sun",
-      "expires": 1789998863253,
+      "expires": 1789999740117,
       "revoked": true
     }
   ],
@@ -617,7 +628,7 @@
       ],
       "graceMinutes": 2,
       "setBy": "parent-lina",
-      "updatedAt": "2026-09-20T05:54:23.253Z"
+      "updatedAt": "2026-09-20T06:09:00.117Z"
     },
     {
       "childId": "child-tom",
@@ -630,7 +641,7 @@
       ],
       "graceMinutes": 2,
       "setBy": "parent-tom-a",
-      "updatedAt": "2026-09-20T05:54:23.253Z"
+      "updatedAt": "2026-09-20T06:09:00.117Z"
     },
     {
       "childId": "child-finn",
@@ -643,7 +654,7 @@
       ],
       "graceMinutes": 2,
       "setBy": "parent-multi",
-      "updatedAt": "2026-09-20T05:54:23.253Z"
+      "updatedAt": "2026-09-20T06:09:00.117Z"
     }
   ],
   "playSessions": [
@@ -653,8 +664,8 @@
       "gameId": "game-math",
       "areaId": "room-sun-play",
       "status": "active",
-      "startedAt": "2026-09-21T05:42:23.253Z",
-      "lastHeartbeatAt": "2026-09-21T05:53:53.253Z",
+      "startedAt": "2026-09-21T05:57:00.117Z",
+      "lastHeartbeatAt": "2026-09-21T06:08:30.117Z",
       "endedAt": null,
       "minutes": 12
     },
@@ -664,8 +675,8 @@
       "gameId": "game-snake",
       "areaId": "room-sun-play",
       "status": "paused",
-      "startedAt": "2026-09-21T05:14:23.253Z",
-      "lastHeartbeatAt": "2026-09-21T05:49:23.253Z",
+      "startedAt": "2026-09-21T05:29:00.117Z",
+      "lastHeartbeatAt": "2026-09-21T06:04:00.117Z",
       "endedAt": null,
       "minutes": 28
     },
@@ -675,8 +686,8 @@
       "gameId": "game-math",
       "areaId": "room-sun-learn",
       "status": "disconnected",
-      "startedAt": "2026-09-21T05:24:23.253Z",
-      "lastHeartbeatAt": "2026-09-21T05:44:23.253Z",
+      "startedAt": "2026-09-21T05:39:00.117Z",
+      "lastHeartbeatAt": "2026-09-21T05:59:00.117Z",
       "endedAt": null,
       "minutes": 18
     },
@@ -686,9 +697,9 @@
       "gameId": "game-snake",
       "areaId": "room-sun-play",
       "status": "ended",
-      "startedAt": "2026-09-21T03:54:23.253Z",
-      "lastHeartbeatAt": "2026-09-21T04:34:23.253Z",
-      "endedAt": "2026-09-21T04:34:23.253Z",
+      "startedAt": "2026-09-21T04:09:00.117Z",
+      "lastHeartbeatAt": "2026-09-21T04:49:00.117Z",
+      "endedAt": "2026-09-21T04:49:00.117Z",
       "minutes": 20
     },
     {
@@ -697,9 +708,9 @@
       "gameId": "game-math",
       "areaId": "room-sun-play",
       "status": "ended",
-      "startedAt": "2026-09-20T04:54:23.253Z",
-      "lastHeartbeatAt": "2026-09-20T05:54:23.253Z",
-      "endedAt": "2026-09-20T05:54:23.253Z",
+      "startedAt": "2026-09-20T05:09:00.117Z",
+      "lastHeartbeatAt": "2026-09-20T06:09:00.117Z",
+      "endedAt": "2026-09-20T06:09:00.117Z",
       "minutes": 30
     }
   ],
@@ -712,7 +723,7 @@
       "metric": "tasks_done",
       "value": 8,
       "unit": "count",
-      "reportedAt": "2026-09-21T05:49:23.253Z",
+      "reportedAt": "2026-09-21T06:04:00.117Z",
       "source": "game",
       "schemaVersion": 1
     },
@@ -724,7 +735,7 @@
       "metric": "tasks_correct",
       "value": 7,
       "unit": "count",
-      "reportedAt": "2026-09-21T05:49:23.253Z",
+      "reportedAt": "2026-09-21T06:04:00.117Z",
       "source": "game",
       "schemaVersion": 1
     },
@@ -736,7 +747,7 @@
       "metric": "hints_used",
       "value": 2,
       "unit": "count",
-      "reportedAt": "2026-09-21T05:49:23.253Z",
+      "reportedAt": "2026-09-21T06:04:00.117Z",
       "source": "game",
       "schemaVersion": 1
     },
@@ -748,7 +759,7 @@
       "metric": "round_complete",
       "value": 1,
       "unit": "bool",
-      "reportedAt": "2026-09-21T05:49:23.253Z",
+      "reportedAt": "2026-09-21T06:04:00.117Z",
       "source": "game",
       "schemaVersion": 1
     },
@@ -760,7 +771,7 @@
       "metric": "round_complete",
       "value": 1,
       "unit": "bool",
-      "reportedAt": "2026-09-21T04:34:23.253Z",
+      "reportedAt": "2026-09-21T04:49:00.117Z",
       "source": "server",
       "schemaVersion": 1
     },
@@ -772,7 +783,7 @@
       "metric": "tasks_done",
       "value": 5,
       "unit": "count",
-      "reportedAt": "2026-09-21T05:44:23.253Z",
+      "reportedAt": "2026-09-21T05:59:00.117Z",
       "source": "game",
       "schemaVersion": 1
     }
@@ -783,27 +794,27 @@
       "personId": "child-finn",
       "type": "access-help",
       "status": "open",
-      "at": "2026-09-21T03:54:23.253Z"
+      "at": "2026-09-21T04:09:00.117Z"
     },
     {
       "id": "req-2",
       "personId": "child-emil",
       "type": "access-help",
       "status": "resolved",
-      "at": "2026-09-18T05:54:23.253Z"
+      "at": "2026-09-18T06:09:00.117Z"
     }
   ],
   "audit": [
     {
       "id": "audit-1",
-      "at": "2026-09-11T05:54:23.253Z",
+      "at": "2026-09-11T06:09:00.117Z",
       "actor": "super-admin",
       "action": "house-create",
       "areaId": "root"
     },
     {
       "id": "audit-2",
-      "at": "2026-09-12T05:54:23.253Z",
+      "at": "2026-09-12T06:09:00.117Z",
       "actor": "admin-sun",
       "action": "room-create",
       "areaId": "house-sun"
@@ -811,7 +822,7 @@
   ],
   "meta": {
     "generatedBy": "cms-seed-testdata.cjs",
-    "generatedAt": "2026-09-21T05:54:23.253Z",
+    "generatedAt": "2026-09-21T06:09:00.117Z",
     "purpose": "synthetische Testdaten, keine echten Personen"
   },
   "testMeta": {
@@ -865,6 +876,9 @@
         ],
         "notChildren": [
           "child-lina"
+        ],
+        "pendingOnly": [
+          "child-emil"
         ]
       },
       {

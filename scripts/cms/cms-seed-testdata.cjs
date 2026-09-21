@@ -83,6 +83,7 @@ const db = {
     guardian('child-tom', 'parent-tom-b'),                // Kind mit zwei Elternteilen
     guardian('child-tom', 'adult-revoked', 'revoked'),    // widerrufene Zuordnung
     guardian('child-mia', 'parent-lina', 'pending'),      // wartet auf zweite Bestätigung
+    guardian('child-emil', 'parent-tom-b', 'pending'),    // passend zu inv-valid
   ],
   codes: [
     code('child-lina', 'house-sun', ['dog', 'cat', 'tree', 'house']),
@@ -111,9 +112,9 @@ const db = {
     { gameId: 'game-snake', areaId: 'room-sun-learn', active: false }, // widerrufene Freigabe
   ],
   invites: [
-    { id: 'inv-valid', personId: 'parent-lina', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-valid'), expires: NOW + 24 * H },
-    { id: 'inv-expired', personId: 'parent-tom-b', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-expired'), expires: NOW - H },
-    { id: 'inv-used', personId: 'parent-tom-a', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-used'), expires: NOW + 24 * H, usedAt: iso(NOW - 2 * D) },
+    { id: 'inv-valid', personId: 'parent-tom-b', childId: 'child-emil', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-valid'), expires: NOW + 24 * H },
+    { id: 'inv-expired', personId: 'parent-tom-b', childId: 'child-tom', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-expired'), expires: NOW - H },
+    { id: 'inv-used', personId: 'parent-tom-a', childId: 'child-tom', houseId: 'house-sun', purpose: 'parent', issuer: 'admin-sun', hash: hash('test-token-used'), expires: NOW + 24 * H, usedAt: iso(NOW - 2 * D) },
   ],
   deviceGrants: [
     { id: 'dev-valid', houseId: 'house-sun', label: 'Tablet Spielzimmer', issuedBy: 'admin-sun', expires: NOW + 8 * H, revoked: false },
@@ -158,7 +159,7 @@ const db = {
       { account: 'parent-lina', seesChildren: ['child-lina'], notChildren: ['child-finn', 'child-tom', 'child-emil', 'child-mia'], pendingOnly: ['child-mia'] },
       { account: 'parent-multi', seesChildren: ['child-finn', 'child-emil'], notChildren: ['child-lina', 'child-tom', 'child-mia'] },
       { account: 'parent-tom-a', seesChildren: ['child-tom'], notChildren: ['child-lina'] },
-      { account: 'parent-tom-b', seesChildren: ['child-tom'], notChildren: ['child-lina'] },
+      { account: 'parent-tom-b', seesChildren: ['child-tom'], notChildren: ['child-lina'], pendingOnly: ['child-emil'] },
       { account: 'adult-revoked', seesChildren: [], notChildren: ['child-tom'] },
       { account: 'admin-sun', seesChildren: [], note: 'Verwaltungsrolle allein gibt keine Elternsicht' },
       { account: 'admin-parent', seesChildren: ['child-lina'], note: 'nur über Guardian-Beziehung, nicht über areaAdmin' },

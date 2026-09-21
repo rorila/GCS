@@ -2,67 +2,67 @@
   {
     "personId": "super-admin",
     "username": "super",
-    "salt": "cd9f3f99ef35338881776bb573ff1a3e",
-    "hash": "9c094009a9ce840baf6044cb49b9b37322dd552d62748b9943442abf9e357fe5b0157dc522b4c194e79fcfe7b75b10eff380a3d7c99704c2aab60bb77003260e"
+    "salt": "2123bc79631a6fb58cd05c795f7b7f2d",
+    "hash": "6880f555f339571c34b4f4b014981371e1a6df1eec78676989bdb06bc8159768a0a208922b2ea7c35ef4268651d340d0d89788cccdf4cdf352382b9e5821516d"
   },
   {
     "personId": "admin-sun",
     "username": "admin.sonne",
-    "salt": "2d7f3003c7bfcb4c5c30f8eea0bde058",
-    "hash": "e1d27666adeb973bba0ded6b69afdaca7208fbbe79fe45cb2bb401660b37386d0e6f0f9ae52a26e9693860864b79e4433c46443a3f3a483d6f94d755554644dc"
+    "salt": "bd3d47a50dd583bf11d346be9376b823",
+    "hash": "d75f61f0ab623c1ecef1934fecf71ed9bd3e0a09c46aa3599a530e875889661cab7feb529c03168e9801cbf2c7c222e9514bb9ceb1487e80a671802fb80b4ed5"
   },
   {
     "personId": "admin-parent",
     "username": "admin.paul",
-    "salt": "cfe767aa6f04baf6de3ec4b15e2a1e53",
-    "hash": "91907e36a6c40303640f2587f497d6a9e2faf2ff600c7150dd9fe3f037b4b903856c2edf20e2d1bd6a54d800a16b9d29b8d0a5dac8fb5f1df9550a38b1c35402"
+    "salt": "5b5c226df92f4fd0ab773e2ac0a7ffb6",
+    "hash": "b70304f10e7d32ead63ef5b27e0586f9f01511091bf888ffd9484d26aeffc4aabb61b699d001fdb6101219056547bd46e764a5c497b78da944f12d0fcedd2756"
   },
   {
     "personId": "admin-moon",
     "username": "admin.mond",
-    "salt": "27de0c7cc746ede2d95030a11374da57",
-    "hash": "8282402a74db877ba1ced73e7e6b7bf00690d65b979964119585f131b34a650bcf9a90bca52b751139a9ae6c7876e4184d743cdf2f175f40740997032a62025b"
+    "salt": "2623ce5ee3103fb51e8d2cdf40a69fc3",
+    "hash": "2dd4f4773590b3071cc1d7f89602da1d82b5a18ed702c97f0b34346993636599eb08573a3bbdc233ac672b6b48da5a2ac455fe826de949387b88d22ac6c8be43"
   },
   {
     "personId": "teacher-sun",
     "username": "erzieher.tobias",
-    "salt": "cd9501a009abdc53cb2ae76b7fd44601",
-    "hash": "1226be323f33adb66d852b355f7d7567d7b3b6ddced21277bcd779dfe8393ac39c6e23aa521858e5cda311c8e7cb2ce13648b1055e5969e6ef81d3a2becb29df"
+    "salt": "9c1c1954db9b4c549f8f2af37f325b19",
+    "hash": "575533bea3e98213dcb3df4e4346d659ce304ac2f78d00e8ebc59b831521bd348ca96497a0b5f6caa48f62131352de3bd67ec197e506979f4139c5e461ce0eeb"
   },
   {
     "personId": "observer-sun",
     "username": "beobachter.olga",
-    "salt": "8d3ec13c43ad12aa1af2a24bfc4e45d5",
-    "hash": "a9c6a85c9d883f86967748d5f9c17f6afa9347eb5ade008f8b88f469c75a7677f3217335078af5adf3bcc37a9395140e045d1f6110c1adf1a38b9fd54e7a2678"
+    "salt": "aae0338f4c79935962f877228cb2ddb4",
+    "hash": "8d568e8d3fb2d75d07350af949bf2a3f19142e0f514d66cc5de2516c268c09e7a3024f327d72aad5b30b7e8baddf8f2a3435a550af43ae92bc01881c2d488d00"
   },
   {
     "personId": "parent-lina",
     "username": "eltern.petra",
-    "salt": "a9105b42bbe669abfb5b337c61690e51",
-    "hash": "ebac425ff648adc530f4bdc4043c93246d012db90ff28e45d2d86a22bab9de2430217727c6f3a59822922e52ab7c8945522f3c4d2463716d7ab724506a7454fa"
+    "salt": "65deaae59e93991df5530227cdfa9d2d",
+    "hash": "ddb9ef8e214a784a6fcabb3038ddb29b22229501a0f2d819934a180eb399367b806951a02b0a7031aa45455e3befd1bd70347ac61c6c1598578139b99d8a8f10"
   },
   {
     "personId": "parent-multi",
     "username": "eltern.martin",
-    "salt": "36eae54d6a47d10b8375dd34c7176904",
-    "hash": "07ec71c2ccdb267447f51f5b2482101e66e525a132c7323e371a641e62a8729943da4358f14bb6fba800f567659be1f2c326adb039c64a18a3eabd26a60cbc1d"
+    "salt": "b4b1d4f7f8e46b18c58d0769bb31ebdc",
+    "hash": "28e878ed422b42aa9f5866a54c54061dae031e59ca247e04814acc6520415d83f8d8598a930be47f6bc9bf64c7c8d1baf20771e74cb71cec9ddd62aab94a0f4d"
   },
   {
     "personId": "parent-tom-a",
     "username": "eltern.tina",
-    "salt": "95806d216abf792c004f24d8a17fdf95",
-    "hash": "bb744dba97d83dd3f3c838f055a44f489c2e81bee21a4e811da46287c9caa432959fa5cb304976cef4d73e63dc53e35b0a5b42a2f67e33e1c7f32104bd605fa9"
+    "salt": "3393eeb52b814d7a45e57a0cd24c956c",
+    "hash": "89517a813fc6f75e384401db9e38ac4cf071d02b128e6005c7a56f4022050f468df8af15c03036703f707cb48832d78345c24872b672995219d81d774b0d7c7d"
   },
   {
     "personId": "parent-tom-b",
     "username": "eltern.tim",
-    "salt": "0c188b17d1cbf3227caffb246dfb73e1",
-    "hash": "ccb7305a2a601496d8305d1eb388b992d2005dd39eb33046d311a210fb9c09657420da24a8b95c639338e302c1430fb191c816ba6ff51e3f6dc8c225a7c60d65"
+    "salt": "385599ce96b4cc1d68359186d135d962",
+    "hash": "14b5096418da1f1c7ce506ee4511bb1de154477c7da62edbc35e1377a3ad253a059cd15b8c4f4845dee5f2ef9da22645d0d9322703f93bdda9da2bd1972b7962"
   },
   {
     "personId": "adult-revoked",
     "username": "kontakt.rita",
-    "salt": "3d8dd687781bfd093469ba9925402643",
-    "hash": "8863200e2d8fba280b8251ad51ded659fe19c7b304b8fd88aad430ac1b507d474f9470fe246c53cbe084e8d73c018d2ce5aaf1bf73654a2732fdd784705e49f0"
+    "salt": "090f59d3cc1ec2f4b9efba697ce8a29d",
+    "hash": "ebde9e4499d7c62d9474d5a7d06ec8db4083d1ddb000254f727f78e0637ea20d05f44afa17ff30768676a5be82edb5429259c9f85ff5e8f79dc57e0e9271eaa4"
   }
 ]
