@@ -12,13 +12,28 @@ function superApi(core,s,route,b,commit,credentialPath){
  if(route==='super-person-create'){
   const name=text(b.name);if(!name)return fail(400,'Anzeigename erforderlich.');const id='person-'+crypto.randomUUID();commit(s,'admin-person-create','root',next=>next.people.push({id,name,avatar:'👤',kind:'adult',active:true}));return ok({id,message:'Person angelegt. Jetzt einem Haus zuweisen.'});
  }
+ // Plattformweite SuperAdmin-Verwaltung: kein Hauskontext nötig.
+ const person=core.db.people.find(p=>p.id===b.personId&&p.active);
+ if(route==='super-rootadmins')return ok({items:core.db.people.filter(p=>p.active).map(p=>({id:p.id,name:p.name,label:p.name,active:core.db.roles.some(r=>r.personId===p.id&&r.areaId==='root'&&r.role==='superAdmin'&&r.active)})),message:'SuperAdmins · Plattform'});
+ if(route==='super-rootadmin-set'){
+  if(!person)return fail(404,'Person nicht gefunden.');
+  if(b.confirm!==true||typeof b.active!=='boolean')return fail(400,'Zuweisung ausdrücklich bestätigen.');
+  if(!b.active&&person.id===s.personId)return fail(400,'Die eigene SuperAdmin-Rolle kann nicht entzogen werden.');
+  commit(s,'root-admin-set','root',next=>{let role=next.roles.find(r=>r.personId===person.id&&r.areaId==='root'&&r.role==='superAdmin');if(!role){role={personId:person.id,areaId:'root',role:'superAdmin',active:false};next.roles.push(role);}role.active=b.active;});return ok({message:b.active?'SuperAdmin zugewiesen.':'SuperAdmin-Rolle entzogen.'});
+ }
+ if(route==='super-invite'&&b.houseId==='root'){
+  if(!person)return fail(404,'Person nicht gefunden.');
+  if(!core.db.roles.some(r=>r.personId===person.id&&r.areaId==='root'&&r.role==='superAdmin'&&r.active))return fail(403,'Zuerst die SuperAdmin-Rolle vergeben.');
+  const credentials=fs.existsSync(credentialPath)?JSON.parse(fs.readFileSync(credentialPath,'utf8')):[];if(credentials.some(c=>c.personId===person.id))return fail(409,'Diese Person hat bereits einen Zugang. Bestehende Zugangsdaten weiterverwenden.');
+  const token=crypto.randomBytes(32).toString('hex');commit(s,'admin-invite','root',next=>{next.invites=(next.invites||[]).filter(i=>!(i.purpose==='admin-setup'&&i.personId===person.id));next.invites.push({id:'invite-'+crypto.randomUUID(),personId:person.id,houseId:'root',purpose:'admin-setup',issuer:s.personId,hash:crypto.createHash('sha256').update(token).digest('hex'),expires:Date.now()+86400000});});return ok({link:'/admin-enroll?ticket='+token,message:'Einrichtungslink erstellt; 24 Stunden gültig, einmal verwendbar.'});
+ }
  const house=houses.find(h=>h.id===b.houseId);if(!house)return fail(404,'Haus nicht gefunden.');
  if(route==='super-house-update'){
   const name=text(b.name);if(!name||typeof b.active!=='boolean')return fail(400,'Name und Zustand erforderlich.');if(houses.some(h=>h.id!==house.id&&h.name.toLowerCase()===name.toLowerCase()))return fail(409,'Hausname existiert bereits.');commit(s,'house-update',house.id,next=>Object.assign(next.areas.find(a=>a.id===house.id),{name,active:b.active}));return ok({message:'Haus gespeichert.'});
  }
  if(route==='super-admins')return ok({items:core.db.people.filter(p=>p.active).map(p=>({id:p.id,name:p.name,label:p.name,active:core.db.roles.some(r=>r.personId===p.id&&r.areaId===house.id&&r.role==='areaAdmin'&&r.active)})),message:house.name+' · HouseAdmins'});
  if(route==='super-player-link')return ok({link:'/?house='+house.id,message:'Spieler-Link für dieses Haus.'});
- const person=core.db.people.find(p=>p.id===b.personId&&p.active);if(!person)return fail(404,'Person nicht gefunden.');
+ if(!person)return fail(404,'Person nicht gefunden.');
  if(route==='super-admin-set'){
   if(b.confirm!==true||typeof b.active!=='boolean')return fail(400,'Zuweisung ausdrücklich bestätigen.');commit(s,'house-admin-set',house.id,next=>{let role=next.roles.find(r=>r.personId===person.id&&r.areaId===house.id&&r.role==='areaAdmin');if(!role){role={personId:person.id,areaId:house.id,role:'areaAdmin',active:false};next.roles.push(role);}role.active=b.active;});return ok({message:b.active?'HouseAdmin zugewiesen.':'HouseAdmin-Zuständigkeit entzogen.'});
  }
@@ -32,7 +47,10 @@ function superApi(core,s,route,b,commit,credentialPath){
 function enroll(core,credentialPath,ticket,username,password,commit){
  const fail=message=>({ok:false,message});if(!/^[a-f0-9]{64}$/.test(ticket||'')||!/^[a-zA-Z0-9_-]{3,40}$/.test(username||'')||typeof password!=='string'||password.length<12||password.length>200)return fail('Gültigen Link, Benutzernamen (3–40 Zeichen) und Passwort (12–200 Zeichen) angeben.');
  const hash=crypto.createHash('sha256').update(ticket).digest('hex'),invite=(core.db.invites||[]).find(i=>i.purpose==='admin-setup'&&i.hash===hash&&i.expires>Date.now());
- if(!invite||!isSuper(core.db,{personId:invite.issuer,assurance:'admin'})||!core.db.people.some(p=>p.id===invite.personId&&p.active)||!areaActive(core.db,invite.houseId)||!core.db.roles.some(r=>r.personId===invite.personId&&r.areaId===invite.houseId&&r.role==='areaAdmin'&&r.active))return fail('Link ist abgelaufen, verwendet oder nicht mehr freigegeben.');
+ // houseId 'root' markiert eine SuperAdmin-Einladung — die geprüfte Rolle
+ // ist dann superAdmin@root statt areaAdmin@Haus.
+ const wantRole=invite=>invite.houseId==='root'?'superAdmin':'areaAdmin';
+ if(!invite||!isSuper(core.db,{personId:invite.issuer,assurance:'admin'})||!core.db.people.some(p=>p.id===invite.personId&&p.active)||!areaActive(core.db,invite.houseId)||!core.db.roles.some(r=>r.personId===invite.personId&&r.areaId===invite.houseId&&r.role===wantRole(invite)&&r.active))return fail('Link ist abgelaufen, verwendet oder nicht mehr freigegeben.');
  const entries=fs.existsSync(credentialPath)?JSON.parse(fs.readFileSync(credentialPath,'utf8')):[];if(entries.some(c=>c.personId===invite.personId||c.username===username))return fail('Zugang besteht bereits oder Benutzername ist vergeben.');
  const salt=crypto.randomBytes(16).toString('hex');entries.push({personId:invite.personId,username,salt,hash:crypto.scryptSync(password,salt,64).toString('hex')});
  fs.writeFileSync(credentialPath+'.tmp',JSON.stringify(entries,null,2),{mode:0o600});fs.renameSync(credentialPath+'.tmp',credentialPath);

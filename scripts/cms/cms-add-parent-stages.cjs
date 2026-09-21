@@ -376,6 +376,121 @@ if (navVerwaltung && !JSON.stringify(navVerwaltung).includes('Act_Navigation_sta
   ]);
 }
 
+// Nach dem Anlegen eines Hauses wird es nicht mehr sofort ausgewählt
+// und in die Detailansicht gesprungen — das neue Haus erscheint nur in
+// der Liste; Bearbeiten erfordert das bewusste Auswählen des Hauses.
+const superStage = project.stages.find(s => s.id === 'stage_super');
+const raumAngelegt = superStage.tasks.find(t => t.name === 'RaumAngelegt');
+if (raumAngelegt && !JSON.stringify(raumAngelegt).includes('Act_Haus_Angelegt_Meldung_Und_Liste')) {
+  const sb = bind(superStage);
+  raumAngelegt.actionSequence = [
+    sb.prop('Act_Haus_Angelegt_Meldung_Und_Liste', { 'Busy': 0, 'Status.text': '${Antwort.message}', 'RaumEingabe.text': '' }),
+    callTask('HaeuserTask'),
+  ];
+}
+
+// ============================================================
+// stage_super: Listenansicht (Haeuser + Anlegen) vs. Detailansicht
+// (gewaehltes Haus bearbeiten, HouseAdmins, Einladung) vs.
+// plattformweite SuperAdmin-Verwaltung (Modus super-rootadmins).
+// ============================================================
+const ss = bind(superStage);
+if (!superStage.objects.find(o => o.name === 'SuperT')) {
+  // Vierter Tab: plattformweite SuperAdmin-Liste (kein Hauskontext).
+  const tab = button('SuperT', 'SuperAdmins', 4, 15, 16, 2, 'Sperre_SuperT');
+  superStage.objects.push(tab);
+  superStage.tasks.push(task('Sperre_SuperT', busyGuard([callTask('SuperAdminsTask')])));
+  superStage.tasks.push(task('SuperAdminsTask', [
+    ss.prop('Act_SuperAdmin_Liste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen', {
+      'Seite': 0, 'Confirm.visible': false, 'VerwaltungsModus': 'super-rootadmins',
+      'Kontext.text': 'SuperAdmins · Plattform',
+      // Haus-Werkzeuge ausblenden, Personen-Werkzeuge zeigen.
+      'RaumInfo.visible': false, 'RaumEingabe.visible': false,
+      'RoomCreate.visible': false, 'RoomSave.visible': false, 'RoomToggle.visible': false,
+      'PersonInfo.visible': true, 'NameEingabe.visible': true, 'PersonCreate.visible': true,
+      'Einladung.visible': true, 'Invite.visible': true,
+      'Hilfe.text': 'Person anklicken → SuperAdmin-Recht bestätigen → Zugang einrichten.',
+    }),
+    callTask('Laden'),
+  ]));
+  // Zuweisung/Entzug der superAdmin@root-Rolle und SuperAdmin-Einladung.
+  ss.http('Act_SuperAdmin_Zuweisung_vergeben_oder_entziehen__Server_SuperAdmin_Zuweisung_Speichern',
+    '/api/cms/admin/super-rootadmin-set',
+    '{"personId":"${Person}","active":"${Ziel}","confirm":true}');
+  ss.http('Act_SuperAdmin_Zugang_einrichten__Server_SuperAdmin_Einrichtungslink_Anfordern',
+    '/api/cms/admin/super-invite',
+    '{"houseId":"root","personId":"${Person}"}');
+}
+
+// Listenansicht: nur Hausliste + Anlegen-Feld — Haus bearbeiten,
+// Personen und Einladungen gehoeren in die Detailansicht.
+const listAction = superStage.actions.find(a => a.name === 'Act_Haeuserliste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen');
+if (listAction && !('RaumInfo.visible' in listAction.changes)) {
+  Object.assign(listAction.changes, {
+    'RaumInfo.visible': true, 'RaumInfo.text': 'Hausname · neues Haus anlegen',
+    'RaumEingabe.visible': true,
+    'RoomCreate.visible': true, 'RoomSave.visible': false, 'RoomToggle.visible': false,
+    'PersonInfo.visible': false, 'NameEingabe.visible': false, 'PersonCreate.visible': false,
+    'Einladung.visible': false, 'Invite.visible': false,
+    'Hilfe.text': 'Haus wählen zum Bearbeiten · oder neuen Namen eingeben + Anlegen.',
+    'Kontext.text': 'Noch kein Haus / Raum ausgewählt',
+  });
+}
+// Detailansicht (HouseAdmins des gewaehlten Hauses): kein Haus-Anlegen,
+// dafuer Umbenennen/Aktivieren, Personen und Einladungen.
+for (const n of ['Act_HouseAdmin_Liste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen',
+                 'Act_HouseAdmins_des_Hauses_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen']) {
+  const a = superStage.actions.find(a => a.name === n);
+  if (a && !('RaumInfo.visible' in a.changes)) {
+    Object.assign(a.changes, {
+      'RaumInfo.visible': true, 'RaumInfo.text': 'Hausname · ausgewähltes Haus bearbeiten',
+      'RaumEingabe.visible': true,
+      'RoomCreate.visible': false, 'RoomSave.visible': true, 'RoomToggle.visible': true,
+      'PersonInfo.visible': true, 'NameEingabe.visible': true, 'PersonCreate.visible': true,
+      'Einladung.visible': true, 'Invite.visible': true,
+      'Hilfe.text': 'HouseAdmin anklicken → bestätigen → Zugang einrichten.',
+    });
+  }
+}
+
+// AdminSet verzweigt: im Modus super-rootadmins wird die Plattform-Rolle
+// gesetzt, sonst die HouseAdmin-Zustaendigkeit des gewaehlten Hauses.
+const superAdminSet = superStage.tasks.find(t => t.name === 'AdminSet');
+if (superAdminSet && !superAdminSet.actionSequence.some(s => s.name === 'Branch: VerwaltungsModus == super-rootadmins')) {
+  const ok = seq => [cond('Antwort.ok', true, seq, [callTask('Fehler')])];
+  superAdminSet.actionSequence = [
+    superAdminSet.actionSequence[0], // Ziel berechnen
+    superAdminSet.actionSequence[1], // Busy setzen
+    cond('VerwaltungsModus', 'super-rootadmins',
+      [{ type: 'action', name: 'Act_SuperAdmin_Zuweisung_vergeben_oder_entziehen__Server_SuperAdmin_Zuweisung_Speichern' },
+       ...ok([callTask('SuperAdminsTask')])],
+      [{ type: 'action', name: 'Act_HouseAdmin_Zuweisung_vergeben_oder_entziehen__Server_HouseAdmin_Zuweisung_Speichern' },
+       ...ok([callTask('AdminsTask')])]),
+  ];
+}
+// Einladung: im Modus super-rootadmins geht der Link auf die
+// Plattform-Rolle (houseId root), sonst auf das gewaehlte Haus.
+const superInvite = superStage.tasks.find(t => t.name === 'InviteTask');
+if (superInvite && !superInvite.actionSequence.some(s => s.name === 'Branch: VerwaltungsModus == super-rootadmins')) {
+  const ok = seq => [cond('Antwort.ok', true, seq, [callTask('Fehler')])];
+  superInvite.actionSequence = [
+    superInvite.actionSequence[0], // Busy setzen
+    cond('VerwaltungsModus', 'super-rootadmins',
+      [{ type: 'action', name: 'Act_SuperAdmin_Zugang_einrichten__Server_SuperAdmin_Einrichtungslink_Anfordern' },
+       ...ok([callTask('InviteBereit')])],
+      [superInvite.actionSequence[1],
+       ...ok([callTask('InviteBereit')])]),
+  ];
+}
+// Nach dem Personen-Anlegen die jeweils aktive Liste neu laden.
+const personAngelegt = superStage.tasks.find(t => t.name === 'PersonAngelegt');
+if (personAngelegt && !personAngelegt.actionSequence.some(s => s.name === 'Branch: VerwaltungsModus == super-rootadmins')) {
+  personAngelegt.actionSequence = [
+    personAngelegt.actionSequence[0], // Person merken
+    cond('VerwaltungsModus', 'super-rootadmins', [callTask('SuperAdminsTask')], [callTask('AdminsTask')]),
+  ];
+}
+
 // ============================================================
 // Schreiben + Referenzprüfung (Tasks/Actions müssen auflösbar sein)
 // ============================================================

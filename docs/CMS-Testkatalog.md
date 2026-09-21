@@ -53,19 +53,27 @@
 - [ ] Nach 10 Fehlversuchen → Rate-Limit (429, „Bitte kurz warten")
 
 ### 1.2 Häuser verwalten (CRUD) — **nur auf `/super` (stage_super), nicht auf der HouseAdmin-Stage**
-- [ ] **Anlegen:** Neues Haus „Haus Regenbogen" → erscheint in der Liste
+- [ ] **Listenansicht:** Hausliste + Feld „Hausname" + „Anlegen" — kein Personenblock, kein Speichern/An-Aus
+- [ ] **Anlegen:** Neues Haus „Haus Regenbogen" → erscheint in der Liste, **kein** Sprung in die Detailansicht
 - [ ] **Doppelt:** gleichen Namen nochmal → Fehler „existiert bereits"
+- [ ] **Auswählen:** Haus anklicken → Detailansicht (HouseAdmin-Liste des Hauses); dort **kein** „Anlegen"-Button
 - [ ] **Ändern:** Haus umbenennen → Name übernommen
 - [ ] **Deaktivieren:** „Haus Mond" deaktivieren → HouseAdmin `admin.mond` kann sich **nicht** mehr anmelden; Kind Mia **nicht** mehr per Emoji einloggen
 - [ ] **Reaktivieren:** Haus Mond wieder aktivieren → beide Zugänge funktionieren wieder
 
-### 1.3 HouseAdmin einrichten
+### 1.3 HouseAdmin einrichten (in der Detailansicht eines gewählten Hauses)
 - [ ] Neue Person anlegen (z. B. „Neue Hausleitung")
 - [ ] Einrichtungslink erzeugen → Link wird angezeigt (24 h gültig)
 - [ ] Link einmal öffnen → Einrichtung möglich; **zweites** Öffnen → „bereits verwendet"
 - [ ] Zuständigkeit zuweisen mit expliziter Bestätigung → Person sieht nur ihr Haus
 - [ ] Zuständigkeit ohne Bestätigung → wird abgelehnt
 - [ ] Zuständigkeit entziehen → Admin verliert Zugriff sofort (auch in laufender Sitzung)
+
+### 1.3a SuperAdmins verwalten (Tab „SuperAdmins")
+- [ ] Tab „SuperAdmins" → Liste aller Personen mit SuperAdmin-Markierung
+- [ ] Person anklicken + bestätigen → SuperAdmin-Rolle vergeben (plattformweit)
+- [ ] Eigene SuperAdmin-Rolle entziehen → wird abgelehnt („eigene Rolle kann nicht entzogen werden")
+- [ ] SuperAdmin-Einladungslink für neue Person → Einrichtung → Login landet auf `stage_super`
 
 ### 1.4 Spielekatalog
 - [ ] Spielliste zeigt alle 5 Spiele mit Status (published/draft/blocked)

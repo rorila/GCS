@@ -83,3 +83,4 @@ __pycache__/
 *.py[cod]
 game-server/data/backups/
 game-server/data/test/cms-admin-auth.json
+game-server/data/test/*.previous
