@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Breakout</title>
+<style>
+  html, body { margin:0; height:100%; display:flex; justify-content:center; align-items:center; background:#10141a; }
+  .wrap { text-align:center; color:#fff; font-family:system-ui,sans-serif; }
+  canvas { border-radius:10px; box-shadow:0 0 30px #222; background:#0b0e13; display:block; }
+  #hud { display:flex; justify-content:space-between; width:800px; margin-bottom:8px; font-size:18px; font-weight:600; }
+  p { color:#9aa0a6; margin:8px 0 4px; font-size:14px; }
+  button { margin-top:10px; font-size:16px; padding:6px 18px; border:0; border-radius:6px; background:#3b82f6; color:#fff; cursor:pointer; }
+  button:hover { background:#2563eb; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="hud">
+    <span>Punkte: <b id="score">0</b></span>
+    <span>Level: <b id="level">1</b></span>
+    <span>Leben: <b id="lives">♥♥♥</b></span>
+  </div>
+  <canvas id="c" width="800" height="480"></canvas>
+  <p>Steuerung: Maus oder Pfeiltasten ← → &nbsp;·&nbsp; R = Neustart</p>
+  <button id="start">Start</button>
+</div>
+<script>
+    const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let score, lives, level, ball, paddle, blocks, running, mouseOn, speed;
+
+function newBlocks(level) {
+  blocks = [];
+  const rows = 3 + level;
+  const cols = 12;
+  const bh = 16, bw = 56, gap = 6;
+  const totalW = cols*bw + (cols-1)*gap;
+  const offset = (W - totalW)/2;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      blocks.push({ x: offset + c*(bw+gap), y: 40 + r*(bh+gap), w: bw, h: bh, 
+        color: `hsl(${(r*40 + 40) % 360}, 85%, 55%)`, points: 10 + level, alive: true });
+    }
+  }
+}
+
+function resetGame() {
+  score = 0; lives = 3; level = 1; speed = 4.5;
+  paddle = { w: 110, h: 12, x: (W-110)/2, y: H-30, speed: 7 };
+  newBlocks(level);
+  resetBall();
+  running = true;
+}
+
+function resetBall() {
+  ball = { x: W/2, y: H/2, dx: (Math.random()>0.5?1:-1)*speed, dy: -speed*0.8, r: 7 };
+}
+
+const keys = {};
+window.addEventListener('keydown', e => { keys[e.key] = true; if (e.key==='R' || e.key==='r') restart(); });
+window.addEventListener('keyup', e => keys[e.key] = false);
+window.addEventListener('mousemove', e => { if (running) paddle.x = Math.max(0, Math.min(W-paddle.w, e.offsetX - paddle.w/2)); });
+// mouse offsetX depends on canvas; better to use getBoundingClientRect
+</script>
+</body>
+</html>

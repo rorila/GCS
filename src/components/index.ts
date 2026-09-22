@@ -99,6 +99,9 @@ export * from './TServerAuthenticate';
 export * from './TServerResponse';
 
 export * from './TServerSession';
+export * from './TServerQuery';
+export * from './TServerStore';
+export * from './TServerAccess';
 
 export * from './TServerProfile';
 

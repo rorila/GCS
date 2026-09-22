@@ -1,0 +1,13 @@
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
+const {createServer}=require('./cms/cms-server.cjs'),{chromium}=require('playwright');
+(async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'gcs-dbg-')),app=createServer({dataPath:path.join(dir,'cms.json')}),base='http://127.0.0.1:15190';const pw='x'.repeat(16),salt=crypto.randomBytes(16).toString('hex');fs.writeFileSync(path.join(dir,'cms-admin-auth.json'),JSON.stringify([{personId:'demo-adult',username:'root',salt,hash:crypto.scryptSync(pw,salt,64).toString('hex')}]));app.core.db.roles.push({personId:'demo-adult',role:'superAdmin',areaId:'root',active:true});
+const browser=await chromium.launch({channel:'msedge',headless:true});const page=await browser.newPage({viewport:{width:1400,height:1000}});
+await new Promise(r=>app.server.listen(15190,'127.0.0.1',r));
+await page.goto(base+'/admin');await page.locator('[name=username]').fill('root');await page.locator('[name=password]').fill(pw);await page.locator('[name=password]').press('Enter');
+await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_super');await page.waitForTimeout(800);
+await page.goto(base+'/library?trace=1');await page.waitForTimeout(2000);
+const out=await page.evaluate(()=>{const q=s=>{const el=document.querySelector(s);if(!el)return null;const b=el.getBoundingClientRect();return {x:Math.round(b.x),y:Math.round(b.y),w:Math.round(b.width),h:Math.round(b.height)}};
+ return {btn:q('[data-id="upload_DateiWaehlen"]'),panel:q('#debug-log-panel'),panelTransform:getComputedStyle(document.querySelector('#debug-log-panel')).transform}});
+console.log(JSON.stringify(out,null,1));
+await browser.close();await new Promise(r=>app.server.close(r));fs.rmSync(dir,{recursive:true,force:true});
+})().catch(e=>{console.error(e);process.exitCode=1});

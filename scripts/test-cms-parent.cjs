@@ -348,21 +348,29 @@ await check('Kontext-Login: falsches Passwort → generischer Fehler', async () 
   assert.ok(r.error && !r.personId);
 });
 
-// --- Workflow-Validierung gegen die GCS-Projektdatei ---
+// --- Integrität: Endpunkte und Tasks sind in der Projektdatei verdrahtet ---
 const cmsFile = path.resolve('game-server/public/projects/GCS-CMS.json');
-await check('Workflow: stage_server_parent wird aus Projekt validiert', () => {
-  createParent(core, credentialPath, store, cmsFile, 'stage_server_parent');
+await check('Runtime: alle Eltern-Endpunkte registriert', () => {
+  const rt = require('./cms/cms-runtime.cjs').loadRuntime(cmsFile);
+  for (const r of ['my-children', 'child-activity', 'child-progress', 'set-budget', 'approve-budget', 'room-pulse'])
+    assert.ok(rt.find('/api/cms/parent/' + r, 'POST'), 'fehlt: ' + r);
 });
-await check('Workflow: fehlende Stage wirft beim Laden', () => {
-  assert.throws(() => createParent(core, credentialPath, store, cmsFile, 'stage_gibt_es_nicht'), /CMS-Stage fehlt/);
+await check('Integrität: stage_server_parent ist vollständig verdrahtet', () => {
+  const project = JSON.parse(fs.readFileSync(cmsFile, 'utf8'));
+  const issues = require('./cms/cms-project.cjs').checkIntegrity(project);
+  assert.deepStrictEqual(issues.filter(i => i.level === 'fehler'), []);
 });
-await check('Workflow: falsche Action-Methode wirft beim Laden', () => {
+await check('Runtime: fehlender Task wird als Serverfehler gemeldet', () => {
   const broken = JSON.parse(fs.readFileSync(cmsFile, 'utf8'));
-  const stage = broken.stages.find(s => s.id === 'stage_server_parent');
-  stage.actions.find(a => a.method === 'children').method = 'childrenBroken';
+  broken.stages.find(s => s.id === 'stage_server_parent').objects
+    .find(o => o.className === 'TServerEndpoint' && o.endpointPath === '/api/cms/parent/my-children')
+    .events.onRequest = 'GibtEsNicht';
   const tmp = path.join(dir, 'broken.json');
   fs.writeFileSync(tmp, JSON.stringify(broken));
-  assert.throws(() => createParent(core, credentialPath, store, tmp, 'stage_server_parent'), /Ungültiger Eltern-Workflow/);
+  const rt = require('./cms/cms-runtime.cjs').loadRuntime(tmp);
+  const r = rt.run(rt.find('/api/cms/parent/my-children', 'POST'),
+    { session: accountSession('parent-lina'), body: {}, core, commit, credentialPath });
+  assert.strictEqual(r.status, 500);
 });
 
 const failed = results.filter(r => r[0] === 'FEHLER');

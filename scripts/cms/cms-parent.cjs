@@ -1,10 +1,11 @@
 // Eltern- und Beobachter-Konto (Phase 2, E01/E02/E05/E06).
 // Gleicher Zugangsdatenspeicher wie Verwaltung, aber assurance 'account' —
 // kein Verwaltungszugang. Elternsicht nur über bestätigte Guardian-Beziehung.
-const fs = require('node:fs'), crypto = require('node:crypto');
-const { childrenOf, guardiansOf, within } = require('./cms-core.cjs');
+// API-Routen sind deklarativ: stage_server_parent in der Projektdatei steuert
+// die Abläufe — dieses Modul ist nur noch der Modul-Adapter + Enroll-Helfer.
+const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 
-const ok = d => ({ status: 200, data: { ok: true, ...d } });
+const CMS_FILE = path.join(__dirname, '../../game-server/public/projects/GCS-CMS.json');
 const fail = (status, message) => ({ status, data: { ok: false, message } });
 
 function readCredentials(credentialPath) {
@@ -20,135 +21,32 @@ async function verifyCredentials(credentialPath, username, password) {
   return c && crypto.timingSafeEqual(hash, Buffer.from(c.hash, 'hex')) ? c : null;
 }
 
-// Route ↔ Ereignis ↔ Methode der TServerParentAccount-Komponente
-// (stage_server_parent). Volle Validierung wie bei TServerProfile:
-// ohne passende Stage/Task/Action kein Serverstart.
-const WORKFLOW_OPS = {
-  'my-children': ['onChildren', 'children'], 'child-activity': ['onActivity', 'activity'],
-  'child-progress': ['onProgress', 'progress'], 'set-budget': ['onSetBudget', 'setBudget'],
-  'approve-budget': ['onApproveBudget', 'approveBudget'], 'room-pulse': ['onPulse', 'pulse'],
-};
-
-function loadParentWorkflow(cmsFile, stageId) {
-  const stage = require('./cms-project.cjs').readWorkflow(cmsFile, stageId).stages[0];
-  const node = (stage.objects || []).find(o => o.className === 'TServerParentAccount');
-  if (!node) throw Error('TServerParentAccount fehlt in ' + stageId);
-  for (const [route, [event, method]] of Object.entries(WORKFLOW_OPS)) {
-    const task = (stage.tasks || []).find(t => t.name === node.events?.[event]);
-    const step = task?.actionSequence?.[0];
-    const action = (stage.actions || []).find(a => a.name === step?.name);
-    if (step?.type !== 'action' || action?.type !== 'call_method' || action.target !== node.name || action.method !== method)
-      throw Error('Ungültiger Eltern-Workflow: ' + event + ' (' + route + ' → ' + method + ')');
-  }
-  return { stage, node };
-}
-
-function createParent(core, credentialPath, store, cmsFile, stageId = 'stage_server_parent') {
-  if (cmsFile) loadParentWorkflow(cmsFile, stageId);
-  const db = core.db, attempts = new Map();
+function createParent(core, credentialPath, store, cmsFile) {
+  let _rt;
+  const rt = () => _rt ?? (_rt = require('./cms-runtime.cjs').loadRuntime(cmsFile || CMS_FILE));
+  const commit = (s, action, areaId, change) => store.commit(core.db, { actor: s.personId, action, areaId }, change);
+  const attempts = new Map();
 
   async function login(req, body) {
     const key = req.socket.remoteAddress, now = Date.now();
     let rate = attempts.get(key); if (!rate || now - rate.at > 60000) { rate = { at: now, n: 0 }; attempts.set(key, rate); }
     if (++rate.n > 10) return { error: 'Zu viele Versuche. Bitte eine Minute warten.' };
     const c = await verifyCredentials(credentialPath, body.username, body.password);
-    if (!c || !db.people.some(p => p.id === c.personId && p.active)) return { error: 'Anmeldung nicht möglich.' };
+    if (!c || !core.db.people.some(p => p.id === c.personId && p.active)) return { error: 'Anmeldung nicht möglich.' };
     return { token: core.issueSession(c.personId, 'account') };
   }
 
-  const todayMinutes = childId => db.playSessions
-    .filter(s => s.childId === childId && new Date(s.startedAt).toDateString() === new Date().toDateString())
-    .reduce((a, s) => a + s.minutes, 0);
-
-  // Flache Felder — die GCS-Tabelle kann keine verschachtelten Pfade binden.
-  // Live-Status (P3.3): ohne Heartbeat seit >2min gilt eine Sitzung als getrennt.
-  const childCard = id => {
-    const p = db.people.find(x => x.id === id), active = db.playSessions.find(s => s.childId === id && ['active', 'paused'].includes(s.status));
-    if (active && Date.now() - new Date(active.lastHeartbeatAt).getTime() > 120000) active.status = 'disconnected';
-    const budget = db.timeBudgets.find(t => t.childId === id);
-    return {
-      id, name: p.name, avatar: p.avatar,
-      spiel: active ? (db.games.find(g => g.id === active.gameId)?.title || active.gameId) : '—',
-      status: active ? active.status : 'ruht',
-      heute: todayMinutes(id),
-      budget: budget?.dailyMinutes ?? null,
-      pendingApproval: !!budget?.pendingBudget,
-      playing: active ? { gameId: active.gameId, title: db.games.find(g => g.id === active.gameId)?.title, status: active.status, minutes: active.minutes } : null,
-      todayMinutes: todayMinutes(id),
-      budgetMinutes: budget?.dailyMinutes ?? null,
-      pendingBudget: budget?.pendingBudget || null,
-    };
-  };
-
-  function api(session, route, b) {
-    // Beobachter-Sicht (E01): nur aggregierte Zahlen, keine Personen.
-    // Ohne areaId: Übersicht aller Räume mit eigener Beobachterrolle.
-    if (route === 'room-pulse') {
-      const pulse = areaId => {
-        const memberIds = db.memberships.filter(m => m.areaId === areaId && m.active && db.people.some(p => p.id === m.personId && p.active)).map(m => m.personId);
-        const sessions = db.playSessions.filter(s => memberIds.includes(s.childId) && s.areaId === areaId);
-        return { connected: memberIds.length, playing: sessions.filter(s => s.status === 'active').length, paused: sessions.filter(s => s.status === 'paused').length, disconnected: sessions.filter(s => s.status === 'disconnected').length };
-      };
-      if (!b.areaId) {
-        const areas = db.roles.filter(r => r.personId === session.personId && r.role === 'observer' && r.active)
-          .flatMap(r => db.areas.filter(a => a.active && a.type === 'room' && within(db, a.id, r.areaId)))
-          .map(a => ({ id: a.id, bereich: a.name, ...pulse(a.id) }));
-        return ok({ items: areas, message: 'Aggregierte Übersicht deiner Beobachtungsbereiche' });
-      }
-      if (!core.can(session, 'observe', { areaId: b.areaId })) return fail(403, 'Keine Beobachter-Berechtigung für diesen Raum.');
-      return ok(pulse(b.areaId));
-    }
-    // Ab hier: Eltern-Endpunkte — Kind muss bestätigt zugeordnet sein.
-    if (route === 'my-children') return ok({ items: childrenOf(db, session.personId).map(childCard) });
-    const childId = b.childId;
-    if (!core.can(session, 'viewChild', { childId })) return fail(403, 'Nur eigene, bestätigt zugeordnete Kinder.');
-
-    if (route === 'child-activity') {
-      const sessions = db.playSessions.filter(s => s.childId === childId)
-        .sort((a, z) => z.startedAt.localeCompare(a.startedAt)).slice(0, 10)
-        .map(s => ({ id: s.id, gameId: s.gameId, title: db.games.find(g => g.id === s.gameId)?.title, status: s.status, startedAt: s.startedAt, minutes: s.minutes }));
-      return ok({ ...childCard(childId), sessions });
-    }
-    if (route === 'child-progress') {
-      if (!core.can(session, 'viewProgress', { childId })) return fail(403, 'Bewertungen nur für eigene Kinder.');
-      return ok({ items: db.progress.filter(r => r.childId === childId).map(r => ({ metric: r.metric, value: r.value, unit: r.unit, reportedAt: r.reportedAt, source: r.source, gameId: r.gameId })) });
-    }
-    if (route === 'set-budget') {
-      const minutes = Number(b.dailyMinutes);
-      if (!Number.isFinite(minutes) || minutes < 0 || minutes > 1440) return fail(400, 'Tagesbudget in Minuten (0–1440) angeben.');
-      const windows = Array.isArray(b.windows) ? b.windows.filter(w => /^([01]\d|2[0-3]):[0-5]\d$/.test(w.from) && /^([01]\d|2[0-3]):[0-5]\d$/.test(w.to)) : [];
-      const others = guardiansOf(db, childId).filter(g => g !== session.personId);
-      const current = db.timeBudgets.find(t => t.childId === childId);
-      // E06: Verschärfung sofort, Lockerung braucht Zustimmung der anderen Elternteile.
-      const isTightening = !current || minutes <= current.dailyMinutes;
-      if (others.length && !isTightening) {
-        store.commit(db, { actor: session.personId, action: 'budget-propose', areaId: null }, next => {
-          let t = next.timeBudgets.find(t => t.childId === childId);
-          if (!t) { t = { childId, dailyMinutes: minutes, windows, tz: 'Europe/Berlin', warnAt: [5, 1], graceMinutes: 2 }; next.timeBudgets.push(t); }
-          t.pendingBudget = { dailyMinutes: minutes, windows, proposedBy: session.personId, approvals: [session.personId] };
-        });
-        return ok({ message: 'Lockerung vorgemerkt — ein anderes Elternteil muss zustimmen.', pending: true });
-      }
-      store.commit(db, { actor: session.personId, action: 'budget-set', areaId: null }, next => {
-        let t = next.timeBudgets.find(t => t.childId === childId);
-        if (!t) { t = { childId, tz: 'Europe/Berlin', warnAt: [5, 1], graceMinutes: 2, setBy: session.personId }; next.timeBudgets.push(t); }
-        Object.assign(t, { dailyMinutes: minutes, windows, setBy: session.personId, updatedAt: new Date().toISOString() });
-        delete t.pendingBudget;
-      });
-      return ok({ message: 'Zeitbudget gespeichert.' });
-    }
-    if (route === 'approve-budget') {
-      const t = db.timeBudgets.find(t => t.childId === childId && t.pendingBudget);
-      if (!t) return fail(404, 'Keine ausstehende Budgetänderung.');
-      if (t.pendingBudget.proposedBy === session.personId) return fail(409, 'Eigener Vorschlag kann nicht selbst bestätigt werden.');
-      store.commit(db, { actor: session.personId, action: 'budget-approve', areaId: null }, next => {
-        const nt = next.timeBudgets.find(t => t.childId === childId);
-        Object.assign(nt, { dailyMinutes: nt.pendingBudget.dailyMinutes, windows: nt.pendingBudget.windows, setBy: nt.pendingBudget.proposedBy, updatedAt: new Date().toISOString() });
-        delete nt.pendingBudget;
-      });
-      return ok({ message: 'Budgetänderung bestätigt.' });
-    }
-    return fail(404, 'Unbekannte Aktion.');
+  // Modul-Adapter: Routen laufen über die TServerEndpoint-Tasks der Projektdatei
+  // (stage_server_parent). 403-vor-404 bleibt: fremde Kinder werden vor dem
+  // Route-Lookup abgewiesen — die kindbezogenen Tasks prüfen zusätzlich selbst.
+  function api(session, route, b = {}) {
+    if (!session) return fail(401, 'Bitte anmelden.');
+    if (route !== 'room-pulse' && route !== 'my-children'
+        && !core.can(session, 'viewChild', { childId: b.childId }))
+      return fail(403, 'Nur eigene, bestätigt zugeordnete Kinder.');
+    const ep = rt().find('/api/cms/parent/' + route, 'POST');
+    return ep ? rt().run(ep, { session, body: b, core, commit, credentialPath }, { strict: true })
+              : fail(404, 'Unbekannte Aktion.');
   }
 
   return { login, api };
@@ -204,4 +102,4 @@ function enrollObserver(core, credentialPath, ticket, username, password, commit
   return { ok: true, message: 'Beobachterzugang eingerichtet. Jetzt anmelden.' };
 }
 
-module.exports = { createParent, enrollParent, enrollObserver, WORKFLOW_OPS, loadParentWorkflow };
+module.exports = { createParent, enrollParent, enrollObserver };

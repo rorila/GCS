@@ -14,7 +14,7 @@
     "Ungültige Eingabe nimmt Fehlerzweig",
     "Gleichzeitige Vorgänge bleiben getrennt",
     "Ohne Debug-Anforderung kein Trace-Header",
-    "Entfernte Authentifizierung wird zurückgewiesen",
+    "Entfernte Authentifizierung wird erkannt",
     "Diagnose abschaltbar",
     "Alte Vorgänge verfallen",
     "Native GCS-Anmeldung mit Tracing funktioniert",
