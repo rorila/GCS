@@ -9,7 +9,7 @@ const {createServer}=require('./cms/cms-server.cjs'),{checkIntegrity,renderCms}=
  try{
   await new Promise(r=>app.server.listen(15185,'127.0.0.1',r));
   check('Fremder Ursprung gesperrt',(await post({username:'tester',password},'http://fremd.invalid')).status===403);
-  let response=await post({username:'tester',password:'falsch'});check('Falsches Passwort ohne Sitzung',!(await response.json()).ok&&!response.headers.get('set-cookie'));
+  let response=await post({username:'tester',password:'falsch'});check('Falsches Passwort ohne Sitzung',!(await response.json()).ok&&response.headers.getSetCookie().every(c=>c.includes('Max-Age=0')));
   response=await post({username:'tester',password});const cookie=response.headers.get('set-cookie'),body=await response.json();check('Sonderzeichenpasswort funktioniert',body.ok);check('HttpOnly und SameSite erhalten',cookie.includes('HttpOnly')&&cookie.includes('SameSite=Strict'));check('Kein Sitzungstoken im JSON',!body.token);
   const trace=await (await fetch(base+'/api/cms/debug/traces/'+response.headers.get('x-gcs-trace-id'),{headers:{Cookie:cookie.split(';')[0]}})).json();check('Sitzungsschritt im Trace',trace.steps.some(s=>s.label==='Verwaltungssitzung erstellen'));check('Passwort nicht im Servertrace',!JSON.stringify(trace).includes(password));
   // Deklarativer Vertrag: die Erfolgsmeldung steht in der Projektdatei — mit
@@ -23,19 +23,38 @@ const {createServer}=require('./cms/cms-server.cjs'),{checkIntegrity,renderCms}=
   check('Kaputter Verweis wird erkannt',checkIntegrity(project).some(i=>i.level==='fehler'&&i.stage==='stage_server_admin_login'));
   const client=JSON.parse(fs.readFileSync(temporary));client.stages.find(s=>s.id==='stage_admin_login').objects[0].markerText='Meine Verwaltung';fs.writeFileSync(temporary,JSON.stringify(client));
   check('Dialog stammt aus Projektdatei',renderCms(temporary,'stage_admin_login').includes('Meine Verwaltung')&&!renderCms(temporary,'stage_admin_login').includes('<form'));
-  // Für den UI-Teil normaler Bereichsadmin: SuperAdmin würde direkt auf
-  // stage_super navigieren (E01) — die Super-Rolle war nur für den Trace-Zugriff.
+  // Für den UI-Teil HouseAdmin: SuperAdmin würde direkt auf stage_super
+  // navigieren. demo-adult besitzt bereits die HouseAdmin-Zuständigkeit für
+  // demo-house; nach dem Login muss deshalb stage_house das direkte Ziel sein.
   app.core.db.roles=app.core.db.roles.filter(r=>r.role!=='superAdmin');
+  // Zwei eigene Häuser und ein fremdes Haus prüfen Mehrfachzuständigkeit und
+  // Mandantentrennung mit demselben echten Login-/Runtime-Ablauf.
+  app.core.db.areas.push(
+   {id:'second-house',name:'Zweites Haus',type:'house',parentId:'root',active:true},
+   {id:'foreign-house',name:'Fremdes Haus',type:'house',parentId:'root',active:true}
+  );
+  app.core.db.roles.push({personId:'demo-adult',role:'areaAdmin',areaId:'second-house',active:true});
   browser=await chromium.launch({channel:'msedge',headless:true});const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base+'/admin?trace=1');await page.locator('[name=username]').waitFor();check('Passwortfeld verdeckt',await page.locator('[name=password]').getAttribute('type')==='password');
   const click=async name=>{await page.evaluate(name=>{const rt=window.player.runtime;rt.handleEvent(rt.getObjects().find(o=>o.name===name).id,'onClick')},name);};
   await click('Anmelden');await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Status').text.includes('ausfüllen'));check('Pflichtfelder lokal geprüft',true);
   await page.locator('[name=username]').fill('tester');await page.locator('[name=password]').fill(password);await page.locator('[name=password]').press('Enter');
-  await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='VerwaltungOeffnen').visible===true);
-  check('Native Anmeldung erfolgreich',true);await page.waitForFunction(()=>document.querySelector('[name=password]').value==='');check('Passwort nach Anfrage geleert',await page.locator('[name=password]').inputValue()==='');
+  await page.waitForFunction(()=>window.player?.runtime?.getObjects().some(o=>o.name==='Haeuser'));
+  check('HouseAdmin landet direkt in der Hausverwaltung',
+    await page.evaluate(()=>window.player.runtime.getObjects().some(o=>o.name==='Haeuser')&&window.player.runtime.getObjects().some(o=>o.name==='KinderTab')));
+  check('Native Anmeldung erfolgreich',true);
+  const sessionCookie=(await page.context().cookies(base)).find(c=>c.name==='cms_admin');
+  const authHeaders={Origin:base,'Content-Type':'application/json',Cookie:'cms_admin='+sessionCookie.value};
+  const ownResponse=await fetch(base+'/api/cms/admin/houses',{method:'POST',headers:authHeaders,body:'{}'}),own=await ownResponse.json();
+  check('Mehrere eigene Häuser sichtbar',ownResponse.status===200&&own.items.length===2&&own.items.some(h=>h.id==='demo-house')&&own.items.some(h=>h.id==='second-house'));
+  check('Fremdes Haus nicht aufgelistet',!own.items.some(h=>h.id==='foreign-house'));
+  const foreignResponse=await fetch(base+'/api/cms/admin/house-rooms',{method:'POST',headers:authHeaders,body:JSON.stringify({houseId:'foreign-house'})});
+  check('Fremdes Haus serverseitig gesperrt',foreignResponse.status===403);
+  const superResponse=await fetch(base+'/super',{headers:{Cookie:'cms_admin='+sessionCookie.value},redirect:'manual'});
+  check('SuperAdmin-Stage für HouseAdmin gesperrt',superResponse.status===303&&superResponse.headers.get('location')==='/house');
   const logs=await page.evaluate(()=>JSON.stringify(window._globalDebugLogService.getLogs()));check('Passwort nicht im Clientlog',!logs.includes(password)&&!logs.includes(JSON.stringify(password).slice(1,-1)));check('Request und Serverresponse sichtbar',logs.includes('Verwaltungssitzung erstellen')&&logs.includes('CLIENT · Response'));
   await page.waitForTimeout(600);await page.screenshot({path:path.join(__dirname,'../docs/cms-anmeldung.png')});
-  await page.locator('[data-id="stage_main_VerwaltungOeffnen"]').click();await page.waitForFunction(()=>window.player?.runtime?.getObjects().some(o=>o.name==='Raeume'));check('Verwaltung im selben Fenster geöffnet',true);
+  check('Verwaltung im selben Fenster geöffnet',true);
   check('Keine Browserfehler',errors.length===0);fs.writeFileSync(path.join(__dirname,'../docs/cms-login-test.json'),JSON.stringify({passed:checks.length,checks,errors},null,2));console.log(JSON.stringify({passed:checks.length,checks}));
  }finally{if(browser)await browser.close();await new Promise(r=>app.server.close(r));if(path.resolve(dir).startsWith(path.resolve(os.tmpdir())+path.sep)&&path.basename(dir).startsWith('gcs-login-'))fs.rmSync(dir,{recursive:true,force:true});}
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,5 +1,5 @@
 {
-  "passed": 18,
+  "passed": 22,
   "checks": [
     "Fremder Ursprung gesperrt",
     "Falsches Passwort ohne Sitzung",
@@ -13,8 +13,12 @@
     "Dialog stammt aus Projektdatei",
     "Passwortfeld verdeckt",
     "Pflichtfelder lokal geprüft",
+    "HouseAdmin landet direkt in der Hausverwaltung",
     "Native Anmeldung erfolgreich",
-    "Passwort nach Anfrage geleert",
+    "Mehrere eigene Häuser sichtbar",
+    "Fremdes Haus nicht aufgelistet",
+    "Fremdes Haus serverseitig gesperrt",
+    "SuperAdmin-Stage für HouseAdmin gesperrt",
     "Passwort nicht im Clientlog",
     "Request und Serverresponse sichtbar",
     "Verwaltung im selben Fenster geöffnet",

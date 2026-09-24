@@ -165,9 +165,25 @@ export class EditorProjectLoader {
                     });
                 }
 
-                // Fix: Clean up accidentally saved global variables from non-blueprint stages
+                // Fix: Globals gehören ausschließlich in den Blueprint. Fälschlich in
+                // anderen Stages gespeicherte Globals werden dorthin verschoben statt
+                // gelöscht — der Player importiert sie sonst (projektweiter Scan), der
+                // Editor würde sie verlieren (Divergenz Editor-Run vs. Player).
                 if (s.type !== 'blueprint' && s.variables) {
-                    s.variables = s.variables.filter((v: any) => v.scope !== 'global');
+                    const misplaced = s.variables.filter((v: any) => v.scope === 'global');
+                    if (misplaced.length) {
+                        s.variables = s.variables.filter((v: any) => v.scope !== 'global');
+                        const blueprint = data.stages.find((b: any) => b.type === 'blueprint' || b.id === 'stage_blueprint' || b.id === 'blueprint');
+                        if (blueprint) {
+                            blueprint.variables = blueprint.variables || [];
+                            misplaced.forEach((v: any) => {
+                                if (!blueprint.variables.some((b: any) => b.name === v.name)) {
+                                    blueprint.variables.push(v);
+                                    this.logger.info(`[Load] Globale Variable '${v.name}' von '${s.id}' in Blueprint verschoben`);
+                                }
+                            });
+                        }
+                    }
                 }
             });
         }

@@ -74,14 +74,14 @@ const methods={
   // Person- und Zuständigkeitsprüfung (emit-Schritte bleiben im Trace).
   verifyAdmin(ctx){
    const checked=ctx.admin.verify(ctx.remoteAddress,ctx.body||{},(l,d)=>ctx.emit(l,d));
-   return{hasSession:!!checked.session,session:checked.session||null,personId:checked.session?.personId||checked.personId||null,contexts:checked.contexts||[],super:!!checked.super,message:checked.error||''};
+   return{hasSession:!!checked.session,session:checked.session||null,personId:checked.session?.personId||checked.personId||null,contexts:checked.contexts||[],super:!!checked.super,house:!!checked.house,message:checked.error||''};
   },
   // Antwortdaten der Verwaltungsanmeldung: ok + Kontext-Flags; Tokens sind
   // Transportfelder — der Server wandelt sie in HttpOnly-Cookies um.
   adminResult(ctx,_component,params){
    const spec=params?.[0]||{},tok=ctx.vars.Verwaltung?.token,acc=ctx.vars.Konto?.token,g=ctx.vars.Geprueft||{},ctxs=g.contexts||[];
    const ok=!!(tok||acc),d={ok,message:tok?spec.successMessage:acc?spec.accountMessage:(g.message||spec.failureMessage)};
-   if(ok)Object.assign(d,{contexts:ctxs,admin:ctxs.includes('admin'),parent:ctxs.includes('parent'),observer:ctxs.includes('observer'),super:!!g.super});
+   if(ok)Object.assign(d,{contexts:ctxs,admin:ctxs.includes('admin'),parent:ctxs.includes('parent'),observer:ctxs.includes('observer'),super:!!g.super,house:!!g.house});
    if(tok)d.adminToken=tok;if(acc)d.accountToken=acc;if(g.personId)d.personId=g.personId;
    return d;
   }
@@ -92,6 +92,11 @@ const methods={
   fail(ctx,_component,params){ctx.result={status:Number(params?.[0])||400,data:{ok:false,message:String(params?.[1]||'Anfrage abgelehnt.')}};}
  },
  TServerValidate:{
+  avatar(ctx,_component,params){
+   const value=ctx.body?.[params?.[0]||'avatar'];
+   const ok=typeof value==='string'&&value.length<=32&&[...new Intl.Segmenter('de',{granularity:'grapheme'}).segment(value)].length===1&&/\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(value)&&!/[^\p{Extended_Pictographic}\p{Regional_Indicator}\p{Emoji_Modifier}\u200d\ufe0f\u{e0020}-\u{e007f}]/u.test(value);
+   return ok?{ok:true,value}:{ok:false,status:400,message:'Bitte ein einzelnes Avatar-Symbol wählen.'};
+  },
   // Freitextregel wie im Legacy-Handler: getrimmt, 1–60 Zeichen, keine Steuer-/HTML-Zeichen.
   text(ctx,_component,params){
    const[field,opts={}]=params||[],max=opts.max??60;
@@ -211,7 +216,9 @@ const methods={
    const card=childCardOf(ctx.core.db,exprOf(ctx,params?.[0],{}));
    return card?{ok:true,found:true,item:card}:{ok:true,found:false,item:null};
   },
-  childCards(ctx){return{items:childrenOf(ctx.core.db,ctx.session.personId).map(id=>childCardOf(ctx.core.db,id)).filter(Boolean)};},
+  childCards(ctx){const db=ctx.core.db,personId=ctx.session.personId;
+   return{items:db.guardians.filter(g=>g.guardianId===personId&&(g.status==='confirmed'||g.status==='pending'))
+    .map(g=>{const c=childCardOf(db,g.childId);return c?{...c,pendingApproval:g.status!=='confirmed'||!!c.pendingApproval,guardianStatus:g.status}:null}).filter(Boolean)};},
   // Letzte Spielsitzungen eines Kindes (neueste zuerst, max. 10), mit Spieltitel.
   recentSessions(ctx,_component,params){
    const childId=exprOf(ctx,params?.[0],{}),db=ctx.core.db;
@@ -236,7 +243,7 @@ const methods={
    if(person){
     const role=(r,areaId)=>db.roles.some(x=>x.personId===personId&&x.role===r&&x.areaId===areaId&&x.active&&areaActive(db,x.areaId));
     if(ctx.adminSession){flags.super=role('superAdmin','root');flags.admin=flags.super||db.roles.some(r=>r.personId===personId&&r.role==='areaAdmin'&&r.active&&areaActive(db,r.areaId));flags.house=flags.super||db.roles.some(r=>r.personId===personId&&r.role==='areaAdmin'&&r.active&&db.areas.find(a=>a.id===r.areaId)?.type==='house'&&areaActive(db,r.areaId));}
-    flags.parent=!!ctx.session&&childrenOf(db,personId).length>0;
+    flags.parent=!!ctx.session&&db.guardians.some(g=>g.guardianId===personId&&(g.status==='confirmed'||g.status==='pending'));
     flags.observer=!!ctx.session&&db.roles.some(r=>r.personId===personId&&r.role==='observer'&&r.active&&areaActive(db,r.areaId));
     flags.verwaltung=flags.admin||flags.house;
    }
@@ -336,6 +343,18 @@ const methods={
    });
    return{ok:true};
   },
+  // Domänenoperation: Person aktivieren/deaktivieren (Selbstschutz: eigenes Konto nicht).
+  personActive(ctx,_component,params){
+   const spec=params?.[0]||{},scope={};
+   const personId=exprOf(ctx,spec.personId,scope),active=exprOf(ctx,spec.active,scope);
+   if(!active&&personId===ctx.session?.personId)return{ok:false,status:409,message:'Das eigene Konto kann nicht deaktiviert werden.'};
+   const audit=spec.audit||{};
+   ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'person-active',exprOf(ctx,audit.areaId,scope),next=>{
+    const person=next.people.find(p=>p.id===personId);
+    if(person){person.active=!!active;if(!active){person.authVersion=(person.authVersion||0)+1;next.invites=(next.invites||[]).filter(i=>i.personId!==personId);}}
+   });
+   return{ok:true};
+  },
   // Domänenoperation: Emoji-Einwahlcode setzen + offene Zugangshilfe der Person schließen.
   setEmojiCode(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
@@ -352,7 +371,7 @@ const methods={
   roomBackup(ctx,_component,params){
    const spec=params?.[0]||{},scope={},areaId=exprOf(ctx,spec.areaId,scope),audit=spec.audit||{};
    ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'room-backup',areaId,next=>{
-    next.roomBackups={...(next.roomBackups||{}),[areaId]:{at:new Date().toISOString(),grants:next.grants.filter(g=>g.areaId===areaId),memberships:next.memberships.filter(m=>m.areaId===areaId)}};
+    next.roomBackups={...(next.roomBackups||{}),[areaId]:{at:new Date().toISOString(),grants:structuredClone(next.grants.filter(g=>g.areaId===areaId)),memberships:structuredClone(next.memberships.filter(m=>m.areaId===areaId))}};
    });
    return{ok:true};
   },
@@ -361,8 +380,9 @@ const methods={
    const saved=ctx.core.db.roomBackups?.[areaId];
    if(!saved)return{ok:false,status:404,message:'Noch keine Raumsicherung vorhanden.'};
    ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'room-restore',areaId,next=>{
-    next.grants=[...next.grants.filter(g=>g.areaId!==areaId),...saved.grants];
-    next.memberships=[...next.memberships.filter(m=>m.areaId!==areaId),...saved.memberships];
+    const gone=new Set(next.people.filter(p=>p.anonymizedAt).map(p=>p.id));
+    next.grants=[...next.grants.filter(g=>g.areaId!==areaId),...structuredClone(saved.grants)];
+    next.memberships=[...next.memberships.filter(m=>m.areaId!==areaId),...structuredClone(saved.memberships).filter(m=>!gone.has(m.personId))];
    });
    return{ok:true};
   },
@@ -414,9 +434,29 @@ const methods={
   }
  },
  TServerAccess:{
+  // Lesender Zugangsstatus (ohne Hash/Salt) für die Detailansicht.
+  describeCredentials(ctx,_component,params){
+   const personId=exprOf(ctx,params?.[0],{}),credential=readCredentials(ctx).find(c=>c.personId===personId);
+   return{exists:!!credential,username:credential?.username||'',label:credential?'Benutzername: '+credential.username:'Noch kein Zugang eingerichtet'};
+  },
   hasCredentials(ctx,_component,params){
    const personId=exprOf(ctx,params?.[0],{});
    return readCredentials(ctx).some(c=>c.personId===personId);
+  },
+  // Technischer Baustein „Reset-Ticket erzeugen": Zufallstoken, nur Hash gespeichert,
+  // 1 h gültig, an den aktuellen Passwortstand gebunden. Fachliche Prüfungen
+  // (Rolle, Haus, Person, Zuständigkeit, Bestätigung) liegen im GCS-Flow davor.
+  createResetTicket(ctx,_component,params){
+   const spec=params?.[0]||{},scope={};
+   const personId=exprOf(ctx,spec.personId,scope),houseId=exprOf(ctx,spec.houseId,scope);
+   const credential=readCredentials(ctx).find(c=>c.personId===personId);
+   if(!credential)return{ok:false,status:409,message:'Noch kein Zugang vorhanden. Bitte zuerst einladen.'};
+   const token=crypto.randomBytes(32).toString('hex'),audit=spec.audit||{};
+   ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'admin-reset-request',exprOf(ctx,audit.areaId,scope)||houseId,next=>{
+    next.invites=(next.invites||[]).filter(i=>!(i.personId===personId&&['admin-reset','admin-setup'].includes(i.purpose)));
+    next.invites.push({id:'invite-'+crypto.randomUUID(),personId,houseId,purpose:'admin-reset',issuer:ctx.session.personId,hash:crypto.createHash('sha256').update(token).digest('hex'),credentialVersion:crypto.createHash('sha256').update(credential.hash).digest('hex'),expires:Date.now()+3600000});
+   });
+   return{ok:true,link:'/admin-enroll?ticket='+token};
   },
   // Einladungslink erzeugen: Token im Klartext nur in der Antwort, gespeichert wird der Hash.
   // Spec: personId, houseId, purpose ('admin-setup'|'parent'|'observer'), linkBase, optional childId/areaId.
@@ -448,7 +488,7 @@ const methods={
    const token=crypto.randomBytes(32).toString('hex'),pid=personId,audit=spec.audit||{};
    ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'parent-invite',houseId,next=>{
     let g=next.guardians.find(g=>g.childId===childId&&g.guardianId===pid);
-    if(!g){g={childId,guardianId:pid,status:'pending',createdAt:new Date().toISOString(),confirmedBy:null,revokedAt:null};next.guardians.push(g);}else{g.status='pending';g.revokedAt=null;}
+    if(!g){g={childId,guardianId:pid,status:'pending',issuer:ctx.session.personId,createdAt:new Date().toISOString(),confirmedBy:null,revokedAt:null};next.guardians.push(g);}else{g.status='pending';g.revokedAt=null;g.issuer=ctx.session.personId;}
     next.invites=next.invites.filter(i=>!(i.purpose==='parent'&&i.personId===pid&&i.childId===childId));
     next.invites.push({id:'invite-'+crypto.randomUUID(),personId:pid,childId,houseId,purpose:'parent',issuer:ctx.session.personId,hash:crypto.createHash('sha256').update(token).digest('hex'),expires:Date.now()+86400000});
    });
@@ -475,6 +515,10 @@ const methods={
   approveGuardian(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
    const childId=exprOf(ctx,spec.childId,scope),guardianId=exprOf(ctx,spec.guardianId,scope),houseId=exprOf(ctx,spec.houseId,scope);
+   const existing=ctx.core.db.guardians.find(x=>x.childId===childId&&x.guardianId===guardianId);
+   if(!existing)return{ok:false,status:404,message:'Zuordnung nicht gefunden.'};
+   if(existing.guardianId===ctx.session.personId||existing.issuer===ctx.session.personId)
+    return{ok:false,status:409,message:'Vier-Augen-Prinzip: die einladende oder betroffene Person darf nicht selbst bestätigen.'};
    ctx.commit(ctx.session,exprOf(ctx,spec.audit?.action,scope)||'guardian-approve',houseId,next=>{
     const g=next.guardians.find(x=>x.childId===childId&&x.guardianId===guardianId);
     g.status='confirmed';g.confirmedBy=ctx.session.personId;g.confirmedAt=new Date().toISOString();
@@ -534,7 +578,7 @@ const methods={
    if(!s||s.childId!==ctx.session.personId)return{ok:false,status:404,message:'Spielsitzung nicht gefunden.'};
    if(s.status==='disconnected')s.status='active'; // Reconnect ohne Commit nötig
    if(s.status!=='active')return{ok:true,status:s.status,ended:s.status==='ended'};
-   const delta=Math.min(Date.now()-new Date(s.lastHeartbeatAt).getTime(),HEARTBEAT_CAP_MS);
+   const delta=Math.min(Date.now()-new Date(s.lastHeartbeatAt).getTime(),heartbeatCapMs());
    ctx.commit(ctx.session,'play-heartbeat',s.areaId,next=>{
     const ns=next.playSessions.find(x=>x.id===s.id);
     ns.minutes+=Math.round(delta/60000*100)/100;
@@ -661,7 +705,7 @@ const methods={
    const members=p.members.filter(m=>!m.leftAt).map(m=>{
     const s=db.playSessions.find(x=>x.id===m.playSessionId);
     return{personId:m.personId,name:db.people.find(x=>x.id===m.personId)?.name||m.personId,
-     connected:!!(s&&['active','paused'].includes(s.status)&&Date.now()-new Date(s.lastHeartbeatAt).getTime()<=120000),
+     connected:!!(s&&['active','paused'].includes(s.status)&&Date.now()-new Date(s.lastHeartbeatAt).getTime()<=disconnectMs()),
      host:m.personId===p.hostId};
    });
    return{ok:true,status:p.status,members,memberCount:members.length,memberNames:members.map(m=>m.name).join(', '),
@@ -827,10 +871,13 @@ function exprOf(ctx,expr,scope){
 function truthy(v){return v===true||v==='true'||v===1;}
 function ensureEntity(ctx,entity){if(!Array.isArray(ctx.core.db[entity]))throw Error('Unbekannte Entität: '+entity);}
 
-const HEARTBEAT_CAP_MS=5*60000,DISCONNECT_MS=2*60000;
+// Zeitkonstanten sind env-lesbar (lazy), damit Testlaeufe die Uhr verkuerzen
+// koennen, ohne den Produktionspfad zu aendern. Defaults: 5min / 2min.
+const heartbeatCapMs=()=>Number(process.env.CMS_HEARTBEAT_CAP_MS)||5*60000;
+const disconnectMs=()=>Number(process.env.CMS_DISCONNECT_MS)||2*60000;
 /** Lazy-Refresh (P3.3): aktive/pausierte Sitzung ohne Heartbeat seit >2min → 'disconnected'. */
 function refreshSession(db,s){
- if(s&&(s.status==='active'||s.status==='paused')&&Date.now()-new Date(s.lastHeartbeatAt).getTime()>DISCONNECT_MS)s.status='disconnected';
+ if(s&&(s.status==='active'||s.status==='paused')&&Date.now()-new Date(s.lastHeartbeatAt).getTime()>disconnectMs())s.status='disconnected';
  return s;
 }
 function todayMinutesOf(db,childId){
@@ -871,7 +918,7 @@ function ensurePartySession(ctx,gameId,areaId){
 function childCardOf(db,id){
  const p=db.people.find(x=>x.id===id);if(!p)return null;
  const active=(db.playSessions||[]).find(s=>s.childId===id&&['active','paused'].includes(s.status));
- if(active&&Date.now()-new Date(active.lastHeartbeatAt).getTime()>120000)active.status='disconnected';
+ if(active&&Date.now()-new Date(active.lastHeartbeatAt).getTime()>disconnectMs())active.status='disconnected';
  const today=(db.playSessions||[]).filter(s=>s.childId===id&&new Date(s.startedAt).toDateString()===new Date().toDateString()).reduce((a,s)=>a+s.minutes,0);
  const budget=(db.timeBudgets||[]).find(t=>t.childId===id);
  return{

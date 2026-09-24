@@ -1,6 +1,6 @@
 # CMS-Testkatalog — manueller Abnahmetest
 
-**Stand:** nach Phase 4 (Multiplayer). Testet den aktuellen Datenstand und die UI.
+**Stand:** nach Phase 4 (Multiplayer) + deklarative Server-Migration (alle Endpunkte als Server-Stages in `GCS-CMS.json`; externe Verträge unverändert). Testet den aktuellen Datenstand und die UI.
 **Vorgehen:** Jeden Punkt abhaken `[x]`. Bei Abweichung Zeilennummer + Beobachtung notieren.
 
 ---

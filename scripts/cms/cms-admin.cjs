@@ -9,7 +9,7 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
  store=store||require('./cms-store.cjs').createJsonStore({dataPath});
  let _rt;const rt=()=>_rt??(_rt=require('./cms-runtime.cjs').loadRuntime(cmsFile||CMS_FILE));
  const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json'),sessions=new Map(),attempts=new Map();
- function readSession(req){const token=(req.headers.cookie||'').split('; ').find(s=>s.startsWith('cms_admin='))?.slice(10),s=sessions.get(token);if(!s||s.expires<Date.now()||!core.db.people.some(p=>p.id===s.personId&&p.active)){sessions.delete(token);return null;}return s;}
+ function readSession(req){const token=(req.headers.cookie||'').split('; ').find(s=>s.startsWith('cms_admin='))?.slice(10),s=sessions.get(token);if(!s||s.expires<Date.now()||!core.db.people.some(p=>p.id===s.personId&&p.active&&(p.authVersion||0)===(s.authVersion||0))){sessions.delete(token);return null;}return s;}
  const commit=(s,action,areaId,change)=>store.commit(core.db,{actor:s.personId,action,areaId},change);
  const fail=(status,message)=>({status,data:{ok:false,message}}),ok=data=>({status:200,data:{ok:true,...data}});
  // Modul-Adapter: alle Verwaltungsrouten laufen über die deklarativen
@@ -27,11 +27,13 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
   const valid=!!c&&crypto.timingSafeEqual(hash,Buffer.from(c.hash,'hex'))&&core.db.people.some(p=>p.id===c.personId&&p.active);emit('Passwort und Person prüfen',{valid:!!valid});if(!valid)return {error:'Anmeldung nicht möglich.'};
   // Kontexte der Person (E01): Verwaltung, Eltern (bestätigte Zuordnung), Beobachtung.
   const contexts=[];if(core.childrenOf(c.personId).length)contexts.push('parent');if(core.db.roles.some(r=>r.personId===c.personId&&r.role==='observer'&&r.active&&areaActive(core.db,r.areaId)))contexts.push('observer');
-  const s={personId:c.personId,assurance:'admin',expires:Date.now()+1800000};const allowed=core.db.areas.some(a=>a.active&&core.can(s,'manageArea',{areaId:a.id}));emit('Verwaltungszuständigkeit prüfen',{allowed});
+  const s={personId:c.personId,assurance:'admin',authVersion:core.db.people.find(p=>p.id===c.personId)?.authVersion||0,expires:Date.now()+1800000};const allowed=core.db.areas.some(a=>a.active&&core.can(s,'manageArea',{areaId:a.id}));emit('Verwaltungszuständigkeit prüfen',{allowed});
   if(!allowed)return contexts.length?{personId:c.personId,contexts}:{error:'Keine Verwaltungszuständigkeit.'};
-  // SuperAdmin landet direkt auf der SuperAdmin-Stage (E01: kein Umweg).
+  // SuperAdmin landet direkt auf der SuperAdmin-Stage (E01: kein Umweg);
+  // HouseAdmin landet in der Hausverwaltung (dort legt er Räume an).
   const isSuper=core.db.roles.some(r=>r.personId===c.personId&&r.role==='superAdmin'&&r.areaId==='root'&&r.active);
-  verified.add(s);return {session:s,contexts:['admin',...contexts],super:isSuper};
+  const isHouse=core.db.roles.some(r=>r.personId===c.personId&&r.role==='areaAdmin'&&r.active&&core.db.areas.find(a=>a.id===r.areaId)?.type==='house'&&areaActive(core.db,r.areaId));
+  verified.add(s);return {session:s,contexts:['admin',...contexts],super:isSuper,house:isHouse};
  }
  const verified=new WeakSet();
  function createSession(s){if(!verified.has(s))throw Error('Nicht geprüfte Verwaltungssitzung');verified.delete(s);const now=Date.now();for(const [k,v]of sessions)if(v.expires<now)sessions.delete(k);const token=crypto.randomBytes(32).toString('hex');sessions.set(token,s);return {token};
@@ -40,7 +42,7 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
  // die Antwortdaten enthalten die Tokens als Transportfelder für den Aufrufer.
  function login(req,body){const ep=rt().find('/api/cms/admin-login','POST');if(!ep)return{error:'Anmeldeendpunkt fehlt.'};
   const r=rt().run(ep,{session:null,body,core,admin:self,commit,credentialPath,remoteAddress:req.socket?.remoteAddress},{strict:true}),d=r.data||{};
-  if(d.adminToken)return{token:d.adminToken,accountToken:d.accountToken,personId:d.personId,contexts:d.contexts||['admin'],super:!!d.super};
+  if(d.adminToken)return{token:d.adminToken,accountToken:d.accountToken,personId:d.personId,contexts:d.contexts||['admin'],super:!!d.super,house:!!d.house};
   if(d.accountToken)return{accountToken:d.accountToken,personId:d.personId,contexts:d.contexts||[]};
   return{error:d.message||'Anmeldung nicht möglich.'};
  }

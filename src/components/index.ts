@@ -104,6 +104,10 @@ export * from './TServerStore';
 export * from './TServerAccess';
 
 export * from './TServerProfile';
+export * from './TServerEnroll';
+export * from './TServerParentAccount';
+export * from './TServerPlaySession';
+export * from './TServerParty';
 
 export * from './TFilePicker';
 export * from './TFileUpload';

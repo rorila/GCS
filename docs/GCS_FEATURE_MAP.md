@@ -206,3 +206,9 @@ TTable: dataSource, keyField und ausgewählter Datensatz; TObjectList: separater
 
 ### CMS-Spielstart in Editor-Laufzeiten (2026-09-13)
 Der Browser-Adapter src/adapters/CmsGameHost.ts verarbeitet den bestehenden SpielURL-Vertrag im Run-Tab und UniversalPlayer ohne cms-shell.js. Vite leitet /play/ an den CMS-Server weiter. Rückkehr, HTTP-Fehleranzeige, Debug-Log und Bereinigung beim Run-Stopp sind enthalten.
+
+## CMS: Admin-Verwaltung für SuperAdmins (24.09.2026)
+Hausübersicht (stage_super_house) zeigt nur die Admins des Hauses; „+ Admin hinzufügen" öffnet die Personenauswahl mit Zuweisung per Bestätigung. Neue Detailseite stage_super_admin_detail: Profil (Name, Avatar), Zuständigkeit je Haus, Konto aktiv/inaktiv (global, entwertet offene Links und Sitzungen), Zugang (Einladen bzw. Passwort-Reset per einmaligem 1-h-Link, Benutzername bleibt). Fachabläufe als deklarative Server-Flows in stage_server_super; neue technische Bausteine: TServerValidate.avatar, TServerAccess.describeCredentials/createResetTicket, TServerStore.personActive. Globale Auswahl GewaehlterAdmin/GewaehlterAdminName im Blueprint. Tests: test-cms-admin-management.cjs, test-cms-super.cjs.
+
+## CMS: Sitzungsschutz der Verwaltungsanmeldung (24.09.2026)
+stage_admin_login ohne Bereichsnavigation; Sitzung_Pruefen erkennt eine bestehende Verwaltungssitzung („Angemeldet als …" mit Weiter/Abmelden). Verwaltungsseiten (stage_admin, stage_house, stage_super*, stage_library) starten mit Zugang_Pruefen und leiten ohne Sitzung zur Anmeldung. Server: jeder Anmeldeversuch beendet vorherige Verwaltungs- und Kontositzungen und löscht die Cookies bei Fehlschlag. Test: test-cms-login-session.cjs.

@@ -36,15 +36,16 @@ const housesSpec={
  extra:{activeCount:{countItems:{where:{active:true}}},message:'SuperAdmin · Häuser'}
 };
 const adminsSpec={
- entity:'people',where:{active:true,kind:{not:'child'}},
+ entity:'people',where:{kind:{not:'child'},anonymizedAt:{falsy:true}},
  fields:{
-  id:'$item.id',name:'$item.name',
+  id:'$item.id',name:'$item.name',avatar:'$item.avatar',aktiv:'$item.active',
   _admin:{exists:{entity:'roles',where:{personId:'$item.id',areaId:'$body.houseId',role:'areaAdmin',active:true}}},
   _super:{exists:{entity:'roles',where:{personId:'$item.id',areaId:'root',role:'superAdmin',active:true}}},
   label:{concat:['$item.name',{if:['$field._super',' · SuperAdmin','']}]},
   active:'$field._admin',zugang:{access:'$item.id'},
+  konto:{if:['$item.active','● Aktiv','○ Inaktiv']},rolle:{if:['$field._admin','HouseAdmin','nicht zugeordnet']},
   andere:{join:{from:{entity:'roles',where:{personId:'$item.id',role:'areaAdmin',active:true,areaId:{not:'$body.houseId'}}},to:{entity:'areas',fromKey:'areaId',toKey:'id'},field:'name',sep:', ',empty:'—'}},
-  status:{if:['$field._admin','Admin','—']},next:{not:'$field._admin'}
+  status:{if:['$item.active',{if:['$field._admin','Admin','—']},'inaktiv']},next:{not:'$field._admin'},nextActive:{not:'$item.active'}
  },
  extra:{message:{concat:['$vars.Haus.item.name',' · HouseAdmins']}}
 };
@@ -61,6 +62,7 @@ const rootAdminsSpec={
 
 const house={entity:'areas',where:{id:'$body.houseId',type:'house'}};
 const person={entity:'people',where:{id:'$body.personId',active:true}};
+const personAny={entity:'people',where:{id:'$body.personId',kind:{not:'child'},anonymizedAt:{falsy:true}}};
 
 const endpoints=[];
 
@@ -73,8 +75,9 @@ endpoints.push({path:'/api/cms/admin/super-houses',task:'Server_SuperHaeuser_Ver
 
 {const n=ns('HausAdmins');
 endpoints.push({path:'/api/cms/admin/super-admins',task:'Server_HausAdmins_Verarbeiten',desc:'Rolle + Haus prüfen → Admins abfragen → antworten',
- inner:[n.call('HausLaden'),n.cond('Haus gefunden?','Haus.found','==',true,[n.call('Abfragen'),n.call('Antworten')],[n.call('Haus404')])],
+ inner:[n.call('HausLaden'),n.cond('Haus gefunden?','Haus.found','==',true,[n.cond('Nur zugeordnete Admins?','body.listMode','==','assigned',[n.call('ZugeordneteAbfragen')],[n.call('Abfragen')]),n.call('Antworten')],[n.call('Haus404')])],
  actions:[n.act('HausLaden','Datenbestand','find',[house],'Haus'),
+          n.act('ZugeordneteAbfragen','Datenbestand','list',[{...adminsSpec,where:{...adminsSpec.where,has:{entity:'roles',where:{personId:'$item.id',areaId:'$body.houseId',role:'areaAdmin',active:true}}}}],'Admins'),
           n.act('Abfragen','Datenbestand','list',[adminsSpec],'Admins'),
           n.act('Antworten','AntwortSenden','send',[{items:'${Admins.items}',message:'${Admins.message}'}]),
           n.act('Haus404','AntwortSenden','fail',[404,'Haus nicht gefunden.'])]});}
@@ -140,8 +143,133 @@ endpoints.push({path:'/api/cms/admin/super-person-create',task:'Server_SuperPers
  ],
  actions:[n.act('NamePruefen','EingabePruefung','text',['name',{max:60,message:'Anzeigename erforderlich.'}],'Namen'),
           n.act('Anlegen','DatenSpeicher','create',[{entity:'people',fields:{id:{uuid:'person-'},name:'$vars.Namen.value',avatar:'👤',kind:'adult',active:true},audit:{action:'admin-person-create',areaId:'root'}}],'Ergebnis'),
-          n.act('Antworten','AntwortSenden','send',[{id:'${Ergebnis.id}',message:'Person angelegt. Jetzt einem Haus zuweisen.'}]),
+          n.act('Antworten','AntwortSenden','send',[{id:'${Ergebnis.id}',message:'Person angelegt — Zeile wählen, Rolle bestätigen, dann einladen.'}]),
           n.act('Name400','AntwortSenden','fail',['${Namen.status}','${Namen.message}'])]});}
+
+// --- Admin-Verwaltung (Detailseite) -------------------------------------------
+// Jeder fachliche Schritt ist eine eigene Action/Bedingung im Flow; die
+// Komponenten liefern nur technische Bausteine (Lesen, Speichern, Ticket).
+const otherHouses={entity:'people',where:{id:'$body.personId'},fields:{andere:adminsSpec.fields.andere}};
+
+{const n=ns('PersonDetails');
+endpoints.push({path:'/api/cms/admin/super-person-detail',task:'Server_SuperPersonDetails_Verarbeiten',desc:'Haus → Person → Zuständigkeit, weitere Häuser und Zugang lesen → antworten',
+ inner:[
+  n.call('HausLaden'),
+  n.cond('Haus gefunden?','Haus.found','==',true,[
+   n.call('PersonLaden'),
+   n.cond('Person gefunden?','Person.found','==',true,[
+    n.call('RolleLesen'),n.call('AndereLesen'),n.call('ZugangLesen'),n.call('Antworten')
+   ],[n.call('Person404')])
+  ],[n.call('Haus404')])
+ ],
+ actions:[n.act('HausLaden','Datenbestand','find',[house],'Haus'),
+          n.act('PersonLaden','Datenbestand','find',[personAny],'Person'),
+          n.act('RolleLesen','Datenbestand','exists',[{entity:'roles',where:{personId:'$body.personId',areaId:'$body.houseId',role:'areaAdmin',active:true}}],'HatRolle'),
+          n.act('AndereLesen','Datenbestand','list',[otherHouses],'Admins'),
+          n.act('ZugangLesen','Zugangsverwaltung','describeCredentials',['$body.personId'],'HatZugang'),
+          n.act('Antworten','AntwortSenden','send',[{person:{id:'${Person.item.id}',name:'${Person.item.name}',avatar:'${Person.item.avatar}',active:'${Person.item.active}',assigned:'${HatRolle}',andere:'${Admins.items.0.andere}',hasCredentials:'${HatZugang.exists}',accessLabel:'${HatZugang.label}'},houseName:'${Haus.item.name}',message:'${Person.item.name} · Verwaltung'}]),
+          n.act('Person404','AntwortSenden','fail',[404,'Person nicht gefunden.']),
+          n.act('Haus404','AntwortSenden','fail',[404,'Haus nicht gefunden.'])]});}
+
+{const n=ns('PersonSpeichern');
+endpoints.push({path:'/api/cms/admin/super-person-update',task:'Server_SuperPersonSpeichern_Verarbeiten',desc:'Haus → Person → Name prüfen → Avatar prüfen → speichern',
+ inner:[
+  n.call('HausLaden'),
+  n.cond('Haus gefunden?','Haus.found','==',true,[
+   n.call('PersonLaden'),
+   n.cond('Person gefunden?','Person.found','==',true,[
+    n.call('NamePruefen'),
+    n.cond('Name gültig?','Namen.ok','==',true,[
+     n.call('AvatarPruefen'),
+     n.cond('Avatar gültig?','Avatar.ok','==',true,[n.call('Speichern'),n.call('Antworten')],[n.call('Avatar400')])
+    ],[n.call('Name400')])
+   ],[n.call('Person404')])
+  ],[n.call('Haus404')])
+ ],
+ actions:[n.act('HausLaden','Datenbestand','find',[house],'Haus'),
+          n.act('PersonLaden','Datenbestand','find',[personAny],'Person'),
+          n.act('NamePruefen','EingabePruefung','text',['name',{max:60,message:'Anzeigename erforderlich (max. 60 Zeichen).'}],'Namen'),
+          n.act('AvatarPruefen','EingabePruefung','avatar',['avatar'],'Avatar'),
+          n.act('Speichern','DatenSpeicher','update',[{entity:'people',where:{id:'$body.personId'},set:{name:'$vars.Namen.value',avatar:'$vars.Avatar.value'},audit:{action:'person-update',areaId:'$body.houseId'}}],'Ergebnis'),
+          n.act('Antworten','AntwortSenden','send',[{message:'Profil gespeichert.'}]),
+          n.act('Name400','AntwortSenden','fail',['${Namen.status}','${Namen.message}']),
+          n.act('Avatar400','AntwortSenden','fail',['${Avatar.status}','${Avatar.message}']),
+          n.act('Person404','AntwortSenden','fail',[404,'Person nicht gefunden.']),
+          n.act('Haus404','AntwortSenden','fail',[404,'Haus nicht gefunden.'])]});}
+
+{const n=ns('PersonAktiv');
+endpoints.push({path:'/api/cms/admin/super-person-active',task:'Server_SuperPersonAktiv_Verarbeiten',desc:'Haus → Person → Bestätigung → Zustand → Selbstschutz → Konto aktiv/inaktiv',
+ inner:[
+  n.call('HausLaden'),
+  n.cond('Haus gefunden?','Haus.found','==',true,[
+   n.call('PersonLaden'),
+   n.cond('Person gefunden?','Person.found','==',true,[
+    n.call('BestaetigungPruefen'),
+    n.cond('Bestätigt?','Bestaetigt.ok','==',true,[
+     n.call('AktivPruefen'),
+     n.cond('Zustand gültig?','AktivWert.ok','==',true,[
+      n.cond('Wird deaktiviert?','AktivWert.value','==',false,[
+       n.cond('Eigenes Konto?','body.personId','==','${session.personId}',[n.call('Selbst409')],[n.call('StatusSetzen'),n.call('Deaktiviert')])
+      ],[n.call('StatusSetzen'),n.call('Aktiviert')])
+     ],[n.call('Zustand400')])
+    ],[n.call('Bestaetigung400')])
+   ],[n.call('Person404')])
+  ],[n.call('Haus404')])
+ ],
+ actions:[n.act('HausLaden','Datenbestand','find',[house],'Haus'),
+          n.act('PersonLaden','Datenbestand','find',[personAny],'Person'),
+          n.act('BestaetigungPruefen','EingabePruefung','confirmed',['confirm'],'Bestaetigt'),
+          n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),
+          n.act('StatusSetzen','DatenSpeicher','personActive',[{personId:'$body.personId',active:'$vars.AktivWert.value',audit:{action:'person-active',areaId:'$body.houseId'}}],'Ergebnis'),
+          n.act('Aktiviert','AntwortSenden','send',[{message:'Konto aktiviert.'}]),
+          n.act('Deaktiviert','AntwortSenden','send',[{message:'Konto deaktiviert — Anmeldung in allen Häusern gesperrt, offene Links entwertet.'}]),
+          n.act('Selbst409','AntwortSenden','fail',[409,'Das eigene Konto kann nicht deaktiviert werden.']),
+          n.act('Zustand400','AntwortSenden','fail',[400,'Zielzustand fehlt.']),
+          n.act('Bestaetigung400','AntwortSenden','fail',[400,'Änderung ausdrücklich bestätigen.']),
+          n.act('Person404','AntwortSenden','fail',[404,'Person nicht gefunden.']),
+          n.act('Haus404','AntwortSenden','fail',[404,'Haus nicht gefunden.'])]});}
+
+{const n=ns('ZugangReset');
+endpoints.push({path:'/api/cms/admin/super-person-reset',task:'Server_SuperZugangReset_Verarbeiten',desc:'Haus → Person → aktiv → Haus aktiv → Zuständigkeit → Zugang vorhanden → Bestätigung → Reset-Ticket',
+ inner:[
+  n.call('HausLaden'),
+  n.cond('Haus gefunden?','Haus.found','==',true,[
+   n.call('PersonLaden'),
+   n.cond('Person gefunden?','Person.found','==',true,[
+    n.cond('Konto aktiv?','Person.item.active','==',true,[
+     n.call('HausAktivPruefen'),
+     n.cond('Haus aktiv?','HausAktiv','==',true,[
+      n.call('RollePruefen'),
+      n.cond('HouseAdmin dieses Hauses?','HatRolle','==',true,[
+       n.call('ZugangLesen'),
+       n.cond('Zugang vorhanden?','HatZugang.exists','==',true,[
+        n.call('BestaetigungPruefen'),
+        n.cond('Bestätigt?','Bestaetigt.ok','==',true,[
+         n.call('TicketErstellen'),
+         n.cond('Ticket erstellt?','Einladung.ok','==',true,[n.call('Antworten')],[n.call('TicketFehler')])
+        ],[n.call('Bestaetigung400')])
+       ],[n.call('KeinZugang409')])
+      ],[n.call('Rolle403')])
+     ],[n.call('Rolle403')])
+    ],[n.call('Inaktiv409')])
+   ],[n.call('Person404')])
+  ],[n.call('Haus404')])
+ ],
+ actions:[n.act('HausLaden','Datenbestand','find',[house],'Haus'),
+          n.act('PersonLaden','Datenbestand','find',[personAny],'Person'),
+          n.act('HausAktivPruefen','Datenbestand','areaActive',['$body.houseId'],'HausAktiv'),
+          n.act('RollePruefen','Datenbestand','exists',[{entity:'roles',where:{personId:'$body.personId',areaId:'$body.houseId',role:'areaAdmin',active:true}}],'HatRolle'),
+          n.act('ZugangLesen','Zugangsverwaltung','describeCredentials',['$body.personId'],'HatZugang'),
+          n.act('BestaetigungPruefen','EingabePruefung','confirmed',['confirm'],'Bestaetigt'),
+          n.act('TicketErstellen','Zugangsverwaltung','createResetTicket',[{personId:'$body.personId',houseId:'$body.houseId',audit:{action:'admin-reset-request',areaId:'$body.houseId'}}],'Einladung'),
+          n.act('Antworten','AntwortSenden','send',[{link:'${Einladung.link}',message:'Reset-Link erstellt (1 Stunde, einmalig). Benutzername bleibt erhalten; das alte Passwort gilt bis zum Einlösen.'}]),
+          n.act('TicketFehler','AntwortSenden','fail',['${Einladung.status}','${Einladung.message}']),
+          n.act('Inaktiv409','AntwortSenden','fail',[409,'Konto ist deaktiviert — zuerst aktivieren.']),
+          n.act('Rolle403','AntwortSenden','fail',[403,'Nur für aktive HouseAdmins eines aktiven Hauses.']),
+          n.act('KeinZugang409','AntwortSenden','fail',[409,'Noch kein Zugang vorhanden — bitte zuerst einladen.']),
+          n.act('Bestaetigung400','AntwortSenden','fail',[400,'Zurücksetzen ausdrücklich bestätigen.']),
+          n.act('Person404','AntwortSenden','fail',[404,'Person nicht gefunden.']),
+          n.act('Haus404','AntwortSenden','fail',[404,'Haus nicht gefunden.'])]});}
 
 // --- Rollen ------------------------------------------------------------------
 {const n=ns('SuperAdminSetzen');
@@ -274,13 +402,36 @@ const stage={
  generatedBy:'cms-add-super-server-stage.cjs',
  grid:{columns:64,rows:48,cellWidth:24,cellHeight:24},
  objects,
- variables:['Pruefung','Haeuser','Admins','Haus','Person','Namen','AktivWert','Bestaetigt','Belegt','HatRolle','HatZugang','HausAktiv','Ergebnis','Einladung'].map(variable),
+ variables:['Pruefung','Haeuser','Admins','Haus','Person','Namen','Avatar','AktivWert','Bestaetigt','Belegt','HatRolle','HatZugang','HausAktiv','Ergebnis','Einladung'].map(variable),
  tasks,actions,
  flowCharts:[],events:{},startAnimation:null,features:[],group:'Server'
 };
 
-const idx=project.stages.findIndex(s=>s.id==='stage_server_super');
-if(idx>=0&&project.stages[idx].generatedBy!=='cms-add-super-server-stage.cjs'){console.log('stage_server_super wurde im Editor verändert — Abbruch (JSON ist Master).');process.exit(1);}
-if(idx>=0)project.stages[idx]=stage;else project.stages.push(stage);
-fs.writeFileSync(file,JSON.stringify(project,null,1));
-console.log((idx>=0?'aktualisiert':'eingefügt')+': stage_server_super · '+endpoints.length+' Endpunkte · '+actions.length+' Actions');
+/** Gezielte Übernahme nur der Admin-Verwaltungs-Endpunkte in die bestehende
+ *  Stage — übrige (ggf. im Editor bearbeitete) Endpunkte bleiben unberührt.
+ *  IDs vorhandener Elemente bleiben erhalten; veraltete Actions der
+ *  betroffenen Namensräume werden entfernt. */
+function applyManagementEndpoints(target){
+ const current=target.stages.find(s=>s.id==='stage_server_super');
+ if(!current)throw Error('stage_server_super fehlt.');
+ const paths=new Set(['/api/cms/admin/super-admins','/api/cms/admin/super-person-detail','/api/cms/admin/super-person-update','/api/cms/admin/super-person-active','/api/cms/admin/super-person-reset']);
+ const taskNames=new Set(endpoints.filter(ep=>paths.has(ep.path)).map(ep=>ep.task));
+ const owned=/^(HausAdmins|PersonDetails|PersonSpeichern|PersonAktiv|ZugangReset)_/;
+ const keepIds=new Map(current.actions.filter(a=>owned.test(a.name)).map(a=>[a.name,a.id]));
+ current.actions=current.actions.filter(a=>!owned.test(a.name)).concat(stage.actions.filter(a=>owned.test(a.name)).map(a=>({...a,id:keepIds.get(a.name)||a.id})));
+ const merge=(key,items)=>{for(const item of items){const old=current[key].find(x=>x.name===item.name);if(old)Object.assign(old,item,{id:old.id,x:old.x,y:old.y});else current[key].push(item);}};
+ merge('objects',stage.objects.filter(o=>paths.has(o.endpointPath)));
+ merge('tasks',stage.tasks.filter(t=>taskNames.has(t.name)));
+ for(const v of stage.variables)if(!current.variables.some(x=>x.name===v.name))current.variables.push(v);
+}
+if(require.main===module){
+ if(process.argv.includes('--management-only'))applyManagementEndpoints(project);
+ else{
+  const idx=project.stages.findIndex(s=>s.id==='stage_server_super');
+  if(idx>=0&&project.stages[idx].generatedBy!=='cms-add-super-server-stage.cjs'){console.log('stage_server_super wurde im Editor verändert — Abbruch (JSON ist Master).');process.exit(1);}
+  if(idx>=0)project.stages[idx]=stage;else project.stages.push(stage);
+ }
+ fs.writeFileSync(file,JSON.stringify(project,null,1));
+ console.log('stage_server_super aktualisiert'+(process.argv.includes('--management-only')?' (nur Admin-Verwaltung)':'')+'.');
+}
+module.exports={applyManagementEndpoints};

@@ -10,7 +10,18 @@ const KEEP_BACKUPS = 14;
 function atomicWrite(file, data) {
   const tmp = file + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2), { mode: 0o600 });
-  try { fs.renameSync(tmp, file); } catch (e) { fs.rmSync(tmp, { force: true }); throw e; }
+  // Windows: rename schlägt fehl, wenn die Zieldatei geöffnet ist
+  // (Editor, Indexer, Virenscanner). Kurze Retries, dann Copy-Fallback.
+  let lastErr = null;
+  for (let i = 0; i < 3; i++) {
+    try { fs.renameSync(tmp, file); return; } catch (e) {
+      lastErr = e;
+      if (!['EPERM', 'EACCES', 'EBUSY'].includes(e.code)) break;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 120);
+    }
+  }
+  try { fs.copyFileSync(tmp, file); fs.rmSync(tmp, { force: true }); }
+  catch { fs.rmSync(tmp, { force: true }); throw lastErr; }
 }
 
 function createJsonStore({ dataPath, backupDir, keepBackups = KEEP_BACKUPS } = {}) {

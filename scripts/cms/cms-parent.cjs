@@ -72,11 +72,12 @@ function enrollParent(core, credentialPath, ticket, username, password, commit) 
     const inv = next.invites.find(i => i.hash === hash);
     inv.usedAt = new Date().toISOString();
     const g = next.guardians.find(g => g.guardianId === invite.personId && g.childId === invite.childId && g.status === 'pending');
-    // Selbsteinladung: Aussteller = Elternteil → Bestätigung durch Dritten nötig.
-    if (g && invite.issuer !== invite.personId) { g.status = 'confirmed'; g.confirmedAt = inv.usedAt; }
+    // Vier-Augen-Prinzip: die Zuordnung bleibt ausstehend, bis ein zweiter
+    // Verantwortlicher bestätigt — der Aussteller der Einladung zählt nicht.
+    if (g && !g.issuer) g.issuer = invite.issuer;
   });
-  const pending = invite.issuer === invite.personId;
-  return { ok: true, message: pending ? 'Zugang eingerichtet. Deine Kinderzuordnung wartet noch auf die Bestätigung durch einen zweiten Verantwortlichen.' : 'Zugang eingerichtet. Jetzt als Elternteil anmelden.' };
+  const confirmed = core.db.guardians.some(g => g.guardianId === invite.personId && g.childId === invite.childId && g.status === 'confirmed');
+  return { ok: true, message: confirmed ? 'Zugang eingerichtet. Jetzt als Elternteil anmelden.' : 'Zugang eingerichtet. Deine Kinderzuordnung wartet noch auf die Bestätigung durch einen zweiten Verantwortlichen.' };
 }
 
 // Beobachter-Einladung einlösen (purpose 'observer'): Zugang anlegen und die

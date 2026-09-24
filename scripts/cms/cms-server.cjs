@@ -33,6 +33,10 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  const mp=require('./cms-mp.cjs').createMp(core,store,play,cmsFile,'stage_server_mp');
  const cookie=(req,name)=>(req.headers.cookie||'').split('; ').find(s=>s.startsWith(name+'='))?.slice(name.length+1);
  const accountCookie=token=>`cms_account=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`;
+ // Jeder Anmeldeversuch beendet zuerst eine bestehende Sitzung dieses Browsers —
+ // auch bei Fehlschlag. Sonst bliebe die Sitzung einer anderen Person nutzbar.
+ const CLEAR_COOKIES=['cms_admin=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0','cms_account=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'];
+ const endPreviousSessions=req=>{const prev=admin.readSession(req);if(prev)admin.endSession(prev);const acc=cookie(req,'cms_account');if(acc)core.logout(acc);};
  const slots=(items)=>Object.fromEntries(Array.from({length:4},(_,i)=>['slot'+i,items[i]||{id:'',label:'',visible:false}]));
  const reply=(res,code,data)=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  const server=http.createServer(async(req,res)=>{
@@ -69,7 +73,16 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    }
    if(req.method==='GET'&&['/admin','/house','/super'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
-    return res.end(admin.readSession(req)?renderCms(cmsFile,{'/super':'stage_super','/house':'stage_house','/admin':'stage_admin'}[url.pathname]):loginPage());
+    const session=admin.readSession(req);
+    if(!session)return res.end(loginPage());
+    const activeRoles=core.db.roles.filter(r=>r.personId===session.personId&&r.active&&areaActive(core.db,r.areaId));
+    const isSuper=activeRoles.some(r=>r.role==='superAdmin'&&r.areaId==='root');
+    const isHouse=isSuper||activeRoles.some(r=>r.role==='areaAdmin'&&core.db.areas.find(a=>a.id===r.areaId)?.type==='house');
+    // Eine sichtbare Stage ist noch kein Recht: direkte URLs werden ebenfalls
+    // nach Rolle begrenzt. Fachaktionen prüfen zusätzlich jedes areaId.
+    if(url.pathname==='/super'&&!isSuper){res.writeHead(303,{Location:isHouse?'/house':'/admin','Cache-Control':'no-store'});return res.end();}
+    if(url.pathname==='/house'&&!isHouse){res.writeHead(303,{Location:'/admin','Cache-Control':'no-store'});return res.end();}
+    return res.end(renderCms(cmsFile,{'/super':'stage_super','/house':'stage_house','/admin':'stage_admin'}[url.pathname]));
    }
    // Eltern- und Beobachterbereich: Konto-Sitzung (cms_account), kein Admin-Cookie nötig.
    if(req.method==='GET'&&['/parent','/observer'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
@@ -101,17 +114,18 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    if(url.pathname==='/admin-enroll'&&req.method==='GET'){
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
     const ticket=url.searchParams.get('ticket')||'';if(!/^[a-f0-9]{64}$/.test(ticket)){res.statusCode=400;return res.end('Ungültiger Einrichtungslink.');}
-    return res.end('<!doctype html><html lang="de"><meta charset="utf-8"><title>Verwaltungszugang einrichten</title><style>body{background:#122b39;color:white;font:20px Segoe UI;max-width:540px;margin:10vh auto}input,button{display:block;width:100%;padding:14px;margin:12px 0;box-sizing:border-box;font:inherit}</style><h1>Verwaltungszugang einrichten</h1><form method="post" action="/admin-enroll"><input type="hidden" name="ticket" value="'+ticket+'"><label>Benutzername<input name="username" required pattern="[a-zA-Z0-9_-]{3,40}" autocomplete="username"></label><label>Passwort (mindestens 12 Zeichen)<input name="password" type="password" minlength="12" maxlength="200" required autocomplete="new-password"></label><button>Zugang anlegen</button></form></html>');
+    return res.end('<!doctype html><html lang="de"><meta charset="utf-8"><title>Verwaltungszugang einrichten</title><style>body{background:#122b39;color:white;font:20px Segoe UI;max-width:540px;margin:10vh auto}input,button{display:block;width:100%;padding:14px;margin:12px 0;box-sizing:border-box;font:inherit}</style><h1>Verwaltungszugang einrichten</h1><p>Passwort zurückgesetzt? Dann den bisherigen Benutzernamen eingeben und ein neues Passwort wählen.</p><form method="post" action="/admin-enroll"><input type="hidden" name="ticket" value="'+ticket+'"><label>Benutzername<input name="username" required pattern="[a-zA-Z0-9_-]{3,40}" autocomplete="username"></label><label>Passwort (mindestens 12 Zeichen)<input name="password" type="password" minlength="12" maxlength="200" required autocomplete="new-password"></label><button>Zugang anlegen</button></form></html>');
    }
    if(req.method==='POST'&&url.pathname==='/admin-login'){
     if(req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
     let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(res,413,{error:'Zu groß'});}
+    endPreviousSessions(req);
     const result=admin.login(req,Object.fromEntries(new URLSearchParams(raw)));
-    if(result.error){res.writeHead(401,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(loginPage());}
+    if(result.error){res.writeHead(401,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Set-Cookie':CLEAR_COOKIES});return res.end(loginPage());}
     const cookies=[];if(result.token)cookies.push(`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
     // Konto-Cookie nur bei Eltern-/Beobachterkontext oder fehlender Verwaltungszuständigkeit.
     if(result.accountToken&&(result.contexts?.some(c=>c!=='admin')||!result.token))cookies.push(accountCookie(result.accountToken));
-    res.writeHead(303,{'Location':result.token?(result.super?'/super':'/admin'):(result.contexts||[]).includes('observer')?'/observer':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
+    res.writeHead(303,{'Location':result.token?(result.super?'/super':result.house?'/house':'/admin'):(result.contexts||[]).includes('observer')?'/observer':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
    }
    if(req.method==='GET'&&['/','/runtime-standalone.js','/cms-shell.js'].includes(url.pathname)){
     if(url.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(renderCms(cmsFile,'stage_main',url.searchParams.get('house')));}
@@ -153,9 +167,11 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const ep=runtime.find(url.pathname,'POST');if(!ep)return reply(res,404,{ok:false,message:'Endpunkt fehlt'});
     const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,body});
-    const result=runtime.run(ep,{session:admin.readSession(req),body,emit,core,admin,commit,credentialPath,remoteAddress:req.socket.remoteAddress});
+    endPreviousSessions(req);
+    const result=runtime.run(ep,{session:null,body,emit,core,admin,commit,credentialPath,remoteAddress:req.socket.remoteAddress});
     // Transport: Tokens der Antwort werden HttpOnly-Cookies und verlassen den Body.
     const data=result.data||{},cookies=[];
+    if(!data.adminToken&&!data.accountToken)cookies.push(...CLEAR_COOKIES);
     if(data.adminToken)cookies.push(`cms_admin=${data.adminToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
     if(data.accountToken)cookies.push(accountCookie(data.accountToken));
     delete data.adminToken;delete data.accountToken;delete data.personId;
@@ -250,7 +266,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    }
    return reply(res,404,{ok:false,message:'Funktion noch nicht verfügbar'});
   }catch(error){console.error('[CMS]',error.message);if(!res.headersSent)reply(res,500,{ok:false,message:'⚠ Bitte erneut versuchen'});else res.end();}
- });return {server,core};
+ });return {server,core,store};
 }
 if(require.main===module){const {server}=createServer();server.listen(Number(process.env.CMS_PORT||8081),'127.0.0.1',()=>console.log('GCS-CMS: http://localhost:'+(process.env.CMS_PORT||8081)));}
 module.exports={createServer};

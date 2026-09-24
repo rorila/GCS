@@ -395,19 +395,23 @@ const loginStage = project.stages.find(s => s.id === 'stage_admin_login');
 // ohne den Zwischenschritt über die Erfolgsansicht (er hat Verwaltung
 // gewählt, die Kontext-Auswahl ist für ihn ohne Belang).
 const loginErfolg = loginStage.tasks.find(t => t.name === 'Anmeldung_Erfolgreich');
-if (loginErfolg && !JSON.stringify(loginErfolg).includes('Act_Navigation_stage_super')) {
+if (loginErfolg && !JSON.stringify(loginErfolg).includes('Act_Navigation_stage_house')) {
   loginErfolg.actionSequence = [
     cond('Antwort.super', true,
       [{ type: 'action', name: 'Act_Navigation_stage_super' }],
-      loginErfolg.actionSequence),
+      [cond('Antwort.house', true,
+        [{ type: 'action', name: 'Act_Navigation_stage_house' }],
+        loginErfolg.actionSequence)]),
   ];
 }
 const navVerwaltung = loginStage.tasks.find(t => t.name === 'Navigation_VerwaltungOeffnen');
-if (navVerwaltung && !JSON.stringify(navVerwaltung).includes('Act_Navigation_stage_super')) {
+if (navVerwaltung && !JSON.stringify(navVerwaltung).includes('Act_Navigation_stage_house')) {
   navVerwaltung.actionSequence = busyGuard([
     cond('Antwort.super', true,
       [{ type: 'action', name: 'Act_Navigation_stage_super' }],
-      [{ type: 'action', name: 'Act_Navigation_VerwaltungOeffnen' }]),
+      [cond('Antwort.house', true,
+        [{ type: 'action', name: 'Act_Navigation_stage_house' }],
+        [{ type: 'action', name: 'Act_Navigation_VerwaltungOeffnen' }])]),
   ]);
 }
 
@@ -708,14 +712,22 @@ const uxViewToggle = (S, tableName, buttonName) => {
 };
 
 // Globale Variablen (ueberleben Stage-Wechsel): das gewaehlte Haus samt Anzeige.
-const gvar = (n, def) => ({ ...variable('TStringVariable', n, def), scope: 'global' });
-superStage.variables.push(gvar('GewaehltesHaus', ''), gvar('GewaehltesHausName', ''), { ...boolVar('GewaehltesHausAktiv'), scope: 'global' });
+// Kanonischer Ort ist der Blueprint — der Editor entfernt scope:global aus
+// anderen Stages beim Laden (EditorProjectLoader), der Player wuerde sie
+// dennoch importieren. Nur so verhalten sich Editor-Run und Player gleich.
+const blueprintStage = project.stages.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
+if (blueprintStage) {
+  blueprintStage.variables = blueprintStage.variables || [];
+  const gvar = (n, def) => ({ ...variable('TStringVariable', n, def), scope: 'global' });
+  [gvar('GewaehltesHaus', ''), gvar('GewaehltesHausName', ''), { ...boolVar('GewaehltesHausAktiv'), scope: 'global' }]
+    .forEach(v => { if (!blueprintStage.variables.some(b => b.name === v.name)) blueprintStage.variables.push(v); });
+}
 
 // --- stage_super: Landing „Übersicht“ ---
 {
   // Inhalt neu aufbauen (Shell + features bleiben erhalten).
   superStage.objects = []; superStage.tasks = []; superStage.actions = [];
-  superStage.variables = superStage.variables.filter(v => v.scope === 'global');
+  superStage.variables = [];
   const S = superStage, B = bind(S);
   uxSuperSidebar(S, 'stage_super');
   uxSuperBase(S);
@@ -806,7 +818,7 @@ const houseStage = stageShell('stage_super_house', 'SuperAdmin · Haus-Details')
   const S = houseStage, B = bind(S);
   uxSuperSidebar(S, 'stage_super_houses');
   uxSuperBase(S);
-  S.variables.push(strVar('Auswahl'), strVar('AuswahlName'), boolVar('Ziel'), boolVar('ZielAktiv'));
+  S.variables.push(strVar('Auswahl'), strVar('AuswahlName'), boolVar('Ziel'), boolVar('ZielAktiv'), strVar('ConfirmModus'), boolVar('PersonZiel'));
   S.objects.push(
     label('Titel', 'HAUS', 17, 2, 44, 2, 28),
     label('Kontext', 'Plattform › Häuser', 17, 5, 44, 2),
@@ -817,7 +829,7 @@ const houseStage = stageShell('stage_super_house', 'SuperAdmin · Haus-Details')
     button('HausAnAus', 'An/Aus', 56, 11, 7, 3, 'Sperre_HausAnAus'),
     button('SpielerLinkBtn', 'Spieler-Link', 17, 15, 12, 3, 'Sperre_SpielerLink'),
     edit('Link', 31, 15, 32, 2.5, { placeholder: 'Spieler-Link erscheint hier', readOnly: true }),
-    label('AdminInfo', 'HouseAdmins — Zeile wählen, dann bestätigen', 17, 19, 44, 2),
+    label('AdminInfo', 'HouseAdmins — Zeile wählen zum Verwalten', 17, 19, 30, 2),
     objList('AdminListe', 'Erwachsene mit Hausbezug'),
     table('AdminTabelle', 17, 22, 44, 10, 'AdminListe', [
       { field: 'name', label: 'Name', type: 'header', x: 0, y: 0 },
@@ -825,16 +837,27 @@ const houseStage = stageShell('stage_super_house', 'SuperAdmin · Haus-Details')
       { field: 'andere', label: 'Weitere Häuser', type: 'meta', x: 0, y: 3.2 },
       { field: 'status', label: 'Status', type: 'badge', x: 11, y: 0.3 },
     ], 'AdminZeile_Waehlen'),
-    button('Confirm', 'Zuständigkeit ändern?', 17, 33, 44, 3, 'Sperre_Confirm', { visible: false }),
-    edit('NameEingabe', 17, 37, 14, 2.5, { placeholder: 'Anzeigename' }),
-    button('PersonAnlegen', 'Person anlegen', 33, 37, 12, 3, 'Sperre_PersonAnlegen'),
-    button('Einladen', 'Einladen', 47, 37, 8, 3, 'Sperre_Einladen'),
-    label('Hilfe', 'Einladung: erst Person in der Tabelle wählen.', 17, 40, 44, 2, 16),
+    // Person-Panel (sichtbar nach Zeilenwahl): Name/Avatar + alle Verwaltungsaktionen.
+    label('PersonTitel', 'Person: —', 17, 33, 30, 2),
+    label('PersonZugang', '', 48, 33, 13, 2),
+    edit('PersonName', 17, 36, 20, 2.5, { placeholder: 'Anzeigename', visible: false }),
+    edit('PersonAvatar', 39, 36, 6, 2.5, { placeholder: 'Avatar', visible: false }),
+    button('PersonSpeichern', 'Speichern', 47, 36, 14, 3, 'Sperre_PersonSpeichern', { visible: false }),
+    button('PersonRolle', 'Zuständigkeit ändern', 17, 40, 14, 3, 'PersonRolle_Vormerken', { visible: false }),
+    button('PersonAktiv', 'An/Aus', 33, 40, 12, 3, 'PersonAktiv_Vormerken', { visible: false }),
+    button('PersonReset', 'Zugang zurücksetzen', 47, 40, 14, 3, 'PersonReset_Vormerken', { visible: false }),
+    button('Confirm', 'Bestätigen?', 17, 44, 44, 3, 'Sperre_Confirm', { visible: false }),
+    button('Einladen', 'Einladen', 17, 48, 10, 3, 'Sperre_Einladen'),
+    edit('Einladung', 29, 48, 32, 2.5, { placeholder: 'Einrichtungslink erscheint hier', readOnly: true }),
+    edit('NameEingabe', 17, 52, 14, 2.5, { placeholder: 'Anzeigename' }),
+    button('PersonAnlegen', 'Person anlegen', 33, 52, 12, 3, 'Sperre_PersonAnlegen'),
+    label('Hilfe', 'Neue Person anlegen (ohne Auswahl).', 47, 52, 14, 2, 16),
     uxTimer('InitialLaden', 'HouseInit'),
   );
   uxViewToggle(S, 'AdminTabelle', 'AnsichtToggle');
   Object.assign(uxObj(S, 'AdminTabelle'), { displayMode: 'table', cardConfig: { width: 320, height: 110, gap: 14, padding: 14 } });
-  S.objects.push(button('AnsichtToggle', '⇄ als Karten', 49, 33, 12, 3, 'AnsichtToggleTask'));
+  S.objects.push(button('AnsichtToggle', '⇄ als Karten', 49, 19, 12, 3, 'AnsichtToggleTask'));
+  for (const n of ['PersonTitel', 'PersonZugang', 'PersonName', 'PersonAvatar', 'PersonSpeichern', 'PersonRolle', 'PersonAktiv', 'PersonReset']) uxObj(S, n).visible = false;
   S.tasks.push(
     task('HouseInit', [callTask('Kontexte_Pruefen'), cond('GewaehltesHaus', '', [
       B.nav('Act_Nav_KeinHaus', 'stage_super_houses'),
@@ -852,12 +875,48 @@ const houseStage = stageShell('stage_super_house', 'SuperAdmin · Haus-Details')
       ], [callTask('Fehler')]),
     ]),
     task('AdminZeile_Waehlen', busyGuard([
-      B.prop('Act_Admin_Vormerken', { Auswahl: '${AdminTabelle.selectedKey}', AuswahlName: '${AdminTabelle.selectedRecord.name}', Ziel: '${AdminTabelle.selectedRecord.next}', 'Confirm.text': '${AdminTabelle.selectedRecord.name}: HouseAdmin-Zuständigkeit ändern?', 'Confirm.visible': true, 'Status.text': 'Auswahl bestätigen oder andere Zeile wählen.' }),
+      B.prop('Act_Admin_Vormerken', {
+        Auswahl: '${AdminTabelle.selectedKey}', AuswahlName: '${AdminTabelle.selectedRecord.name}',
+        Ziel: '${AdminTabelle.selectedRecord.next}', PersonZiel: '${AdminTabelle.selectedRecord.nextActive}',
+        'PersonTitel.text': 'Person: ${AdminTabelle.selectedRecord.name}', 'PersonZugang.text': '${AdminTabelle.selectedRecord.zugang}',
+        'PersonName.text': '${AdminTabelle.selectedRecord.name}', 'PersonAvatar.text': '${AdminTabelle.selectedRecord.avatar}',
+        'PersonTitel.visible': true, 'PersonZugang.visible': true, 'PersonName.visible': true, 'PersonAvatar.visible': true,
+        'PersonSpeichern.visible': true, 'PersonRolle.visible': true, 'PersonAktiv.visible': true, 'PersonReset.visible': true,
+        ConfirmModus: '', 'Confirm.visible': false, 'Status.text': 'Person gewählt — Aktion im Panel ausführen.',
+      }),
+    ])),
+    task('PersonRolle_Vormerken', busyGuard([
+      B.prop('Act_Rolle_Vormerken', { ConfirmModus: 'role', 'Confirm.text': '${AuswahlName}: HouseAdmin-Zuständigkeit ändern?', 'Confirm.visible': true }),
+    ])),
+    task('PersonAktiv_Vormerken', busyGuard([
+      B.prop('Act_Aktiv_Vormerken', { ConfirmModus: 'active', 'Confirm.text': '${AuswahlName}: Aktivstatus umschalten?', 'Confirm.visible': true }),
+    ])),
+    task('PersonReset_Vormerken', busyGuard([
+      B.prop('Act_Reset_Vormerken', { ConfirmModus: 'reset', 'Confirm.text': 'Zugang von ${AuswahlName} löschen und neuen Link erzeugen?', 'Confirm.visible': true }),
+    ])),
+    task('Sperre_PersonSpeichern', busyGuard([
+      B.prop('Act_PersonSave_Warten', { Busy: 1, 'Status.text': 'Person wird gespeichert …' }),
+      B.http('Act_PersonSave_Server', '/api/cms/admin/super-person-update', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', name: '${PersonName.text}', avatar: '${PersonAvatar.text}' }),
+      cond('Antwort.ok', true, [
+        B.prop('Act_PersonGespeichert', { 'PersonTitel.text': 'Person: ${PersonName.text}', 'AuswahlName': '${PersonName.text}', Busy: 0 }),
+        callTask('AdminLaden'),
+      ], [callTask('Fehler')]),
     ])),
     task('Sperre_Confirm', busyGuard([
-      B.prop('Act_AdminSet_Warten', { Busy: 1, 'Confirm.visible': false, 'Status.text': 'Zuständigkeit wird gespeichert …' }),
-      B.http('Act_AdminSet_Server', '/api/cms/admin/super-admin-set', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: '${Ziel}', confirm: true }),
-      cond('Antwort.ok', true, [callTask('AdminLaden')], [callTask('Fehler')]),
+      B.prop('Act_AdminSet_Warten', { Busy: 1, 'Confirm.visible': false, 'Status.text': 'Änderung wird gespeichert …' }),
+      cond('ConfirmModus', 'active', [
+        B.http('Act_PersonAktiv_Server', '/api/cms/admin/super-person-active', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: '${PersonZiel}', confirm: true }),
+      ], [
+        cond('ConfirmModus', 'reset', [
+          B.http('Act_PersonReset_Server', '/api/cms/admin/super-person-reset', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', confirm: true }),
+        ], [
+          B.http('Act_AdminSet_Server', '/api/cms/admin/super-admin-set', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: '${Ziel}', confirm: true }),
+        ]),
+      ]),
+      cond('Antwort.ok', true, [
+        cond('ConfirmModus', 'reset', [B.prop('Act_Reset_Zeigen', { 'Einladung.text': '${Antwort.link}' })]),
+        callTask('AdminLaden'),
+      ], [callTask('Fehler')]),
     ])),
     task('Sperre_HausSpeichern', busyGuard([
       B.prop('Act_HausSave_Warten', { Busy: 1, 'Status.text': 'Haus wird gespeichert …' }),
@@ -1019,6 +1078,9 @@ if (libraryStage) {
 // ============================================================
 // Schreiben + Referenzprüfung (Tasks/Actions müssen auflösbar sein)
 // ============================================================
+// Die Admin-Verwaltung (Hausübersicht + Admin-Detailseite) wird im Projekt
+// gepflegt (JSON ist Master) — vorhandene Stages bleiben unangetastet.
+const existingHouse = project.stages.find(s => s.id === 'stage_super_house');
 project.stages = project.stages.filter(s => !['stage_server_parent', 'stage_server_play', 'stage_server_mp', 'stage_parent', 'stage_observer', 'stage_super_houses', 'stage_super_house', 'stage_super_admins'].includes(s.id));
 serverStage.group = 'Server';
 playStage.group = 'Server';
@@ -1028,7 +1090,7 @@ observer.group = 'Eltern & Beobachtung';
 housesStage.group = 'Verwaltung';
 houseStage.group = 'Verwaltung';
 adminsStage.group = 'Verwaltung';
-project.stages.push(serverStage, playStage, mpStage, parent, observer, housesStage, houseStage, adminsStage);
+project.stages.push(serverStage, playStage, mpStage, parent, observer, housesStage, existingHouse || houseStage, adminsStage);
 
 // Fachliche Gruppierung (E04): deklaratives group-Feld, das der Editor
 // als Menü-Überschrift nutzt. Ungruppierte Stages bleiben flach.

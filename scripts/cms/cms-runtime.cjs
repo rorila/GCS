@@ -30,7 +30,8 @@ function loadRuntime(cmsFile){
     runSequence(task.actionSequence||[],run,task.name);
    }catch(e){
     if(opts?.strict)throw e;
-    return{status:500,data:{ok:false,message:'Server-Task-Fehler: '+e.message}};
+    console.error('[CMS runtime]',entry.endpoint?.events?.onRequest,e);
+    return{status:500,data:{ok:false,message:'⚠ Interner Fehler — bitte erneut versuchen.'}};
    }
    return run.result||{status:200,data:{ok:true}};
   }
