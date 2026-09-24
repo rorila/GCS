@@ -189,7 +189,32 @@ const db = {
   return db;
 }
 
-module.exports = { buildDb, TEST_PASSWORD };
+// Minimalbestand für den Katalog-Ablauf „Aufbau ab null" (CMS-Testkatalog.md):
+// genau eine Plattformwurzel, ein SuperAdmin, keine weiteren fachlichen Daten.
+// Alle übrigen Entitäten entstehen später ausschließlich über echte CMS-Wege.
+function buildMinimalDb(now = Date.now()) {
+  const db = {
+    version: 3,
+    areas: [
+      { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
+    ],
+    people: [
+      { id: 'super-admin', name: 'Sara SuperAdmin', kind: 'adult', avatar: '👤', active: true },
+    ],
+    roles: [
+      { personId: 'super-admin', areaId: 'root', role: 'superAdmin', active: true },
+    ],
+    memberships: [], guardians: [], games: [], grants: [], codes: [], invites: [],
+    timeBudgets: [], playSessions: [], progress: [], deviceGrants: [], parties: [],
+    audit: [], profileRequests: [],
+    meta: { generatedBy: 'cms-seed-testdata.cjs', generatedAt: new Date(now).toISOString(), purpose: 'Aufbau ab null: Minimalbestand, synthetisch' },
+    testMeta: { password: TEST_PASSWORD, mode: 'minimal' },
+  };
+  validate(db);
+  return db;
+}
+
+module.exports = { buildDb, buildMinimalDb, TEST_PASSWORD };
 
 if (require.main === module) {
 const outDir = path.resolve(process.argv[2] || path.join(__dirname, '../../game-server/data/test'));

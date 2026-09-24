@@ -8,7 +8,7 @@
 //   und zeigt den aktuellen Stand im Statusblock oben an.
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'../..');
-const {buildDb,TEST_PASSWORD}=require('./cms-seed-testdata.cjs');
+const {buildDb,buildMinimalDb,TEST_PASSWORD}=require('./cms-seed-testdata.cjs');
 const {createServer}=require('./cms-server.cjs');
 
 const KATALOG=path.join(root,'docs','CMS-Testkatalog.md');
@@ -41,6 +41,27 @@ async function boot(port,patchDb){
   db:()=>app.core.db,                                   // Laufzeit-Sicht (In-Memory)
   file:()=>JSON.parse(fs.readFileSync(dataPath,'utf8')),// Persistenz-Sicht (Datenbestand)
   // Schließt den aktuellen Server (env.app kann nach einem Neustart-Test ersetzt sein).
+  async close(){const s=this.app?.server||app.server;s.closeAllConnections?.();await new Promise(r=>s.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});},
+ };
+}
+
+/** Minimaler Testserver fuer „Aufbau ab null" (CMS-Testkatalog.md):
+ *  nur Root-Bereich, ein SuperAdmin, keine weiteren fachlichen Daten.
+ *  Alle spaeteren Entitaeten muessen ueber echte CMS-Wege entstehen. */
+async function bootMinimal(port){
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'gcs-aufgebaut-'));
+ const dataPath=path.join(dir,'cms-testdata.json');
+ fs.writeFileSync(dataPath,JSON.stringify(buildMinimalDb(),null,2));
+ const salt=crypto.randomBytes(16).toString('hex');
+ const auth=[{personId:'super-admin',username:'super',salt,hash:crypto.scryptSync(TEST_PASSWORD,salt,64).toString('hex')}];
+ fs.writeFileSync(path.join(dir,'cms-admin-auth.json'),JSON.stringify(auth));
+ const app=createServer({dataPath});
+ await new Promise(r=>app.server.listen(port,'127.0.0.1',r));
+ const base='http://127.0.0.1:'+port;
+ return {
+  app,dir,base,password:TEST_PASSWORD,dataPath,
+  db:()=>app.core.db,
+  file:()=>JSON.parse(fs.readFileSync(dataPath,'utf8')),
   async close(){const s=this.app?.server||app.server;s.closeAllConnections?.();await new Promise(r=>s.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});},
  };
 }
@@ -153,4 +174,4 @@ function createReport(suite,{fresh=false}={}){
  };
 }
 
-module.exports={boot,obj,objs,stage,busy,event,sel,field,adminLogin,emojiLogin,api,form,createReport,TEST_PASSWORD};
+module.exports={boot,bootMinimal,obj,objs,stage,busy,event,sel,field,adminLogin,emojiLogin,api,form,createReport,TEST_PASSWORD};

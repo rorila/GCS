@@ -334,13 +334,16 @@ house.push({ns:'ElternEinladung',path:'/api/cms/admin/parent-invite',task:'Serve
 
 {const n=ns('ElternBestaetigung');
 const pendingGuardian={entity:'guardians',where:{childId:{first:['$body.childId',{at:[{split:['$body.id',':']},0]}]},guardianId:{first:['$body.guardianId',{at:[{split:['$body.id',':']},1]}]},status:'pending'}};
-house.push({ns:'ElternBestaetigung',path:'/api/cms/admin/guardian-approve',task:'Server_ElternZuordnung_Verarbeiten',desc:'Haus → Zuordnung ausstehend → Kind im Haus → Fremdbestätigung → bestätigen',
+house.push({ns:'ElternBestaetigung',path:'/api/cms/admin/guardian-approve',task:'Server_ElternZuordnung_Verarbeiten',desc:'Haus → Zuordnung ausstehend → Kind im Haus → Fremdbestätigung → bestätigen → Ergebnis',
  inner:[
   n.call('ZuordnungLaden'),
   n.cond('Zuordnung ausstehend?','Zuordnung.found','==',true,[
    n.call('KindPruefen'),
    n.cond('Kind im Haus?','Vorhanden','==',true,[
-    n.cond('Eigene Zuordnung?','Zuordnung.item.guardianId','==','${session.personId}',[n.call('Selbst409')],[n.call('Bestaetigen'),n.call('Antworten')])
+    n.cond('Eigene Zuordnung?','Zuordnung.item.guardianId','==','${session.personId}',[n.call('Selbst409')],[
+     n.call('Bestaetigen'),
+     n.cond('Bestätigung gelungen?','Ergebnis.ok','==',true,[n.call('Antworten')],[n.call('Fehler')])
+    ])
    ],[n.call('Kind403')])
   ],[n.call('Zuordnung404')])
  ],
@@ -349,6 +352,7 @@ house.push({ns:'ElternBestaetigung',path:'/api/cms/admin/guardian-approve',task:
           n.act('Selbst409','AntwortSenden','fail',[409,'Eigene Zuordnung kann nicht selbst bestätigt werden.']),
           n.act('Bestaetigen','Zugangsverwaltung','approveGuardian',[{childId:'$vars.Zuordnung.item.childId',guardianId:'$vars.Zuordnung.item.guardianId',houseId:'$body.houseId',audit:{action:'guardian-approve',areaId:'$body.houseId'}}],'Ergebnis'),
           n.act('Antworten','AntwortSenden','send',[{message:'Eltern-Kind-Zuordnung bestätigt.'}]),
+          n.act('Fehler','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}']),
           n.act('Zuordnung404','AntwortSenden','fail',[404,'Keine ausstehende Zuordnung.']),
           n.act('Kind403','AntwortSenden','fail',[403,'Kind gehört nicht zu diesem Haus.'])]});}
 

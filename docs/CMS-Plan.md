@@ -699,3 +699,295 @@ parallel Spielstart-/Upload-Isolation absichern → Komfortfunktionen später.
 
 Verbleibende Restdetails werden bei Erreichen des jeweiligen Zeitpunkts eingeholt;
 keine davon blockiert den Start von Phase 1.
+
+## 12. Detailplan: feste Rollen- und Mandantenszenarien
+
+**Status: geplant, nicht implementiert.** Dieser Abschnitt ist ein eigenständig
+abarbeitbarer Arbeitsauftrag. Die Erstellung des Plans erlaubt noch keine
+Änderung bestehender Funktionen. Jeden Umsetzungsschritt separat freigeben lassen.
+
+### 12.1 Ziel, Grenzen und Arbeitsregeln
+
+Ziel ist ein dauerhafter fachlicher Testvertrag: Für benannte Personen mit festen
+Rollen und Bereichen werden erlaubte UND verbotene Abläufe nachgewiesen.
+Technische Einzeltests bleiben bestehen; Szenarien ergänzen sie, statt sie zu ersetzen.
+
+1. Vor jedem Schritt dessen Voraussetzungen und betroffene Dateien lesen.
+2. Änderungen bestehender Funktionen vorher mit dem Nutzer abstimmen.
+3. Keine Produktivdaten lesen oder kopieren, um Testpersonen zu erzeugen.
+4. Ausschließlich synthetische Daten in einem eigenen temporären Verzeichnis verwenden.
+5. `game-server/data/cms-v1.json`, `cms-v2.json` und echte Zugangsdaten nicht verändern.
+6. Keine fachlichen CMS-Abläufe in einen neuen CJS-Workflow verlagern.
+7. Testhelfer dürfen Daten vorbereiten, HTTP/Browser bedienen und Ergebnisse prüfen.
+8. `GCS-CMS.json` bleibt die fachliche Quelle. Änderungen daran sind separate Fehlerbehebungen.
+9. Build und Serverstart führt der Nutzer aus. Auch isolierte Testserver nur nach
+   ausdrücklicher Freigabe starten; diese Freigabe vor Integrationstests einholen.
+10. Fehlgeschlagene Tests nicht durch Aufweichen der Erwartung grün machen.
+11. Bei Abweichungen unterscheiden: Produktfehler, Fixturefehler, Testfehler oder offene Fachregel.
+12. Keine Funktionen, Kommentare oder vorhandenen Tests ungefragt entfernen.
+13. Dateien unter 1000 Zeilen halten; keine allgemeine Testplattform auf Vorrat bauen.
+14. Keine Commits oder Pushes ohne Auftrag. Arbeitsänderungen anderer Personen erhalten.
+
+### 12.2 Verifizierter Ausgangspunkt und erneut zu prüfende Dateien
+
+Bei Erstellung dieses Plans wurden folgende Strukturen gelesen:
+
+| Datei | Bekannter Ausgangspunkt | Vor Umsetzung kontrollieren |
+|---|---|---|
+| `scripts/cms/cms-seed-testdata.cjs` | Exportiert `buildDb(now)` und `TEST_PASSWORD`; enthält stabile IDs, Rollen, Guardians und `testMeta` | Aktuelles Schema, alle Verbraucher und Listenlängenannahmen |
+| `scripts/cms/katalog-report.cjs` | `boot(port, patchDb)` erzeugt temporäre Daten; eigene `AUTH_USERS`-Liste | Lebenszyklus, Cookiehilfe und Neustartbereinigung |
+| `scripts/start-testserver.cjs` | Verwendet separate Testdateien | Fehlende-Dateien-Pfad verwendet `require`, während Seed-Ausgabe unter `require.main === module` liegt; separat prüfen, nicht blind darauf vertrauen |
+| `scripts/test-admin-login.cjs` | Vorhandener Login-Vertrag | Aktuelle Endpunkte, Rollenlandung und Mehrhausprüfungen lesen |
+| `scripts/test-cms-login-session.cjs` | Vorhandene Sitzungsregression | Cookie-, Browser- und Rollenwechselprüfungen lesen |
+| `scripts/test-cms-testdata.cjs` | Bestehende Fixturetests | Bekannte fachliche Konflikte von neuen Fehlern trennen |
+| `scripts/test-katalog-2-houseadmin.cjs` | Bestehende HouseAdmin-Abnahme | Vorhandene Fälle wiederverwenden, keine doppelte Pflege |
+| `docs/CMS-Testkatalog.md`, `docs/CMS-Testluecken.md` | Bestehende fachliche Nachweise | Szenario-IDs mit Testfällen verknüpfen |
+| `DEVELOPER_GUIDELINES.md`, `docs/QA_Report.md`, `package.json` | Projektregeln und Testintegration | Aktuelle Pflichtprüfungen und tatsächliche Testbefehle lesen |
+
+Wichtig: RaumAdmin ist im vorhandenen Seed `areaAdmin` auf einem Bereich vom Typ
+`room`; HouseAdmin ist `areaAdmin` auf `house`. Keinen neuen Rollennamen `roomAdmin`
+erfinden. Eine Elternberechtigung wird über eine bestätigte Guardian-Beziehung
+modelliert, nicht durch eine erfundene Rolle `parent`.
+
+### 12.3 Verbindlicher Umfang der Szenariomatrix
+
+Die IDs unten sind geplante Testfall-IDs, keine neuen Produktivrollen.
+Die genaue API-Antwort und der Statuscode werden in Schritt R0 festgelegt.
+
+| ID | Ausgangslage | Erlaubter Ablauf | Verbot / Fehlernachweis |
+|---|---|---|---|
+| RS01 | Reiner RaumAdmin in Sonne/Spielraum | Login führt zu `stage_admin`; eigenen Raum verwalten | Kein Zugriff auf Sonne/Lernraum, Mond oder Haus-/SuperAdmin-Funktionen |
+| RS02 | HouseAdmin nur für Sonne | Login führt zu `stage_house`; Sonne und dessen aktive Räume verwalten | Mond und dessen Räume weder lesen noch verändern |
+| RS03 | HouseAdmin für Sonne UND Mond | Beide Häuser sehen, auswählen und bearbeiten | Kein Zugriff auf ein drittes aktives Haus ohne Rolle |
+| RS04 | HouseAdmin Sonne sendet ausdrücklich IDs aus Mond | Eigene Kontrolloperation funktioniert | Fremde Haus-, Raum- und Personenreferenzen werden serverseitig abgewiesen |
+| RS05 | HouseAdmin + bestätigter Elternteil | Verwaltung und eigene Elternsicht funktionieren | Verwaltungsrolle erweitert Elternsicht nicht auf fremde Kinder |
+| RS06 | RaumAdmin + bestätigter Elternteil | Raumverwaltung und eigene Elternsicht funktionieren | Weder Hausverwaltung noch private Daten anderer Raumkinder |
+| RS07 | Aktive Person, einzige Verwaltungsrolle inaktiv | Kein Verwaltungszugang | Vorhandene Credentials allein erlauben keinen Zugriff |
+| RS08 | Aktive Hausrolle, Haus selbst inaktiv | Kein Zugriff auf dieses Haus oder seine Räume | Aktive Rolle überstimmt inaktiven Bereich nicht |
+| RS09 | Person inaktiv, Rolle und Haus aktiv | Anmeldung wird abgewiesen | Auch bestehende Sitzung kann keine geschützte Operation mehr ausführen |
+| RS10 | HouseAdmin für aktives und inaktives Haus | Aktives Haus bleibt nutzbar | Inaktives Haus bleibt gesperrt; kein vollständiger Rechteverlust für das aktive |
+| RS11 | SuperAdmin als Kontrollkonto | Landung `stage_super`; SuperAdmin-Aktion funktioniert | Keine automatische private Elternsicht |
+| RS12 | Keine Sitzung / abgelaufene Sitzung | Öffentliche Anmeldung erreichbar | Geschützte Daten und Änderungen bleiben gesperrt |
+| RS13 | Bereits angemeldeter SuperAdmin; danach anderer Loginversuch | Bestehende Identität wird angezeigt; Abmelden möglich | Fehlgeschlagener neuer Login darf alte SuperAdmin-Sitzung nicht fortführen |
+| RS14 | HouseAdmin in neuem Haus ohne Räume | Hausverwaltung zeigt leeren Zustand und Weg zum ersten Raum | Keine Landung in einer unbrauchbaren Raumverwaltung |
+| RS15 | HouseAdmin Sonne + RaumAdmin in Mond/Spielraum | Je Bereich nur die dort erteilten Fähigkeiten | Raumrolle in Mond verleiht keine Hausverwaltung für Mond |
+| RS16 | Laufende Sitzung, danach Zuständigkeit entzogen | Verbleibende gültige Rechte gelten weiter | Entzogene Zuständigkeit wirkt beim nächsten geschützten Request nicht mehr |
+
+RS04 und RS08 sind ausdrücklich getrennt: Ein fremdes aktives Haus testet
+Mandantentrennung; ein inaktives Haus testet Bereichssperrung. Das eine ersetzt
+nicht das andere. RS03 benötigt deshalb ein drittes AKTIVES Kontrollhaus.
+
+### 12.4 Form eines Szenariovertrags
+
+Pro Szenario zentral und deklarativ hinterlegen:
+
+- `id`, verständlicher Titel und fachliche Begründung.
+- Referenz auf ein synthetisches Konto; Benutzername, niemals echte Zugangsdaten.
+- Ausgangsrollen mit Bereichs-ID und Aktivstatus; bestätigte Beziehungen separat.
+- Eigene und fremde Haus-/Raum-/Kind-IDs ausdrücklich benennen.
+- Erwartete Loginentscheidung und Zielstage.
+- Exakte erlaubte Haus-/Raummengen, soweit der betreffende Endpunkt diese liefert.
+- Erlaubte Aktionen und negative Aktionen mit Ressource und erwarteter Antwort.
+- Varianten für Rechteentzug oder Sitzung, getrennt vom unveränderten Ausgangsfall.
+- Referenzen auf automatisierte Tests und manuelle Katalogpunkte.
+
+Erwartungen müssen unabhängig von der Produktiv-Berechtigungsfunktion formuliert
+sein. Nicht dieselbe Berechtigungsfunktion aufrufen, um Soll- und Istwerte zu bilden.
+Keine erlaubten Mengen aus der Serverantwort ableiten. Mengen sortiert vergleichen,
+nicht nur `includes(eigeneId)` prüfen: Zusätzliche fremde Einträge sind ein Fehler.
+
+### 12.5 R0 — Bestand aufnehmen und fachlichen Vertrag bestätigen
+
+**Voraussetzung:** Nur lesende Arbeit; noch keine Funktionsänderung.
+
+- [ ] Git-Status aufnehmen; fremde Änderungen notieren und unverändert lassen.
+- [ ] Dateien aus §12.2 sowie `docs/GCS_FEATURE_MAP.md` lesen.
+- [ ] Nach `buildDb`, `AUTH_USERS`, `testMeta`, `boot` und Rollen-IDs suchen.
+- [ ] Alle Testverbraucher mit fest erwarteten Personen-/Hauszahlen erfassen.
+- [ ] Tatsächliche Endpunkte für Login, Kontexte, Haus-/Raumlisten und Änderungen ermitteln.
+- [ ] Pro negativem Fall genauen Antwortvertrag notieren: Status UND Antwortinhalt.
+- [ ] 401 für fehlende Sitzung von fehlender Zuständigkeit unterscheiden; bei fremden
+      IDs gegebenenfalls vorhandene 404-Verbergung erhalten. Nicht pauschal 403 erfinden.
+- [ ] Für RS05/06/15 Navigation bei mehreren Rollen und Kontextwechsel bestätigen lassen.
+- [ ] Für RS16 klären, welche Rechte nach Entzug bleiben; nicht zwingend vollständigen
+      Logout verlangen, wenn nur eine von mehreren Zuständigkeiten entfällt.
+- [ ] Bekannte rote Tests vorab als Ausgangsbefund notieren, nicht als bestanden werten.
+
+**Ergebnis:** Abgestimmte Matrix mit konkreten Endpunkten und Erwartungen.
+**Abnahme:** Keine offene Fachregel wird stillschweigend durch Testcode entschieden.
+
+### 12.6 R1 — Gemeinsame synthetische Fixtures und Konten festlegen
+
+**Voraussetzung:** R0 abgeschlossen; Änderung von `buildDb` und betroffenen Helfern freigegeben.
+
+- [ ] Bestehende IDs möglichst wiederverwenden: `teacher-sun`, `admin-sun`,
+      `admin-parent`, `admin-moon`, `super-admin` und vorhandene Bereiche.
+- [ ] Nur fehlende Konstellationen ergänzen: Zweihäuser-Admin, RaumAdmin-Elternteil,
+      gemischte Haus-/Raumrolle, inaktive Person/Rolle und leeres Haus.
+- [ ] Zusätzlich ein drittes aktives Haus für den Negativfall von RS03 bereitstellen.
+- [ ] Neue Konten und Bereiche mit stabilen IDs benennen; niemals zufällige IDs als Sollwerte.
+- [ ] Kontoliste an einer gemeinsamen Stelle bereitstellen; duplizierte `AUTH_USERS`
+      erst nach Prüfung aller Verbraucher konsolidieren.
+- [ ] Szenarioverträge bevorzugt in bestehendem `testMeta` ergänzen. Falls die Datei
+      dadurch unübersichtlich wird, kleines separates Datenmodul vorschlagen und freigeben lassen.
+- [ ] Für jeden Test einen frischen Datenbestand erzeugen; keine mutable globale Fixture teilen.
+- [ ] Zeitabhängige Fälle mit explizitem `now` erstellen; keine ablaufenden festen Datumswerte.
+- [ ] Test-Credentials ausschließlich im isolierten Testverzeichnis erzeugen.
+- [ ] Bestehende Testfälle und ihre Ausgangsdaten nicht versehentlich fachlich verändern.
+
+**Prüfung:** Schema validiert; alle referenzierten IDs existieren; erwartete Rollen
+und Beziehungen stimmen exakt; wiederholter Aufbau mit gleichem `now` ist reproduzierbar.
+**Abnahme:** Die vier Kernfälle RS01–RS05 sind aus benannten Fixtures herstellbar;
+RS03 und RS04 haben garantiert aktive, fremde Kontrollressourcen.
+
+### 12.7 R2 — Kleine gemeinsame Testhilfe bereitstellen
+
+**Voraussetzung:** R1 abgeschlossen; betroffene Testhelfer zur Änderung freigegeben.
+
+- [ ] Zuerst bestehende Hilfen in `katalog-report.cjs` wiederverwenden.
+- [ ] Nur falls nötig `scripts/cms/cms-test-roles.cjs` als kleines Hilfsmodul ergänzen.
+- [ ] `getScenario(id)` liefert den Vertrag; unbekannte ID muss klar fehlschlagen.
+- [ ] Login über reale Anmeldeendpunkte ausführen, nicht Sessionobjekte direkt einsetzen.
+- [ ] Cookies aus echten Antworten übernehmen; korrekten Origin für Requests verwenden.
+- [ ] Browserlogin und HTTP-Login getrennt halten, statt einen komplexen Universalhelfer zu bauen.
+- [ ] Mengenvergleich meldet fehlende und unerlaubte IDs mit Szenario-ID.
+- [ ] Jeden Testkontext samt Server und Browser in `finally` schließen.
+- [ ] Nach Neustart immer den tatsächlich aktuellen Server schließen.
+- [ ] Temporäre Verzeichnisse nur entfernen, wenn sie vom jeweiligen Test erzeugt wurden.
+
+**Prüfung:** Unbekanntes Szenario, absichtlich zusätzliche fremde ID und absichtlich
+fehlende eigene ID lassen die Testhilfe zuverlässig fehlschlagen.
+**Abnahme:** Kein Helfer implementiert die fachliche Berechtigungslogik erneut.
+
+### 12.8 R3 — API-Verträge für Rollen und Mandanten testen
+
+**Voraussetzung:** R2 abgeschlossen; isolierter Testserverstart ausdrücklich erlaubt.
+**Zieldatei:** `scripts/test-cms-role-scenarios.cjs` oder passende vorhandene Tests;
+Entscheidung nach R0 dokumentieren. Bestehende Tests nicht ersatzlos umziehen.
+
+Für RS01–RS06, RS11, RS14 und RS15 jeweils:
+
+1. Frische Fixture laden, über echtes Login anmelden.
+2. Loginantwort, Sitzung und Zielstage prüfen.
+3. Haus-/Raumlisten mit exakten erwarteten Mengen vergleichen.
+4. Eine erlaubte Mutation ausführen und persistiertes Ergebnis kontrollieren.
+5. Entsprechende Mutation mit fremder ID senden; Status und Fehlervertrag prüfen.
+6. Fachliche Datensätze vor/nach Ablehnung vergleichen: keine unerlaubte Änderung.
+7. Erwartete technische Auditänderungen separat bewerten, nicht pauschal gesamte Datei vergleichen.
+8. Ohne Cookie dieselbe geschützte Anfrage senden und Ablehnung prüfen.
+
+- [ ] Fremde Haus-ID, fremde Raum-ID und widersprüchliches Haus-/Raumpaar testen.
+- [ ] Sofern Endpunkt verfügbar: fremde Personen-/Kind-ID im erlaubten Hauskontext testen.
+- [ ] Private Kinderdaten für Mehrfachrollen nur über gültige Elternbeziehung prüfen.
+- [ ] Positive Kontrollen verwenden: Eine komplett kaputte API darf nicht alle Negativtests bestehen.
+- [ ] Antwortdaten auf unerlaubte Namen/IDs prüfen, nicht nur HTTP-Status.
+
+**Abnahme:** Jede getestete Ressourcengrenze hat mindestens einen positiven und
+negativen Nachweis; Fehler nennen Szenario, Aktion, Soll und Ist.
+
+### 12.9 R4 — Inaktivität, Rollenentzug und gemeinsame Browser prüfen
+
+**Voraussetzung:** R3 abgeschlossen; fachliche Sitzungsverträge aus R0 bestätigt.
+
+- [ ] RS07: Rolle inaktiv, Person aktiv; Login/Verwaltungszugriff abgewiesen.
+- [ ] RS08: Haus inaktiv, Rolle aktiv; Haus und untergeordnete Räume gesperrt.
+- [ ] RS09: Person inaktiv; neuer Login und bereits bestehende Sitzung geprüft.
+- [ ] RS10: Ein aktives Haus bleibt nutzbar, das andere bleibt gesperrt.
+- [ ] RS12: Fehlende und tatsächlich abgelaufene Sitzung getrennt testen.
+- [ ] Ablauf über vorhandene Uhr-/Session-Testmöglichkeit erzeugen; keine langen Sleeps.
+- [ ] RS13: SuperAdmin anmelden, Loginseite öffnen, angezeigte Identität prüfen,
+      fehlgeschlagenen Fremdlogin versuchen und danach SuperAdmin-API aufrufen: gesperrt.
+- [ ] RS16: Einem Zweihäuser-Admin während laufender Sitzung eine Hausrolle entziehen;
+      nächster Request auf dieses Haus scheitert, verbleibendes Haus bleibt nach Vertrag erreichbar.
+- [ ] Rechteentzug möglichst über den realen Verwaltungsablauf auslösen, nicht nur
+      eine JSON-Datei ändern, die der laufende Server möglicherweise nicht neu liest.
+- [ ] Einladungs-/Resettests verknüpfen: alter Zugang bzw. alte Sitzung verhält sich
+      gemäß freigegebenem Vertrag; neue Credentials werden tatsächlich zur Anmeldung benutzt.
+
+**Abnahme:** Rechteänderungen werden ohne Browser-Neustart am nächsten geschützten
+Request wirksam. Der konkrete Sitzungsvertrag ist dokumentiert, nicht geraten.
+
+### 12.10 R5 — Echte Bedienwege und sichtbare Zustände testen
+
+**Voraussetzung:** API-Verträge stehen; Browser-Teststart freigegeben.
+
+- [ ] Pro unabhängigen Fall frischen Browserkontext verwenden; nur RS13 teilt ihn absichtlich.
+- [ ] Loginformular wirklich bedienen und resultierende GCS-Stage prüfen.
+- [ ] RS01 landet in Raumverwaltung, RS02/03/14 in Hausverwaltung, RS11 in SuperAdmin.
+- [ ] RS03 zwischen Häusern wechseln: Tabellen, Auswahl und Formularwerte wechseln mit.
+- [ ] Auswahl aus Haus A darf nach Wechsel nach B keine Aktion versehentlich auf A ausführen.
+- [ ] RS14: Leerer Zustand ist verständlich; ersten Raum anlegen und in Liste wiederfinden.
+- [ ] Direkte Navigation auf `/super` und `/house` mit unpassender Rolle prüfen.
+- [ ] Rollenabhängige Navigation und sichtbare Identität kontrollieren.
+- [ ] Echte DOM-Klicks verwenden. Direkter Aufruf von Runtime-Events allein beweist
+      weder Klickbarkeit noch fehlende Überdeckung eines Buttons.
+- [ ] Auf konkrete Antwort-/UI-Zustände warten; feste Sleeps nicht als Synchronisation verwenden.
+- [ ] Fehler werden sichtbar; gesperrte Aktionen hinterlassen keine Erfolgsmeldung.
+- [ ] Screenshot/visuelle Abnahme ergänzen: keine Überlagerung, abgeschnittenen Felder
+      oder Elemente außerhalb des Rasters. Screenshot allein ist kein Autorisierungsnachweis.
+- [ ] Standalone und Editor-Run getrennt als geprüft oder offen kennzeichnen.
+
+**Abnahme:** Kernfälle sind über reale Bedienung reproduzierbar. Serverseitiger
+Zugriffsschutz bleibt unabhängig von ausgeblendeten Buttons nachgewiesen.
+
+### 12.11 R6 — Katalog, Regression und Abschluss
+
+- [ ] Szenario-ID in Testnamen und vorhandenen Katalogpunkten ergänzen.
+- [ ] `docs/CMS-Testluecken.md` nur dort schließen, wo ein ausführbarer Nachweis besteht.
+- [ ] `docs/QA_Report.md` um Befehle, Ergebnisse, Ausgangsfehler und offene Punkte ergänzen.
+- [ ] Tatsächliche Testintegration in `package.json` prüfen; neue Skripte nicht nur ablegen.
+- [ ] Nach Freigabe gezielte Tests und Pflichtregression `npm run test` bzw.
+      `run_tests.bat` ausführen; zusätzliche Katalogbefehle aus dem Repository ermitteln.
+- [ ] Betroffene Suites wiederholt ausführen: keine Portlecks, Reihenfolgeabhängigkeit
+      oder gegenseitig veränderten Fixtures.
+- [ ] Git-Diff prüfen: ausschließlich beabsichtigte Änderungen, keine echten Daten,
+      Zugangsdaten, temporären Dateien oder Screenshots unbeabsichtigt aufgenommen.
+- [ ] Keine Produktivkorrektur als Teil einer Testanpassung verstecken: bei Fund
+      reproduzierenden Test erhalten, separaten Lösungsvorschlag freigeben lassen.
+
+**Gesamtabnahme:** RS01–RS16 sind entweder nachgewiesen oder ausdrücklich als offen
+mit Ursache und nächstem Schritt ausgewiesen. Nicht ausgeführte Tests sind nicht grün.
+Ein roter Ausgangsbefund bleibt sichtbar, auch wenn er nicht durch diese Arbeit entstand.
+
+### 12.12 Übergabeprotokoll für jeden einzelnen Umsetzungsschritt
+
+Nach jedem Schritt diese Angaben in der Arbeitsübergabe verwenden:
+
+- Schritt-ID und Freigabe: Was war konkret erlaubt?
+- Geänderte Dateien/Funktionen: Was wurde tatsächlich geändert?
+- Szenarien: Welche RS-IDs sind jetzt zusätzlich abgedeckt?
+- Prüfung: Exakter Befehl, Ergebnis, nicht ausgeführte Prüfungen.
+- Abweichungen: Produktfehler, Testfehler oder offene Fachentscheidung?
+- Nächster Schritt: Voraussetzungen und eventuell nötige Nutzerentscheidung.
+
+### 12.13 Aktuelle Übergabe: Aufbau ab null und kleine KI-Arbeitspakete
+
+**Vorrang vor der bisherigen Fixture-Reihenfolge:** Der fachliche Haupttest baut das
+CMS ab genau einem SuperAdmin über echte Bedienwege auf. Maßgeblich ist jetzt
+`CMS-Testkatalog.md`, Abschnitt „Aufbau ab null“, mit Aufgaben-IDs, Voraussetzungen
+und Fehlerfortsetzung. R0–R6 bleiben Prüfdetails; Seed-Fixtures sind nur ergänzende
+Einzelregression. Nicht sofort sämtliche Zusatzfixtures aus R1 implementieren.
+
+| Paket | Exakter Auftrag | Erlaubter Umfang nach Freigabe / Abnahme |
+|---|---|---|
+| P0 | R0 lesen; Aufgaben-IDs vorhandenen Tests zuordnen; offene Bedienwege/Verträge nennen | Nur lesen und bestehende Dokumente aktualisieren; keine Codeänderung |
+| P1 | Minimalbestand und isolierte Testumgebung für BASIS-01 vorbereiten | Testdaten-/Testhilfen; genau ein SuperAdmin, keine fachlichen Folgedaten; bestehende Seeds erhalten |
+| P2 | Aufgabenresultate, Abhängigkeiten, Fortsetzung und stabile IDs implementieren | Teststeuerung/Reporter; mit künstlichen Aufgaben Erfolg, Assertionfehler, UI-Fehler, Blockade und unabhängige Fortsetzung nachweisen; Alt-Reporterzuordnung erhalten |
+| P3 | BASIS-01 und HAUS-01 als echte Browseraktionen | Login, Leerzustand, Hausanlage und gespeichertes Ergebnis prüfen; keine weiteren Rollen vorziehen |
+| P4 | ADMIN-01 bis ADMIN-03 | Person, Rolle, Einladung, Einlösung, neuer Kontext und Haus-Landung; jede Teilaufgabe separat bewerten |
+| P5 | RAUM-01 bis RAUM-03, danach ERZ-01 | Räume und reiner RaumAdmin; Umbenennungsfehler blockiert keine unabhängige Aufgabe |
+| P6 | Weitere Katalog-Aufgaben einzeln beauftragen | Je Auftrag genau eine Tabellen-ID samt nötiger Unterfälle; Abhängigkeiten vorher lesen, keine Komplettimplementierung |
+| P7 | Vollständige Zuordnung Kapitel 0–8 und Gesamtlauf | Fehlende/manuelle Punkte offen ausweisen; Regression und QA-Nachweis, keine automatische Produktivkorrektur |
+
+**Kopiervorlage für den nächsten Auftrag:** „Bearbeite ausschließlich Paket P0 aus
+`docs/CMS-Plan.md` §12.13. Lies den Abschnitt Aufbau ab null in
+`docs/CMS-Testkatalog.md`, `docs/CMS-Testluecken.md`, die Projektregeln und nur die
+jeweils relevanten Testdateien. Ordne bestehende Prüfungen zu, benenne fehlende
+Bedienwege und lege konkrete Änderungen für P1 vor. Keine Tests starten, keine
+Produktivfunktionen ändern. Melde Ergebnis und offene Entscheidungen knapp.“
+
+Für jedes spätere Paket zuerst Dateien/Funktionen und Prüfkommando vorschlagen und
+freigeben lassen; isolierter Testserverstart benötigt ebenfalls Erlaubnis. Vorhandene
+Hilfen wiederverwenden, kein neues Universalframework. Erwartungen nicht abschwächen,
+keine Dateninjektion als Reparatur. Nach jedem Paket gemäß §12.12 übergeben und stoppen.
+Dieser Plan ist keine pauschale Implementierungsfreigabe.

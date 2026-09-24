@@ -91,8 +91,10 @@
           "description": "Fehlermeldung anzeigen",
           "actionSequence": [
             {
+              "name": "Act_Fehlermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren",
               "type": "action",
-              "name": "Act_Fehlermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren"
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             }
           ],
           "triggerMode": "local-sync",
@@ -123,12 +125,14 @@
           "description": "Emoji-Einwahl zurücksetzen und anzeigen",
           "actionSequence": [
             {
+              "name": "Act_Zur_Spielhaus_Stage_Wechseln",
               "type": "action",
-              "name": "Act_Zur_Spielhaus_Stage_Wechseln"
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             },
             {
-              "type": "action",
-              "name": "Act_Emoji_Einwahl_zuruecksetzen_und_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen"
+              "name": "Act_Emoji_Einwahl_zuruecksetzen_und_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -167,16 +171,18 @@
           "description": "Profil_Anzeigen",
           "actionSequence": [
             {
+              "name": "Act_Zur_Profil_Stage_Wechseln",
               "type": "action",
-              "name": "Act_Zur_Profil_Stage_Wechseln"
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             },
             {
-              "type": "action",
-              "name": "Act_Profilfelder_Anzeigen"
+              "name": "Act_Profilfelder_Anzeigen",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "Act_Avatarupload_Anzeigen"
+              "name": "Act_Avatarupload_Anzeigen",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -283,6 +289,27 @@
           "changes": {
             "CMSServerStatus.text": "${CMSServerAntwort.message}"
           }
+        },
+        {
+          "id": "auto_action_1_1790262728978",
+          "details": "",
+          "type": "action",
+          "name": "Act_Emoji_Einwahl_zuruecksetzen_und_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen",
+          "showDetails": false
+        },
+        {
+          "id": "auto_action_1_1790262763099",
+          "details": "",
+          "type": "action",
+          "name": "Act_Profilfelder_Anzeigen",
+          "showDetails": false
+        },
+        {
+          "id": "auto_action_2_1790262763099",
+          "details": "",
+          "type": "action",
+          "name": "Act_Avatarupload_Anzeigen",
+          "showDetails": false
         }
       ],
       "variables": [
@@ -51269,7 +51296,7 @@
           "id": "srv_task_a3bb0529-f35b-47a5-aa72-aafc679199f1",
           "name": "Server_ElternZuordnung_Verarbeiten",
           "scope": "stage",
-          "description": "Haus → Zuordnung ausstehend → Kind im Haus → Fremdbestätigung → bestätigen",
+          "description": "Haus → Zuordnung ausstehend → Kind im Haus → Fremdbestätigung → bestätigen → Ergebnis",
           "actionSequence": [
             {
               "type": "action",
@@ -51343,8 +51370,25 @@
                                   "name": "ElternBestaetigung_Bestaetigen"
                                 },
                                 {
-                                  "type": "action",
-                                  "name": "ElternBestaetigung_Antworten"
+                                  "type": "condition",
+                                  "name": "Bestätigung gelungen?",
+                                  "condition": {
+                                    "variable": "Ergebnis.ok",
+                                    "operator": "==",
+                                    "value": true
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "action",
+                                      "name": "ElternBestaetigung_Antworten"
+                                    }
+                                  ],
+                                  "else": [
+                                    {
+                                      "type": "action",
+                                      "name": "ElternBestaetigung_Fehler"
+                                    }
+                                  ]
                                 }
                               ]
                             }
@@ -53925,6 +53969,19 @@
           ],
           "scope": "stage",
           "target_ref": "srv_d55b82bb-50ff-4b3f-a428-1cbfe18c1674"
+        },
+        {
+          "id": "srv_act_362ce252-0c9f-4e6e-a530-fde411cff03e",
+          "name": "ElternBestaetigung_Fehler",
+          "type": "call_method",
+          "target": "AntwortSenden",
+          "method": "fail",
+          "params": [
+            "${Ergebnis.status}",
+            "${Ergebnis.message}"
+          ],
+          "scope": "stage",
+          "target_ref": "srv_d55b82bb-50ff-4b3f-a428-1cbfe18c1674"
         }
       ],
       "flowCharts": [],
@@ -53938,7 +53995,7 @@
   "actions": [],
   "tasks": [],
   "variables": [],
-  "activeStageId": "stage_super_admins",
+  "activeStageId": "stage_server_enroll",
   "userStories": {
     "userStories": [
       {
