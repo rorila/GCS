@@ -45,12 +45,20 @@ function makeRunner(prefix){
    results.push({id,name,status:'BLOCKIERT',note:'fehlende Voraussetzung: '+missing.join(', ')});
    console.log('BLOCKIERT '+id+' '+name+' ('+missing.join(', ')+')');return false;
   }
-  try{await fn();done.add(id);results.push({id,name,status:'OK'});console.log('OK '+id+' '+name);return true;}
+  try{await videoMark(page,id,name)}catch{}
+  // Waehrend eines Tasks neu eroeffnete Seiten (adm/kid/setup-Logins)
+  // erhalten dieselbe Kapitelmarke bei ihrer ersten Navigation.
+  const __pt=globalThis.__gcsCurrentTask;
+  if(VIDEO_DIR)globalThis.__gcsCurrentTask={id,name};
+  let ok;
+  try{await fn();done.add(id);results.push({id,name,status:'OK'});console.log('OK '+id+' '+name);ok=true;}
   catch(e){
    const f=page?await shot(page,id):null;
    results.push({id,name,status:'FEHLER',note:String(e&&e.message||e).split('\n')[0].slice(0,300),shot:f});
-   console.log('FEHLER '+id+' '+name+': '+results[results.length-1].note+(f?' ['+f+']':''));return false;
+   console.log('FEHLER '+id+' '+name+': '+results[results.length-1].note+(f?' ['+f+']':''));ok=false;
   }
+  if(__pt)globalThis.__gcsCurrentTask=__pt;else delete globalThis.__gcsCurrentTask;
+  return ok;
  }
  function report(extra){
   if(extra)results.push(extra);
@@ -160,4 +168,83 @@ async function card(page,text){
 const status=async page=>((await obj(page,'Status'))?.text||'');
 const cardTexts=page=>page.evaluate(()=>{const o=window.player.runtime.getObjects();return[0,1,2,3].map(k=>o.find(x=>x.name==='Karte'+k)?.text||'')});
 
-module.exports={makeRunner,dep,click,setupHouseAdmin,initRequest,card,cardWait,cardTexts,status,ARTIFACTS};
+// ── Feature-Video-Aufnahme (nur aktiv, wenn GCS_VIDEO_DIR gesetzt) ───
+// recordBrowser(browser): laesst jede neue Page im Browser als WebM
+// aufzeichnen (patch auf newContext/newPage). videoMark(page,id,name)
+// blendet ein Kapitel-Overlay ein und merkt den Zeitstempel.
+// finalizeBrowserVideos(browser,{outDir,base}) schliesst alle Kontexte,
+// verschiebt die WebMs nach outDir/<base>-<nr>.webm und schreibt je
+// <base>-<nr>.chapters.json mit den Kapitel-Offsets der Page.
+
+const VIDEO_DIR=process.env.GCS_VIDEO_DIR||null;
+const VIDEO_SIZE={width:1280,height:960};
+
+function recordBrowser(browser){
+ if(!VIDEO_DIR)return browser;
+ const origCtx=browser.newContext.bind(browser);
+ const origPage=browser.newPage.bind(browser);
+ browser.__recPages=[];
+ const track=p=>{
+  p.__recT0=Date.now();p.__videoChapters=[];browser.__recPages.push(p);
+  const t=globalThis.__gcsCurrentTask;
+  if(t)p.once('load',()=>{videoMark(p,t.id,t.name).catch(()=>{})});
+ };
+ browser.newContext=async(opts={})=>{
+  const ctx=await origCtx({...opts,recordVideo:{dir:VIDEO_DIR,size:(opts&&opts.viewport)||VIDEO_SIZE}});
+  ctx.on('page',track);
+  return ctx;
+ };
+ browser.newPage=async(opts={})=>{
+  const ctx=await browser.newContext(opts);
+  return ctx.newPage();
+ };
+ return browser;
+}
+
+/** Kapitelmarke fuer Feature-Videos: Overlay + Zeitstempel. */
+async function videoMark(page,id,name){
+ if(!VIDEO_DIR||!page||!page.__recT0)return;
+ const offset=(Date.now()-page.__recT0)/1000;
+ page.__videoChapters.push({id,titel:name,offset:Math.round(offset*10)/10});
+ await page.evaluate(({id,name})=>{
+  let o=document.getElementById('__gcs_video_overlay');
+  if(!o){
+   o=document.createElement('div');o.id='__gcs_video_overlay';
+   o.style.cssText='position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:2147483647;background:rgba(10,25,30,.88);color:#eaf6f2;padding:9px 24px;border-radius:22px;font:600 17px/1.3 system-ui,sans-serif;pointer-events:none;transition:opacity .4s;box-shadow:0 2px 14px rgba(0,0,0,.45);white-space:nowrap;';
+   document.body.appendChild(o);
+  }
+  o.textContent=id+' · '+name;o.style.opacity='1';
+  setTimeout(()=>{o.style.opacity='0.38'},2800);
+ },{id,name}).catch(()=>{});
+}
+
+/** Videos aller Pages finalisieren → [{pfad,seite,aufgaben}]. */
+async function finalizeBrowserVideos(browser,opts){
+ const outDir=(opts&&opts.outDir)||path.join('public','videos');
+ const base=(opts&&opts.base)||'suite';
+ const pages=(browser&&browser.__recPages)||[];
+ if(!pages.length||!VIDEO_DIR){if(browser)await browser.close();return[];}
+ const results=[];
+ fs.mkdirSync(outDir,{recursive:true});
+ // Kontexte zuerst schliessen: das finalisiert die Video-Dateien,
+ // saveAs funktioniert dann noch bei offenem Browser.
+ for(const ctx of browser.contexts()){try{await ctx.close()}catch{}}
+ for(let i=0;i<pages.length;i++){
+  const page=pages[i];
+  const nr=String(i+1);
+  const chapters=page.__videoChapters||[];
+  try{
+   const video=page.video&&page.video();
+   if(!video)continue;
+   const dest=path.join(outDir,base+'-'+nr+'.webm');
+   await video.saveAs(dest);
+   results.push({seite:nr,pfad:'videos/'+base+'-'+nr+'.webm',aufgaben:chapters});
+   console.log('  VIDEO '+base+'-'+nr+'.webm ('+chapters.length+' Kapitel)');
+  }catch(e){console.log('  Video '+nr+': '+e.message)}
+  try{fs.writeFileSync(path.join(outDir,base+'-'+nr+'.chapters.json'),JSON.stringify({seite:nr,chapters},null,2))}catch{}
+ }
+ try{await browser.close()}catch{}
+ return results;
+}
+
+module.exports={makeRunner,dep,click,setupHouseAdmin,initRequest,card,cardWait,cardTexts,status,ARTIFACTS,recordBrowser,videoMark,finalizeBrowserVideos};

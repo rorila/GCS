@@ -1,0 +1,30 @@
+{
+  "seite": "3",
+  "chapters": [
+    {
+      "id": "VORAUS-A",
+      "titel": "Haus Sonne + HouseAdmin „anna\"",
+      "offset": 0.2
+    },
+    {
+      "id": "VORAUS-R",
+      "titel": "Raum „Spielraum\" angelegt",
+      "offset": 0.4
+    },
+    {
+      "id": "VORAUS-K",
+      "titel": "Kind „Lina Kind\" mit Emoji-Code",
+      "offset": 1.4
+    },
+    {
+      "id": "SPIEL-02b",
+      "titel": "Spielfreigabe im Raum durch „anna\"",
+      "offset": 5.4
+    },
+    {
+      "id": "SPIEL-03b",
+      "titel": "Freigabeentzug sperrt Spielstart",
+      "offset": 6.4
+    }
+  ]
+}

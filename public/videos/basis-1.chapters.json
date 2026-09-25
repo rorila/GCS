@@ -1,0 +1,30 @@
+{
+  "seite": "1",
+  "chapters": [
+    {
+      "id": "BASIS-01b",
+      "titel": "Einwahl lädt, SuperAdmin landet auf stage_super",
+      "offset": 0.3
+    },
+    {
+      "id": "BASIS-01c",
+      "titel": "Kennzahlen: 0 Häuser, 1 SuperAdmin",
+      "offset": 0.7
+    },
+    {
+      "id": "HAUS-01a",
+      "titel": "Häuser-Tabelle zeigt Leerzustand",
+      "offset": 1
+    },
+    {
+      "id": "HAUS-01b",
+      "titel": "Haus Sonne angelegt + sichtbar",
+      "offset": 1.5
+    },
+    {
+      "id": "HAUS-01c",
+      "titel": "Doppelter Hausname abgelehnt",
+      "offset": 1.7
+    }
+  ]
+}

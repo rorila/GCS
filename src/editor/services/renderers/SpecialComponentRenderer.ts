@@ -203,6 +203,12 @@ export class SpecialComponentRenderer {
             obj.resetRequested = false;
         }
 
+        if (obj.seekRequested != null) {
+            const t = Number(obj.seekRequested);
+            if (Number.isFinite(t)) videoEl.currentTime = Math.max(0, t);
+            obj.seekRequested = null;
+        }
+
         const shouldPlay = !!(obj._isPlaying ?? obj.isPlaying);
         if (shouldPlay && videoEl.paused) videoEl.play().catch(() => {});
         else if (!shouldPlay && !videoEl.paused) videoEl.pause();

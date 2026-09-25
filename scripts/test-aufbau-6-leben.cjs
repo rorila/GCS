@@ -8,6 +8,7 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {bootMinimal,busy,sel,api,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
 const {makeRunner,dep,click,setupHouseAdmin,initRequest}=require('./cms/aufbau-common.cjs');
+const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
 
 const PORT=15231;
 const NEU='Neu-Test!2025';
@@ -40,6 +41,7 @@ const cookieOf=r=>r.cookies.find(c=>c.startsWith('cms_admin=')&&!c.includes('Max
  const loginNeuOk=async()=>{const r=await post(base,'admin-login',{username:'anna',password:NEU});return r.data.ok===true};
  try{
   browser=await chromium.launch({channel:'msedge',headless:true});
+  recordBrowser(browser);
   const page=await browser.newPage({viewport:{width:1280,height:960}});
   page.on('pageerror',e=>errors.push(e.message));
 
@@ -146,7 +148,7 @@ const cookieOf=r=>r.cookies.find(c=>c.startsWith('cms_admin=')&&!c.includes('Max
    assert.strictEqual((await post(base,'admin/houses',{},zwei)).status,200,'neue Sitzung ungueltig');
   },null);
  }finally{
-  if(browser)await browser.close();
+  if(browser)await finalizeBrowserVideos(browser,{base:process.env.GCS_VIDEO_BASE||'aufbau-leben'});
   await env.close();
  }
  const extra=errors.length?{id:'BROWSER',name:'Browser-Ausnahmen',status:'FEHLER',note:errors.join(' | ').slice(0,300)}:null;

@@ -1,0 +1,20 @@
+{
+  "seite": "1",
+  "chapters": [
+    {
+      "id": "VORAUS-A",
+      "titel": "Haus Sonne + HouseAdmin „anna\"",
+      "offset": 0
+    },
+    {
+      "id": "SPIEL-01a",
+      "titel": "Spiel „Rechenduell Testspiel\" hochgeladen",
+      "offset": 6.1
+    },
+    {
+      "id": "SPIEL-01b",
+      "titel": "Spiel veroeffentlicht",
+      "offset": 7.3
+    }
+  ]
+}

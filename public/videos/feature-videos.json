@@ -1,0 +1,1203 @@
+{
+  "erzeugt": "2026-09-25T08:46:41.068Z",
+  "rollen": [
+    {
+      "key": "superadmin",
+      "titel": "SuperAdmin",
+      "aufgaben": [
+        {
+          "uid": "BASIS-01b@basis-1",
+          "id": "BASIS-01b",
+          "titel": "Einwahl lädt, SuperAdmin landet auf stage_super",
+          "video": "videos/basis-1.webm",
+          "offset": 0.3,
+          "suite": "Minimalbestand und erstes Haus"
+        },
+        {
+          "uid": "BASIS-01c@basis-1",
+          "id": "BASIS-01c",
+          "titel": "Kennzahlen: 0 Häuser, 1 SuperAdmin",
+          "video": "videos/basis-1.webm",
+          "offset": 0.7,
+          "suite": "Minimalbestand und erstes Haus"
+        },
+        {
+          "uid": "HAUS-01a@basis-1",
+          "id": "HAUS-01a",
+          "titel": "Häuser-Tabelle zeigt Leerzustand",
+          "video": "videos/basis-1.webm",
+          "offset": 1,
+          "suite": "Minimalbestand und erstes Haus"
+        },
+        {
+          "uid": "HAUS-01b@basis-1",
+          "id": "HAUS-01b",
+          "titel": "Haus Sonne angelegt + sichtbar",
+          "video": "videos/basis-1.webm",
+          "offset": 1.5,
+          "suite": "Minimalbestand und erstes Haus"
+        },
+        {
+          "uid": "HAUS-01c@basis-1",
+          "id": "HAUS-01c",
+          "titel": "Doppelter Hausname abgelehnt",
+          "video": "videos/basis-1.webm",
+          "offset": 1.7,
+          "suite": "Minimalbestand und erstes Haus"
+        },
+        {
+          "uid": "VORAUS@admin-1",
+          "id": "VORAUS",
+          "titel": "SuperAdmin anmelden, Haus Sonne anlegen",
+          "video": "videos/admin-1.webm",
+          "offset": 0,
+          "suite": "HouseAdmin einrichten"
+        },
+        {
+          "uid": "ADMIN-01a@admin-1",
+          "id": "ADMIN-01a",
+          "titel": "Person „Anna Admin\" angelegt",
+          "video": "videos/admin-1.webm",
+          "offset": 1.5,
+          "suite": "HouseAdmin einrichten"
+        },
+        {
+          "uid": "ADMIN-01b@admin-1",
+          "id": "ADMIN-01b",
+          "titel": "Hausrolle zugewiesen, Anna in Admin-Liste",
+          "video": "videos/admin-1.webm",
+          "offset": 2.4,
+          "suite": "HouseAdmin einrichten"
+        },
+        {
+          "uid": "ADMIN-02a@admin-1",
+          "id": "ADMIN-02a",
+          "titel": "Detailseite + Einrichtungslink",
+          "video": "videos/admin-1.webm",
+          "offset": 2.8,
+          "suite": "HouseAdmin einrichten"
+        },
+        {
+          "uid": "ADMIN-03a@admin-1",
+          "id": "ADMIN-03a",
+          "titel": "Login „anna\" → stage_house",
+          "video": "videos/admin-1.webm",
+          "offset": 3.8,
+          "suite": "HouseAdmin einrichten"
+        },
+        {
+          "uid": "ADMIN-02b@admin-2",
+          "id": "ADMIN-02b",
+          "titel": "Zugang „anna\" eingerichtet",
+          "video": "videos/admin-2.webm",
+          "offset": 0,
+          "suite": "HouseAdmin einrichten"
+        },
+        {
+          "uid": "ADMIN-03a@admin-3",
+          "id": "ADMIN-03a",
+          "titel": "Login „anna\" → stage_house",
+          "video": "videos/admin-3.webm",
+          "offset": 0.1,
+          "suite": "HouseAdmin einrichten"
+        },
+        {
+          "uid": "ADMIN-03b@admin-3",
+          "id": "ADMIN-03b",
+          "titel": "Haus geoeffnet, Leerzustand verstaendlich",
+          "video": "videos/admin-3.webm",
+          "offset": 0.4,
+          "suite": "HouseAdmin einrichten"
+        },
+        {
+          "uid": "ADMIN-03c@admin-3",
+          "id": "ADMIN-03c",
+          "titel": "/super fuehrt nicht in SuperAdmin-Verwaltung",
+          "video": "videos/admin-3.webm",
+          "offset": 0.7,
+          "suite": "HouseAdmin einrichten"
+        }
+      ]
+    },
+    {
+      "key": "houseadmin",
+      "titel": "HouseAdmin",
+      "aufgaben": [
+        {
+          "uid": "VORAUS@raeume-1",
+          "id": "VORAUS",
+          "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+          "video": "videos/raeume-1.webm",
+          "offset": 0,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "VORAUS@raeume-2",
+          "id": "VORAUS",
+          "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+          "video": "videos/raeume-2.webm",
+          "offset": 0,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "VORAUS@raeume-3",
+          "id": "VORAUS",
+          "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+          "video": "videos/raeume-3.webm",
+          "offset": 0.1,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "RAUM-01a@raeume-3",
+          "id": "RAUM-01a",
+          "titel": "Raum „Spielraum\" angelegt + sichtbar",
+          "video": "videos/raeume-3.webm",
+          "offset": 0.3,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "RAUM-01b@raeume-3",
+          "id": "RAUM-01b",
+          "titel": "Doppelter Raumname abgelehnt",
+          "video": "videos/raeume-3.webm",
+          "offset": 1.3,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "RAUM-03@raeume-3",
+          "id": "RAUM-03",
+          "titel": "Raum „Lernraum\" angelegt + sichtbar",
+          "video": "videos/raeume-3.webm",
+          "offset": 1.6,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "RAUM-02@raeume-3",
+          "id": "RAUM-02",
+          "titel": "Spielraum → „Familienraum\" umbenannt",
+          "video": "videos/raeume-3.webm",
+          "offset": 1.8,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "RAUM-04a@raeume-3",
+          "id": "RAUM-04a",
+          "titel": "Raum deaktiviert",
+          "video": "videos/raeume-3.webm",
+          "offset": 2.3,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "RAUM-04b@raeume-3",
+          "id": "RAUM-04b",
+          "titel": "Raum reaktiviert",
+          "video": "videos/raeume-3.webm",
+          "offset": 2.8,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "GRENZE-02@raeume-3",
+          "id": "GRENZE-02",
+          "titel": "Zugriff auf unbekanntes Haus verweigert",
+          "video": "videos/raeume-3.webm",
+          "offset": 3.2,
+          "suite": "Raeume verwalten"
+        },
+        {
+          "uid": "VORAUS-A@personen-1",
+          "id": "VORAUS-A",
+          "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+          "video": "videos/personen-1.webm",
+          "offset": 0,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "VORAUS-B@personen-1",
+          "id": "VORAUS-B",
+          "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
+          "video": "videos/personen-1.webm",
+          "offset": 4.6,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "VORAUS-A@personen-2",
+          "id": "VORAUS-A",
+          "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+          "video": "videos/personen-2.webm",
+          "offset": 0,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "VORAUS-A@personen-3",
+          "id": "VORAUS-A",
+          "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+          "video": "videos/personen-3.webm",
+          "offset": 0.1,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "VORAUS-R@personen-3",
+          "id": "VORAUS-R",
+          "titel": "Raum „Spielraum\" angelegt",
+          "video": "videos/personen-3.webm",
+          "offset": 4.2,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "KIND-01a@personen-3",
+          "id": "KIND-01a",
+          "titel": "Kind „Lina Kind\" mit Emoji-Code angelegt",
+          "video": "videos/personen-3.webm",
+          "offset": 4.5,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "KIND-01b@personen-3",
+          "id": "KIND-01b",
+          "titel": "Kind erscheint im Kinder-Tab",
+          "video": "videos/personen-3.webm",
+          "offset": 5,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "ELTERN-01@personen-3",
+          "id": "ELTERN-01",
+          "titel": "Eltern-Einladung erzeugt, Zuordnung ausstehend",
+          "video": "videos/personen-3.webm",
+          "offset": 5.2,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "ELTERN-02a@personen-3",
+          "id": "ELTERN-02a",
+          "titel": "Selbstbestaetigung durch Einladende abgelehnt",
+          "video": "videos/personen-3.webm",
+          "offset": 5.9,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "OBS-01a@personen-3",
+          "id": "OBS-01a",
+          "titel": "Beobachter-Einladung raumgebunden erzeugt",
+          "video": "videos/personen-3.webm",
+          "offset": 7.8,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "VORAUS-B@personen-4",
+          "id": "VORAUS-B",
+          "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
+          "video": "videos/personen-4.webm",
+          "offset": 0,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "VORAUS-B@personen-5",
+          "id": "VORAUS-B",
+          "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
+          "video": "videos/personen-5.webm",
+          "offset": 0.1,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "ELTERN-02b@personen-5",
+          "id": "ELTERN-02b",
+          "titel": "Zweitbestaetigung durch „paul\"",
+          "video": "videos/personen-5.webm",
+          "offset": 2.5,
+          "suite": "Kinder, Eltern und Beobachter"
+        },
+        {
+          "uid": "VORAUS-A@mandant-1",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/mandant-1.webm",
+          "offset": 0,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "MOND-01@mandant-1",
+          "id": "MOND-01",
+          "titel": "Haus Mond + HouseAdmin „mia\"",
+          "video": "videos/mandant-1.webm",
+          "offset": 5.6,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "MULTI-01a@mandant-1",
+          "id": "MULTI-01a",
+          "titel": "anna erhaelt Hausrolle auf Haus Mond",
+          "video": "videos/mandant-1.webm",
+          "offset": 10.8,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "VORAUS-A@mandant-2",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/mandant-2.webm",
+          "offset": 0,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "VORAUS-A@mandant-3",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/mandant-3.webm",
+          "offset": 0.1,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "VORAUS-AR@mandant-3",
+          "id": "VORAUS-AR",
+          "titel": "„Sonnenraum\" angelegt",
+          "video": "videos/mandant-3.webm",
+          "offset": 0.4,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "GRENZE-01a@mandant-3",
+          "id": "GRENZE-01a",
+          "titel": "anna: kein Zugriff auf Haus Mond",
+          "video": "videos/mandant-3.webm",
+          "offset": 6.5,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "GRENZE-01c@mandant-3",
+          "id": "GRENZE-01c",
+          "titel": "anna: keine SuperAdmin-Endpunkte",
+          "video": "videos/mandant-3.webm",
+          "offset": 6.6,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "MOND-01@mandant-4",
+          "id": "MOND-01",
+          "titel": "Haus Mond + HouseAdmin „mia\"",
+          "video": "videos/mandant-4.webm",
+          "offset": 0,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "MOND-01@mandant-5",
+          "id": "MOND-01",
+          "titel": "Haus Mond + HouseAdmin „mia\"",
+          "video": "videos/mandant-5.webm",
+          "offset": 0.2,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "VORAUS-MR@mandant-5",
+          "id": "VORAUS-MR",
+          "titel": "„Mondraum\" angelegt",
+          "video": "videos/mandant-5.webm",
+          "offset": 0.4,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "GRENZE-01b@mandant-5",
+          "id": "GRENZE-01b",
+          "titel": "mia: kein Zugriff auf Haus Sonne",
+          "video": "videos/mandant-5.webm",
+          "offset": 1.4,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "MULTI-01b@mandant-6",
+          "id": "MULTI-01b",
+          "titel": "anna: Hauswahl zeigt beide Haeuser, Mond oeffnet",
+          "video": "videos/mandant-6.webm",
+          "offset": 0.1,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "MULTI-01c@mandant-6",
+          "id": "MULTI-01c",
+          "titel": "anna: Wechsel zurueck zu Haus Sonne",
+          "video": "videos/mandant-6.webm",
+          "offset": 1,
+          "suite": "Mehrere Haeuser und Mandantentrennung"
+        },
+        {
+          "uid": "VORAUS-A@spiele-1",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/spiele-1.webm",
+          "offset": 0,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "SPIEL-01a@spiele-1",
+          "id": "SPIEL-01a",
+          "titel": "Spiel „Rechenduell Testspiel\" hochgeladen",
+          "video": "videos/spiele-1.webm",
+          "offset": 6.1,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "SPIEL-01b@spiele-1",
+          "id": "SPIEL-01b",
+          "titel": "Spiel veroeffentlicht",
+          "video": "videos/spiele-1.webm",
+          "offset": 7.3,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "VORAUS-A@spiele-2",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/spiele-2.webm",
+          "offset": 0,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "VORAUS-A@spiele-3",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/spiele-3.webm",
+          "offset": 0.2,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "VORAUS-R@spiele-3",
+          "id": "VORAUS-R",
+          "titel": "Raum „Spielraum\" angelegt",
+          "video": "videos/spiele-3.webm",
+          "offset": 0.4,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "VORAUS-K@spiele-3",
+          "id": "VORAUS-K",
+          "titel": "Kind „Lina Kind\" mit Emoji-Code",
+          "video": "videos/spiele-3.webm",
+          "offset": 1.4,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "SPIEL-02b@spiele-3",
+          "id": "SPIEL-02b",
+          "titel": "Spielfreigabe im Raum durch „anna\"",
+          "video": "videos/spiele-3.webm",
+          "offset": 5.4,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "SPIEL-02a@spiele-4",
+          "id": "SPIEL-02a",
+          "titel": "Kind sieht Spiel ohne Freigabe nicht",
+          "video": "videos/spiele-4.webm",
+          "offset": 0.2,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "VORAUS-A@leben-1",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/leben-1.webm",
+          "offset": 0,
+          "suite": "Lebenszyklus und Sitzungen"
+        },
+        {
+          "uid": "LEBEN-01a@leben-1",
+          "id": "LEBEN-01a",
+          "titel": "Rollenentzug wirkt sofort",
+          "video": "videos/leben-1.webm",
+          "offset": 4.4,
+          "suite": "Lebenszyklus und Sitzungen"
+        },
+        {
+          "uid": "LEBEN-01b@leben-1",
+          "id": "LEBEN-01b",
+          "titel": "Erneute Rollenvergabe wirkt sofort",
+          "video": "videos/leben-1.webm",
+          "offset": 6.7,
+          "suite": "Lebenszyklus und Sitzungen"
+        },
+        {
+          "uid": "LEBEN-02a@leben-1",
+          "id": "LEBEN-02a",
+          "titel": "Deaktivierung sperrt Sitzung und Anmeldung",
+          "video": "videos/leben-1.webm",
+          "offset": 7.2,
+          "suite": "Lebenszyklus und Sitzungen"
+        },
+        {
+          "uid": "LEBEN-02b@leben-1",
+          "id": "LEBEN-02b",
+          "titel": "Reaktivierung erlaubt Anmeldung wieder",
+          "video": "videos/leben-1.webm",
+          "offset": 9.6,
+          "suite": "Lebenszyklus und Sitzungen"
+        },
+        {
+          "uid": "LEBEN-03a@leben-1",
+          "id": "LEBEN-03a",
+          "titel": "Reset-Link erzeugt",
+          "video": "videos/leben-1.webm",
+          "offset": 12,
+          "suite": "Lebenszyklus und Sitzungen"
+        },
+        {
+          "uid": "VORAUS-A@leben-2",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/leben-2.webm",
+          "offset": 0,
+          "suite": "Lebenszyklus und Sitzungen"
+        },
+        {
+          "uid": "VORAUS-A@leben-3",
+          "id": "VORAUS-A",
+          "titel": "Haus Sonne + HouseAdmin „anna\"",
+          "video": "videos/leben-3.webm",
+          "offset": 0.1,
+          "suite": "Lebenszyklus und Sitzungen"
+        },
+        {
+          "uid": "LEBEN-03b@leben-4",
+          "id": "LEBEN-03b",
+          "titel": "Reset invalidiert laufende Sitzung, Passwortwechsel wirkt",
+          "video": "videos/leben-4.webm",
+          "offset": 0,
+          "suite": "Lebenszyklus und Sitzungen"
+        }
+      ]
+    },
+    {
+      "key": "eltern",
+      "titel": "Eltern",
+      "aufgaben": [
+        {
+          "uid": "ELTERN-03@personen-6",
+          "id": "ELTERN-03",
+          "titel": "Elternzugang eingerichtet, Kind sichtbar",
+          "video": "videos/personen-6.webm",
+          "offset": 0,
+          "suite": "Kinder, Eltern und Beobachter"
+        }
+      ]
+    },
+    {
+      "key": "beobachter",
+      "titel": "Beobachter",
+      "aufgaben": [
+        {
+          "uid": "OBS-01b@personen-7",
+          "id": "OBS-01b",
+          "titel": "Beobachterzugang eingerichtet, Anmeldung ok",
+          "video": "videos/personen-7.webm",
+          "offset": 0,
+          "suite": "Kinder, Eltern und Beobachter"
+        }
+      ]
+    },
+    {
+      "key": "kind",
+      "titel": "Kind",
+      "aufgaben": [
+        {
+          "uid": "SPIEL-03b@spiele-3",
+          "id": "SPIEL-03b",
+          "titel": "Freigabeentzug sperrt Spielstart",
+          "video": "videos/spiele-3.webm",
+          "offset": 6.4,
+          "suite": "Spiele hochladen und freigeben"
+        },
+        {
+          "uid": "SPIEL-03a@spiele-4",
+          "id": "SPIEL-03a",
+          "titel": "Kind sieht Spiel + UI-Klick startet Spielsitzung",
+          "video": "videos/spiele-4.webm",
+          "offset": 2.4,
+          "suite": "Spiele hochladen und freigeben"
+        }
+      ]
+    }
+  ],
+  "suiten": [
+    {
+      "suite": "basis",
+      "titel": "Minimalbestand und erstes Haus",
+      "rolle": "superadmin",
+      "videos": [
+        {
+          "seite": "1",
+          "pfad": "videos/basis-1.webm",
+          "aufgaben": [
+            {
+              "id": "BASIS-01b",
+              "titel": "Einwahl lädt, SuperAdmin landet auf stage_super",
+              "offset": 0.3
+            },
+            {
+              "id": "BASIS-01c",
+              "titel": "Kennzahlen: 0 Häuser, 1 SuperAdmin",
+              "offset": 0.7
+            },
+            {
+              "id": "HAUS-01a",
+              "titel": "Häuser-Tabelle zeigt Leerzustand",
+              "offset": 1
+            },
+            {
+              "id": "HAUS-01b",
+              "titel": "Haus Sonne angelegt + sichtbar",
+              "offset": 1.5
+            },
+            {
+              "id": "HAUS-01c",
+              "titel": "Doppelter Hausname abgelehnt",
+              "offset": 1.7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": "admin",
+      "titel": "HouseAdmin einrichten",
+      "rolle": "superadmin",
+      "videos": [
+        {
+          "seite": "1",
+          "pfad": "videos/admin-1.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS",
+              "titel": "SuperAdmin anmelden, Haus Sonne anlegen",
+              "offset": 0
+            },
+            {
+              "id": "ADMIN-01a",
+              "titel": "Person „Anna Admin\" angelegt",
+              "offset": 1.5
+            },
+            {
+              "id": "ADMIN-01b",
+              "titel": "Hausrolle zugewiesen, Anna in Admin-Liste",
+              "offset": 2.4
+            },
+            {
+              "id": "ADMIN-02a",
+              "titel": "Detailseite + Einrichtungslink",
+              "offset": 2.8
+            },
+            {
+              "id": "ADMIN-03a",
+              "titel": "Login „anna\" → stage_house",
+              "offset": 3.8
+            }
+          ]
+        },
+        {
+          "seite": "2",
+          "pfad": "videos/admin-2.webm",
+          "aufgaben": [
+            {
+              "id": "ADMIN-02b",
+              "titel": "Zugang „anna\" eingerichtet",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "3",
+          "pfad": "videos/admin-3.webm",
+          "aufgaben": [
+            {
+              "id": "ADMIN-03a",
+              "titel": "Login „anna\" → stage_house",
+              "offset": 0.1
+            },
+            {
+              "id": "ADMIN-03b",
+              "titel": "Haus geoeffnet, Leerzustand verstaendlich",
+              "offset": 0.4
+            },
+            {
+              "id": "ADMIN-03c",
+              "titel": "/super fuehrt nicht in SuperAdmin-Verwaltung",
+              "offset": 0.7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": "raeume",
+      "titel": "Raeume verwalten",
+      "rolle": "houseadmin",
+      "videos": [
+        {
+          "seite": "1",
+          "pfad": "videos/raeume-1.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS",
+              "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "2",
+          "pfad": "videos/raeume-2.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS",
+              "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "3",
+          "pfad": "videos/raeume-3.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS",
+              "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+              "offset": 0.1
+            },
+            {
+              "id": "RAUM-01a",
+              "titel": "Raum „Spielraum\" angelegt + sichtbar",
+              "offset": 0.3
+            },
+            {
+              "id": "RAUM-01b",
+              "titel": "Doppelter Raumname abgelehnt",
+              "offset": 1.3
+            },
+            {
+              "id": "RAUM-03",
+              "titel": "Raum „Lernraum\" angelegt + sichtbar",
+              "offset": 1.6
+            },
+            {
+              "id": "RAUM-02",
+              "titel": "Spielraum → „Familienraum\" umbenannt",
+              "offset": 1.8
+            },
+            {
+              "id": "RAUM-04a",
+              "titel": "Raum deaktiviert",
+              "offset": 2.3
+            },
+            {
+              "id": "RAUM-04b",
+              "titel": "Raum reaktiviert",
+              "offset": 2.8
+            },
+            {
+              "id": "GRENZE-02",
+              "titel": "Zugriff auf unbekanntes Haus verweigert",
+              "offset": 3.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": "personen",
+      "titel": "Kinder, Eltern und Beobachter",
+      "rolle": "houseadmin",
+      "videos": [
+        {
+          "seite": "1",
+          "pfad": "videos/personen-1.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+              "offset": 0
+            },
+            {
+              "id": "VORAUS-B",
+              "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
+              "offset": 4.6
+            }
+          ]
+        },
+        {
+          "seite": "2",
+          "pfad": "videos/personen-2.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "3",
+          "pfad": "videos/personen-3.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+              "offset": 0.1
+            },
+            {
+              "id": "VORAUS-R",
+              "titel": "Raum „Spielraum\" angelegt",
+              "offset": 4.2
+            },
+            {
+              "id": "KIND-01a",
+              "titel": "Kind „Lina Kind\" mit Emoji-Code angelegt",
+              "offset": 4.5
+            },
+            {
+              "id": "KIND-01b",
+              "titel": "Kind erscheint im Kinder-Tab",
+              "offset": 5
+            },
+            {
+              "id": "ELTERN-01",
+              "titel": "Eltern-Einladung erzeugt, Zuordnung ausstehend",
+              "offset": 5.2
+            },
+            {
+              "id": "ELTERN-02a",
+              "titel": "Selbstbestaetigung durch Einladende abgelehnt",
+              "offset": 5.9
+            },
+            {
+              "id": "OBS-01a",
+              "titel": "Beobachter-Einladung raumgebunden erzeugt",
+              "offset": 7.8
+            }
+          ]
+        },
+        {
+          "seite": "4",
+          "pfad": "videos/personen-4.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-B",
+              "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "5",
+          "pfad": "videos/personen-5.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-B",
+              "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
+              "offset": 0.1
+            },
+            {
+              "id": "ELTERN-02b",
+              "titel": "Zweitbestaetigung durch „paul\"",
+              "offset": 2.5
+            }
+          ]
+        },
+        {
+          "seite": "6",
+          "pfad": "videos/personen-6.webm",
+          "aufgaben": [
+            {
+              "id": "ELTERN-03",
+              "titel": "Elternzugang eingerichtet, Kind sichtbar",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "7",
+          "pfad": "videos/personen-7.webm",
+          "aufgaben": [
+            {
+              "id": "OBS-01b",
+              "titel": "Beobachterzugang eingerichtet, Anmeldung ok",
+              "offset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": "mandant",
+      "titel": "Mehrere Haeuser und Mandantentrennung",
+      "rolle": "houseadmin",
+      "videos": [
+        {
+          "seite": "1",
+          "pfad": "videos/mandant-1.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0
+            },
+            {
+              "id": "MOND-01",
+              "titel": "Haus Mond + HouseAdmin „mia\"",
+              "offset": 5.6
+            },
+            {
+              "id": "MULTI-01a",
+              "titel": "anna erhaelt Hausrolle auf Haus Mond",
+              "offset": 10.8
+            }
+          ]
+        },
+        {
+          "seite": "2",
+          "pfad": "videos/mandant-2.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "3",
+          "pfad": "videos/mandant-3.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0.1
+            },
+            {
+              "id": "VORAUS-AR",
+              "titel": "„Sonnenraum\" angelegt",
+              "offset": 0.4
+            },
+            {
+              "id": "GRENZE-01a",
+              "titel": "anna: kein Zugriff auf Haus Mond",
+              "offset": 6.5
+            },
+            {
+              "id": "GRENZE-01c",
+              "titel": "anna: keine SuperAdmin-Endpunkte",
+              "offset": 6.6
+            }
+          ]
+        },
+        {
+          "seite": "4",
+          "pfad": "videos/mandant-4.webm",
+          "aufgaben": [
+            {
+              "id": "MOND-01",
+              "titel": "Haus Mond + HouseAdmin „mia\"",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "5",
+          "pfad": "videos/mandant-5.webm",
+          "aufgaben": [
+            {
+              "id": "MOND-01",
+              "titel": "Haus Mond + HouseAdmin „mia\"",
+              "offset": 0.2
+            },
+            {
+              "id": "VORAUS-MR",
+              "titel": "„Mondraum\" angelegt",
+              "offset": 0.4
+            },
+            {
+              "id": "GRENZE-01b",
+              "titel": "mia: kein Zugriff auf Haus Sonne",
+              "offset": 1.4
+            }
+          ]
+        },
+        {
+          "seite": "6",
+          "pfad": "videos/mandant-6.webm",
+          "aufgaben": [
+            {
+              "id": "MULTI-01b",
+              "titel": "anna: Hauswahl zeigt beide Haeuser, Mond oeffnet",
+              "offset": 0.1
+            },
+            {
+              "id": "MULTI-01c",
+              "titel": "anna: Wechsel zurueck zu Haus Sonne",
+              "offset": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": "spiele",
+      "titel": "Spiele hochladen und freigeben",
+      "rolle": "houseadmin",
+      "videos": [
+        {
+          "seite": "1",
+          "pfad": "videos/spiele-1.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0
+            },
+            {
+              "id": "SPIEL-01a",
+              "titel": "Spiel „Rechenduell Testspiel\" hochgeladen",
+              "offset": 6.1
+            },
+            {
+              "id": "SPIEL-01b",
+              "titel": "Spiel veroeffentlicht",
+              "offset": 7.3
+            }
+          ]
+        },
+        {
+          "seite": "2",
+          "pfad": "videos/spiele-2.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "3",
+          "pfad": "videos/spiele-3.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0.2
+            },
+            {
+              "id": "VORAUS-R",
+              "titel": "Raum „Spielraum\" angelegt",
+              "offset": 0.4
+            },
+            {
+              "id": "VORAUS-K",
+              "titel": "Kind „Lina Kind\" mit Emoji-Code",
+              "offset": 1.4
+            },
+            {
+              "id": "SPIEL-02b",
+              "titel": "Spielfreigabe im Raum durch „anna\"",
+              "offset": 5.4
+            },
+            {
+              "id": "SPIEL-03b",
+              "titel": "Freigabeentzug sperrt Spielstart",
+              "offset": 6.4
+            }
+          ]
+        },
+        {
+          "seite": "4",
+          "pfad": "videos/spiele-4.webm",
+          "aufgaben": [
+            {
+              "id": "SPIEL-02a",
+              "titel": "Kind sieht Spiel ohne Freigabe nicht",
+              "offset": 0.2
+            },
+            {
+              "id": "SPIEL-03a",
+              "titel": "Kind sieht Spiel + UI-Klick startet Spielsitzung",
+              "offset": 2.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suite": "leben",
+      "titel": "Lebenszyklus und Sitzungen",
+      "rolle": "houseadmin",
+      "videos": [
+        {
+          "seite": "1",
+          "pfad": "videos/leben-1.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0
+            },
+            {
+              "id": "LEBEN-01a",
+              "titel": "Rollenentzug wirkt sofort",
+              "offset": 4.4
+            },
+            {
+              "id": "LEBEN-01b",
+              "titel": "Erneute Rollenvergabe wirkt sofort",
+              "offset": 6.7
+            },
+            {
+              "id": "LEBEN-02a",
+              "titel": "Deaktivierung sperrt Sitzung und Anmeldung",
+              "offset": 7.2
+            },
+            {
+              "id": "LEBEN-02b",
+              "titel": "Reaktivierung erlaubt Anmeldung wieder",
+              "offset": 9.6
+            },
+            {
+              "id": "LEBEN-03a",
+              "titel": "Reset-Link erzeugt",
+              "offset": 12
+            }
+          ]
+        },
+        {
+          "seite": "2",
+          "pfad": "videos/leben-2.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0
+            }
+          ]
+        },
+        {
+          "seite": "3",
+          "pfad": "videos/leben-3.webm",
+          "aufgaben": [
+            {
+              "id": "VORAUS-A",
+              "titel": "Haus Sonne + HouseAdmin „anna\"",
+              "offset": 0.1
+            }
+          ]
+        },
+        {
+          "seite": "4",
+          "pfad": "videos/leben-4.webm",
+          "aufgaben": [
+            {
+              "id": "LEBEN-03b",
+              "titel": "Reset invalidiert laufende Sitzung, Passwortwechsel wirkt",
+              "offset": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

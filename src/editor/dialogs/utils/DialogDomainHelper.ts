@@ -143,7 +143,7 @@ export class DialogDomainHelper {
             'TPuzzleBoard': ['tryPlacePiece', 'resetBoard'],
             'TObjectList': ['shuffle'],
             'TImageGallery': ['selectImage', 'getSelectedImage'],
-            'TVideo': ['play', 'pause', 'stop', 'setSrc', 'moveTo'],
+            'TVideo': ['play', 'pause', 'stop', 'seek', 'setSrc', 'moveTo'],
             'TLink': ['open', 'show', 'hide', 'moveTo'],
             'TAudio': ['play', 'pause', 'stop', 'setSrc'],
             'TGameServer': ['connect', 'disconnect', 'createRoom', 'joinRoom', 'leaveRoom', 'sendMessage'],

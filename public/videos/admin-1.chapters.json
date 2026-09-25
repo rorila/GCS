@@ -1,0 +1,30 @@
+{
+  "seite": "1",
+  "chapters": [
+    {
+      "id": "VORAUS",
+      "titel": "SuperAdmin anmelden, Haus Sonne anlegen",
+      "offset": 0
+    },
+    {
+      "id": "ADMIN-01a",
+      "titel": "Person „Anna Admin\" angelegt",
+      "offset": 1.5
+    },
+    {
+      "id": "ADMIN-01b",
+      "titel": "Hausrolle zugewiesen, Anna in Admin-Liste",
+      "offset": 2.4
+    },
+    {
+      "id": "ADMIN-02a",
+      "titel": "Detailseite + Einrichtungslink",
+      "offset": 2.8
+    },
+    {
+      "id": "ADMIN-03a",
+      "titel": "Login „anna\" → stage_house",
+      "offset": 3.8
+    }
+  ]
+}

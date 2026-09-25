@@ -1,0 +1,15 @@
+{
+  "seite": "1",
+  "chapters": [
+    {
+      "id": "VORAUS-A",
+      "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
+      "offset": 0
+    },
+    {
+      "id": "VORAUS-B",
+      "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
+      "offset": 4.6
+    }
+  ]
+}

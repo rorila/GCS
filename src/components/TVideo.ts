@@ -23,6 +23,7 @@ export class TVideo extends TPanel {
     // Runtime state (renderer should sync with this)
     private _isPlaying: boolean = false;
     public resetRequested: boolean = false;
+    public seekRequested: number | null = null;
 
     constructor(name: string, x: number, y: number, width: number = 10, height: number = 6) {
         super(name, x, y, width, height);
@@ -75,6 +76,14 @@ export class TVideo extends TPanel {
         this.isPlaying = false;
         this.resetRequested = true;
         logger.info(`[TVideo] ${this.name}.stop()`);
+    }
+
+    /** Springt zu einer Sekunden-Position und startet die Wiedergabe. */
+    public seek(seconds: number): void {
+        const t = Number(seconds);
+        this.seekRequested = Number.isFinite(t) ? Math.max(0, t) : 0;
+        this.isPlaying = true;
+        logger.info(`[TVideo] ${this.name}.seek(${this.seekRequested})`);
     }
 
     // ─────────────────────────────────────────────

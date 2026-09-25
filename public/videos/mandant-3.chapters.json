@@ -1,0 +1,25 @@
+{
+  "seite": "3",
+  "chapters": [
+    {
+      "id": "VORAUS-A",
+      "titel": "Haus Sonne + HouseAdmin „anna\"",
+      "offset": 0.1
+    },
+    {
+      "id": "VORAUS-AR",
+      "titel": "„Sonnenraum\" angelegt",
+      "offset": 0.4
+    },
+    {
+      "id": "GRENZE-01a",
+      "titel": "anna: kein Zugriff auf Haus Mond",
+      "offset": 6.5
+    },
+    {
+      "id": "GRENZE-01c",
+      "titel": "anna: keine SuperAdmin-Endpunkte",
+      "offset": 6.6
+    }
+  ]
+}

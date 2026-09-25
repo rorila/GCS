@@ -6,6 +6,7 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {bootMinimal,obj,stage,busy,sel,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
 const {makeRunner,dep,click,initRequest}=require('./cms/aufbau-common.cjs');
+const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
 
 const PORT=15220;
 (async()=>{
@@ -24,6 +25,7 @@ const PORT=15220;
   // ── BASIS-01b: oeffentliche Einwahl + SuperAdmin-Landung ───────────
   await task('BASIS-01b','Einwahl lädt, SuperAdmin landet auf stage_super',[],async()=>{
    browser=await chromium.launch({channel:'msedge',headless:true});
+  recordBrowser(browser);
    page=await browser.newPage({viewport:{width:1280,height:960}});
    page.on('pageerror',e=>errors.push(e.message));
    await page.goto(base+'/');
@@ -74,7 +76,7 @@ const PORT=15220;
    assert.strictEqual(env.file().areas.filter(a=>a.name==='Haus Sonne').length,1,'Haus doppelt gespeichert');
   },page);
  }finally{
-  if(browser)await browser.close();
+  if(browser)await finalizeBrowserVideos(browser,{base:process.env.GCS_VIDEO_BASE||'aufbau-basis'});
   await env.close();
  }
  const extra=errors.length?{id:'BROWSER',name:'Browser-Ausnahmen',status:'FEHLER',note:errors.join(' | ').slice(0,300)}:null;

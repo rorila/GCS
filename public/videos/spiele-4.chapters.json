@@ -1,0 +1,15 @@
+{
+  "seite": "4",
+  "chapters": [
+    {
+      "id": "SPIEL-02a",
+      "titel": "Kind sieht Spiel ohne Freigabe nicht",
+      "offset": 0.2
+    },
+    {
+      "id": "SPIEL-03a",
+      "titel": "Kind sieht Spiel + UI-Klick startet Spielsitzung",
+      "offset": 2.4
+    }
+  ]
+}

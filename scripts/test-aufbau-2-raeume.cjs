@@ -7,6 +7,7 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {bootMinimal,busy,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
 const {makeRunner,dep,click,setupHouseAdmin,card,cardWait,status}=require('./cms/aufbau-common.cjs');
+const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
 
 const PORT=15225;
 (async()=>{
@@ -15,6 +16,7 @@ const PORT=15225;
  const errors=[];
  try{
   browser=await chromium.launch({channel:'msedge',headless:true});
+  recordBrowser(browser);
   const page=await browser.newPage({viewport:{width:1280,height:960}});
   page.on('pageerror',e=>errors.push(e.message));
 
@@ -90,7 +92,7 @@ const PORT=15225;
    assert.strictEqual(ok,200,'Kontrollzugriff auf eigenes Haus fehlgeschlagen: '+ok);
   },adm);
  }finally{
-  if(browser)await browser.close();
+  if(browser)await finalizeBrowserVideos(browser,{base:process.env.GCS_VIDEO_BASE||'aufbau-raeume'});
   await env.close();
  }
  const extra=errors.length?{id:'BROWSER',name:'Browser-Ausnahmen',status:'FEHLER',note:errors.join(' | ').slice(0,300)}:null;

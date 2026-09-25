@@ -84,7 +84,7 @@ export function registerHttpActions() {
 
         // CMS uses the actual session service in both the editor Run tab and standalone.
         const isCmsRequest = /^\/api\/cms(?:\/|$)/.test(url);
-        if (!isCmsRequest && serviceRegistry.has('ApiSimulator')) {
+        if (!isCmsRequest && !action.directFetch && serviceRegistry.has('ApiSimulator')) {
             dataLogger.info(`Using API Simulation for: ${method} ${url}`);
             try {
                 const dsName = action.dataStore;
@@ -263,7 +263,8 @@ export function registerHttpActions() {
             { name: 'selectFields', label: 'Felder (SELECT)', type: 'string', hint: 'Kommagetrennte Liste der Felder oder count(*)' },
             { name: 'queryProperty', label: 'Filter-Feld (WHERE)', type: 'string', hint: 'z.B. id oder email' },
             { name: 'queryOperator', label: 'Operator', type: 'select', options: ['==', '!=', '>', '<', '>=', '<=', 'CONTAINS'], defaultValue: '==' },
-            { name: 'queryValue', label: 'Filter-Wert', type: 'string', hint: 'Wert oder ${variable}' }
+            { name: 'queryValue', label: 'Filter-Wert', type: 'string', hint: 'Wert oder ${variable}' },
+            { name: 'directFetch', label: 'Direkter Abruf (keine Simulation)', type: 'boolean', hint: 'Im Editor den ApiSimulator umgehen — z.B. für statische Dateien wie /videos/feature-videos.json' }
         ]
     });
 

@@ -1,0 +1,35 @@
+{
+  "seite": "1",
+  "chapters": [
+    {
+      "id": "VORAUS-A",
+      "titel": "Haus Sonne + HouseAdmin „anna\"",
+      "offset": 0
+    },
+    {
+      "id": "LEBEN-01a",
+      "titel": "Rollenentzug wirkt sofort",
+      "offset": 4.4
+    },
+    {
+      "id": "LEBEN-01b",
+      "titel": "Erneute Rollenvergabe wirkt sofort",
+      "offset": 6.7
+    },
+    {
+      "id": "LEBEN-02a",
+      "titel": "Deaktivierung sperrt Sitzung und Anmeldung",
+      "offset": 7.2
+    },
+    {
+      "id": "LEBEN-02b",
+      "titel": "Reaktivierung erlaubt Anmeldung wieder",
+      "offset": 9.6
+    },
+    {
+      "id": "LEBEN-03a",
+      "titel": "Reset-Link erzeugt",
+      "offset": 12
+    }
+  ]
+}
