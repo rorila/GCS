@@ -49,6 +49,12 @@ export class ReactiveRuntime {
         this.objectsById.set(id, reactiveObj);
         this.objectsByName.set(name, reactiveObj);
 
+        // Bindings, die dieses Objekt referenzieren, aber vor seiner Registrierung
+        // ausgewertet wurden, haben den Ausdruck unaufgeloest als Literal in die
+        // Ziel-Property geschrieben. Nach der Registrierung einmal nachziehen —
+        // beim Bootstrapping (noch keine Bindings) ist das ein No-Op.
+        this.updateBindingsForVariable(name);
+
         if (name === 'currentRooms' || obj.name === 'currentRooms') {
             logger.debug(`Registered currentRooms:`, {
                 scope: obj.scope,
@@ -76,6 +82,9 @@ export class ReactiveRuntime {
      */
     registerVariable(name: string, value: any): void {
         this.variables.set(name, value);
+        // Analog zu registerObject: Bindings auf diese Variable nachziehen,
+        // falls sie vor der Registrierung unaufgeloest blieben.
+        this.updateBindingsForVariable(name);
     }
 
     /**

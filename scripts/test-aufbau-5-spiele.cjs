@@ -9,7 +9,7 @@ const {bootMinimal,busy,sel,emojiLogin,adminLogin,TEST_PASSWORD}=require('./cms/
 const {makeRunner,dep,click,setupHouseAdmin,card,cardWait}=require('./cms/aufbau-common.cjs');
 
 const PORT=15229;
-const PROJ=path.resolve(__dirname,'..','game-server','public','projects','ZahlenDuell.json');
+const PROJ=path.resolve(__dirname,'..','public','test-projects','ZahlenDuell.json');
 const TITEL='Rechenduell Testspiel';
 const vget=(page,name)=>page.evaluate(n=>{const o=window.player.runtime.getObjects().find(x=>x.name===n);return o?o.value:undefined},name);
 const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('/api/cms/'+r,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});return{status:x.status,data:await x.json().catch(()=>({}))}},[route,body||{}]);

@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
-const project = JSON.parse(readFileSync(new URL('../../game-server/public/projects/PuzzleNeu.json', import.meta.url), 'utf8'));
+const project = JSON.parse(readFileSync(new URL('../../public/test-projects/PuzzleNeu.json', import.meta.url), 'utf8'));
 
 test('DEBUG: chicken piece inspection', async ({ page }) => {
     await page.setViewportSize({ width: 1779, height: 893 });

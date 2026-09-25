@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
-const project = JSON.parse(readFileSync(new URL('../../game-server/public/projects/PuzzleNeu.json', import.meta.url), 'utf8'));
+const project = JSON.parse(readFileSync(new URL('../../public/test-projects/PuzzleNeu.json', import.meta.url), 'utf8'));
 
 test('DEBUG: chicken generation from variable', async ({ page }) => {
     // Force chicken imageSource on splitter for this test

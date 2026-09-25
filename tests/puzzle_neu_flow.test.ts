@@ -90,7 +90,7 @@ test('Quellrechtecke ueberleben Serialisierung und bleiben pro Pool-Instanz unab
     assert.equal(second.sourceRectWidth, 80);
 });
 
-const project = JSON.parse(readFileSync(new URL('../game-server/public/projects/PuzzleNeu.json', import.meta.url), 'utf8'));
+const project = JSON.parse(readFileSync(new URL('../public/test-projects/PuzzleNeu.json', import.meta.url), 'utf8'));
 const blueprint = project.stages.find((stage: any) => stage.type === 'blueprint');
 const main = project.stages.find((stage: any) => stage.id === 'stage_main');
 

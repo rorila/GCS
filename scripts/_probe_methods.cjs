@@ -3,7 +3,7 @@ const { chromium } = require('@playwright/test');
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
-const project = JSON.parse(readFileSync(path.join(__dirname, '../game-server/public/projects/PuzzleNeu.json'), 'utf8'));
+const project = JSON.parse(readFileSync(path.join(__dirname, '../public/test-projects/PuzzleNeu.json'), 'utf8'));
 const splitterDef = project.stages.find(s => s.id === 'stage_main').objects.find(o => o.name === 'Bildaufteiler');
 const pieceCount = Number(splitterDef.columns) * Number(splitterDef.rows);
 

@@ -87,6 +87,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 12,
           "y": 2,
@@ -134,6 +135,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 52,
           "y": 19,
@@ -274,6 +276,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 24,
@@ -305,6 +308,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 27,
@@ -360,6 +364,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 0,
           "y": 2,
@@ -377,6 +382,10 @@
             "borderWidth": 2,
             "borderRadius": 4
           },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
           "data": [
             {
               "index": 0,
@@ -592,6 +601,9 @@
           "rowHeight": 28,
           "showHeader": true,
           "striped": true,
+          "sourceMode": "objects",
+          "records": [],
+          "recordKey": "id",
           "fields": [
             {
               "name": "isSelected",
@@ -760,6 +772,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 12,
@@ -791,6 +804,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 15,
@@ -822,6 +836,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 17,
@@ -853,6 +868,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 8,
@@ -918,6 +934,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 5,
@@ -948,6 +965,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 30,
@@ -979,6 +997,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 31,
           "y": 32,
@@ -1418,6 +1437,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 52,
           "y": 16,
@@ -1477,6 +1497,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 8,
           "y": 37,
@@ -1506,6 +1527,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 16,
           "y": 37,
@@ -1567,6 +1589,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 51,
           "y": 22,
@@ -1615,6 +1638,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 56,
           "y": 8,
@@ -1915,6 +1939,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 1,
           "y": 0,
@@ -1946,6 +1971,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 6,
           "y": 0,
@@ -1977,6 +2003,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 5,
           "y": 1,
@@ -3369,49 +3396,7 @@
             }
           ],
           "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "KatenMischen": {
-              "x": 40,
-              "y": 40
-            },
-            "SetAllVariableBack": {
-              "x": 240,
-              "y": 40
-            },
-            "Act_SetIsMatchedToFalse": {
-              "x": 480,
-              "y": 40
-            },
-            "Act_SetResetScores": {
-              "x": 760,
-              "y": 40
-            },
-            "SetBackCardToAllCards": {
-              "x": 1000,
-              "y": 40
-            },
-            "Act_ImagesMischen": {
-              "x": 1260,
-              "y": 40
-            },
-            "Act_MatchIndexMischen": {
-              "x": 1500,
-              "y": 40
-            },
-            "foreach": {
-              "x": 1260,
-              "y": 160
-            },
-            "Act_SetNewMatchIndexToVar_NewMatchIndex": {
-              "x": 1440,
-              "y": 160
-            },
-            "Act_SetANewMatchValueToCard": {
-              "x": 1880,
-              "y": 160
-            }
-          }
+          "params": []
         },
         {
           "id": "480dcbc7-98cc-43c3-ba63-f6927fe905db",

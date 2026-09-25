@@ -16,7 +16,7 @@ test.describe('Movement Debug Test', () => {
         await page.waitForSelector('#app-layout');
 
         // Lade Silvias_Shooter_Demo.json
-        const filePath = path.join(process.cwd(), 'game-server/public/projects/UfoShoter4.json');
+        const filePath = path.join(process.cwd(), 'public/test-projects/UfoShoter4.json');
         if (!fs.existsSync(filePath)) {
             throw new Error(`Datei nicht gefunden: ${filePath}`);
         }

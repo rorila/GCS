@@ -22,7 +22,7 @@ test('Toolbox-Erzeugung und Speichern/Laden erhalten die Konfiguration', () => {
 });
 
 test('PuzzleNeu ist ein separates Minimalprojekt mit konsistenter Ausgabeliste', () => {
-    const project = JSON.parse(readFileSync(new URL('../game-server/public/projects/PuzzleNeu.json', import.meta.url), 'utf8'));
+    const project = JSON.parse(readFileSync(new URL('../public/test-projects/PuzzleNeu.json', import.meta.url), 'utf8'));
     assert.equal(project.meta.id, 'puzzle-neu');
     const main = project.stages.find((s: any) => s.id === 'stage_main');
     assert.equal(main.type, 'main');

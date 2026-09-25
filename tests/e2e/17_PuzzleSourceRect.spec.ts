@@ -1,10 +1,24 @@
 import { test, expect, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
-const project = JSON.parse(readFileSync(new URL('../../game-server/public/projects/PuzzleNeu.json', import.meta.url), 'utf8'));
+const project = JSON.parse(readFileSync(new URL('../../public/test-projects/PuzzleNeu.json', import.meta.url), 'utf8'));
 const spriteSelector = '#run-stage [data-id="pn_puzzle_teil_template_pool_0"]';
 const splitterDef = project.stages.find((s: any) => s.id === 'stage_main').objects.find((o: any) => o.name === 'Bildaufteiler');
 const pieceCount = Number(splitterDef.columns) * Number(splitterDef.rows);
+
+// Produktvertrag von "TeilAblegen" (onDragEnd): ein Teil, das nicht auf der
+// Zielplattform losgelassen wird oder dort ausserhalb des Snap-Radius landet,
+// wird per move_to + lockDuringMove zum Startplatz (spawnX/spawnY) zurueckbewegt
+// und ist danach wieder ziehbar. Liefert die gewartete Endposition.
+async function waitForReturnToSpawn(page: Page, pieceName = 'PuzzleTeilTemplate_pool_0') {
+    await expect.poll(() => page.evaluate(name =>
+        (window as any).editor.runtime.objects.find((o: any) => o.name === name).draggable
+    , pieceName), { timeout: 5000 }).toBe(true);
+    return page.evaluate(name => {
+        const s = (window as any).editor.runtime.objects.find((o: any) => o.name === name);
+        return { x: s.x, y: s.y, spawnX: s.spawnX, spawnY: s.spawnY };
+    }, pieceName);
+}
 
 async function generate(page: Page) {
     await page.locator('#run-start-game-btn').click();
@@ -39,23 +53,25 @@ test('Record-Ausschnitte haben Bildflaechen trotz ausgeblendeter Ressourcen und 
         const records = runtime.objects.find((o: any) => o.name === 'PuzzleTeile').records;
         const sprites = runtime.objects.filter((o: any) => o.isPoolInstance);
         const layers = sprites.map((sprite: any, index: number) => {
-            const mask = document.querySelector(`#run-stage [data-id="${sprite.id}"] .sprite-image-layer`) as HTMLElement;
-            const sheet = mask.querySelector('.sprite-sheet-layer') as HTMLElement;
-            const b = sheet.getBoundingClientRect();
-            const m = mask.getBoundingClientRect();
-            const transform = new DOMMatrix(getComputedStyle(sheet).transform);
+            const el = document.querySelector(`#run-stage [data-id="${sprite.id}"]`) as HTMLElement;
+            const svg = el?.querySelector('.puzzle-piece-layer') as SVGSVGElement | null;
+            const img = svg?.querySelector('image');
+            const box = el?.getBoundingClientRect();
             const record = records[index];
             return {
-                width: b.width, height: b.height, maskWidth: m.width, maskHeight: m.height,
+                rendered: !!svg && !!img,
+                width: box?.width ?? 0, height: box?.height ?? 0,
                 source: sprite.backgroundImage, recordSource: record.source,
                 rect: [sprite.sourceRectX, sprite.sourceRectY, sprite.sourceRectWidth, sprite.sourceRectHeight],
                 expected: [record.x, record.y, record.width, record.height],
-                offsetX: transform.m41 / b.width, offsetY: transform.m42 / b.height,
-                expectedOffsetX: -record.x / record.sourceWidth, expectedOffsetY: -record.y / record.sourceHeight,
-                matchValue: sprite.matchValue, expectedMatch: record.matchValue,
-                cssWidth: sheet.style.width, cssHeight: sheet.style.height,
-                expectedCssWidth: record.sourceWidth / record.width * 100,
-                expectedCssHeight: record.sourceHeight / record.height * 100
+                // SVG-Vertrag: <image> liegt bei (-x, -y) mit voller Quellgroesse
+                imgX: img ? Number(img.getAttribute('x')) : NaN,
+                imgY: img ? Number(img.getAttribute('y')) : NaN,
+                imgW: img ? Number(img.getAttribute('width')) : NaN,
+                imgH: img ? Number(img.getAttribute('height')) : NaN,
+                expectedImgX: -record.x, expectedImgY: -record.y,
+                expectedImgW: record.sourceWidth, expectedImgH: record.sourceHeight,
+                matchValue: sprite.matchValue, expectedMatch: record.matchValue
             };
         });
         const image = new Image();
@@ -70,41 +86,42 @@ test('Record-Ausschnitte haben Bildflaechen trotz ausgeblendeter Ressourcen und 
     expect(state.resourceRendered).toBe(false);
     expect(state.naturalWidth).toBe(state.expectedWidth);
     expect(state.layers).toHaveLength(pieceCount);
-    expect(new Set(state.layers.map(layer => layer.source)).size).toBe(1);
+    expect(new Set(state.layers.map((layer: any) => layer.source)).size).toBe(1);
     for (const layer of state.layers) {
+        expect(layer.rendered).toBe(true);
         expect(layer.width).toBeGreaterThan(0);
         expect(layer.height).toBeGreaterThan(0);
-        expect(layer.maskWidth).toBeGreaterThan(0);
-        expect(layer.maskHeight).toBeGreaterThan(0);
-        expect(parseFloat(layer.cssWidth)).toBeCloseTo(layer.expectedCssWidth);
-        expect(parseFloat(layer.cssHeight)).toBeCloseTo(layer.expectedCssHeight);
         expect(layer.rect).toEqual(layer.expected);
+        expect(layer.imgX).toBeCloseTo(layer.expectedImgX);
+        expect(layer.imgY).toBeCloseTo(layer.expectedImgY);
+        expect(layer.imgW).toBeCloseTo(layer.expectedImgW);
+        expect(layer.imgH).toBeCloseTo(layer.expectedImgH);
         expect(layer.source).toBe(layer.recordSource);
         expect(layer.matchValue).toBe(layer.expectedMatch);
-        expect(layer.offsetX).toBeCloseTo(layer.expectedOffsetX, 4);
-        expect(layer.offsetY).toBeCloseTo(layer.expectedOffsetY, 4);
     }
     const box = (await page.locator(spriteSelector).boundingBox())!;
+    const pxCell = box.width / await page.evaluate(() =>
+        (window as any).editor.runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0').width);
+    // Ins Leere ziehen: das Teil ist ziehbar, wird aber nicht auf einer droppable
+    // Flaeche losgelassen → TeilAblegen bewegt es zum Startplatz zurueck.
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width / 2 + state.cellSize * 2, box.y + box.height / 2 + state.cellSize * 2, { steps: 8 });
+    await page.mouse.move(box.x + box.width / 2 + pxCell * 2, box.y + box.height / 2 + pxCell * 2, { steps: 8 });
     await page.mouse.up();
+    const home = await waitForReturnToSpawn(page);
+    expect(home.x).toBeCloseTo(home.spawnX, 1);
+    expect(home.y).toBeCloseTo(home.spawnY, 1);
     const after = await page.evaluate(() => {
         const runtime = (window as any).editor.runtime;
         const first = runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0');
         const second = runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_1');
         const records = runtime.objects.find((o: any) => o.name === 'PuzzleTeile').records;
-        return { x: first.x, y: first.y, cropX: first.sourceRectX, record0X: records[0].x,
-            otherX: second.x, otherCropX: second.sourceRectX, record1X: records[1].x };
+        return { cropX: first.sourceRectX, record0X: records[0].x,
+            otherCropX: second.sourceRectX, record1X: records[1].x };
     });
-    // Spawn-Stapel: Zelle 0 liegt an der Bildaufteiler-Position (1,1); +2 Zellen Drag.
-    const splitter = project.stages.find((s: any) => s.id === 'stage_main').objects.find((o: any) => o.name === 'Bildaufteiler');
-    expect({ x: after.x, y: after.y }).toEqual({ x: splitter.x + 2, y: splitter.y + 2 });
     // Ausschnitt und Match gehoeren zum gemischten Record der jeweiligen Instanz.
     expect(after.cropX).toBe(after.record0X);
     expect(after.otherCropX).toBe(after.record1X);
-    // Nachbar-Teil steht auf Stapelzelle 1 (unveraendert).
-    expect(after.otherX).toBe(splitter.x + (splitter.width / splitter.columns));
 });
 
 test('Freie Quellrechtecke, ungueltige Werte und bestehende Darstellungsarten', async ({ page }) => {
@@ -116,10 +133,19 @@ test('Freie Quellrechtecke, ungueltige Werte und bestehende Darstellungsarten', 
         const renderer = editor.runManager.runStage.renderer;
         const element = document.querySelector(`#run-stage [data-id="${sprite.id}"]`)!;
         const measure = () => {
-            const mask = element.querySelector('.sprite-image-layer') as HTMLElement;
-            const sheet = mask.querySelector('.sprite-sheet-layer') as HTMLElement;
-            return { display: getComputedStyle(mask).display, width: sheet.getBoundingClientRect().width,
-                cssWidth: sheet.style.width, cssHeight: sheet.style.height, transform: sheet.style.transform };
+            const svg = element.querySelector('.puzzle-piece-layer') as SVGSVGElement | null;
+            const mask = element.querySelector('.sprite-image-layer') as HTMLElement | null;
+            if (svg && !mask) {
+                const img = svg.querySelector('image')!;
+                return { mode: 'puzzle', display: getComputedStyle(element).display,
+                    width: element.getBoundingClientRect().width,
+                    imgX: Number(img.getAttribute('x')), imgY: Number(img.getAttribute('y')),
+                    imgW: Number(img.getAttribute('width')), imgH: Number(img.getAttribute('height')) };
+            }
+            const sheet = mask?.querySelector('.sprite-sheet-layer') as HTMLElement | null;
+            return { mode: 'sheet', display: mask ? getComputedStyle(mask).display : 'none',
+                width: sheet ? sheet.getBoundingClientRect().width : 0,
+                cssWidth: sheet?.style.width, cssHeight: sheet?.style.height, transform: sheet?.style.transform };
         };
         Object.assign(sprite, { sourceRectX: 37, sourceRectY: 21, sourceRectWidth: 80, sourceRectHeight: 75 });
         renderer.updateSpriteFrames([sprite]);
@@ -150,9 +176,14 @@ test('Freie Quellrechtecke, ungueltige Werte und bestehende Darstellungsarten', 
         renderer.updateSpriteFrames([sprite]);
         return { arbitrary, invalid, recovered, simpleTag, legacy, animation, restored: measure() };
     });
-    expect(parseFloat(result.arbitrary.cssWidth)).toBeCloseTo(427 / 80 * 100);
-    expect(parseFloat(result.arbitrary.cssHeight)).toBeCloseTo(640 / 75 * 100);
+    // Gueltiges Quellrechteck mit Puzzle-Kanten -> SVG-Darstellung (puzzle-piece-layer)
+    expect(result.arbitrary.mode).toBe('puzzle');
+    expect(result.arbitrary.imgX).toBeCloseTo(-37);
+    expect(result.arbitrary.imgY).toBeCloseTo(-21);
+    expect(result.arbitrary.imgW).toBeCloseTo(427);
+    expect(result.arbitrary.imgH).toBeCloseTo(640);
     expect(result.invalid.display).toBe('none');
+    expect(result.recovered.mode).toBe('puzzle');
     expect(result.recovered.width).toBeGreaterThan(0);
     expect(result.simpleTag).toBe('IMG');
     expect(result.legacy.cssWidth).toBe('500%');
@@ -160,7 +191,9 @@ test('Freie Quellrechtecke, ungueltige Werte und bestehende Darstellungsarten', 
     expect(result.legacy.transform).toBe('translate(-80%, -80%)');
     expect(result.animation.cssWidth).toBe('500%');
     expect(result.animation.transform).toBe('translate(-20%, -20%)');
-    expect(result.restored.cssWidth).toBe(result.arbitrary.cssWidth);
+    expect(result.restored.mode).toBe('puzzle');
+    expect(result.restored.imgX).toBe(result.arbitrary.imgX);
+    expect(result.restored.imgY).toBe(result.arbitrary.imgY);
 });
 
 test('resetPool ist als Methode erreichbar und setzt nur den ausgewaehlten Pool zurueck', async ({ page }) => {
@@ -169,15 +202,18 @@ test('resetPool ist als Methode erreichbar und setzt nur den ausgewaehlten Pool 
         const editor = (window as any).editor;
         const runtime = editor.runtime;
         const template = runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate');
+        // @ts-expect-error – Vite-Runtime-Import, nur im Browser auflösbar
         const { TSpriteTemplate } = await import('/src/components/TSpriteTemplate.ts');
         const other = new TSpriteTemplate('OtherTemplate', 0, 0, 1, 1);
         other.poolSize = 1;
         runtime.objects.push(other);
         runtime.spritePool.init(other, runtime.objects);
         const otherSprite = runtime.spritePool.acquire(other.id, 1, 1, other);
+        // @ts-expect-error – Vite-Runtime-Import, nur im Browser auflösbar
         const { GameLoopManager } = await import('/src/runtime/GameLoopManager.ts');
         const loop = GameLoopManager.getInstance();
         const stateBefore = loop.getState();
+        // @ts-expect-error – Vite-Runtime-Import, nur im Browser auflösbar
         const { DialogDomainHelper } = await import('/src/editor/dialogs/utils/DialogDomainHelper.ts');
         const methods = DialogDomainHelper.getMethodsForObject({ project: editor.project, enrichedProject: { variables: [] }, dialogData: {} } as any, template.name);
         const firstCount = template.resetPool();
@@ -228,7 +264,7 @@ test('Erneutes Erzeugen und Galerie-Rundlauf ersetzen die Teile ohne Pool-Leiche
             return { active: runtime.spritePool.getActiveInstances().length,
                 count: instances.length, uniqueIds: new Set(instances.map((o: any) => o.id)).size,
                 registered: runtime.reactiveRuntime.getObjects().filter((o: any) => o.isPoolInstance).length,
-                sheetWidths: [...document.querySelectorAll('#run-stage [data-id*="_pool_"] .sprite-sheet-layer')].map(el => el.getBoundingClientRect().width)
+                sheetWidths: [...document.querySelectorAll('#run-stage [data-id*="_pool_"] .puzzle-piece-layer')].map(el => el.getBoundingClientRect().width)
             };
         });
         expect(state.count).toBe(pieceCount);
@@ -239,15 +275,17 @@ test('Erneutes Erzeugen und Galerie-Rundlauf ersetzen die Teile ohne Pool-Leiche
         expect(state.sheetWidths.every(width => width > 0)).toBe(true);
     }
     const box = (await page.locator(spriteSelector).boundingBox())!;
-    const cell = await page.evaluate(() => (window as any).editor.runManager.runStage.grid.cellSize);
+    const pxCell = box.width / await page.evaluate(() =>
+        (window as any).editor.runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0').width);
+    // Auch nach dem Rundlauf bleibt das Teil ziehbar; ins Leere gezogen kehrt
+    // es wie vorgesehen zum Startplatz zurueck (TeilAblegen-Flow).
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width / 2 + 2 * cell, box.y + box.height / 2 + 2 * cell, { steps: 8 });
+    await page.mouse.move(box.x + box.width / 2 + 2 * pxCell, box.y + box.height / 2 + 2 * pxCell, { steps: 8 });
     await page.mouse.up();
-    expect(await page.evaluate(() => {
-        const obj = (window as any).editor.runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0');
-        return [obj.x, obj.y];
-    })).toEqual([splitterDef.x + 2, splitterDef.y + 2]);
+    const home = await waitForReturnToSpawn(page);
+    expect(home.x).toBeCloseTo(home.spawnX, 1);
+    expect(home.y).toBeCloseTo(home.spawnY, 1);
 });
 
 test('Neue Bildauswahl erzeugt aktuelle Records statt der gespeicherten Bildquelle', async ({ page }) => {
@@ -269,22 +307,30 @@ test('Neue Bildauswahl erzeugt aktuelle Records statt der gespeicherten Bildquel
 
 test('Teil rastet nahe seiner Zielzelle auf der Zielplattform ein', async ({ page }) => {
     await generate(page);
-    const setup = await page.evaluate(() => {
+    const setup = await page.evaluate(async () => {
         const runtime = (window as any).editor.runtime;
-        const stage = (window as any).editor.runManager.runStage;
         const board = runtime.objects.find((o: any) => o.name === 'Zielplattform');
         const sprite = runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0');
         const records = runtime.objects.find((o: any) => o.name === 'PuzzleTeile').records;
         const record = records.find((r: any) => r.index === sprite.imageIndex);
         const col = record.column, row = record.row;
-        const cellW = board.width / board.columns, cellH = board.height / board.rows;
-        const targetX = board.x + col * cellW, targetY = board.y + row * cellH;
-        const stageRect = stage.element.getBoundingClientRect();
-        const cellSize = stage.grid.cellSize;
-        const toPx = (gx: number, gy: number) => ({ x: stageRect.left + gx * cellSize, y: stageRect.top + gy * cellSize });
-        const pieceCenter = toPx(sprite.x + sprite.width / 2, sprite.y + sprite.height / 2);
-        // Loslassen etwas neben dem Zellzentrum, aber innerhalb des snapRadius
-        const dropCenter = toPx(targetX + cellW / 2 + 1, targetY + cellH / 2 + 1);
+        // Zielgeometrie wie im Produkt: das Zielbild wird mit fitImageBounds in
+        // die Boardflaeche eingepasst; die Zellen liegen im eingepassten Bounds.
+        const boardEl = document.querySelector('#run-stage [data-id="pn_zielplattform"]') as HTMLElement;
+        const bb = boardEl.getBoundingClientRect();
+        const pieceEl = document.querySelector(`#run-stage [data-id="${sprite.id}"]`) as HTMLElement;
+        const pb = pieceEl.getBoundingClientRect();
+        const pxPerCell = pb.width / sprite.width;
+        const boardWg = bb.width / pxPerCell, boardHg = bb.height / pxPerCell;
+        // @ts-expect-error – Vite-Runtime-Import, nur im Browser auflösbar
+        const { fitImageBounds } = await import('/src/utils/ImageSplitterModel.ts');
+        const bounds = fitImageBounds(Number(sprite.sourceWidth), Number(sprite.sourceHeight), boardWg, boardHg);
+        const cellW = bounds.width / board.columns, cellH = bounds.height / board.rows;
+        const targetX = board.x + bounds.x + col * cellW, targetY = board.y + bounds.y + row * cellH;
+        const pieceCenter = { x: pb.left + pb.width / 2, y: pb.top + pb.height / 2 };
+        // Loslassen etwas neben dem Zellzentrum (eingepasstes Raster), innerhalb snapRadius
+        const dropCenter = { x: bb.left + (bounds.x + (col + 0.5) * cellW) * pxPerCell + 1,
+            y: bb.top + (bounds.y + (row + 0.5) * cellH) * pxPerCell + 1 };
         return { pieceCenter, dropCenter, targetX, targetY, snapRadius: board.snapRadius,
             ghostVisible: !!document.querySelector('#run-stage [data-id="pn_zielplattform"] .puzzle-board-ghost') };
     });
@@ -301,30 +347,34 @@ test('Teil rastet nahe seiner Zielzelle auf der Zielplattform ein', async ({ pag
         const sprite = runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0');
         return { x: sprite.x, y: sprite.y, draggable: sprite.draggable, placedCount: board.placedCount };
     });
-    expect({ x: result.x, y: result.y }).toEqual({ x: setup.targetX, y: setup.targetY });
+    expect(result.x).toBeCloseTo(setup.targetX, 1);
+    expect(result.y).toBeCloseTo(setup.targetY, 1);
     expect(result.draggable).toBe(false);
     expect(result.placedCount).toBe(1);
 });
 
-test('Teil ausserhalb des Snap-Radius bleibt lose liegen', async ({ page }) => {
+test('Teil ausserhalb des Snap-Radius wird nicht eingerastet und kehrt zum Startplatz zurueck', async ({ page }) => {
     await generate(page);
     const setup = await page.evaluate(() => {
         const runtime = (window as any).editor.runtime;
         const stage = (window as any).editor.runManager.runStage;
         const board = runtime.objects.find((o: any) => o.name === 'Zielplattform');
         const sprite = runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0');
-        const stageRect = stage.element.getBoundingClientRect();
-        const cellSize = stage.grid.cellSize;
-        const toPx = (gx: number, gy: number) => ({ x: stageRect.left + gx * cellSize, y: stageRect.top + gy * cellSize });
-        const pieceCenter = toPx(sprite.x + sprite.width / 2, sprite.y + sprite.height / 2);
-        // Auf die Plattform, aber weit weg von der eigenen Zielzelle (andere Ecke)
+        // Drop auf die Plattform, aber weit weg von der eigenen Zielzelle —
+        // mit eingepasstem Zielbild (fitImageBounds) liegt die gegenueberliegende
+        // Ecke ~20 Zellen vom Zielzentrum entfernt, deutlich ausserhalb snapRadius=4.
+        const boardEl = document.querySelector('#run-stage [data-id="pn_zielplattform"]') as HTMLElement;
+        const bb = boardEl.getBoundingClientRect();
+        const pieceEl = document.querySelector(`#run-stage [data-id="${sprite.id}"]`) as HTMLElement;
+        const pb = pieceEl.getBoundingClientRect();
+        const pieceCenter = { x: pb.left + pb.width / 2, y: pb.top + pb.height / 2 };
         const records = runtime.objects.find((o: any) => o.name === 'PuzzleTeile').records;
         const record = records.find((r: any) => r.index === sprite.imageIndex);
         const farCol = record.column === 0 ? board.columns - 1 : 0;
         const farRow = record.row === 0 ? board.rows - 1 : 0;
-        const cellW = board.width / board.columns, cellH = board.height / board.rows;
-        const dropCenter = toPx(board.x + (farCol + 0.5) * cellW, board.y + (farRow + 0.5) * cellH);
-        return { pieceCenter, dropCenter };
+        const cellWpx = bb.width / board.columns, cellHpx = bb.height / board.rows;
+        const dropCenter = { x: bb.left + (farCol + 0.5) * cellWpx, y: bb.top + (farRow + 0.5) * cellHpx };
+        return { pieceCenter, dropCenter, spawnX: sprite.spawnX, spawnY: sprite.spawnY };
     });
 
     await page.mouse.move(setup.pieceCenter.x, setup.pieceCenter.y);
@@ -332,12 +382,24 @@ test('Teil ausserhalb des Snap-Radius bleibt lose liegen', async ({ page }) => {
     await page.mouse.move(setup.dropCenter.x, setup.dropCenter.y, { steps: 12 });
     await page.mouse.up();
 
+    // Nicht eingerastet: Zaehler bleibt 0. Der TeilAblegen-Flow bewegt das Teil
+    // anschliessend mit move_to + lockDuringMove zum Startplatz zurueck.
     const result = await page.evaluate(() => {
         const runtime = (window as any).editor.runtime;
         const board = runtime.objects.find((o: any) => o.name === 'Zielplattform');
         const sprite = runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0');
-        return { draggable: sprite.draggable, placedCount: board.placedCount };
+        return { placedCount: board.placedCount, spawnX: sprite.spawnX, spawnY: sprite.spawnY };
     });
     expect(result.placedCount).toBe(0);
-    expect(result.draggable).toBe(true);
+
+    // Nach der Rueckflug-Animation (~500ms) ist das Teil wieder ziehbar und am Startplatz.
+    await expect.poll(() => page.evaluate(() =>
+        (window as any).editor.runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0').draggable
+    ), { timeout: 4000 }).toBe(true);
+    const home = await page.evaluate(() => {
+        const s = (window as any).editor.runtime.objects.find((o: any) => o.name === 'PuzzleTeilTemplate_pool_0');
+        return { x: s.x, y: s.y };
+    });
+    expect(home.x).toBeCloseTo(result.spawnX, 1);
+    expect(home.y).toBeCloseTo(result.spawnY, 1);
 });

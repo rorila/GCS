@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import net from 'net';
 import { fileURLToPath } from 'url';
 import { runLoginTests, TestResult } from './test_login_logic.js'; // Note the .js extension for ESM imports
 import { runSmartMappingTests } from './test_smart_mapping.js';
@@ -77,16 +76,30 @@ interface SuiteTiming {
 class SuiteTimer {
     private timings: SuiteTiming[] = [];
 
+    constructor(private observedResults?: TestResult[]) {}
+
+    /** Markiert alle seit `before` hinzugekommenen Ergebnisse mit dem Suiten-Namen. */
+    private tagSuite(before: number, name: string) {
+        if (!this.observedResults) return;
+        for (let i = before; i < this.observedResults.length; i++) {
+            const r = this.observedResults[i] as TestResult & { suite?: string };
+            if (!r.suite) r.suite = name;
+        }
+    }
+
     async measure<T>(name: string, fn: () => Promise<T> | T): Promise<T> {
         const t0 = performance.now();
+        const before = this.observedResults?.length ?? 0;
         try {
             const result = await fn();
+            this.tagSuite(before, name);
             const durationMs = performance.now() - t0;
             this.timings.push({ name, durationMs, failed: false });
             const flag = durationMs > SLOW_SUITE_MS ? ' 🐌' : '';
             console.log(`  ⏱  ${name}: ${durationMs.toFixed(0)}ms${flag}`);
             return result;
         } catch (e) {
+            this.tagSuite(before, name);
             const durationMs = performance.now() - t0;
             this.timings.push({ name, durationMs, failed: true });
             console.log(`  ⏱  ${name}: ${durationMs.toFixed(0)}ms (❌ crashed)`);
@@ -158,6 +171,193 @@ function generateReport(results: TestResult[], timer: SuiteTimer, totalDurationM
 
     fs.writeFileSync(REPORT_FILE, markdown, 'utf-8');
     console.log(`\n📄 Report generiert: ${REPORT_FILE}`);
+
+    generateHtmlReport(results, timer, totalDurationMs);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// HTML-Report — thematisch gegliederte Sicht fuer den Anwender
+// ═══════════════════════════════════════════════════════════════════
+const HTML_REPORT_FILE = path.join(__dirname, '../docs/QA_Report.html');
+
+const AUFBAU_ORDER = [
+    'Basis & SuperAdmin', 'Haus & HouseAdmin', 'Räume', 'Kinder · Eltern · Beobachter',
+    'Mandantentrennung', 'Spiele & Freigaben', 'Konten & Sitzungen'
+];
+
+const THEME_LABEL: Record<string, string> = {
+    VORAUS: 'Voraussetzung', HAUS: 'Haus', SUPER: 'SuperAdmin', ADMIN: 'HouseAdmin',
+    RAUM: 'Raum', KIND: 'Kind', ELTERN: 'Eltern', OBS: 'Beobachter', ERZ: 'Erzieher',
+    GRENZE: 'Mandant', MULTI: 'Mehrfachrolle', SPIEL: 'Spiel', LEBEN: 'Lebenszyklus',
+    SESSION: 'Sitzung', LOGIN: 'Anmeldung', BASIS: 'Basis', DATEN: 'Daten'
+};
+
+function esc(s: string): string {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function resultStatus(r: TestResult): 'ok' | 'fail' | 'blocked' {
+    if (r.passed) return 'ok';
+    return r.details?.startsWith('blockiert') ? 'blocked' : 'fail';
+}
+
+function generateHtmlReport(results: TestResult[], timer: SuiteTimer, totalDurationMs: number) {
+    const timestamp = new Date().toLocaleString('de-DE');
+    const total = results.length;
+    const passed = results.filter(r => r.passed).length;
+    const blocked = results.filter(r => resultStatus(r) === 'blocked').length;
+    const failed = total - passed - blocked;
+
+    // ─── Gruppierung: CMS-Aufbau (thematisch sortiert) → E2E-Dateien → Logik-Suiten
+    const groups = new Map<string, TestResult[]>();
+    for (const r of results) {
+        const suite = (r as TestResult & { suite?: string }).suite;
+        const key = suite ?? (r.type || 'Sonstige');
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(r);
+    }
+    const rank = (t: string): [number, number] => {
+        if (t.startsWith('CMS Aufbau · ')) {
+            const i = AUFBAU_ORDER.indexOf(t.replace('CMS Aufbau · ', ''));
+            return [0, i === -1 ? 99 : i];
+        }
+        if (t.startsWith('E2E Browser')) return [1, 0];
+        return [2, 0];
+    };
+    const sorted = [...groups.entries()].sort((a, b) => {
+        const ra = rank(a[0]), rb = rank(b[0]);
+        return ra[0] - rb[0] || ra[1] - rb[1] || a[0].localeCompare(b[0], 'de');
+    });
+
+    const chip = (items: TestResult[]) => {
+        const ok = items.filter(r => r.passed).length;
+        const bl = items.filter(r => resultStatus(r) === 'blocked').length;
+        const fe = items.length - ok - bl;
+        let s = `<span class="chip ok">${ok} ✓</span>`;
+        if (fe) s += `<span class="chip fail">${fe} ✗</span>`;
+        if (bl) s += `<span class="chip blocked">${bl} ⏸</span>`;
+        return s;
+    };
+
+    const row = (r: TestResult) => {
+        const st = resultStatus(r);
+        const badge = st === 'ok' ? '<span class="badge ok">✓ Bestanden</span>'
+            : st === 'blocked' ? '<span class="badge blocked">⏸ Blockiert</span>'
+            : '<span class="badge fail">✗ Fehlgeschlagen</span>';
+        // Aufbau-Namen haben die Form "ID — Beschreibung"
+        const m = r.name.match(/^([A-ZÄÖÜ]+[-\w]*) — (.+)$/s);
+        const id = m ? m[1] : '—';
+        const desc = m ? m[2] : r.name;
+        const theme = m ? (THEME_LABEL[id.split('-')[0]] ?? '') : '';
+        const detail = r.details ? `<div class="detail">${esc(r.details)}</div>` : '';
+        return `<tr class="row ${st}"><td>${badge}</td><td class="id">${esc(id)}${theme ? `<span class="theme">${theme}</span>` : ''}</td><td>${esc(desc)}${detail}</td></tr>`;
+    };
+
+    const sections = sorted.map(([key, items]) => `
+    <details class="group" open>
+      <summary><span class="gname">${esc(key)}</span><span class="chips">${chip(items)}</span></summary>
+      <table><thead><tr><th>Ergebnis</th><th>Test</th><th>Beschreibung</th></tr></thead>
+      <tbody>${items.map(row).join('\n')}</tbody></table>
+    </details>`).join('\n');
+
+    const timings = timer.getTimings().slice().sort((a, b) => b.durationMs - a.durationMs)
+        .map(t => `<tr><td>${esc(t.name)}</td><td class="num">${(t.durationMs / 1000).toFixed(1)}s</td><td>${t.failed ? '❌' : '✅'}</td></tr>`).join('\n');
+
+    const html = `<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GCS QA-Bericht — ${timestamp}</title>
+<style>
+:root{--bg:#0f1420;--card:#182130;--line:#2a3547;--txt:#e6ecf5;--mut:#8fa0b8;--ok:#34d399;--fail:#f87171;--blocked:#fbbf24;--acc:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#141b2b,#141b2bee);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+h1{font-size:18px;margin:0;font-weight:650}
+.meta{color:var(--mut);font-size:12.5px}
+.pill{padding:4px 12px;border-radius:999px;font-weight:600;font-size:12.5px}
+.pill.ok{background:#34d39922;color:var(--ok);border:1px solid #34d39955}
+.pill.fail{background:#f8717122;color:var(--fail);border:1px solid #f8717155}
+main{max-width:1100px;margin:0 auto;padding:20px 24px 60px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0 26px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:700}.kpi .l{color:var(--mut);font-size:12px}
+.kpi.ok .v{color:var(--ok)}.kpi.fail .v{color:var(--fail)}.kpi.blocked .v{color:var(--blocked)}
+.controls{display:flex;gap:10px;margin-bottom:18px}
+.controls input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px 12px;font:inherit}
+.controls input:focus{outline:1px solid var(--acc)}
+.controls button{background:var(--card);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px 14px;cursor:pointer;font:inherit}
+.controls button:hover{border-color:var(--acc)}
+details.group{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+details.group>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;font-weight:600}
+details.group>summary::-webkit-details-marker{display:none}
+details.group>summary::before{content:'▸';color:var(--mut);transition:transform .15s}
+details.group[open]>summary::before{transform:rotate(90deg)}
+.gname{flex:1}.chips{display:flex;gap:6px}
+.chip{font-size:11.5px;padding:2px 8px;border-radius:999px;font-weight:600}
+.chip.ok{background:#34d3991e;color:var(--ok)}.chip.fail{background:#f871711e;color:var(--fail)}.chip.blocked{background:#fbbf241e;color:var(--blocked)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mut);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:8px 16px;border-top:1px solid var(--line)}
+td{padding:9px 16px;border-top:1px solid var(--line);vertical-align:top}
+tr.row.fail td{background:#f8717108}
+.badge{white-space:nowrap;font-size:12px;font-weight:600;padding:3px 9px;border-radius:6px}
+.badge.ok{background:#34d3991e;color:var(--ok)}.badge.fail{background:#f871711e;color:var(--fail)}.badge.blocked{background:#fbbf241e;color:var(--blocked)}
+td.id{font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:nowrap;color:var(--acc)}
+.theme{display:block;color:var(--mut);font-size:11px;font-family:inherit}
+.detail{color:var(--mut);font-size:12px;margin-top:3px}
+h2{font-size:14px;color:var(--mut);margin:28px 0 10px;text-transform:uppercase;letter-spacing:.5px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
+.hidden{display:none}
+</style></head><body>
+<header>
+  <h1>🛡️ GCS QA-Bericht</h1>
+  <span class="pill ${failed ? 'fail' : 'ok'}">${failed ? `${failed} FEHLER` : 'ALLE TESTS BESTANDEN'}</span>
+  <span class="meta">${esc(timestamp)} · Gesamtlauf ${(totalDurationMs / 1000).toFixed(1)}s</span>
+</header>
+<main>
+  <section class="kpis">
+    <div class="kpi"><div class="v">${total}</div><div class="l">Prüfungen gesamt</div></div>
+    <div class="kpi ok"><div class="v">${passed}</div><div class="l">Bestanden</div></div>
+    <div class="kpi fail"><div class="v">${failed}</div><div class="l">Fehlgeschlagen</div></div>
+    <div class="kpi blocked"><div class="v">${blocked}</div><div class="l">Blockiert</div></div>
+    <div class="kpi"><div class="v">${sorted.length}</div><div class="l">Themenbereiche</div></div>
+  </section>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Tests durchsuchen … (z.B. ELTERN, Spiel, Sitzung)">
+    <button id="onlyFail">Nur offene Punkte</button>
+  </div>
+  ${sections}
+  <h2>Laufzeiten der Suiten</h2>
+  <details class="group"><summary><span class="gname">Timing-Übersicht</span></summary>
+    <table><thead><tr><th>Suite</th><th>Dauer</th><th>Status</th></tr></thead><tbody>${timings}</tbody></table>
+  </details>
+</main>
+<footer>Automatisch erstellt vom GCS Test Runner · QA_Report.html</footer>
+<script>
+const q=document.getElementById('q'),of=document.getElementById('onlyFail');
+let failOnly=false;
+function apply(){
+  const term=q.value.toLowerCase();
+  document.querySelectorAll('tr.row').forEach(r=>{
+    const txt=r.textContent.toLowerCase();
+    const okTxt=!term||txt.includes(term);
+    const okFail=!failOnly||!r.classList.contains('ok');
+    r.classList.toggle('hidden',!(okTxt&&okFail));
+  });
+  document.querySelectorAll('details.group').forEach(g=>{
+    const vis=g.querySelectorAll('tr.row:not(.hidden)').length;
+    g.classList.toggle('hidden',vis===0);
+  });
+}
+q.addEventListener('input',apply);
+of.addEventListener('click',()=>{failOnly=!failOnly;of.style.borderColor=failOnly?'var(--fail)':'';apply();});
+</script>
+</body></html>`;
+
+    // Variante B: Historie mit Zeitstempel + stabile Datei mit dem letzten Stand
+    const stamp = new Date().toLocaleString('sv-SE').replace(' ', '_').replaceAll(':', '-');
+    const historyFile = path.join(path.dirname(HTML_REPORT_FILE), `QA_Report_${stamp}.html`);
+    fs.writeFileSync(historyFile, html, 'utf-8');
+    fs.writeFileSync(HTML_REPORT_FILE, html, 'utf-8');
+    console.log(`📄 HTML-Report generiert: ${historyFile} (+ ${path.basename(HTML_REPORT_FILE)})`);
 }
 
 import { execSync } from 'child_process';
@@ -168,7 +368,7 @@ async function main() {
     console.log('===================================================\n');
 
     const allResults: TestResult[] = [];
-    const timer = new SuiteTimer();
+    const timer = new SuiteTimer(allResults);
     const t0Total = performance.now();
 
     try {
@@ -405,7 +605,9 @@ async function main() {
         });
 
         await timer.measure('SpawnObject Variable Support', async () => {
-            allResults.push(...await runSpawnObjectVariableTests());
+            allResults.push(...(await runSpawnObjectVariableTests()).map(r => ({
+                ...r, type: 'SpawnObject', expectedSuccess: true, actualSuccess: r.passed
+            })));
         });
 
         await timer.measure('TTimer/TIntervalTimer Reactive Properties', async () => {
@@ -422,30 +624,23 @@ async function main() {
         });
 
         // 🌐 Browser E2E Tests (Playwright)
+        // Die Server startet Playwright selbst ueber webServer in playwright.config.ts
+        // (Vite 5173 + Game-Server 8080); ein Vorab-Portcheck ist nicht noetig.
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
 
-        // Check if Game Server (Port 8080) is running
-        const isServerRunning = process.env.SKIP_E2E === '1' ? false : await new Promise((resolve) => {
-            const client = new net.Socket();
-            client.setTimeout(1000);
-            client.on('connect', () => { client.destroy(); resolve(true); });
-            client.on('error', () => { client.destroy(); resolve(false); });
-            client.on('timeout', () => { client.destroy(); resolve(false); });
-            client.connect(8080, 'localhost');
-        });
-
-        if (!isServerRunning) {
-            console.log('ℹ️  Game-Server (Port 8080) läuft nicht — Playwright E2E-Tests werden übersprungen.');
-            console.log('   (Für E2E-Tests: game-server starten und "npx playwright test" ausführen)\n');
+        if (process.env.SKIP_E2E === '1') {
+            console.log('ℹ️  Schnelllauf (--fast) — E2E- und Aufbau-Tests werden übersprungen.\n');
             timer.getTimings().push({ name: 'Playwright E2E', durationMs: 0, failed: false });
         } else {
             const playwrightT0 = performance.now();
             try {
-                const e2eOutput = execSync('npx playwright test --reporter=json', { encoding: 'utf-8', stdio: 'pipe' });
+                const e2eOutput = execSync('npx playwright test --reporter=json', { encoding: 'utf-8', stdio: 'pipe', maxBuffer: 32 * 1024 * 1024 });
                 const e2eData = JSON.parse(e2eOutput);
 
-            const extractResults = (suites: any[]) => {
+            const extractResults = (suites: any[], file: string) => {
                 suites.forEach((suite: any) => {
+                    const currentFile = typeof suite.title === 'string' && suite.title.includes('.spec.') ? suite.title : file;
+                    const shortFile = currentFile ? path.basename(currentFile) : 'unbekannt';
                     if (suite.specs) {
                         suite.specs.forEach((spec: any) => {
                             spec.tests.forEach((test: any) => {
@@ -454,7 +649,7 @@ async function main() {
                                 if (result.status === 'skipped') return;
                                 allResults.push({
                                     name: `E2E: ${spec.title}`,
-                                    type: 'E2E Browser',
+                                    type: `E2E Browser · ${shortFile}`,
                                     passed: result.status === 'passed',
                                     expectedSuccess: true,
                                     actualSuccess: result.status === 'passed',
@@ -464,12 +659,12 @@ async function main() {
                         });
                     }
                     if (suite.suites) {
-                        extractResults(suite.suites);
+                        extractResults(suite.suites, currentFile);
                     }
                 });
             };
 
-            extractResults(e2eData.suites);
+            extractResults(e2eData.suites, '');
             timer.getTimings().push({ name: 'Playwright E2E', durationMs: performance.now() - playwrightT0, failed: false });
             console.log(`  ⏱  Playwright E2E: ${(performance.now() - playwrightT0).toFixed(0)}ms`);
             console.log('✅ Browser-Tests abgeschlossen.');
@@ -479,8 +674,10 @@ async function main() {
                 try {
                     const e2eData = JSON.parse(e2eErr.stdout);
 
-                    const extractFailedResults = (suites: any[]) => {
+                    const extractFailedResults = (suites: any[], file: string) => {
                         suites.forEach((suite: any) => {
+                            const currentFile = typeof suite.title === 'string' && suite.title.includes('.spec.') ? suite.title : file;
+                            const shortFile = currentFile ? path.basename(currentFile) : 'unbekannt';
                             if (suite.specs) {
                                 suite.specs.forEach((spec: any) => {
                                     spec.tests.forEach((testItem: any) => {
@@ -489,7 +686,7 @@ async function main() {
                                         if (result.status === 'skipped') return;
                                         allResults.push({
                                             name: `E2E: ${spec.title}`,
-                                            type: 'E2E Browser',
+                                            type: `E2E Browser · ${shortFile}`,
                                             passed: result.status === 'passed',
                                             expectedSuccess: true,
                                             actualSuccess: result.status === 'passed',
@@ -499,12 +696,12 @@ async function main() {
                                 });
                             }
                             if (suite.suites) {
-                                extractFailedResults(suite.suites);
+                                extractFailedResults(suite.suites, currentFile);
                             }
                         });
                     };
 
-                    extractFailedResults(e2eData.suites);
+                    extractFailedResults(e2eData.suites, '');
                 } catch (parseErr) {
                     console.error('❌ Fehler beim Parsen der Playwright-Ergebnisse.');
                 }
@@ -513,6 +710,67 @@ async function main() {
             console.log(`  ⏱  Playwright E2E: ${(performance.now() - playwrightT0).toFixed(0)}ms (❌ mit Fehlern)`);
         }
     }
+
+        // 🧱 CMS-Aufbauläufe (jede Suite startet ihren eigenen isolierten Minimalserver)
+        if (process.env.SKIP_E2E === '1') {
+            timer.getTimings().push({ name: 'CMS-Aufbauläufe', durationMs: 0, failed: false });
+        } else {
+            console.log('\n🧱 Starte CMS-Aufbauläufe (Minimalbestand → Lebenszyklus)...');
+            const AUFBAU_SUITES = [
+                'test-aufbau-0-basis.cjs', 'test-aufbau-1-admin.cjs', 'test-aufbau-2-raeume.cjs',
+                'test-aufbau-3-personen.cjs', 'test-aufbau-4-mandant.cjs', 'test-aufbau-5-spiele.cjs',
+                'test-aufbau-6-leben.cjs'
+            ];
+            const AUFGABE_LABEL: Record<string, string> = {
+                '0-basis': 'Basis & SuperAdmin', '1-admin': 'Haus & HouseAdmin', '2-raeume': 'Räume',
+                '3-personen': 'Kinder · Eltern · Beobachter', '4-mandant': 'Mandantentrennung',
+                '5-spiele': 'Spiele & Freigaben', '6-leben': 'Konten & Sitzungen'
+            };
+            const collectAufbau = (suite: string, out: string): number => {
+                const short = suite.replace('test-aufbau-', '').replace('.cjs', '');
+                const label = `CMS Aufbau · ${AUFGABE_LABEL[short] ?? short}`;
+                const body = out.split('Aufgabenbericht')[0];
+                let parsed = 0;
+                for (const line of body.split(/\r?\n/)) {
+                    const m = line.match(/^(OK|FEHLER|BLOCKIERT)\s+(\S+)\s+(.+)$/);
+                    if (!m) continue;
+                    parsed++;
+                    allResults.push({
+                        name: `${m[2]} — ${m[3].slice(0, 90)}`,
+                        type: label,
+                        passed: m[1] === 'OK',
+                        expectedSuccess: true,
+                        actualSuccess: m[1] === 'OK',
+                        details: m[1] === 'BLOCKIERT' ? 'blockiert (Abhängigkeit fehlt)' : undefined
+                    });
+                }
+                return parsed;
+            };
+            for (const suite of AUFBAU_SUITES) {
+                const suiteT0 = performance.now();
+                let out = '';
+                let suiteFailed = false;
+                try {
+                    out = execSync(`"${process.execPath}" scripts/${suite}`, { encoding: 'utf-8', stdio: 'pipe', maxBuffer: 16 * 1024 * 1024 });
+                } catch (e: any) {
+                    suiteFailed = true;
+                    out = String(e.stdout || '') + String(e.stderr || '');
+                }
+                process.stdout.write(out.endsWith('\n') ? out : out + '\n');
+                const parsed = collectAufbau(suite, out);
+                if (parsed === 0) {
+                    const short = suite.replace('test-aufbau-', '').replace('.cjs', '');
+                    allResults.push({
+                        name: `Suite ${suite}`, type: `CMS Aufbau · ${AUFGABE_LABEL[short] ?? short}`, passed: false,
+                        expectedSuccess: true, actualSuccess: false,
+                        details: 'Suite ohne Aufgabenbericht abgebrochen'
+                    });
+                }
+                const suiteMs = performance.now() - suiteT0;
+                timer.getTimings().push({ name: `Aufbau ${suite}`, durationMs: suiteMs, failed: suiteFailed || parsed === 0 });
+                console.log(`  ⏱  Aufbau ${suite}: ${suiteMs.toFixed(0)}ms${suiteFailed ? ' (❌ mit Fehlern)' : ''}`);
+            }
+        }
 
         // Report Generation
         const totalDurationMs = performance.now() - t0Total;

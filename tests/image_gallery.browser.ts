@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const baseURL = process.env.GCS_TEST_URL || 'http://localhost:5173';
-const project = JSON.parse(readFileSync(new URL('../game-server/public/projects/PuzzleNeu.json', import.meta.url), 'utf8'));
+const project = JSON.parse(readFileSync(new URL('../public/test-projects/PuzzleNeu.json', import.meta.url), 'utf8'));
 const browser = await chromium.launch({ headless: true });
 try {
     const page = await browser.newPage();

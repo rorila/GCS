@@ -2,6 +2,7 @@ import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 import { fitImageBounds } from '../utils/ImageSplitterModel';
+import { PropertyHelper } from '../runtime/PropertyHelper';
 
 const logger = Logger.get('TPuzzleBoard', 'Runtime_Execution');
 
@@ -43,6 +44,9 @@ export class TPuzzleBoard extends TWindow {
     /** Runtime-Callbacks, gesetzt via initRuntime(). */
     private _handleEvent?: (objectId: string, eventName: string, data?: unknown) => void;
     private _render?: () => void;
+    /** Laufzeit-Kontext zum Aufloesen gebundener Properties (${Obj.prop}). */
+    private _objects: any[] = [];
+    private _contextVars: Record<string, any> = {};
 
     constructor(name: string, x: number, y: number, width = 19, height = 25) {
         super(name, x, y, width, height);
@@ -62,15 +66,34 @@ export class TPuzzleBoard extends TWindow {
         ];
     }
 
-    public initRuntime(callbacks: { handleEvent?: (objectId: string, eventName: string, data?: unknown) => void; render?: () => void }): void {
+    public initRuntime(callbacks: { handleEvent?: (objectId: string, eventName: string, data?: unknown) => void; render?: () => void; objects?: any[]; contextVars?: Record<string, any> }): void {
         this._handleEvent = callbacks.handleEvent;
         this._render = callbacks.render;
+        this._objects = callbacks.objects || [];
+        this._contextVars = callbacks.contextVars || {};
     }
 
     public onRuntimeStop(): void {
         this.placedCount = 0;
         this._handleEvent = undefined;
         this._render = undefined;
+        this._objects = [];
+        this._contextVars = {};
+    }
+
+    /**
+     * Liefert den numerischen Wert eines Properties. Ist das Property als
+     * Ausdruck gebunden ("${Obj.prop}") und vom Reaktiv-System noch nicht
+     * aufgeloest worden, wird er hier ueber den Laufzeit-Kontext ausgewertet.
+     * @returns NaN wenn der Wert nicht aufloesbar ist.
+     */
+    private resolveNumber(raw: any): number {
+        if (typeof raw === 'number') return raw;
+        if (PropertyHelper.isBinding(raw)) {
+            const resolved = PropertyHelper.resolveBinding(raw, this._contextVars || {}, this._objects || []);
+            return Number(resolved);
+        }
+        return Number(raw);
     }
 
     /**
@@ -90,13 +113,22 @@ export class TPuzzleBoard extends TWindow {
             return false;
         }
 
+        const boardW = this.resolveNumber(this.width);
+        const boardH = this.resolveNumber(this.height);
+        const boardX = this.resolveNumber(this.x);
+        const boardY = this.resolveNumber(this.y);
+        if (!Number.isFinite(boardW) || !Number.isFinite(boardH) || boardW <= 0 || boardH <= 0) {
+            logger.warn(`tryPlacePiece: Board-Geometrie nicht aufloesbar (width=${this.width}, height=${this.height}). Drop wird abgelehnt.`);
+            return false;
+        }
+
         const col = index % cols;
         const row = Math.floor(index / cols);
-        const bounds = fitImageBounds(Number(piece.sourceWidth), Number(piece.sourceHeight), Number(this.width) || 1, Number(this.height) || 1);
+        const bounds = fitImageBounds(Number(piece.sourceWidth), Number(piece.sourceHeight), boardW, boardH);
         const cellW = bounds.width / cols;
         const cellH = bounds.height / rows;
-        const targetX = (Number(this.x) || 0) + bounds.x + col * cellW;
-        const targetY = (Number(this.y) || 0) + bounds.y + row * cellH;
+        const targetX = (Number.isFinite(boardX) ? boardX : 0) + bounds.x + col * cellW;
+        const targetY = (Number.isFinite(boardY) ? boardY : 0) + bounds.y + row * cellH;
 
         const dx = ((Number(piece.x) || 0) + (Number(piece.width) || 0) / 2) - (targetX + cellW / 2);
         const dy = ((Number(piece.y) || 0) + (Number(piece.height) || 0) / 2) - (targetY + cellH / 2);

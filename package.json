@@ -19,6 +19,7 @@
     "build": "npm run bundle:runtime && npm run media:manifest && tsc && vite build",
     "preview": "vite preview",
     "test": "node scripts/run-tests.mjs",
+    "test:fast": "node scripts/run-tests.mjs --fast",
     "test:seed": "npx tsx scripts/seed_test_data.ts",
     "test:logic": "npx tsx scripts/test_login_logic.ts",
     "test:e2e": "playwright test",

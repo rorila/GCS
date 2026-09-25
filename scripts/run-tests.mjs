@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+const fast = process.argv.includes('--fast');
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'gcs-tests-'));
 try {
     const database = path.join(temporary, 'db.json');
@@ -18,7 +19,7 @@ try {
         'scripts/test_runner.ts'
     ], {
         cwd: root, stdio: 'inherit',
-        env: { ...process.env, SKIP_E2E: '1', GCS_TEST_DB: database }
+        env: { ...process.env, ...(fast ? { SKIP_E2E: '1' } : {}), GCS_TEST_DB: database }
     });
     if (result.error) throw result.error;
     process.exitCode = result.status ?? 1;

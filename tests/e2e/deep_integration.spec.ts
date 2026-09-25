@@ -22,7 +22,7 @@ test.describe.skip('Deep Integration: Editor & Engine (DEAKTIVIERT: benötigt Ga
 
         // 3. Load project state from the freshly reset file into browser memory
         await page.evaluate(async () => {
-            const res = await fetch('projects/master_test/PingPong.json');
+            const res = await fetch('test-projects/PingPong.json');
             const project = await res.json();
             // Use loadProject instead of setProject to ensure objects are hydrated (class instances)
             (window as any).editor.loadProject(project);

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test('Memory Game Cards Visible', async ({ page }) => {
-  await page.goto('http://localhost:8080/iframe-runner.html?project=projects/MemoryGame.json');
+  await page.goto('/iframe-runner.html?project=test-projects/MemoryGame.json');
   await page.waitForTimeout(4000);
   const objects = await page.locator('.game-object').all();
   console.log('Total game-objects:', objects.length);

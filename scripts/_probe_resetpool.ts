@@ -14,7 +14,7 @@ const { SpritePool } = await import('../src/runtime/SpritePool');
 const { PropertyHelper } = await import('../src/runtime/PropertyHelper');
 const { ExpressionParser } = await import('../src/runtime/ExpressionParser');
 
-const project = JSON.parse(readFileSync(new URL('../game-server/public/projects/PuzzleNeu.json', import.meta.url), 'utf8'));
+const project = JSON.parse(readFileSync(new URL('../public/test-projects/PuzzleNeu.json', import.meta.url), 'utf8'));
 const main = project.stages.find((s: any) => s.id === 'stage_main');
 const objects = new RuntimeStageManager(project).getMergedStageData('stage_main').objects;
 const splitter = objects.find((o: any) => o.name === 'Bildaufteiler');

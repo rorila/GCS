@@ -22,7 +22,7 @@ export interface TestResult {
 }
 
 function loadProject(): any {
-    const projectPath = path.join(__dirname, '../game-server/public/projects/master_test/PingPong.json');
+    const projectPath = path.join(__dirname, '../public/test-projects/PingPong.json');
     if (!fs.existsSync(projectPath)) {
         throw new Error(`project.json nicht gefunden: ${projectPath}`);
     }

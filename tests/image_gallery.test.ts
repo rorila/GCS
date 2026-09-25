@@ -8,7 +8,7 @@ import { TImageSplitter } from '../src/components/TImageSplitter';
 import { TObjectList } from '../src/components/TObjectList';
 import { getGalleryItems, hasGalleryFolder, listGalleryFolders } from '../src/utils/ImageGalleryModel';
 
-const project = JSON.parse(readFileSync(new URL('../game-server/public/projects/PuzzleNeu.json', import.meta.url), 'utf8'));
+const project = JSON.parse(readFileSync(new URL('../public/test-projects/PuzzleNeu.json', import.meta.url), 'utf8'));
 const manifest = JSON.parse(readFileSync(new URL('../public/media-manifest.json', import.meta.url), 'utf8'));
 const FOLDER = 'memory Tierbilder für kleine Kinder';
 

@@ -14,6 +14,8 @@ game-server/data/db.json
 game-server/runtimes/
 uploaded_games/
 docs/QA_Report.md
+docs/QA_Report.html
+docs/QA_Report_*.html
 
 # Build output
 dist/
