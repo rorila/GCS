@@ -48,7 +48,10 @@ mit mehreren unabhängigen Aktionen wird bei Implementierung in stabile Unter-ID
 | RAUM-02 | Raum umbenennen | RAUM-01 | Änderung gespeichert; 2.2; kein Erfordernis für Spielfreigabe |
 | RAUM-03 | Zweiten Raum Lernraum anlegen | ADMIN-03 | Unabhängig von RAUM-01/02 ausführbar; 2.2 |
 | ERZ-01 | Reinen RaumAdmin einrichten und anmelden | RAUM-01 | Zugang über realen Einrichtungsweg; nur Spielraum; 3.1 |
-| KIND-01 | Kind im Spielraum anlegen und anmelden | RAUM-01 | Profil und erlaubte Raumsicht; 2.3, 6.1 |
+| BEWOHNER-01 | HouseAdmin legt Bewohnerprofil mit Emoji-Code auf Hausebene an | ADMIN-03 | Aktive Hausmitgliedschaft; zunächst keine Raumzuordnung |
+| RAUMMITGLIED-01 | RaumAdmin ordnet Hausbewohner dem Spielraum zu | BEWOHNER-01, RAUM-01 | Aktive Raumzuordnung nur innerhalb desselben Hauses |
+| KIND-01 | Zugeordnetes Kind anzeigen und anmelden | RAUMMITGLIED-01 | Profil und erlaubte Raumsicht; 2.3, 6.1 |
+| BEWOHNER-02 | HouseAdmin deaktiviert und reaktiviert Bewohner | BEWOHNER-01, RAUMMITGLIED-01 | Raumrechte werden beim Deaktivieren entzogen und beim Reaktivieren nicht stillschweigend erneuert |
 | ADMIN-04 | Zweiten HouseAdmin für Bestätigungen einrichten | HAUS-01, BASIS-01 | Eigenständiger Zugang; keine Direktinjektion in Daten |
 | ELTERN-01 | Elternteil einladen, einlösen, erforderliche Bestätigungen durchführen | KIND-01, ADMIN-04 | Bestätigte Beziehung über realen Vertrag; 2.5, 4.6 |
 | ELTERN-02 | Eltern anmelden, eigene/fremde Sicht prüfen | ELTERN-01; fremdes Kind für Negativfall | Private Daten nur gemäß Beziehung; 4.2–4.5 |
@@ -85,7 +88,7 @@ nur Aufgabenerfolg. Stand der automatisierten Abdeckung:
 | `test-aufbau-0-basis.cjs` | BASIS-01, HAUS-01 |
 | `test-aufbau-1-admin.cjs` | ADMIN-01 … ADMIN-03 |
 | `test-aufbau-2-raeume.cjs` | RAUM-01, RAUM-02, RAUM-03, RAUM-04 (Umbenennen/Aktivstatus), GRENZE-02 (unbekanntes Haus) |
-| `test-aufbau-3-personen.cjs` | KIND-01, ELTERN-01 (Einladung + Zweitbestätigung), OBS-01 — ELTERN-02a deckte Befund **T-L9** auf (`guardian-approve` meldete falschen Erfolg); Fix umgesetzt, der Test verifiziert ihn beim nächsten Lauf (erwartet 409 + unveränderten Bestand) |
+| `test-aufbau-3-personen.cjs` | BEWOHNER-01, RAUMMITGLIED-01, KIND-01, BEWOHNER-02 (Deaktivierungskaskade + sichere Reaktivierung), ELTERN-01 (Einladung + Zweitbestätigung), OBS-01; `guardian-approve` wird bei Selbstbestätigung mit 409 und unverändertem Bestand geprüft |
 | `test-aufbau-4-mandant.cjs` | HAUS-02, MOND-01 (ohne Kind), GRENZE-01 (exakte Mengen + Kontrollaktion), MULTI-01 |
 | `test-aufbau-5-spiele.cjs` | SPIEL-01, SPIEL-02, SPIEL-03 (UI-Launch über `/api/cms/launch` mit Sitzungsnachweis; Freigabeentzug → exakt 403) |
 | `test-aufbau-6-leben.cjs` | LEBEN-01 … LEBEN-03 (Reset invalidiert eine frisch angelegte Sitzung), SESSION-01 |
@@ -244,6 +247,7 @@ UMGEBUNG-01, Session-Unterfälle (abgelaufen/Personenwechsel).
 ### 1.5 Spielekatalog (`stage_library`, Sidebar ebenfalls vorhanden)
 - [ ] Spielliste zeigt alle 5 Spiele mit Status (published/draft/blocked)
 - [ ] Spiel „Unfertiges Spiel" ist `draft` → Kinder sehen es nicht
+- [ ] Entwurf per „Begutachten" in der Vorschau öffnen: eigenes Spiel, Verwaltungssitzung genügt, keine Spielsitzung/Zeitbuchung; Link ohne Sitzung → 403
 
 ### 1.5 Abgrenzung
 - [ ] SuperAdmin sieht **keine** Kinderdaten (keine Elternsicht, kein room-pulse)

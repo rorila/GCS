@@ -44,6 +44,12 @@ export class EditorDataManager {
     private _loadedAt: number = 0;
     private _autoSaveCount: number = 0;
     private _diskSaveTimer: any = null;
+    /** Revision der Projektdatei zum Lade-/letzten Speicherzeitpunkt. */
+    private _diskRevision: string | null = null;
+    /** Solange die Revision nicht gelesen ist, darf kein Hintergrund-Save schreiben. */
+    private _diskRevisionReady: boolean = false;
+    /** Nach einem Konflikt bleiben weitere Auto-Saves bis zum Neuladen gesperrt. */
+    private _diskSaveConflict: boolean = false;
 
     private loader: EditorProjectLoader;
     private saver: EditorProjectSaver;
@@ -62,6 +68,12 @@ export class EditorDataManager {
     public set autoSaveCount(value: number) { this._autoSaveCount = value; }
     public get diskSaveTimer(): any { return this._diskSaveTimer; }
     public set diskSaveTimer(value: any) { this._diskSaveTimer = value; }
+    public get diskRevision(): string | null { return this._diskRevision; }
+    public set diskRevision(value: string | null) { this._diskRevision = value; }
+    public get diskRevisionReady(): boolean { return this._diskRevisionReady; }
+    public set diskRevisionReady(value: boolean) { this._diskRevisionReady = value; }
+    public get diskSaveConflict(): boolean { return this._diskSaveConflict; }
+    public set diskSaveConflict(value: boolean) { this._diskSaveConflict = value; }
 
     public getHost(): EditorDataHost {
         return this.host;

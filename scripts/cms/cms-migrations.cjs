@@ -1,7 +1,7 @@
 // CMS-Schema-Migrationen. Jede Migration ist idempotent und wird einmal pro
 // Versionsgrenze ausgeführt; Reihenfolge strikt aufsteigend. Reihenfolge:
 // up() arbeitet auf einer Kopie, validate() entscheidet über das Ergebnis.
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 5;
 
 // v1 -> v2: Zielmodellkern (E02/E03/E06/E07)
 // - people.kind: 'child'|'adult' (fachliche Grundlage für Eltern-/Kinderlogik)
@@ -47,7 +47,65 @@ function v2_to_v3(db) {
   return db;
 }
 
-const MIGRATIONS = [{ from: 1, to: 2, up: v1_to_v2 }, { from: 2, to: 3, up: v2_to_v3 }];
+// v3 -> v4: Mitgliedschaft am Haus = Bewohner; Mitgliedschaft am Raum =
+// Raumzuordnung. Bestehende Daten werden aus Raumzuordnungen, Rollen und
+// Emoji-Codes abgeleitet, damit kein vorhandener Zugang verloren geht.
+function v3_to_v4(db) {
+  db.version = 4;
+  const houseOf = areaId => {
+    const seen = new Set();
+    let area = db.areas.find(a => a.id === areaId);
+    while (area && area.type !== 'house' && !seen.has(area.id)) {
+      seen.add(area.id);
+      area = db.areas.find(a => a.id === area.parentId);
+    }
+    return area?.type === 'house' ? area : null;
+  };
+  const wanted = new Map();
+  const remember = (personId, areaId, active) => {
+    const house = houseOf(areaId);
+    if (!house) return;
+    const key = personId + ':' + house.id;
+    wanted.set(key, {
+      personId, areaId: house.id,
+      active: !!active || !!wanted.get(key)?.active,
+    });
+  };
+  for (const m of db.memberships || []) remember(m.personId, m.areaId, m.active);
+  for (const r of db.roles || []) remember(r.personId, r.areaId, r.active);
+  for (const c of db.codes || []) remember(c.personId, c.areaId, true);
+  for (const row of wanted.values()) {
+    const current = db.memberships.find(m => m.personId === row.personId && m.areaId === row.areaId);
+    if (current) current.active = current.active || row.active;
+    else db.memberships.push(row);
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 3, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+// v4 -> v5: getrennte Multiplayer-Einladungen/Benachrichtigungen sowie die
+// Invariante, dass jeder aktive Raum mindestens einen aktiven RaumAdmin hat.
+function v4_to_v5(db) {
+  db.version = 5;
+  for (const key of ['gameInvitations', 'notifications', 'temporaryRoomAccess']) {
+    if (!Array.isArray(db[key])) db[key] = [];
+  }
+  for (const room of db.areas.filter(a => a.type === 'room' && a.active)) {
+    const hasAdmin = db.roles.some(r => r.areaId === room.id && r.role === 'areaAdmin' && r.active);
+    if (hasAdmin) continue;
+    const fallback = db.roles.find(r => r.areaId === room.parentId && r.role === 'areaAdmin' && r.active);
+    if (fallback) db.roles.push({ personId: fallback.personId, areaId: room.id, role: 'areaAdmin', active: true, primary: true });
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 4, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+const MIGRATIONS = [
+  { from: 1, to: 2, up: v1_to_v2 },
+  { from: 2, to: 3, up: v2_to_v3 },
+  { from: 3, to: 4, up: v3_to_v4 },
+  { from: 4, to: 5, up: v4_to_v5 },
+];
 
 // Führt alle anstehenden Migrationen auf einer Kopie aus (das Original bleibt
 // unverändert, damit Vorher-/Nachher-Vergleich und Backup korrekt greifen).

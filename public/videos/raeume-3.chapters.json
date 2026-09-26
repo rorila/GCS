@@ -9,37 +9,37 @@
     {
       "id": "RAUM-01a",
       "titel": "Raum „Spielraum\" angelegt + sichtbar",
-      "offset": 0.3
+      "offset": 10.2
     },
     {
       "id": "RAUM-01b",
       "titel": "Doppelter Raumname abgelehnt",
-      "offset": 1.3
+      "offset": 18
     },
     {
       "id": "RAUM-03",
       "titel": "Raum „Lernraum\" angelegt + sichtbar",
-      "offset": 1.6
+      "offset": 25.8
     },
     {
       "id": "RAUM-02",
       "titel": "Spielraum → „Familienraum\" umbenannt",
-      "offset": 1.8
+      "offset": 33.5
     },
     {
       "id": "RAUM-04a",
       "titel": "Raum deaktiviert",
-      "offset": 2.3
+      "offset": 44
     },
     {
       "id": "RAUM-04b",
       "titel": "Raum reaktiviert",
-      "offset": 2.8
+      "offset": 50.9
     },
     {
       "id": "GRENZE-02",
       "titel": "Zugriff auf unbekanntes Haus verweigert",
-      "offset": 3.2
+      "offset": 57.9
     }
   ]
 }

@@ -1,0 +1,1989 @@
+{
+  "meta": {
+    "id": "zahlen-duell",
+    "name": "Zahlen-Duell",
+    "version": "1.0.0",
+    "description": "Kooperatives Kopfrechnen fuer 2-4 Kinder im selben Haus (P4.5). Gemeinsame Team-Punktzahl; Aufgaben sendet der Gastgeber ueber den Partie-Aktionslog; Synchronisation per TTimer-Polling auf /api/cms/party. Der Launch-Schluessel kommt als CMS_LAUNCH-Variable vom Server.",
+    "_sourcePath": "projects/Zahlen-Duell.json"
+  },
+  "activeStageId": "stage_main",
+  "schemaVersion": "4.0.0",
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "stages": [
+    {
+      "id": "stage_main",
+      "name": "Zahlen-Duell",
+      "type": "main",
+      "grid": {
+        "cols": 30,
+        "rows": 20,
+        "cellSize": 26,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#0e1e2b"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "zd_lbl_titel",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 1,
+          "width": 24,
+          "height": 2,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 24,
+            "fontWeight": "700",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Zahlen-Duell — gemeinsam rechnen"
+        },
+        {
+          "className": "TLabel",
+          "id": "zd_lbl_status",
+          "name": "Status",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 4,
+          "width": 24,
+          "height": 2,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#9fd3c7",
+            "fontSize": 16,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Tippe auf Mitspielen, um einer Partie beizutreten."
+        },
+        {
+          "className": "TLabel",
+          "id": "zd_lbl_spieler",
+          "name": "SpielerListe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 6,
+          "width": 24,
+          "height": 2,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#7fb2f0",
+            "fontSize": 14,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "zd_lbl_aufgabe",
+          "name": "Aufgabe",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 8,
+          "y": 8,
+          "width": 14,
+          "height": 3,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 34,
+            "fontWeight": "700",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "zd_lbl_punkte",
+          "name": "TeamPunkte",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 8,
+          "y": 12,
+          "width": 14,
+          "height": 2,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffd166",
+            "fontSize": 18,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Team-Punkte: 0 von 10"
+        },
+        {
+          "className": "TLabel",
+          "id": "zd_lbl_feedback",
+          "name": "Feedback",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 8,
+          "y": 14,
+          "width": 14,
+          "height": 2,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ef8354",
+            "fontSize": 16,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TButton",
+          "id": "zd_btn_mitspielen",
+          "name": "BtnMitspielen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Mitspielen"
+          },
+          "visible": true,
+          "x": 9,
+          "y": 16,
+          "width": 12,
+          "height": 3,
+          "zIndex": 2,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#08151b",
+            "fontSize": 20,
+            "fontWeight": "700",
+            "backgroundColor": "#4fc3f7",
+            "borderColor": "#0288d1",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "text": "Mitspielen",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "zd_btn_starten",
+          "name": "BtnStarten",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "PartieStarten"
+          },
+          "visible": false,
+          "x": 9,
+          "y": 8,
+          "width": 12,
+          "height": 3,
+          "zIndex": 2,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#08151b",
+            "fontSize": 20,
+            "fontWeight": "700",
+            "backgroundColor": "#7ee081",
+            "borderColor": "#43a047",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "text": "Partie starten",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "zd_btn_a",
+          "name": "BtnAntwortA",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "AntwortGewaehlt"
+          },
+          "visible": false,
+          "x": 3,
+          "y": 16,
+          "width": 7,
+          "height": 3,
+          "zIndex": 2,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "fontWeight": "700",
+            "backgroundColor": "#2f6fed",
+            "borderColor": "#1d4fb8",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "text": "?",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "zd_btn_b",
+          "name": "BtnAntwortB",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "AntwortGewaehlt"
+          },
+          "visible": false,
+          "x": 11,
+          "y": 12,
+          "width": 7,
+          "height": 3,
+          "zIndex": 2,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "fontWeight": "700",
+            "backgroundColor": "#2f6fed",
+            "borderColor": "#1d4fb8",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "text": "?",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "zd_btn_c",
+          "name": "BtnAntwortC",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "AntwortGewaehlt"
+          },
+          "visible": false,
+          "x": 19,
+          "y": 16,
+          "width": 7,
+          "height": 3,
+          "zIndex": 2,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 26,
+            "fontWeight": "700",
+            "backgroundColor": "#2f6fed",
+            "borderColor": "#1d4fb8",
+            "borderWidth": 2,
+            "borderRadius": 12
+          },
+          "text": "?",
+          "icon": ""
+        },
+        {
+          "className": "TTimer",
+          "id": "zd_timer_poll",
+          "name": "TimerPoll",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "PartieZustandLesen"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 18,
+          "width": 3,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 800,
+          "enabled": false,
+          "maxInterval": 1,
+          "currentInterval": 0
+        }
+      ],
+      "variables": [
+        {
+          "className": "TStringVariable",
+          "id": "zd_var_launch",
+          "name": "CMS_LAUNCH",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "Wird vom Server beim /play-Render mit dem Launch-Schluessel befuellt.",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "zd_var_party",
+          "name": "PartyId",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_seq",
+          "name": "LastSeq",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "zd_var_state",
+          "name": "PartyState",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "zd_var_liste",
+          "name": "PartyListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "zd_var_items",
+          "name": "PartyItems",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
+          "value": null
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_itemcount",
+          "name": "PartyAnzahl",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "zd_var_offenid",
+          "name": "OffenePartyId",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "zd_var_aktionen",
+          "name": "AktionsListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
+          "value": null
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_aktidx",
+          "name": "AktIdx",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_aktanz",
+          "name": "AktAnzahl",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "zd_var_aktzug",
+          "name": "AktZug",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_a",
+          "name": "ZahlA",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_b",
+          "name": "ZahlB",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_erg",
+          "name": "Ergebnis",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_punkte",
+          "name": "Punkte",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_pos",
+          "name": "Pos",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 1,
+          "value": 1,
+          "objectModel": ""
+        },
+        {
+          "className": "TRandomVariable",
+          "id": "zd_var_zufalla",
+          "name": "ZufallA",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 2,
+          "max": 9,
+          "isInteger": true,
+          "value": 0
+        },
+        {
+          "className": "TRandomVariable",
+          "id": "zd_var_zufallb",
+          "name": "ZufallB",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 2,
+          "max": 9,
+          "isInteger": true,
+          "value": 0
+        },
+        {
+          "className": "TRandomVariable",
+          "id": "zd_var_zufallpos",
+          "name": "ZufallPos",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 1,
+          "max": 3,
+          "isInteger": true,
+          "value": 1
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_d1",
+          "name": "Distraktor1",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_d2",
+          "name": "Distraktor2",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "zd_var_ok",
+          "name": "AktOk",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "zd_var_spielernamen",
+          "name": "SpielerNamen",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "zd_var_host",
+          "name": "DuBistHost",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        }
+      ],
+      "actions": [
+        {
+          "id": "zd_act_liste",
+          "type": "http",
+          "name": "Partien auflisten",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"list\"}",
+          "resultVariable": "PartyListe",
+          "queryOperator": "==",
+          "resultVariable_ref": "zd_var_liste"
+        },
+        {
+          "id": "zd_act_items",
+          "type": "map_get",
+          "name": "Partie-Eintraege lesen",
+          "target": "PartyListe",
+          "key": "items",
+          "resultVariable": "PartyItems",
+          "target_ref": "zd_var_liste",
+          "resultVariable_ref": "zd_var_items"
+        },
+        {
+          "id": "zd_act_itemcount",
+          "type": "list_length",
+          "name": "Partien zaehlen",
+          "target": "PartyItems",
+          "resultVariable": "PartyAnzahl",
+          "target_ref": "zd_var_items",
+          "resultVariable_ref": "zd_var_itemcount"
+        },
+        {
+          "id": "zd_act_erste",
+          "type": "list_get",
+          "name": "Erste offene Partie",
+          "target": "PartyItems",
+          "index": "0",
+          "field": "id",
+          "resultVariable": "OffenePartyId",
+          "target_ref": "zd_var_items",
+          "resultVariable_ref": "zd_var_offenid"
+        },
+        {
+          "id": "zd_act_join",
+          "type": "http",
+          "name": "Partie beitreten",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"join\",\"partyId\":\"${OffenePartyId}\"}",
+          "resultVariable": "PartyState",
+          "queryOperator": "==",
+          "resultVariable_ref": "zd_var_state"
+        },
+        {
+          "id": "zd_act_joinid",
+          "type": "property",
+          "name": "Beitritt merken",
+          "changes": {
+            "PartyId": "${OffenePartyId}"
+          }
+        },
+        {
+          "id": "zd_act_create",
+          "type": "http",
+          "name": "Partie erstellen",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"create\",\"gameId\":\"game-mp\"}",
+          "resultVariable": "PartyState",
+          "queryOperator": "==",
+          "resultVariable_ref": "zd_var_state"
+        },
+        {
+          "id": "zd_act_createid",
+          "type": "map_get",
+          "name": "Neue Partie merken",
+          "target": "PartyState",
+          "key": "partyId",
+          "resultVariable": "PartyId",
+          "target_ref": "zd_var_state",
+          "resultVariable_ref": "zd_var_party"
+        },
+        {
+          "id": "zd_act_pollstart",
+          "type": "property",
+          "name": "Polling starten",
+          "changes": {
+            "TimerPoll.enabled": true,
+            "BtnMitspielen.visible": false,
+            "Status.text": "In der Partie. Warte auf den Start …"
+          }
+        },
+        {
+          "id": "zd_act_begin",
+          "type": "http",
+          "name": "Partie beginnen",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"begin\",\"partyId\":\"${PartyId}\"}",
+          "resultVariable": "PartyState",
+          "queryOperator": "==",
+          "resultVariable_ref": "zd_var_state"
+        },
+        {
+          "id": "zd_act_state",
+          "type": "http",
+          "name": "Partiezustand lesen",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"state\",\"partyId\":\"${PartyId}\",\"since\":${LastSeq}}",
+          "resultVariable": "PartyState",
+          "queryOperator": "==",
+          "resultVariable_ref": "zd_var_state"
+        },
+        {
+          "id": "zd_act_seq",
+          "type": "map_get",
+          "name": "Neue Seq merken",
+          "target": "PartyState",
+          "key": "lastSeq",
+          "resultVariable": "LastSeq",
+          "target_ref": "zd_var_state",
+          "resultVariable_ref": "zd_var_seq"
+        },
+        {
+          "id": "zd_act_acts",
+          "type": "map_get",
+          "name": "Neue Aktionen lesen",
+          "target": "PartyState",
+          "key": "actions",
+          "resultVariable": "AktionsListe",
+          "target_ref": "zd_var_state",
+          "resultVariable_ref": "zd_var_aktionen"
+        },
+        {
+          "id": "zd_act_actsz",
+          "type": "list_length",
+          "name": "Aktionen zaehlen",
+          "target": "AktionsListe",
+          "resultVariable": "AktAnzahl",
+          "target_ref": "zd_var_aktionen",
+          "resultVariable_ref": "zd_var_aktanz"
+        },
+        {
+          "id": "zd_act_idx0",
+          "type": "calculate",
+          "name": "Index auf null",
+          "formula": "0",
+          "resultVariable": "AktIdx",
+          "resultVariable_ref": "zd_var_aktidx"
+        },
+        {
+          "id": "zd_act_member",
+          "type": "map_get",
+          "name": "Mitspieler anzeigen",
+          "target": "PartyState",
+          "key": "memberNames",
+          "resultVariable": "SpielerNamen",
+          "target_ref": "zd_var_state",
+          "resultVariable_ref": "zd_var_spielernamen"
+        },
+        {
+          "id": "zd_act_memberui",
+          "type": "property",
+          "name": "Mitspieler zeigen",
+          "changes": {
+            "SpielerListe.text": "Mit dabei: ${SpielerNamen}"
+          }
+        },
+        {
+          "id": "zd_act_hostflag",
+          "type": "map_get",
+          "name": "Gastgeber-Flag lesen",
+          "target": "PartyState",
+          "key": "youAreHost",
+          "resultVariable": "DuBistHost",
+          "target_ref": "zd_var_state",
+          "resultVariable_ref": "zd_var_host"
+        },
+        {
+          "id": "zd_act_hostui",
+          "type": "property",
+          "name": "Gastgeber-Oberflaeche",
+          "changes": {
+            "BtnStarten.visible": true,
+            "Status.text": "Du bist Gastgeber — starte, wenn alle da sind."
+          }
+        },
+        {
+          "id": "zd_act_zug",
+          "type": "list_get",
+          "name": "Aktionsart lesen",
+          "target": "AktionsListe",
+          "index": "${AktIdx}",
+          "field": "payload.zug",
+          "resultVariable": "AktZug",
+          "target_ref": "zd_var_aktionen",
+          "resultVariable_ref": "zd_var_aktzug"
+        },
+        {
+          "id": "zd_act_aufa",
+          "type": "list_get",
+          "name": "Aufgabe Zahl A",
+          "target": "AktionsListe",
+          "index": "${AktIdx}",
+          "field": "payload.a",
+          "resultVariable": "ZahlA",
+          "target_ref": "zd_var_aktionen",
+          "resultVariable_ref": "zd_var_a"
+        },
+        {
+          "id": "zd_act_aufb",
+          "type": "list_get",
+          "name": "Aufgabe Zahl B",
+          "target": "AktionsListe",
+          "index": "${AktIdx}",
+          "field": "payload.b",
+          "resultVariable": "ZahlB",
+          "target_ref": "zd_var_aktionen",
+          "resultVariable_ref": "zd_var_b"
+        },
+        {
+          "id": "zd_act_aufok",
+          "type": "list_get",
+          "name": "Antwort-Erfolg lesen",
+          "target": "AktionsListe",
+          "index": "${AktIdx}",
+          "field": "payload.ok",
+          "resultVariable": "AktOk",
+          "target_ref": "zd_var_aktionen",
+          "resultVariable_ref": "zd_var_ok"
+        },
+        {
+          "id": "zd_act_aufzeigen",
+          "type": "property",
+          "name": "Aufgabe anzeigen",
+          "changes": {
+            "Aufgabe.text": "${ZahlA} + ${ZahlB} = ?",
+            "Feedback.text": "",
+            "BtnAntwortA.visible": true,
+            "BtnAntwortB.visible": true,
+            "BtnAntwortC.visible": true,
+            "BtnStarten.visible": false
+          }
+        },
+        {
+          "id": "zd_act_wurfela",
+          "type": "call_method",
+          "name": "Zahl A wuerfeln",
+          "target": "ZufallA",
+          "method": "generate",
+          "params": [],
+          "resultVariable": "ZahlA",
+          "target_ref": "zd_var_zufalla",
+          "resultVariable_ref": "zd_var_a"
+        },
+        {
+          "id": "zd_act_wurfelb",
+          "type": "call_method",
+          "name": "Zahl B wuerfeln",
+          "target": "ZufallB",
+          "method": "generate",
+          "params": [],
+          "resultVariable": "ZahlB",
+          "target_ref": "zd_var_zufallb",
+          "resultVariable_ref": "zd_var_b"
+        },
+        {
+          "id": "zd_act_wurfelpos",
+          "type": "call_method",
+          "name": "Position wuerfeln",
+          "target": "ZufallPos",
+          "method": "generate",
+          "params": [],
+          "resultVariable": "Pos",
+          "target_ref": "zd_var_zufallpos",
+          "resultVariable_ref": "zd_var_pos"
+        },
+        {
+          "id": "zd_act_summe",
+          "type": "calculate",
+          "name": "Ergebnis berechnen",
+          "formula": "ZahlA + ZahlB",
+          "resultVariable": "Ergebnis",
+          "resultVariable_ref": "zd_var_erg"
+        },
+        {
+          "id": "zd_act_d1",
+          "type": "calculate",
+          "name": "Distraktor 1",
+          "formula": "Ergebnis + 1",
+          "resultVariable": "Distraktor1",
+          "resultVariable_ref": "zd_var_d1"
+        },
+        {
+          "id": "zd_act_d2",
+          "type": "calculate",
+          "name": "Distraktor 2",
+          "formula": "Ergebnis + 2",
+          "resultVariable": "Distraktor2",
+          "resultVariable_ref": "zd_var_d2"
+        },
+        {
+          "id": "zd_act_vara",
+          "type": "property",
+          "name": "Antworten Variante A",
+          "changes": {
+            "BtnAntwortA.text": "${Ergebnis}",
+            "BtnAntwortA.matchValue": "${Ergebnis}",
+            "BtnAntwortB.text": "${Distraktor1}",
+            "BtnAntwortB.matchValue": "${Distraktor1}",
+            "BtnAntwortC.text": "${Distraktor2}",
+            "BtnAntwortC.matchValue": "${Distraktor2}"
+          }
+        },
+        {
+          "id": "zd_act_varb",
+          "type": "property",
+          "name": "Antworten Variante B",
+          "changes": {
+            "BtnAntwortA.text": "${Distraktor1}",
+            "BtnAntwortA.matchValue": "${Distraktor1}",
+            "BtnAntwortB.text": "${Ergebnis}",
+            "BtnAntwortB.matchValue": "${Ergebnis}",
+            "BtnAntwortC.text": "${Distraktor2}",
+            "BtnAntwortC.matchValue": "${Distraktor2}"
+          }
+        },
+        {
+          "id": "zd_act_varc",
+          "type": "property",
+          "name": "Antworten Variante C",
+          "changes": {
+            "BtnAntwortA.text": "${Distraktor1}",
+            "BtnAntwortA.matchValue": "${Distraktor1}",
+            "BtnAntwortB.text": "${Distraktor2}",
+            "BtnAntwortB.matchValue": "${Distraktor2}",
+            "BtnAntwortC.text": "${Ergebnis}",
+            "BtnAntwortC.matchValue": "${Ergebnis}"
+          }
+        },
+        {
+          "id": "zd_act_aufsend",
+          "type": "http",
+          "name": "Aufgabe senden",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"action\",\"partyId\":\"${PartyId}\",\"payload\":{\"zug\":\"aufgabe\",\"a\":${ZahlA},\"b\":${ZahlB}}}",
+          "queryOperator": "=="
+        },
+        {
+          "id": "zd_act_oksend",
+          "type": "http",
+          "name": "Richtige Antwort senden",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"action\",\"partyId\":\"${PartyId}\",\"payload\":{\"zug\":\"antwort\",\"ok\":true}}",
+          "queryOperator": "=="
+        },
+        {
+          "id": "zd_act_fehlsend",
+          "type": "http",
+          "name": "Falsche Antwort senden",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"action\",\"partyId\":\"${PartyId}\",\"payload\":{\"zug\":\"antwort\",\"ok\":false}}",
+          "queryOperator": "=="
+        },
+        {
+          "id": "zd_act_punkt",
+          "type": "calculate",
+          "name": "Punkt zaehlen",
+          "formula": "Punkte + 1",
+          "resultVariable": "Punkte",
+          "resultVariable_ref": "zd_var_punkte"
+        },
+        {
+          "id": "zd_act_idxhoch",
+          "type": "calculate",
+          "name": "Index hochzaehlen",
+          "formula": "AktIdx + 1",
+          "resultVariable": "AktIdx",
+          "resultVariable_ref": "zd_var_aktidx"
+        },
+        {
+          "id": "zd_act_punktui",
+          "type": "property",
+          "name": "Punkte anzeigen",
+          "changes": {
+            "TeamPunkte.text": "Team-Punkte: ${Punkte} von 10"
+          }
+        },
+        {
+          "id": "zd_act_gut",
+          "type": "property",
+          "name": "Feedback richtig",
+          "changes": {
+            "Feedback.text": "Richtig!"
+          }
+        },
+        {
+          "id": "zd_act_fast",
+          "type": "property",
+          "name": "Feedback falsch",
+          "changes": {
+            "Feedback.text": "Fast — nochmal!"
+          }
+        },
+        {
+          "id": "zd_act_fertigui",
+          "type": "property",
+          "name": "Ziel erreicht",
+          "changes": {
+            "Aufgabe.text": "Geschafft!",
+            "Status.text": "10 richtige Antworten als Team — stark!",
+            "BtnAntwortA.visible": false,
+            "BtnAntwortB.visible": false,
+            "BtnAntwortC.visible": false,
+            "TimerPoll.enabled": false
+          }
+        },
+        {
+          "id": "zd_act_ende",
+          "type": "http",
+          "name": "Partie beenden",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"end\",\"partyId\":\"${PartyId}\"}",
+          "queryOperator": "=="
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Mitspielen",
+          "description": "Offene Partie des Raums suchen; beitreten oder selbst erstellen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Partien auflisten"
+            },
+            {
+              "type": "action",
+              "name": "Partie-Eintraege lesen"
+            },
+            {
+              "type": "action",
+              "name": "Partien zaehlen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "PartyAnzahl",
+                "operator": ">",
+                "value": "0"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Erste offene Partie"
+                },
+                {
+                  "type": "action",
+                  "name": "Partie beitreten"
+                },
+                {
+                  "type": "action",
+                  "name": "Beitritt merken"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "Partie erstellen"
+                },
+                {
+                  "type": "action",
+                  "name": "Neue Partie merken"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Polling starten"
+            }
+          ]
+        },
+        {
+          "name": "PartieStarten",
+          "description": "Nur Gastgeber: Partie beginnen und erste Aufgabe senden.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Partie beginnen"
+            },
+            {
+              "type": "task",
+              "name": "NeueAufgabe"
+            }
+          ]
+        },
+        {
+          "name": "NeueAufgabe",
+          "description": "Nur Gastgeber: Aufgabe wuerfeln, anzeigen und in den Aktionslog senden.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Zahl A wuerfeln"
+            },
+            {
+              "type": "action",
+              "name": "Zahl B wuerfeln"
+            },
+            {
+              "type": "action",
+              "name": "Ergebnis berechnen"
+            },
+            {
+              "type": "action",
+              "name": "Position wuerfeln"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Pos",
+                "operator": "==",
+                "value": "1"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Antworten Variante A"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "Pos",
+                    "operator": "==",
+                    "value": "2"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Antworten Variante B"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Antworten Variante C"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Aufgabe anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Aufgabe senden"
+            }
+          ]
+        },
+        {
+          "name": "AntwortGewaehlt",
+          "description": "Eigene Antwort pruefen und als Zug melden. Bei richtiger Antwort sendet der Gastgeber die naechste Aufgabe.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "self.matchValue",
+                "operator": "==",
+                "value": "${Ergebnis}",
+                "rightType": "variable"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Feedback richtig"
+                },
+                {
+                  "type": "action",
+                  "name": "Richtige Antwort senden"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "Feedback falsch"
+                },
+                {
+                  "type": "action",
+                  "name": "Falsche Antwort senden"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "PartieZustandLesen",
+          "description": "Polling: neue Aktionen seit LastSeq holen und der Reihe nach verarbeiten.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Partiezustand lesen"
+            },
+            {
+              "type": "action",
+              "name": "Neue Seq merken"
+            },
+            {
+              "type": "action",
+              "name": "Mitspieler anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "Mitspieler zeigen"
+            },
+            {
+              "type": "action",
+              "name": "Gastgeber-Flag lesen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Gastgeber-Oberflaeche"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "action",
+              "name": "Neue Aktionen lesen"
+            },
+            {
+              "type": "action",
+              "name": "Aktionen zaehlen"
+            },
+            {
+              "type": "action",
+              "name": "Index auf null"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AktAnzahl",
+                "operator": ">",
+                "value": "0"
+              },
+              "body": [
+                {
+                  "type": "task",
+                  "name": "AktionVerarbeiten"
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "AktionVerarbeiten",
+          "description": "Rekursive Schleife ueber die neuen Aktionen (Tasks koennen Tasks aufrufen).",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Aktionsart lesen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AktZug",
+                "operator": "==",
+                "value": "aufgabe"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Aufgabe Zahl A"
+                },
+                {
+                  "type": "action",
+                  "name": "Aufgabe Zahl B"
+                },
+                {
+                  "type": "action",
+                  "name": "Ergebnis berechnen"
+                },
+                {
+                  "type": "action",
+                  "name": "Distraktor 1"
+                },
+                {
+                  "type": "action",
+                  "name": "Distraktor 2"
+                },
+                {
+                  "type": "action",
+                  "name": "Position wuerfeln"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "Pos",
+                    "operator": "==",
+                    "value": "1"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Antworten Variante A"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "Pos",
+                        "operator": "==",
+                        "value": "2"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Antworten Variante B"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "action",
+                          "name": "Antworten Variante C"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "action",
+                  "name": "Aufgabe anzeigen"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "AktZug",
+                    "operator": "==",
+                    "value": "antwort"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Antwort-Erfolg lesen"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "AktOk",
+                        "operator": "==",
+                        "value": "true"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Punkt zaehlen"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Punkte anzeigen"
+                        },
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "variable": "Punkte",
+                            "operator": ">=",
+                            "value": "10"
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Ziel erreicht"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Partie beenden"
+                            }
+                          ],
+                          "elseBody": [
+                            {
+                              "type": "condition",
+                              "condition": {
+                                "variable": "DuBistHost",
+                                "operator": "==",
+                                "value": "true"
+                              },
+                              "body": [
+                                {
+                                  "type": "task",
+                                  "name": "NeueAufgabe"
+                                }
+                              ],
+                              "elseBody": []
+                            }
+                          ]
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Index hochzaehlen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AktIdx",
+                "operator": "<",
+                "value": "${AktAnzahl}"
+              },
+              "body": [
+                {
+                  "type": "task",
+                  "name": "AktionVerarbeiten"
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        }
+      ],
+      "events": {},
+      "flowCharts": [],
+      "_supportedEvents": [],
+      "startAnimation": false
+    }
+  ],
+  "userStories": {
+    "userStories": []
+  },
+  "objects": [],
+  "variables": [],
+  "tasks": [],
+  "actions": []
+}

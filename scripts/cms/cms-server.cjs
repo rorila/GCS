@@ -30,7 +30,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
  parent.enrollObserver=b=>enrollObserver(core,credentialPath,b.ticket,b.username,b.password,commit);
  const play=require('./cms-play.cjs').createPlay(core,store,cmsFile,'stage_server_play');
- const mp=require('./cms-mp.cjs').createMp(core,store,play,cmsFile,'stage_server_mp');
+ const mp=require('./cms-mp.cjs').createMp(core,store,play,cmsFile,launches);
  const cookie=(req,name)=>(req.headers.cookie||'').split('; ').find(s=>s.startsWith(name+'='))?.slice(name.length+1);
  const accountCookie=token=>`cms_account=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`;
  // Jeder Anmeldeversuch beendet zuerst eine bestehende Sitzung dieses Browsers —
@@ -133,7 +133,19 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript; charset=utf-8':'text/html; charset=utf-8'});return res.end(fs.readFileSync(location));
    }
    if(req.method==='GET'&&url.pathname.startsWith('/play/')){
-    const launch=launches.get(url.pathname.slice(6)),session=launch&&core.session(launch.token),game=launch&&core.db.games.find(g=>g.id===launch.gameId);
+    const launch=launches.get(url.pathname.slice(6));
+    // Begutachtung (Vorschau-Launch): hochgeladenes Projekt für Verwaltung
+    // zeigen — ohne Spielsitzung, Zeitbuchung und Spielfreigabe, aber mit
+    // derselben Sandbox-/CSP-Härtung wie freigegebene Uploads.
+    if(launch&&launch.preview){
+     const pgame=core.db.games.find(g=>g.id===launch.gameId),pfile=pgame&&uploads.game(pgame);
+     if(!admin.readSession(req)||!pgame||!pfile)return reply(res,403,{error:'Vorschau nicht freigegeben'});
+     res.setHeader('Content-Security-Policy',"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'");
+     const pproject=JSON.parse(fs.readFileSync(pfile,'utf8')),pencoded=JSON.stringify(pproject).replace(/</g,'\\u003c');
+     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+     return res.end('<!doctype html><meta charset="utf-8"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}#pv{position:fixed;left:0;right:0;top:0;height:26px;z-index:99998;background:#5a3c00;color:#ffd166;font:14px Segoe UI;line-height:26px;text-align:center}</style><div id="pv">Vorschau — Entwurf, keine Spielsitzung</div><main id="run-stage"></main><script>window.PROJECT='+pencoded+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
+    }
+    const session=launch&&core.session(launch.token),game=launch&&core.db.games.find(g=>g.id===launch.gameId);
     if(!launch||!session||!core.can(session,'play',{game,areaId:launch.areaId}))return reply(res,403,{error:'Spiel nicht freigegeben'});
     // Erste Ausbaustufe: nur die zwei geprüften lokalen Lernprojekte; keine freien Uploads.
     const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json','game-mp':'ZahlenDuell.json'},uploaded=uploads.game(game);if(!uploaded&&(!allowed[game.id]||allowed[game.id]!==game.file))return reply(res,403,{error:'Projekt nicht zugelassen'});
@@ -181,7 +193,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
    }
    if(url.pathname==='/api/cms/upload-library'){
     const ep=runtime.find(url.pathname,'POST');if(!ep)return reply(res,404,{ok:false,message:'Endpunkt fehlt'});
-    const result=runtime.run(ep,{session:admin.readSession(req),body,emit:(l,d)=>{},core,admin,commit,credentialPath,uploads});
+    const result=runtime.run(ep,{session:admin.readSession(req),body,emit:(l,d)=>{},core,admin,commit,credentialPath,uploads,launches});
     return reply(res,result.status||200,result.data);
    }
    if(url.pathname.startsWith('/api/cms/admin/')){

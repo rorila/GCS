@@ -9,17 +9,17 @@
     {
       "id": "VORAUS-AR",
       "titel": "„Sonnenraum\" angelegt",
-      "offset": 0.4
+      "offset": 10.3
     },
     {
       "id": "GRENZE-01a",
       "titel": "anna: kein Zugriff auf Haus Mond",
-      "offset": 6.5
+      "offset": 74.7
     },
     {
       "id": "GRENZE-01c",
       "titel": "anna: keine SuperAdmin-Endpunkte",
-      "offset": 6.6
+      "offset": 79.3
     }
   ]
 }

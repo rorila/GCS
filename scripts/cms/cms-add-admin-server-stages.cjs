@@ -53,10 +53,11 @@ admin.push({ns:'AdmSpiele',path:'/api/cms/admin/games',task:'Server_Spielfreigab
           n.act('Bereich403','AntwortSenden','fail',[403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.'])]});}
 
 {const n=ns('AdmMitglieder');
-admin.push({ns:'AdmMitglieder',path:'/api/cms/admin/members',task:'Server_Raummitglieder_Verarbeiten',desc:'Bereich prüfen → Mitglieder der verwaltbaren Räume auflisten',
- inner:[n.call('BereichLaden'),n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[n.call('Abfragen'),n.call('Antworten')],[n.call('Bereich403')])],
+admin.push({ns:'AdmMitglieder',path:'/api/cms/admin/members',task:'Server_Raummitglieder_Verarbeiten',desc:'Raum prüfen → Elternhaus ermitteln → Hausbewohner mit Raumstatus auflisten',
+ inner:[n.call('BereichLaden'),n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[n.call('HausErmitteln'),n.call('Abfragen'),n.call('Antworten')],[n.call('Bereich403')])],
  actions:[n.act('BereichLaden','Datenbestand','find',[MANAGED_ROOM],'Bereich'),
-          n.act('Abfragen','Datenbestand','list',[{entity:'people',where:{active:true,has:{entity:'memberships',where:{personId:'$item.id',active:true,areaId:{in:{set:{entity:'areas',where:{type:'room',_manageable:true},field:'id'}}}}}},
+          n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
+          n.act('Abfragen','Datenbestand','list',[{entity:'people',where:{active:true,has:{entity:'memberships',where:{personId:'$item.id',active:true,areaId:'$vars.Haus.item.id'}}},
             fields:{id:'$item.id',name:'$item.name',
              _help:{exists:{entity:'profileRequests',where:{personId:'$item.id',status:'open'}}},
              label:{concat:[{if:['$field._help','🆘 Zugangshilfe · ','']},'$item.name',' (','$item.id',')']},
@@ -74,6 +75,7 @@ for(const [slug,path,route,isGame]of [['Freigabe','/api/cms/admin/grant','grant'
    n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[
     n.call('AktivPruefen'),
     n.cond('Zustand gültig?','AktivWert.ok','==',true,[
+     ...(isGame?[]:[n.call('HausErmitteln')]),
      n.call('EintragPruefen'),
      n.cond('Eintrag verfügbar?','Vorhanden','==',true,[
       n.call('Speichern'),n.call('Antworten')
@@ -85,8 +87,9 @@ for(const [slug,path,route,isGame]of [['Freigabe','/api/cms/admin/grant','grant'
            n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),
            n.act('EintragPruefen','Datenbestand','exists',[isGame
              ?{entity:'games',where:{id:'$body.id',status:'published'}}
-             :{entity:'people',where:{id:'$body.id',active:true,has:{entity:'memberships',where:{personId:'$body.id',active:true,areaId:{in:{set:{entity:'areas',where:{type:'room',_manageable:true},field:'id'}}}}}}}
+             :{entity:'people',where:{id:'$body.id',active:true,has:{entity:'memberships',where:{personId:'$body.id',active:true,areaId:'$vars.Haus.item.id'}}}}
             ],'Vorhanden'),
+           ...(isGame?[]:[n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus')]),
            n.act('Speichern','DatenSpeicher','upsert',[{entity:isGame?'grants':'memberships',match:{areaId:'$body.areaId',[isGame?'gameId':'personId']:'$body.id'},set:{active:'$vars.AktivWert.value'},audit:{action:route,areaId:'$body.areaId'}}],'Ergebnis'),
            n.act('Antworten','AntwortSenden','send',[{message:'Gespeichert'}]),
            n.act('Eintrag403','AntwortSenden','fail',[403,'Eintrag nicht verfügbar.']),
@@ -118,7 +121,7 @@ admin.push({ns:'AdmCode',path:'/api/cms/admin/code',task:'Server_EmojiCode_Verar
  actions:[n.act('BereichLaden','Datenbestand','find',[MANAGED_ROOM],'Bereich'),
           n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
           n.act('HausRechtPruefen','Datenbestand','can',['manageArea',{areaId:'$vars.Haus.item.id'}],'HausRecht'),
-          n.act('PersonPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.id',active:true,has:{entity:'memberships',where:{personId:'$body.id',active:true,areaId:{in:{set:{entity:'areas',where:{type:'room',_manageable:true},field:'id'}}}}}}}],'Vorhanden'),
+          n.act('PersonPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.id',active:true,has:{entity:'memberships',where:{personId:'$body.id',active:true,areaId:'$vars.Haus.item.id'}}}}],'Vorhanden'),
           n.act('FolgePruefen','EingabePruefung','emojiSeq',['sequence'],'Folge'),
           n.act('DuplikatPruefen','Datenbestand','codeTaken',[{areaId:'$vars.Haus.item.id',sequence:'$vars.Folge.value',excludePersonId:'$body.id'}],'Belegt'),
           n.act('Folge409','AntwortSenden','fail',[409,'Diese Emoji-Folge ist bereits vergeben.']),
@@ -161,11 +164,13 @@ admin.push({ns:'AdmRestore',path:'/api/cms/admin/restore',task:'Server_RaumWiede
 // stage_server_house — Hausverwaltung (Zuständigkeit: manageArea auf das Haus)
 // =============================================================================
 const house=[];
-const peopleOfHouse={active:true,has:{entity:'memberships',where:{personId:'$item.id',active:true,areaId:{in:HOUSE_ROOMS}}}};
+const peopleOfHouse={active:true,has:{entity:'memberships',where:{personId:'$item.id',areaId:'$body.houseId'}}};
+const activePeopleOfHouse={active:true,has:{entity:'memberships',where:{personId:'$item.id',active:true,areaId:'$body.houseId'}}};
 // Erwachsene mit Hausbezug: Rolle im Haus/Raum ODER bestätigte Elternschaft eines Haus-Kindes.
 const ADULTS_WHERE={active:true,kind:{not:'child'},anyOf:[
+ {has:{entity:'memberships',where:{personId:'$item.id',active:true,areaId:'$body.houseId'}}},
  {has:{entity:'roles',where:{personId:'$item.id',areaId:{in:{union:['$body.houseId',HOUSE_ROOMS]}}}}},
- {has:{entity:'guardians',where:{guardianId:'$item.id',status:'confirmed',has:{entity:'memberships',where:{personId:'$row.childId',active:true,areaId:{in:HOUSE_ROOMS}}}}}}
+ {has:{entity:'guardians',where:{guardianId:'$item.id',status:'confirmed',has:{entity:'memberships',where:{personId:'$row.childId',active:true,areaId:'$body.houseId'}}}}}
 ]};
 
 {const n=ns('HausListe');
@@ -189,13 +194,14 @@ house.push({ns:'RaumAnlegen',path:'/api/cms/admin/room-create',task:'Server_Raum
   n.call('NamePruefen'),
   n.cond('Name gültig?','Namen.ok','==',true,[
    n.call('NameBelegt'),
-   n.cond('Raumname vergeben?','Belegt','==',true,[n.call('Name409')],[n.call('Anlegen'),n.call('Antworten')])
+   n.cond('Raumname vergeben?','Belegt','==',true,[n.call('Name409')],[n.call('Anlegen'),n.call('AdminSetzen'),n.call('Antworten')])
   ],[n.call('Name400')])
  ],
  actions:[n.act('NamePruefen','EingabePruefung','text',['name',{max:60,message:'Raumname: 1 bis 60 Zeichen.'}],'Namen'),
           n.act('NameBelegt','Datenbestand','exists',[{entity:'areas',where:{type:'room',under:'$body.houseId',name:{iEquals:'$vars.Namen.value'}}}],'Belegt'),
           n.act('Name409','AntwortSenden','fail',[409,'Dieser Raumname existiert im Haus bereits.']),
           n.act('Anlegen','DatenSpeicher','create',[{entity:'areas',fields:{id:{uuid:'room-'},name:'$vars.Namen.value',type:'room',parentId:'$body.houseId',avatar:'🚪',active:true},audit:{action:'room-create',areaId:'$body.houseId'}}],'Ergebnis'),
+          n.act('AdminSetzen','DatenSpeicher','setRoomAdmin',[{personId:'$session.personId',areaId:'$vars.Ergebnis.id',active:true,audit:{action:'room-admin-initial',areaId:'$vars.Ergebnis.id'}}],'AdminErgebnis'),
           n.act('Antworten','AntwortSenden','send',[{id:'${Ergebnis.id}',message:'Raum angelegt: ${Namen.value}'}]),
           n.act('Name400','AntwortSenden','fail',['${Namen.status}','${Namen.message}'])]});}
 
@@ -220,44 +226,94 @@ house.push({ns:'RaumSpeichern',path:'/api/cms/admin/room-update',task:'Server_Ra
           n.act('Antworten','AntwortSenden','send',[{message:'Raum gespeichert: ${Namen.value}'}]),
           n.act('Eingabe400','AntwortSenden','fail',[400,'Name und aktiven Zustand angeben.'])]});}
 
-{const n=ns('SpielerAnlegen');
-house.push({ns:'SpielerAnlegen',path:'/api/cms/admin/person-create',task:'Server_SpielerAnlegen_Verarbeiten',desc:'Haus + aktiver Raum → Eingaben → Emoji-Duplikat → Spielerprofil anlegen',
+{const n=ns('HausbewohnerAnlegen');
+house.push({ns:'HausbewohnerAnlegen',path:'/api/cms/admin/house-person-create',task:'Server_HausbewohnerAnlegen_Verarbeiten',desc:'Haus → Name → Avatar → Emoji-Code → Bewohnerprofil anlegen',
  inner:[
   n.call('NamePruefen'),
   n.cond('Name gültig?','Namen.ok','==',true,[
    n.call('AvatarPruefen'),
    n.cond('Avatar gültig?','AvatarWert.ok','==',true,[
-    n.call('FolgePruefen'),
-    n.cond('Folge gültig?','Folge.ok','==',true,[
-     n.call('DuplikatPruefen'),
-     n.cond('Folge vergeben?','Belegt','==',true,[n.call('Folge409')],[n.call('Anlegen'),n.call('Antworten')])
+    n.call('ArtPruefen'),
+    n.cond('Bewohnerart gültig?','ArtWert.ok','==',true,[
+     n.call('FolgePruefen'),
+     n.cond('Emoji-Code gültig?','Folge.ok','==',true,[
+      n.call('DuplikatPruefen'),
+      n.cond('Emoji-Code vergeben?','Belegt','==',true,[n.call('Folge409')],[n.call('Anlegen'),n.call('Antworten')])
+     ],[n.call('Eingabe400')])
     ],[n.call('Eingabe400')])
    ],[n.call('Eingabe400')])
   ],[n.call('Eingabe400')])
  ],
- roomGate:true,roomActive:true,
  actions:[n.act('NamePruefen','EingabePruefung','text',['name',{max:60,message:'Name, Avatar und vier gültige Bild-IDs angeben.'}],'Namen'),
           n.act('AvatarPruefen','EingabePruefung','text',['avatar',{max:12,message:'Name, Avatar und vier gültige Bild-IDs angeben.'}],'AvatarWert'),
+          n.act('ArtPruefen','EingabePruefung','choice',['kind',['child','adult']],'ArtWert'),
           n.act('FolgePruefen','EingabePruefung','emojiSeq',['sequence'],'Folge'),
           n.act('DuplikatPruefen','Datenbestand','codeTaken',[{areaId:'$body.houseId',sequence:'$vars.Folge.value'}],'Belegt'),
-          n.act('Folge409','AntwortSenden','fail',[409,'Emoji-Folge im Haus bereits vergeben.']),
-          n.act('Anlegen','DatenSpeicher','createPlayer',[{name:'$vars.Namen.value',avatar:'$vars.AvatarWert.value',sequence:'$vars.Folge.value',roomId:'$body.areaId',houseId:'$body.houseId',audit:{action:'person-create',areaId:'$body.areaId'}}],'Ergebnis'),
-          n.act('Antworten','AntwortSenden','send',[{id:'${Ergebnis.id}',message:'Spielerprofil angelegt: ${Namen.value}'}]),
+          n.act('Folge409','AntwortSenden','fail',[409,'Diese Emoji-Folge ist im Haus bereits vergeben.']),
+          n.act('Anlegen','DatenSpeicher','createHouseResident',[{name:'$vars.Namen.value',avatar:'$vars.AvatarWert.value',kind:'$vars.ArtWert.value',sequence:'$vars.Folge.value',houseId:'$body.houseId',audit:{action:'house-resident-create',areaId:'$body.houseId'}}],'Ergebnis'),
+          n.act('Antworten','AntwortSenden','send',[{id:'${Ergebnis.id}',message:'Hausbewohner angelegt: ${Namen.value}'}]),
           n.act('Eingabe400','AntwortSenden','fail',[400,'Name, Avatar und vier gültige Bild-IDs angeben.'])]});}
+
+{const n=ns('HausbewohnerStatus');
+house.push({ns:'HausbewohnerStatus',path:'/api/cms/admin/house-person-active',task:'Server_HausbewohnerStatus_Verarbeiten',desc:'Haus → Bewohner → Zustand prüfen → Hausmitgliedschaft speichern',
+ inner:[
+  n.call('AktivPruefen'),
+  n.cond('Zustand gültig?','AktivWert.ok','==',true,[
+   n.call('PersonPruefen'),
+   n.cond('Bewohner vorhanden?','Vorhanden','==',true,[n.call('Speichern'),n.cond('Bewohner aktiv?','AktivWert.value','==',true,[n.call('Aktiviert')],[n.call('Deaktiviert')])],[n.call('Person404')])
+  ],[n.call('Eingabe400')])
+ ],
+ actions:[n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),
+          n.act('PersonPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.personId',active:true,has:{entity:'memberships',where:{personId:'$body.personId',areaId:'$body.houseId'}}}}],'Vorhanden'),
+          n.act('Speichern','DatenSpeicher','setHouseMembership',[{personId:'$body.personId',houseId:'$body.houseId',active:'$vars.AktivWert.value',audit:{action:'house-resident-active',areaId:'$body.houseId'}}],'Ergebnis'),
+          n.act('Aktiviert','AntwortSenden','send',[{message:'Hausbewohner aktiviert.'}]),
+          n.act('Deaktiviert','AntwortSenden','send',[{message:'Hausbewohner deaktiviert; Raumzuordnungen wurden entzogen.'}]),
+          n.act('Person404','AntwortSenden','fail',[404,'Hausbewohner nicht gefunden.']),
+          n.act('Eingabe400','AntwortSenden','fail',[400,'Aktiven Zustand angeben.'])]});}
+
+{const n=ns('HausbewohnerAendern');
+house.push({ns:'HausbewohnerAendern',path:'/api/cms/admin/house-person-update',task:'Server_HausbewohnerAendern_Verarbeiten',desc:'Haus → Bewohner → Name/Avatar/Art prüfen → speichern',
+ inner:[n.call('PersonPruefen'),n.cond('Bewohner im Haus?','Vorhanden','==',true,[
+  n.call('NamePruefen'),n.call('AvatarPruefen'),n.call('ArtPruefen'),
+  n.cond('Eingaben gültig?','Namen.ok','==',true,[
+   n.cond('Avatar gültig?','AvatarWert.ok','==',true,[
+    n.cond('Art gültig?','ArtWert.ok','==',true,[n.call('PersonSpeichern'),n.call('Antworten')],[n.call('Eingabe400')])
+   ],[n.call('Eingabe400')])
+  ],[n.call('Eingabe400')])
+ ],[n.call('Person404')])],
+ actions:[n.act('PersonPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.personId',has:{entity:'memberships',where:{personId:'$body.personId',areaId:'$body.houseId'}}}}],'Vorhanden'),
+  n.act('NamePruefen','EingabePruefung','text',['name',{max:60}],'Namen'),
+  n.act('AvatarPruefen','EingabePruefung','avatar',['avatar'],'AvatarWert'),
+  n.act('ArtPruefen','EingabePruefung','choice',['kind',['child','adult']],'ArtWert'),
+  n.act('PersonSpeichern','DatenSpeicher','update',[{entity:'people',where:{id:'$body.personId'},set:{name:'$vars.Namen.value',avatar:'$vars.AvatarWert.value',kind:'$vars.ArtWert.value'},audit:{action:'house-resident-update',areaId:'$body.houseId'}}],'Ergebnis'),
+  n.act('Antworten','AntwortSenden','send',[{message:'Bewohnerprofil gespeichert.'}]),
+  n.act('Person404','AntwortSenden','fail',[404,'Bewohner gehört nicht zu diesem Haus.']),
+  n.act('Eingabe400','AntwortSenden','fail',[400,'Name, Avatar und Bewohnerart angeben.'])]});}
+
+{const n=ns('HausbewohnerCode');
+house.push({ns:'HausbewohnerCode',path:'/api/cms/admin/house-person-code',task:'Server_HausbewohnerCode_Verarbeiten',desc:'Haus → Bewohner → Emoji-Code prüfen → speichern',inner:[n.call('PersonPruefen'),n.cond('Bewohner im Haus?','Vorhanden','==',true,[n.call('FolgePruefen'),n.cond('Code gültig?','Folge.ok','==',true,[n.call('DuplikatPruefen'),n.cond('Code vergeben?','Belegt','==',true,[n.call('Folge409')],[n.call('Speichern'),n.call('Antworten')])],[n.call('Eingabe400')])],[n.call('Person404')])],
+ actions:[n.act('PersonPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.personId',has:{entity:'memberships',where:{personId:'$body.personId',areaId:'$body.houseId'}}}}],'Vorhanden'),n.act('FolgePruefen','EingabePruefung','emojiSeq',['sequence'],'Folge'),n.act('DuplikatPruefen','Datenbestand','codeTaken',[{areaId:'$body.houseId',sequence:'$vars.Folge.value',excludePersonId:'$body.personId'}],'Belegt'),n.act('Speichern','DatenSpeicher','setEmojiCode',[{personId:'$body.personId',areaId:'$body.houseId',sequence:'$vars.Folge.value',audit:{action:'emoji-change',areaId:'$body.houseId'}}],'Ergebnis'),n.act('Antworten','AntwortSenden','send',[{message:'Emoji-Code gespeichert.'}]),n.act('Folge409','AntwortSenden','fail',[409,'Diese Emoji-Folge ist im Haus bereits vergeben.']),n.act('Person404','AntwortSenden','fail',[404,'Bewohner gehört nicht zu diesem Haus.']),n.act('Eingabe400','AntwortSenden','fail',[400,'Vier gültige Bild-IDs angeben.'])]});}
 
 {const n=ns('HausPersonen');
 house.push({ns:'HausPersonen',path:'/api/cms/admin/house-people',task:'Server_HausPersonen_Verarbeiten',desc:'Haus prüfen → Personen des Hauses auflisten',
  inner:[n.call('Abfragen'),n.call('Antworten')],
- actions:[n.act('Abfragen','Datenbestand','list',[{entity:'people',where:peopleOfHouse,fields:listFields,extra:{message:{concat:['$vars.Haus.item.name',' · Personen']}}}],'Personen'),
+ actions:[n.act('Abfragen','Datenbestand','list',[{entity:'people',where:peopleOfHouse,
+            fields:{id:'$item.id',name:'$item.name',avatar:'$item.avatar',kind:'$item.kind',typ:{if:[{eq:['$item.kind','child']},'Kind','Erwachsener']},label:{concat:['$item.avatar','  ','$item.name']},active:{exists:{entity:'memberships',where:{personId:'$item.id',areaId:'$body.houseId',active:true}}}},
+            extra:{message:{concat:['$vars.Haus.item.name',' · Bewohner']}}}],'Personen'),
           n.act('Antworten','AntwortSenden','send',[{items:'${Personen.items}',message:'${Personen.message}'}])]});}
 
 {const n=ns('HausKinder');
 house.push({ns:'HausKinder',path:'/api/cms/admin/house-children',task:'Server_HausKinder_Verarbeiten',desc:'Haus prüfen → Kinder des Hauses auflisten',
  inner:[n.call('Abfragen'),n.call('Antworten')],
- actions:[n.act('Abfragen','Datenbestand','list',[{entity:'people',where:{...peopleOfHouse,kind:'child'},
+ actions:[n.act('Abfragen','Datenbestand','list',[{entity:'people',where:{...activePeopleOfHouse,kind:'child'},
             fields:{id:'$item.id',name:'$item.name',active:true,label:{concat:['$item.avatar','  ','$item.name']}},
             extra:{message:{concat:['$vars.Haus.item.name',' · Kinder']}}}],'Kinder'),
           n.act('Antworten','AntwortSenden','send',[{items:'${Kinder.items}',message:'${Kinder.message}'}])]});}
+
+{const n=ns('HausErwachsene');
+house.push({ns:'HausErwachsene',path:'/api/cms/admin/house-adults',task:'Server_HausErwachsene_Verarbeiten',desc:'Haus prüfen → erwachsene Bewohner auflisten',
+ inner:[n.call('Abfragen'),n.call('Antworten')],
+ actions:[n.act('Abfragen','Datenbestand','list',[{entity:'people',where:{...activePeopleOfHouse,kind:'adult'},fields:{id:'$item.id',name:'$item.name',active:true,label:{concat:['$item.avatar','  ','$item.name']}}}],'Erwachsene'),n.act('Antworten','AntwortSenden','send',[{items:'${Erwachsene.items}',message:'Erwachsene Bewohner des Hauses'}])]});}
 
 {const n=ns('RaumAdmins');
 const adminMark={concat:['$item.name',{if:['$field._haus',' · HouseAdmin',{if:['$field._raum',' · Erzieher',{if:['$field._beob',' · Beobachter',{if:['$field._eltern',' · Elternteil','']}]}]}]}]};
@@ -284,8 +340,9 @@ house.push({ns:'RaumAdminSetzen',path:'/api/cms/admin/room-admin-set',task:'Serv
    n.cond('Zustand gültig?','AktivWert.ok','==',true,[
     n.call('KandidatPruefen'),
     n.cond('Person zugeordnet?','Vorhanden','==',true,[
+     n.cond('Zuweisung aktiviert?','AktivWert.value','==',true,[n.call('HausmitgliedSetzen')],[]),
      n.call('RolleSetzen'),
-     n.cond('Zugewiesen?','AktivWert.value','==',true,[n.call('Zugewiesen')],[n.call('Entzogen')])
+     n.cond('Rollenänderung möglich?','Ergebnis.ok','==',true,[n.cond('Zugewiesen?','AktivWert.value','==',true,[n.call('Zugewiesen')],[n.call('Entzogen')])],[n.call('RollenFehler')])
     ],[n.call('Kandidat403')])
    ],[n.call('Bestaetigung400')])
   ],[n.call('Bestaetigung400')])
@@ -294,9 +351,11 @@ house.push({ns:'RaumAdminSetzen',path:'/api/cms/admin/room-admin-set',task:'Serv
  actions:[n.act('BestaetigungPruefen','EingabePruefung','confirmed',['confirm'],'Bestaetigt'),
           n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),
           n.act('KandidatPruefen','Datenbestand','exists',[{entity:'people',where:{...ADULTS_WHERE,id:'$body.personId'}}],'Vorhanden'),
-          n.act('RolleSetzen','DatenSpeicher','setRole',[{personId:'$body.personId',areaId:'$body.areaId',role:'areaAdmin',active:'$vars.AktivWert.value',audit:{action:'room-admin-set',areaId:'$body.areaId'}}],'Ergebnis'),
+          n.act('HausmitgliedSetzen','DatenSpeicher','upsert',[{entity:'memberships',match:{personId:'$body.personId',areaId:'$body.houseId'},set:{active:true},audit:{action:'house-resident-from-room-admin',areaId:'$body.houseId'}}],'Hausmitglied'),
+          n.act('RolleSetzen','DatenSpeicher','setRoomAdmin',[{personId:'$body.personId',areaId:'$body.areaId',active:'$vars.AktivWert.value',audit:{action:'room-admin-set',areaId:'$body.areaId'}}],'Ergebnis'),
           n.act('Zugewiesen','AntwortSenden','send',[{message:'RaumAdmin zugewiesen. Eigener Verwaltungszugang erforderlich.'}]),
           n.act('Entzogen','AntwortSenden','send',[{message:'RaumAdmin-Zuständigkeit entzogen.'}]),
+          n.act('RollenFehler','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}']),
           n.act('Bestaetigung400','AntwortSenden','fail',[400,'Admin-Zuweisung ausdrücklich bestätigen.']),
           n.act('Kandidat403','AntwortSenden','fail',[403,'Person ist diesem Haus nicht zugeordnet.'])]});}
 
@@ -321,7 +380,7 @@ house.push({ns:'ElternEinladung',path:'/api/cms/admin/parent-invite',task:'Serve
   ],[n.call('Eingabe400')])
  ],
  actions:[n.act('NamePruefen','EingabePruefung','text',['name',{max:60,message:'Name des Elternteils und Kind angeben.'}],'Namen'),
-          n.act('KindPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.childId',active:true,kind:'child',has:{entity:'memberships',where:{personId:'$body.childId',active:true,areaId:{in:HOUSE_ROOMS}}}}}],'Vorhanden'),
+          n.act('KindPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.childId',active:true,kind:'child',has:{entity:'memberships',where:{personId:'$body.childId',active:true,areaId:'$body.houseId'}}}}],'Vorhanden'),
           n.act('PersonPruefen','Datenbestand','find',[ACTIVE_PERSON],'Person'),
           n.act('ZuordnungPruefen','Datenbestand','exists',[{entity:'guardians',where:{childId:'$body.childId',guardianId:'$body.personId',status:'confirmed'}}],'Belegt'),
           n.act('Einladen','Zugangsverwaltung','parentInvite',[{childId:'$body.childId',houseId:'$body.houseId',personId:'$body.personId',name:'$vars.Namen.value',audit:{action:'parent-invite',areaId:'$body.houseId'}}],'Einladung'),
@@ -348,7 +407,7 @@ house.push({ns:'ElternBestaetigung',path:'/api/cms/admin/guardian-approve',task:
   ],[n.call('Zuordnung404')])
  ],
  actions:[n.act('ZuordnungLaden','Datenbestand','find',[pendingGuardian],'Zuordnung'),
-          n.act('KindPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$vars.Zuordnung.item.childId',active:true,has:{entity:'memberships',where:{personId:'$vars.Zuordnung.item.childId',active:true,areaId:{in:HOUSE_ROOMS}}}}}],'Vorhanden'),
+          n.act('KindPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$vars.Zuordnung.item.childId',active:true,has:{entity:'memberships',where:{personId:'$vars.Zuordnung.item.childId',active:true,areaId:'$body.houseId'}}}}],'Vorhanden'),
           n.act('Selbst409','AntwortSenden','fail',[409,'Eigene Zuordnung kann nicht selbst bestätigt werden.']),
           n.act('Bestaetigen','Zugangsverwaltung','approveGuardian',[{childId:'$vars.Zuordnung.item.childId',guardianId:'$vars.Zuordnung.item.guardianId',houseId:'$body.houseId',audit:{action:'guardian-approve',areaId:'$body.houseId'}}],'Ergebnis'),
           n.act('Antworten','AntwortSenden','send',[{message:'Eltern-Kind-Zuordnung bestätigt.'}]),
@@ -359,7 +418,7 @@ house.push({ns:'ElternBestaetigung',path:'/api/cms/admin/guardian-approve',task:
 {const n=ns('ElternAusstehend');
 house.push({ns:'ElternAusstehend',path:'/api/cms/admin/guardian-pending',task:'Server_AusstehendeZuordnungen_Verarbeiten',desc:'Haus prüfen → ausstehende Elternzuordnungen auflisten',
  inner:[n.call('Abfragen'),n.call('Antworten')],
- actions:[n.act('Abfragen','Datenbestand','list',[{entity:'guardians',where:{status:'pending',childId:{in:{set:{entity:'memberships',where:{active:true,areaId:{in:HOUSE_ROOMS}},field:'personId'}}}},
+ actions:[n.act('Abfragen','Datenbestand','list',[{entity:'guardians',where:{status:'pending',childId:{in:{set:{entity:'memberships',where:{active:true,areaId:'$body.houseId'},field:'personId'}}}},
             fields:{id:{concat:['$item.childId',':','$item.guardianId']},childId:'$item.childId',guardianId:'$item.guardianId',
              child:{nameOf:'$item.childId'},guardian:{nameOf:'$item.guardianId'},
              own:{eq:['$item.guardianId','$session.personId']},
@@ -391,6 +450,50 @@ house.push({ns:'BeobachterEinladung',path:'/api/cms/admin/observer-invite',task:
           n.act('Rolle409','AntwortSenden','fail',[409,'Beobachterrolle für diesen Raum ist bereits aktiv.']),
           n.act('Person404','AntwortSenden','fail',[404,'Person nicht gefunden.']),
           n.act('Eingabe400','AntwortSenden','fail',[400,'Name der beobachtenden Person angeben.'])]});}
+
+{const n=ns('HausUebersicht');
+house.push({ns:'HausUebersicht',path:'/api/cms/admin/house-overview',task:'Server_HausUebersicht_Verarbeiten',desc:'Haus prüfen → Räume, Bewohner, Familien, Spiele und Einladungen zählen',
+ inner:[n.call('Raeume'),n.call('Bewohner'),n.call('Kinder'),n.call('Familien'),n.call('Spiele'),n.call('Einladungen'),n.call('Antworten')],
+ actions:[
+  n.act('Raeume','Datenbestand','list',[{entity:'areas',where:{type:'room',under:'$body.houseId',active:true},fields:{id:'$item.id'}}],'UebersichtRaeume'),
+  n.act('Bewohner','Datenbestand','list',[{entity:'people',where:activePeopleOfHouse,fields:{id:'$item.id'}}],'UebersichtBewohner'),
+  n.act('Kinder','Datenbestand','list',[{entity:'people',where:{...activePeopleOfHouse,kind:'child'},fields:{id:'$item.id'}}],'UebersichtKinder'),
+  n.act('Familien','Datenbestand','list',[{entity:'guardians',where:{status:'confirmed',childId:{in:{set:{entity:'memberships',where:{active:true,areaId:'$body.houseId'},field:'personId'}}}},fields:{id:'$item.childId'}}],'UebersichtFamilien'),
+  n.act('Spiele','Datenbestand','list',[{entity:'grants',where:{areaId:'$body.houseId',active:true},fields:{id:'$item.gameId'}}],'UebersichtSpiele'),
+  n.act('Einladungen','Datenbestand','list',[{entity:'invites',where:{houseId:'$body.houseId',usedAt:{falsy:true}},fields:{id:'$item.id'}}],'UebersichtEinladungen'),
+  n.act('Antworten','AntwortSenden','send',[{rooms:'${UebersichtRaeume.items.length}',residents:'${UebersichtBewohner.items.length}',children:'${UebersichtKinder.items.length}',families:'${UebersichtFamilien.items.length}',games:'${UebersichtSpiele.items.length}',invites:'${UebersichtEinladungen.items.length}',message:'Hausübersicht geladen.'}])
+ ]});}
+
+{const n=ns('HausFamilien');
+house.push({ns:'HausFamilien',path:'/api/cms/admin/house-guardians',task:'Server_HausFamilien_Verarbeiten',desc:'Haus prüfen → Eltern-Kind-Zuordnungen auflisten',
+ inner:[n.call('Abfragen'),n.call('Antworten')],
+ actions:[n.act('Abfragen','Datenbestand','list',[{entity:'guardians',where:{childId:{in:{set:{entity:'memberships',where:{areaId:'$body.houseId'},field:'personId'}}},guardianId:{in:{set:{entity:'memberships',where:{areaId:'$body.houseId'},field:'personId'}}}},fields:{id:{concat:['$item.childId',':','$item.guardianId']},childId:'$item.childId',guardianId:'$item.guardianId',child:{nameOf:'$item.childId'},guardian:{nameOf:'$item.guardianId'},status:'$item.status',active:{eq:['$item.status','confirmed']},label:{concat:[{nameOf:'$item.childId'},' ← ',{nameOf:'$item.guardianId'}]}}}],'Familien'),
+  n.act('Antworten','AntwortSenden','send',[{items:'${Familien.items}',message:'Familienzuordnungen des Hauses'}]) ]});}
+
+{const n=ns('HausFamilieSetzen');
+house.push({ns:'HausFamilieSetzen',path:'/api/cms/admin/guardian-set',task:'Server_HausFamilieSetzen_Verarbeiten',desc:'Haus → Kind und Erwachsener prüfen → Familienzuordnung setzen oder widerrufen',
+ inner:[n.call('AktivPruefen'),n.call('KindPruefen'),n.call('ErwachsenenPruefen'),n.cond('Eingabe gültig?','AktivWert.ok','==',true,[n.cond('Kind im Haus?','KindVorhanden','==',true,[n.cond('Erwachsener im Haus?','ErwachsenerVorhanden','==',true,[n.call('Speichern'),n.call('Antworten')],[n.call('Person403')])],[n.call('Kind403')])],[n.call('Eingabe400')])],
+ actions:[n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),
+  n.act('KindPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.childId',kind:'child',active:true,has:{entity:'memberships',where:{personId:'$body.childId',areaId:'$body.houseId',active:true}}}}],'KindVorhanden'),
+  n.act('ErwachsenenPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.guardianId',kind:'adult',active:true,has:{entity:'memberships',where:{personId:'$body.guardianId',areaId:'$body.houseId',active:true}}}}],'ErwachsenerVorhanden'),
+  n.act('Speichern','DatenSpeicher','upsert',[{entity:'guardians',match:{childId:'$body.childId',guardianId:'$body.guardianId'},set:{status:{if:['$vars.AktivWert.value','confirmed','revoked']},confirmedBy:'$session.personId',revokedAt:{if:['$vars.AktivWert.value',null,'manuell']}},audit:{action:'guardian-set',areaId:'$body.houseId'}}],'Ergebnis'),
+  n.act('Antworten','AntwortSenden','send',[{message:'Familienzuordnung gespeichert.'}]),n.act('Kind403','AntwortSenden','fail',[403,'Kind gehört nicht aktiv zu diesem Haus.']),n.act('Person403','AntwortSenden','fail',[403,'Erwachsener gehört nicht aktiv zu diesem Haus.']),n.act('Eingabe400','AntwortSenden','fail',[400,'Aktiven Zustand angeben.'])]});}
+
+{const n=ns('HausSpiele');
+house.push({ns:'HausSpiele',path:'/api/cms/admin/house-games',task:'Server_HausSpiele_Verarbeiten',desc:'Haus prüfen → veröffentlichte Galeriespiele mit Hausfreigabe auflisten',inner:[n.call('Abfragen'),n.call('Antworten')],
+ actions:[n.act('Abfragen','Datenbestand','list',[{entity:'games',where:{status:'published'},fields:{id:'$item.id',name:'$item.title',label:{concat:['$item.avatar','  ','$item.title']},multiplayer:{if:['$item.multiplayer',true,false]},active:{exists:{entity:'grants',where:{gameId:'$item.id',areaId:'$body.houseId',active:true}}}}}],'HausSpiele'),n.act('Antworten','AntwortSenden','send',[{items:'${HausSpiele.items}',message:'Galeriespiele für dieses Haus'}])]});}
+
+{const n=ns('HausSpielSetzen');
+house.push({ns:'HausSpielSetzen',path:'/api/cms/admin/house-game-set',task:'Server_HausSpielSetzen_Verarbeiten',desc:'Haus → veröffentlichtes Spiel → Hausfreigabe setzen',inner:[n.call('AktivPruefen'),n.call('SpielPruefen'),n.cond('Eingabe gültig?','AktivWert.ok','==',true,[n.cond('Spiel verfügbar?','Vorhanden','==',true,[n.call('Speichern'),n.call('Antworten')],[n.call('Spiel403')])],[n.call('Eingabe400')])],
+ actions:[n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),n.act('SpielPruefen','Datenbestand','exists',[{entity:'games',where:{id:'$body.gameId',status:'published'}}],'Vorhanden'),n.act('Speichern','DatenSpeicher','upsert',[{entity:'grants',match:{areaId:'$body.houseId',gameId:'$body.gameId'},set:{active:'$vars.AktivWert.value'},audit:{action:'house-game-set',areaId:'$body.houseId'}}],'Ergebnis'),n.act('Antworten','AntwortSenden','send',[{message:'Hausspiel-Zuordnung gespeichert.'}]),n.act('Spiel403','AntwortSenden','fail',[403,'Spiel ist nicht in der Galerie verfügbar.']),n.act('Eingabe400','AntwortSenden','fail',[400,'Aktiven Zustand angeben.'])]});}
+
+{const n=ns('HausEinladungen');
+house.push({ns:'HausEinladungen',path:'/api/cms/admin/house-invites',task:'Server_HausEinladungen_Verarbeiten',desc:'Haus prüfen → Einladungen ohne geheime Token auflisten',inner:[n.call('Abfragen'),n.call('Antworten')],
+ actions:[n.act('Abfragen','Datenbestand','list',[{entity:'invites',where:{houseId:'$body.houseId'},fields:{id:'$item.id',personId:'$item.personId',person:{nameOf:'$item.personId'},purpose:'$item.purpose',expires:'$item.expires',used:{truthy:'$item.usedAt'},active:{not:'$item.usedAt'},label:{concat:[{nameOf:'$item.personId'},' · ','$item.purpose']}}}],'HausEinladungen'),n.act('Antworten','AntwortSenden','send',[{items:'${HausEinladungen.items}',message:'Einladungen des Hauses'}])]});}
+
+{const n=ns('HausEinladungWiderrufen');
+house.push({ns:'HausEinladungWiderrufen',path:'/api/cms/admin/house-invite-revoke',task:'Server_HausEinladungWiderrufen_Verarbeiten',desc:'Haus → Einladung prüfen → widerrufen',inner:[n.call('EinladungPruefen'),n.cond('Einladung vorhanden?','Vorhanden','==',true,[n.call('Speichern'),n.call('Antworten')],[n.call('Einladung404')])],
+ actions:[n.act('EinladungPruefen','Datenbestand','exists',[{entity:'invites',where:{id:'$body.inviteId',houseId:'$body.houseId'}}],'Vorhanden'),n.act('Speichern','DatenSpeicher','update',[{entity:'invites',where:{id:'$body.inviteId',houseId:'$body.houseId'},set:{expires:0,revoked:true},audit:{action:'invite-revoke',areaId:'$body.houseId'}}],'Ergebnis'),n.act('Antworten','AntwortSenden','send',[{message:'Einladung widerrufen.'}]),n.act('Einladung404','AntwortSenden','fail',[404,'Einladung nicht gefunden.'])]});}
 
 // =============================================================================
 // Stage-Aufbau: gemeinsame Komponenten + Endpunkt-Objekte + Guard-Tasks
@@ -438,14 +541,17 @@ function buildStage(id,name,endpoints,{hausGateDefault=true}={}){
   actions.push(...ep.actions);
  });
  return {id,type:'standard',name,generatedBy:'cms-add-admin-server-stages.cjs',grid:{columns:64,rows:48,cellWidth:24,cellHeight:24},
-  objects,variables:['Pruefung','Bereich','Haus','HausRecht','Raum','RaumAktiv','Namen','AktivWert','AvatarWert','Folge','Belegt','Vorhanden','Bestaetigt','Person','Zuordnung','Einladung','Ergebnis','Raeume','Haeuser','Personen','Kinder','Kandidaten','Mitglieder','Spiele','Zuordnungen','Sicherung'].map(variable),
+  objects,variables:['Pruefung','Bereich','Haus','HausRecht','Raum','RaumAktiv','Namen','AktivWert','AvatarWert','ArtWert','Folge','Belegt','Vorhanden','KindVorhanden','ErwachsenerVorhanden','Bestaetigt','Person','Zuordnung','Einladung','Ergebnis','AdminErgebnis','CodeErgebnis','Raeume','Haeuser','Personen','Kinder','Erwachsene','Kandidaten','Mitglieder','Spiele','Zuordnungen','Sicherung','UebersichtRaeume','UebersichtBewohner','UebersichtKinder','UebersichtFamilien','UebersichtSpiele','UebersichtEinladungen','Familien','HausSpiele','HausEinladungen'].map(variable),
   tasks,actions,flowCharts:[],events:{},startAnimation:null,features:[],group:'Server'};
 }
 
-for(const st of [buildStage('stage_server_admin','Server · Raumverwaltung',admin,{hausGateDefault:false}),buildStage('stage_server_house','Server · Hausverwaltung',house)]){
+// RaumAdmins arbeiten ausschließlich mit Raumübersicht, Bewohnerzutritt und
+// einer lesenden Spieleliste. Freigaben, Codes und Sicherungen sind Hausaufgaben.
+const roomAdminEndpoints=admin.filter(ep=>['/api/cms/admin/logout','/api/cms/admin/rooms','/api/cms/admin/games','/api/cms/admin/members','/api/cms/admin/membership'].includes(ep.path));
+for(const st of [buildStage('stage_server_admin','Server · Raumverwaltung',roomAdminEndpoints,{hausGateDefault:false}),buildStage('stage_server_house','Server · Hausverwaltung',house)]){
  const idx=project.stages.findIndex(s=>s.id===st.id);
  if(idx>=0&&project.stages[idx].generatedBy!=='cms-add-admin-server-stages.cjs'){console.log(st.id+' wurde im Editor verändert — Abbruch (JSON ist Master).');process.exit(1);}
  if(idx>=0)project.stages[idx]=st;else project.stages.push(st);
  console.log(st.id+': '+st.objects.filter(o=>o.className==='TServerEndpoint').length+' Endpunkte');
 }
-fs.writeFileSync(file,JSON.stringify(project,null,1));
+fs.writeFileSync(file,JSON.stringify(project,null,2));

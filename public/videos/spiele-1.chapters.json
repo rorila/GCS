@@ -9,12 +9,17 @@
     {
       "id": "SPIEL-01a",
       "titel": "Spiel „Rechenduell Testspiel\" hochgeladen",
-      "offset": 6.1
+      "offset": 89.6
+    },
+    {
+      "id": "SPIEL-01c",
+      "titel": "Entwurf per „Begutachten“ in Vorschau geoeffnet",
+      "offset": 103.9
     },
     {
       "id": "SPIEL-01b",
       "titel": "Spiel veroeffentlicht",
-      "offset": 7.3
+      "offset": 113
     }
   ]
 }

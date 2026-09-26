@@ -185,6 +185,10 @@ const play=build('stage_server_play','TServerPlaySession','Spielsitzungen',playF
 play.marker.events={onStart:'Server_SpielStart_Verarbeiten',onHeartbeat:'Server_SpielHeartbeat_Verarbeiten',onPause:'Server_SpielPausieren_Verarbeiten',onResume:'Server_SpielFortsetzen_Verarbeiten',onEnd:'Server_SpielBeenden_Verarbeiten',onProgress:'Server_BewertungMelden_Verarbeiten'};
 
 // ============================ stage_server_mp ================================
+const mpSimple=(prefix,taskName,method,params,resultVar)=>(tasks,actions)=>{const n=ns(prefix);
+ tasks.push({id:uid('srv_task'),name:taskName,scope:'stage',description:'Multiplayer-Einladung serverseitig prüfen und verarbeiten',actionSequence:withGuard(n,[n.call('Ausfuehren'),n.cond('Erfolgreich?',resultVar+'.ok','==',true,[n.call('Antworten')],[n.call('Fehler')])])});
+ actions.push(n.act('Ausfuehren','Partien',method,params,resultVar),n.act('Antworten','AntwortSenden','send',[{merge:'${'+resultVar+'}'}]),n.act('Fehler','AntwortSenden','fail',['${'+resultVar+'.status}','${'+resultVar+'.message}']));
+};
 const mpFns=[
  // list: eigener Raum → offene Partien
  (tasks,actions)=>{const n=ns('PartieListe');
@@ -373,7 +377,15 @@ const mpFns=[
    n.act('FehlerPartie','AntwortSenden','fail',[404,'Partie nicht gefunden.']),
    n.act('FehlerMitglied','AntwortSenden','fail',[403,'Kein Mitglied dieser Partie.']),
    n.act('FehlerHost','AntwortSenden','fail',[403,'Nur der Gastgeber beendet die Partie.']));
- }
+ },
+ mpSimple('EinladbareBewohner','Server_EinladbareBewohner_Verarbeiten','inviteCandidates',['$body.partyId'],'Kandidaten'),
+ mpSimple('BewohnerEinladen','Server_BewohnerEinladen_Verarbeiten','invite',[{partyId:'$body.partyId',personId:'$body.personId'}],'Einladung'),
+ mpSimple('EinladungenLesen','Server_EinladungenLesen_Verarbeiten','invitations',[],'Einladungen'),
+ mpSimple('EinladungBeantworten','Server_EinladungBeantworten_Verarbeiten','respondInvite',[{invitationId:'$body.invitationId',accept:'$body.accept'}],'Einladungsantwort'),
+ mpSimple('TeilnahmeZurueckziehen','Server_TeilnahmeZurueckziehen_Verarbeiten','withdrawInvite',['$body.invitationId'],'Rueckzug'),
+ mpSimple('EinladungZuruecknehmen','Server_EinladungZuruecknehmen_Verarbeiten','cancelInvite',['$body.invitationId'],'Stornierung'),
+ mpSimple('HinweiseLesen','Server_HinweiseLesen_Verarbeiten','notifications',[],'Hinweise'),
+ mpSimple('HinweisGelesen','Server_HinweisGelesen_Verarbeiten','markNotification',['$body.notificationId'],'Hinweisstatus')
 ];
 const mp=build('stage_server_mp','TServerParty','Partien',mpFns,[
  ['/api/cms/mp/list','Ep_PartieListe','Server_PartieListe_Verarbeiten'],
@@ -383,9 +395,17 @@ const mp=build('stage_server_mp','TServerParty','Partien',mpFns,[
  ['/api/cms/mp/state','Ep_PartieStatus','Server_PartieStatus_Verarbeiten'],
  ['/api/cms/mp/action','Ep_PartieAktion','Server_PartieAktion_Verarbeiten'],
  ['/api/cms/mp/begin','Ep_PartieBeginnen','Server_PartieBeginnen_Verarbeiten'],
- ['/api/cms/mp/end','Ep_PartieBeenden','Server_PartieBeenden_Verarbeiten']
-],['Pruefung','Raum','Partien','Spiel','Erlaubt','InPartie','Partie','Mitglied','Plaetze','Erstellt','Beitritt','VerlassenErgebnis','Zustand','Nutzlast','Gebucht','Begonnen','Beendet']);
-mp.marker.events={onList:'Server_PartieListe_Verarbeiten',onCreate:'Server_PartieErstellen_Verarbeiten',onJoin:'Server_PartieBeitreten_Verarbeiten',onLeave:'Server_PartieVerlassen_Verarbeiten',onState:'Server_PartieStatus_Verarbeiten',onAction:'Server_PartieAktion_Verarbeiten',onBegin:'Server_PartieBeginnen_Verarbeiten',onEnd:'Server_PartieBeenden_Verarbeiten'};
+ ['/api/cms/mp/end','Ep_PartieBeenden','Server_PartieBeenden_Verarbeiten'],
+ ['/api/cms/mp/candidates','Ep_EinladbareBewohner','Server_EinladbareBewohner_Verarbeiten'],
+ ['/api/cms/mp/invite','Ep_BewohnerEinladen','Server_BewohnerEinladen_Verarbeiten'],
+ ['/api/cms/mp/invitations','Ep_EinladungenLesen','Server_EinladungenLesen_Verarbeiten'],
+ ['/api/cms/mp/respond','Ep_EinladungBeantworten','Server_EinladungBeantworten_Verarbeiten'],
+ ['/api/cms/mp/withdraw','Ep_TeilnahmeZurueckziehen','Server_TeilnahmeZurueckziehen_Verarbeiten'],
+ ['/api/cms/mp/cancel','Ep_EinladungZuruecknehmen','Server_EinladungZuruecknehmen_Verarbeiten'],
+ ['/api/cms/mp/notifications','Ep_HinweiseLesen','Server_HinweiseLesen_Verarbeiten'],
+ ['/api/cms/mp/notification-read','Ep_HinweisGelesen','Server_HinweisGelesen_Verarbeiten']
+],['Pruefung','Raum','Partien','Spiel','Erlaubt','InPartie','Partie','Mitglied','Plaetze','Erstellt','Beitritt','VerlassenErgebnis','Zustand','Nutzlast','Gebucht','Begonnen','Beendet','Kandidaten','Einladung','Einladungen','Einladungsantwort','Rueckzug','Stornierung','Hinweise','Hinweisstatus']);
+mp.marker.events={onList:'Server_PartieListe_Verarbeiten',onCreate:'Server_PartieErstellen_Verarbeiten',onJoin:'Server_PartieBeitreten_Verarbeiten',onLeave:'Server_PartieVerlassen_Verarbeiten',onState:'Server_PartieStatus_Verarbeiten',onAction:'Server_PartieAktion_Verarbeiten',onBegin:'Server_PartieBeginnen_Verarbeiten',onEnd:'Server_PartieBeenden_Verarbeiten',onCandidates:'Server_EinladbareBewohner_Verarbeiten',onInvite:'Server_BewohnerEinladen_Verarbeiten',onInvitations:'Server_EinladungenLesen_Verarbeiten',onRespond:'Server_EinladungBeantworten_Verarbeiten',onWithdraw:'Server_TeilnahmeZurueckziehen_Verarbeiten',onCancelInvite:'Server_EinladungZuruecknehmen_Verarbeiten',onNotifications:'Server_HinweiseLesen_Verarbeiten',onNotificationRead:'Server_HinweisGelesen_Verarbeiten'};
 
 fs.writeFileSync(file,JSON.stringify(project,null,1));
 console.log('fertig');

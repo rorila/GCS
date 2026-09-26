@@ -181,7 +181,7 @@ function generateReport(results: TestResult[], timer: SuiteTimer, totalDurationM
 const HTML_REPORT_FILE = path.join(__dirname, '../docs/QA_Report.html');
 
 const AUFBAU_ORDER = [
-    'Basis & SuperAdmin', 'Haus & HouseAdmin', 'Räume', 'Kinder · Eltern · Beobachter',
+    'Basis & SuperAdmin', 'Haus & HouseAdmin', 'Räume', 'Bewohner · Raumzuordnung · Eltern · Beobachter',
     'Mandantentrennung', 'Spiele & Freigaben', 'Konten & Sitzungen'
 ];
 
@@ -723,7 +723,7 @@ async function main() {
             ];
             const AUFGABE_LABEL: Record<string, string> = {
                 '0-basis': 'Basis & SuperAdmin', '1-admin': 'Haus & HouseAdmin', '2-raeume': 'Räume',
-                '3-personen': 'Kinder · Eltern · Beobachter', '4-mandant': 'Mandantentrennung',
+                '3-personen': 'Bewohner · Raumzuordnung · Eltern · Beobachter', '4-mandant': 'Mandantentrennung',
                 '5-spiele': 'Spiele & Freigaben', '6-leben': 'Konten & Sitzungen'
             };
             const collectAufbau = (suite: string, out: string): number => {

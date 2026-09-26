@@ -19,7 +19,7 @@ const SUITES = [
   { script: 'test-aufbau-0-basis.cjs',    base: 'basis',    rolle: 'superadmin', titel: 'Minimalbestand und erstes Haus' },
   { script: 'test-aufbau-1-admin.cjs',    base: 'admin',    rolle: 'superadmin', titel: 'HouseAdmin einrichten' },
   { script: 'test-aufbau-2-raeume.cjs',   base: 'raeume',   rolle: 'houseadmin', titel: 'Raeume verwalten' },
-  { script: 'test-aufbau-3-personen.cjs', base: 'personen', rolle: 'houseadmin', titel: 'Kinder, Eltern und Beobachter' },
+  { script: 'test-aufbau-3-personen.cjs', base: 'personen', rolle: 'houseadmin', titel: 'Hausbewohner, Raumzuordnung, Eltern und Beobachter' },
   { script: 'test-aufbau-4-mandant.cjs',  base: 'mandant',  rolle: 'houseadmin', titel: 'Mehrere Haeuser und Mandantentrennung' },
   { script: 'test-aufbau-5-spiele.cjs',   base: 'spiele',   rolle: 'houseadmin', titel: 'Spiele hochladen und freigeben' },
   { script: 'test-aufbau-6-leben.cjs',    base: 'leben',    rolle: 'houseadmin', titel: 'Lebenszyklus und Sitzungen' },
@@ -39,6 +39,7 @@ const ROLLEN_REIHENFOLGE = ['superadmin', 'houseadmin', 'raumadmin', 'eltern', '
 // Alles ohne Treffer gehoert der Suite-Rolle.
 const AKTEUR = [
   [/^BASIS|^HAUS|^ADMIN/, 'superadmin'],
+  [/^RAUMMITGLIED/, 'raumadmin'],
   [/^SPIEL-03/, 'kind'],
   [/^OBS-01b/, 'beobachter'],
   [/^ELTERN-03/, 'eltern'],
@@ -52,8 +53,13 @@ const filter = process.argv[2] || null;
 const tmpVideoDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gcs-videos-'));
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-const manifestSuiten = [];
-const rollen = new Map(); // key -> {key,titel,aufgaben:[]}
+// Bei einem gefilterten Lauf werden die nicht aufgenommenen Suiten aus dem
+// vorhandenen Manifest uebernommen. So kann z.B. nur „personen" neu gedreht
+// werden, ohne die sechs anderen Themen aus der Lehrvideo-Auswahl zu loeschen.
+const manifestPath = path.join(OUT_DIR, 'feature-videos.json');
+let vorher = null;
+try { vorher = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch {}
+const manifestSuiten = filter && vorher?.suiten ? [...vorher.suiten] : [];
 
 for (const s of SUITES) {
   if (filter && !s.script.includes(filter)) continue;
@@ -84,18 +90,25 @@ for (const s of SUITES) {
     if (!fs.existsSync(path.join(OUT_DIR, webmName)) || !cj.chapters.length) continue;
     const pfad = 'videos/' + webmName;
     videos.push({ seite: cj.seite, pfad, aufgaben: cj.chapters });
-    for (const ch of cj.chapters) {
-      const rolle = akteurFuer(ch.id, s.rolle);
-      if (!rollen.has(rolle)) rollen.set(rolle, { key: rolle, titel: ROLLEN_TITEL[rolle] || rolle, aufgaben: [] });
-      rollen.get(rolle).aufgaben.push({ uid: ch.id + '@' + s.base + '-' + cj.seite, id: ch.id, titel: ch.titel, video: pfad, offset: ch.offset, suite: s.titel });
-    }
   }
-  manifestSuiten.push({ suite: s.base, titel: s.titel, rolle: s.rolle, videos });
+  const neu = { suite: s.base, titel: s.titel, rolle: s.rolle, videos };
+  const altIndex = manifestSuiten.findIndex(x => x.suite === s.base);
+  if (altIndex >= 0) manifestSuiten.splice(altIndex, 1, neu); else manifestSuiten.push(neu);
 }
 
+// Stabile Reihenfolge gemaess SUITES, danach Rollenindex aus allen erhaltenen
+// und neu aufgenommenen Kapiteln komplett neu aufbauen.
+const suiteOrder = new Map(SUITES.map((s, i) => [s.base, i]));
+manifestSuiten.sort((a, b) => (suiteOrder.get(a.suite) ?? 999) - (suiteOrder.get(b.suite) ?? 999));
+const rollen = new Map(); // key -> {key,titel,aufgaben:[]}
+for (const suite of manifestSuiten) for (const video of suite.videos || []) for (const ch of video.aufgaben || []) {
+  const rolle = akteurFuer(ch.id, suite.rolle);
+  if (!rollen.has(rolle)) rollen.set(rolle, { key: rolle, titel: ROLLEN_TITEL[rolle] || rolle, aufgaben: [] });
+  rollen.get(rolle).aufgaben.push({ uid: ch.id + '@' + suite.suite + '-' + video.seite, id: ch.id, titel: ch.titel, video: video.pfad, offset: ch.offset, suite: suite.titel });
+}
 const rollenArr = ROLLEN_REIHENFOLGE.filter(k => rollen.has(k)).map(k => rollen.get(k));
 const manifest = { erzeugt: new Date().toISOString(), rollen: rollenArr, suiten: manifestSuiten };
-fs.writeFileSync(path.join(OUT_DIR, 'feature-videos.json'), JSON.stringify(manifest, null, 2));
+fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
 try { fs.rmSync(tmpVideoDir, { recursive: true, force: true }); } catch {}
 

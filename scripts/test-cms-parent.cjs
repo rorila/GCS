@@ -64,15 +64,16 @@ await check('parent-invite: Nicht-Admin wird abgewiesen', () => {
   assert.strictEqual(r.status, 403);
 });
 
-// --- Einladung einlösen (E02, zweiter Schritt) ---
-await check('enroll: gültiger Link richtet Zugang ein und bestätigt Zuordnung', () => {
+// --- Einladung einlösen (E02): Zugang wird eingerichtet; die fachliche
+// Zuordnung bleibt bis zur Bestätigung durch einen zweiten Verantwortlichen offen.
+await check('enroll: gültiger Link richtet Zugang ein und lässt Zuordnung ausstehend', () => {
   const r = enroll(inviteToken, 'eltern-neu');
   assert.ok(r.ok, r.message);
   const inv = db.invites.find(i => i.hash === crypto.createHash('sha256').update(inviteToken).digest('hex'));
   assert.ok(inv.usedAt, 'Link als verwendet markiert');
   const g = db.guardians.find(g => g.childId === 'child-emil' && g.guardianId === inv.personId);
-  assert.strictEqual(g.status, 'confirmed', 'Zuordnung bestätigt');
-  assert.ok(g.confirmedAt);
+  assert.strictEqual(g.status, 'pending', 'Vier-Augen-Bestätigung steht noch aus');
+  assert.ok(r.message.includes('zweiten Verantwortlichen'));
 });
 
 await check('enroll: Link ist nach Verwendung ungültig', () => {
@@ -110,12 +111,13 @@ await check('account-login: falsches Passwort wird abgelehnt', async () => {
   assert.ok(r.error);
 });
 
-await check('my-children: nur bestätigte eigene Kinder', () => {
+await check('my-children: bestätigte und ausstehende Zuordnungen sind unterscheidbar', () => {
   const r = api(linaSession, 'my-children');
   const ids = r.data.items.map(i => i.id);
-  assert.deepStrictEqual(ids, ['child-lina']);
-  // pending-Zuordnung (child-mia) darf nicht auftauchen
-  assert.ok(!ids.includes('child-mia'));
+  assert.deepStrictEqual(ids, ['child-lina', 'child-mia']);
+  assert.strictEqual(r.data.items.find(i => i.id === 'child-lina').guardianStatus, 'confirmed');
+  assert.strictEqual(r.data.items.find(i => i.id === 'child-mia').guardianStatus, 'pending');
+  assert.strictEqual(r.data.items.find(i => i.id === 'child-mia').pendingApproval, true);
 });
 
 await check('child-activity: eigenes Kind liefert Spielzeit und aktuelles Spiel', () => {
@@ -186,7 +188,9 @@ await check('Widerruf: revoked-Beziehung entfernt die Sicht sofort', () => {
     g.status = 'revoked'; g.revokedAt = new Date().toISOString();
   });
   assert.strictEqual(api(sess, 'child-activity', { childId: 'child-lina' }).status, 403);
-  assert.deepStrictEqual(api(sess, 'my-children').data.items, []);
+  const remaining = api(sess, 'my-children').data.items;
+  assert.deepStrictEqual(remaining.map(i => i.id), ['child-mia']);
+  assert.strictEqual(remaining[0].guardianStatus, 'pending');
 });
 
 // --- Beobachter (E01): nur aggregiert ---

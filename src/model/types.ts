@@ -71,6 +71,7 @@ export interface ProjectMetadata {
     author: string;
     description?: string;  // Optionale Spielbeschreibung
     _sourcePath?: string;   // Interner Speicherpfad (z.B. "projects/MeinSpiel.json")
+    _diskRevision?: string; // Letzte bekannte Dateirevision für konfliktfreies AutoSave
 }
 
 /** @deprecated Altes Interface — wird durch ComponentData / TWindow ersetzt */

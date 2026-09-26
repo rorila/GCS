@@ -26,6 +26,27 @@ export class EditorProjectLoader {
         this.manager = manager;
     }
 
+    private async captureDiskRevision(data: any): Promise<void> {
+        const filePath = this.manager.currentSavePath;
+        this.manager.diskRevisionReady = false;
+        this.manager.diskSaveConflict = false;
+        if (!filePath || /^[a-zA-Z]:\//.test(filePath)) return;
+        try {
+            const response = await fetch('/api/dev/project-version', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filePath })
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const info = await response.json();
+            this.manager.diskRevision = info.revision ?? null;
+            this.manager.diskRevisionReady = true;
+            if (!data.meta) data.meta = {};
+            data.meta._diskRevision = this.manager.diskRevision;
+            this.logger.info(`[LoadProject] Dateirevision erfasst: ${String(this.manager.diskRevision).slice(0, 12) || 'neue Datei'}`);
+        } catch (err) {
+            this.logger.warn('[LoadProject] Dateirevision nicht prüfbar; Disk-AutoSave bleibt aus Sicherheitsgründen gesperrt.', err);
+        }
+    }
+
     public async triggerLoad(): Promise<void> {
         if (this.host.isProjectDirty) {
             if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen am aktuellen Projekt. Möchten Sie wirklich ein anderes Projekt laden? (Nicht gespeicherte Änderungen gehen verloren)')) {
@@ -101,6 +122,8 @@ export class EditorProjectLoader {
                 (window as any).electronFS.allowPath(this.manager.currentSavePath).catch((e: any) => this.logger.warn('Failed to allow path:', e));
             }
         }
+
+        void this.captureDiskRevision(data);
 
         // Reset dirty flag after successful load
         this.host.isProjectDirty = false;

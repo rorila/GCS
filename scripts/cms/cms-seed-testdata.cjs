@@ -1,4 +1,4 @@
-// Erzeugt synthetische CMS-Testdaten (Schema v2) + Test-Zugangsdaten.
+// Erzeugt synthetische CMS-Testdaten (aktuelles Schema) + Test-Zugangsdaten.
 // Niemals produktive Daten: eigene Ausgabedateien, explizites Zielverzeichnis.
 // Aufruf: node scripts/cms/cms-seed-testdata.cjs [zielverzeichnis]
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
@@ -23,7 +23,7 @@ const guardian = (childId, guardianId, status = 'confirmed', extra = {}) => ({
 const code = (personId, areaId, seq) => ({ personId, areaId, sequence: seq });
 
 const db = {
-  version: 3,
+  version: 5,
   areas: [
     { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     { id: 'house-sun', name: 'Haus Sonne', type: 'house', parentId: 'root', active: true, avatar: '🏡', maxDailyMinutes: 120 },
@@ -56,6 +56,14 @@ const db = {
     person('child-left', 'Lea ausgetreten', 'child'),
   ],
   memberships: [
+    // Hausmitgliedschaft = Bewohner; Raumzuordnung = Teilnahme in einem Raum.
+    member('admin-sun', 'house-sun'), member('admin-parent', 'house-sun'),
+    member('admin-moon', 'house-moon'), member('teacher-sun', 'house-sun'),
+    member('observer-sun', 'house-sun'),
+    member('child-lina', 'house-sun'), member('child-tom', 'house-sun'),
+    member('child-finn', 'house-sun'), member('child-emil', 'house-sun'),
+    member('child-mia', 'house-moon'), member('child-suspended', 'house-sun'),
+    member('child-left', 'house-sun', false),
     member('child-lina', 'room-sun-play'), member('child-lina', 'room-sun-learn'),
     member('child-tom', 'room-sun-play'),
     member('child-finn', 'room-sun-play'),
@@ -70,6 +78,8 @@ const db = {
     role('admin-parent', 'house-sun', 'areaAdmin'),
     role('admin-moon', 'house-moon', 'areaAdmin'),
     role('teacher-sun', 'room-sun-play', 'areaAdmin'),
+    role('admin-sun', 'room-sun-learn', 'areaAdmin'),
+    role('admin-moon', 'room-moon-play', 'areaAdmin'),
     role('observer-sun', 'room-sun-play', 'observer'),
     role('child-lina', 'room-sun-play', 'player'), role('child-lina', 'room-sun-learn', 'player'),
     role('child-tom', 'room-sun-play', 'player'), role('child-finn', 'room-sun-play', 'player'),
@@ -145,6 +155,9 @@ const db = {
     { eventId: 'ev-dup', childId: 'child-tom', gameId: 'game-snake', sessionId: 'ps-paused', metric: 'tasks_done', value: 5, unit: 'count', reportedAt: iso(NOW - 10 * MIN), source: 'game', schemaVersion: 1 },
   ],
   parties: [],
+  gameInvitations: [],
+  notifications: [],
+  temporaryRoomAccess: [],
   profileRequests: [
     { id: 'req-1', personId: 'child-finn', type: 'access-help', status: 'open', at: iso(NOW - 2 * H) },
     { id: 'req-2', personId: 'child-emil', type: 'access-help', status: 'resolved', at: iso(NOW - 3 * D) },
@@ -194,7 +207,7 @@ const db = {
 // Alle übrigen Entitäten entstehen später ausschließlich über echte CMS-Wege.
 function buildMinimalDb(now = Date.now()) {
   const db = {
-    version: 3,
+    version: 4,
     areas: [
       { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     ],

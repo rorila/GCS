@@ -1,5 +1,5 @@
 const crypto=require('node:crypto'),fs=require('node:fs'),path=require('node:path');
-const {areaActive,canonEmojiSeq,EMOJI_IDS,childrenOf,guardiansOf,within}=require('./cms-core.cjs');
+const {areaActive,canonEmojiSeq,EMOJI_IDS,childrenOf,guardiansOf,within,houseOf}=require('./cms-core.cjs');
 const {isSuper}=require('./cms-super.cjs');
 
 /** Serverseitige Komponentenmethoden: das einzige Code-Vocabulary, das die Server-Runtime aufrufen darf.
@@ -256,7 +256,7 @@ const methods={
   // Freigegebene Spiele eines Raums für die Sitzung (can 'play' je Spiel).
   gamesFor(ctx,_component,params){
    const areaId=exprOf(ctx,params?.[0],{});
-   const items=ctx.core.db.games.filter(g=>ctx.core.can(ctx.session,'play',{game:g,areaId})).map(g=>({id:g.id,title:g.title,avatar:g.avatar}));
+   const items=ctx.core.db.games.filter(g=>ctx.core.can(ctx.session,'play',{game:g,areaId})).map(g=>({id:g.id,title:g.title,avatar:g.avatar,multiplayer:!!g.multiplayer}));
    return{items,message:items.length?'🎮 Wähle ein Spiel':'🌱 Hier kommen bald Spiele dazu'};
   },
   // 4er-Slot-Paginierung: {items,page,fields,itemFields?,message?}
@@ -343,6 +343,25 @@ const methods={
    });
    return{ok:true};
   },
+  // RaumAdmin-Zuweisung mit Schutz des letzten aktiven RaumAdmins.
+  setRoomAdmin(ctx,_component,params){
+   const spec=params?.[0]||{},scope={};
+   const personId=exprOf(ctx,spec.personId,scope),areaId=exprOf(ctx,spec.areaId,scope),active=!!exprOf(ctx,spec.active,scope);
+   const room=ctx.core.db.areas.find(a=>a.id===areaId&&a.type==='room');
+   if(!room)return{ok:false,status:404,message:'Raum nicht gefunden.'};
+   if(!active){
+    const others=ctx.core.db.roles.filter(r=>r.areaId===areaId&&r.role==='areaAdmin'&&r.active&&r.personId!==personId);
+    if(!others.length)return{ok:false,status:409,message:'Der letzte aktive RaumAdmin kann nicht entfernt werden.'};
+   }
+   const audit=spec.audit||{};
+   ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'room-admin-set',areaId,next=>{
+    let row=next.roles.find(r=>r.personId===personId&&r.areaId===areaId&&r.role==='areaAdmin');
+    if(!row){row={personId,areaId,role:'areaAdmin'};next.roles.push(row);}
+    row.active=active;
+    if(active&&!next.roles.some(r=>r.areaId===areaId&&r.role==='areaAdmin'&&r.active&&r.primary))row.primary=true;
+   });
+   return{ok:true,active};
+  },
   // Domänenoperation: Person aktivieren/deaktivieren (Selbstschutz: eigenes Konto nicht).
   personActive(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
@@ -419,15 +438,43 @@ const methods={
    });
    return{ok:true};
   },
-  // Domänenoperation: Spielerprofil (Person + Mitgliedschaft + Spielerrolle + Emoji-Code) in einem Commit.
+  // Domänenoperation: Hausbewohner ohne erzwungene Raumzuordnung anlegen.
+  createHouseResident(ctx,_component,params){
+   const spec=params?.[0]||{},scope={};
+   const name=exprOf(ctx,spec.name,scope),avatar=exprOf(ctx,spec.avatar,scope),sequence=exprOf(ctx,spec.sequence,scope),houseId=exprOf(ctx,spec.houseId,scope),kind=exprOf(ctx,spec.kind,scope)||'child';
+   const id='person-'+crypto.randomUUID(),audit=spec.audit||{};
+   ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'house-resident-create',houseId,next=>{
+    next.people.push({id,name,avatar,kind,active:true});
+    next.memberships.push({personId:id,areaId:houseId,active:true});
+    next.roles.push({personId:id,areaId:houseId,role:'player',active:true});
+    next.codes.push({personId:id,areaId:houseId,sequence});
+   });
+   return{ok:true,id,name};
+  },
+  // Aktivieren/Deaktivieren einer Hausmitgliedschaft. Beim Austritt werden
+  // Raumzuordnungen und Raumrollen dieses Hauses entzogen; andere Häuser bleiben unberührt.
+  setHouseMembership(ctx,_component,params){
+   const spec=params?.[0]||{},scope={};
+   const personId=exprOf(ctx,spec.personId,scope),houseId=exprOf(ctx,spec.houseId,scope),active=!!exprOf(ctx,spec.active,scope),audit=spec.audit||{};
+   ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'house-membership-set',houseId,next=>{
+    let row=next.memberships.find(m=>m.personId===personId&&m.areaId===houseId);
+    if(!row){row={personId,areaId:houseId,active};next.memberships.push(row);}else row.active=active;
+    if(!active){
+     for(const m of next.memberships)if(m.personId===personId&&m.areaId!==houseId&&within(next,m.areaId,houseId))m.active=false;
+     for(const r of next.roles)if(r.personId===personId&&r.areaId!==houseId&&within(next,r.areaId,houseId))r.active=false;
+    }
+   });
+   return{ok:true,active};
+  },
+  // Kompatibler Schnellweg: Bewohner anlegen und sofort einem Raum zuordnen.
   createPlayer(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
    const name=exprOf(ctx,spec.name,scope),avatar=exprOf(ctx,spec.avatar,scope),sequence=exprOf(ctx,spec.sequence,scope),roomId=exprOf(ctx,spec.roomId,scope),houseId=exprOf(ctx,spec.houseId,scope);
    const id='person-'+crypto.randomUUID(),audit=spec.audit||{};
    ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'person-create',roomId,next=>{
     next.people.push({id,name,avatar,kind:'child',active:true});
-    next.memberships.push({personId:id,areaId:roomId,active:true});
-    next.roles.push({personId:id,areaId:roomId,role:'player',active:true});
+    next.memberships.push({personId:id,areaId:houseId,active:true},{personId:id,areaId:roomId,active:true});
+    next.roles.push({personId:id,areaId:houseId,role:'player',active:true},{personId:id,areaId:roomId,role:'player',active:true});
     next.codes.push({personId:id,areaId:houseId,sequence});
    });
    return{ok:true,id,name};
@@ -531,6 +578,17 @@ const methods={
    if(!game||game.status==='blocked'||typeof b.published!=='boolean')return{ok:false,message:'Spiel nicht verfügbar.'};
    ctx.commit(ctx.session,'game-publish',null,next=>{next.games.find(g=>g.id===game.id).status=b.published?'published':'draft';});
    return{ok:true};
+  },
+  // Begutachtung eigener Spiele unabhängig vom Status: /play/-Vorschau-Launch
+  // ohne Spielsitzung und Zeitbuchung. Die Route prüft dafür eine
+  // Verwaltungssitzung statt Spielfreigabe; der Schlüssel ist kurzlebig.
+  previewGame(ctx){
+   const b=ctx.body||{},game=ctx.core.db.games.find(g=>g.id===b.id&&g.ownerId===ctx.session.personId);
+   if(!game)return{ok:false,message:'Spiel nicht verfügbar.'};
+   for(const[key,l]of ctx.launches)if(l.preview&&Date.now()-l.created>600e3)ctx.launches.delete(key);
+   const key=crypto.randomBytes(24).toString('hex');
+   ctx.launches.set(key,{preview:true,gameId:game.id,created:Date.now()});
+   return{ok:true,launch:'/play/'+key,message:'Vorschau wird geöffnet.'};
   }
  },
  // --- Spielsitzungen (P3): Zeitbuchung serverseitig, State-Atoms --------------
@@ -637,6 +695,80 @@ const methods={
  // Session-Lebenszyklus geht über ctx.play (der play-Adapter) — Zeitbudget greift
  // so auch in der Gruppe.
  TServerParty:{
+  // Einladbare Bewohner desselben Hauses. Ein Raumzutritt ist noch nicht nötig:
+  // genau dafür legt invite() einen zeitlich begrenzten Zutritt an.
+  inviteCandidates(ctx,_component,params){
+   const db=ctx.core.db,p=db.parties.find(x=>x.id===exprOf(ctx,params?.[0],{}));
+   if(!p)return{ok:false,status:404,message:'Partie nicht gefunden.'};
+   if(p.hostId!==ctx.session.personId)return{ok:false,status:403,message:'Nur der Gastgeber kann einladen.'};
+   if(p.status!=='open')return{ok:false,status:409,message:'Diese Partie nimmt keine Einladungen mehr an.'};
+   const houseId=p.houseId||houseOf(db,p.areaId)?.id,activeMembers=new Set(p.members.filter(m=>!m.leftAt).map(m=>m.personId));
+   const residents=new Set(db.memberships.filter(m=>m.areaId===houseId&&m.active).map(m=>m.personId));
+   const items=db.people.filter(person=>person.active&&residents.has(person.id)&&!activeMembers.has(person.id))
+    .map(person=>({id:person.id,name:person.name,avatar:person.avatar||'🙂',invited:(db.gameInvitations||[]).some(i=>i.sessionId===p.id&&i.invitedPersonId===person.id&&i.status==='pending'&&Number(i.expiresAt)>Date.now())}));
+   return{ok:true,items,message:items.length?'Bewohner auswählen':'Alle Bewohner sind bereits dabei.'};
+  },
+  invite(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,partyId=exprOf(ctx,spec.partyId,{}),personId=exprOf(ctx,spec.personId,{}),p=db.parties.find(x=>x.id===partyId);
+   if(!p)return{ok:false,status:404,message:'Partie nicht gefunden.'};
+   if(p.hostId!==ctx.session.personId)return{ok:false,status:403,message:'Nur der Gastgeber kann einladen.'};
+   if(p.status!=='open')return{ok:false,status:409,message:'Die Partie wurde bereits gestartet oder beendet.'};
+   const houseId=p.houseId||houseOf(db,p.areaId)?.id,person=db.people.find(x=>x.id===personId&&x.active);
+   if(!person||!db.memberships.some(m=>m.personId===personId&&m.areaId===houseId&&m.active))return{ok:false,status:403,message:'Nur aktive Bewohner dieses Hauses können eingeladen werden.'};
+   if(p.members.some(m=>m.personId===personId&&!m.leftAt))return{ok:false,status:409,message:'Die Person ist bereits in der Partie.'};
+   if((db.gameInvitations||[]).some(i=>i.sessionId===p.id&&i.invitedPersonId===personId&&i.status==='pending'&&Number(i.expiresAt)>Date.now()))return{ok:false,status:409,message:'Für diese Person liegt bereits eine Einladung vor.'};
+   const id='invite-'+crypto.randomUUID(),accessId='temp-room-'+crypto.randomUUID(),now=Date.now(),expiresAt=now+5*60*1000;
+   ctx.commit(ctx.session,'party-invite',p.areaId,next=>{
+    next.gameInvitations.push({id,sessionId:p.id,inviterPersonId:ctx.session.personId,invitedPersonId:personId,roomId:p.areaId,status:'pending',createdAt:new Date(now).toISOString(),expiresAt});
+    next.temporaryRoomAccess.push({id:accessId,sessionId:p.id,invitationId:id,personId,roomId:p.areaId,active:true,createdAt:new Date(now).toISOString(),expiresAt});
+    next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:personId,type:'game-invitation',invitationId:id,read:false,createdAt:new Date(now).toISOString()});
+   });
+   return{ok:true,invitationId:id,expiresAt,message:person.name+' wurde eingeladen.'};
+  },
+  invitations(ctx){
+   const db=ctx.core.db,now=Date.now(),decorate=i=>{const p=db.parties.find(x=>x.id===i.sessionId),host=db.people.find(x=>x.id===i.inviterPersonId),game=p&&db.games.find(g=>g.id===p.gameId),room=p&&db.areas.find(a=>a.id===p.areaId);return{id:i.id,partyId:i.sessionId,status:i.status==='pending'&&Number(i.expiresAt)<=now?'expired':i.status,host:host?.name||'',game:game?.title||'',room:room?.name||'',expiresAt:i.expiresAt};};
+   return{ok:true,items:(db.gameInvitations||[]).filter(i=>i.invitedPersonId===ctx.session.personId).map(decorate),outgoing:(db.gameInvitations||[]).filter(i=>i.inviterPersonId===ctx.session.personId).map(decorate)};
+  },
+  respondInvite(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,id=exprOf(ctx,spec.invitationId,{}),accept=!!exprOf(ctx,spec.accept,{}),inv=(db.gameInvitations||[]).find(i=>i.id===id);
+   if(!inv)return{ok:false,status:404,message:'Einladung nicht gefunden.'};
+   if(inv.invitedPersonId!==ctx.session.personId)return{ok:false,status:403,message:'Diese Einladung gehört zu einer anderen Person.'};
+   if(inv.status!=='pending')return{ok:false,status:409,message:'Die Einladung wurde bereits bearbeitet.'};
+   const p=db.parties.find(x=>x.id===inv.sessionId),now=Date.now();
+   if(Number(inv.expiresAt)<=now||!p||p.status!=='open'){
+    ctx.commit(ctx.session,'party-invite-expire',inv.roomId,next=>{next.gameInvitations.find(x=>x.id===id).status='expired';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;});
+    return{ok:false,status:410,message:'Die Einladung ist nicht mehr gültig.'};
+   }
+   if(!accept){ctx.commit(ctx.session,'party-invite-decline',p.areaId,next=>{next.gameInvitations.find(x=>x.id===id).status='declined';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-declined',invitationId:id,read:false,createdAt:new Date().toISOString()});});return{ok:true,status:'declined',message:'Einladung abgelehnt.'};}
+   const game=db.games.find(g=>g.id===p.gameId),count=p.members.filter(m=>!m.leftAt).length,max=game?.multiplayer?.maxPlayers;
+   if(max&&count>=max)return{ok:false,status:409,message:'Die Partie ist inzwischen voll.'};
+   const started=ensurePartySession(ctx,p.gameId,p.areaId);if(!started.data.ok)return{ok:false,status:started.status,message:started.data.message};
+   ctx.commit(ctx.session,'party-invite-accept',p.areaId,next=>{const np=next.parties.find(x=>x.id===p.id);np.members.push({personId:ctx.session.personId,playSessionId:started.data.playSessionId,joinedAt:new Date().toISOString(),invitationId:id});next.gameInvitations.find(x=>x.id===id).status='accepted';next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-accepted',invitationId:id,read:false,createdAt:new Date().toISOString()});});
+   const key=crypto.randomBytes(24).toString('hex');ctx.launches.set(key,{token:ctx.body.token,gameId:p.gameId,areaId:p.areaId,playSessionId:started.data.playSessionId,partyId:p.id});
+   return{ok:true,status:'accepted',partyId:p.id,launch:'/play/'+key,message:'Einladung angenommen. Die Partie wird geöffnet.'};
+  },
+  withdrawInvite(ctx,_component,params){
+   const id=exprOf(ctx,params?.[0],{}),db=ctx.core.db,inv=(db.gameInvitations||[]).find(i=>i.id===id),p=inv&&db.parties.find(x=>x.id===inv.sessionId);
+   if(!inv||!p)return{ok:false,status:404,message:'Einladung oder Partie nicht gefunden.'};
+   if(inv.invitedPersonId!==ctx.session.personId)return{ok:false,status:403,message:'Diese Einladung gehört zu einer anderen Person.'};
+   if(inv.status!=='accepted'||p.status!=='open')return{ok:false,status:409,message:'Der Beitritt kann jetzt nicht mehr zurückgezogen werden.'};
+   const member=p.members.find(m=>m.personId===ctx.session.personId&&!m.leftAt);
+   ctx.commit(ctx.session,'party-invite-withdraw',p.areaId,next=>{next.gameInvitations.find(x=>x.id===id).status='withdrawn';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;const m=next.parties.find(x=>x.id===p.id).members.find(x=>x.personId===ctx.session.personId&&!x.leftAt);if(m)m.leftAt=new Date().toISOString();next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-withdrawn',invitationId:id,read:false,createdAt:new Date().toISOString()});});
+   if(member?.playSessionId)ctx.play.api(ctx.session,'end',{playSessionId:member.playSessionId});
+   return{ok:true,message:'Teilnahme zurückgezogen. Der Gastgeber wurde informiert.'};
+  },
+  cancelInvite(ctx,_component,params){
+   const id=exprOf(ctx,params?.[0],{}),db=ctx.core.db,inv=(db.gameInvitations||[]).find(i=>i.id===id),p=inv&&db.parties.find(x=>x.id===inv.sessionId);
+   if(!inv||!p)return{ok:false,status:404,message:'Einladung oder Partie nicht gefunden.'};
+   if(p.hostId!==ctx.session.personId)return{ok:false,status:403,message:'Nur der Gastgeber kann diese Einladung zurücknehmen.'};
+   if(!['pending','accepted'].includes(inv.status)||p.status!=='open')return{ok:false,status:409,message:'Diese Einladung kann nicht mehr zurückgenommen werden.'};
+   const member=p.members.find(m=>m.personId===inv.invitedPersonId&&!m.leftAt);
+   ctx.commit(ctx.session,'party-invite-cancel',p.areaId,next=>{next.gameInvitations.find(x=>x.id===id).status='cancelled';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;const m=next.parties.find(x=>x.id===p.id).members.find(x=>x.personId===inv.invitedPersonId&&!x.leftAt);if(m)m.leftAt=new Date().toISOString();next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:inv.invitedPersonId,type:'game-invitation-cancelled',invitationId:id,read:false,createdAt:new Date().toISOString()});});
+   if(member?.playSessionId)ctx.play.api({personId:inv.invitedPersonId},'end',{playSessionId:member.playSessionId});
+   return{ok:true,message:'Einladung zurückgenommen.'};
+  },
+  notifications(ctx){const db=ctx.core.db;return{ok:true,items:(db.notifications||[]).filter(n=>n.recipientPersonId===ctx.session.personId).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).map(n=>({id:n.id,type:n.type,read:!!n.read,invitationId:n.invitationId||'',createdAt:n.createdAt}))};},
+  markNotification(ctx,_component,params){const id=exprOf(ctx,params?.[0],{}),n=(ctx.core.db.notifications||[]).find(x=>x.id===id&&x.recipientPersonId===ctx.session.personId);if(!n)return{ok:false,status:404,message:'Hinweis nicht gefunden.'};ctx.commit(ctx.session,'notification-read','root',next=>{next.notifications.find(x=>x.id===id).read=true;});return{ok:true};},
   // Offene Partien eines Raums (Raumzugehörigkeit prüft der Task).
   partyList(ctx,_component,params){
    const db=ctx.core.db,areaId=exprOf(ctx,params?.[0],{});

@@ -1,7 +1,10 @@
 // Aufbau ab null — KIND-01, ELTERN-01/02/03, OBS-01 (docs/CMS-Testkatalog.md).
 // Voraussetzung (echte UI): zwei HouseAdmins (Vier-Augen-Prinzip!) und ein
-// Raum. Aufgaben: Kind mit Emoji-Code anlegen, Eltern einladen und per
-// Zweitbestaetigung zuordnen, Beobachter raumgebunden einladen.
+// Raum. Der aktuelle Rollenablauf wird vollstaendig gezeigt: Bewohner zuerst
+// auf Hausebene anlegen, danach dem Raum zuordnen, Eltern einladen und per
+// Zweitbestaetigung zuordnen, Beobachter raumgebunden einladen. Abschliessend
+// wird die Hausmitgliedschaft deaktiviert/reaktiviert und die bewusst nicht
+// automatisch wiederhergestellte Raumzuordnung nachgewiesen.
 // Folgeaufgaben haengen an Ressourcen (dep), nicht nur am Aufgabenerfolg.
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
@@ -57,21 +60,46 @@ const enroll=async(browser,link,username)=>{
    assert.ok(await cardWait(adm,'Spielraum'),'Raumkarte nicht sichtbar');
   },adm);
 
-  // ── KIND-01a: Kind mit Emoji-Code im Raum anlegen ─────────────────
+  // ── BEWOHNER-01a: Bewohner auf Hausebene anlegen ──────────────────
   let lina=null;
-  await task('KIND-01a','Kind „Lina Kind" mit Emoji-Code angelegt',[dep('VORAUS-R',()=>!!raum)],async()=>{
-   assert.ok(await card(adm,'Spielraum'),'Raumkarte nicht waehlbar');
+  await task('BEWOHNER-01a','Hausbewohnerin „Lina Kind" ohne Raum angelegt',[dep('VORAUS-R',()=>!!raum)],async()=>{
+   await click(adm,'Bewohner');
    await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Lina Kind');
    await adm.locator('[placeholder="🦊"]').fill('🦊');
    await adm.getByPlaceholder('dog,tree,house,elephant',{exact:true}).fill('owl,dog,tree,house');
    await click(adm,'PersonCreate');
    lina=env.file().people.find(p=>p.name==='Lina Kind');
-   assert.ok(lina,'Kind fehlt im Datenbestand');
+   assert.ok(lina,'Bewohnerin fehlt im Datenbestand');
    assert.ok(env.file().codes.some(c=>c.personId===lina.id),'Emoji-Code fehlt');
+   const active=env.file().memberships.filter(m=>m.personId===lina.id&&m.active);
+   assert.deepEqual(active.map(m=>m.areaId),[sonne.id],'Bewohnerin darf zunaechst nur dem Haus angehoeren');
   },adm);
 
-  // ── KIND-01b: Kind im Kinder-Tab sichtbar ─────────────────────────
-  await task('KIND-01b','Kind erscheint im Kinder-Tab',[dep('KIND-01a',()=>!!lina)],async()=>{
+  // ── BEWOHNER-01b: Bewohner in der Hausliste sichtbar ──────────────
+  await task('BEWOHNER-01b','Bewohnerin erscheint in der Hausbewohnerliste',[dep('BEWOHNER-01a',()=>!!lina)],async()=>{
+   assert.ok(await cardWait(adm,'Lina Kind'),'Bewohnerkarte fehlt: '+(await cardTexts(adm)).join('|'));
+  },adm);
+
+  // ── RAUMMITGLIED-01: Hausbewohner einem Raum zuordnen ─────────────
+  await task('RAUMMITGLIED-01','RaumAdmin ordnet Bewohnerin dem Spielraum zu',[dep('BEWOHNER-01b',()=>!!lina),dep('VORAUS-R',()=>!!raum)],async()=>{
+   await click(adm,'Navigation_stage_admin');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_admin',null,{timeout:10000});
+   await busy(adm);
+   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Raum')?.value, null, {timeout:10000});
+   await click(adm,'Mitglieder');
+   assert.ok(await cardWait(adm,'Lina Kind'),'Hausbewohnerin fehlt in der Raummitgliederliste');
+   assert.ok(await card(adm,'Lina Kind'),'Bewohnerin nicht waehlbar');
+   // Die Mitgliederkarte ist bewusst ein direkter An/Aus-Schalter. Das
+   // Haekchen erscheint nach erfolgreicher Serverantwort auf derselben Karte.
+   assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'aktive Raumzuordnung fehlt');
+  },adm);
+
+  // ── KIND-01: Zugeordnete Bewohnerin ist als Kind nutzbar ──────────
+  await task('KIND-01','Zugeordnete Bewohnerin erscheint im Kinder-Tab',[dep('RAUMMITGLIED-01',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===raum?.id&&m.active))],async()=>{
+   await click(adm,'Navigation_stage_house');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
+   await busy(adm);
+   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Haus')?.value, null, {timeout:10000});
    await click(adm,'KinderTab');
    assert.ok(await cardWait(adm,'Lina Kind'),'Kinderkarte fehlt: '+(await cardTexts(adm)).join('|'));
   },adm);
@@ -80,7 +108,7 @@ const enroll=async(browser,link,username)=>{
   let pLink=null,petra=null;
   const pending=()=>env.file().guardians.some(g=>g.childId===lina?.id&&g.guardianId===petra?.id&&g.status==='pending');
   const confirmed=()=>env.file().guardians.some(g=>g.childId===lina?.id&&g.guardianId===petra?.id&&g.status==='confirmed');
-  await task('ELTERN-01','Eltern-Einladung erzeugt, Zuordnung ausstehend',[dep('KIND-01b',()=>!!lina)],async()=>{
+  await task('ELTERN-01','Eltern-Einladung erzeugt, Zuordnung ausstehend',[dep('KIND-01',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===raum?.id&&m.active))],async()=>{
    assert.ok(await card(adm,'Lina Kind'),'Kinderkarte nicht waehlbar');
    await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Petra Eltern');
    await click(adm,'ElternEinladen');
@@ -159,6 +187,27 @@ const enroll=async(browser,link,username)=>{
    await ob.waitForFunction(()=>window.player.runtime.stage.id==='stage_observer',null,{timeout:10000});
    await ob.close();
   },null);
+
+  // ── BEWOHNER-02: Hausstatus steuert alle Rechte in diesem Haus ────
+  await task('BEWOHNER-02a','HouseAdmin deaktiviert die Hausbewohnerin',[dep('RAUMMITGLIED-01',()=>!!lina)],async()=>{
+   await click(adm,'Navigation_stage_house');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
+   await busy(adm);
+   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Haus')?.value, null, {timeout:10000});
+   await click(adm,'Bewohner');
+   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='VerwaltungsModus')?.value==='house-people',null,{timeout:10000});
+   assert.ok(await card(adm,'Lina Kind'),'Bewohnerin zur Deaktivierung nicht waehlbar');
+   await click(adm,'PersonToggle');
+   assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&!m.active),'Hausmitgliedschaft nicht deaktiviert');
+   assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&!m.active),'Raumzuordnung nicht entzogen');
+  },adm);
+
+  await task('BEWOHNER-02b','Reaktivierung stellt Raumzuordnung nicht automatisch wieder her',[dep('BEWOHNER-02a',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===sonne?.id&&!m.active))],async()=>{
+   assert.ok(await card(adm,'Lina Kind'),'deaktivierte Bewohnerin nicht mehr sichtbar');
+   await click(adm,'PersonToggle');
+   assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&m.active),'Hausmitgliedschaft nicht reaktiviert');
+   assert.ok(!env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Raumzuordnung wurde unbemerkt wiederhergestellt');
+  },adm);
  }finally{
   if(browser)await finalizeBrowserVideos(browser,{base:process.env.GCS_VIDEO_BASE||'aufbau-personen'});
   await env.close();

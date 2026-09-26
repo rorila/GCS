@@ -83,12 +83,15 @@ export class EditorProjectSaver {
             const res = await fetch('/api/dev/save-project', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.host.project)
+                body: JSON.stringify({ projectData: this.host.project, filePath: this.manager.currentSavePath, expectedRevision: this.manager.diskRevision })
             });
             const data = await res.json();
             if (data.success) {
+                this.acceptDiskRevision(data.revision);
                 this.host.isProjectDirty = false;
                 NotificationToast.show('Projekt erfolgreich gespeichert und auf Disk persistiert!', 'success');
+            } else if (data.conflict || res.status === 409) {
+                this.blockOnConflict();
             } else {
                 NotificationToast.show('Fehler beim Speichern auf Disk: ' + (data.error || 'Unbekannter Fehler'), 'error');
             }
@@ -134,6 +137,7 @@ export class EditorProjectSaver {
         const safeGameName = gameName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
         // Pfad: Ordner aus currentSavePath übernehmen, Dateiname IMMER aus aktuellem meta.name
         let targetFilePath: string;
+        const previousSavePath = this.manager.currentSavePath;
         if (this.manager.currentSavePath) {
             // Bullet-proof Sanitization: Falls dirty state noch projects/C:/... enthält
             // und konvertiere alle Backslashes zu Forward-Slashes für sichere Pfadoperationen
@@ -153,6 +157,12 @@ export class EditorProjectSaver {
         } else {
             targetFilePath = `projects/master_test/${safeGameName}.json`;
             this.manager.currentSavePath = targetFilePath;
+        }
+        if (previousSavePath !== targetFilePath) {
+            // Neuer Zielpfad: Erwartung ist „Datei existiert noch nicht".
+            this.manager.diskRevision = null;
+            this.manager.diskRevisionReady = true;
+            this.manager.diskSaveConflict = false;
         }
 
         try {
@@ -225,11 +235,12 @@ export class EditorProjectSaver {
             const saveRes = await fetch('/api/dev/save-custom', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filePath: targetFilePath, projectData: this.host.project })
+                body: JSON.stringify({ filePath: targetFilePath, projectData: this.host.project, expectedRevision: this.manager.diskRevision })
             });
             const saveData = await saveRes.json();
 
             if (saveData.success) {
+                this.acceptDiskRevision(saveData.revision);
                 // Sicherheit: nach potenziellen async DATA_CHANGED Events nochmals zurücksetzen
                 setTimeout(() => { this.host.isProjectDirty = false; }, 0);
 
@@ -238,6 +249,10 @@ export class EditorProjectSaver {
                 this.updateProjectPathDisplay();
                 if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'success');
                 return { success: true, message: msg };
+            } else if (saveData.conflict || saveRes.status === 409) {
+                this.blockOnConflict();
+                this.host.isProjectDirty = true;
+                return { success: false, message: 'Speicherkonflikt: Die Datei auf der Platte ist neuer. Bitte das Projekt vom Server neu laden.' };
             } else {
                 // Falls Speichern fehl schlägt: Zustand zurücksetzen
                 this.host.isProjectDirty = true;
@@ -282,6 +297,9 @@ export class EditorProjectSaver {
                 let combinedPath = newPath || `projects/${newHandle?.name}`;
                 this.manager.currentSavePath = combinedPath.replace(/\\/g, '/');
                 this.manager.currentFileHandle = newHandle;
+                this.manager.diskRevision = null;
+                this.manager.diskRevisionReady = true;
+                this.manager.diskSaveConflict = false;
 
                 const fileBaseName = (newPath?.replace(/^.*[\\/]/, '') || newHandle?.name || '').replace('.json', '');
                 if (!this.host.project.meta) (this.host.project as any).meta = {};
@@ -309,6 +327,9 @@ export class EditorProjectSaver {
         // Neuen Speicherpfad setzen
         this.manager.currentFileHandle = null; // Auf Server gespeichert, lokales Handle verwerfen
         this.manager.currentSavePath = `projects/${result.folder}/${result.filename}`;
+        this.manager.diskRevision = null;
+        this.manager.diskRevisionReady = true;
+        this.manager.diskSaveConflict = false;
 
         // Dirty-Flag forcieren, damit saveProjectToFile den Änderungs-Check übergeht
         this.host.isProjectDirty = true;
@@ -342,8 +363,30 @@ export class EditorProjectSaver {
         }
     }
 
+    private acceptDiskRevision(revision: string | null | undefined): void {
+        if (revision === undefined) return;
+        this.manager.diskRevision = revision;
+        this.manager.diskRevisionReady = true;
+        this.manager.diskSaveConflict = false;
+        if (!this.host.project.meta) this.host.project.meta = {} as any;
+        (this.host.project.meta as any)._diskRevision = revision;
+        projectPersistenceService.autoSaveToLocalStorage(this.host.project);
+    }
+
+    private blockOnConflict(): void {
+        this.manager.diskSaveConflict = true;
+        this.host.isProjectDirty = true;
+        NotificationToast.show('AutoSave gestoppt: Die Projektdatei wurde außerhalb dieses Browserstands geändert. Bitte „Vom Server neu laden (Force)“ verwenden.', 'error');
+        this.logger.warn('[AutoSave] Schreibkonflikt erkannt; weitere Disk-Saves sind gesperrt.');
+    }
+
     private performDiskSave(): void {
         if (!this.host.project) return;
+        if (this.manager.diskSaveConflict) return;
+        if (!this.manager.diskRevisionReady) {
+            this.logger.warn('[AutoSave] Übersprungen: Dateirevision ist noch nicht sicher bekannt.');
+            return;
+        }
 
         const nativeAdapter = projectPersistenceService.getNativeAdapter();
 
@@ -352,12 +395,15 @@ export class EditorProjectSaver {
                 fetch('/api/dev/save-project', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(this.host.project)
+                    body: JSON.stringify({ projectData: this.host.project, filePath: this.manager.currentSavePath, expectedRevision: this.manager.diskRevision })
                 }).then(res => res.json())
                     .then(data => {
                         if (data.success) {
+                            this.acceptDiskRevision(data.revision);
                             this.logger.debug(`[PERSISTENT] Dev-Server Fallback erfolgreich.`);
                             this.notifyAutosaveSuccess();
+                        } else if (data.conflict) {
+                            this.blockOnConflict();
                         }
                     })
                     .catch(err => {
@@ -406,6 +452,8 @@ export class EditorProjectSaver {
 
     public updateProjectJSON(): void {
         if (this.host.project) {
+            if (!this.host.project.meta) this.host.project.meta = {} as any;
+            (this.host.project.meta as any)._diskRevision = this.manager.diskRevision;
             // 1. In LocalStorage sichern (Crash-Schutz)
             projectPersistenceService.autoSaveToLocalStorage(this.host.project);
 

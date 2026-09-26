@@ -47,9 +47,10 @@ const PORT=15220;
 
   // ── HAUS-01a: Häuser-Tabelle zeigt verständlichen Leerzustand ──────
   await task('HAUS-01a','Häuser-Tabelle zeigt Leerzustand',[dep('BASIS-01b',()=>!!page)],async()=>{
+   const initResp=initRequest(page,'super-houses');
    await click(page,'Navigation_stage_super_houses');
    await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_super_houses',null,{timeout:10000});
-   await initRequest(page,'super-houses');await busy(page);
+   await initResp;await busy(page);
    const hausSel=await sel(page,'HausTabelle');
    await page.waitForFunction(()=>{const t=window.player.runtime.getObjects().find(o=>o.name==='HausTabelle');return t&&t.getRows&&t.getRows().length===0},null,{timeout:8000});
    const emptyText=await page.locator(hausSel).innerText();

@@ -2,8 +2,9 @@
   "meta": {
     "id": "gcs-feature-videos",
     "name": "GCS-FeatureVideos",
-    "version": "1.0.0",
-    "description": "Video-Uebersicht der CMS-Features nach Rolle und Aufgabe. Datenquelle: videos/feature-videos.json (scripts/record-feature-videos.cjs)."
+    "version": "1.1.0",
+    "description": "Aus den echten CMS-Aufbau-Tests erzeugte Lehrvideos. Enthält das aktuelle Rollenmodell mit Hausbewohnern, getrennten Raumzuordnungen und den Verwaltungsabläufen von SuperAdmin, HouseAdmin und RaumAdmin.",
+    "_sourcePath": "projects/GCS-FeatureVideos.json"
   },
   "activeStageId": "stage_auswahl",
   "stage": {
@@ -52,7 +53,15 @@
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
-          "style": {},
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
           "value": null
         },
         {
@@ -75,8 +84,16 @@
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
-          "style": {},
-          "value": ""
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
         },
         {
           "className": "TStringVariable",
@@ -98,8 +115,16 @@
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
-          "style": {},
-          "value": ""
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
         },
         {
           "className": "TStringVariable",
@@ -121,8 +146,16 @@
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
-          "style": {},
-          "value": ""
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
         },
         {
           "className": "TRealVariable",
@@ -144,8 +177,45 @@
           "rotation": 0,
           "align": "NONE",
           "collisionEnabled": false,
-          "style": {},
-          "value": 0
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "real",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "System internal flag to track unsaved changes",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
         }
       ],
       "tasks": [],
@@ -167,7 +237,7 @@
     {
       "id": "stage_auswahl",
       "type": "standard",
-      "name": "Auswahl",
+      "name": "Lehrvideos · Rollen und Abläufe",
       "group": "FeatureVideos",
       "grid": {
         "cols": 64,
@@ -231,7 +301,7 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "text": "Rolle wählen, dann eine Aufgabe — das Video springt zum Kapitel der Aufgabe."
+          "text": "Rolle wählen, dann einen geprüften Ablauf. Die Kapitel werden direkt aus den aktuellen CMS-Aufbau-Tests erzeugt."
         },
         {
           "className": "TObjectList",
@@ -239,13 +309,11 @@
           "name": "RollenListe",
           "scope": "stage",
           "isVariable": true,
-          "isHiddenInRun": false,
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
-          "events": {
-            "onSelect": "Rolle_Waehlen"
-          },
           "description": "Rollen mit vorhandenen Feature-Videos",
           "visible": true,
           "x": 2,
@@ -306,13 +374,11 @@
           "name": "AufgabenListe",
           "scope": "stage",
           "isVariable": true,
-          "isHiddenInRun": false,
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
-          "events": {
-            "onSelect": "Aufgabe_Waehlen"
-          },
           "description": "Aufgaben der gewaehlten Rolle",
           "visible": true,
           "x": 22,
@@ -402,7 +468,7 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "text": "Videos werden geladen …"
+          "text": "Aktuelle Testvideos werden geladen …"
         },
         {
           "className": "TTimer",
@@ -435,6 +501,135 @@
           "enabled": true,
           "maxInterval": 1,
           "currentInterval": 0
+        },
+        {
+          "className": "TTable",
+          "id": "fv_tbl-rollen",
+          "name": "RollenTabelle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onSelect": "Rolle_Waehlen"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 7,
+          "width": 18,
+          "height": 29,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 16,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "RollenListe",
+          "keyField": "key",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "field": "titel",
+              "label": "Rolle",
+              "type": "header",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "field": "key",
+              "label": "Schlüssel",
+              "type": "meta",
+              "x": 0,
+              "y": 1.6
+            }
+          ],
+          "displayMode": "cards",
+          "cardConfig": {
+            "width": 300,
+            "height": 96,
+            "gap": 12,
+            "padding": 12
+          },
+          "rowHeight": 58,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1
+        },
+        {
+          "className": "TTable",
+          "id": "fv_tbl-aufgaben",
+          "name": "AufgabenTabelle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onSelect": "Aufgabe_Waehlen"
+          },
+          "visible": true,
+          "x": 22,
+          "y": 7,
+          "width": 40,
+          "height": 29,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#eefafa",
+            "fontSize": 16,
+            "backgroundColor": "#193b49",
+            "borderColor": "#65b9b1",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "dataSource": "AufgabenListe",
+          "keyField": "uid",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [],
+          "columns": [
+            {
+              "field": "titel",
+              "label": "Aufgabe",
+              "type": "header",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "field": "id",
+              "label": "ID",
+              "type": "meta",
+              "x": 0,
+              "y": 1.6
+            },
+            {
+              "field": "suite",
+              "label": "Suite",
+              "type": "meta",
+              "x": 0,
+              "y": 3.2
+            }
+          ],
+          "displayMode": "cards",
+          "cardConfig": {
+            "width": 300,
+            "height": 96,
+            "gap": 12,
+            "padding": 12
+          },
+          "rowHeight": 58,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1
         }
       ],
       "variables": [],
@@ -481,12 +676,12 @@
           "description": "Auswahl merken, Video-Stage oeffnen",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "Act_Auswahl_Merken"
+              "name": "Act_Auswahl_Merken",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "Act_Nav_Video"
+              "name": "Act_Nav_Video",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -503,7 +698,9 @@
           "method": "GET",
           "resultVariable": "Manifest",
           "scope": "stage",
-          "directFetch": true
+          "directFetch": true,
+          "queryOperator": "==",
+          "resultVariable_ref": "fv_var-manifest"
         },
         {
           "id": "fv_act-rollen",
@@ -514,7 +711,8 @@
           "params": [
             "${Manifest.rollen}"
           ],
-          "scope": "stage"
+          "scope": "stage",
+          "target_ref": "fv_list-rollen"
         },
         {
           "id": "fv_act-status",
@@ -532,19 +730,20 @@
           "target": "AufgabenListe",
           "method": "tryReplaceRecords",
           "params": [
-            "${RollenListe.selectedRecord.aufgaben}"
+            "${RollenTabelle.selectedRecord.aufgaben}"
           ],
-          "scope": "stage"
+          "scope": "stage",
+          "target_ref": "fv_list-aufgaben"
         },
         {
           "id": "fv_act-merken",
           "name": "Act_Auswahl_Merken",
           "type": "property",
           "changes": {
-            "GewaehltesVideo": "${AufgabenListe.selectedRecord.video}",
-            "GewaehlterOffset": "${AufgabenListe.selectedRecord.offset}",
-            "GewaehlterTitel": "${AufgabenListe.selectedRecord.id} · ${AufgabenListe.selectedRecord.titel}",
-            "GewaehlteSuite": "${AufgabenListe.selectedRecord.suite}"
+            "GewaehltesVideo": "${AufgabenTabelle.selectedRecord.video}",
+            "GewaehlterOffset": "${AufgabenTabelle.selectedRecord.offset}",
+            "GewaehlterTitel": "${AufgabenTabelle.selectedRecord.id} · ${AufgabenTabelle.selectedRecord.titel}",
+            "GewaehlteSuite": "${AufgabenTabelle.selectedRecord.suite}"
           },
           "scope": "stage"
         },
@@ -656,11 +855,11 @@
           },
           "videoSource": "",
           "objectFit": "contain",
+          "imageOpacity": 1,
           "autoplay": false,
           "loop": false,
           "muted": false,
-          "playbackRate": 1,
-          "imageOpacity": 1
+          "playbackRate": 1
         },
         {
           "className": "TButton",
@@ -966,7 +1165,8 @@
           "params": [
             "${GewaehlterOffset}"
           ],
-          "scope": "stage"
+          "scope": "stage",
+          "target_ref": "fv_video-player"
         },
         {
           "id": "fv_act-vanfang",
@@ -977,7 +1177,8 @@
           "params": [
             0
           ],
-          "scope": "stage"
+          "scope": "stage",
+          "target_ref": "fv_video-player"
         },
         {
           "id": "fv_act-vplay",
@@ -986,7 +1187,8 @@
           "target": "Player",
           "method": "play",
           "params": [],
-          "scope": "stage"
+          "scope": "stage",
+          "target_ref": "fv_video-player"
         },
         {
           "id": "fv_act-vpause",
@@ -995,7 +1197,8 @@
           "target": "Player",
           "method": "pause",
           "params": [],
-          "scope": "stage"
+          "scope": "stage",
+          "target_ref": "fv_video-player"
         },
         {
           "id": "fv_act-vstop",
@@ -1004,7 +1207,8 @@
           "target": "Player",
           "method": "stop",
           "params": [],
-          "scope": "stage"
+          "scope": "stage",
+          "target_ref": "fv_video-player"
         },
         {
           "id": "fv_act-navauswahl",
@@ -1025,7 +1229,9 @@
   "tasks": [],
   "actions": [],
   "variables": [],
-  "userStories": [],
+  "userStories": {
+    "userStories": []
+  },
   "flow": {
     "elements": [],
     "connections": []

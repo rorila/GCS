@@ -39,16 +39,26 @@ const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('
    assert.ok(raum,'Raum fehlt');
   },adm);
 
-  // ── VORAUS-K: Kind mit Emoji-Code im Raum anlegen ──────────────────
+  // ── VORAUS-K: Bewohner anlegen und danach dem Raum zuordnen ────────
   let lina=null;
-  await task('VORAUS-K','Kind „Lina Kind" mit Emoji-Code',[dep('VORAUS-R',()=>!!raum)],async()=>{
-   assert.ok(await card(adm,'Spielraum'),'Raumkarte nicht waehlbar');
+  await task('VORAUS-K','Bewohnerin „Lina Kind" angelegt und Spielraum zugeordnet',[dep('VORAUS-R',()=>!!raum)],async()=>{
+   await click(adm,'Bewohner');
    await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Lina Kind');
    await adm.locator('[placeholder="🦊"]').fill('🦊');
    await adm.getByPlaceholder('dog,tree,house,elephant',{exact:true}).fill('owl,dog,tree,house');
    await click(adm,'PersonCreate');
    lina=env.file().people.find(p=>p.name==='Lina Kind');
    assert.ok(lina&&env.file().codes.some(c=>c.personId===lina.id),'Kind/Code fehlt');
+   assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&m.active),'Hausmitgliedschaft fehlt');
+   assert.ok(!env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Bewohnerin wurde unerwartet direkt dem Raum zugeordnet');
+   await click(adm,'Navigation_stage_admin');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_admin',null,{timeout:10000});
+   await busy(adm);
+   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Raum')?.value,null,{timeout:10000});
+   await click(adm,'Mitglieder');
+   assert.ok(await cardWait(adm,'Lina Kind'),'Bewohnerin fehlt in der Raummitgliederliste');
+   assert.ok(await card(adm,'Lina Kind'),'Bewohnerin nicht zuordenbar');
+   assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Raumzuordnung fehlt');
   },adm);
 
   // ── SPIEL-01a: Spiel ueber die Bibliothek hochladen ────────────────
@@ -69,6 +79,35 @@ const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('
    await click(page,'Hochladen');
    game=env.file().games.find(g=>g.title===TITEL||JSON.stringify(g).includes('Rechenduell'));
    assert.ok(game,'Spiel nicht im Datenbestand: '+JSON.stringify(env.file().games.map(g=>g.title||g.name)));
+  },page);
+
+  // ── SPIEL-01c: Entwurf vor Veroeffentlichung begutachten ───────────
+  await task('SPIEL-01c','Entwurf per „Begutachten“ in Vorschau geoeffnet',[dep('SPIEL-01a',()=>!!game)],async()=>{
+   const i=await page.evaluate(t=>{const o=window.player.runtime.getObjects();
+    for(let k=0;k<4;k++){const c=o.find(x=>x.name==='SpielKarte'+k);if(c&&String(c.text||'').includes(t))return k}return -1},TITEL);
+   assert.ok(i>=0,'Spielkarte nicht gefunden');
+   await click(page,'SpielKarte'+i);
+   const pv=page.waitForResponse(r=>r.url().includes('/api/cms/upload-library'),{timeout:10000});
+   await click(page,'Begutachten');
+   const resp=await pv,body=await resp.json().catch(()=>({}));
+   assert.strictEqual(resp.status(),200,'Begutachten-Anfrage: '+resp.status());
+   assert.ok(/^\/play\/[a-f0-9]{48}$/.test(body.launch||''),'kein Vorschau-Link: '+JSON.stringify(body).slice(0,200));
+   // Der Spiel-Host (cms-shell.js) bettet den Link automatisch ein.
+   await page.waitForSelector('iframe[src*="/play/"]',{timeout:8000});
+   // Verwaltungssitzung genuegt — kein Kind-Token, keine Spielsitzung.
+   const prev=await page.context().request.get(base+body.launch);
+   const html=await prev.text();
+   assert.strictEqual(prev.status(),200,'Vorschau-Seite nicht erreichbar: '+prev.status());
+   assert.ok(html.includes('Vorschau'),'Vorschau-Kennzeichnung fehlt');
+   assert.ok(html.includes('Zahlen')||html.includes('Duell'),'Projekt nicht eingebettet');
+   // Negativ: ohne Verwaltungssitzung ist derselbe Link gesperrt.
+   const guest=await browser.newContext();
+   const g2=await guest.request.get(base+body.launch);
+   assert.strictEqual(g2.status(),403,'Vorschau ohne Sitzung erreichbar: '+g2.status());
+   await guest.close();
+   // Zurueck aus der Vorschau: der Host-Layer muss sich wieder schliessen.
+   await page.locator('button[aria-label="Zurück zur Galerie"]').click();
+   await page.waitForFunction(()=>{const f=document.querySelector('iframe[src*="/play/"]');return!f||f.parentElement.hidden},null,{timeout:5000});
   },page);
 
   // ── SPIEL-01b: Spiel veroeffentlichen ──────────────────────────────

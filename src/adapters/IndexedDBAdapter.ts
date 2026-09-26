@@ -87,10 +87,16 @@ export class IndexedDBAdapter implements IStorageAdapter {
 
     async load(_?: string): Promise<GameProject | null> {
         void _;
+        const record = await this.loadWithMetadata();
+        return record?.project || null;
+    }
+
+    /** Liefert zusätzlich den Browser-Speicherzeitpunkt für die Startprüfung. */
+    async loadWithMetadata(): Promise<{ project: GameProject; savedAt: number } | null> {
         try {
             const db = await this.openDB();
 
-            return new Promise<GameProject | null>((resolve, reject) => {
+            return new Promise<{ project: GameProject; savedAt: number } | null>((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readonly');
                 const store = tx.objectStore(STORE_NAME);
                 const request = store.get(PROJECT_KEY);
@@ -111,7 +117,7 @@ export class IndexedDBAdapter implements IStorageAdapter {
                             }
                         } catch { void 0; }
                         
-                        resolve(record.project);
+                        resolve({ project: record.project, savedAt: Number(record.savedAt) || 0 });
                     } else {
                         resolve(null);
                     }

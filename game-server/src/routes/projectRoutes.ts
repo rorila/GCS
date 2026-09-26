@@ -1,25 +1,59 @@
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { PUBLIC_DIR } from '../serverState';
 import { rotateBackup } from '../utils/serverHelpers';
 
 export function registerProjectRoutes(app: express.Application) {
+    const revisionOf = (file: string): string | null => fs.existsSync(file)
+        ? crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')
+        : null;
+    const publicProjectPath = (filePath: string): string => {
+        const relative = String(filePath || '').replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\//, '');
+        const absolute = path.resolve(PUBLIC_DIR, relative);
+        const root = path.resolve(PUBLIC_DIR, 'projects');
+        if (absolute !== root && !absolute.startsWith(root + path.sep)) throw new Error('Pfad außerhalb des Projektordners');
+        return absolute;
+    };
+
+    /** Dateistand für Startprüfung und optimistisches Speichern. */
+    app.post('/api/dev/project-version', (req, res) => {
+        try {
+            const filePath = String(req.body?.filePath || '');
+            const absolute = publicProjectPath(filePath);
+            if (!fs.existsSync(absolute)) return res.json({ exists: false, revision: null, mtimeMs: 0 });
+            const stat = fs.statSync(absolute);
+            res.json({ exists: true, revision: revisionOf(absolute), mtimeMs: stat.mtimeMs, size: stat.size });
+        } catch (err: any) {
+            res.status(403).json({ error: err?.message || 'Zugriff verweigert' });
+        }
+    });
+
     /**
      * POST /api/dev/save-project - Speichert die project.json auf Disk
      * NUR FÜR ENTWICKLUNGSZWECKE (Dev-Mode)
      */
     app.post('/api/dev/save-project', (req, res) => {
         try {
-            const projectData = req.body;
+            const envelope = req.body?.projectData ? req.body : null;
+            const projectData = envelope?.projectData || req.body;
             if (!projectData || typeof projectData !== 'object') {
                 return res.status(400).json({ error: 'Ungültige Projektdaten' });
             }
 
             // Speicherpfad ergibt sich aus dem Spielnamen
             const gameName = (projectData.meta?.name || 'project').replace(/[^a-zA-Z0-9_-]/g, '_');
-            const relativePath = `projects/${gameName}.json`;
-            const projectPath = path.join(PUBLIC_DIR, relativePath);
+            const relativePath = envelope?.filePath || projectData.meta?._sourcePath || `projects/${gameName}.json`;
+            const projectPath = publicProjectPath(relativePath);
+
+            if (envelope && Object.prototype.hasOwnProperty.call(envelope, 'expectedRevision')) {
+                const currentRevision = revisionOf(projectPath);
+                if (currentRevision !== envelope.expectedRevision) {
+                    const mtimeMs = fs.existsSync(projectPath) ? fs.statSync(projectPath).mtimeMs : 0;
+                    return res.status(409).json({ success: false, conflict: true, error: 'Die Projektdatei wurde außerhalb dieses Browserstands geändert.', currentRevision, mtimeMs });
+                }
+            }
 
             // Sicherheits-Check: Verzeichnis sicherstellen
             const dir = path.dirname(projectPath);
@@ -37,6 +71,7 @@ export function registerProjectRoutes(app: express.Application) {
             // _sourcePath immer auf den einheitlichen Pfad setzen
             if (projectData.meta) {
                 projectData.meta._sourcePath = relativePath;
+                delete projectData.meta._diskRevision;
             }
 
             // KEIN rotateBackup hier! save-project ist AutoSave und wird ständig aufgerufen.
@@ -45,7 +80,7 @@ export function registerProjectRoutes(app: express.Application) {
             fs.writeFileSync(projectPath, JSON.stringify(projectData, null, 2), 'utf-8');
 
             console.log(`[TRACE] [API] Project saved successfully.`);
-            res.json({ success: true, message: 'Projekt erfolgreich gespeichert' });
+            res.json({ success: true, message: 'Projekt erfolgreich gespeichert', revision: revisionOf(projectPath) });
         } catch (err) {
             console.error('[TRACE] [API] Fehler beim Speichern des Projekts:', err);
             res.status(500).json({ error: 'Serverfehler beim Speichervorgang', details: (err as any).message });
@@ -223,10 +258,13 @@ export function registerProjectRoutes(app: express.Application) {
             }
 
             // Sicherheits-Check: Nur Dateien im game-builder-v1/projects zulassen
-            const absolutePath = path.resolve(__dirname, '../../', filePath);
+            const absolutePath = String(filePath).replace(/\\/g, '/').startsWith('projects/')
+                ? path.resolve(PUBLIC_DIR, filePath)
+                : path.resolve(__dirname, '../../', filePath);
             const projectsRoot = path.resolve(__dirname, '../../projects');
+            const publicProjectsRoot = path.resolve(PUBLIC_DIR, 'projects');
 
-            if (!absolutePath.startsWith(projectsRoot)) {
+            if (!absolutePath.startsWith(projectsRoot) && !absolutePath.startsWith(publicProjectsRoot)) {
                 return res.status(403).json({ error: 'Zugriff verweigert: Pfad außerhalb des Projekt-Ordners' });
             }
 
@@ -242,18 +280,29 @@ export function registerProjectRoutes(app: express.Application) {
      */
     app.post('/api/dev/save-custom', (req, res) => {
         try {
-            const { filePath, projectData } = req.body;
+            const { filePath, projectData, expectedRevision } = req.body;
             if (!filePath || !projectData) {
                 return res.status(400).json({ error: 'Ungültige Parameter' });
             }
 
-            // Sicherheits-Check: Dateien im projects/ ODER game-server/public/ Ordner zulassen
-            const absolutePath = path.resolve(__dirname, '../../', filePath);
+            // Relative projects/-Pfade bezeichnen die vom Editor ausgelieferten
+            // Dateien unter game-server/public/projects.
+            const absolutePath = String(filePath).replace(/\\/g, '/').startsWith('projects/')
+                ? path.resolve(PUBLIC_DIR, filePath)
+                : path.resolve(__dirname, '../../', filePath);
             const projectsRoot = path.resolve(__dirname, '../../projects');
             const publicRoot = path.resolve(PUBLIC_DIR);
 
             if (!absolutePath.startsWith(projectsRoot) && !absolutePath.startsWith(publicRoot)) {
                 return res.status(403).json({ error: 'Zugriff verweigert: Pfad außerhalb des erlaubten Bereichs' });
+            }
+
+            if (Object.prototype.hasOwnProperty.call(req.body, 'expectedRevision')) {
+                const currentRevision = revisionOf(absolutePath);
+                if (currentRevision !== expectedRevision) {
+                    const mtimeMs = fs.existsSync(absolutePath) ? fs.statSync(absolutePath).mtimeMs : 0;
+                    return res.status(409).json({ success: false, conflict: true, error: 'Die Projektdatei wurde außerhalb dieses Browserstands geändert.', currentRevision, mtimeMs });
+                }
             }
 
             // Verzeichnis sicherstellen
@@ -265,6 +314,7 @@ export function registerProjectRoutes(app: express.Application) {
             // _sourcePath in Metadaten schreiben (damit loadProject den Quellpfad kennt)
             if (projectData.meta) {
                 projectData.meta._sourcePath = filePath;
+                delete projectData.meta._diskRevision;
             }
 
             // Backup-Rotation: Vorhandene Datei umbenennen
@@ -272,7 +322,7 @@ export function registerProjectRoutes(app: express.Application) {
 
             fs.writeFileSync(absolutePath, JSON.stringify(projectData, null, 2));
             console.log(`[Dev] Project saved to custom path: ${filePath}`);
-            res.json({ success: true });
+            res.json({ success: true, revision: revisionOf(absolutePath) });
         } catch (e) {
             console.error('[Dev] Error in save-custom:', e);
             res.status(500).json({ error: 'Fehler beim benutzerdefinierten Speichern' });

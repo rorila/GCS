@@ -50,6 +50,8 @@ function makeRunner(prefix){
   // erhalten dieselbe Kapitelmarke bei ihrer ersten Navigation.
   const __pt=globalThis.__gcsCurrentTask;
   if(VIDEO_DIR)globalThis.__gcsCurrentTask={id,name};
+  // Aufnahme-Modus: Overlay erst lesen lassen, dann erst agieren.
+  if(VIDEO_DIR&&page)await nap(page,VIDEO_TASK_PRE_MS);
   let ok;
   try{await fn();done.add(id);results.push({id,name,status:'OK'});console.log('OK '+id+' '+name);ok=true;}
   catch(e){
@@ -57,6 +59,8 @@ function makeRunner(prefix){
    results.push({id,name,status:'FEHLER',note:String(e&&e.message||e).split('\n')[0].slice(0,300),shot:f});
    console.log('FEHLER '+id+' '+name+': '+results[results.length-1].note+(f?' ['+f+']':''));ok=false;
   }
+  // Nachwirkzeit: letzte Aktion eines Kapitels nicht abhacken.
+  if(VIDEO_DIR&&page)await nap(page,VIDEO_TASK_POST_MS);
   if(__pt)globalThis.__gcsCurrentTask=__pt;else delete globalThis.__gcsCurrentTask;
   return ok;
  }
@@ -75,7 +79,11 @@ function makeRunner(prefix){
 /** Init-Request einer Verwaltungs-Stage abwarten (InitialLaden-Timer,
  *  350 ms — sonst Rennen mit ListModus/Auswahlzustand, s. T-L8). */
 function initRequest(page,urlPart){
- return page.waitForResponse(r=>r.url().includes(urlPart)&&r.request().method()==='POST',{timeout:10000});
+ const p=page.waitForResponse(r=>r.url().includes(urlPart)&&r.request().method()==='POST',{timeout:10000});
+ // Wenn ein Zwischenschritt vor dem await wirft, bliebe die Promise
+ // unbehandelt und wuerde den Prozess crashen (unhandled rejection).
+ p.catch(()=>{});
+ return p;
 }
 
 /**
@@ -88,9 +96,10 @@ async function setupHouseAdmin({browser,env,base,page,house='Haus Sonne',name='A
  // Wiedereintrittsfest: die Seite kann auf einer Detail-Stage stehen.
  await page.goto(base+'/super',{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_super',{timeout:10000});
+ const housesResp=initRequest(page,'super-houses');
  await click(page,'Navigation_stage_super_houses');
  await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_super_houses');
- await initRequest(page,'super-houses');
+ await housesResp;
  await busy(page);
  let sonne=env.file().areas.find(a=>a.name===house&&a.type==='house');
  if(!sonne){
@@ -178,6 +187,81 @@ const cardTexts=page=>page.evaluate(()=>{const o=window.player.runtime.getObject
 
 const VIDEO_DIR=process.env.GCS_VIDEO_DIR||null;
 const VIDEO_SIZE={width:1280,height:960};
+// Menschen-Pacing (nur mit VIDEO_DIR aktiv): wie viel Luft jede Aktion bekommt.
+const VIDEO_STEP_MS=+(process.env.GCS_VIDEO_STEP_MS||900);   // Pause vor der Aktion
+const VIDEO_POST_MS=+(process.env.GCS_VIDEO_POST_MS||700);   // Nachwirkzeit danach
+const VIDEO_TYPE_MS=+(process.env.GCS_VIDEO_TYPE_MS||110);   // pro Tastenanschlag
+const VIDEO_TASK_PRE_MS=+(process.env.GCS_VIDEO_TASK_PRE_MS||1400); // Overlay lesbar
+const VIDEO_TASK_POST_MS=+(process.env.GCS_VIDEO_TASK_POST_MS||900);
+
+// Sichtbarer Cursor + Klick-Ripple + Ziel-Highlight. Folgt den echten
+// mousemove/mousedown-Events, die Playwright bei click()/mouse.move() feuert.
+const CURSOR_SCRIPT=`(()=>{
+ const boot=()=>{
+  if(document.getElementById('__gcs_cursor'))return;
+  const dot=document.createElement('div');dot.id='__gcs_cursor';
+  dot.style.cssText='position:fixed;width:22px;height:22px;border-radius:50%;background:rgba(255,64,64,.55);border:2px solid #fff;box-shadow:0 0 10px rgba(0,0,0,.5);z-index:2147483647;pointer-events:none;transform:translate(-50%,-50%);left:-100px;top:-100px;';
+  (document.body||document.documentElement).appendChild(dot);
+  document.addEventListener('mousemove',e=>{dot.style.left=e.clientX+'px';dot.style.top=e.clientY+'px';},true);
+  document.addEventListener('mousedown',e=>{
+   const r=document.createElement('div');
+   r.style.cssText='position:fixed;width:14px;height:14px;border-radius:50%;border:3px solid #ffd54f;z-index:2147483647;pointer-events:none;transform:translate(-50%,-50%);left:'+e.clientX+'px;top:'+e.clientY+'px;transition:all .6s ease-out;';
+   (document.body||document.documentElement).appendChild(r);
+   requestAnimationFrame(()=>{r.style.width='56px';r.style.height='56px';r.style.opacity='0';});
+   setTimeout(()=>r.remove(),750);
+   dot.style.background='rgba(255,64,64,.95)';dot.style.transform='translate(-50%,-50%) scale(1.4)';
+  },true);
+  document.addEventListener('mouseup',()=>{dot.style.background='rgba(255,64,64,.55)';dot.style.transform='translate(-50%,-50%) scale(1)';},true);
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+ window.__gcsFlash=el=>{
+  if(!el||!el.style)return;
+  const o=el.style.outline,oo=el.style.outlineOffset;
+  el.style.outline='4px solid #ff5252';el.style.outlineOffset='3px';
+  setTimeout(()=>{el.style.outline=o;el.style.outlineOffset=oo;},900);
+ };
+})();`;
+
+// Ummantelt einen Locator: Highlight -> sichtbare Mausbewegung -> Pause ->
+// Aktion -> Nachwirkzeit. fill wird zu getippter Eingabe (pressSequentially).
+function wrapLocator(loc,page){
+ const ACTS=new Set(['click','dblclick','hover','check','uncheck','selectOption','press','tap','type']);
+ return new Proxy(loc,{
+  get(t,k){
+   if(k==='fill')return async(v,o={})=>{
+    await pace(page,t);
+    try{
+     await t.fill(''); // Feld erst leeren — pressSequentially wuerde sonst anhaengen
+     const r=await t.pressSequentially(String(v??''),{delay:VIDEO_TYPE_MS,...o});
+     await nap(page,VIDEO_POST_MS);return r;
+    }
+    catch(e){return t.fill(v,o);}
+   };
+   if(ACTS.has(k))return async(...a)=>{await pace(page,t);const r=await t[k](...a);await nap(page,VIDEO_POST_MS);return r};
+   const v=t[k];return typeof v==='function'?v.bind(t):v;
+  }
+ });
+}
+async function pace(page,loc){
+ try{await loc.scrollIntoViewIfNeeded({timeout:4000}).catch(()=>{})}catch{}
+ try{await loc.evaluate(el=>window.__gcsFlash&&window.__gcsFlash(el)).catch(()=>{})}catch{}
+ try{const bb=await loc.boundingBox();if(bb)await page.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2,{steps:26})}catch{}
+ await nap(page,VIDEO_STEP_MS);
+}
+const nap=(page,ms)=>page.waitForTimeout(ms).catch(()=>{});
+function wrapPage(page){
+ if(page.__gcsWrapped)return page;page.__gcsWrapped=true;
+ const origLocator=page.locator.bind(page); // Roh-Locator: vermeidet Doppel-Pacing
+ for(const m of ['click','dblclick','hover','check','uncheck','selectOption','press']){
+  page[m]=(s,o={})=>wrapLocator(origLocator(s),page)[m](o);
+ }
+ page.fill=(s,v)=>wrapLocator(origLocator(s),page).fill(v);
+ for(const m of ['locator','getByPlaceholder','getByRole','getByText','getByLabel','getByTestId','getByTitle','getByAltText']){
+  const orig=page[m].bind(page);
+  page[m]=(...a)=>wrapLocator(orig(...a),page);
+ }
+ return page;
+}
 
 function recordBrowser(browser){
  if(!VIDEO_DIR)return browser;
@@ -186,11 +270,13 @@ function recordBrowser(browser){
  browser.__recPages=[];
  const track=p=>{
   p.__recT0=Date.now();p.__videoChapters=[];browser.__recPages.push(p);
+  wrapPage(p);
   const t=globalThis.__gcsCurrentTask;
   if(t)p.once('load',()=>{videoMark(p,t.id,t.name).catch(()=>{})});
  };
  browser.newContext=async(opts={})=>{
   const ctx=await origCtx({...opts,recordVideo:{dir:VIDEO_DIR,size:(opts&&opts.viewport)||VIDEO_SIZE}});
+  await ctx.addInitScript(CURSOR_SCRIPT).catch(()=>{});
   ctx.on('page',track);
   return ctx;
  };

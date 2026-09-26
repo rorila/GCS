@@ -1,7 +1,35 @@
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
 const project = JSON.parse(readFileSync(new URL('../../game-server/public/projects/GCS-FeatureVideos.json', import.meta.url), 'utf8'));
+const manifest = JSON.parse(readFileSync(new URL('../../public/videos/feature-videos.json', import.meta.url), 'utf8'));
+
+test('Lehrvideo-Manifest bildet das aktuelle Haus- und Raummodell ab', () => {
+    const alle = manifest.suiten.flatMap((s: any) => (s.videos || []).flatMap((v: any) =>
+        (v.aufgaben || []).map((a: any) => ({ ...a, suite: s.suite, video: v.pfad }))));
+    const ids = new Set(alle.map((a: any) => a.id));
+    for (const id of ['BEWOHNER-01a', 'BEWOHNER-01b', 'RAUMMITGLIED-01', 'KIND-01', 'BEWOHNER-02a', 'BEWOHNER-02b']) {
+        expect(ids.has(id), `Lehrkapitel ${id} fehlt`).toBe(true);
+    }
+    expect(ids.has('SPIEL-01c'), 'Lehrkapitel zur Entwurfs-Begutachtung fehlt').toBe(true);
+    expect(alle.find((a: any) => a.id === 'VORAUS-K')?.titel).toContain('Bewohnerin');
+    expect(alle.find((a: any) => a.id === 'VORAUS-K')?.titel).toContain('Spielraum zugeordnet');
+    expect(ids.has('KIND-01a'), 'veraltetes Kapitel legt ein Kind direkt im Raum an').toBe(false);
+    expect(manifest.rollen.some((r: any) => r.key === 'raumadmin' &&
+        r.aufgaben.some((a: any) => a.id === 'RAUMMITGLIED-01'))).toBe(true);
+
+    const basis = resolve(dirname(fileURLToPath(import.meta.url)), '../../public');
+    for (const a of alle) {
+        expect(a.offset).toBeGreaterThanOrEqual(0);
+        expect(existsSync(resolve(basis, a.video))).toBe(true);
+    }
+    for (const s of manifest.suiten) for (const v of s.videos || []) {
+        const offsets = (v.aufgaben || []).map((a: any) => a.offset);
+        expect(offsets).toEqual([...offsets].sort((a: number, b: number) => a - b));
+    }
+});
 
 test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
@@ -59,25 +87,22 @@ test('Landingpage: Manifest-Load, Listen und Video-Flow (echter Fetch via direct
     stage1.fetches = fetched;
     stage1.consoleErrs = consoleErrs.slice(0, 6);
     console.log('  stage1:', JSON.stringify(stage1));
+    await page.screenshot({ path: 'test-results/featurevideos-auswahl.png' });
     expect(stage1.stageId).toBe('stage_auswahl');
     expect(stage1.rollenRows).toBeGreaterThan(0);
 
     // Rolle waehlen -> Aufgabenliste fuellen
     const chain = await page.evaluate(async () => {
         const runtime = (window as any).editor.runtime;
-        const rollen = runtime.objects.find((o: any) => o.name === 'RollenListe');
-        const aufgaben = runtime.objects.find((o: any) => o.name === 'AufgabenListe');
-        rollen.selectedIndex = 0;
-        rollen.selectedRecord = rollen.getRows()[0];
-        rollen.selectedKey = rollen.selectedRecord.uid ?? rollen.selectedRecord.key ?? rollen.selectedRecord.id;
+        const rollen = runtime.objects.find((o: any) => o.name === 'RollenTabelle');
+        const aufgaben = runtime.objects.find((o: any) => o.name === 'AufgabenTabelle');
+        rollen.selectRow(0);
         await runtime.handleEvent(rollen.id, 'onSelect');
         await new Promise(r => setTimeout(r, 400));
         const aufgabenRows = aufgaben.getRows?.().length ?? -1;
 
         const a0 = aufgaben.getRows()[0];
-        aufgaben.selectedIndex = 0;
-        aufgaben.selectedRecord = a0;
-        aufgaben.selectedKey = a0.uid;
+        aufgaben.selectRow(0);
         await runtime.handleEvent(aufgaben.id, 'onSelect');
         await new Promise(r => setTimeout(r, 900));
         const player = runtime.objects.find((o: any) => o.name === 'Player');

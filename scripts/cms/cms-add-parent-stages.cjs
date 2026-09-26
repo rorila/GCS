@@ -648,8 +648,7 @@ if (adminStage) {
   uxMerge(house, 'Act_Haeuserliste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen', { ...HIDE_ALL, 'Hilfe.text': 'Haus anklicken zum Bearbeiten.' });
   uxMerge(house, 'Act_Raeume_anzeigen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen', { ...HIDE_ALL,
     'RaumInfo.visible': true, 'RaumInfo.text': 'Raumname · anlegen oder ausgewählten Raum bearbeiten', 'RaumEingabe.visible': true, 'RoomCreate.visible': true, 'RoomSave.visible': true, 'RoomToggle.visible': true,
-    'PersonInfo.visible': true, 'PersonInfo.text': 'Neues Spielerprofil im ausgewählten Raum', 'NameEingabe.visible': true, 'AvatarEingabe.visible': true, 'CodeEingabe.visible': true, 'PersonCreate.visible': true,
-    'Hilfe.text': 'Raum anklicken → bearbeiten · Spielerprofil: Name, Avatar, 4 Bild-IDs (z. B. dog,cat,tree,home).' });
+    'Hilfe.text': 'Raum anklicken → bearbeiten. Bewohner werden unter „Bewohner“ angelegt und anschließend in der Raumverwaltung zugeordnet.' });
   uxMerge(house, 'Act_RaumAdmin_Liste_oeffnen__Ansicht_Umschalten_Und_Seitenauswahl_Setzen', { ...HIDE_ALL,
     'PersonInfo.visible': true, 'PersonInfo.text': 'Beobachter für den gewählten Raum einladen — Name eingeben', 'NameEingabe.visible': true, 'BeobachterEinladen.visible': true,
     'Hilfe.text': 'RaumAdmin anklicken → bestätigen · Beobachter: Name eingeben + „Beobachter einladen“.' });

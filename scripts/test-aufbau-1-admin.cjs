@@ -26,11 +26,12 @@ const PORT=15222;
   await task('VORAUS','SuperAdmin anmelden, Haus Sonne anlegen',[],async()=>{
    await adminLogin(page,base,'super',TEST_PASSWORD);
    await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_super',null,{timeout:10000});
+   const initResp=initRequest(page,'super-houses');
    await click(page,'Navigation_stage_super_houses');
    await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_super_houses',null,{timeout:10000});
    // Init-Timer (350ms) der Stage abwarten: erster Haeuser-Request muss
    // durch sein, bevor weitere Aktionen den Zustand veraendern.
-   await initRequest(page,'super-houses');await busy(page);
+   await initResp;await busy(page);
    await page.getByPlaceholder('Hausname',{exact:true}).fill('Haus Sonne');
    await click(page,'HausAnlegen');
    sonne=env.file().areas.find(a=>a.name==='Haus Sonne'&&a.type==='house');
