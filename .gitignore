@@ -86,3 +86,14 @@ __pycache__/
 game-server/data/backups/
 game-server/data/test/cms-admin-auth.json
 game-server/data/test/*.previous
+
+# Lokale Arbeitsartefakte (Sicherungen, Upload-Cache, Scratch)
+backups/
+nul
+game-server/data/uploads/
+game-server/data/cms-v2.json
+docs/.katalog-state.json
+projects/master_test/
+game-server/public/projects/* - Kopie.json
+game-server/public/projects/MyCoolGame.json
+game-server/public/projects/project.json
