@@ -82,6 +82,11 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     // nach Rolle begrenzt. Fachaktionen prüfen zusätzlich jedes areaId.
     if(url.pathname==='/super'&&!isSuper){res.writeHead(303,{Location:isHouse?'/house':'/admin','Cache-Control':'no-store'});return res.end();}
     if(url.pathname==='/house'&&!isHouse){res.writeHead(303,{Location:'/admin','Cache-Control':'no-store'});return res.end();}
+    if(url.pathname==='/house'&&url.searchParams.has('house')){
+     const houseId=url.searchParams.get('house'),house=core.db.areas.find(a=>a.id===houseId&&a.type==='house'&&a.active),assigned=activeRoles.some(r=>r.role==='areaAdmin'&&r.areaId===houseId);
+     if(!house||!assigned){res.writeHead(303,{Location:'/house','Cache-Control':'no-store'});return res.end();}
+     return res.end(renderCms(cmsFile,'stage_house_overview',undefined,{CMSHausId:house.id,CMSHausName:house.name}));
+    }
     return res.end(renderCms(cmsFile,{'/super':'stage_super','/house':'stage_house','/admin':'stage_admin'}[url.pathname]));
    }
    // Eltern- und Beobachterbereich: Konto-Sitzung (cms_account), kein Admin-Cookie nötig.
@@ -96,8 +101,19 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
     if(req.headers.origin!==`http://${req.headers.host}`){res.statusCode=403;return res.end('Fremder Ursprung');}
     let raw='';for await(const c of req){raw+=c;if(raw.length>2048){res.statusCode=413;return res.end('Zu groß');}}
-    const ep=runtime.find(url.pathname,'POST');
-    const result=ep?runtime.run(ep,{session:null,body:Object.fromEntries(new URLSearchParams(raw)),core,commit,credentialPath,enroll:{parent:parent.enroll,observer:parent.enrollObserver,admin:admin.enroll}}):{status:400,data:{message:'Endpunkt fehlt'}};
+    const body=Object.fromEntries(new URLSearchParams(raw)),ep=runtime.find(url.pathname,'POST');
+    const result=ep?runtime.run(ep,{session:null,body,core,commit,credentialPath,enroll:{parent:parent.enroll,observer:parent.enrollObserver,admin:admin.enroll}}):{status:400,data:{message:'Endpunkt fehlt'}};
+    if(url.pathname==='/admin-enroll'&&result.status===200&&result.data?.purpose==='admin-setup'){
+     endPreviousSessions(req);
+     const signedIn=admin.login(req,{username:body.username,password:body.password}),houseId=result.data.houseId;
+     const selectedHouse=houseId!=='root'&&signedIn.house&&core.db.areas.some(a=>a.id===houseId&&a.type==='house'&&a.active)&&core.db.roles.some(r=>r.personId===signedIn.personId&&r.areaId===houseId&&r.role==='areaAdmin'&&r.active);
+     if(signedIn.token&&signedIn.personId===result.data.personId&&(houseId==='root'?signedIn.super:selectedHouse)){
+      const cookies=[`cms_admin=${signedIn.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`];
+      if(signedIn.accountToken&&(signedIn.contexts?.some(c=>c!=='admin')||!signedIn.token))cookies.push(accountCookie(signedIn.accountToken));
+      const location=houseId==='root'?'/super':'/house?house='+encodeURIComponent(houseId);
+      res.writeHead(303,{Location:location,'Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
+     }
+    }
     const back=url.pathname==='/admin-enroll'?'<a href="/admin">Zur Verwaltung</a>':'<a href="/">Zum CMS</a>';
     res.statusCode=result.status;return res.end('<!doctype html><meta charset="utf-8"><p>'+String(result.data?.message||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</p>'+back);
    }
@@ -133,25 +149,63 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript; charset=utf-8':'text/html; charset=utf-8'});return res.end(fs.readFileSync(location));
    }
    if(req.method==='GET'&&url.pathname.startsWith('/play/')){
-    const launch=launches.get(url.pathname.slice(6));
+    // /play/<key> liefert die Spielseite, /play/<key>/<pfad> Mediendateien
+    // aus einem hochgeladenen ZIP-Bundle (img/media 'self' ist dafür in der
+    // CSP geöffnet, connect-src 'none' bleibt).
+    const raw=url.pathname.slice(6),cut=raw.indexOf('/');
+    const launchKey=cut<0?raw:raw.slice(0,cut),rel=cut<0?'':decodeURIComponent(raw.slice(cut+1));
+    const launch=launches.get(launchKey);
+    // 'self' matcht in der Sandbox (opaque origin) nicht — Bundle-Dateien
+    // werden daher explizit über den eigenen Origin freigegeben (Script und
+    // Style brauchen das für Fremdspiele mit externen js/css-Dateien).
+    const hostSrc=String(req.headers.host||'').replace(/[^a-zA-Z0-9.\-:]/g,'');
+    const hs=` http://${hostSrc} https://${hostSrc}`;
+    const mediaSrc=`'self' data: blob:${hs}`;
+    const playCsp="sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"+hs+"; style-src 'unsafe-inline'"+hs+"; img-src "+mediaSrc+"; media-src "+mediaSrc+"; font-src 'self' data:"+hs+"; worker-src 'self' blob:"+hs+"; connect-src 'none'; base-uri 'self'; form-action 'none'";
+    if(rel){
+     let mgame=null;
+     // Subressourcen des sandboxed Frames senden keine Cookies — der
+     // nicht ratbare Launch-Schlüssel trägt die Berechtigung bereits.
+     if(launch&&launch.preview){mgame=core.db.games.find(g=>g.id===launch.gameId);}
+     else{const msession=launch&&core.session(launch.token);mgame=launch&&core.db.games.find(g=>g.id===launch.gameId);if(!launch||!msession||!core.can(msession,'play',{game:mgame,areaId:launch.areaId}))return reply(res,403,{error:'Spiel nicht freigegeben'});}
+     const mf=mgame&&uploads.gameMedia(mgame,rel);if(!mf)return reply(res,404,{ok:false});
+     // Kein CSP-Header auf Subressourcen — der Browser wertet ihn als
+     // Dokument-Response und blockt das Bild (ORB). nosniff reicht: die
+     // Whitelist erlaubt ohnehin nur Medientypen, SVG läuft als <img>
+     // ohne Skripte.
+     res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Cache-Control','public, max-age=3600');
+     res.writeHead(200,{'Content-Type':uploads.mediaType(rel)});return res.end(fs.readFileSync(mf));
+    }
     // Begutachtung (Vorschau-Launch): hochgeladenes Projekt für Verwaltung
     // zeigen — ohne Spielsitzung, Zeitbuchung und Spielfreigabe, aber mit
     // derselben Sandbox-/CSP-Härtung wie freigegebene Uploads.
     if(launch&&launch.preview){
      const pgame=core.db.games.find(g=>g.id===launch.gameId),pfile=pgame&&uploads.game(pgame);
      if(!admin.readSession(req)||!pgame||!pfile)return reply(res,403,{error:'Vorschau nicht freigegeben'});
-     res.setHeader('Content-Security-Policy',"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'");
+     res.setHeader('Content-Security-Policy',playCsp);
+     // Fremdspiel als HTML-Dokument: ohne GCS-Runtime-Wrapper direkt
+     // ausliefern; Trailing Slash, damit relative Asset-Pfade auflösen.
+     if(/\.html$/i.test(pgame.file)){
+      if(!raw.endsWith('/')){res.writeHead(302,{Location:url.pathname+'/'});return res.end();}
+      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+      return res.end(fs.readFileSync(pfile));
+     }
      const pproject=JSON.parse(fs.readFileSync(pfile,'utf8')),pencoded=JSON.stringify(pproject).replace(/</g,'\\u003c');
      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
-     return res.end('<!doctype html><meta charset="utf-8"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}#pv{position:fixed;left:0;right:0;top:0;height:26px;z-index:99998;background:#5a3c00;color:#ffd166;font:14px Segoe UI;line-height:26px;text-align:center}</style><div id="pv">Vorschau — Entwurf, keine Spielsitzung</div><main id="run-stage"></main><script>window.PROJECT='+pencoded+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
+     return res.end('<!doctype html><meta charset="utf-8"><base href="/play/'+launchKey+'/"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}#pv{position:fixed;left:0;right:0;top:0;height:26px;z-index:99998;background:#5a3c00;color:#ffd166;font:14px Segoe UI;line-height:26px;text-align:center}</style><div id="pv">Vorschau — Entwurf, keine Spielsitzung</div><main id="run-stage"></main><script>window.PROJECT='+pencoded+'</script><script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
     }
     const session=launch&&core.session(launch.token),game=launch&&core.db.games.find(g=>g.id===launch.gameId);
     if(!launch||!session||!core.can(session,'play',{game,areaId:launch.areaId}))return reply(res,403,{error:'Spiel nicht freigegeben'});
     // Erste Ausbaustufe: nur die zwei geprüften lokalen Lernprojekte; keine freien Uploads.
-    const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json','game-mp':'ZahlenDuell.json'},uploaded=uploads.game(game);if(!uploaded&&(!allowed[game.id]||allowed[game.id]!==game.file))return reply(res,403,{error:'Projekt nicht zugelassen'});
-    if(uploaded)res.setHeader('Content-Security-Policy',"sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'");
+    const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json','game-mp':'ZahlenDuell.json','game-memory-remote':'ElinsMemoryRemote.json'},uploaded=uploads.game(game);if(!uploaded&&(!allowed[game.id]||allowed[game.id]!==game.file))return reply(res,403,{error:'Projekt nicht zugelassen'});
+    if(uploaded)res.setHeader('Content-Security-Policy',playCsp);
+    // Fremdspiel als HTML-Dokument: ohne GCS-Runtime-Wrapper ausliefern.
+    if(uploaded&&/\.html$/i.test(game.file)){
+     if(!raw.endsWith('/')){res.writeHead(302,{Location:url.pathname+'/'});return res.end();}
+     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+     return res.end(fs.readFileSync(uploaded));
+    }
     const project=JSON.parse(fs.readFileSync(uploaded||path.join(root,'game-server/public/projects',allowed[game.id]),'utf8'));
-    const launchKey=url.pathname.slice(6);
     // Spiele erhalten ihren Launch-Schluessel als Projektvariable CMS_LAUNCH —
     // so koennen sie deklarative http-Actions gegen /api/cms/play und
     // /api/cms/party richten, ohne das Sitzungstoken zu kennen (E08).
@@ -169,7 +223,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
      +'setInterval(function(){send("heartbeat").then(function(r){if(!r.ok)return;if(r.warn==="5min")note("Noch 5 Minuten","#ffd166");if(r.warn==="1min")note("Noch 1 Minute","#ef8354");if(r.warn==="grace")note("Zeit um — wird gespeichert","#ef8354");if(r.ended||r.status==="ended")note("Zeit für heute ist um. Gut gemacht!","#edf7f4")})},30000);'
      +'addEventListener("pagehide",function(){navigator.sendBeacon("/api/cms/play",new Blob([JSON.stringify({launchKey:K,action:"end"})],{type:"application/json"}))});'
      +'})();</script>';
-    return res.end('<!doctype html><meta charset="utf-8"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><script>window.PROJECT='+encoded+'</script>'+heart+'<script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
+    return res.end('<!doctype html><meta charset="utf-8"><base href="/play/'+launchKey+'/"><style>html,body{margin:0;overflow:hidden;background:#08151b}#run-stage{position:absolute;transform-origin:top left}</style><main id="run-stage"></main><script>window.PROJECT='+encoded+'</script>'+heart+'<script src="/runtime-standalone.js"></script><script>document.addEventListener("DOMContentLoaded",()=>window.startStandalone(window.PROJECT))</script>');
    }
    if(req.method!=='POST'||!url.pathname.startsWith('/api/cms/'))return reply(res,404,{error:'Nicht gefunden'});
    if(req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Fremder Ursprung'});
@@ -207,7 +261,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
      const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
      const emit=(label,data)=>traces.step(trace,label,data);
      emit('Request empfangen',{method:req.method,path:url.pathname,body});
-     result=runtime.run(ep,{session:admin.readSession(req),body,emit,core,admin,commit,credentialPath});
+     result=runtime.run(ep,{session:admin.readSession(req),body,emit,core,admin,commit,credentialPath,uploads});
      emit('Response gesendet',{status:result.status,body:result.data});
     }else{
      result=admin.api(req,url.pathname.slice('/api/cms/admin/'.length),body);
@@ -236,13 +290,14 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(result.status===200&&result.data.status==='ended')launches.delete(body.launchKey);
     return reply(res,result.status,result.data);
    }
-   // Mehrspieler aus dem Spiel heraus (P4.5): areaId kommt aus dem
-   // Launch-Grant, nie vom Client.
+   // Mehrspieler aus dem Spiel heraus (P4.5): areaId und gameId kommen aus dem
+   // Launch-Grant, nie vom Client — so kann eine Partie nur fuer das gestartete
+   // Spiel im gewaehrten Raum erstellt/beitreten werden.
    if(url.pathname==='/api/cms/party'){
     const launch=launches.get(body.launchKey);const ps=launch&&core.session(launch.token);
     if(!launch||!ps)return reply(res,401,{ok:false,message:'Spielsitzung abgelaufen.'});
     if(typeof body.op!=='string')return reply(res,400,{ok:false,message:'Aktion fehlt.'});
-    const result=mp.api(ps,body.op,{...body,areaId:launch.areaId});
+    const result=mp.api(ps,body.op,{...body,areaId:launch.areaId,gameId:launch.gameId});
     return reply(res,result.status,result.data);
    }
    // Kontexte der aktuellen Anmeldung — steuert nur die Sichtbarkeit der
@@ -272,7 +327,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);
     emit('Request empfangen',{method:req.method,url:url.pathname,body});
-    const result=runtime.run(ep,{session,adminSession:admin.readSession(req),body,emit,core,admin,commit,credentialPath,play,mp,launches,remoteAddress:req.socket.remoteAddress});
+    const result=runtime.run(ep,{session,adminSession:admin.readSession(req),body,emit,core,admin,commit,credentialPath,play,mp,launches,uploads,remoteAddress:req.socket.remoteAddress});
     emit('Response gesendet',{status:result.status,body:result.data});
     return reply(res,result.status,result.data);
    }

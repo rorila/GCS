@@ -69,16 +69,32 @@ const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('
    await click(page,'Navigation_stage_library');
    await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_library',null,{timeout:10000});
    await busy(page);
-   const titel=await sel(page,'SpielTitel');
-   await page.locator(titel+' input').fill(TITEL);
+   const name=await sel(page,'SpielName');
+   await page.locator(name+' input').fill(TITEL);
+   await click(page,'SpielAnlegen');
+   await busy(page);
+   game=env.file().games.find(g=>g.title===TITEL);
+   assert.ok(game&&game.status==='draft'&&game.file==='','Spielentwurf ohne Datei fehlt oder ist nicht als Entwurf gespeichert');
+   assert.strictEqual((await papi(page,'admin/super-game-create',{title:TITEL})).status,409,'Doppelter eigener Spielname wurde angelegt');
+   const vorUpload=await papi(page,'upload-library',{operation:'publish',id:game.id,published:true});
+   assert.strictEqual(vorUpload.status,409,'Entwurf ohne GCS-Datei durfte veröffentlicht werden');
+   const table=await sel(page,'SpieleTabelle');
+   await page.locator(table+' tbody tr',{hasText:TITEL}).click();
+   await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_library_detail',null,{timeout:10000});
+   await busy(page);
+   assert.strictEqual(await vget(page,'CMSGameId'),game.id,'Tabellenzeile öffnete nicht den ausgewählten Entwurf');
+   const description=await sel(page,'SpielBeschreibung');
+   await page.locator(description+' input').fill('Automatischer Spieltest');
    // TFilePicker oeffnet den nativen Dateidialog → filechooser-Event
    const fc=page.waitForEvent('filechooser',{timeout:8000});
    await click(page,'DateiWaehlen');
    (await fc).setFiles(PROJ);
    await busy(page);
    await click(page,'Hochladen');
-   game=env.file().games.find(g=>g.title===TITEL||JSON.stringify(g).includes('Rechenduell'));
-   assert.ok(game,'Spiel nicht im Datenbestand: '+JSON.stringify(env.file().games.map(g=>g.title||g.name)));
+   await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Auswahl')?.text.includes('GCS-Datei vorhanden'),null,{timeout:10000});
+   game=env.file().games.find(g=>g.id===game.id);
+   assert.ok(game&&game.file&&game.description==='Automatischer Spieltest','Upload hat den vorhandenen Entwurf nicht befüllt: '+JSON.stringify(game));
+   assert.strictEqual(env.file().games.filter(g=>g.title===TITEL).length,1,'Upload hat einen zweiten Spieldatensatz angelegt');
   },page);
 
   // ── SPIEL-01c: Entwurf vor Veroeffentlichung begutachten ───────────

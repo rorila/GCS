@@ -42,16 +42,23 @@ uploads.objects=[
  uploads.tasks=[
   // Bibliothek: SuperAdmin → ggf. veröffentlichen → eigene Spiele listen.
   {id:uid('srv_task'),name:'Server_Bibliothek_Verarbeiten',scope:'stage',
-   description:'SuperAdmin → ggf. Entwurf/Veröffentlichung umschalten → eigene Spiele',
+   description:'SuperAdmin → Spielbesitz und GCS-Datei prüfen → Entwurf/Veröffentlichung oder Vorschau → eigene Spiele listen',
    actionSequence:[
     n.call('Rolle'),
     n.cond('Berechtigt?','Pruefung.ok','==',false,[n.call('FehlerRolle')],[]),
+    n.cond('Spiel-ID angefragt?','body.id','truthy',null,[
+     n.call('SpielLaden'),
+     n.cond('Eigenes Spiel mit Datei?','Spiel.found','==',true,[],[n.call('FehlerDateiNichtBereit')])
+    ],[]),
     n.cond('Veröffentlichung angefragt?','body.operation','==','publish',[
      n.call('Veroeffentlichen'),
      n.cond('Veröffentlichung gelungen?','Veroeffentlicht.ok','==',false,[n.call('FehlerSpiel')],[])
     ],[]),
-    n.call('Liste'),
-    n.call('Antworten')
+    n.cond('Vorschau angefragt?','body.operation','==','preview',[
+     n.call('Begutachten'),
+     n.cond('Vorschau gelungen?','Vorschau.ok','==',true,[n.call('VorschauAntworten')],[n.call('FehlerVorschau')])
+    ],[]),
+    n.cond('Kataloganfrage?','body.operation','!=','preview',[n.call('Liste'),n.call('Antworten')],[])
    ]},
   // Binär-Uploads: Rolle → Komponente verarbeitet Bytes → Antwort.
   {id:uid('srv_task'),name:'Spiel_Upload_Verarbeiten',scope:'stage',
@@ -77,8 +84,13 @@ uploads.objects=[
   n.act('FehlerRolle','AntwortSenden','fail',[403,'${Pruefung.message}']),
   n.act('RolleKonto','Sitzung','requireRole',['account'],'Pruefung'),
   n.act('FehlerRolleKonto','AntwortSenden','fail',[403,'${Pruefung.message}']),
+  n.act('SpielLaden','BibliothekDaten','find',[{entity:'games',where:{id:'$body.id',ownerId:'$session.personId',file:{truthy:true}}}],'Spiel'),
+  n.act('FehlerDateiNichtBereit','AntwortSenden','fail',[409,'Für dieses Spiel ist noch keine GCS-Datei hochgeladen.']),
   n.act('Veroeffentlichen','BibliothekSpeichern','publishGame',[],'Veroeffentlicht'),
   n.act('FehlerSpiel','AntwortSenden','fail',[200,'${Veroeffentlicht.message}']),
+  n.act('Begutachten','BibliothekSpeichern','previewGame',[],'Vorschau'),
+  n.act('VorschauAntworten','AntwortSenden','send',[{merge:'${Vorschau}'}]),
+  n.act('FehlerVorschau','AntwortSenden','fail',[400,'${Vorschau.message}']),
   n.act('Liste','BibliothekDaten','libraryList',[],'Liste'),
   n.act('SpielVerarbeiten','SpielUploadVerarbeiten','process',[],'Ergebnis'),
   n.act('AvatarVerarbeiten','AvatarUploadVerarbeiten','process',[],'Ergebnis'),
@@ -86,7 +98,7 @@ uploads.objects=[
   n.act('UploadAntworten','AntwortSenden','send',[{merge:'${Ergebnis}'}]),
   n.act('FehlerDatei','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}'])
  ];
- uploads.variables=['Pruefung','Veroeffentlicht','Liste','Ergebnis'].map(variable);
+ uploads.variables=['Pruefung','Veroeffentlicht','Vorschau','Spiel','Liste','Ergebnis'].map(variable);
  uploads.generatedBy=BUILDER;
 }
 
@@ -111,7 +123,7 @@ const eRoutes=[
    ]});
   eactions.push(
    {id:uid('srv_act'),name:'Einrichtung_Einloesen_'+kind,type:'call_method',target:compName,method:'enroll',params:[],resultVariable:'Ergebnis',scope:'stage'},
-   {id:uid('srv_act'),name:'Einrichtung_Antworten_'+kind,type:'call_method',target:'AntwortSenden',method:'send',params:[{message:'${Ergebnis.message}'}],scope:'stage'},
+   {id:uid('srv_act'),name:'Einrichtung_Antworten_'+kind,type:'call_method',target:'AntwortSenden',method:'send',params:[kind==='admin'?{message:'${Ergebnis.message}',houseId:'${Ergebnis.houseId}',personId:'${Ergebnis.personId}',purpose:'${Ergebnis.purpose}'}:{message:'${Ergebnis.message}'}],scope:'stage'},
    {id:uid('srv_act'),name:'Einrichtung_Fehler_'+kind,type:'call_method',target:'AntwortSenden',method:'fail',params:[400,'${Ergebnis.message}'],scope:'stage'});
  });
  eobjects.push(comp('TServerResponse','AntwortSenden',{x:2,y:14}));

@@ -39,9 +39,9 @@ const {createServer}=require('./cms/cms-server.cjs'),{checkIntegrity,renderCms}=
   const click=async name=>{await page.evaluate(name=>{const rt=window.player.runtime;rt.handleEvent(rt.getObjects().find(o=>o.name===name).id,'onClick')},name);};
   await click('Anmelden');await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Status').text.includes('ausfüllen'));check('Pflichtfelder lokal geprüft',true);
   await page.locator('[name=username]').fill('tester');await page.locator('[name=password]').fill(password);await page.locator('[name=password]').press('Enter');
-  await page.waitForFunction(()=>window.player?.runtime?.getObjects().some(o=>o.name==='Haeuser'));
-  check('HouseAdmin landet direkt in der Hausverwaltung',
-    await page.evaluate(()=>window.player.runtime.getObjects().some(o=>o.name==='Haeuser')&&window.player.runtime.getObjects().some(o=>o.name==='KinderTab')));
+  await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_house'&&window.player.runtime.getObjects().some(o=>o.name==='HausTabelle'));
+  check('HouseAdmin landet direkt in der Hausauswahl',
+    await page.evaluate(()=>window.player.runtime.stage.id==='stage_house'&&window.player.runtime.getObjects().some(o=>o.name==='HausTabelle')));
   check('Native Anmeldung erfolgreich',true);
   const sessionCookie=(await page.context().cookies(base)).find(c=>c.name==='cms_admin');
   const authHeaders={Origin:base,'Content-Type':'application/json',Cookie:'cms_admin='+sessionCookie.value};

@@ -1,10 +1,57 @@
-const fs=require('node:fs'),path=require('node:path'),sharp=require('sharp');
-function validateGame(bytes){
+const fs=require('node:fs'),path=require('node:path'),sharp=require('sharp'),{unzipSync}=require('fflate');
+// Erlaubte Mediendateien in Spiel-Bundles — bewusst keine aktiven Typen
+// (html/js/json), damit ein Upload keine eigene Angriffsfläche ausliefert.
+const MEDIA_EXT=new Set(['png','jpg','jpeg','gif','webp','svg','ico','bmp','wav','mp3','ogg','m4a','mp4','webm','woff','woff2','ttf','otf']);
+// Zusätzlich erlaubte Typen nur für HTML-Bundles (Einstieg index.html) —
+// GCS-Bundles bleiben bei der strengen Medienliste.
+const HTML_ASSET_EXT=new Set([...MEDIA_EXT,'html','htm','css','js','mjs','json','map','wasm','txt']);
+const MEDIA_MIME={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml',ico:'image/x-icon',bmp:'image/bmp',wav:'audio/wav',mp3:'audio/mpeg',ogg:'audio/ogg',m4a:'audio/mp4',mp4:'video/mp4',webm:'video/webm',woff:'font/woff',woff2:'font/woff2',ttf:'font/ttf',otf:'font/otf',html:'text/html',htm:'text/html',css:'text/css',js:'text/javascript',mjs:'text/javascript',json:'application/json',map:'application/json',wasm:'application/wasm',txt:'text/plain'};
+const isZip=bytes=>bytes.length>4&&bytes[0]===0x50&&bytes[1]===0x4b;
+function cleanRel(name){const norm=String(name).replace(/\\/g,'/').replace(/^\.?\//,'');if(!norm||norm.endsWith('/')||norm.split('/').some(s=>!s||s==='.'||s==='..'))return null;return norm;}
+/** ZIP-Bundle: entweder genau eine .json + Medien (GCS) oder index.html +
+ *  Assets (Fremdspiel). Gibt {kind:'json'|'html', entry, media:Map} oder
+ *  null bei Nicht-ZIP. */
+function unpackGameBundle(bytes){
+ if(!isZip(bytes))return null;
+ let entries;try{entries=unzipSync(new Uint8Array(bytes.buffer,bytes.byteOffset,bytes.byteLength))}catch{throw Error('ZIP-Archiv konnte nicht gelesen werden.')}
+ const norms=Object.keys(entries).map(n=>cleanRel(n));
+ const isHtml=norms.some(n=>n&&/^index\.html?$/i.test(n));
+ let json=null,html=null,total=0;const media=new Map();
+ for(const [name,data]of Object.entries(entries)){
+  const norm=cleanRel(name);if(!norm){if(String(name).endsWith('/'))continue;throw Error('Ungültiger Pfad im ZIP: '+name);}
+  const ext=norm.split('.').pop().toLowerCase();total+=data.length;
+  if(total>50*1024*1024)throw Error('ZIP-Bundle ist zu groß (max. 50 MB entpackt).');
+  if(media.size>500)throw Error('Zu viele Dateien im ZIP.');
+  if(isHtml){
+   if(!HTML_ASSET_EXT.has(ext))throw Error('Dateityp im ZIP nicht erlaubt: '+norm);
+   if(/^index\.html?$/i.test(norm)){if(html)throw Error('Mehrere index.html im ZIP.');html=Buffer.from(data);}
+   else media.set(norm,Buffer.from(data));
+  }else{
+   if(ext==='json'){if(json)throw Error('Genau eine Projektdatei (.json) im ZIP erforderlich.');json=Buffer.from(data);}
+   else if(MEDIA_EXT.has(ext))media.set(norm,Buffer.from(data));
+   else throw Error('Dateityp im ZIP nicht erlaubt: '+norm);
+  }
+ }
+ if(isHtml){if(!html)throw Error('Keine index.html im ZIP gefunden.');return{kind:'html',entry:html,media};}
+ if(!json)throw Error('Keine Projektdatei (.json) im ZIP gefunden.');
+ return{kind:'json',entry:json,media};
+}
+function validateGame(bytes,bundleMedia){
  const p=JSON.parse(bytes.toString('utf8'));if(!p||typeof p!=='object'||!Array.isArray(p.stages)||!p.stages.length||p.stages.length>100)throw Error('GCS-Projekt mit Stages erforderlich.');
  if(!p.stages.some(s=>s.id===p.activeStageId&&s.type!=='blueprint'))throw Error('Eine spielbare Start-Stage auswählen.');
  const ids=new Set();let count=0;for(const stage of p.stages){if(typeof stage.id!=='string'||ids.has(stage.id)||!Array.isArray(stage.objects))throw Error('Ungültige Stage-Struktur.');ids.add(stage.id);const objects=new Set();for(const o of stage.objects){if(!o||typeof o.className!=='string'||typeof o.id!=='string'||!o.id||objects.has(o.id))throw Error('Komponenten benötigen eindeutige IDs.');objects.add(o.id);if(++count>10000)throw Error('Zu viele Komponenten.');}}
  // The uploaded runtime runs in an opaque sandbox; references to local files would not be portable.
- const walk=(o,depth=0)=>{if(depth>60)throw Error('Projekt ist zu tief verschachtelt.');if(o&&typeof o==='object')for(const [k,v]of Object.entries(o)){if(['__proto__','prototype','constructor'].includes(k))throw Error('Ungültiger Projektschlüssel.');if(['src','imageUrl','audioUrl','backgroundImage'].includes(k)&&typeof v==='string'&&v&&!v.startsWith('data:')&&!v.startsWith('${'))throw Error('Medien bitte im Projekt einbetten: '+k);walk(v,depth+1)}};walk(p);return p;
+ // Externe Pfade sind nur zulässig, wenn die Datei im ZIP-Bundle mitgeliefert wurde.
+ const walk=(o,depth=0)=>{if(depth>60)throw Error('Projekt ist zu tief verschachtelt.');if(o&&typeof o==='object')for(const [k,v]of Object.entries(o)){if(['__proto__','prototype','constructor'].includes(k))throw Error('Ungültiger Projektschlüssel.');if(['src','imageUrl','audioUrl','backgroundImage'].includes(k)&&typeof v==='string'&&v&&!v.startsWith('data:')&&!v.startsWith('${')){const ref=cleanRel(v);if(!bundleMedia||!ref||!bundleMedia.has(ref))throw Error('Medien bitte im Projekt einbetten oder im ZIP mitliefern: '+v);}walk(v,depth+1)}};walk(p);return p;
+}
+/** Minimale Formatprüfung für Fremdspiele als HTML-Dokument — der
+ *  CSP-Sandbox-Rahmen (kein Netzwerk, kein Cookie-Zugriff) trägt die
+ *  eigentliche Isolation; hier wird nur das Format verifiziert. */
+function validateHtml(bytes){
+ const text=bytes.toString('utf8').trimStart();
+ if(text.length>5*1024*1024)throw Error('HTML-Datei ist zu groß (max. 5 MB).');
+ if(!text.startsWith('<')||!/<(html|head|body|script|title)[\s>/]/i.test(text.slice(0,16384)))throw Error('Kein gültiges HTML-Dokument (erwartet: Einzel-HTML oder ZIP mit index.html).');
+ return text;
 }
 /** Upload-Infrastruktur: Verzeichnis, Auslieferungshelfer und Codec. Die fachliche
  *  Verarbeitung (Berechtigung, Größenlimit, Formatwhitelist, Zuordnung) liegt
@@ -17,13 +64,21 @@ function createUploads(core,admin,store,configFile,stageId){
  if(nodes.length!==2||nodes.some(n=>!Number.isInteger(n.maxBytes)||n.maxBytes<1))throw Error('Upload-Konfiguration fehlt');
  const commit=(actor,action,change)=>store.commit(core.db,{actor:actor.personId,action},change);
  return {
-  directory,commit,validateGame,
+  directory,commit,validateGame,validateHtml,unpackGameBundle,isZip,mediaType:n=>MEDIA_MIME[String(n).split('.').pop().toLowerCase()]||'application/octet-stream',
   // Größenlimits aus den TServerUpload-Komponenten; hardCap deckelt den Stream
   // am Transport-Rand, das fachliche Limit prüft der Task pro kind.
   maxBytes:Object.fromEntries(nodes.map(n=>[n.kind,n.maxBytes])),
   hardCap:Math.max(...nodes.map(n=>n.maxBytes))+1,
   asset(name){if(!/^[a-f0-9-]{36}\.png$/.test(name)||!core.db.people.some(p=>p.avatarImage==='/avatars/'+name))return null;const f=path.join(directory,name);return fs.existsSync(f)?f:null},
-  game(game){if(game.storage!=='upload'||!/^game-[a-f0-9-]{36}\.json$/.test(game.file))return null;return path.join(directory,game.file)},
+  game(game){if(game.storage!=='upload'||!/^game-[a-f0-9-]{36}\.(json|html)$/.test(game.file))return null;return path.join(directory,game.file)},
+  // Bundle-Dateien eines Uploads: neben der Einstiegsdatei liegt ein
+  // gleichnamiges Verzeichnis (game-<id>/images/...). rel wird strikt
+  // normalisiert und auf die Whitelist begrenzt (HTML-Assets für
+  // Fremdspiele, sonst nur Medientypen).
+  gameMedia(game,rel){if(game.storage!=='upload'||!/^game-[a-f0-9-]{36}\.(json|html)$/.test(game.file))return null;const norm=cleanRel(rel);if(!norm||!HTML_ASSET_EXT.has(norm.split('.').pop().toLowerCase()))return null;const f=path.join(directory,game.file.slice(0,-5),norm);return fs.existsSync(f)?f:null},
+  // Entfernt Upload-Datei + Bundle-Verzeichnis (idempotent; nur
+  // UUID-Dateinamen — Projektordner-Dateien bleiben unberührt).
+  removeGameFile(name){if(!/^game-[a-f0-9-]{36}\.(json|html)$/.test(String(name)))return false;let done=false;const f=path.join(directory,name);if(fs.existsSync(f)){fs.unlinkSync(f);done=true;}const d=path.join(directory,String(name).slice(0,-5));if(fs.existsSync(d)){fs.rmSync(d,{recursive:true,force:true});done=true;}return done},
   // Codec-Arbeit am Rand (sharp ist async): Avatar-Rohbytes → normalisiertes PNG.
   async normalizeAvatar(bytes){
    try{
@@ -34,4 +89,4 @@ function createUploads(core,admin,store,configFile,stageId){
   }
  };
 }
-module.exports={createUploads,validateGame};
+module.exports={createUploads,validateGame,validateHtml,unpackGameBundle};

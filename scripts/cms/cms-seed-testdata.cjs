@@ -109,6 +109,7 @@ const db = {
     { id: 'game-snake', title: 'Snake', avatar: '🐍', ownerId: 'super-admin', status: 'published', file: 'Snake-Lernprojekt.json', ratings: false },
     { id: 'game-math', title: 'Mathe-Abenteuer', avatar: '🧮', ownerId: 'super-admin', status: 'published', file: 'Kopfrechnen.json', ratings: true, metrics: ['tasks_done', 'tasks_correct', 'hints_used', 'round_complete'] },
     { id: 'game-mp', title: 'Zahlen-Duell (Multiplayer)', avatar: '⚔️', ownerId: 'super-admin', status: 'published', file: 'ZahlenDuell.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' } },
+    { id: 'game-memory-remote', title: 'Elins Memory (Multiplayer)', avatar: '🃏', ownerId: 'super-admin', status: 'published', file: 'ElinsMemoryRemote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' } },
     { id: 'game-draft', title: 'Unfertiges Spiel', avatar: '🚧', ownerId: 'super-admin', status: 'draft', file: 'Tetris.json' },
     { id: 'game-blocked', title: 'Gesperrtes Spiel', avatar: '⛔', ownerId: 'super-admin', status: 'blocked', file: 'Tetris.json' },
   ],
@@ -117,6 +118,7 @@ const db = {
     { gameId: 'game-math', areaId: 'room-sun-play', active: true },
     { gameId: 'game-math', areaId: 'room-sun-learn', active: true },
     { gameId: 'game-mp', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-memory-remote', areaId: 'room-sun-play', active: true },
     { gameId: 'game-snake', areaId: 'room-sun-closed', active: true }, // Raum deaktiviert
     { gameId: 'game-snake', areaId: 'room-moon-play', active: true },
     { gameId: 'game-draft', areaId: 'room-sun-play', active: true },   // draft: darf nicht starten

@@ -131,6 +131,12 @@
                     "label": "Export als JSON (komprimiert)",
                     "action": "export-json-gzip",
                     "icon": "📦"
+                },
+                {
+                    "id": "export-cms-bundle",
+                    "label": "Export als ZIP (CMS-Upload)",
+                    "action": "export-cms-bundle",
+                    "icon": "🗜️"
                 }
             ]
         },

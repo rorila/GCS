@@ -30,6 +30,11 @@
           "label": "Card"
         },
         {
+          "type": "CardZone",
+          "icon": "🂠",
+          "label": "Card Zone"
+        },
+        {
           "type": "Button",
           "icon": "🔘",
           "label": "Button"

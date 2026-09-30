@@ -158,6 +158,62 @@ export class GameExporter {
     }
 
     /**
+     * Export the project as a ZIP bundle for the CMS upload:
+     * <Name>.json keeps its relative media paths (./images/…) and every
+     * referenced media file is packed under its cleaned relative path —
+     * exactly what the CMS upload validator expects.
+     */
+    async exportCmsBundle(project: GameProject): Promise<void> {
+        const cleanedProject = this.getCleanProject(project);
+        const mediaRefs = this.collectMediaRefs(cleanedProject);
+
+        const projectName = (project.meta?.name || 'spiel').replace(/\s+/g, '_');
+        const files: Record<string, Uint8Array> = {};
+        files[`${projectName}.json`] = new TextEncoder().encode(JSON.stringify(cleanedProject, null, 2));
+
+        const missing: string[] = [];
+        for (const ref of mediaRefs.keys()) {
+            let rel = ref;
+            if (rel.startsWith('./')) rel = rel.substring(2);
+            if (rel.startsWith('/')) rel = rel.substring(1);
+            try {
+                const baseUrl = (project.meta as any)?.baseUrl || network.getHttpUrl() || window.location.href;
+                const urls = [new URL(rel, baseUrl).href];
+                if (!rel.startsWith('images/')) urls.push(new URL(`images/${rel}`, baseUrl).href);
+                let packed = false;
+                for (const tryUrl of urls) {
+                    const resp = await fetch(tryUrl);
+                    if (resp.ok && !(resp.headers.get('content-type') || '').includes('text/html')) {
+                        files[rel] = new Uint8Array(await resp.arrayBuffer());
+                        packed = true;
+                        break;
+                    }
+                }
+                if (!packed) missing.push(rel);
+            } catch (e) {
+                logger.warn(`[GameExporter] Bundle medium not loadable: ${ref}`, e);
+                missing.push(rel);
+            }
+        }
+
+        const zipped = zipSync(files);
+        const blob = new Blob([zipped.buffer as ArrayBuffer], { type: 'application/zip' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${projectName}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+        const mediaCount = Object.keys(files).length - 1;
+        NotificationToast.show(missing.length === 0
+            ? `CMS-Bundle exportiert: ${projectName}.zip\n\n${mediaCount} Mediendatei(en) enthalten — direkt unter „Meine Spiele" hochladbar.`
+            : `CMS-Bundle exportiert: ${projectName}.zip\n\n${mediaCount} Medien enthalten, ${missing.length} fehlen:\n${missing.slice(0, 10).join('\n')}${missing.length > 10 ? '\n…' : ''}`);
+    }
+
+    /**
      * Export the project as a Node.js server bundle (ZIP)
      */
     async exportServerBundle(project: GameProject): Promise<void> {
@@ -568,16 +624,19 @@ ${pwaHead}
     }
 
     /**
-     * Finds and embeds all media references (Images, Audio) in the project as Base64 Data URLs.
+     * Collects all referenced media paths in the project (./images/…,
+     * variable bindings, list entries). Keys are the raw references;
+     * embedMedia() fills the values with data URLs, the CMS bundle
+     * needs only the keys.
      */
-    private async embedMedia(project: any): Promise<void> {
+    private collectMediaRefs(project: any): Map<string, string> {
         const mediaRefs = new Map<string, string>(); // path -> dataUrl
 
-        const mediaExtensions = /\.(png|jpg|jpeg|gif|svg|webp|bmp|ico|mp3|ogg|wav|mp4|webm)$/i;
+        const mediaExtensions = /\.(png|jpg|jpeg|gif|svg|webp|bmp|ico|mp3|ogg|wav|m4a|mp4|webm|woff|woff2|ttf|otf)$/i;
         const isMediaPath = (s: string) => {
             if (!s || typeof s !== 'string' || s.length === 0) return false;
             if (s.startsWith('data:') || s.startsWith('http://') || s.startsWith('https://')) return false;
-            return (/(^|\/)(images|audio|video|assets)\//i).test(s) || mediaExtensions.test(s);
+            return (/(^|\/)(images|audio|video|assets|media|fonts)\//i).test(s) || mediaExtensions.test(s);
         };
 
         // Build a map of known variables and lists for resolving ${...} bindings
@@ -659,6 +718,14 @@ ${pwaHead}
         };
 
         collectPaths(project);
+        return mediaRefs;
+    }
+
+    /**
+     * Finds and embeds all media references (Images, Audio) in the project as Base64 Data URLs.
+     */
+    private async embedMedia(project: any): Promise<void> {
+        const mediaRefs = this.collectMediaRefs(project);
 
         // 2. Fetch and convert to Base64
         logger.info(`[GameExporter] Found ${mediaRefs.size} unique media files to embed.`);

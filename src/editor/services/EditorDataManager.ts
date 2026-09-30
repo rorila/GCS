@@ -115,6 +115,10 @@ export class EditorDataManager {
         return this.exporter.exportJSONCompressed();
     }
 
+    public async exportCmsBundle(): Promise<void> {
+        return this.exporter.exportCmsBundle();
+    }
+
     public async exportTheme(): Promise<void> {
         return this.exporter.exportTheme();
     }

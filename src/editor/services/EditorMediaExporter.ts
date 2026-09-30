@@ -36,6 +36,13 @@ export class EditorMediaExporter {
         await projectPersistenceService.exportJSONCompressed(this.host.project);
     }
 
+    /** CMS-Upload-Bundle: Projekt-JSON + referenzierte Medien als ZIP. */
+    public async exportCmsBundle(): Promise<void> {
+        if (this.host.flowEditor) this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
+        this.host.syncStageObjectsToProject();
+        await projectPersistenceService.exportCmsBundle(this.host.project);
+    }
+
     public async exportTheme(): Promise<void> {
         this.host.syncStageObjectsToProject();
 

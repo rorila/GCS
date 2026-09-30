@@ -316,6 +316,20 @@ const methods={
    ctx.commit(ctx.session,exprOf(ctx,audit.action,scope),exprOf(ctx,audit.areaId,scope),next=>Object.assign(next[spec.entity].find(a=>a.id===row.id),set));
    return{ok:true};
   },
+  // Entfernt alle Zeilen, die der where-Klausel entsprechen — z. B. ein
+  // Spiel samt Freigaben beim Löschen; liefert die Trefferzahlen zurück.
+  // 'also': weitere Entity-Specs, die im selben Commit mitentfernt werden —
+  // die Integritätsprüfung läuft erst am Ende, Referenzen bleiben konsistent.
+  delete(ctx,_component,params){
+   const spec=params?.[0]||{},scope={};
+   const sweep=[spec,...(spec.also||[])];
+   for(const s of sweep)ensureEntity(ctx,s.entity);
+   const match=s=>item=>whereMatch(ctx,item,s.where,scope);
+   const removed=sweep.map(s=>(ctx.core.db[s.entity]||[]).filter(match(s)).length);
+   const audit=spec.audit||{};
+   ctx.commit(ctx.session,exprOf(ctx,audit.action,scope),exprOf(ctx,audit.areaId,scope),next=>{for(const s of sweep)next[s.entity]=(next[s.entity]||[]).filter(item=>!match(s)(item));});
+   return{ok:true,removed};
+  },
   // Find-or-create einer Zeile nach match-Kriterien und Setzen der Felder —
   // vereinheitlicht Rollen, Freigaben (grants) und Mitgliedschaften (memberships).
   upsert(ctx,_component,params){
@@ -773,7 +787,7 @@ const methods={
   partyList(ctx,_component,params){
    const db=ctx.core.db,areaId=exprOf(ctx,params?.[0],{});
    const items=db.parties.filter(p=>p.areaId===areaId&&p.status==='open')
-    .map(p=>({id:p.id,bereich:db.areas.find(a=>a.id===p.areaId)?.name,spiel:db.games.find(g=>g.id===p.gameId)?.title,
+    .map(p=>({id:p.id,gameId:p.gameId,bereich:db.areas.find(a=>a.id===p.areaId)?.name,spiel:db.games.find(g=>g.id===p.gameId)?.title,
      platz:p.members.filter(m=>!m.leftAt).length+'/'+(db.games.find(g=>g.id===p.gameId)?.multiplayer?.maxPlayers||'∞'),
      gastgeber:db.people.find(x=>x.id===p.hostId)?.name}));
    return{ok:true,items,message:items.length?'Offene Partien':'Keine offene Partie — starte eine!'};
@@ -879,27 +893,55 @@ const methods={
   process(ctx,component){
    const up=ctx.upload||{},bytes=up.bytes||Buffer.alloc(0);
    if(bytes.length>component.maxBytes)return{ok:false,status:413,message:'Datei ist zu groß.'};
-   let content,filename,record;
+   let content,filename,record,targetGame,description='',bundle=null,oldFile='';
    try{
     if(component.kind==='game'){
-     const meta=up.meta||{},title=typeof meta.title==='string'?meta.title.trim():'',description=meta.description||'';
+     const meta=up.meta||{},title=typeof meta.title==='string'?meta.title.trim():'';
+     description=meta.description||'';
      if(!title||title.length>60||/[<>\x00-\x1f]/.test(title)||typeof description!=='string'||description.length>500)throw Error('Titel (1–60 Zeichen) und Beschreibung (max. 500 Zeichen) prüfen.');
-     const project=ctx.uploads.validateGame(bytes),id='game-'+crypto.randomUUID();
-     filename=id+'.json';content=JSON.stringify(project);
-     record={id,title,description,avatar:'🎮',ownerId:ctx.session.personId,status:'draft',storage:'upload',file:filename};
+     if(meta.gameId){
+      targetGame=(ctx.core.db.games||[]).find(g=>g.id===meta.gameId&&g.ownerId===ctx.session.personId);
+      // Ersetzen (neue Version): eigenes Spiel in jedem Status — die alte
+      // Datei wird erst nach erfolgreicher Prüfung/Abfrage entfernt.
+      if(meta.replace==='true'){if(!targetGame)throw Error('Das ausgewählte Spiel ist nicht mehr verfügbar.');oldFile=targetGame.file||'';}
+      else if(!targetGame||targetGame.status!=='draft'||targetGame.file)throw Error('Der ausgewählte Spielentwurf ist nicht mehr verfügbar.');
+      if(targetGame.title!==title)throw Error('Der Spieletitel stimmt nicht mit dem ausgewählten Spiel überein.');
+     }else{
+      record={id:'game-'+crypto.randomUUID(),title,description,avatar:'🎮',ownerId:ctx.session.personId,status:'draft',storage:'upload',file:'',version:1};
+     }
+     // ZIP-Bundle (Projekt + Medien) oder Einzeldatei: bei einem GCS-Bundle
+     // müssen externe Medienpfade im Archiv vorhanden sein. Fremdspiele
+     // kommen als Einzel-HTML oder ZIP mit index.html (kind:'html').
+     bundle=ctx.uploads.unpackGameBundle(bytes);
+     const kind=bundle?bundle.kind:(/^\s*</.test(bytes.toString('utf8').slice(0,256))?'html':'json');
+     const entry=bundle?bundle.entry:bytes;
+     if(kind==='html'){ctx.uploads.validateHtml(entry);content=entry;}
+     else{const project=ctx.uploads.validateGame(entry,bundle?bundle.media:null);content=JSON.stringify(project);}
+     filename='game-'+crypto.randomUUID()+(kind==='html'?'.html':'.json');
+     if(record)record.file=filename;
     }else{
      if(!sniffImage(bytes))throw Error('PNG, JPEG oder WebP erforderlich.');
      if(!up.png)throw Error(up.error||'Bild konnte nicht gelesen werden.');
      content=up.png;filename=crypto.randomUUID()+'.png';
     }
    }catch(e){ctx.emit('Dateiprüfung abgelehnt',{kind:component.kind});return{ok:false,status:400,message:component.failureMessage+' '+e.message};}
-   ctx.emit('Dateiinhalt geprüft',{kind:component.kind,bytes:bytes.length});
+   ctx.emit('Dateiinhalt geprüft',{kind:component.kind,bytes:bytes.length,bundle:bundle?bundle.media.size:0});
    const f=path.join(ctx.uploads.directory,filename);fs.writeFileSync(f,content,{flag:'wx'});
-   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else next.people.find(p=>p.id===ctx.session.personId).avatarImage='/avatars/'+filename});}
-   catch(e){fs.unlinkSync(f);throw e;}
-   ctx.emit('Datei und Zuordnung gespeichert',{kind:component.kind,ownerId:ctx.session.personId,id:record?.id});
-   return{ok:true,message:component.successMessage,...(record?{id:record.id,status:'draft'}:{avatarImage:'/avatars/'+filename})};
-  }
+   // Bundle-Medien unter uploads/<dateistamm>/<relpfad> — /play/<key>/<pfad>
+   // löst diese Dateien später über uploads.gameMedia auf.
+   const mediaDir=bundle?path.join(ctx.uploads.directory,filename.slice(0,-5)):null;
+   if(bundle)for(const [rel,data]of bundle.media){const tp=path.join(mediaDir,rel);fs.mkdirSync(path.dirname(tp),{recursive:true});fs.writeFileSync(tp,data,{flag:'wx'});}
+   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame)Object.assign(next.games.find(g=>g.id===targetGame.id),{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});else next.people.find(p=>p.id===ctx.session.personId).avatarImage='/avatars/'+filename});}
+   catch(e){fs.unlinkSync(f);if(mediaDir)fs.rmSync(mediaDir,{recursive:true,force:true});throw e;}
+   // Ersetzte Datei erst nach erfolgreicher Zuordnung entfernen.
+   if(oldFile&&oldFile!==filename)ctx.uploads.removeGameFile(oldFile);
+   const gameId=record?.id||targetGame?.id;
+   ctx.emit('Datei und Zuordnung gespeichert',{kind:component.kind,ownerId:ctx.session.personId,id:gameId});
+   return{ok:true,message:component.successMessage,...(component.kind==='game'?{id:gameId,status:'draft'}:{avatarImage:'/avatars/'+filename})};
+  },
+  // Entfernt Upload-Datei + Bundle-Verzeichnis eines Spiels — technische
+  // Seite des Löschens; die fachliche Entscheidung liegt im Task.
+  remove(ctx,_component,params){return{ok:true,removed:ctx.uploads.removeGameFile(exprOf(ctx,params?.[0],{}))};}
  },
  // --- Einrichtung per Einladungslink: die Fachregeln liegen in den
  // enroll-Funktionen (Ticket, Benutzername, Passwort, Credentials-Datei). -----
@@ -907,7 +949,7 @@ const methods={
   enroll(ctx,component){
    const fn=ctx.enroll?.[component.kind];if(!fn)throw Error('Einrichtungsfunktion fehlt: '+component.kind);
    const r=fn(ctx.body||{});
-   return r?.ok?{ok:true,message:r.message}:{ok:false,status:400,message:r?.message||'Einrichtung fehlgeschlagen.'};
+   return r?.ok?{...r,ok:true}:{ok:false,status:400,message:r?.message||'Einrichtung fehlgeschlagen.'};
   }
  }
 };

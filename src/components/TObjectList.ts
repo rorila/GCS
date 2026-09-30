@@ -32,6 +32,9 @@ export class TObjectList extends TTable implements IRuntimeComponent {
     /** Runtime-Only: Referenz auf alle Objekte, fuer rebuildData nach record_*-Aktionen */
     public _runtimeObjects: any[] = [];
 
+    /** Runtime-Only: Event-Kanal aus initRuntime-Callbacks (Remote-/Simulations-Eingaben). */
+    private _handleEvent: ((objectId: string, eventName: string, data?: any) => void) | null = null;
+
     /** Runtime-Kompatibilität: list_*-Aktionen sprechen das Array über .value an */
     get value(): any { return this.items; }
     set value(v: any) { this.items = Array.isArray(v) ? v : []; }
@@ -203,11 +206,29 @@ export class TObjectList extends TTable implements IRuntimeComponent {
         return super.applyChange(propertyName, newValue, oldValue);
     }
 
+    /**
+     * Löst ein Event auf dem Objekt des Datensatzes `index` aus — so, als hätte
+     * der Benutzer direkt interagiert. Dient u. a. der synchronen Anwendung
+     * entfernter Spielzüge (Mehrspieler): Die Gegenseite sendet nur den
+     * Datensatz-Index; beide Clients laufen danach denselben Flow.
+     * `data` wird als Event-Daten an den Task-Kontext weitergereicht.
+     */
+    public emitRecordEvent(index: number, eventName: string = 'onClick', data?: any): boolean {
+        const i = typeof index === 'string' ? parseInt(index, 10) : index;
+        const row = this.data?.[i];
+        const objectId = row?.objectId ?? row?.[this.recordKey] ?? this.items?.[i];
+        const obj = this._runtimeObjects.find((o: any) => o.id === objectId || o.name === objectId);
+        if (!obj || !this._handleEvent) return false;
+        this._handleEvent(obj.id, eventName, data || {});
+        return true;
+    }
+
     // --- IRuntimeComponent ---
 
     public initRuntime(callbacks: { objects: any[] } & Record<string, any>): void {
         super.initRuntime(callbacks);
         this._runtimeObjects = callbacks.objects || [];
+        this._handleEvent = callbacks.handleEvent || null;
         this.rebuildData(this._runtimeObjects);
     }
 }

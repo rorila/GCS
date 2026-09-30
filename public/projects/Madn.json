@@ -1,0 +1,5073 @@
+{
+  "meta": {
+    "id": "madn",
+    "name": "Madn",
+    "description": "Mensch ärgere dich nicht — deklaratives GCS-Brettspiel (2-4 Spieler, Hotseat). Portierung des remote-games madn.",
+    "version": "1.0"
+  },
+  "schemaVersion": 1,
+  "activeStageId": "main",
+  "stages": [
+    {
+      "id": "main",
+      "name": "Hauptstage",
+      "type": "main",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "objects": [
+        {
+          "className": "TImage",
+          "id": "madn-1-ymx89",
+          "name": "Brett",
+          "scope": "stage",
+          "x": 1,
+          "y": 2,
+          "width": 33,
+          "height": 33,
+          "visible": true,
+          "zIndex": 0,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/brett.svg",
+          "objectFit": "fill"
+        },
+        {
+          "className": "TImage",
+          "id": "madn-2-lfyri",
+          "name": "Figur_0",
+          "scope": "stage",
+          "x": 25.3,
+          "y": 5.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-rot.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-3-ju7p5",
+          "name": "Figur_1",
+          "scope": "stage",
+          "x": 28.3,
+          "y": 5.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-rot.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-4-nq8x8",
+          "name": "Figur_2",
+          "scope": "stage",
+          "x": 25.3,
+          "y": 8.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-rot.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-5-nv1wt",
+          "name": "Figur_3",
+          "scope": "stage",
+          "x": 28.3,
+          "y": 8.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-rot.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-6-m4u3a",
+          "name": "Figur_4",
+          "scope": "stage",
+          "x": 25.3,
+          "y": 26.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-blau.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-7-uzkd8",
+          "name": "Figur_5",
+          "scope": "stage",
+          "x": 28.3,
+          "y": 26.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-blau.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-8-cf3od",
+          "name": "Figur_6",
+          "scope": "stage",
+          "x": 25.3,
+          "y": 29.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-blau.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-9-sm37z",
+          "name": "Figur_7",
+          "scope": "stage",
+          "x": 28.3,
+          "y": 29.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-blau.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-a-oi9qo",
+          "name": "Figur_8",
+          "scope": "stage",
+          "x": 4.3,
+          "y": 5.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-gruen.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-b-fewdi",
+          "name": "Figur_9",
+          "scope": "stage",
+          "x": 7.3,
+          "y": 5.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-gruen.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-c-nacn4",
+          "name": "Figur_10",
+          "scope": "stage",
+          "x": 4.3,
+          "y": 8.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-gruen.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-d-hrfm0",
+          "name": "Figur_11",
+          "scope": "stage",
+          "x": 7.3,
+          "y": 8.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-gruen.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-e-0jcig",
+          "name": "Figur_12",
+          "scope": "stage",
+          "x": 4.3,
+          "y": 26.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-gelb.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-f-u7c0p",
+          "name": "Figur_13",
+          "scope": "stage",
+          "x": 7.3,
+          "y": 26.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-gelb.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-g-hmrms",
+          "name": "Figur_14",
+          "scope": "stage",
+          "x": 4.3,
+          "y": 29.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-gelb.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-h-7m7lq",
+          "name": "Figur_15",
+          "scope": "stage",
+          "x": 7.3,
+          "y": 29.3,
+          "width": 2.4,
+          "height": 2.4,
+          "visible": false,
+          "zIndex": 10,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/figur-gelb.svg",
+          "objectFit": "contain",
+          "events": {
+            "onClick": "FigurGewaehlt",
+            "onTouchStart": "FigurGewaehlt"
+          }
+        },
+        {
+          "className": "TObjectList",
+          "id": "madn-i-i7bi9",
+          "name": "FigurenListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "visible": true,
+          "x": 58,
+          "y": 0,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "style": {},
+          "items": [
+            "madn-2-lfyri",
+            "madn-3-ju7p5",
+            "madn-4-nq8x8",
+            "madn-5-nv1wt",
+            "madn-6-m4u3a",
+            "madn-7-uzkd8",
+            "madn-8-cf3od",
+            "madn-9-sm37z",
+            "madn-a-oi9qo",
+            "madn-b-fewdi",
+            "madn-c-nacn4",
+            "madn-d-hrfm0",
+            "madn-e-0jcig",
+            "madn-f-u7c0p",
+            "madn-g-hmrms",
+            "madn-h-7m7lq"
+          ],
+          "fields": [
+            {
+              "name": "slot",
+              "type": "number",
+              "defaultValue": 0
+            },
+            {
+              "name": "colorIdx",
+              "type": "number",
+              "defaultValue": 0
+            },
+            {
+              "name": "moveable",
+              "type": "boolean",
+              "defaultValue": false
+            },
+            {
+              "name": "pieceIdx",
+              "type": "number",
+              "defaultValue": 0
+            },
+            {
+              "name": "figurName",
+              "type": "string",
+              "defaultValue": ""
+            }
+          ],
+          "recordData": {
+            "madn-2-lfyri": {
+              "slot": 56,
+              "colorIdx": 0,
+              "moveable": false,
+              "pieceIdx": 0,
+              "figurName": "Figur_0"
+            },
+            "madn-3-ju7p5": {
+              "slot": 57,
+              "colorIdx": 0,
+              "moveable": false,
+              "pieceIdx": 1,
+              "figurName": "Figur_1"
+            },
+            "madn-4-nq8x8": {
+              "slot": 58,
+              "colorIdx": 0,
+              "moveable": false,
+              "pieceIdx": 2,
+              "figurName": "Figur_2"
+            },
+            "madn-5-nv1wt": {
+              "slot": 59,
+              "colorIdx": 0,
+              "moveable": false,
+              "pieceIdx": 3,
+              "figurName": "Figur_3"
+            },
+            "madn-6-m4u3a": {
+              "slot": 60,
+              "colorIdx": 1,
+              "moveable": false,
+              "pieceIdx": 4,
+              "figurName": "Figur_4"
+            },
+            "madn-7-uzkd8": {
+              "slot": 61,
+              "colorIdx": 1,
+              "moveable": false,
+              "pieceIdx": 5,
+              "figurName": "Figur_5"
+            },
+            "madn-8-cf3od": {
+              "slot": 62,
+              "colorIdx": 1,
+              "moveable": false,
+              "pieceIdx": 6,
+              "figurName": "Figur_6"
+            },
+            "madn-9-sm37z": {
+              "slot": 63,
+              "colorIdx": 1,
+              "moveable": false,
+              "pieceIdx": 7,
+              "figurName": "Figur_7"
+            },
+            "madn-a-oi9qo": {
+              "slot": 64,
+              "colorIdx": 2,
+              "moveable": false,
+              "pieceIdx": 8,
+              "figurName": "Figur_8"
+            },
+            "madn-b-fewdi": {
+              "slot": 65,
+              "colorIdx": 2,
+              "moveable": false,
+              "pieceIdx": 9,
+              "figurName": "Figur_9"
+            },
+            "madn-c-nacn4": {
+              "slot": 66,
+              "colorIdx": 2,
+              "moveable": false,
+              "pieceIdx": 10,
+              "figurName": "Figur_10"
+            },
+            "madn-d-hrfm0": {
+              "slot": 67,
+              "colorIdx": 2,
+              "moveable": false,
+              "pieceIdx": 11,
+              "figurName": "Figur_11"
+            },
+            "madn-e-0jcig": {
+              "slot": 68,
+              "colorIdx": 3,
+              "moveable": false,
+              "pieceIdx": 12,
+              "figurName": "Figur_12"
+            },
+            "madn-f-u7c0p": {
+              "slot": 69,
+              "colorIdx": 3,
+              "moveable": false,
+              "pieceIdx": 13,
+              "figurName": "Figur_13"
+            },
+            "madn-g-hmrms": {
+              "slot": 70,
+              "colorIdx": 3,
+              "moveable": false,
+              "pieceIdx": 14,
+              "figurName": "Figur_14"
+            },
+            "madn-h-7m7lq": {
+              "slot": 71,
+              "colorIdx": 3,
+              "moveable": false,
+              "pieceIdx": 15,
+              "figurName": "Figur_15"
+            }
+          },
+          "data": [
+            {
+              "index": 0,
+              "objectId": "madn-2-lfyri",
+              "name": "Figur_0",
+              "slot": 56,
+              "colorIdx": 0,
+              "moveable": false,
+              "pieceIdx": 0,
+              "figurName": "Figur_0"
+            },
+            {
+              "index": 1,
+              "objectId": "madn-3-ju7p5",
+              "name": "Figur_1",
+              "slot": 57,
+              "colorIdx": 0,
+              "moveable": false,
+              "pieceIdx": 1,
+              "figurName": "Figur_1"
+            },
+            {
+              "index": 2,
+              "objectId": "madn-4-nq8x8",
+              "name": "Figur_2",
+              "slot": 58,
+              "colorIdx": 0,
+              "moveable": false,
+              "pieceIdx": 2,
+              "figurName": "Figur_2"
+            },
+            {
+              "index": 3,
+              "objectId": "madn-5-nv1wt",
+              "name": "Figur_3",
+              "slot": 59,
+              "colorIdx": 0,
+              "moveable": false,
+              "pieceIdx": 3,
+              "figurName": "Figur_3"
+            },
+            {
+              "index": 4,
+              "objectId": "madn-6-m4u3a",
+              "name": "Figur_4",
+              "slot": 60,
+              "colorIdx": 1,
+              "moveable": false,
+              "pieceIdx": 4,
+              "figurName": "Figur_4"
+            },
+            {
+              "index": 5,
+              "objectId": "madn-7-uzkd8",
+              "name": "Figur_5",
+              "slot": 61,
+              "colorIdx": 1,
+              "moveable": false,
+              "pieceIdx": 5,
+              "figurName": "Figur_5"
+            },
+            {
+              "index": 6,
+              "objectId": "madn-8-cf3od",
+              "name": "Figur_6",
+              "slot": 62,
+              "colorIdx": 1,
+              "moveable": false,
+              "pieceIdx": 6,
+              "figurName": "Figur_6"
+            },
+            {
+              "index": 7,
+              "objectId": "madn-9-sm37z",
+              "name": "Figur_7",
+              "slot": 63,
+              "colorIdx": 1,
+              "moveable": false,
+              "pieceIdx": 7,
+              "figurName": "Figur_7"
+            },
+            {
+              "index": 8,
+              "objectId": "madn-a-oi9qo",
+              "name": "Figur_8",
+              "slot": 64,
+              "colorIdx": 2,
+              "moveable": false,
+              "pieceIdx": 8,
+              "figurName": "Figur_8"
+            },
+            {
+              "index": 9,
+              "objectId": "madn-b-fewdi",
+              "name": "Figur_9",
+              "slot": 65,
+              "colorIdx": 2,
+              "moveable": false,
+              "pieceIdx": 9,
+              "figurName": "Figur_9"
+            },
+            {
+              "index": 10,
+              "objectId": "madn-c-nacn4",
+              "name": "Figur_10",
+              "slot": 66,
+              "colorIdx": 2,
+              "moveable": false,
+              "pieceIdx": 10,
+              "figurName": "Figur_10"
+            },
+            {
+              "index": 11,
+              "objectId": "madn-d-hrfm0",
+              "name": "Figur_11",
+              "slot": 67,
+              "colorIdx": 2,
+              "moveable": false,
+              "pieceIdx": 11,
+              "figurName": "Figur_11"
+            },
+            {
+              "index": 12,
+              "objectId": "madn-e-0jcig",
+              "name": "Figur_12",
+              "slot": 68,
+              "colorIdx": 3,
+              "moveable": false,
+              "pieceIdx": 12,
+              "figurName": "Figur_12"
+            },
+            {
+              "index": 13,
+              "objectId": "madn-f-u7c0p",
+              "name": "Figur_13",
+              "slot": 69,
+              "colorIdx": 3,
+              "moveable": false,
+              "pieceIdx": 13,
+              "figurName": "Figur_13"
+            },
+            {
+              "index": 14,
+              "objectId": "madn-g-hmrms",
+              "name": "Figur_14",
+              "slot": 70,
+              "colorIdx": 3,
+              "moveable": false,
+              "pieceIdx": 14,
+              "figurName": "Figur_14"
+            },
+            {
+              "index": 15,
+              "objectId": "madn-h-7m7lq",
+              "name": "Figur_15",
+              "slot": 71,
+              "colorIdx": 3,
+              "moveable": false,
+              "pieceIdx": 15,
+              "figurName": "Figur_15"
+            }
+          ]
+        },
+        {
+          "className": "TLabel",
+          "id": "madn-j-5s2hn",
+          "name": "TitelLabel",
+          "scope": "stage",
+          "x": 36,
+          "y": 2,
+          "width": 26,
+          "height": 3,
+          "visible": true,
+          "zIndex": 1,
+          "align": "NONE",
+          "draggable": false,
+          "style": {
+            "fontSize": 26,
+            "fontWeight": "700",
+            "color": "#333",
+            "backgroundColor": "transparent"
+          },
+          "text": "Mensch ärgere dich nicht"
+        },
+        {
+          "className": "TLabel",
+          "id": "madn-k-v055d",
+          "name": "WahlLabel",
+          "scope": "stage",
+          "x": 36,
+          "y": 6,
+          "width": 20,
+          "height": 2,
+          "visible": true,
+          "zIndex": 1,
+          "align": "NONE",
+          "draggable": false,
+          "style": {
+            "fontSize": 16,
+            "color": "#444",
+            "backgroundColor": "transparent"
+          },
+          "text": "Wie viele Spieler?"
+        },
+        {
+          "className": "TButton",
+          "id": "madn-l-8aq8m",
+          "name": "Btn2",
+          "scope": "stage",
+          "x": 36,
+          "y": 9,
+          "width": 7,
+          "height": 3,
+          "visible": true,
+          "zIndex": 5,
+          "align": "NONE",
+          "draggable": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#1976d2",
+            "borderColor": "#0d47a1",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "2 Spieler",
+          "events": {
+            "onClick": "Anzahl2"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "madn-m-c9g3m",
+          "name": "Btn3",
+          "scope": "stage",
+          "x": 45,
+          "y": 9,
+          "width": 7,
+          "height": 3,
+          "visible": true,
+          "zIndex": 5,
+          "align": "NONE",
+          "draggable": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#1976d2",
+            "borderColor": "#0d47a1",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "3 Spieler",
+          "events": {
+            "onClick": "Anzahl3"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "madn-n-gsi9g",
+          "name": "Btn4",
+          "scope": "stage",
+          "x": 54,
+          "y": 9,
+          "width": 7,
+          "height": 3,
+          "visible": true,
+          "zIndex": 5,
+          "align": "NONE",
+          "draggable": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#1976d2",
+            "borderColor": "#0d47a1",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "4 Spieler",
+          "events": {
+            "onClick": "Anzahl4"
+          }
+        },
+        {
+          "className": "TButton",
+          "id": "madn-o-9kopw",
+          "name": "WuerfelnBtn",
+          "scope": "stage",
+          "x": 36,
+          "y": 20,
+          "width": 7,
+          "height": 3,
+          "visible": false,
+          "zIndex": 5,
+          "align": "NONE",
+          "draggable": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#1976d2",
+            "borderColor": "#0d47a1",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "Würfeln",
+          "events": {
+            "onClick": "Wuerfeln"
+          }
+        },
+        {
+          "className": "TImage",
+          "id": "madn-p-f9egc",
+          "name": "WuerfelBild",
+          "scope": "stage",
+          "x": 46,
+          "y": 18,
+          "width": 6,
+          "height": 6,
+          "visible": false,
+          "zIndex": 5,
+          "align": "NONE",
+          "draggable": false,
+          "style": {},
+          "src": "images/madn/w6.svg",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TLabel",
+          "id": "madn-q-un16i",
+          "name": "StatusLabel",
+          "scope": "stage",
+          "x": 36,
+          "y": 15,
+          "width": 26,
+          "height": 4,
+          "visible": true,
+          "zIndex": 5,
+          "align": "NONE",
+          "draggable": false,
+          "style": {
+            "fontSize": 15,
+            "color": "#222",
+            "backgroundColor": "transparent"
+          },
+          "text": ""
+        },
+        {
+          "className": "TButton",
+          "id": "madn-r-qaner",
+          "name": "NeustartBtn",
+          "scope": "stage",
+          "x": 36,
+          "y": 26,
+          "width": 7,
+          "height": 3,
+          "visible": false,
+          "zIndex": 5,
+          "align": "NONE",
+          "draggable": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#1976d2",
+            "borderColor": "#0d47a1",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "Neu starten",
+          "events": {
+            "onClick": "Neustart"
+          }
+        },
+        {
+          "className": "TListVariable",
+          "id": "madn-s-0k5ej",
+          "name": "RingListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0"
+          },
+          "items": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "value": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "defaultValue": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "madn-t-m61fq",
+          "name": "GoalListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0"
+          },
+          "items": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "value": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "defaultValue": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "madn-u-87i7h",
+          "name": "FeldX",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0"
+          },
+          "items": [
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            22.3,
+            25.3,
+            28.3,
+            31.3,
+            31.3,
+            31.3,
+            28.3,
+            25.3,
+            22.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            16.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            10.3,
+            7.3,
+            4.3,
+            1.3,
+            1.3,
+            1.3,
+            4.3,
+            7.3,
+            10.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            28.3,
+            25.3,
+            22.3,
+            19.3,
+            4.3,
+            7.3,
+            10.3,
+            13.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3
+          ],
+          "value": [
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            22.3,
+            25.3,
+            28.3,
+            31.3,
+            31.3,
+            31.3,
+            28.3,
+            25.3,
+            22.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            16.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            10.3,
+            7.3,
+            4.3,
+            1.3,
+            1.3,
+            1.3,
+            4.3,
+            7.3,
+            10.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            28.3,
+            25.3,
+            22.3,
+            19.3,
+            4.3,
+            7.3,
+            10.3,
+            13.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3
+          ],
+          "defaultValue": [
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            22.3,
+            25.3,
+            28.3,
+            31.3,
+            31.3,
+            31.3,
+            28.3,
+            25.3,
+            22.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            19.3,
+            16.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            10.3,
+            7.3,
+            4.3,
+            1.3,
+            1.3,
+            1.3,
+            4.3,
+            7.3,
+            10.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            13.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            28.3,
+            25.3,
+            22.3,
+            19.3,
+            4.3,
+            7.3,
+            10.3,
+            13.3,
+            16.3,
+            16.3,
+            16.3,
+            16.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            25.3,
+            28.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3,
+            4.3,
+            7.3
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "madn-v-851n9",
+          "name": "FeldY",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0"
+          },
+          "items": [
+            2.3,
+            5.3,
+            8.3,
+            11.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            17.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            23.3,
+            26.3,
+            29.3,
+            32.3,
+            32.3,
+            32.3,
+            29.3,
+            26.3,
+            23.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            17.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            11.3,
+            8.3,
+            5.3,
+            2.3,
+            2.3,
+            5.3,
+            8.3,
+            11.3,
+            14.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            29.3,
+            26.3,
+            23.3,
+            20.3,
+            5.3,
+            5.3,
+            8.3,
+            8.3,
+            26.3,
+            26.3,
+            29.3,
+            29.3,
+            5.3,
+            5.3,
+            8.3,
+            8.3,
+            26.3,
+            26.3,
+            29.3,
+            29.3
+          ],
+          "value": [
+            2.3,
+            5.3,
+            8.3,
+            11.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            17.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            23.3,
+            26.3,
+            29.3,
+            32.3,
+            32.3,
+            32.3,
+            29.3,
+            26.3,
+            23.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            17.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            11.3,
+            8.3,
+            5.3,
+            2.3,
+            2.3,
+            5.3,
+            8.3,
+            11.3,
+            14.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            29.3,
+            26.3,
+            23.3,
+            20.3,
+            5.3,
+            5.3,
+            8.3,
+            8.3,
+            26.3,
+            26.3,
+            29.3,
+            29.3,
+            5.3,
+            5.3,
+            8.3,
+            8.3,
+            26.3,
+            26.3,
+            29.3,
+            29.3
+          ],
+          "defaultValue": [
+            2.3,
+            5.3,
+            8.3,
+            11.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            17.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            23.3,
+            26.3,
+            29.3,
+            32.3,
+            32.3,
+            32.3,
+            29.3,
+            26.3,
+            23.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            20.3,
+            17.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            14.3,
+            11.3,
+            8.3,
+            5.3,
+            2.3,
+            2.3,
+            5.3,
+            8.3,
+            11.3,
+            14.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            17.3,
+            29.3,
+            26.3,
+            23.3,
+            20.3,
+            5.3,
+            5.3,
+            8.3,
+            8.3,
+            26.3,
+            26.3,
+            29.3,
+            29.3,
+            5.3,
+            5.3,
+            8.3,
+            8.3,
+            26.3,
+            26.3,
+            29.3,
+            29.3
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "madn-w-kmnfg",
+          "name": "StartFelder",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0"
+          },
+          "items": [
+            0,
+            10,
+            30,
+            20
+          ],
+          "value": [
+            0,
+            10,
+            30,
+            20
+          ],
+          "defaultValue": [
+            0,
+            10,
+            30,
+            20
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "madn-x-6l57q",
+          "name": "EingangFelder",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0"
+          },
+          "items": [
+            39,
+            9,
+            29,
+            19
+          ],
+          "value": [
+            39,
+            9,
+            29,
+            19
+          ],
+          "defaultValue": [
+            39,
+            9,
+            29,
+            19
+          ]
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-y-00qm8",
+          "name": "Var_PlayerCount",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 0,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-z-8oeen",
+          "name": "Var_CurrPlayer",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 1,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-10-8hulv",
+          "name": "Var_Wurf",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-11-r8wir",
+          "name": "Var_Phase",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 3,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": "setup",
+          "defaultValue": "setup"
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-12-aaess",
+          "name": "Var_Versuche",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 4,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-13-3wezr",
+          "name": "Var_Sechser",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 5,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-14-dd97v",
+          "name": "Var_Gewaehlt",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 6,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": -1,
+          "defaultValue": -1
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-15-wad86",
+          "name": "Var_Moveable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 7,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-16-6bc9m",
+          "name": "Var_PSlot",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 8,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": -1,
+          "defaultValue": -1
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-17-zzgs9",
+          "name": "Var_PColor",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 9,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-18-9g8gf",
+          "name": "Var_Ziel",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 10,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": -1,
+          "defaultValue": -1
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-19-a6s14",
+          "name": "Var_ZielCapture",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 11,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": -1,
+          "defaultValue": -1
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1a-p2521",
+          "name": "Var_Dist",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 12,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1b-5nbf5",
+          "name": "Var_Gi",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 13,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1c-gnnqq",
+          "name": "Var_G",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 14,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1d-55504",
+          "name": "Var_Gefunden",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 15,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": -1,
+          "defaultValue": -1
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1e-chd01",
+          "name": "Var_GefundenFarbe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 16,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1f-0mbhp",
+          "name": "Var_Potential",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 17,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": false,
+          "defaultValue": false
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1g-0rbce",
+          "name": "Var_GoalCount",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 18,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1h-pp2fx",
+          "name": "Var_X",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 19,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1i-fqpry",
+          "name": "Var_Y",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 20,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1j-zs6zf",
+          "name": "Var_SlotTmp",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 21,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": -1,
+          "defaultValue": -1
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1k-xcp2e",
+          "name": "Var_FigurName",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 22,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": "",
+          "defaultValue": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1l-gibd0",
+          "name": "Var_FarbName",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 23,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": "",
+          "defaultValue": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1m-npgxk",
+          "name": "Var_WegFrei",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 24,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": true,
+          "defaultValue": true
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1n-nte3d",
+          "name": "Var_SlotZiel",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 25,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1o-e1ia6",
+          "name": "Var_GVon",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 26,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1p-4lyoz",
+          "name": "Var_GiM1",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 27,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1q-tyazi",
+          "name": "Var_GoalNeuSlot",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 28,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1r-pnr1x",
+          "name": "Var_MoveOk",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 29,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": false,
+          "defaultValue": false
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1s-mfdik",
+          "name": "Var_ZielFeld",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 30,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1t-1ydvs",
+          "name": "Var_Eingang",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 31,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1u-lbull",
+          "name": "Var_ZielRing",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 32,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1v-fpz9w",
+          "name": "Var_GoalNeu",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 33,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1w-vgq3k",
+          "name": "Var_GIdx",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 34,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1x-lzwo6",
+          "name": "Var_GoalIdx1",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 35,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1y-35d8s",
+          "name": "Var_GoalIdx2",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 36,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-1z-3jolc",
+          "name": "i",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 37,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": 0,
+          "defaultValue": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "madn-20-tksas",
+          "name": "Var_Diag",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 0,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9"
+          },
+          "value": "",
+          "defaultValue": ""
+        }
+      ],
+      "actions": [
+        {
+          "id": "madn-21-pki4m",
+          "type": "calculate",
+          "name": "Act_WurfWert",
+          "showDetails": false,
+          "formula": "Math.floor(Math.random()*6)+1",
+          "resultVariable": "Var_Wurf"
+        },
+        {
+          "id": "madn-22-mzql2",
+          "type": "property",
+          "name": "Act_WurfBild",
+          "showDetails": false,
+          "changes": {
+            "WuerfelBild.src": "images/madn/w${Var_Wurf}.svg",
+            "WuerfelBild.visible": true
+          }
+        },
+        {
+          "id": "madn-23-7nrcw",
+          "type": "property",
+          "name": "Act_PhaseWurf",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "wurf"
+          }
+        },
+        {
+          "id": "madn-24-46z8l",
+          "type": "property",
+          "name": "Act_PhasePick",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "pick"
+          }
+        },
+        {
+          "id": "madn-25-ulr3u",
+          "type": "property",
+          "name": "Act_PhaseEnde",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "ende"
+          }
+        },
+        {
+          "id": "madn-26-8jmvh",
+          "type": "property",
+          "name": "Act_PhaseSetup",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "setup"
+          }
+        },
+        {
+          "id": "madn-27-0n3tr",
+          "type": "property",
+          "name": "Act_ZaehlerNull",
+          "showDetails": false,
+          "changes": {
+            "Var_Versuche": 0,
+            "Var_Sechser": 0
+          }
+        },
+        {
+          "id": "madn-28-stff1",
+          "type": "property",
+          "name": "Act_SechsR",
+          "showDetails": false,
+          "changes": {
+            "Var_Sechser": 0
+          }
+        },
+        {
+          "id": "madn-29-gi5ku",
+          "type": "calculate",
+          "name": "Act_SechserPlus",
+          "showDetails": false,
+          "formula": "Var_Sechser + 1",
+          "resultVariable": "Var_Sechser"
+        },
+        {
+          "id": "madn-2a-mnt43",
+          "type": "calculate",
+          "name": "Act_VersuchePlus",
+          "showDetails": false,
+          "formula": "Var_Versuche + 1",
+          "resultVariable": "Var_Versuche"
+        },
+        {
+          "id": "madn-2b-t0fpp",
+          "type": "calculate",
+          "name": "Act_MoveablePlus",
+          "showDetails": false,
+          "formula": "Var_Moveable + 1",
+          "resultVariable": "Var_Moveable"
+        },
+        {
+          "id": "madn-2c-5gx43",
+          "type": "property",
+          "name": "Act_MoveableNull",
+          "showDetails": false,
+          "changes": {
+            "Var_Moveable": 0
+          }
+        },
+        {
+          "id": "madn-2d-xed1j",
+          "type": "calculate",
+          "name": "Act_NaechsterIdx",
+          "showDetails": false,
+          "formula": "(Var_CurrPlayer + 1) % Var_PlayerCount",
+          "resultVariable": "Var_CurrPlayer"
+        },
+        {
+          "id": "madn-2e-msg4c",
+          "type": "property",
+          "name": "Act_Set2",
+          "showDetails": false,
+          "changes": {
+            "Var_PlayerCount": 2
+          }
+        },
+        {
+          "id": "madn-2f-eo76w",
+          "type": "property",
+          "name": "Act_Set3",
+          "showDetails": false,
+          "changes": {
+            "Var_PlayerCount": 3
+          }
+        },
+        {
+          "id": "madn-2g-pc99k",
+          "type": "property",
+          "name": "Act_Set4",
+          "showDetails": false,
+          "changes": {
+            "Var_PlayerCount": 4
+          }
+        },
+        {
+          "id": "madn-2h-5v13g",
+          "type": "property",
+          "name": "Act_SetupAus",
+          "showDetails": false,
+          "changes": {
+            "WahlLabel.visible": false,
+            "Btn2.visible": false,
+            "Btn3.visible": false,
+            "Btn4.visible": false,
+            "WuerfelnBtn.visible": true,
+            "NeustartBtn.visible": true
+          }
+        },
+        {
+          "id": "madn-2i-umla5",
+          "type": "property",
+          "name": "Act_SetupAn",
+          "showDetails": false,
+          "changes": {
+            "WahlLabel.visible": true,
+            "Btn2.visible": true,
+            "Btn3.visible": true,
+            "Btn4.visible": true,
+            "WuerfelnBtn.visible": false,
+            "NeustartBtn.visible": false,
+            "WuerfelBild.visible": false,
+            "StatusLabel.text": ""
+          }
+        },
+        {
+          "id": "madn-2j-5cax2",
+          "type": "property",
+          "name": "Act_S0",
+          "showDetails": false,
+          "changes": {
+            "Var_CurrPlayer": 0,
+            "Var_Sechser": 0,
+            "Var_Versuche": 0,
+            "Var_Gewaehlt": -1,
+            "Var_Moveable": 0
+          }
+        },
+        {
+          "id": "madn-2k-ftdsz",
+          "type": "calculate",
+          "name": "Act_HomeSlot",
+          "showDetails": false,
+          "formula": "56 + i",
+          "resultVariable": "Var_SlotTmp"
+        },
+        {
+          "id": "madn-2l-ujr8u",
+          "type": "list_set",
+          "name": "Act_RingLeer",
+          "showDetails": false,
+          "target": "RingListe",
+          "index": "${i}",
+          "value": -1
+        },
+        {
+          "id": "madn-2m-n11a1",
+          "type": "list_set",
+          "name": "Act_GoalLeer",
+          "showDetails": false,
+          "target": "GoalListe",
+          "index": "${i}",
+          "value": -1
+        },
+        {
+          "id": "madn-2n-owpqi",
+          "type": "record_set",
+          "name": "Act_FigurHome",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "slot",
+          "value": "${Var_SlotTmp}"
+        },
+        {
+          "id": "madn-2o-zaqyh",
+          "type": "record_set",
+          "name": "Act_FigurMoveable0",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "moveable",
+          "value": "false"
+        },
+        {
+          "id": "madn-2p-esvjq",
+          "type": "record_set",
+          "name": "Act_FigurMoveable1",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "moveable",
+          "value": "true"
+        },
+        {
+          "id": "madn-2q-5sgi9",
+          "type": "record_get",
+          "name": "Act_FigurSlot",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "slot",
+          "resultVariable": "Var_PSlot"
+        },
+        {
+          "id": "madn-2r-xsb3u",
+          "type": "record_get",
+          "name": "Act_FigurColor",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "colorIdx",
+          "resultVariable": "Var_PColor"
+        },
+        {
+          "id": "madn-2s-ckhsq",
+          "type": "list_get",
+          "name": "Act_StartFeld",
+          "showDetails": false,
+          "target": "StartFelder",
+          "index": "${Var_PColor}",
+          "resultVariable": "Var_ZielFeld"
+        },
+        {
+          "id": "madn-2t-swukb",
+          "type": "list_get",
+          "name": "Act_EingangFeld",
+          "showDetails": false,
+          "target": "EingangFelder",
+          "index": "${Var_PColor}",
+          "resultVariable": "Var_Eingang"
+        },
+        {
+          "id": "madn-2u-ilfsj",
+          "type": "list_get",
+          "name": "Act_RingBelegt",
+          "showDetails": false,
+          "target": "RingListe",
+          "index": "${Var_ZielFeld}",
+          "resultVariable": "Var_Gefunden"
+        },
+        {
+          "id": "madn-2v-5kht5",
+          "type": "list_get",
+          "name": "Act_RingBelegt2",
+          "showDetails": false,
+          "target": "RingListe",
+          "index": "${Var_ZielRing}",
+          "resultVariable": "Var_Gefunden"
+        },
+        {
+          "id": "madn-2w-vx5vt",
+          "type": "calculate",
+          "name": "Act_GefundenFarbe",
+          "showDetails": false,
+          "formula": "Math.floor(Var_Gefunden / 4)",
+          "resultVariable": "Var_GefundenFarbe"
+        },
+        {
+          "id": "madn-2x-3tdmd",
+          "type": "calculate",
+          "name": "Act_Dist",
+          "showDetails": false,
+          "formula": "(Var_Eingang - Var_PSlot*1 + 40) % 40",
+          "resultVariable": "Var_Dist"
+        },
+        {
+          "id": "madn-2y-by3k8",
+          "type": "calculate",
+          "name": "Act_Gi",
+          "showDetails": false,
+          "formula": "Var_Wurf - Var_Dist - 1",
+          "resultVariable": "Var_Gi"
+        },
+        {
+          "id": "madn-2z-138e0",
+          "type": "calculate",
+          "name": "Act_GiM1",
+          "showDetails": false,
+          "formula": "Var_Gi - 1",
+          "resultVariable": "Var_GiM1"
+        },
+        {
+          "id": "madn-30-swido",
+          "type": "calculate",
+          "name": "Act_ZielRing",
+          "showDetails": false,
+          "formula": "(Var_PSlot*1 + Var_Wurf*1) % 40",
+          "resultVariable": "Var_ZielRing"
+        },
+        {
+          "id": "madn-31-oh3j0",
+          "type": "calculate",
+          "name": "Act_ZielGoal",
+          "showDetails": false,
+          "formula": "40 + Var_PColor*4 + Var_Gi*1",
+          "resultVariable": "Var_ZielGoal"
+        },
+        {
+          "id": "madn-32-fzufx",
+          "type": "calculate",
+          "name": "Act_SlotZielI",
+          "showDetails": false,
+          "formula": "Var_PSlot - 40 - Var_PColor*4",
+          "resultVariable": "Var_SlotZiel"
+        },
+        {
+          "id": "madn-33-ufsjc",
+          "type": "calculate",
+          "name": "Act_GoalNeu",
+          "showDetails": false,
+          "formula": "Var_SlotZiel*1 + Var_Wurf*1",
+          "resultVariable": "Var_GoalNeu"
+        },
+        {
+          "id": "madn-34-5myhr",
+          "type": "calculate",
+          "name": "Act_GoalNeuSlot",
+          "showDetails": false,
+          "formula": "40 + Var_PColor*4 + Var_GoalNeu*1",
+          "resultVariable": "Var_GoalNeuSlot"
+        },
+        {
+          "id": "madn-35-80sio",
+          "type": "calculate",
+          "name": "Act_GVon",
+          "showDetails": false,
+          "formula": "Var_SlotZiel*1 + 1",
+          "resultVariable": "Var_GVon"
+        },
+        {
+          "id": "madn-36-96fcg",
+          "type": "calculate",
+          "name": "Act_GIdx",
+          "showDetails": false,
+          "formula": "Var_PColor*4 + Var_G*1",
+          "resultVariable": "Var_GIdx"
+        },
+        {
+          "id": "madn-37-5vcee",
+          "type": "calculate",
+          "name": "Act_GIdxI",
+          "showDetails": false,
+          "formula": "Var_PColor*4 + i*1",
+          "resultVariable": "Var_GIdx"
+        },
+        {
+          "id": "madn-38-o36sc",
+          "type": "calculate",
+          "name": "Act_GToGi",
+          "showDetails": false,
+          "formula": "Var_Gi*1",
+          "resultVariable": "Var_G"
+        },
+        {
+          "id": "madn-39-eusux",
+          "type": "list_get",
+          "name": "Act_GoalBelegt",
+          "showDetails": false,
+          "target": "GoalListe",
+          "index": "${Var_GIdx}",
+          "resultVariable": "Var_Gefunden"
+        },
+        {
+          "id": "madn-3a-7zqbd",
+          "type": "property",
+          "name": "Act_WegT",
+          "showDetails": false,
+          "changes": {
+            "Var_WegFrei": true
+          }
+        },
+        {
+          "id": "madn-3b-f98mo",
+          "type": "property",
+          "name": "Act_WegFreiF",
+          "showDetails": false,
+          "changes": {
+            "Var_WegFrei": false
+          }
+        },
+        {
+          "id": "madn-3c-xd04o",
+          "type": "calculate",
+          "name": "Act_ZielStart",
+          "showDetails": false,
+          "formula": "Var_ZielFeld*1",
+          "resultVariable": "Var_Ziel"
+        },
+        {
+          "id": "madn-3d-j0i1r",
+          "type": "calculate",
+          "name": "Act_ZielRingSet",
+          "showDetails": false,
+          "formula": "Var_ZielRing*1",
+          "resultVariable": "Var_Ziel"
+        },
+        {
+          "id": "madn-3e-apiqr",
+          "type": "calculate",
+          "name": "Act_ZielGoalSet",
+          "showDetails": false,
+          "formula": "40 + Var_GIdx*1",
+          "resultVariable": "Var_Ziel"
+        },
+        {
+          "id": "madn-3f-5457y",
+          "type": "calculate",
+          "name": "Act_ZielGoalNeuSet",
+          "showDetails": false,
+          "formula": "Var_GoalNeuSlot*1",
+          "resultVariable": "Var_Ziel"
+        },
+        {
+          "id": "madn-3g-e6a73",
+          "type": "calculate",
+          "name": "Act_CapSet",
+          "showDetails": false,
+          "formula": "Var_Gefunden*1",
+          "resultVariable": "Var_ZielCapture"
+        },
+        {
+          "id": "madn-3h-k6ig4",
+          "type": "property",
+          "name": "Act_CapKein",
+          "showDetails": false,
+          "changes": {
+            "Var_ZielCapture": -1
+          }
+        },
+        {
+          "id": "madn-3i-efe6q",
+          "type": "property",
+          "name": "Act_ZielNein",
+          "showDetails": false,
+          "changes": {
+            "Var_Ziel": -1,
+            "Var_ZielCapture": -1
+          }
+        },
+        {
+          "id": "madn-3j-y7be2",
+          "type": "record_get",
+          "name": "Act_FigSlotX",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "slot",
+          "resultVariable": "Var_SlotTmp"
+        },
+        {
+          "id": "madn-3k-y33pk",
+          "type": "list_get",
+          "name": "Act_FX",
+          "showDetails": false,
+          "target": "FeldX",
+          "index": "${Var_SlotTmp}",
+          "resultVariable": "Var_X"
+        },
+        {
+          "id": "madn-3l-1lf5h",
+          "type": "list_get",
+          "name": "Act_FY",
+          "showDetails": false,
+          "target": "FeldY",
+          "index": "${Var_SlotTmp}",
+          "resultVariable": "Var_Y"
+        },
+        {
+          "id": "madn-3m-pgt1c",
+          "type": "record_get",
+          "name": "Act_FigName",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "figurName",
+          "resultVariable": "Var_FigurName"
+        },
+        {
+          "id": "madn-3n-cg0kg",
+          "type": "record_get",
+          "name": "Act_FigCol",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "colorIdx",
+          "resultVariable": "Var_PColor"
+        },
+        {
+          "id": "madn-3o-ourrl",
+          "type": "record_get",
+          "name": "Act_FigMov",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "FigurenListe",
+          "field": "moveable",
+          "resultVariable": "Var_MoveOk"
+        },
+        {
+          "id": "madn-3p-eb58p",
+          "type": "property",
+          "name": "Act_FigurXY",
+          "showDetails": false,
+          "changes": {
+            "${Var_FigurName}.x": "${Var_X}",
+            "${Var_FigurName}.y": "${Var_Y}"
+          }
+        },
+        {
+          "id": "madn-3q-8n9fd",
+          "type": "property",
+          "name": "Act_FigurAn",
+          "showDetails": false,
+          "changes": {
+            "${Var_FigurName}.visible": true
+          }
+        },
+        {
+          "id": "madn-3r-upypx",
+          "type": "property",
+          "name": "Act_FigurAus",
+          "showDetails": false,
+          "changes": {
+            "${Var_FigurName}.visible": false
+          }
+        },
+        {
+          "id": "madn-3s-mdqsh",
+          "type": "property",
+          "name": "Act_HlAn",
+          "showDetails": false,
+          "changes": {
+            "${Var_FigurName}.style.borderColor": "#ffff00",
+            "${Var_FigurName}.style.borderWidth": 6
+          }
+        },
+        {
+          "id": "madn-3t-z3bu6",
+          "type": "property",
+          "name": "Act_HlAus",
+          "showDetails": false,
+          "changes": {
+            "${Var_FigurName}.style.borderColor": "transparent"
+          }
+        },
+        {
+          "id": "madn-3u-647hq",
+          "type": "record_get",
+          "name": "Act_GSlot",
+          "showDetails": false,
+          "target": "${Var_Gewaehlt}",
+          "list": "FigurenListe",
+          "field": "slot",
+          "resultVariable": "Var_PSlot"
+        },
+        {
+          "id": "madn-3v-lhebr",
+          "type": "record_get",
+          "name": "Act_GColor",
+          "showDetails": false,
+          "target": "${Var_Gewaehlt}",
+          "list": "FigurenListe",
+          "field": "colorIdx",
+          "resultVariable": "Var_PColor"
+        },
+        {
+          "id": "madn-3w-4yi6n",
+          "type": "list_set",
+          "name": "Act_RingFrei",
+          "showDetails": false,
+          "target": "RingListe",
+          "index": "${Var_PSlot}",
+          "value": -1
+        },
+        {
+          "id": "madn-3x-5tlgv",
+          "type": "list_set",
+          "name": "Act_RingSetze",
+          "showDetails": false,
+          "target": "RingListe",
+          "index": "${Var_Ziel}",
+          "value": "${Var_Gewaehlt}"
+        },
+        {
+          "id": "madn-3y-cx91x",
+          "type": "list_set",
+          "name": "Act_GoalFrei",
+          "showDetails": false,
+          "target": "GoalListe",
+          "index": "${Var_GoalIdx1}",
+          "value": -1
+        },
+        {
+          "id": "madn-3z-ucck1",
+          "type": "list_set",
+          "name": "Act_GoalSetze",
+          "showDetails": false,
+          "target": "GoalListe",
+          "index": "${Var_GoalIdx2}",
+          "value": "${Var_Gewaehlt}"
+        },
+        {
+          "id": "madn-40-a1uuw",
+          "type": "calculate",
+          "name": "Act_GoalIdx1",
+          "showDetails": false,
+          "formula": "Var_PSlot - 40",
+          "resultVariable": "Var_GoalIdx1"
+        },
+        {
+          "id": "madn-41-r7bys",
+          "type": "calculate",
+          "name": "Act_GoalIdx2",
+          "showDetails": false,
+          "formula": "Var_Ziel - 40",
+          "resultVariable": "Var_GoalIdx2"
+        },
+        {
+          "id": "madn-42-3o1zy",
+          "type": "calculate",
+          "name": "Act_OpferSlot",
+          "showDetails": false,
+          "formula": "56 + Var_ZielCapture*1",
+          "resultVariable": "Var_SlotTmp"
+        },
+        {
+          "id": "madn-43-sbayc",
+          "type": "record_set",
+          "name": "Act_OpferHome",
+          "showDetails": false,
+          "target": "${Var_ZielCapture}",
+          "list": "FigurenListe",
+          "field": "slot",
+          "value": "${Var_SlotTmp}"
+        },
+        {
+          "id": "madn-44-c04q5",
+          "type": "record_set",
+          "name": "Act_OpferMov0",
+          "showDetails": false,
+          "target": "${Var_ZielCapture}",
+          "list": "FigurenListe",
+          "field": "moveable",
+          "value": "false"
+        },
+        {
+          "id": "madn-45-t4802",
+          "type": "record_set",
+          "name": "Act_MichNeu",
+          "showDetails": false,
+          "target": "${Var_Gewaehlt}",
+          "list": "FigurenListe",
+          "field": "slot",
+          "value": "${Var_Ziel}"
+        },
+        {
+          "id": "madn-46-rpqvw",
+          "type": "record_set",
+          "name": "Act_MichMov0",
+          "showDetails": false,
+          "target": "${Var_Gewaehlt}",
+          "list": "FigurenListe",
+          "field": "moveable",
+          "value": "false"
+        },
+        {
+          "id": "madn-47-q9ui3",
+          "type": "list_get",
+          "name": "Act_GoalCheck",
+          "showDetails": false,
+          "target": "GoalListe",
+          "index": "${i}",
+          "resultVariable": "Var_Gefunden"
+        },
+        {
+          "id": "madn-48-bw6xj",
+          "type": "calculate",
+          "name": "Act_GoalCountPlus",
+          "showDetails": false,
+          "formula": "Var_GoalCount + 1",
+          "resultVariable": "Var_GoalCount"
+        },
+        {
+          "id": "madn-49-h9aio",
+          "type": "property",
+          "name": "Act_GoalCount0",
+          "showDetails": false,
+          "changes": {
+            "Var_GoalCount": 0
+          }
+        },
+        {
+          "id": "madn-4a-bzw9m",
+          "type": "property",
+          "name": "Act_Gewinn",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "🏆 ${Var_FarbName} hat gewonnen!",
+            "WuerfelnBtn.visible": false
+          }
+        },
+        {
+          "id": "madn-4b-c558o",
+          "type": "record_index",
+          "name": "Act_ClickIdx",
+          "showDetails": false,
+          "target": "self",
+          "list": "FigurenListe",
+          "resultVariable": "Var_Gewaehlt"
+        },
+        {
+          "id": "madn-4c-yvxj0",
+          "type": "record_get",
+          "name": "Act_ClickColor",
+          "showDetails": false,
+          "target": "${Var_Gewaehlt}",
+          "list": "FigurenListe",
+          "field": "colorIdx",
+          "resultVariable": "Var_PColor"
+        },
+        {
+          "id": "madn-4d-mvwbb",
+          "type": "record_get",
+          "name": "Act_ClickMov",
+          "showDetails": false,
+          "target": "${Var_Gewaehlt}",
+          "list": "FigurenListe",
+          "field": "moveable",
+          "resultVariable": "Var_MoveOk"
+        },
+        {
+          "id": "madn-4e-45be4",
+          "type": "property",
+          "name": "Act_NameRot",
+          "showDetails": false,
+          "changes": {
+            "Var_FarbName": "Rot"
+          }
+        },
+        {
+          "id": "madn-4f-r5i0j",
+          "type": "property",
+          "name": "Act_NameBlau",
+          "showDetails": false,
+          "changes": {
+            "Var_FarbName": "Blau"
+          }
+        },
+        {
+          "id": "madn-4g-n8ty4",
+          "type": "property",
+          "name": "Act_NameGruen",
+          "showDetails": false,
+          "changes": {
+            "Var_FarbName": "Grün"
+          }
+        },
+        {
+          "id": "madn-4h-ta1j9",
+          "type": "property",
+          "name": "Act_NameGelb",
+          "showDetails": false,
+          "changes": {
+            "Var_FarbName": "Gelb"
+          }
+        },
+        {
+          "id": "madn-4i-t5ldd",
+          "type": "property",
+          "name": "Act_SpielerDran",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_FarbName} ist am Zug — würfeln!"
+          }
+        },
+        {
+          "id": "madn-4j-8z7wo",
+          "type": "property",
+          "name": "Act_SechsVerfall",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_FarbName}: 3× Sechs — Zug verfällt!"
+          }
+        },
+        {
+          "id": "madn-4k-ul9w7",
+          "type": "property",
+          "name": "Act_KeinZug",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_FarbName}: kein Zug möglich. [${Var_Diag}]"
+          }
+        },
+        {
+          "id": "madn-4l-51382",
+          "type": "property",
+          "name": "Act_Nochmal",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_FarbName}: kein Zug — nochmal würfeln (Versuch ${Var_Versuche}/3) [${Var_Diag}]"
+          }
+        },
+        {
+          "id": "madn-4m-pr1yy",
+          "type": "property",
+          "name": "Act_DiagReset",
+          "showDetails": false,
+          "changes": {
+            "Var_Diag": ""
+          }
+        },
+        {
+          "id": "madn-4n-1ns8p",
+          "type": "property",
+          "name": "Act_DiagAppend",
+          "showDetails": false,
+          "changes": {
+            "Var_Diag": "${Var_Diag}${i}:${Var_PColor},${Var_PSlot}>${Var_Ziel}|${Var_SlotTmp};"
+          }
+        },
+        {
+          "id": "madn-4o-9do0z",
+          "type": "property",
+          "name": "Act_DiagMoveable",
+          "showDetails": false,
+          "changes": {
+            "Var_Diag": "${Var_Diag}M=${Var_Moveable};"
+          }
+        },
+        {
+          "id": "madn-4p-rowmb",
+          "type": "property",
+          "name": "Act_DiagYes",
+          "showDetails": false,
+          "changes": {
+            "Var_Diag": "${Var_Diag}Y;"
+          }
+        },
+        {
+          "id": "madn-4q-p7dzs",
+          "type": "property",
+          "name": "Act_DiagNo",
+          "showDetails": false,
+          "changes": {
+            "Var_Diag": "${Var_Diag}N;"
+          }
+        },
+        {
+          "id": "madn-4r-e1f2s",
+          "type": "calculate",
+          "name": "Act_DiagZ",
+          "showDetails": false,
+          "formula": "Var_Ziel*1",
+          "resultVariable": "Var_SlotTmp"
+        },
+        {
+          "id": "madn-4s-3c45j",
+          "type": "property",
+          "name": "Act_Waehlen",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_FarbName}: ${Var_Wurf} gewürfelt — Figur wählen!"
+          }
+        },
+        {
+          "id": "madn-4t-79dpb",
+          "type": "property",
+          "name": "Act_Nochmal6",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_FarbName}: Sechs — nochmal würfeln!"
+          }
+        },
+        {
+          "id": "madn-4u-9b5a6",
+          "type": "property",
+          "name": "Act_Schlug",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_FarbName} schlägt eine Figur!"
+          }
+        },
+        {
+          "id": "madn-4v-qmurj",
+          "type": "property",
+          "name": "Act_PotF",
+          "showDetails": false,
+          "changes": {
+            "Var_Potential": false
+          }
+        },
+        {
+          "id": "madn-4w-uzsr0",
+          "type": "property",
+          "name": "Act_PotT",
+          "showDetails": false,
+          "changes": {
+            "Var_Potential": true
+          }
+        },
+        {
+          "id": "madn-4x-j37ao",
+          "type": "calculate",
+          "name": "Act_GiPot",
+          "showDetails": false,
+          "formula": "Var_PSlot - 40 - Var_PColor*4",
+          "resultVariable": "Var_Gi"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "madn-4y-zr3hw",
+          "name": "ZielPruefen",
+          "description": "Ermittelt Var_Ziel/-Capture für (Var_PSlot, Var_PColor, Var_Wurf).",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_ZielNein"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_PSlot}",
+                "rightValue": 55,
+                "operator": ">"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_Wurf}",
+                    "rightValue": 6
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_StartFeld"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_RingBelegt"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_Gefunden}",
+                        "rightValue": -1
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_ZielStart"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_CapKein"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "action",
+                          "name": "Act_GefundenFarbe"
+                        },
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "leftValue": "${Var_GefundenFarbe}",
+                            "rightValue": "${Var_PColor}",
+                            "rightType": "variable"
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_ZielNein"
+                            }
+                          ],
+                          "elseBody": [
+                            {
+                              "type": "action",
+                              "name": "Act_ZielStart"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Act_CapSet"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_PSlot}",
+                "rightValue": 39,
+                "operator": ">"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_PSlot}",
+                    "rightValue": 55,
+                    "operator": "<"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_SlotZielI"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_GoalNeu"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_GoalNeu}",
+                        "rightValue": 4,
+                        "operator": "<"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_GoalNeuSlot"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_GVon"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_WegT"
+                        },
+                        {
+                          "type": "for",
+                          "iteratorVar": "Var_G",
+                          "from": "${Var_GVon}",
+                          "to": "${Var_GoalNeu}",
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_GIdx"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Act_GoalBelegt"
+                            },
+                            {
+                              "type": "condition",
+                              "condition": {
+                                "leftValue": "${Var_Gefunden}",
+                                "rightValue": -1,
+                                "operator": "!="
+                              },
+                              "body": [
+                                {
+                                  "type": "action",
+                                  "name": "Act_WegFreiF"
+                                }
+                              ],
+                              "elseBody": []
+                            }
+                          ],
+                          "name": "for"
+                        },
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "leftValue": "${Var_WegFrei}",
+                            "rightValue": true
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_ZielGoalNeuSet"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_PSlot}",
+                "rightValue": 40,
+                "operator": "<"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_EingangFeld"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Dist"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_Wurf}",
+                    "rightValue": "${Var_Dist}",
+                    "operator": ">",
+                    "rightType": "variable"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Gi"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_Gi}",
+                        "rightValue": 4,
+                        "operator": "<"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_GiM1"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_WegT"
+                        },
+                        {
+                          "type": "for",
+                          "iteratorVar": "Var_G",
+                          "from": 0,
+                          "to": "${Var_GiM1}",
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_GIdx"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Act_GoalBelegt"
+                            },
+                            {
+                              "type": "condition",
+                              "condition": {
+                                "leftValue": "${Var_Gefunden}",
+                                "rightValue": -1,
+                                "operator": "!="
+                              },
+                              "body": [
+                                {
+                                  "type": "action",
+                                  "name": "Act_WegFreiF"
+                                }
+                              ],
+                              "elseBody": []
+                            }
+                          ],
+                          "name": "for"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_GToGi"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_GIdx"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_GoalBelegt"
+                        },
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "leftValue": "${Var_Gefunden}",
+                            "rightValue": -1,
+                            "operator": "!="
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_WegFreiF"
+                            }
+                          ],
+                          "elseBody": []
+                        },
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "leftValue": "${Var_WegFrei}",
+                            "rightValue": true
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_ZielGoalSet"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Act_ZielRing"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_RingBelegt2"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_Gefunden}",
+                        "rightValue": -1
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_ZielRingSet"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_CapKein"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "action",
+                          "name": "Act_GefundenFarbe"
+                        },
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "leftValue": "${Var_GefundenFarbe}",
+                            "rightValue": "${Var_PColor}",
+                            "rightType": "variable"
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_ZielNein"
+                            }
+                          ],
+                          "elseBody": [
+                            {
+                              "type": "action",
+                              "name": "Act_ZielRingSet"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Act_CapSet"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-4z-cuvbt",
+          "name": "SpielStarten",
+          "description": "Figuren ins Home, Listen leeren, Rot beginnt.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SetupAus"
+            },
+            {
+              "type": "for",
+              "iteratorVar": "i",
+              "from": 0,
+              "to": 39,
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_RingLeer"
+                }
+              ],
+              "name": "for"
+            },
+            {
+              "type": "for",
+              "iteratorVar": "i",
+              "from": 0,
+              "to": 15,
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_GoalLeer"
+                }
+              ],
+              "name": "for"
+            },
+            {
+              "type": "foreach",
+              "sourceArray": "FigurenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_HomeSlot"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FigurHome"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FigurMoveable0"
+                }
+              ],
+              "name": "foreach"
+            },
+            {
+              "type": "action",
+              "name": "Act_S0"
+            },
+            {
+              "type": "action",
+              "name": "Act_PhaseWurf"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_CurrPlayer}",
+                "rightValue": 0
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_NameRot"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_CurrPlayer}",
+                "rightValue": 1
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_NameBlau"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_CurrPlayer}",
+                "rightValue": 2
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_NameGruen"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_CurrPlayer}",
+                "rightValue": 3
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_NameGelb"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "action",
+              "name": "Act_SpielerDran"
+            },
+            {
+              "type": "task",
+              "name": "AlleFigurenPositionieren"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-50-rzx5z",
+          "name": "AlleFigurenPositionieren",
+          "description": "Figuren anhand ihrer Slots platzieren + Zug-Highlight.",
+          "actionSequence": [
+            {
+              "type": "foreach",
+              "sourceArray": "FigurenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_FigSlotX"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FX"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FY"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FigName"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FigCol"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FigurXY"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_FigMov"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_PColor}",
+                    "rightValue": "${Var_PlayerCount}",
+                    "operator": "<",
+                    "rightType": "variable"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_FigurAn"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Act_FigurAus"
+                    }
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_MoveOk}",
+                    "rightValue": true
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_HlAn"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Act_HlAus"
+                    }
+                  ]
+                }
+              ],
+              "name": "foreach"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-51-e9smf",
+          "name": "Wuerfeln",
+          "description": "Würfeln, 3×6-Regel, dann Züge ermitteln.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_Phase}",
+                "rightValue": "wurf"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_WurfWert"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_WurfBild"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_Wurf}",
+                    "rightValue": 6
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_SechserPlus"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Act_SechsR"
+                    }
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_Sechser}",
+                    "rightValue": 3,
+                    "operator": ">="
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_SechsVerfall"
+                    },
+                    {
+                      "type": "task",
+                      "name": "NaechsterSpieler"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "task",
+                      "name": "ZuegeErmitteln"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-52-kxfqy",
+          "name": "ZuegeErmitteln",
+          "description": "Alle eigenen Figuren prüfen; movable markieren oder Zugausfall.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_MoveableNull"
+            },
+            {
+              "type": "action",
+              "name": "Act_DiagReset"
+            },
+            {
+              "type": "foreach",
+              "sourceArray": "FigurenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_FigurColor"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_PColor}",
+                    "rightValue": "${Var_CurrPlayer}",
+                    "rightType": "variable"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_FigurMoveable0"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_FigurSlot"
+                    },
+                    {
+                      "type": "task",
+                      "name": "ZielPruefen"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_DiagZ"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_DiagAppend"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_Ziel}",
+                        "rightValue": -1,
+                        "operator": "!="
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_DiagYes"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_FigurMoveable1"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_MoveablePlus"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "action",
+                          "name": "Act_DiagNo"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_DiagMoveable"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "name": "foreach"
+            },
+            {
+              "type": "task",
+              "name": "AlleFigurenPositionieren"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_Moveable}",
+                "rightValue": 0,
+                "operator": ">"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Waehlen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PhasePick"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "task",
+                  "name": "PotentialPruefen"
+                }
+              ]
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-53-fqcgd",
+          "name": "PotentialPruefen",
+          "description": "Kein Zug: Potential→Zugwechsel, sonst bis zu 3 Wurfversuche.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_PotF"
+            },
+            {
+              "type": "foreach",
+              "sourceArray": "FigurenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_FigurColor"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_PColor}",
+                    "rightValue": "${Var_CurrPlayer}",
+                    "rightType": "variable"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_FigurSlot"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_PSlot}",
+                        "rightValue": 55,
+                        "operator": ">"
+                      },
+                      "body": [],
+                      "elseBody": [
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "leftValue": "${Var_PSlot}",
+                            "rightValue": 39,
+                            "operator": "<="
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_PotT"
+                            }
+                          ],
+                          "elseBody": [
+                            {
+                              "type": "action",
+                              "name": "Act_GiPot"
+                            },
+                            {
+                              "type": "condition",
+                              "condition": {
+                                "leftValue": "${Var_Gi}",
+                                "rightValue": 3,
+                                "operator": "<"
+                              },
+                              "body": [
+                                {
+                                  "type": "action",
+                                  "name": "Act_PotT"
+                                }
+                              ],
+                              "elseBody": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "name": "foreach"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_Potential}",
+                "rightValue": true
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_KeinZug"
+                },
+                {
+                  "type": "task",
+                  "name": "NaechsterSpieler"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "Act_VersuchePlus"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_Versuche}",
+                    "rightValue": 3,
+                    "operator": ">="
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_KeinZug"
+                    },
+                    {
+                      "type": "task",
+                      "name": "NaechsterSpieler"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Act_Nochmal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-54-rkng8",
+          "name": "FigurGewaehlt",
+          "description": "Klick auf Figur: Phase pick + eigene Farbe + bewegbar → Zug ausführen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_Phase}",
+                "rightValue": "pick"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_ClickIdx"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ClickColor"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ClickMov"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_PColor}",
+                    "rightValue": "${Var_CurrPlayer}",
+                    "rightType": "variable"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_MoveOk}",
+                        "rightValue": true
+                      },
+                      "body": [
+                        {
+                          "type": "task",
+                          "name": "ZugAusfuehren"
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-55-igrex",
+          "name": "ZugAusfuehren",
+          "description": "Zug anwenden: schlagen, belegen, Gewinn prüfen, Zugrotation/6er.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_GSlot"
+            },
+            {
+              "type": "action",
+              "name": "Act_GColor"
+            },
+            {
+              "type": "task",
+              "name": "ZielPruefen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_Ziel}",
+                "rightValue": -1,
+                "operator": "!="
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_ZielCapture}",
+                    "rightValue": -1,
+                    "operator": "!="
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_OpferSlot"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_OpferHome"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_OpferMov0"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Schlug"
+                    }
+                  ],
+                  "elseBody": []
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_PSlot}",
+                    "rightValue": 39,
+                    "operator": "<="
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_RingFrei"
+                    }
+                  ],
+                  "elseBody": []
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_PSlot}",
+                    "rightValue": 39,
+                    "operator": ">"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_PSlot}",
+                        "rightValue": 55,
+                        "operator": "<"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_GoalIdx1"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_GoalFrei"
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_Ziel}",
+                    "rightValue": 39,
+                    "operator": "<="
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_RingSetze"
+                    }
+                  ],
+                  "elseBody": []
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_Ziel}",
+                    "rightValue": 39,
+                    "operator": ">"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_Ziel}",
+                        "rightValue": 55,
+                        "operator": "<"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_GoalIdx2"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_GoalSetze"
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                },
+                {
+                  "type": "action",
+                  "name": "Act_MichNeu"
+                },
+                {
+                  "type": "foreach",
+                  "sourceArray": "FigurenListe",
+                  "itemVar": "item",
+                  "indexVar": "i",
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_FigurMoveable0"
+                    }
+                  ],
+                  "name": "foreach"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_GoalCount0"
+                },
+                {
+                  "type": "for",
+                  "iteratorVar": "i",
+                  "from": 0,
+                  "to": 3,
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_GIdxI"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_GoalBelegt"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_Gefunden}",
+                        "rightValue": -1,
+                        "operator": "!="
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_GoalCountPlus"
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "name": "for"
+                },
+                {
+                  "type": "task",
+                  "name": "AlleFigurenPositionieren"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_GoalCount}",
+                    "rightValue": 4,
+                    "operator": ">="
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_PhaseEnde"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Gewinn"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_Wurf}",
+                        "rightValue": 6
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_Nochmal6"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_PhaseWurf"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "task",
+                          "name": "NaechsterSpieler"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-56-f6n5v",
+          "name": "NaechsterSpieler",
+          "description": "Zugwechsel: nächster Spieler, Zähler resetten.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_NaechsterIdx"
+            },
+            {
+              "type": "action",
+              "name": "Act_ZaehlerNull"
+            },
+            {
+              "type": "action",
+              "name": "Act_PhaseWurf"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_CurrPlayer}",
+                "rightValue": 0
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_NameRot"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_CurrPlayer}",
+                "rightValue": 1
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_NameBlau"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_CurrPlayer}",
+                "rightValue": 2
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_NameGruen"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_CurrPlayer}",
+                "rightValue": 3
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_NameGelb"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "action",
+              "name": "Act_SpielerDran"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-57-l66dz",
+          "name": "Neustart",
+          "description": "Zurück zur Spielerwahl.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SetupAn"
+            },
+            {
+              "type": "action",
+              "name": "Act_PhaseSetup"
+            },
+            {
+              "type": "foreach",
+              "sourceArray": "FigurenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_FigurAus"
+                }
+              ],
+              "name": "foreach"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-58-b8yxp",
+          "name": "Anzahl2",
+          "description": "2 Spieler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Set2"
+            },
+            {
+              "type": "task",
+              "name": "SpielStarten"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-59-rs7s2",
+          "name": "Anzahl3",
+          "description": "3 Spieler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Set3"
+            },
+            {
+              "type": "task",
+              "name": "SpielStarten"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "madn-5a-q4hrd",
+          "name": "Anzahl4",
+          "description": "4 Spieler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Set4"
+            },
+            {
+              "type": "task",
+              "name": "SpielStarten"
+            }
+          ],
+          "scope": "stage"
+        }
+      ],
+      "variables": [],
+      "events": {},
+      "flow": {}
+    }
+  ]
+}

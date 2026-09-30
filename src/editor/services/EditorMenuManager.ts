@@ -37,6 +37,7 @@ export interface EditorMenuHost {
     exportHTMLCompressed(): void;
     exportJSON(): void;
     exportJSONCompressed(): void;
+    exportCmsBundle(): void;
     exportTheme(): void;
     openThemeEditor(): void;
     editActiveTheme(): void;
@@ -133,6 +134,7 @@ export class EditorMenuManager {
             case 'export-html-gzip': this.host.exportHTMLCompressed(); break;
             case 'export-json': this.host.exportJSON(); break;
             case 'export-json-gzip': this.host.exportJSONCompressed(); break;
+            case 'export-cms-bundle': this.host.exportCmsBundle(); break;
             case 'export-theme': this.host.exportTheme(); break;
             case 'open-theme-editor': this.host.openThemeEditor(); break;
             case 'edit-active-theme': this.host.editActiveTheme(); break;

@@ -85,6 +85,7 @@ import { TDataStore } from '../components/TDataStore';
 import { TBadge } from '../components/TBadge';
 import { TAvatar } from '../components/TAvatar';
 import { TCard } from '../components/TCard';
+import { TCardZone } from '../components/TCardZone';
 import { TNavBar } from '../components/TNavBar';
 import { TTabBar } from '../components/TTabBar';
 import { TList } from '../components/TList';
@@ -204,6 +205,7 @@ export class ComponentRegistry {
         this.register('TBadge', TBadge);
         this.register('TAvatar', TAvatar);
         this.register('TCard', TCard);
+        this.register('TCardZone', TCardZone);
         this.register('TNavBar', TNavBar);
         this.register('TTabBar', TTabBar);
         this.register('TList', TList);
@@ -308,6 +310,7 @@ export class ComponentRegistry {
         this.typeMapping.set('DataList', 'TDataList');
         this.typeMapping.set('SidePanel', 'TSidePanel');
         this.typeMapping.set('Card', 'TCard');
+        this.typeMapping.set('CardZone', 'TCardZone');
     }
 
     /**

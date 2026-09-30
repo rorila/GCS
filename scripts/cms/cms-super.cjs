@@ -24,6 +24,6 @@ function enroll(core,credentialPath,ticket,username,password,commit){
  fs.writeFileSync(credentialPath+'.tmp',JSON.stringify(entries,null,2),{mode:0o600});fs.renameSync(credentialPath+'.tmp',credentialPath);
  // Bereits gespeicherte Zugangsdaten verhindern auch bei einem nachfolgenden Audit-Fehler Wiederverwendung.
  if(!reset)commit({personId:invite.personId},'admin-enrolled',invite.houseId,next=>{next.invites=next.invites.filter(i=>i.hash!==hash);});
- return {ok:true,message:reset?'Passwort geändert. Bitte neu anmelden.':'Zugang eingerichtet. Jetzt unter Verwaltung anmelden.'};
+ return {ok:true,message:reset?'Passwort geändert. Bitte neu anmelden.':'Zugang eingerichtet.',personId:invite.personId,houseId:invite.houseId,purpose:invite.purpose};
 }
 module.exports={enroll,isSuper};

@@ -72,11 +72,10 @@ export function applyReferenceIds(action: any, metadata: any, objects: any[]): a
         if (!refId || typeof refId !== 'string') continue;
 
         const current = action[param.name];
-        if (current === refId) continue;
         if (!isReplaceableValue(current)) continue;
 
-        const exists = objects.some(o => o && o.id === refId);
-        if (!exists) {
+        const target = objects.find(o => o && o.id === refId);
+        if (!target) {
             logger.warn(
                 `Referenz "${refFieldName(param.name)}" = "${refId}" zeigt auf kein vorhandenes Objekt. ` +
                 `Fallback auf den Namen "${current}".`
@@ -84,8 +83,11 @@ export function applyReferenceIds(action: any, metadata: any, objects: any[]): a
             continue;
         }
 
+        const isWriteDestination = param.name === 'resultVariable' || param.name === 'variableName';
+        const resolved = isWriteDestination ? target.name : refId;
+        if (!resolved || current === resolved) continue;
         if (!patched) patched = { ...action };
-        patched[param.name] = refId;
+        patched[param.name] = resolved;
     }
 
     return patched || action;

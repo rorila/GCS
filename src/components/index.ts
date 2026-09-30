@@ -12,6 +12,7 @@ export * from './TBadge';
 export * from './TBooleanVariable';
 export * from './TButton';
 export * from './TCard';
+export * from './TCardZone';
 export * from './TCheckbox';
 export * from './TColorPicker';
 export * from './TDataList';

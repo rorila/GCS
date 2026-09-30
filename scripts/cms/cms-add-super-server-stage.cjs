@@ -60,6 +60,9 @@ const rootAdminsSpec={
  extra:{supers:{count:{entity:'roles',where:{areaId:'root',role:'superAdmin',active:true}}},message:'SuperAdmins · Plattform'}
 };
 
+// Dateistatus über exists+truthy: exprOf-'not'/'if' werten nur true/'true'/1 als wahr,
+// ein Dateiname wäre dort „falsch“. whereMatch-truthy prüft dagegen auf nicht-leer.
+const gamesSpec={entity:'games',where:{ownerId:'$session.personId'},fields:{id:'$item.id',title:'$item.title',status:'$item.status',_hasFile:{exists:{entity:'games',where:{id:'$item.id',file:{truthy:true}}}},fileReady:'$field._hasFile',fileStatus:{if:['$field._hasFile','✓ vorhanden','fehlt']},statusLabel:{if:[{eq:['$item.status','published']},'Veröffentlicht',{if:[{eq:['$item.status','blocked']},'Gesperrt','Entwurf']}]}},extra:{message:'Eigene Spiele'}};
 const house={entity:'areas',where:{id:'$body.houseId',type:'house'}};
 const person={entity:'people',where:{id:'$body.personId',active:true}};
 const personAny={entity:'people',where:{id:'$body.personId',kind:{not:'child'},anonymizedAt:{falsy:true}}};
@@ -87,6 +90,74 @@ endpoints.push({path:'/api/cms/admin/super-rootadmins',task:'Server_SuperAdminsA
  inner:[n.call('Abfragen'),n.call('Antworten')],
  actions:[n.act('Abfragen','Datenbestand','list',[rootAdminsSpec],'Admins'),
           n.act('Antworten','AntwortSenden','send',[{items:'${Admins.items}',supers:'${Admins.supers}',message:'${Admins.message}'}])]});}
+
+// --- Eigene Spiele -----------------------------------------------------------
+{const n=ns('SpieleListe');
+endpoints.push({path:'/api/cms/admin/super-games',task:'Server_SuperSpiele_Verarbeiten',desc:'Rolle prüfen → eigene Spiele listen → antworten',
+ inner:[n.call('Abfragen'),n.call('Antworten')],
+ actions:[n.act('Abfragen','Datenbestand','list',[gamesSpec],'Spiele'),
+          n.act('Antworten','AntwortSenden','send',[{items:'${Spiele.items}',message:'${Spiele.message}'}])]});}
+
+{const n=ns('SpielAnlegen');
+endpoints.push({path:'/api/cms/admin/super-game-create',task:'Server_SuperSpielAnlegen_Verarbeiten',desc:'Rolle → Titel validieren → Duplikat prüfen → Entwurf anlegen',
+ inner:[n.call('TitelPruefen'),n.cond('Titel gültig?','Namen.ok','==',true,[
+  n.call('DuplikatPruefen'),n.cond('Titel bereits vergeben?','Belegt','==',true,[n.call('Titel409')],[n.call('Anlegen'),n.call('Antworten')])
+ ],[n.call('Titel400')])],
+ actions:[n.act('TitelPruefen','EingabePruefung','text',['title',{max:60,message:'Spielname erforderlich (max. 60 Zeichen).'}],'Namen'),
+          n.act('DuplikatPruefen','Datenbestand','exists',[{entity:'games',where:{ownerId:'$session.personId',title:{iEquals:'$vars.Namen.value'}}}],'Belegt'),
+          n.act('Titel409','AntwortSenden','fail',[409,'Ein Spiel mit diesem Namen ist bereits vorhanden.']),
+          n.act('Anlegen','DatenSpeicher','create',[{entity:'games',fields:{id:{uuid:'game-'},title:'$vars.Namen.value',description:'',avatar:'🎮',ownerId:'$session.personId',status:'draft',storage:'upload',file:''},audit:{action:'game-create'}}],'Ergebnis'),
+          n.act('Antworten','AntwortSenden','send',[{id:'${Ergebnis.id}',title:'${Namen.value}',message:'Spielentwurf angelegt.'}]),
+          n.act('Titel400','AntwortSenden','fail',['${Namen.status}','${Namen.message}'])]});}
+
+{const n=ns('SpielDetail'),owned={entity:'games',where:{id:'$body.id',ownerId:'$session.personId'}};
+endpoints.push({path:'/api/cms/admin/super-game-detail',task:'Server_SuperSpielDetail_Verarbeiten',desc:'Rolle + Eigentum prüfen → Spielstatus anzeigen',
+ inner:[n.call('Laden'),n.cond('Eigenes Spiel gefunden?','Spiel.found','==',true,[
+  n.cond('GCS-Datei vorhanden?','Spiel.item.file','truthy',null,[n.call('DateiAntworten')],[n.call('EntwurfAntworten')])
+ ],[n.call('NichtGefunden')])],
+ actions:[n.act('Laden','Datenbestand','find',[owned],'Spiel'),
+          n.act('DateiAntworten','AntwortSenden','send',[{found:true,id:'${Spiel.item.id}',title:'${Spiel.item.title}',description:'${Spiel.item.description}',status:'${Spiel.item.status}',fileReady:true,message:'Spiel geladen.'}]),
+          n.act('EntwurfAntworten','AntwortSenden','send',[{found:true,id:'${Spiel.item.id}',title:'${Spiel.item.title}',description:'${Spiel.item.description}',status:'${Spiel.item.status}',fileReady:false,message:'Entwurf geladen · GCS-Datei fehlt.'}]),
+          n.act('NichtGefunden','AntwortSenden','fail',[404,'Eigenes Spiel nicht gefunden.'])]});}
+
+{const n=ns('SpielSpeichern'),owned={entity:'games',where:{id:'$body.id',ownerId:'$session.personId'}};
+endpoints.push({path:'/api/cms/admin/super-game-update',task:'Server_SuperSpielSpeichern_Verarbeiten',desc:'Rolle + Eigentum → Titel prüfen → Duplikat → Beschreibung → speichern (jeder Status)',
+ inner:[n.call('Laden'),n.cond('Eigenes Spiel gefunden?','Spiel.found','==',true,[
+  n.call('TitelPruefen'),n.cond('Titel gültig?','Namen.ok','==',true,[
+   n.call('DuplikatPruefen'),n.cond('Name bereits vergeben?','Belegt','==',true,[n.call('Titel409')],[
+    n.cond('Beschreibung angegeben?','body.description','truthy',null,[
+     n.call('TextPruefen'),n.cond('Beschreibung gültig?','Text.ok','==',true,[n.call('Speichern'),n.call('Antworten')],[n.call('Text400')])
+    ],[n.call('Speichern'),n.call('Antworten')])
+   ])
+  ],[n.call('Titel400')])
+ ],[n.call('NichtGefunden')])],
+ actions:[n.act('Laden','Datenbestand','find',[owned],'Spiel'),
+          n.act('TitelPruefen','EingabePruefung','text',['title',{max:60,message:'Spielname erforderlich (max. 60 Zeichen).'}],'Namen'),
+          n.act('TextPruefen','EingabePruefung','text',['description',{max:300,message:'Beschreibung prüfen (max. 300 Zeichen, keine < >).'}],'Text'),
+          n.act('DuplikatPruefen','Datenbestand','exists',[{entity:'games',where:{ownerId:'$session.personId',title:{iEquals:'$vars.Namen.value'},id:{not:'$body.id'}}}],'Belegt'),
+          n.act('Speichern','DatenSpeicher','update',[{entity:'games',where:{id:'$body.id'},set:{title:'$vars.Namen.value',description:{first:['$vars.Text.value','']}},audit:{action:'game-update'}}],'Ergebnis'),
+          n.act('Antworten','AntwortSenden','send',[{id:'${body.id}',title:'${Namen.value}',message:'Spiel gespeichert.'}]),
+          n.act('Titel409','AntwortSenden','fail',[409,'Ein Spiel mit diesem Namen ist bereits vorhanden.']),
+          n.act('Titel400','AntwortSenden','fail',['${Namen.status}','${Namen.message}']),
+          n.act('Text400','AntwortSenden','fail',['${Text.status}','${Text.message}']),
+          n.act('NichtGefunden','AntwortSenden','fail',[404,'Eigenes Spiel nicht gefunden.'])]});}
+
+{const n=ns('SpielLoeschen'),owned={entity:'games',where:{id:'$body.id',ownerId:'$session.personId'}};
+endpoints.push({path:'/api/cms/admin/super-game-delete',task:'Server_SuperSpielLoeschen_Verarbeiten',desc:'Rolle + Eigentum + Bestätigung → Spiel, Freigaben, Partien und Upload-Dateien entfernen (jeder Status)',
+ inner:[n.call('Laden'),n.cond('Eigenes Spiel gefunden?','Spiel.found','==',true,[
+  n.call('BestaetigungPruefen'),n.cond('Löschen bestätigt?','Bestaetigt.ok','==',true,[
+   n.call('ZeileLoeschen'),n.call('DateiEntfernen'),n.call('Antworten')
+  ],[n.call('Bestaetigung400')])
+ ],[n.call('NichtGefunden')])],
+ actions:[n.act('Laden','Datenbestand','find',[owned],'Spiel'),
+          n.act('BestaetigungPruefen','EingabePruefung','confirmed',['confirm'],'Bestaetigt'),
+          // Ein Commit für Spiel + abhängige Zeilen: die Integritätsprüfung
+          // läuft am Ende, keine Zwischenzeit mit toten Referenzen.
+          n.act('ZeileLoeschen','DatenSpeicher','delete',[{entity:'games',where:{id:'$body.id'},also:[{entity:'grants',where:{gameId:'$body.id'}},{entity:'playSessions',where:{gameId:'$body.id'}},{entity:'gameInvitations',where:{has:{entity:'parties',where:{id:'$item.sessionId',gameId:'$body.id'}}}},{entity:'parties',where:{gameId:'$body.id'}}],audit:{action:'game-delete'}}],'Entfernt'),
+          n.act('DateiEntfernen','SpielDateiVerwaltung','remove',['${Spiel.item.file}']),
+          n.act('Antworten','AntwortSenden','send',[{message:'Spiel gelöscht.'}]),
+          n.act('Bestaetigung400','AntwortSenden','fail',[400,'Löschen ausdrücklich bestätigen.']),
+          n.act('NichtGefunden','AntwortSenden','fail',[404,'Eigenes Spiel nicht gefunden.'])]});}
 
 // --- Häuser schreiben --------------------------------------------------------
 {const n=ns('HausAnlegen');
@@ -386,7 +457,10 @@ const objects=[
  comp('TServerQuery','Datenbestand',{x:2,y:12}),
  comp('TServerStore','DatenSpeicher',{x:2,y:17}),
  comp('TServerAccess','Zugangsverwaltung',{x:2,y:22}),
- comp('TServerResponse','AntwortSenden',{x:2,y:27})
+ comp('TServerResponse','AntwortSenden',{x:2,y:27}),
+ // Datei-Lifecycle der Spiele (remove): die Komponente bleibt Konfigurations-
+ // träger — createUploads zählt nur stage_server_uploads, hier stört nichts.
+ comp('TServerUpload','SpielDateiVerwaltung',{kind:'game',x:2,y:32})
 ];
 const tasks=[],actions=[{id:uid('srv_act'),name:'Act_SuperRolle_Pruefen',type:'call_method',target:'Verwaltungssitzung',method:'requireRole',params:['superAdmin'],resultVariable:'Pruefung',scope:'stage'},{id:uid('srv_act'),name:'Act_Fehler_Rolle',type:'call_method',target:'AntwortSenden',method:'fail',params:['${Pruefung.status}','${Pruefung.message}'],scope:'stage'}];
 endpoints.forEach((ep,i)=>{
@@ -402,7 +476,7 @@ const stage={
  generatedBy:'cms-add-super-server-stage.cjs',
  grid:{columns:64,rows:48,cellWidth:24,cellHeight:24},
  objects,
- variables:['Pruefung','Haeuser','Admins','Haus','Person','Namen','Avatar','AktivWert','Bestaetigt','Belegt','HatRolle','HatZugang','HausAktiv','Ergebnis','Einladung'].map(variable),
+ variables:['Pruefung','Haeuser','Admins','Haus','Person','Namen','Avatar','AktivWert','Bestaetigt','Belegt','HatRolle','HatZugang','HausAktiv','Ergebnis','Einladung','Spiele','Spiel','Text','Entfernt','Freigaben','Partien'].map(variable),
  tasks,actions,
  flowCharts:[],events:{},startAnimation:null,features:[],group:'Server'
 };
@@ -424,8 +498,22 @@ function applyManagementEndpoints(target){
  merge('tasks',stage.tasks.filter(t=>taskNames.has(t.name)));
  for(const v of stage.variables)if(!current.variables.some(x=>x.name===v.name))current.variables.push(v);
 }
+function applyGameLibraryEndpoints(target){
+ const current=target.stages.find(s=>s.id==='stage_server_super');
+ if(!current||current.generatedBy!=='cms-add-super-server-stage.cjs')throw Error('stage_server_super fehlt oder ist nicht vom SuperAdmin-Builder markiert.');
+ const paths=new Set(['/api/cms/admin/super-games','/api/cms/admin/super-game-create','/api/cms/admin/super-game-detail','/api/cms/admin/super-game-update','/api/cms/admin/super-game-delete']);
+ const taskNames=new Set(endpoints.filter(ep=>paths.has(ep.path)).map(ep=>ep.task));
+ const owned=/^(SpieleListe|SpielAnlegen|SpielDetail|SpielSpeichern|SpielLoeschen)_/;
+ const keepIds=new Map(current.actions.filter(a=>owned.test(a.name)).map(a=>[a.name,a.id]));
+ current.actions=current.actions.filter(a=>!owned.test(a.name)).concat(stage.actions.filter(a=>owned.test(a.name)).map(a=>({...a,id:keepIds.get(a.name)||a.id})));
+ const merge=(key,items)=>{for(const item of items){const old=current[key].find(x=>x.name===item.name);if(old)Object.assign(old,item,{id:old.id,x:old.x,y:old.y});else current[key].push(item);}};
+ merge('objects',stage.objects.filter(o=>paths.has(o.endpointPath)||o.name==='SpielDateiVerwaltung'));
+ merge('tasks',stage.tasks.filter(t=>taskNames.has(t.name)));
+ for(const v of stage.variables)if(['Spiele','Spiel','Text','Entfernt','Freigaben','Partien'].includes(v.name)&&!current.variables.some(x=>x.name===v.name))current.variables.push(v);
+}
 if(require.main===module){
- if(process.argv.includes('--management-only'))applyManagementEndpoints(project);
+ if(process.argv.includes('--games-only'))applyGameLibraryEndpoints(project);
+ else if(process.argv.includes('--management-only'))applyManagementEndpoints(project);
  else{
   const idx=project.stages.findIndex(s=>s.id==='stage_server_super');
   if(idx>=0&&project.stages[idx].generatedBy!=='cms-add-super-server-stage.cjs'){console.log('stage_server_super wurde im Editor verändert — Abbruch (JSON ist Master).');process.exit(1);}
@@ -434,4 +522,4 @@ if(require.main===module){
  fs.writeFileSync(file,JSON.stringify(project,null,1));
  console.log('stage_server_super aktualisiert'+(process.argv.includes('--management-only')?' (nur Admin-Verwaltung)':'')+'.');
 }
-module.exports={applyManagementEndpoints};
+module.exports={applyManagementEndpoints,applyGameLibraryEndpoints};

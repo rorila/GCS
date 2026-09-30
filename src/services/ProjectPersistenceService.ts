@@ -366,6 +366,13 @@ export class ProjectPersistenceService {
         const exporter = new GameExporter();
         await exporter.exportJSONCompressed(targetProject);
     }
+
+    public async exportCmsBundle(project?: GameProject) {
+        const targetProject = project || coreStore.getProject();
+        if (!targetProject) return;
+        const exporter = new GameExporter();
+        await exporter.exportCmsBundle(targetProject);
+    }
 }
 
 export const projectPersistenceService = ProjectPersistenceService.getInstance();

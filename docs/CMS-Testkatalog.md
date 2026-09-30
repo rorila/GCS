@@ -205,7 +205,7 @@ UMGEBUNG-01, Session-Unterfälle (abgelaufen/Personenwechsel).
 - [ ] **Ändern:** Haus umbenennen → Name übernommen (auch im Kontextpfad)
 - [ ] **Deaktivieren:** „Haus Mond" deaktivieren → HouseAdmin `admin.mond` kann sich **nicht** mehr anmelden; Kind Mia **nicht** mehr per Emoji einloggen
 - [ ] **Reaktivieren:** Haus Mond wieder aktivieren → beide Zugänge funktionieren wieder
-- [ ] **Spieler-Link:** Button erzeugt Einwahllink `/?house=…` für das Haus
+- [ ] Kein Spieler-Link-Button oder Link-Feld in den SuperAdmin-Hausdetails
 - [ ] **HouseAdmin-Tabelle:** Personen mit Spalten *Name · Zugang · Weitere Häuser · Admin*
 - [ ] Neue Person anlegen → erscheint in der Tabelle
 - [ ] Person in Tabelle wählen → „Einladen" erzeugt Einrichtungslink (24 h gültig); **zweites** Öffnen → „bereits verwendet"
@@ -215,8 +215,8 @@ UMGEBUNG-01, Session-Unterfälle (abgelaufen/Personenwechsel).
 
 - [ ] Neue synthetische Person über echte UI anlegen; erscheint mit verständlichem Kontostatus. Noch keine Zuständigkeit oder fertigen Zugang suggerieren.
 - [ ] Person wählen, HouseAdmin-Zuständigkeit ausdrücklich bestätigen; Hausbezug und Rollenstatus werden sichtbar aktualisiert.
-- [ ] Einladung erstellen, Link im separaten Browserkontext öffnen und Zugang einrichten; danach wirklich mit den neuen Credentials anmelden.
-- [ ] Neuer HouseAdmin landet direkt auf `stage_house`, nicht auf Raumverwaltung oder SuperAdmin; sieht ausschließlich sein Haus.
+- [ ] Einladung erstellen, Link im separaten Browserkontext öffnen und Zugang einrichten; die Sitzung wird anschließend automatisch hergestellt.
+- [ ] Neuer HouseAdmin landet direkt auf `stage_house_overview` des eingeladenen Hauses; die Haus-ID ist vorausgewählt und fremde Haus-IDs werden abgewiesen.
 - [ ] Abgebrochene/fehlgeschlagene Schritte zeigen verständliche Rückmeldung und erlauben Fortsetzung; kein interner Dateipfad in der UI.
 
 ### 1.3.2 Admin-Detailverwaltung und Zugang (T-L7, RS09)
@@ -236,18 +236,22 @@ UMGEBUNG-01, Session-Unterfälle (abgelaufen/Personenwechsel).
 - [ ] Tabelle aller Personen mit Spalten *Name · Zugang · SuperAdmin* (Kartenansicht umschaltbar)
 - [ ] Zeile wählen + bestätigen → SuperAdmin-Rolle vergeben (plattformweit)
 - [ ] Eigene SuperAdmin-Rolle entziehen → wird abgelehnt („eigene Rolle kann nicht entzogen werden")
-- [ ] SuperAdmin-Einladungslink für neue Person → Einrichtung → Login landet auf `stage_super`
+- [ ] SuperAdmin-Einladungslink für neue Person → Zugang einrichten → automatische Anmeldung landet auf `stage_super`
 
 ### 1.4.1 Neuer SuperAdmin statt Seed-Konto (RS11, T-L1, T-L3)
 
 - [ ] Neue Person anlegen → Zeile wählen → SuperAdmin-Rolle bestätigen → einladen; Zwischenzustände der Tabelle und Linkausgabe prüfen.
-- [ ] Einrichtungslink in frischem Browserkontext einlösen → mit neuem Konto anmelden → unmittelbar `stage_super`; eine erlaubte SuperAdmin-Aktion durchführen.
+- [ ] Einrichtungslink in frischem Browserkontext einlösen → Sitzung wird automatisch hergestellt → unmittelbar `stage_super`; eine erlaubte SuperAdmin-Aktion durchführen.
 - [ ] Neue Verwaltungsrolle gewährt keine private Elternsicht; fremde Bewertungen bleiben gesperrt (zusätzlich zu Abgrenzung 1.5).
 
-### 1.5 Spielekatalog (`stage_library`, Sidebar ebenfalls vorhanden)
-- [ ] Spielliste zeigt alle 5 Spiele mit Status (published/draft/blocked)
-- [ ] Spiel „Unfertiges Spiel" ist `draft` → Kinder sehen es nicht
-- [ ] Entwurf per „Begutachten" in der Vorschau öffnen: eigenes Spiel, Verwaltungssitzung genügt, keine Spielsitzung/Zeitbuchung; Link ohne Sitzung → 403
+### 1.5 Spielekatalog (`stage_library` → `stage_library_detail`)
+- [ ] `stage_library` zeigt eigene Spiele tabellarisch mit Status und Kennzeichnung, ob eine GCS-Datei vorhanden ist
+- [ ] Name anlegen → dauerhafter eigener Entwurf ohne Datei erscheint in der Tabelle; gleicher Name im eigenen Bestand wird abgewiesen
+- [ ] Tabellenzeile auswählen → Detailstage des Spiels; `CMSGameId` und Spieldaten stimmen mit der ausgewählten Zeile überein
+- [ ] GCS-Datei hochladen → der vorhandene Entwurf wird vervollständigt; es entsteht kein zweiter Spieleintrag
+- [ ] Entwurf ohne GCS-Datei lässt sich serverseitig weder veröffentlichen noch begutachten; Kinder sehen ihn nicht
+- [ ] Datei-Entwurf per „Begutachten" in Vorschau öffnen: eigenes Spiel, Verwaltungssitzung genügt, keine Spielsitzung/Zeitbuchung; Link ohne Sitzung → 403
+- [ ] Veröffentlichen und Zurückziehen funktionieren weiterhin aus der Detailstage
 
 ### 1.5 Abgrenzung
 - [ ] SuperAdmin sieht **keine** Kinderdaten (keine Elternsicht, kein room-pulse)

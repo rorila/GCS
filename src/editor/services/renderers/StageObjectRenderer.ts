@@ -10,6 +10,7 @@ import { GridBoardRenderer } from './GridBoardRenderer';
 import { ImageSplitterRenderer } from './ImageSplitterRenderer';
 import { PuzzleBoardRenderer } from './PuzzleBoardRenderer';
 import { ImageGalleryRenderer } from './ImageGalleryRenderer';
+import { CardZoneRenderer } from './CardZoneRenderer';
 import { SpriteRenderer } from './SpriteRenderer';
 import { ShapeRenderer } from './ShapeRenderer';
 import { InputRenderer } from './InputRenderer';
@@ -613,7 +614,7 @@ export class StageObjectRenderer {
             (el as any).runModeTraceDone = true;
         }
 
-        if (className === 'TSprite' || className === 'TSpriteTemplate') {
+        if (className === 'TSprite' || className === 'TSpriteTemplate' || className === 'TCardZone') {
             el.style.background = bgColor;
             el.style.backgroundImage = 'none';
             const spriteFp = (el as any)._fp;
@@ -702,6 +703,10 @@ export class StageObjectRenderer {
         else if (className === 'TTable' || className === 'TObjectList') {
             if (!this.ctx.host.runMode) obj.setDataContext?.(this.ctx.objects);
             TableRenderer.renderTable(el, obj, this.ctx.host.onEvent?.bind(this.ctx.host), this.ctx.host.grid.cellSize);
+        }
+        else if (className === 'TCardZone') {
+            if (!this.ctx.host.runMode) obj.setDataContext?.(this.ctx.objects);
+            CardZoneRenderer.render(ctx, el, obj);
         }
         else if (className === 'TDataList') ComplexComponentRenderer.renderDataList(ctx, el, obj);
         else if (className === 'TVirtualGamepad') VirtualGamepadRenderer.render(ctx, el, obj, className);
