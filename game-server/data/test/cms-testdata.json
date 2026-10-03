@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 5,
   "areas": [
     {
       "id": "root",
@@ -265,6 +265,66 @@
       "personId": "child-left",
       "areaId": "room-sun-play",
       "active": false
+    },
+    {
+      "personId": "child-lina",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "child-tom",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "child-finn",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "child-emil",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "child-mia",
+      "areaId": "house-moon",
+      "active": true
+    },
+    {
+      "personId": "child-suspended",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "child-left",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "admin-sun",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "admin-parent",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "admin-moon",
+      "areaId": "house-moon",
+      "active": true
+    },
+    {
+      "personId": "teacher-sun",
+      "areaId": "house-sun",
+      "active": true
+    },
+    {
+      "personId": "observer-sun",
+      "areaId": "house-sun",
+      "active": true
     }
   ],
   "roles": [
@@ -345,6 +405,20 @@
       "areaId": "root",
       "role": "superAdmin",
       "active": false
+    },
+    {
+      "personId": "admin-sun",
+      "areaId": "room-sun-learn",
+      "role": "areaAdmin",
+      "active": true,
+      "primary": true
+    },
+    {
+      "personId": "admin-moon",
+      "areaId": "room-moon-play",
+      "role": "areaAdmin",
+      "active": true,
+      "primary": true
     }
   ],
   "guardians": [
@@ -466,10 +540,10 @@
       "personId": "child-mia",
       "areaId": "house-moon",
       "sequence": [
+        "owl",
         "dog",
         "cat",
-        "tree",
-        "house"
+        "tree"
       ]
     },
     {
@@ -524,7 +598,7 @@
       "avatar": "⚔️",
       "ownerId": "super-admin",
       "status": "published",
-      "file": "ZahlenDuell.json",
+      "file": "Zahlen-Duell.json",
       "multiplayer": {
         "minPlayers": 2,
         "maxPlayers": 4,
@@ -921,7 +995,9 @@
   "meta": {
     "generatedBy": "cms-seed-testdata.cjs",
     "generatedAt": "2026-09-21T08:51:18.041Z",
-    "purpose": "synthetische Testdaten, keine echten Personen"
+    "purpose": "synthetische Testdaten, keine echten Personen",
+    "migratedFrom": 4,
+    "migratedAt": "2026-10-01T14:02:15.012Z"
   },
   "testMeta": {
     "password": "Nur-Fuer-Tests!2025",
@@ -1019,5 +1095,8 @@
       "house-closed -> gesamtes Haus inaktiv",
       "ps-yesterday zählt nicht zum heutigen Budget"
     ]
-  }
+  },
+  "gameInvitations": [],
+  "notifications": [],
+  "temporaryRoomAccess": []
 }

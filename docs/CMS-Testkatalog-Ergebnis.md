@@ -69,7 +69,7 @@
 - [x] **Ändern:** Haus umbenennen → Name übernommen (auch im Kontextpfad)
 - [x] **Deaktivieren:** „Haus Mond" deaktivieren → HouseAdmin `admin.mond` kann sich **nicht** mehr anmelden; Kind Mia **nicht** mehr per Emoji einloggen
 - [x] **Reaktivieren:** Haus Mond wieder aktivieren → beide Zugänge funktionieren wieder
-- [x] **Spieler-Link:** Button erzeugt Einwahllink `/?house=…` für das Haus
+- [x] **Spieler-Link:** Button erzeugt den allgemeinen Einwahllink `/` — der Emoji-Code ordnet die Person automatisch ihrem Haus zu (früher: `/?house=…`)
 - [x] **HouseAdmin-Tabelle:** Personen mit Spalten *Name · Zugang · Weitere Häuser · Admin*
 - [x] Neue Person anlegen → erscheint in der Tabelle
 - [x] Person in Tabelle wählen → „Einladen" erzeugt Einrichtungslink (24 h gültig); **zweites** Öffnen → „bereits verwendet"

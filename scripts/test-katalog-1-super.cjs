@@ -125,19 +125,19 @@ const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
   await event(page,'HausAnAus');
   const moonOff=env.file().areas.find(a=>a.id==='house-moon')?.active===false;
   // Fachliche Ablehnung ist 200+ok:false (generisch, kein HTTP-Fehler)
-  const moonLogin=await api(page,'login',{areaId:'house-moon',sequence:['dog','cat','tree','house']});
+  const moonLogin=await api(page,'login',{sequence:['owl','dog','cat','tree']});
   kat.mark('1.3',3,moonOff&&moonLogin.data.ok===false,'Mond deaktiviert (Datei:'+moonOff+', Emoji-Login ok:'+moonLogin.data.ok+')');
   await event(page,'HausAnAus');
   const moonOn=env.file().areas.find(a=>a.id==='house-moon')?.active===true;
   const miaPage=await browser.newPage();
-  await emojiLogin(miaPage,base,['dog','cat','tree','house'],'house-moon');
+  await emojiLogin(miaPage,base,['owl','dog','cat','tree']);
   const miaOk=(await obj(miaPage,'Raeume'))?.records?.length>=1;
   await miaPage.close();
   kat.mark('1.3',4,moonOn&&miaOk,'Reaktivierung (Datei:'+moonOn+', Mia-Login:'+miaOk+')');
   // Spieler-Link
   await event(page,'SpielerLinkBtn');
   const spielerLink=await page.getByPlaceholder('Spieler-Link erscheint hier',{exact:true}).inputValue();
-  kat.mark('1.3',5,spielerLink.includes('?house=house-moon'),'Spieler-Link: '+spielerLink);
+  kat.mark('1.3',5,spielerLink==='/'||spielerLink===base+'/','Spieler-Link ohne Hausparameter: '+spielerLink);
   // HouseAdmin-Tabelle (Personenauswahl über „+ Admin hinzufügen")
   const admSel=await sel(page,'AdminTabelle');
   await event(page,'AdminHinzufuegen');await busy(page);
@@ -224,7 +224,7 @@ const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
   kat.mark('1.5',1,libData.data.pages>=2&&libLabels.some(l=>l.includes('Veröffentlicht'))&&libLabels.some(l=>l.includes('Entwurf')),'Slots: '+libLabels.join(' | '));
   // Draft fuer Kinder unsichtbar: Kind-Login + Spieleliste
   const childPage=await browser.newPage();
-  await emojiLogin(childPage,base,['owl','flower','pig','elephant'],'house-sun');
+  await emojiLogin(childPage,base,['owl','flower','pig','elephant']);
   const games=await api(childPage,'games',{areaId:'room-sun-play'});
   const visible=JSON.stringify(games.data);
   kat.mark('1.5',2,!visible.includes('game-draft')&&!visible.includes('Unfertig'),'Draft nicht in Kinderliste');

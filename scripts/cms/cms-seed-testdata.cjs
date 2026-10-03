@@ -101,15 +101,16 @@ const db = {
     code('child-tom', 'house-sun', ['owl', 'flower', 'pig', 'elephant']),
     code('child-finn', 'house-sun', ['cat', 'dog', 'flower', 'tree']),
     code('child-emil', 'house-sun', ['house', 'tree', 'owl', 'pig']),
-    code('child-mia', 'house-moon', ['dog', 'cat', 'tree', 'house']), // gleiche Folge, anderes Haus erlaubt
+    code('child-mia', 'house-moon', ['owl', 'dog', 'cat', 'tree']), // Emoji-Folgen sind global eindeutig
     code('child-suspended', 'house-sun', ['pig', 'pig', 'pig', 'pig']),
     code('child-left', 'house-sun', ['flower', 'flower', 'flower', 'flower']),
   ],
   games: [
     { id: 'game-snake', title: 'Snake', avatar: '🐍', ownerId: 'super-admin', status: 'published', file: 'Snake-Lernprojekt.json', ratings: false },
     { id: 'game-math', title: 'Mathe-Abenteuer', avatar: '🧮', ownerId: 'super-admin', status: 'published', file: 'Kopfrechnen.json', ratings: true, metrics: ['tasks_done', 'tasks_correct', 'hints_used', 'round_complete'] },
-    { id: 'game-mp', title: 'Zahlen-Duell (Multiplayer)', avatar: '⚔️', ownerId: 'super-admin', status: 'published', file: 'ZahlenDuell.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' } },
+    { id: 'game-mp', title: 'Zahlen-Duell (Multiplayer)', avatar: '⚔️', ownerId: 'super-admin', status: 'published', file: 'Zahlen-Duell.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' } },
     { id: 'game-memory-remote', title: 'Elins Memory (Multiplayer)', avatar: '🃏', ownerId: 'super-admin', status: 'published', file: 'ElinsMemoryRemote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' } },
+    { id: 'game-pingpong-remote', title: 'PingPong (Multiplayer)', avatar: '🏓', ownerId: 'super-admin', status: 'published', file: 'PingPong-Remote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' } },
     { id: 'game-draft', title: 'Unfertiges Spiel', avatar: '🚧', ownerId: 'super-admin', status: 'draft', file: 'Tetris.json' },
     { id: 'game-blocked', title: 'Gesperrtes Spiel', avatar: '⛔', ownerId: 'super-admin', status: 'blocked', file: 'Tetris.json' },
   ],
@@ -119,6 +120,7 @@ const db = {
     { gameId: 'game-math', areaId: 'room-sun-learn', active: true },
     { gameId: 'game-mp', areaId: 'room-sun-play', active: true },
     { gameId: 'game-memory-remote', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-pingpong-remote', areaId: 'room-sun-play', active: true },
     { gameId: 'game-snake', areaId: 'room-sun-closed', active: true }, // Raum deaktiviert
     { gameId: 'game-snake', areaId: 'room-moon-play', active: true },
     { gameId: 'game-draft', areaId: 'room-sun-play', active: true },   // draft: darf nicht starten

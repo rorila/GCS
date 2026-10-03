@@ -142,7 +142,7 @@ const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('
   await task('SPIEL-02a','Kind sieht Spiel ohne Freigabe nicht',[dep('VORAUS-K',()=>!!lina),dep('SPIEL-01b',()=>!!game)],async()=>{
    kid=await (await browser.newContext()).newPage();
    kid.on('pageerror',e=>errors.push(e.message));
-   await emojiLogin(kid,base,['owl','dog','tree','house'],sonne.id);
+   await emojiLogin(kid,base,['owl','dog','tree','house']);
    await kid.waitForFunction(()=>window.player.runtime.stage.id==='stage_gallery',null,{timeout:10000});
    const games=await papi(kid,'games',{token:await vget(kid,'Token'),areaId:raum.id});
    // Streng: die Antwort muss erfolgreich sein UND das Spiel fehlen —

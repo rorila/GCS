@@ -15,6 +15,16 @@ const logger = Logger.get('Proxy', 'Variable_Management');
  * @param root Root object for this reactive tree
  * @returns Proxied object
  */
+// Promises/Thenables und EventTargets (WebSocket, AbortSignal, ...) duerfen nie
+// proxied werden: await auf einer proxyierten Promise scheitert mit
+// "Promise.prototype.then on incompatible receiver", DOM-Methodenaufrufe mit
+// "Illegal invocation". Getroffen hat das TCmsLiveSync (inflight/socketReady/
+// socket) — die Reaktivitaet solcher Werte ist ohnehin nicht sinnvoll.
+function isAsyncOrDomApi(value: any): boolean {
+    return value instanceof Promise || typeof value?.then === 'function' ||
+        (typeof EventTarget !== 'undefined' && value instanceof EventTarget);
+}
+
 export function makeReactive<T extends object>(
     obj: T,
     watcher: PropertyWatcher,
@@ -29,7 +39,8 @@ export function makeReactive<T extends object>(
     // Don't wrap DOM elements or built-in special objects
     if (obj instanceof HTMLElement || obj instanceof Node ||
         obj instanceof Set || obj instanceof Map ||
-        obj instanceof Date || obj instanceof RegExp) {
+        obj instanceof Date || obj instanceof RegExp ||
+        isAsyncOrDomApi(obj)) {
         return obj;
     }
 
@@ -58,7 +69,8 @@ export function makeReactive<T extends object>(
 
                 if (!(value instanceof HTMLElement) &&
                     !(value instanceof Set) && !(value instanceof Map) &&
-                    !(value instanceof Date) && !(value instanceof RegExp)) {
+                    !(value instanceof Date) && !(value instanceof RegExp) &&
+                    !isAsyncOrDomApi(value)) {
                 
                 // CHROMIUM DEVTOOLS HEURISTIC:
                 // Do not recursively weave Proxies over structural properties that point BACKWARDS

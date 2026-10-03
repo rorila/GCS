@@ -904,12 +904,20 @@ const houseStage = stageShell('stage_super_house', 'SuperAdmin · Haus-Details')
     task('Sperre_Confirm', busyGuard([
       B.prop('Act_AdminSet_Warten', { Busy: 1, 'Confirm.visible': false, 'Status.text': 'Änderung wird gespeichert …' }),
       cond('ConfirmModus', 'active', [
-        B.http('Act_PersonAktiv_Server', '/api/cms/admin/super-person-active', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: '${PersonZiel}', confirm: true }),
+        cond('PersonZiel', true, [
+          B.http('Act_PersonAktiv_Aktivieren_Server', '/api/cms/admin/super-person-active', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: true, confirm: true }),
+        ], [
+          B.http('Act_PersonAktiv_Deaktivieren_Server', '/api/cms/admin/super-person-active', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: false, confirm: true }),
+        ]),
       ], [
         cond('ConfirmModus', 'reset', [
           B.http('Act_PersonReset_Server', '/api/cms/admin/super-person-reset', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', confirm: true }),
         ], [
-          B.http('Act_AdminSet_Server', '/api/cms/admin/super-admin-set', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: '${Ziel}', confirm: true }),
+          cond('Ziel', true, [
+            B.http('Act_AdminSet_Zuweisen_Server', '/api/cms/admin/super-admin-set', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: true, confirm: true }),
+          ], [
+            B.http('Act_AdminSet_Entziehen_Server', '/api/cms/admin/super-admin-set', { houseId: '${GewaehltesHaus}', personId: '${Auswahl}', active: false, confirm: true }),
+          ]),
         ]),
       ]),
       cond('Antwort.ok', true, [
@@ -919,7 +927,11 @@ const houseStage = stageShell('stage_super_house', 'SuperAdmin · Haus-Details')
     ])),
     task('Sperre_HausSpeichern', busyGuard([
       B.prop('Act_HausSave_Warten', { Busy: 1, 'Status.text': 'Haus wird gespeichert …' }),
-      B.http('Act_HausSave_Server', '/api/cms/admin/super-house-update', { houseId: '${GewaehltesHaus}', name: '${HausEingabe.text}', active: '${GewaehltesHausAktiv}' }),
+      cond('GewaehltesHausAktiv', true, [
+        B.http('Act_HausSave_Aktiv_Server', '/api/cms/admin/super-house-update', { houseId: '${GewaehltesHaus}', name: '${HausEingabe.text}', active: true }),
+      ], [
+        B.http('Act_HausSave_Inaktiv_Server', '/api/cms/admin/super-house-update', { houseId: '${GewaehltesHaus}', name: '${HausEingabe.text}', active: false }),
+      ]),
       cond('Antwort.ok', true, [
         B.prop('Act_HausGespeichert', { GewaehltesHausName: '${HausEingabe.text}', 'Kontext.text': 'Plattform › Häuser › ${HausEingabe.text}', Busy: 0, 'Status.text': '${Antwort.message}' }),
       ], [callTask('Fehler')]),
@@ -931,7 +943,11 @@ const houseStage = stageShell('stage_super_house', 'SuperAdmin · Haus-Details')
         B.prop('Act_Ziel_Aktiv', { ZielAktiv: true }),
       ]),
       B.prop('Act_AnAus_Warten', { Busy: 1, 'Status.text': 'Hausstatus wird geändert …' }),
-      B.http('Act_AnAus_Server', '/api/cms/admin/super-house-update', { houseId: '${GewaehltesHaus}', name: '${GewaehltesHausName}', active: '${ZielAktiv}' }),
+      cond('ZielAktiv', true, [
+        B.http('Act_AnAus_Aktivieren_Server', '/api/cms/admin/super-house-update', { houseId: '${GewaehltesHaus}', name: '${GewaehltesHausName}', active: true }),
+      ], [
+        B.http('Act_AnAus_Deaktivieren_Server', '/api/cms/admin/super-house-update', { houseId: '${GewaehltesHaus}', name: '${GewaehltesHausName}', active: false }),
+      ]),
       cond('Antwort.ok', true, [
         B.prop('Act_AnAus_Fertig', { GewaehltesHausAktiv: '${ZielAktiv}', Busy: 0, 'Status.text': '${Antwort.message}' }),
       ], [callTask('Fehler')]),
@@ -1009,7 +1025,11 @@ const adminsStage = stageShell('stage_super_admins', 'SuperAdmin · Plattform-Ad
     ])),
     task('Sperre_Confirm', busyGuard([
       B.prop('Act_AdminSet_Warten', { Busy: 1, 'Confirm.visible': false, 'Status.text': 'Zuständigkeit wird gespeichert …' }),
-      B.http('Act_AdminSet_Server', '/api/cms/admin/super-rootadmin-set', { personId: '${Auswahl}', active: '${Ziel}', confirm: true }),
+      cond('Ziel', true, [
+        B.http('Act_AdminSet_Zuweisen_Server', '/api/cms/admin/super-rootadmin-set', { personId: '${Auswahl}', active: true, confirm: true }),
+      ], [
+        B.http('Act_AdminSet_Entziehen_Server', '/api/cms/admin/super-rootadmin-set', { personId: '${Auswahl}', active: false, confirm: true }),
+      ]),
       cond('Antwort.ok', true, [callTask('AdminLaden')], [callTask('Fehler')]),
     ])),
     task('Sperre_PersonAnlegen', busyGuard([

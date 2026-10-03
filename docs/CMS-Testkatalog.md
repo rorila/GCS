@@ -289,7 +289,7 @@ UMGEBUNG-01, Session-Unterfälle (abgelaufen/Personenwechsel).
 ### 2.3 Kinder & Profile
 - [ ] Tab „Räume" → Raum wählen → Formular „Neues Spielerprofil": Name, Avatar, 4 Bild-IDs → „Profil anlegen"
 - [ ] Tab „Kinder" → Liste zeigt nur Kinder des eigenen Hauses
-- [ ] **Doppelte Emoji-Folge** (z. B. Linas Code nochmal vergeben) → abgelehnt
+- [ ] **Doppelte Emoji-Folge** (z. B. Linas Code nochmal vergeben — auch aus einem anderen Haus) → abgelehnt; Emoji-Folgen sind global eindeutig
 - [ ] Kind kann sich nach dem Anlegen sofort per Emoji anmelden
 
 ### 2.4 Spielfreigaben

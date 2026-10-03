@@ -44,34 +44,34 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  try{
   browser=await chromium.launch({channel:'msedge',headless:true});
   const SEQ={lina:['dog','cat','tree','house'],tom:['owl','flower','pig','elephant'],finn:['cat','dog','flower','tree'],
-   emil:['house','tree','owl','pig'],sven:['pig','pig','pig','pig'],lea:['flower','flower','flower','flower'],
+   emil:['house','tree','owl','pig'],mia:['owl','dog','cat','tree'],sven:['pig','pig','pig','pig'],lea:['flower','flower','flower','flower'],
    extra1:['owl','owl','owl','owl'],extra2:['tree','tree','tree','tree'],extra3:['house','house','house','house']};
   const rooms=async page=>{const r=await papi(page,'rooms',{});const d=r.data||{};return (d.items||[d.slot0,d.slot1,d.slot2,d.slot3].filter(Boolean)).map(x=>x&&(x.name||x.label||x.id)).filter(Boolean)};
   const gameIds=async(page,areaId)=>{const r=await papi(page,'games',{areaId});const d=r.data||{};return (d.items||[d.slot0,d.slot1,d.slot2,d.slot3].filter(Boolean)).map(x=>x&&(x.id||x.gameId)).filter(Boolean)};
-  const kid=async(seq,house)=>{const p=await browser.newPage();await emojiLogin(p,base,seq,house);await busy(p);return p};
+  const kid=async seq=>{const p=await browser.newPage();await emojiLogin(p,base,seq);await busy(p);return p};
 
   // ── §6.1 Anmeldung ────────────────────────────────────────────────
-  const lina=await kid(SEQ.lina,'house-sun');
+  const lina=await kid(SEQ.lina);
   const linaRooms=await rooms(lina);
   kat.mark('6.1',1,linaRooms.includes('Spielraum')&&linaRooms.includes('Lernraum'),'Lina Räume: '+JSON.stringify(linaRooms));
-  const tom=await kid(SEQ.tom,'house-sun');
+  const tom=await kid(SEQ.tom);
   const tomRooms=await rooms(tom);
   kat.mark('6.1',2,tomRooms.length===1&&tomRooms[0]==='Spielraum','Tom Räume: '+JSON.stringify(tomRooms));
   const sven=await browser.newPage();
-  await emojiLogin(sven,base,SEQ.sven,'house-sun');
+  await emojiLogin(sven,base,SEQ.sven);
   await sven.waitForTimeout(600);
   const svenStage=await sven.evaluate(()=>window.player.runtime.stage.id);
   kat.mark('6.1',3,svenStage!=='stage_gallery','Sven deaktiviert → Stage: '+svenStage);
   await sven.close();
-  const lea=await kid(SEQ.lea,'house-sun');
+  const lea=await kid(SEQ.lea);
   const leaRooms=await rooms(lea);
   kat.mark('6.1',4,leaRooms.length===0,'Lea Raumliste leer: '+JSON.stringify(leaRooms));
   await lea.close();
-  const mia=await kid(SEQ.lina,'house-moon');
+  const mia=await kid(SEQ.mia);
   const miaOk=(await mia.evaluate(()=>window.player.runtime.stage.id))==='stage_gallery';
-  kat.mark('6.1',5,miaOk,'Mia (Haus Mond) gleiche Sequenz: '+miaOk);
+  kat.mark('6.1',5,miaOk,'Mia (Haus Mond) eigene globale Sequenz: '+miaOk);
   const bad=await browser.newPage();
-  await emojiLogin(bad,base,['dog','dog','dog','dog'],'house-sun');
+  await emojiLogin(bad,base,['dog','dog','dog','dog']);
   await bad.waitForTimeout(600);
   const badStage=await bad.evaluate(()=>window.player.runtime.stage.id);
   const badMsg=await bad.evaluate(()=>{const o=window.player.runtime.getObjects().find(x=>x.name==='Hinweis');return o?.text||''});
@@ -129,7 +129,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   await playOp(kB,'end');
   // Ada (stellv. Tom-Szenario): echte Sitzung per Launch, Minutenstand
   // auf env.db() (Live-Objekt) auf 29,5 gesetzt → 1min-Warnung → Grace → Ende
-  const ada=await kid(SEQ.extra1,'house-sun');
+  const ada=await kid(SEQ.extra1);
   const lAdaSolo=await papi(ada,'launch',{gameId:'game-snake',areaId:'room-sun-play'});
   const kAda=launchKeyOf(lAdaSolo),adaSid=lAdaSolo.data?.playSessionId;
   const adaS=env.db().playSessions.find(s=>s.id===adaSid);
@@ -144,11 +144,11 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const adaEnded=/ended/i.test(JSON.stringify(hb3))||env.db().playSessions.find(s=>s.id===adaSid)?.status==='ended';
   kat.mark('6.3',5,warn1==='1min'&&adaEnded,'1min→grace→ended: '+warn1+'/'+warn2+'/'+JSON.stringify(hb3).slice(0,60));
   // Finn 20/20: Start abgelehnt
-  const finn=await kid(SEQ.finn,'house-sun');
+  const finn=await kid(SEQ.finn);
   const finnStart=await papi(finn,'launch',{gameId:'game-snake',areaId:'room-sun-play'});
   kat.mark('6.3',6,finnStart.status!==200&&/aufgebraucht|Budget|Zeit/i.test(JSON.stringify(finnStart.data)),'Finn Budget: '+finnStart.status+' '+JSON.stringify(finnStart.data).slice(0,80));
   // Tageswechsel: Emils gestrige 60 min zaehlen nicht → heute 18, Start moeglich
-  const emil=await kid(SEQ.emil,'house-sun');
+  const emil=await kid(SEQ.emil);
   const emilToday=env.db().playSessions.filter(s=>s.childId==='child-emil'&&new Date(s.startedAt).toDateString()===new Date().toDateString()).reduce((a,s)=>a+s.minutes,0);
   const emilStart=await papi(emil,'launch',{gameId:'game-math',areaId:'room-sun-learn'});
   const kEmilMath=launchKeyOf(emilStart);
@@ -174,10 +174,10 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   // Partie voll: Emil + Bela fuellen Platz 3+4, Cleo (5.) wird abgewiesen
   const lEmil=await papi(emil,'launch',{gameId:'game-mp',areaId:'room-sun-play'});
   const jEmil=lEmil.status===200?await partyOp(launchKeyOf(lEmil),'join',{partyId}):{ok:false};
-  const bela=await kid(SEQ.extra2,'house-sun');
+  const bela=await kid(SEQ.extra2);
   const lBela=await papi(bela,'launch',{gameId:'game-mp',areaId:'room-sun-play'});
   const jBela=lBela.status===200?await partyOp(launchKeyOf(lBela),'join',{partyId}):{ok:false};
-  const cleo=await kid(SEQ.extra3,'house-sun');
+  const cleo=await kid(SEQ.extra3);
   const lCleo=await papi(cleo,'launch',{gameId:'game-mp',areaId:'room-sun-play'});
   const jCleo=lCleo.status===200?await partyOp(launchKeyOf(lCleo),'join',{partyId}):{ok:false};
   kat.mark('6.4',8,jEmil.ok===true&&jBela.ok===true&&jCleo.ok!==true,'voll: emil '+jEmil.ok+' bela '+jBela.ok+' cleo '+jCleo.ok+' '+JSON.stringify(jCleo).slice(0,80));
@@ -222,7 +222,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   // ── §6.1.7 Rate-Limit (zuletzt — teilt den IP-Bucket mit früheren Logins)
   let blockedAt=-1,lastMsg='';
   for(let i=0;i<25;i++){
-   const r=await fetch(base+'/api/cms/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({areaId:'house-sun',sequence:['dog','dog','dog','dog']})});
+   const r=await fetch(base+'/api/cms/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sequence:['dog','dog','dog','dog']})});
    const d=await r.json().catch(()=>({}));
    lastMsg=JSON.stringify(d).slice(0,80);
    if(d.ok===false&&(/viele|warten|limit|später|drossel/i.test(lastMsg)||r.status===429)){blockedAt=i+1;break}

@@ -98,7 +98,7 @@ class UniversalPlayer implements StageHost {
     private disposeCmsHost?: () => void;
     public runtime: GameRuntime | null = null;
     public element: HTMLElement; // From StageHost
-    private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat', 'TStageController'];
+    private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat', 'TCmsLiveSync', 'TStageController'];
     private currentProject: GameProject | null = null;
     private isStarted: boolean = false;
     private animationTickerId: number | null = null;

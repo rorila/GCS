@@ -32,6 +32,7 @@ export * from './TGameState';
 export * from './TGroupPanel';
 export * from './THandshake';
 export * from './THeartbeat';
+export * from './TCmsLiveSync';
 export * from './TImage';
 export * from './TImageList';
 export * from './TImageSplitter';
@@ -109,6 +110,7 @@ export * from './TServerEnroll';
 export * from './TServerParentAccount';
 export * from './TServerPlaySession';
 export * from './TServerParty';
+export * from './TServerLiveSync';
 
 export * from './TFilePicker';
 export * from './TFileUpload';

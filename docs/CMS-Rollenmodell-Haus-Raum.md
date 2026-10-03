@@ -41,7 +41,7 @@ Damit sind beide Fehlfälle gesperrt:
 
 ### Anmeldung
 
-Ein Emoji-Code gilt immer für genau ein Haus. Die Anmeldung prüft jetzt die aktive Mitgliedschaft in diesem Haus. Eine Mitgliedschaft an einem anderen Ort reicht nicht aus.
+Ein Emoji-Code ist global eindeutig und identifiziert die Person direkt — bei der Anmeldung wird kein Haus gewählt. Der Server findet die Folge über alle Häuser, leitet das zugehörige Haus aus dem Code-Datensatz ab und prüft anschließend die aktive Person, das aktive Haus und die aktive Hausmitgliedschaft. Eine Mitgliedschaft an einem anderen Ort reicht nicht aus. Nach der Anmeldung werden nur die Räume angezeigt, für die die Person Zutritt hat.
 
 ## Migration vorhandener Daten
 

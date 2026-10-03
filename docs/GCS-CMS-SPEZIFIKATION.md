@@ -22,7 +22,7 @@ Rechte werden ausdrücklich festgelegt, einschließlich Geltung in Unterbereiche
 Erziehungsberechtigung ist eine bestätigte Beziehung zwischen Personen. Ein Kind kann mehrere Erziehungsberechtigte haben, eine Person mehrere Kinder vertreten. Keine automatische Raumverwaltung durch diese Beziehung. Bestätigung und konkrete Befugnisse vor Umsetzung spezifizieren.
 
 ## Einwahl und Berechtigungen
-Emoji-Einwahl mit vier sichtbaren Plätzen, großen Bildtasten, Löschen und Bestätigen. Stabile Emoji-IDs statt dargestellter Zeichen speichern. Haus oder Raum bildet den Einwahlkontext, beispielsweise durch einen QR-Code. Emoji-Folgen innerhalb des gewählten Kontexts eindeutig halten; Mehrdeutigkeiten zurückweisen.
+Emoji-Einwahl mit vier sichtbaren Plätzen, großen Bildtasten, Löschen und Bestätigen. Stabile Emoji-IDs statt dargestellter Zeichen speichern. Die Emoji-Folge identifiziert die Person direkt und ist global eindeutig; Mehrdeutigkeiten zurückweisen. Das zugehörige Haus wird aus dem Code-Datensatz abgeleitet, kein Einwahlkontext nötig.
 
 Emoji-Folge dient zur einfachen Spieler-Profilauswahl. Sie allein schaltet keine Verwaltungsrechte frei. Verwaltung benötigt zusätzliche Authentifizierung. Berechtigungen serverseitig bei jedem geschützten Zugriff prüfen, einschließlich direkter Spielaufrufe. Persönliche Daten nicht über eine öffentlich abrufbare Personendatei ausliefern. Dateien können zunächst serverseitiger Speicher sein; Browser erhält nur erforderliche Daten.
 

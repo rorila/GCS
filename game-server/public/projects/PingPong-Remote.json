@@ -1,0 +1,4230 @@
+{
+  "meta": {
+    "name": "PingPong-Remote",
+    "version": "1.0.0",
+    "author": "RoRiLa",
+    "_sourcePath": "projects/PingPong-Remote.json",
+    "id": "pingpong-remote",
+    "description": "Kompetitives PingPong fuer genau 2 Spieler im selben Haus. Der Gastgeber (links) ist die autoritative Instanz: Ball, Kollisionen und Punkte. Der Gast (rechts) sendet nur seine Schlaeger-Richtung. Synchronisation ueber TCmsLiveSync/WebSocket: Host-Snapshots (Interpolation via smoothSync), Gast-Eingaben. Zielpunkte 3/5/10 waehlt der Gastgeber. Launch-Schluessel kommt als CMS_LAUNCH-Variable vom Server.",
+    "multiplayer": {
+      "minPlayers": 2,
+      "maxPlayers": 2,
+      "scope": "house"
+    }
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TGameState",
+          "id": "obj_1766761345082_edswzt2cj",
+          "name": "GameState",
+          "scope": "global",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 9,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#4caf50",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "state": "playing",
+          "spritesMoving": false,
+          "collisionsEnabled": false,
+          "score": 0,
+          "level": 1,
+          "lives": 3,
+          "maxLives": 3
+        },
+        {
+          "className": "TTimer",
+          "id": "obj_1768324032417_h7nn1j1yj",
+          "name": "PauseTimer",
+          "scope": "global",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "AufschlagStarten"
+          },
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 13,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 1000,
+          "enabled": false,
+          "maxInterval": 1,
+          "currentInterval": 0
+        },
+        {
+          "className": "TInputController",
+          "id": "obj_1766761331624_j984qpwvt",
+          "name": "InputController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onKeyDown_KeyW": "EigenHoch",
+            "onKeyDown_KeyS": "EigenRunter",
+            "onKeyUp_KeyW": "EigenHochStop",
+            "onKeyUp_KeyS": "EigenRunterStop",
+            "onKeyDown_ArrowUp": "EigenHoch",
+            "onKeyDown_ArrowDown": "EigenRunter",
+            "onKeyUp_ArrowUp": "EigenHochStop",
+            "onKeyUp_ArrowDown": "EigenRunterStop",
+            "onKeyDown_Space": "StartTheGame"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 7,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TGameLoop",
+          "id": "obj_1766761409695_4e4rv62ig",
+          "name": "GameLoop",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 5,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "autoAdjustFPS": true,
+          "boundaryMode": "clamp",
+          "boundsOffsetTop": 4,
+          "boundsOffsetBottom": 4
+        },
+        {
+          "className": "TStageController",
+          "id": "obj_1768642087440_0rwyr1wr9",
+          "name": "StageController",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 19,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "tasks": [],
+      "actions": [
+        {
+          "name": "EnableSpriteMoving",
+          "type": "property",
+          "changes": {
+            "GameState.spritesMoving": true
+          },
+          "description": "Aktiviert die Physik-Engine im GameLoopManager",
+          "hostOnly": true,
+          "id": "239bf079-9f5f-4f6f-8502-35b9347504be"
+        },
+        {
+          "name": "EnableCollisions",
+          "type": "property",
+          "changes": {
+            "GameState.collisionsEnabled": true
+          },
+          "description": "Aktiviert Kollisionserkennung zwischen Sprites",
+          "hostOnly": true,
+          "id": "e55f7e89-64ed-4634-9272-b00358fbbf64"
+        },
+        {
+          "name": "SetBallVelocity",
+          "type": "property",
+          "changes": {
+            "BallSprite.velocityX": 0.3,
+            "BallSprite.velocityY": 0.3
+          },
+          "description": "Ball bewegt sich diagonal nach rechts-unten",
+          "hostOnly": true,
+          "id": "d540085b-a020-4f0a-9937-ff1a69248b1b"
+        },
+        {
+          "name": "SetLeftPaddleVelUp",
+          "type": "property",
+          "changes": {
+            "LeftPaddle.velocityY": -0.5
+          },
+          "scope": "global",
+          "id": "9643a20f-2adf-4422-8c09-b509ab2814a0"
+        },
+        {
+          "name": "SetLeftPaddleVelDown",
+          "type": "property",
+          "changes": {
+            "LeftPaddle.velocityY": 0.5
+          },
+          "scope": "global",
+          "id": "f000ad7f-0e2c-4a14-ac82-b7598573da4b"
+        },
+        {
+          "name": "StopLeftPaddleVelUp",
+          "type": "property",
+          "changes": {
+            "LeftPaddle.velocityY": 0
+          },
+          "scope": "global",
+          "id": "53140603-0449-4548-b1c1-8d0ac55c3377"
+        },
+        {
+          "name": "StopLeftPaddleVelDown",
+          "type": "property",
+          "changes": {
+            "LeftPaddle.velocityY": 0
+          },
+          "scope": "global",
+          "id": "ce030b1f-4cf9-4edf-9e2e-8790039fc0f9"
+        },
+        {
+          "name": "SetRightPaddleVelUp",
+          "type": "property",
+          "changes": {
+            "RightPaddle.velocityY": -0.5
+          },
+          "scope": "global",
+          "id": "3f011001-f2fd-4ca1-b567-9be52544e94a"
+        },
+        {
+          "name": "SetRightPaddleVelDown",
+          "type": "property",
+          "changes": {
+            "RightPaddle.velocityY": 0.5
+          },
+          "scope": "global",
+          "id": "8a96d8e4-c419-439e-bc20-c8b71c741a79"
+        },
+        {
+          "name": "StopRightPaddleVelUp",
+          "type": "property",
+          "changes": {
+            "RightPaddle.velocityY": 0
+          },
+          "scope": "global",
+          "id": "0c3bf5a5-22d8-4bf8-a4d6-912d687ce9de"
+        },
+        {
+          "name": "StopRightPaddleVelDown",
+          "type": "property",
+          "changes": {
+            "RightPaddle.velocityY": 0
+          },
+          "scope": "global",
+          "id": "e721b101-b0fe-4993-a59b-7145a78b44a4"
+        },
+        {
+          "name": "NegateBallY",
+          "type": "negate",
+          "changes": {
+            "BallSprite.velocityY": true
+          },
+          "scope": "global",
+          "description": "Kehrt die Y-Richtung des Balls um (Abprall oben/unten)",
+          "details": "",
+          "showDetails": false,
+          "id": "49e56043-1792-4f5c-b029-fd389b3ac4ef"
+        },
+        {
+          "name": "NegateBallX",
+          "type": "negate",
+          "changes": {
+            "BallSprite.velocityX": true
+          },
+          "scope": "global",
+          "description": "Kehrt die X-Richtung des Balls um (Paddle-Treffer)",
+          "id": "99ba86dc-a5b7-48e4-8240-da2e5b7b820b"
+        },
+        {
+          "name": "ResetBall",
+          "type": "property",
+          "changes": {
+            "BallSprite.x": 32,
+            "BallSprite.y": 19,
+            "BallSprite.velocityX": 0,
+            "BallSprite.velocityY": 0
+          },
+          "scope": "global",
+          "description": "Setzt den Ball zurück in die Mitte bei Punktverlust",
+          "details": "",
+          "showDetails": false,
+          "id": "5fb6dbe8-58be-4a2d-9875-91755211cceb"
+        }
+      ],
+      "variables": [
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#2d865f"
+      },
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage_splash",
+      "name": "Splash",
+      "type": "splash",
+      "objects": [
+        {
+          "className": "TImage",
+          "id": "obj_1768673710977_nobw1qy8q",
+          "name": "Image_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 40,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#2a2a2a",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "src": "backgrounds/Modernes Pong-Design mit lebendigen Farben.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#2d865f"
+      },
+      "duration": 1000,
+      "autoHide": true,
+      "flowCharts": {},
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "events": {}
+    },
+    {
+      "id": "stage_main",
+      "name": "Spielfeld",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TSprite",
+          "id": "obj_1766753853667_zhfdyqr29",
+          "name": "LeftPaddle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 17,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#10148e",
+            "borderColor": "#4b4fbe",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#ec0909",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TSprite",
+          "id": "7b42a974-a229-4918-9ba5-1283a337ea03",
+          "name": "RightPaddle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 60,
+          "y": 17,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#3ed06a",
+            "borderColor": "#17401a",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "rect",
+          "spriteColor": "#0feb8c",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TGameHeader",
+          "id": "obj_1766753944753_ph0i01i8j",
+          "name": "GameHeader",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "TOP",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 18,
+            "fontFamily": "Segoe UI, sans-serif",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#2c3e50",
+            "borderColor": "#34495e",
+            "borderWidth": 0
+          },
+          "text": "New Tennis",
+          "title": "New Tennis"
+        },
+        {
+          "className": "TStatusBar",
+          "id": "obj_1766753993735_zup1nxzg9",
+          "name": "StatusBar",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 36,
+          "width": 64,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "BOTTOM",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#1a1a2e",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "text": "",
+          "textColor": "#ffffff",
+          "fontSize": 12,
+          "paddingX": 12,
+          "paddingY": 6,
+          "sectionGap": 16,
+          "separatorColor": "#444444",
+          "showSeparators": true,
+          "sections": [
+            {
+              "id": "status",
+              "text": "Ready",
+              "icon": "●",
+              "width": "auto",
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "className": "TToast",
+          "id": "obj_1766754019555_x3h3ygkpm",
+          "name": "Toast",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 44,
+          "y": 32,
+          "width": 20,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "animation": "slide-left",
+          "position": "bottom-left",
+          "duration": 3000,
+          "maxVisible": 3,
+          "infoColor": "#2196F3",
+          "successColor": "#4CAF50",
+          "warningColor": "#FF9800",
+          "errorColor": "#F44336",
+          "textColor": "#ffffff",
+          "fontSize": 14,
+          "borderRadius": 8,
+          "padding": 12
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1766754427094_eva7t9y7p",
+          "name": "Panel_6",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 32,
+          "y": 5,
+          "width": 1,
+          "height": 30,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#1b552a",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_6",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_1766754456369_dmh8grz0p",
+          "name": "BallSprite",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "HandleBallBoundary",
+            "onCollision": "HandlePaddleCollision"
+          },
+          "visible": true,
+          "x": 32,
+          "y": 19,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": true,
+          "style": {
+            "backgroundColor": "#6bff84",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "gravity": 0,
+          "lerpSpeed": 0.1,
+          "collisionGroup": "default",
+          "pushOutOnCollision": false,
+          "shape": "circle",
+          "spriteColor": "#ff6b6b",
+          "appearanceMode": "simple",
+          "backgroundImage": "",
+          "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
+          "imageListId": "",
+          "imageIndex": 0,
+          "animationId": "",
+          "videoSource": "",
+          "videoObjectFit": "contain",
+          "videoAutoplay": true,
+          "videoLoop": true,
+          "videoMuted": true,
+          "videoVolume": 1,
+          "videoPlaybackRate": 1,
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1766765262504_4f29ef7uz",
+          "name": "StaticStatusLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 48,
+          "y": 37,
+          "width": 3,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#588d7c",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Status:"
+        },
+        {
+          "className": "TLabel",
+          "id": "1f535da9-766d-4081-a6c4-dd2233f68063",
+          "name": "StatusLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 51,
+          "y": 37,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#588d7c",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Warte auf Mitspieler …"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1766861595312_98ymsbf45",
+          "name": "StartBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "StartTheGame"
+          },
+          "visible": false,
+          "x": 9,
+          "y": 37,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Spiel starten",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "37b384ed-5573-4d08-823a-bc0692fc016a",
+          "name": "PauseGameBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 20,
+          "y": 37,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Spiel pausieren",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1767094196869_s5kxtbodl",
+          "name": "ResumeGameBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 37,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Spiel fortsetzen",
+          "icon": ""
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1768123181726_f8lxvpnwv",
+          "name": "Panel_19",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 5,
+          "width": 1,
+          "height": 30,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_19",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TPanel",
+          "id": "ce79a17f-d6c1-44ef-9dab-deee1883c68d",
+          "name": "Panel_19",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 63,
+          "y": 5,
+          "width": 1,
+          "height": 30,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_19",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1768123224409_wo5809ewc",
+          "name": "Panel_21",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 64,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_21",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TPanel",
+          "id": "a815d2e0-0753-480c-8a0e-7eb026e5d4ef",
+          "name": "Panel_21",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 35,
+          "width": 64,
+          "height": 1,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_21",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TNumberLabel",
+          "id": "obj_1768307659013_6ccbjgywj",
+          "name": "ScoreLblLeft",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 20,
+          "y": 1,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f0ebeb",
+            "fontSize": 36,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "0",
+          "startValue": 0,
+          "value": 0,
+          "minValue": null,
+          "maxValue": 5,
+          "step": 1
+        },
+        {
+          "className": "TNumberLabel",
+          "id": "f5eb5ec2-c70b-4309-b441-f0d9543d8806",
+          "name": "ScoreLblRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 37,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#f4f1f1",
+            "fontSize": 36,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "0",
+          "startValue": 0,
+          "value": 0,
+          "minValue": null,
+          "maxValue": 5,
+          "step": 1
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1768721373068_dx29k460k",
+          "name": "ImpressumBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 57,
+          "y": 37,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Impressum",
+          "icon": ""
+        },
+        {
+          "className": "TTimer",
+          "id": "pp_timerpoll_002",
+          "name": "TimerPoll",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "LiveSynchronisieren"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 18,
+          "width": 3,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 140,
+          "enabled": false,
+          "maxInterval": 0,
+          "currentInterval": 0
+        },
+        {
+          "className": "TCmsLiveSync",
+          "id": "pp_livesync_003",
+          "name": "LiveSync",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onDisconnected": "VerbindungVerloren",
+            "onLive": "LiveEmpfangen"
+          },
+          "visible": true,
+          "x": 5,
+          "y": 18,
+          "width": 3,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#00838f",
+            "borderColor": "#005662",
+            "borderWidth": 2
+          },
+          "launchKey": "",
+          "partyId": "",
+          "enabled": false,
+          "endpointPath": "/api/cms/party/live",
+          "status": "idle",
+          "lastSeq": 0,
+          "inputSeq": 0,
+          "stateTick": 0,
+          "lastError": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "pp_ziellabel_001",
+          "name": "ZielInfoLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 22,
+          "y": 34,
+          "width": 12,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#588d7c",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Ziel: 5 Punkte"
+        },
+        {
+          "className": "TButton",
+          "id": "pp_ziel3btn_004",
+          "name": "Ziel3Btn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Ziel3Waehlen"
+          },
+          "visible": false,
+          "x": 22,
+          "y": 37,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#3f6fb5",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "3 Punkte",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "pp_ziel5btn_005",
+          "name": "Ziel5Btn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Ziel5Waehlen"
+          },
+          "visible": false,
+          "x": 28,
+          "y": 37,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#3f6fb5",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "5 Punkte",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "pp_ziel10btn_006",
+          "name": "Ziel10Btn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Ziel10Waehlen"
+          },
+          "visible": false,
+          "x": 34,
+          "y": 37,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#3f6fb5",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "10 Punkte",
+          "icon": ""
+        }
+      ],
+      "gameName": "NewTennis",
+      "author": "RoRiLa",
+      "description": "",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#4b1b1b"
+      },
+      "startAnimation": "BottomLeft",
+      "startAnimationDuration": 1001,
+      "startAnimationEasing": "linear",
+      "tasks": [
+        {
+          "name": "LiveSynchronisieren",
+          "description": "TimerPoll: LiveSync initialisieren und Stand senden (Heartbeat/Fallback). Das Anwenden uebernimmt LiveEmpfangen (onLive).",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_live_007",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "PartyId",
+                "operator": "!=",
+                "value": ""
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "InitFertig",
+                    "operator": "==",
+                    "value": "false"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "LiveSync initialisieren"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "RollenInit",
+                "operator": "==",
+                "value": "false"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "InitFertig",
+                    "operator": "==",
+                    "value": "true"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Stand abrufen"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "RollenInit",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "DuBistHost",
+                    "operator": "==",
+                    "value": "true"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Live als Host senden"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Live als Gast senden"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "action",
+              "name": "Antwort-Gueltigkeit lesen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "LiveOk",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Mitspieler lesen"
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "LiveEmpfangen",
+          "description": "onLive: Push-Staende und Fern-Eingaben sofort anwenden — Snapshots, Punkte, Phase und Aktionen ohne Timer-Wartezeit.",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_push_008",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Push-Daten lesen"
+            },
+            {
+              "type": "action",
+              "name": "Push-Stand lesen"
+            },
+            {
+              "type": "action",
+              "name": "Push-Eingabe lesen"
+            },
+            {
+              "type": "action",
+              "name": "Push-Aktionen lesen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "VbAktiv",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Vb loeschen"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "RollenInit",
+                "operator": "==",
+                "value": "false"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "DuBistHost",
+                    "operator": "==",
+                    "value": "true"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Hostoberflaeche"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Gastoberflaeche"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "PartyStatus",
+                "operator": "==",
+                "value": "ended"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Spiel stoppen"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "PartyStatus",
+                "operator": "==",
+                "value": "open"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Warten anzeigen"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "PartyStatus",
+                "operator": "==",
+                "value": "playing"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "SpielPhase",
+                    "operator": "==",
+                    "value": "wait"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "DuBistHost",
+                        "operator": "==",
+                        "value": "true"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Host-Startbereitschaft"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "action",
+                          "name": "Gast-Wartehinweis"
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "false"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Tick lesen"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "NeuerTick",
+                    "operator": ">",
+                    "rightType": "variable",
+                    "rightValue": "LetzterTick"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Tick merken"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Ball anwenden"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Linken Schlaeger anwenden"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Punkte uebernehmen"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "SpielPhase",
+                        "operator": "==",
+                        "value": "play"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Gast-Simulation an"
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Fern-Eingabe anwenden"
+                },
+                {
+                  "type": "action",
+                  "name": "Eingabe-Seq merken"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "action",
+              "name": "Aktionen zaehlen"
+            },
+            {
+              "type": "action",
+              "name": "Index auf null"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AktAnzahl",
+                "operator": ">",
+                "value": "0"
+              },
+              "body": [
+                {
+                  "type": "task",
+                  "name": "AktionVerarbeiten"
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "VerbindungVerloren",
+          "description": "onDisconnected: Partie-Status nachpruefen — beendet → Spiel stoppen, sonst Hinweis auf Wiederherstellung.",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_vb_009",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "VbAktiv",
+                "operator": "==",
+                "value": "false"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Vb merken"
+                },
+                {
+                  "type": "action",
+                  "name": "Partie-Status abrufen"
+                },
+                {
+                  "type": "action",
+                  "name": "Antwort-Gueltigkeit lesen"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "LiveOk",
+                    "operator": "==",
+                    "value": "true"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Partie-Status lesen"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "PartyStatus",
+                        "operator": "==",
+                        "value": "ended"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Spiel stoppen"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "action",
+                          "name": "Verbindungshinweis"
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Verbindungshinweis"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "AktionVerarbeiten",
+          "description": "Rekursive Schleife ueber neue Partie-Aktionen (config/start/sieg).",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_aktion_010",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Aktionsart lesen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AktZug",
+                "operator": "==",
+                "value": "config"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Ziel aus Aktion"
+                },
+                {
+                  "type": "action",
+                  "name": "Ziel anzeigen"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AktZug",
+                "operator": "==",
+                "value": "start"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "DuBistHost",
+                    "operator": "==",
+                    "value": "false"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Gast startet"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AktZug",
+                "operator": "==",
+                "value": "sieg"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Sieger aus Aktion"
+                },
+                {
+                  "type": "action",
+                  "name": "Siegertext"
+                },
+                {
+                  "type": "action",
+                  "name": "Spielende anzeigen"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "action",
+              "name": "Index hochzaehlen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AktIdx",
+                "operator": "<",
+                "rightType": "variable",
+                "rightValue": "AktAnzahl"
+              },
+              "body": [
+                {
+                  "type": "task",
+                  "name": "AktionVerarbeiten"
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "EigenHoch",
+          "description": "Eigener Schlaeger (Host links, Gast rechts)",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_eigenhoch_011",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Richtung hoch"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "SetLeftPaddleVelUp",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "SetRightPaddleVelUp",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                }
+              ]
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "EigeneRichtung",
+                "operator": "!=",
+                "rightType": "variable",
+                "rightValue": "GesendeteRichtung"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Richtung gesendet"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "DuBistHost",
+                    "operator": "==",
+                    "value": "true"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Live als Host senden"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Live als Gast senden"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "EigenRunter",
+          "description": "Eigener Schlaeger (Host links, Gast rechts)",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_eigenrunter_012",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Richtung runter"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "SetLeftPaddleVelDown",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "SetRightPaddleVelDown",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                }
+              ]
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "EigeneRichtung",
+                "operator": "!=",
+                "rightType": "variable",
+                "rightValue": "GesendeteRichtung"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Richtung gesendet"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "DuBistHost",
+                    "operator": "==",
+                    "value": "true"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Live als Host senden"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Live als Gast senden"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "EigenHochStop",
+          "description": "Eigener Schlaeger (Host links, Gast rechts)",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_eigenhochstop_013",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Richtung stopp"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "StopLeftPaddleVelUp",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "StopRightPaddleVelUp",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                }
+              ]
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "EigeneRichtung",
+                "operator": "!=",
+                "rightType": "variable",
+                "rightValue": "GesendeteRichtung"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Richtung gesendet"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "DuBistHost",
+                    "operator": "==",
+                    "value": "true"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Live als Host senden"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Live als Gast senden"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "EigenRunterStop",
+          "description": "Eigener Schlaeger (Host links, Gast rechts)",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_eigenrunterstop_014",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Richtung stopp"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "StopLeftPaddleVelDown",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "StopRightPaddleVelDown",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                }
+              ]
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "EigeneRichtung",
+                "operator": "!=",
+                "rightType": "variable",
+                "rightValue": "GesendeteRichtung"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Richtung gesendet"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "DuBistHost",
+                    "operator": "==",
+                    "value": "true"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Live als Host senden"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Live als Gast senden"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "StartTheGame",
+          "description": "Host startet die Partie, sobald beide Mitspieler verbunden sind.",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_start_015",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "Mitglieder",
+                    "operator": ">=",
+                    "value": "2"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "EnableSpriteMoving",
+                      "scope": "global",
+                      "sourceStage": "stage_blueprint"
+                    },
+                    {
+                      "type": "action",
+                      "name": "EnableCollisions",
+                      "scope": "global",
+                      "sourceStage": "stage_blueprint"
+                    },
+                    {
+                      "type": "action",
+                      "name": "ResetBall",
+                      "scope": "global",
+                      "sourceStage": "stage_blueprint"
+                    },
+                    {
+                      "type": "action",
+                      "name": "SetBallVelocity",
+                      "scope": "global",
+                      "sourceStage": "stage_blueprint"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Phase laeuft"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Startoberflaeche"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Start senden"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Live als Host senden"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Warten anzeigen"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "Ziel3Waehlen",
+          "description": "Host waehlt 3 Punkte als Ziel",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_ziel3_016",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Ziel 3 setzen"
+            },
+            {
+              "type": "action",
+              "name": "Konfig senden"
+            },
+            {
+              "type": "action",
+              "name": "Live als Host senden"
+            }
+          ]
+        },
+        {
+          "name": "Ziel5Waehlen",
+          "description": "Host waehlt 5 Punkte als Ziel",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_ziel5_017",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Ziel 5 setzen"
+            },
+            {
+              "type": "action",
+              "name": "Konfig senden"
+            },
+            {
+              "type": "action",
+              "name": "Live als Host senden"
+            }
+          ]
+        },
+        {
+          "name": "Ziel10Waehlen",
+          "description": "Host waehlt 10 Punkte als Ziel",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_ziel10_018",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Ziel 10 setzen"
+            },
+            {
+              "type": "action",
+              "name": "Konfig senden"
+            },
+            {
+              "type": "action",
+              "name": "Live als Host senden"
+            }
+          ]
+        },
+        {
+          "name": "PunktFuerLinks",
+          "description": "Punkt fuer links — nur Host",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_punktlinks_019",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Punkt links"
+            },
+            {
+              "type": "action",
+              "name": "Punkt links anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "ResetBall",
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "PunkteLinks",
+                "operator": ">=",
+                "rightType": "variable",
+                "rightValue": "ZielPunkte"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Sieg links anzeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Spielende anzeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Sieg links senden"
+                },
+                {
+                  "type": "action",
+                  "name": "Partie beenden"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "Aufschlag anzeigen"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Live als Host senden"
+            }
+          ]
+        },
+        {
+          "name": "PunktFuerRechts",
+          "description": "Punkt fuer rechts — nur Host",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_punktrechts_020",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Punkt rechts"
+            },
+            {
+              "type": "action",
+              "name": "Punkt rechts anzeigen"
+            },
+            {
+              "type": "action",
+              "name": "ResetBall",
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "PunkteRechts",
+                "operator": ">=",
+                "rightType": "variable",
+                "rightValue": "ZielPunkte"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Sieg rechts anzeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Spielende anzeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Sieg rechts senden"
+                },
+                {
+                  "type": "action",
+                  "name": "Partie beenden"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "Aufschlag anzeigen"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "Live als Host senden"
+            }
+          ]
+        },
+        {
+          "name": "AufschlagStarten",
+          "description": "Nach der Aufschlag-Pause den Ball wieder in Bewegung setzen (nur Host).",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_aufschlag_021",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "PauseTimer aus"
+                },
+                {
+                  "type": "action",
+                  "name": "SetBallVelocity",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                },
+                {
+                  "type": "action",
+                  "name": "Phase laeuft"
+                },
+                {
+                  "type": "action",
+                  "name": "Live als Host senden"
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "HandleBallBoundary",
+          "description": "Nur der Host wertet Banden aus: oben/unten Abprall, links/rechts Punkt.",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_boundary_022",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "hitSide",
+                    "operator": "==",
+                    "value": "top"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "NegateBallY",
+                      "scope": "global",
+                      "sourceStage": "stage_blueprint"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Live als Host senden"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "bottom"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "NegateBallY",
+                          "scope": "global",
+                          "sourceStage": "stage_blueprint"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Live als Host senden"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "variable": "hitSide",
+                            "operator": "==",
+                            "value": "left"
+                          },
+                          "body": [
+                            {
+                              "type": "task",
+                              "name": "PunktFuerRechts"
+                            }
+                          ],
+                          "elseBody": [
+                            {
+                              "type": "condition",
+                              "condition": {
+                                "variable": "hitSide",
+                                "operator": "==",
+                                "value": "right"
+                              },
+                              "body": [
+                                {
+                                  "type": "task",
+                                  "name": "PunktFuerLinks"
+                                }
+                              ],
+                              "elseBody": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        },
+        {
+          "name": "HandlePaddleCollision",
+          "description": "Paddle-Abprall nur auf dem Host berechnen.",
+          "triggerMode": "local-sync",
+          "params": [],
+          "id": "pp_t_collision_023",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "DuBistHost",
+                "operator": "==",
+                "value": "true"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "NegateBallX",
+                  "scope": "global",
+                  "sourceStage": "stage_blueprint"
+                },
+                {
+                  "type": "action",
+                  "name": "Live als Host senden"
+                }
+              ],
+              "elseBody": []
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "pp_act_init",
+          "name": "LiveSync initialisieren",
+          "type": "property",
+          "changes": {
+            "LiveSync.launchKey": "${CMS_LAUNCH}",
+            "LiveSync.partyId": "${PartyId}",
+            "LiveSync.enabled": true,
+            "InitFertig": true
+          }
+        },
+        {
+          "id": "pp_act_poll",
+          "name": "Stand abrufen",
+          "type": "call_method",
+          "target": "LiveSync",
+          "method": "poll",
+          "params": [
+            "${LastSeq}"
+          ],
+          "resultVariable": "LiveAntwort",
+          "target_ref": "pp_livesync_003",
+          "resultVariable_ref": "pp_var_antwort"
+        },
+        {
+          "id": "pp_act_hsend",
+          "name": "Live als Host senden",
+          "type": "call_method",
+          "target": "LiveSync",
+          "method": "sendState",
+          "params": [
+            "${BallSprite.x}",
+            "${BallSprite.y}",
+            "${BallSprite.velocityX}",
+            "${BallSprite.velocityY}",
+            "${LeftPaddle.y}",
+            "${LeftPaddle.velocityY}",
+            "${RightPaddle.y}",
+            "${RightPaddle.velocityY}",
+            "${ScoreLblLeft.value}",
+            "${ScoreLblRight.value}",
+            "${SpielPhase}",
+            "${ZielPunkte}",
+            "${LetzterInputSeq}",
+            "${LastSeq}"
+          ],
+          "resultVariable": "LiveAntwort",
+          "target_ref": "pp_livesync_003",
+          "resultVariable_ref": "pp_var_antwort"
+        },
+        {
+          "id": "pp_act_gsend",
+          "name": "Live als Gast senden",
+          "type": "call_method",
+          "target": "LiveSync",
+          "method": "sendInput",
+          "params": [
+            "${EigeneRichtung}",
+            "${RightPaddle.y}",
+            "${RightPaddle.velocityY}",
+            "${LastSeq}"
+          ],
+          "resultVariable": "LiveAntwort",
+          "target_ref": "pp_livesync_003",
+          "resultVariable_ref": "pp_var_antwort"
+        },
+        {
+          "id": "pp_act_host",
+          "name": "Gastgeber-Flag lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "youAreHost",
+          "resultVariable": "DuBistHost",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_host"
+        },
+        {
+          "id": "pp_act_member",
+          "name": "Mitglieder lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "memberCount",
+          "resultVariable": "Mitglieder",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_mitglieder"
+        },
+        {
+          "id": "pp_act_pstatus",
+          "name": "Partie-Status lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "status",
+          "resultVariable": "PartyStatus",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_pstatus"
+        },
+        {
+          "id": "pp_act_lseq",
+          "name": "Letzte Seq lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "lastSeq",
+          "resultVariable": "LastSeq",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_seq"
+        },
+        {
+          "id": "pp_act_state",
+          "name": "Live-Stand lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "live",
+          "resultVariable": "LiveState",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_state"
+        },
+        {
+          "id": "pp_act_input",
+          "name": "Fern-Eingabe lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "remoteInput",
+          "resultVariable": "FernEingabe",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_input"
+        },
+        {
+          "id": "pp_act_acts",
+          "name": "Aktionen lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "actions",
+          "resultVariable": "AktionsListe",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_aktionen"
+        },
+        {
+          "id": "pp_act_names",
+          "name": "Mitspieler lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "memberNames",
+          "resultVariable": "MitspielerNamen",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_namen"
+        },
+        {
+          "id": "pp_act_liveok",
+          "name": "Antwort-Gueltigkeit lesen",
+          "type": "map_get",
+          "target": "LiveAntwort",
+          "key": "ok",
+          "resultVariable": "LiveOk",
+          "target_ref": "pp_var_antwort",
+          "resultVariable_ref": "pp_var_liveok"
+        },
+        {
+          "id": "pp_act_push",
+          "name": "Push-Daten lesen",
+          "type": "property",
+          "changes": {
+            "LastSeq": "${LiveSync.lastSeq}",
+            "Mitglieder": "${LiveSync.memberCount}",
+            "PartyStatus": "${LiveSync.partyStatus}",
+            "DuBistHost": "${LiveSync.youAreHost}",
+            "LiveOk": true
+          }
+        },
+        {
+          "id": "pp_act_pushstate",
+          "name": "Push-Stand lesen",
+          "type": "map_get",
+          "target": "LiveSync",
+          "key": "live",
+          "resultVariable": "LiveState",
+          "target_ref": "pp_livesync_003",
+          "resultVariable_ref": "pp_var_state"
+        },
+        {
+          "id": "pp_act_pushinput",
+          "name": "Push-Eingabe lesen",
+          "type": "map_get",
+          "target": "LiveSync",
+          "key": "remoteInput",
+          "resultVariable": "FernEingabe",
+          "target_ref": "pp_livesync_003",
+          "resultVariable_ref": "pp_var_input"
+        },
+        {
+          "id": "pp_act_pushacts",
+          "name": "Push-Aktionen lesen",
+          "type": "map_get",
+          "target": "LiveSync",
+          "key": "actions",
+          "resultVariable": "AktionsListe",
+          "target_ref": "pp_livesync_003",
+          "resultVariable_ref": "pp_var_aktionen"
+        },
+        {
+          "id": "pp_act_dirsent",
+          "name": "Richtung gesendet",
+          "type": "property",
+          "changes": {
+            "GesendeteRichtung": "${EigeneRichtung}"
+          }
+        },
+        {
+          "id": "pp_act_hostui",
+          "name": "Hostoberflaeche",
+          "type": "property",
+          "changes": {
+            "RollenInit": true,
+            "GameState.collisionsEnabled": true,
+            "StartBtn.visible": true,
+            "Ziel3Btn.visible": true,
+            "Ziel5Btn.visible": true,
+            "Ziel10Btn.visible": true,
+            "StatusLabel.text": "Du bist Gastgeber — Ziel wählen, dann starten."
+          }
+        },
+        {
+          "id": "pp_act_guestui",
+          "name": "Gastoberflaeche",
+          "type": "property",
+          "changes": {
+            "RollenInit": true,
+            "GameState.collisionsEnabled": false,
+            "StartBtn.visible": false,
+            "Ziel3Btn.visible": false,
+            "Ziel5Btn.visible": false,
+            "Ziel10Btn.visible": false,
+            "StatusLabel.text": "Du bist Gast — warte auf den Start."
+          }
+        },
+        {
+          "id": "pp_act_tick",
+          "name": "Tick lesen",
+          "type": "map_get",
+          "target": "LiveState",
+          "key": "tick",
+          "resultVariable": "NeuerTick",
+          "target_ref": "pp_var_state",
+          "resultVariable_ref": "pp_var_neuertick"
+        },
+        {
+          "id": "pp_act_tickm",
+          "name": "Tick merken",
+          "type": "property",
+          "changes": {
+            "LetzterTick": "${NeuerTick}"
+          }
+        },
+        {
+          "id": "pp_act_ball",
+          "name": "Ball anwenden",
+          "type": "call_method",
+          "target": "LiveSync",
+          "method": "applyBall",
+          "params": [
+            "${BallSprite}"
+          ],
+          "target_ref": "pp_livesync_003"
+        },
+        {
+          "id": "pp_act_lpaddle",
+          "name": "Linken Schlaeger anwenden",
+          "type": "call_method",
+          "target": "LiveSync",
+          "method": "applyPaddle",
+          "params": [
+            "${LeftPaddle}",
+            "left"
+          ],
+          "target_ref": "pp_livesync_003"
+        },
+        {
+          "id": "pp_act_scores",
+          "name": "Punkte uebernehmen",
+          "type": "property",
+          "changes": {
+            "ScoreLblLeft.value": "${LiveState.scoreLeft}",
+            "ScoreLblRight.value": "${LiveState.scoreRight}",
+            "PunkteLinks": "${LiveState.scoreLeft}",
+            "PunkteRechts": "${LiveState.scoreRight}",
+            "SpielPhase": "${LiveState.phase}",
+            "ZielPunkte": "${LiveState.targetScore}",
+            "ZielInfoLabel.text": "Ziel: ${LiveState.targetScore} Punkte"
+          }
+        },
+        {
+          "id": "pp_act_rinput",
+          "name": "Fern-Eingabe anwenden",
+          "type": "call_method",
+          "target": "LiveSync",
+          "method": "syncRemotePaddle",
+          "params": [
+            "${RightPaddle}"
+          ],
+          "target_ref": "pp_livesync_003"
+        },
+        {
+          "id": "pp_act_inseq",
+          "name": "Eingabe-Seq merken",
+          "type": "map_get",
+          "target": "FernEingabe",
+          "key": "seq",
+          "resultVariable": "LetzterInputSeq",
+          "target_ref": "pp_var_input",
+          "resultVariable_ref": "pp_var_inseq"
+        },
+        {
+          "id": "pp_act_anzahl",
+          "name": "Aktionen zaehlen",
+          "type": "list_length",
+          "target": "AktionsListe",
+          "resultVariable": "AktAnzahl",
+          "target_ref": "pp_var_aktionen",
+          "resultVariable_ref": "pp_var_aktanzahl"
+        },
+        {
+          "id": "pp_act_idx0",
+          "name": "Index auf null",
+          "type": "calculate",
+          "formula": "0",
+          "resultVariable": "AktIdx",
+          "resultVariable_ref": "pp_var_aktidx"
+        },
+        {
+          "id": "pp_act_zug",
+          "name": "Aktionsart lesen",
+          "type": "list_get",
+          "target": "AktionsListe",
+          "index": "${AktIdx}",
+          "field": "payload.zug",
+          "resultVariable": "AktZug",
+          "target_ref": "pp_var_aktionen",
+          "resultVariable_ref": "pp_var_aktzug"
+        },
+        {
+          "id": "pp_act_target",
+          "name": "Ziel aus Aktion",
+          "type": "list_get",
+          "target": "AktionsListe",
+          "index": "${AktIdx}",
+          "field": "payload.target",
+          "resultVariable": "ZielPunkte",
+          "target_ref": "pp_var_aktionen",
+          "resultVariable_ref": "pp_var_ziel"
+        },
+        {
+          "id": "pp_act_sieger",
+          "name": "Sieger aus Aktion",
+          "type": "list_get",
+          "target": "AktionsListe",
+          "index": "${AktIdx}",
+          "field": "payload.sieger",
+          "resultVariable": "AktSieger",
+          "target_ref": "pp_var_aktionen",
+          "resultVariable_ref": "pp_var_aktsieger"
+        },
+        {
+          "id": "pp_act_idxhoch",
+          "name": "Index hochzaehlen",
+          "type": "calculate",
+          "formula": "AktIdx + 1",
+          "resultVariable": "AktIdx",
+          "resultVariable_ref": "pp_var_aktidx"
+        },
+        {
+          "id": "pp_act_plinks",
+          "name": "Punkt links",
+          "type": "calculate",
+          "formula": "PunkteLinks + 1",
+          "resultVariable": "PunkteLinks",
+          "resultVariable_ref": "pp_var_links"
+        },
+        {
+          "id": "pp_act_prechts",
+          "name": "Punkt rechts",
+          "type": "calculate",
+          "formula": "PunkteRechts + 1",
+          "resultVariable": "PunkteRechts",
+          "resultVariable_ref": "pp_var_rechts"
+        },
+        {
+          "id": "pp_act_sl",
+          "name": "Punkt links anzeigen",
+          "type": "property",
+          "changes": {
+            "ScoreLblLeft.value": "${PunkteLinks}"
+          }
+        },
+        {
+          "id": "pp_act_sr",
+          "name": "Punkt rechts anzeigen",
+          "type": "property",
+          "changes": {
+            "ScoreLblRight.value": "${PunkteRechts}"
+          }
+        },
+        {
+          "id": "pp_act_serve",
+          "name": "Aufschlag anzeigen",
+          "type": "property",
+          "changes": {
+            "SpielPhase": "serve",
+            "PauseTimer.enabled": true,
+            "PauseTimer.currentInterval": 0,
+            "StatusLabel.text": "Aufschlag …"
+          }
+        },
+        {
+          "id": "pp_act_play",
+          "name": "Phase laeuft",
+          "type": "property",
+          "changes": {
+            "SpielPhase": "play"
+          }
+        },
+        {
+          "id": "pp_act_stop",
+          "name": "Spiel stoppen",
+          "type": "property",
+          "changes": {
+            "GameState.spritesMoving": false,
+            "TimerPoll.enabled": false,
+            "StatusLabel.text": "Partie beendet."
+          }
+        },
+        {
+          "id": "pp_act_ende",
+          "name": "Spielende anzeigen",
+          "type": "property",
+          "changes": {
+            "SpielPhase": "finished",
+            "GameState.spritesMoving": false,
+            "TimerPoll.enabled": false
+          }
+        },
+        {
+          "id": "pp_act_dir_up",
+          "name": "Richtung hoch",
+          "type": "property",
+          "changes": {
+            "EigeneRichtung": -1
+          }
+        },
+        {
+          "id": "pp_act_dir_down",
+          "name": "Richtung runter",
+          "type": "property",
+          "changes": {
+            "EigeneRichtung": 1
+          }
+        },
+        {
+          "id": "pp_act_dir_stop",
+          "name": "Richtung stopp",
+          "type": "property",
+          "changes": {
+            "EigeneRichtung": 0
+          }
+        },
+        {
+          "id": "pp_act_warte",
+          "name": "Warten anzeigen",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Warte auf Mitspieler …"
+          }
+        },
+        {
+          "id": "pp_act_hwait",
+          "name": "Host-Startbereitschaft",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Du bist Gastgeber — Ziel wählen, dann starten (Klick oder Leertaste)."
+          }
+        },
+        {
+          "id": "pp_act_gwait",
+          "name": "Gast-Wartehinweis",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Du bist Gast — warte auf den Start."
+          }
+        },
+        {
+          "id": "pp_act_lost",
+          "name": "Verbindungshinweis",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Verbindung verloren — wird wiederhergestellt …"
+          }
+        },
+        {
+          "id": "pp_act_vbset",
+          "name": "Vb merken",
+          "type": "property",
+          "changes": {
+            "VbAktiv": true
+          }
+        },
+        {
+          "id": "pp_act_vbclear",
+          "name": "Vb loeschen",
+          "type": "property",
+          "changes": {
+            "VbAktiv": false
+          }
+        },
+        {
+          "id": "pp_act_gsprite",
+          "name": "Gast-Simulation an",
+          "type": "property",
+          "changes": {
+            "GameState.spritesMoving": true
+          }
+        },
+        {
+          "id": "pp_act_siegtext",
+          "name": "Siegertext",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "${AktSieger} gewinnt!"
+          }
+        },
+        {
+          "id": "pp_act_winlinks",
+          "name": "Sieg links anzeigen",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Links gewinnt!"
+          }
+        },
+        {
+          "id": "pp_act_winrechts",
+          "name": "Sieg rechts anzeigen",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Rechts gewinnt!"
+          }
+        },
+        {
+          "id": "pp_act_zl",
+          "name": "Ziel anzeigen",
+          "type": "property",
+          "changes": {
+            "ZielInfoLabel.text": "Ziel: ${ZielPunkte} Punkte"
+          }
+        },
+        {
+          "id": "pp_act_z3",
+          "name": "Ziel 3 setzen",
+          "type": "property",
+          "changes": {
+            "ZielPunkte": 3,
+            "ZielInfoLabel.text": "Ziel: 3 Punkte"
+          }
+        },
+        {
+          "id": "pp_act_z5",
+          "name": "Ziel 5 setzen",
+          "type": "property",
+          "changes": {
+            "ZielPunkte": 5,
+            "ZielInfoLabel.text": "Ziel: 5 Punkte"
+          }
+        },
+        {
+          "id": "pp_act_z10",
+          "name": "Ziel 10 setzen",
+          "type": "property",
+          "changes": {
+            "ZielPunkte": 10,
+            "ZielInfoLabel.text": "Ziel: 10 Punkte"
+          }
+        },
+        {
+          "id": "pp_act_hstart",
+          "name": "Startoberflaeche",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "läuft",
+            "StartBtn.visible": false,
+            "Ziel3Btn.visible": false,
+            "Ziel5Btn.visible": false,
+            "Ziel10Btn.visible": false
+          }
+        },
+        {
+          "id": "pp_act_paus",
+          "name": "PauseTimer aus",
+          "type": "property",
+          "changes": {
+            "PauseTimer.enabled": false
+          }
+        },
+        {
+          "id": "pp_act_gstart",
+          "name": "Gast startet",
+          "type": "property",
+          "changes": {
+            "GameState.spritesMoving": true,
+            "SpielPhase": "play",
+            "StatusLabel.text": "läuft",
+            "StartBtn.visible": false,
+            "Ziel3Btn.visible": false,
+            "Ziel5Btn.visible": false,
+            "Ziel10Btn.visible": false
+          }
+        },
+        {
+          "id": "pp_act_cfg",
+          "name": "Konfig senden",
+          "type": "http",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"action\",\"partyId\":\"${PartyId}\",\"payload\":{\"zug\":\"config\",\"target\":${ZielPunkte}}}",
+          "queryOperator": "=="
+        },
+        {
+          "id": "pp_act_starts",
+          "name": "Start senden",
+          "type": "http",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"action\",\"partyId\":\"${PartyId}\",\"payload\":{\"zug\":\"start\"}}",
+          "queryOperator": "=="
+        },
+        {
+          "id": "pp_act_siegl",
+          "name": "Sieg links senden",
+          "type": "http",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"action\",\"partyId\":\"${PartyId}\",\"payload\":{\"zug\":\"sieg\",\"sieger\":\"links\"}}",
+          "queryOperator": "=="
+        },
+        {
+          "id": "pp_act_siegr",
+          "name": "Sieg rechts senden",
+          "type": "http",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"action\",\"partyId\":\"${PartyId}\",\"payload\":{\"zug\":\"sieg\",\"sieger\":\"rechts\"}}",
+          "queryOperator": "=="
+        },
+        {
+          "id": "pp_act_end",
+          "name": "Partie beenden",
+          "type": "http",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"end\",\"partyId\":\"${PartyId}\"}",
+          "queryOperator": "=="
+        },
+        {
+          "id": "pp_act_pstate",
+          "name": "Partie-Status abrufen",
+          "type": "http",
+          "method": "POST",
+          "url": "/api/cms/party",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"op\":\"state\",\"partyId\":\"${PartyId}\",\"since\":${LastSeq}}",
+          "resultVariable": "LiveAntwort",
+          "queryOperator": "==",
+          "resultVariable_ref": "pp_var_antwort"
+        }
+      ],
+      "variables": [
+        {
+          "className": "TStringVariable",
+          "id": "pp_var_launch",
+          "name": "CMS_LAUNCH",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "pp_var_party",
+          "name": "PartyId",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "pp_var_auto",
+          "name": "CMS_AUTO_PARTY",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "pp_var_host",
+          "name": "DuBistHost",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "pp_var_init",
+          "name": "InitFertig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "pp_var_rolle",
+          "name": "RollenInit",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_tick",
+          "name": "LetzterTick",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_neuertick",
+          "name": "NeuerTick",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_seq",
+          "name": "LastSeq",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "pp_var_antwort",
+          "name": "LiveAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "pp_var_state",
+          "name": "LiveState",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "pp_var_input",
+          "name": "FernEingabe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "pp_var_aktionen",
+          "name": "AktionsListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
+          "value": null
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_aktidx",
+          "name": "AktIdx",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_aktanzahl",
+          "name": "AktAnzahl",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "pp_var_aktzug",
+          "name": "AktZug",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "pp_var_aktsieger",
+          "name": "AktSieger",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "pp_var_phase",
+          "name": "SpielPhase",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "wait",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_ziel",
+          "name": "ZielPunkte",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 5,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_dir",
+          "name": "EigeneRichtung",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_dirsent",
+          "name": "GesendeteRichtung",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_inseq",
+          "name": "LetzterInputSeq",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_mitglieder",
+          "name": "Mitglieder",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "pp_var_pstatus",
+          "name": "PartyStatus",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "pp_var_namen",
+          "name": "MitspielerNamen",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_links",
+          "name": "PunkteLinks",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "pp_var_rechts",
+          "name": "PunkteRechts",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "pp_var_liveok",
+          "name": "LiveOk",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "pp_var_vb",
+          "name": "VbAktiv",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        }
+      ],
+      "flowCharts": {},
+      "events": {},
+      "input": {
+        "player1Controls": "arrows",
+        "player1Target": "",
+        "player1Speed": 0.2,
+        "player2Controls": "wasd",
+        "player2Target": "",
+        "player2Speed": 0.2
+      },
+      "_supportedEvents": [
+        "onClick",
+        "onDoubleClick",
+        "onMouseEnter",
+        "onMouseLeave",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
+    },
+    {
+      "id": "stage-1768721254041",
+      "name": "Impressum",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_1768729122368_m61br1bgf",
+          "name": "goBackBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "zurück",
+          "icon": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#4a489d"
+      },
+      "description": "Notwendige Informationen über den Author des Spiels",
+      "flowCharts": {},
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "events": {}
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "activeStageId": "stage_main",
+  "userStories": {
+    "userStories": []
+  },
+  "schemaVersion": "4.0.0"
+}

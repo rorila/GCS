@@ -301,10 +301,24 @@ export class UserStoryDetailManager {
                 }
                 if (item.type === 'condition') {
                     const cond = item.condition || {};
-                    const condLabel = `${cond.leftValue || '?'} == ${cond.rightValue || '?'}`;
-                    const bodyHtml = renderSequence(item.body || [], depth + 1);
-                    const elseHtml = renderSequence(item.elseBody || [], depth + 1);
-                    const hasElse = item.elseBody && item.elseBody.length > 0;
+                    const fmtCondSide = (value: any, type: any): string => {
+                        if (value === undefined || value === null) return '?';
+                        if (typeof value === 'string' && /^\$\{.*\}$/.test(value)) return value;
+                        if (type === 'variable' || type === 'property') return '${' + value + '}';
+                        if (Array.isArray(value)) return '[' + value.map(v => typeof v === 'string' ? '"' + v + '"' : String(v)).join(', ') + ']';
+                        if (value === '') return '""';
+                        if (typeof value === 'string' && !/^-?\d+(\.\d+)?$/.test(value) && !['true', 'false', 'null'].includes(value)) return '"' + value + '"';
+                        return String(value);
+                    };
+                    const condLeft = fmtCondSide(cond.leftValue !== undefined ? cond.leftValue : cond.variable, cond.leftType ?? 'variable');
+                    const condRight = fmtCondSide(cond.rightValue !== undefined ? cond.rightValue : cond.value, cond.rightType ?? 'literal');
+                    const unaryOps = ['truthy', 'falsy'];
+                    const condLabel = unaryOps.includes(cond.operator) ? `${condLeft} ${cond.operator}` : `${condLeft} ${cond.operator || '=='} ${condRight}`;
+                    const thenItems = item.body ?? item.then ?? (item.thenAction ? [{ type: 'action', name: item.thenAction }] : (item.thenTask ? [{ type: 'task', name: item.thenTask }] : []));
+                    const elseItems = item.elseBody ?? item.else ?? (item.elseAction ? [{ type: 'action', name: item.elseAction }] : (item.elseTask ? [{ type: 'task', name: item.elseTask }] : []));
+                    const bodyHtml = renderSequence(thenItems, depth + 1);
+                    const elseHtml = renderSequence(elseItems, depth + 1);
+                    const hasElse = elseItems.length > 0;
                     return `
                         <div style="border:2px solid #ff9800;border-radius:6px;padding:8px 12px;margin:2px 0;background:#fff8e1;">
                             <div style="color:#e65100;font-size:11px;font-weight:bold;text-transform:uppercase;margin-bottom:4px;">⬡ Condition</div>

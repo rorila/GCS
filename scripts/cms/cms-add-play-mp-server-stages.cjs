@@ -81,6 +81,16 @@ const playFns=[
    n.act('FehlerBudget','AntwortSenden','fail',[403,'Tagesbudget aufgebraucht. Morgen geht es weiter.']),
    n.act('FehlerFreigabe','AntwortSenden','fail',[403,'Spiel nicht freigegeben.']));
  },
+ // status: lesender Sitzungsstand für das CMS-Status-Overlay — kein Heartbeat.
+ (tasks,actions)=>{const n=ns('SpielStatus');
+  tasks.push({id:uid('srv_task'),name:'Server_SpielStatus_Verarbeiten',scope:'stage',description:'Eigene Sitzung lesen → Status/Restbudget ohne Zeitbuchung antworten',
+   actionSequence:withSession(n,[n.call('BudgetPruefen'),n.call('Antworten')])});
+  actions.push(
+   n.act('SitzungLaden','Spielsitzungen','load',['$body.playSessionId'],'Sitzung'),
+   n.act('BudgetPruefen','Spielsitzungen','budgetLeft',[{childId:'$session.personId',areaId:'$vars.Sitzung.item.areaId'}],'Budget'),
+   n.act('Antworten','AntwortSenden','send',[{playSessionId:'${Sitzung.item.id}',status:'${Sitzung.item.status}',gameId:'${Sitzung.item.gameId}',areaId:'${Sitzung.item.areaId}',minutes:'${Sitzung.item.minutes}',remainingMinutes:'${Budget.remainingMinutes}'}]),
+   n.act('FehlerSitzung','AntwortSenden','fail',[404,'Spielsitzung nicht gefunden.']));
+ },
  // heartbeat: Sitzung laden → reconnect → Zeit buchen (Grace/Ende in der Methode)
  (tasks,actions)=>{const n=ns('SpielHeartbeat');
   tasks.push({id:uid('srv_task'),name:'Server_SpielHeartbeat_Verarbeiten',scope:'stage',description:'Eigene Sitzung → Reconnect → Server-Delta buchen → Status/Warnstufe antworten',
@@ -176,6 +186,7 @@ const playFns=[
 ];
 const play=build('stage_server_play','TServerPlaySession','Spielsitzungen',playFns,[
  ['/api/cms/play/start','Ep_SpielStart','Server_SpielStart_Verarbeiten'],
+ ['/api/cms/play/status','Ep_SpielStatus','Server_SpielStatus_Verarbeiten'],
  ['/api/cms/play/heartbeat','Ep_SpielHeartbeat','Server_SpielHeartbeat_Verarbeiten'],
  ['/api/cms/play/pause','Ep_SpielPausieren','Server_SpielPausieren_Verarbeiten'],
  ['/api/cms/play/resume','Ep_SpielFortsetzen','Server_SpielFortsetzen_Verarbeiten'],
@@ -183,6 +194,8 @@ const play=build('stage_server_play','TServerPlaySession','Spielsitzungen',playF
  ['/api/cms/play/progress','Ep_BewertungMelden','Server_BewertungMelden_Verarbeiten']
 ],['Pruefung','Spiel','Erlaubt','Aktiv','Budget','Gestartet','Sitzung','Wieder','Gebucht','Gewechselt','Beendet','Ereignis','Wert','Belegt','Ergebnis']);
 play.marker.events={onStart:'Server_SpielStart_Verarbeiten',onHeartbeat:'Server_SpielHeartbeat_Verarbeiten',onPause:'Server_SpielPausieren_Verarbeiten',onResume:'Server_SpielFortsetzen_Verarbeiten',onEnd:'Server_SpielBeenden_Verarbeiten',onProgress:'Server_BewertungMelden_Verarbeiten'};
+if(play.marker.abandonAfterMs==null)play.marker.abandonAfterMs=600000;
+if(play.marker.sweepIntervalMs==null)play.marker.sweepIntervalMs=30000;
 
 // ============================ stage_server_mp ================================
 const mpSimple=(prefix,taskName,method,params,resultVar)=>(tasks,actions)=>{const n=ns(prefix);
@@ -190,6 +203,26 @@ const mpSimple=(prefix,taskName,method,params,resultVar)=>(tasks,actions)=>{cons
  actions.push(n.act('Ausfuehren','Partien',method,params,resultVar),n.act('Antworten','AntwortSenden','send',[{merge:'${'+resultVar+'}'}]),n.act('Fehler','AntwortSenden','fail',['${'+resultVar+'.status}','${'+resultVar+'.message}']));
 };
 const mpFns=[
+ (tasks,actions)=>{const n=ns('LobbyAngebot');
+  tasks.push({id:uid('srv_task'),name:'Server_LobbyAngebot_Verarbeiten',scope:'stage',description:'Eigener aktiver Raum → freigegebene Mehrspieler-Spiele und aktive Hausbewohner',actionSequence:withGuard(n,[
+   n.call('RaumPruefen'),n.cond('Raum freigegeben?','Raum','==',true,[
+    n.call('HausLaden'),n.cond('Haus vorhanden?','Haus.found','==',true,[n.call('SpieleLaden'),n.call('BewohnerLaden'),n.call('Antworten')],[n.call('FehlerRaum')])
+   ],[n.call('FehlerRaum')])
+  ])});
+  actions.push(
+   n.act('RaumPruefen','Datenbestand','exists',[{entity:'areas',where:{id:'$body.areaId',type:'room',_activeChain:true,has:{entity:'memberships',where:{personId:'$session.personId',areaId:'$body.areaId',active:true}}}}],'Raum'),
+   n.act('HausLaden','Datenbestand','houseOf',['$body.areaId'],'Haus'),
+   n.act('SpieleLaden','Datenbestand','list',[{
+    entity:'games',
+    where:{status:'published',multiplayer:{truthy:true},has:{entity:'grants',where:{
+     gameId:'$item.id',active:true,areaId:{in:{union:['$body.areaId','$vars.Haus.item.id']}}
+    }}},
+    fields:{id:'$item.id',title:'$item.title',avatar:'$item.avatar',multiplayer:true}
+   }],'Spiele'),
+   n.act('BewohnerLaden','Datenbestand','list',[{entity:'people',where:{active:true,id:{not:'$session.personId'},has:{entity:'memberships',where:{personId:'$item.id',areaId:'$vars.Haus.item.id',active:true}}},fields:{id:'$item.id',name:'$item.name',avatar:'$item.avatar',invited:false}}],'Kandidaten'),
+   n.act('Antworten','AntwortSenden','send',[{games:'${Spiele.items}',candidates:'${Kandidaten.items}'}]),
+   n.act('FehlerRaum','AntwortSenden','fail',[403,'Raum nicht freigegeben.']));
+ },
  // list: eigener Raum → offene Partien
  (tasks,actions)=>{const n=ns('PartieListe');
   tasks.push({id:uid('srv_task'),name:'Server_PartieListe_Verarbeiten',scope:'stage',description:'Mitgliedschaft im Raum → offene Partien mit Platzanzeige',
@@ -324,7 +357,7 @@ const mpFns=[
    n.act('MitgliedPruefen','Partien','isMember',[{partyId:'$body.partyId'}],'Mitglied'),
    n.act('PayloadPruefen','EingabePruefung','object',['payload'],'Nutzlast'),
    n.act('Buchen','Partien','action',[{partyId:'$body.partyId',payload:'$body.payload'}],'Gebucht'),
-   n.act('Antworten','AntwortSenden','send',[{seq:'${Gebucht.seq}'}]),
+   n.act('Antworten','AntwortSenden','send',[{seq:'${Gebucht.seq}',deduplicated:'${Gebucht.deduplicated}'}]),
    n.act('FehlerPartie','AntwortSenden','fail',[404,'Partie nicht gefunden.']),
    n.act('FehlerMitglied','AntwortSenden','fail',[403,'Kein Mitglied dieser Partie.']),
    n.act('FehlerLauf','AntwortSenden','fail',[409,'Aktionen nur in laufender Partie.']),
@@ -378,7 +411,12 @@ const mpFns=[
    n.act('FehlerMitglied','AntwortSenden','fail',[403,'Kein Mitglied dieser Partie.']),
    n.act('FehlerHost','AntwortSenden','fail',[403,'Nur der Gastgeber beendet die Partie.']));
  },
- mpSimple('EinladbareBewohner','Server_EinladbareBewohner_Verarbeiten','inviteCandidates',['$body.partyId'],'Kandidaten'),
+ mpSimple('StartEinladen','Server_StartEinladen_Verarbeiten','startInvite',[{gameId:'$body.gameId',areaId:'$body.areaId',personId:'$body.personId'}],'StartEinladung'),
+ mpSimple('PartieFortsetzenInfo','Server_PartieFortsetzenInfo_Verarbeiten','resumeInfo',[],'FortsetzenInfo'),
+mpSimple('PartieFortsetzen','Server_PartieFortsetzen_Verarbeiten','resume',[],'Fortsetzen'),
+mpSimple('PartieWiederbeitrittInfo','Server_PartieWiederbeitrittInfo_Verarbeiten','rejoinable',[],'WiederbeitrittInfo'),
+mpSimple('PartieWiederbeitreten','Server_PartieWiederbeitreten_Verarbeiten','rejoin',[],'Wiederbeitritt'),
+mpSimple('EinladbareBewohner','Server_EinladbareBewohner_Verarbeiten','inviteCandidates',['$body.partyId'],'Kandidaten'),
  mpSimple('BewohnerEinladen','Server_BewohnerEinladen_Verarbeiten','invite',[{partyId:'$body.partyId',personId:'$body.personId'}],'Einladung'),
  mpSimple('EinladungenLesen','Server_EinladungenLesen_Verarbeiten','invitations',[],'Einladungen'),
  mpSimple('EinladungBeantworten','Server_EinladungBeantworten_Verarbeiten','respondInvite',[{invitationId:'$body.invitationId',accept:'$body.accept'}],'Einladungsantwort'),
@@ -388,6 +426,12 @@ const mpFns=[
  mpSimple('HinweisGelesen','Server_HinweisGelesen_Verarbeiten','markNotification',['$body.notificationId'],'Hinweisstatus')
 ];
 const mp=build('stage_server_mp','TServerParty','Partien',mpFns,[
+ ['/api/cms/mp/available','Ep_LobbyAngebot','Server_LobbyAngebot_Verarbeiten'],
+ ['/api/cms/mp/start-invite','Ep_StartEinladen','Server_StartEinladen_Verarbeiten'],
+ ['/api/cms/mp/resume-info','Ep_PartieFortsetzenInfo','Server_PartieFortsetzenInfo_Verarbeiten'],
+ ['/api/cms/mp/resume','Ep_PartieFortsetzen','Server_PartieFortsetzen_Verarbeiten'],
+ ['/api/cms/mp/rejoinable','Ep_PartieWiederbeitrittInfo','Server_PartieWiederbeitrittInfo_Verarbeiten'],
+ ['/api/cms/mp/rejoin','Ep_PartieWiederbeitreten','Server_PartieWiederbeitreten_Verarbeiten'],
  ['/api/cms/mp/list','Ep_PartieListe','Server_PartieListe_Verarbeiten'],
  ['/api/cms/mp/create','Ep_PartieErstellen','Server_PartieErstellen_Verarbeiten'],
  ['/api/cms/mp/join','Ep_PartieBeitreten','Server_PartieBeitreten_Verarbeiten'],
@@ -404,8 +448,9 @@ const mp=build('stage_server_mp','TServerParty','Partien',mpFns,[
  ['/api/cms/mp/cancel','Ep_EinladungZuruecknehmen','Server_EinladungZuruecknehmen_Verarbeiten'],
  ['/api/cms/mp/notifications','Ep_HinweiseLesen','Server_HinweiseLesen_Verarbeiten'],
  ['/api/cms/mp/notification-read','Ep_HinweisGelesen','Server_HinweisGelesen_Verarbeiten']
-],['Pruefung','Raum','Partien','Spiel','Erlaubt','InPartie','Partie','Mitglied','Plaetze','Erstellt','Beitritt','VerlassenErgebnis','Zustand','Nutzlast','Gebucht','Begonnen','Beendet','Kandidaten','Einladung','Einladungen','Einladungsantwort','Rueckzug','Stornierung','Hinweise','Hinweisstatus']);
-mp.marker.events={onList:'Server_PartieListe_Verarbeiten',onCreate:'Server_PartieErstellen_Verarbeiten',onJoin:'Server_PartieBeitreten_Verarbeiten',onLeave:'Server_PartieVerlassen_Verarbeiten',onState:'Server_PartieStatus_Verarbeiten',onAction:'Server_PartieAktion_Verarbeiten',onBegin:'Server_PartieBeginnen_Verarbeiten',onEnd:'Server_PartieBeenden_Verarbeiten',onCandidates:'Server_EinladbareBewohner_Verarbeiten',onInvite:'Server_BewohnerEinladen_Verarbeiten',onInvitations:'Server_EinladungenLesen_Verarbeiten',onRespond:'Server_EinladungBeantworten_Verarbeiten',onWithdraw:'Server_TeilnahmeZurueckziehen_Verarbeiten',onCancelInvite:'Server_EinladungZuruecknehmen_Verarbeiten',onNotifications:'Server_HinweiseLesen_Verarbeiten',onNotificationRead:'Server_HinweisGelesen_Verarbeiten'};
+],['Pruefung','Raum','Haus','Spiele','Partien','Spiel','Erlaubt','InPartie','Partie','Mitglied','Plaetze','Erstellt','Beitritt','VerlassenErgebnis','Zustand','Nutzlast','Gebucht','Begonnen','Beendet','Kandidaten','StartEinladung','FortsetzenInfo','Fortsetzen','WiederbeitrittInfo','Wiederbeitritt','Einladung','Einladungen','Einladungsantwort','Rueckzug','Stornierung','Hinweise','Hinweisstatus']);
+mp.marker.events={onList:'Server_PartieListe_Verarbeiten',onCreate:'Server_PartieErstellen_Verarbeiten',onJoin:'Server_PartieBeitreten_Verarbeiten',onLeave:'Server_PartieVerlassen_Verarbeiten',onState:'Server_PartieStatus_Verarbeiten',onAction:'Server_PartieAktion_Verarbeiten',onBegin:'Server_PartieBeginnen_Verarbeiten',onEnd:'Server_PartieBeenden_Verarbeiten',onResumeInfo:'Server_PartieFortsetzenInfo_Verarbeiten',onResume:'Server_PartieFortsetzen_Verarbeiten',onRejoinable:'Server_PartieWiederbeitrittInfo_Verarbeiten',onRejoin:'Server_PartieWiederbeitreten_Verarbeiten',onCandidates:'Server_EinladbareBewohner_Verarbeiten',onInvite:'Server_BewohnerEinladen_Verarbeiten',onInvitations:'Server_EinladungenLesen_Verarbeiten',onRespond:'Server_EinladungBeantworten_Verarbeiten',onWithdraw:'Server_TeilnahmeZurueckziehen_Verarbeiten',onCancelInvite:'Server_EinladungZuruecknehmen_Verarbeiten',onNotifications:'Server_HinweiseLesen_Verarbeiten',onNotificationRead:'Server_HinweisGelesen_Verarbeiten'};
+mp.stage.objects.push(comp('TServerLiveSync','LiveSync',{id:'server_livesync',endpointPath:'/api/cms/party/live',maxPayloadBytes:4096,maxMessagesPerSecond:30,inputTtlMs:750,maxStateAgeMs:2000,livePolicy:'Nur Partienmitglieder; nur der Host schreibt Spielstand; Nicht-Hosts schreiben nur Eingaben; Live-Daten bleiben fluechtig',x:16,y:27}));
 
 fs.writeFileSync(file,JSON.stringify(project,null,1));
 console.log('fertig');

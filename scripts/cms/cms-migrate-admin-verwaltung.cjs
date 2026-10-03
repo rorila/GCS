@@ -149,7 +149,11 @@ function styleSidebar(stage){
  ],oeffnen)],[F.ref('Act_Admin_Oeffnen'),F.ref('Act_Nav_AdminDetail')])]),'Liste: Detailseite öffnen · Auswahl: Zuweisung vormerken');
  F.task('Sperre_Confirm',busyGuard([
   F.prop('Act_AdminSet_Warten',{Busy:1,'Confirm.visible':false,'Status.text':'Zuständigkeit wird gespeichert …'}),
-  F.http('Act_AdminSet_Server','/api/cms/admin/super-admin-set',{houseId:'${GewaehltesHaus}',personId:'${Auswahl}',active:'${Ziel}',confirm:true}),
+  cond('Ziel',true,[
+   F.http('Act_AdminSet_Zuweisen_Server','/api/cms/admin/super-admin-set',{houseId:'${GewaehltesHaus}',personId:'${Auswahl}',active:true,confirm:true}),
+  ],[
+   F.http('Act_AdminSet_Entziehen_Server','/api/cms/admin/super-admin-set',{houseId:'${GewaehltesHaus}',personId:'${Auswahl}',active:false,confirm:true}),
+  ]),
   cond('Antwort.ok',true,[F.ref('Act_Modus_Zugeordnet'),callTask('AdminLaden'),
    F.prop('Act_Zugewiesen_Hinweis',{'Status.text':'✓ ${AuswahlName} ist jetzt HouseAdmin — Zeile anklicken, um einzuladen oder zu bearbeiten.'})],[callTask('Fehler')]),
  ]),'Zuweisung bestätigen → speichern → zurück zur Admin-Liste');
@@ -160,13 +164,21 @@ function styleSidebar(stage){
  ]),'Neue Person anlegen (in der Personenauswahl)');
  F.task('Sperre_HausSpeichern',busyGuard([
   F.prop('Act_HausSave_Warten',{Busy:1,'Status.text':'Haus wird gespeichert …'}),
-  F.http('Act_HausSave_Server','/api/cms/admin/super-house-update',{houseId:'${GewaehltesHaus}',name:'${HausEingabe.text}',active:'${GewaehltesHausAktiv}'}),
+  cond('GewaehltesHausAktiv',true,[
+   F.http('Act_HausSave_Aktiv_Server','/api/cms/admin/super-house-update',{houseId:'${GewaehltesHaus}',name:'${HausEingabe.text}',active:true}),
+  ],[
+   F.http('Act_HausSave_Inaktiv_Server','/api/cms/admin/super-house-update',{houseId:'${GewaehltesHaus}',name:'${HausEingabe.text}',active:false}),
+  ]),
   cond('Antwort.ok',true,[F.prop('Act_HausGespeichert',{GewaehltesHausName:'${HausEingabe.text}','Titel.text':'${HausEingabe.text}','Kontext.text':'Plattform › Häuser › ${HausEingabe.text}',Busy:0,'Status.text':'✓ ${Antwort.message}'})],[callTask('Fehler')]),
  ]),'Haus umbenennen');
  F.task('Sperre_HausAnAus',busyGuard([
   cond('GewaehltesHausAktiv',true,[F.prop('Act_Ziel_Inaktiv',{ZielAktiv:false})],[F.prop('Act_Ziel_Aktiv',{ZielAktiv:true})]),
   F.prop('Act_AnAus_Warten',{Busy:1,'Status.text':'Hausstatus wird geändert …'}),
-  F.http('Act_AnAus_Server','/api/cms/admin/super-house-update',{houseId:'${GewaehltesHaus}',name:'${GewaehltesHausName}',active:'${ZielAktiv}'}),
+  cond('ZielAktiv',true,[
+   F.http('Act_AnAus_Aktivieren_Server','/api/cms/admin/super-house-update',{houseId:'${GewaehltesHaus}',name:'${GewaehltesHausName}',active:true}),
+  ],[
+   F.http('Act_AnAus_Deaktivieren_Server','/api/cms/admin/super-house-update',{houseId:'${GewaehltesHaus}',name:'${GewaehltesHausName}',active:false}),
+  ]),
   cond('Antwort.ok',true,[F.prop('Act_AnAus_Fertig',{GewaehltesHausAktiv:'${ZielAktiv}',Busy:0,'Status.text':'✓ ${Antwort.message}'}),...hausStatus.map(clone)],[callTask('Fehler')]),
  ]),'Haus aktivieren/deaktivieren');
 }
@@ -285,9 +297,17 @@ function styleSidebar(stage){
  F.task('Sperre_Bestaetigen',busyGuard([
   F.prop('Act_Bestaetigen_Warten',{Busy:1,'Confirm.visible':false,'Abbrechen.visible':false,'Status.text':'Wird ausgeführt …'}),
   cond('AktionsModus','role',[
-   F.http('Act_Rolle_Server','/api/cms/admin/super-admin-set',{houseId:'${GewaehltesHaus}',personId:'${GewaehlterAdmin}',active:'${ZielRolle}',confirm:true}),
+   cond('ZielRolle',true,[
+    F.http('Act_Rolle_Erlauben_Server','/api/cms/admin/super-admin-set',{houseId:'${GewaehltesHaus}',personId:'${GewaehlterAdmin}',active:true,confirm:true}),
+   ],[
+    F.http('Act_Rolle_Entziehen_Server','/api/cms/admin/super-admin-set',{houseId:'${GewaehltesHaus}',personId:'${GewaehlterAdmin}',active:false,confirm:true}),
+   ]),
   ],[cond('AktionsModus','active',[
-   F.http('Act_Konto_Server','/api/cms/admin/super-person-active',{houseId:'${GewaehltesHaus}',personId:'${GewaehlterAdmin}',active:'${ZielAktiv}',confirm:true}),
+   cond('ZielAktiv',true,[
+    F.http('Act_Konto_Aktivieren_Server','/api/cms/admin/super-person-active',{houseId:'${GewaehltesHaus}',personId:'${GewaehlterAdmin}',active:true,confirm:true}),
+   ],[
+    F.http('Act_Konto_Deaktivieren_Server','/api/cms/admin/super-person-active',{houseId:'${GewaehltesHaus}',personId:'${GewaehlterAdmin}',active:false,confirm:true}),
+   ]),
   ],[
    F.http('Act_Reset_Server','/api/cms/admin/super-person-reset',{houseId:'${GewaehltesHaus}',personId:'${GewaehlterAdmin}',confirm:true}),
   ])]),

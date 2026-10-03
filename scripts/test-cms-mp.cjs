@@ -7,6 +7,7 @@ const { createPlay } = require('./cms/cms-play.cjs');
 const { createMp } = require('./cms/cms-mp.cjs');
 const { buildDb } = require('./cms/cms-seed-testdata.cjs');
 const { migrate, SCHEMA_VERSION } = require('./cms/cms-migrations.cjs');
+const { methods } = require('./cms/cms-server-components.cjs');
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cms-mp-'));
 const dataPath = path.join(dir, 'cms.json');
@@ -15,7 +16,8 @@ const store = createJsonStore({ dataPath });
 const core = createCore(store.load());
 const db = core.db;
 const play = createPlay(core, store);
-const mp = createMp(core, store, play);
+const launches = new Map();
+const mp = createMp(core, store, play, undefined, launches);
 
 const results = [];
 const check = (name, fn) => Promise.resolve().then(fn).then(() => results.push(['OK', name])).catch(e => results.push(['FEHLER', name + ' :: ' + e.message]));
@@ -23,6 +25,10 @@ const sess = id => ({ personId: id, assurance: 'profile' });
 const api = (s, route, b = {}) => mp.api(s, route, b);
 const iso = t => new Date(t).toISOString();
 const endSession = id => { const s = db.playSessions.find(x => x.id === id); if (s) { s.status = 'ended'; s.endedAt = iso(Date.now()); } };
+const sweepComponent = { disconnectGraceMs: 120000, abandonAfterMs: 600000 };
+const sweep = () => methods.TServerPlaySession.sweep({ core, session: { personId: 'system' }, play, launches,
+  commit: (s, action, areaId, change) => store.commit(core.db, { actor: s.personId, action, areaId }, change)
+}, sweepComponent, []);
 
 (async () => {
 
@@ -121,11 +127,50 @@ await check('state: liefert nur neue Aktionen seit seq', () => {
   assert.ok(r.data.members.every(m => m.connected === true), 'beide aktiv verbunden');
 });
 
+await check('action: unbeantwortete Aufgabe wird beim Reload dedupliziert', () => {
+  const first = api(sess('child-tom'), 'action', { partyId, payload: { zug: 'aufgabe', a: 2, b: 8 } });
+  const again = api(sess('child-tom'), 'action', { partyId, payload: { zug: 'aufgabe', a: 9, b: 9 } });
+  assert.strictEqual(first.status, 200);
+  assert.strictEqual(again.status, 200);
+  assert.strictEqual(again.data.seq, first.data.seq);
+  assert.strictEqual(again.data.deduplicated, true);
+  assert.strictEqual(db.parties.find(x => x.id === partyId).actions.filter(a => a.payload.zug === 'aufgabe').length, 1);
+  assert.strictEqual(api(sess('child-lina'), 'action', { partyId, payload: { zug: 'antwort', ok: true } }).status, 200);
+  const next = api(sess('child-tom'), 'action', { partyId, payload: { zug: 'aufgabe', a: 4, b: 5 } });
+  assert.strictEqual(next.status, 200);
+  assert.strictEqual(next.data.seq, first.data.seq + 2, 'nach Antwort darf die nächste Aufgabe folgen');
+});
+
 await check('state: getrenntes Mitglied wird sichtbar', () => {
   const m = db.parties.find(x => x.id === partyId).members.find(m => m.personId === 'child-lina');
   db.playSessions.find(s => s.id === m.playSessionId).lastHeartbeatAt = iso(Date.now() - 3 * 60000);
   const r = api(sess('child-tom'), 'state', { partyId });
   assert.strictEqual(r.data.members.find(m => m.personId === 'child-lina').connected, false);
+  assert.ok(r.data.disconnectedNames.includes('Lina'));
+});
+
+await check('resume: getrennte und beendete Mitglieds-Sitzung erhalten neue Launch-Grants', () => {
+  assert.strictEqual(api(sess('child-mia'), 'resume-info').data.found, false, 'hausfremdes Kind sieht keine Partie');
+  assert.strictEqual(api(sess('child-mia'), 'resume', { token: 'mia' }).status, 404);
+  const info = api(sess('child-lina'), 'resume-info');
+  assert.strictEqual(info.data.found, true);
+  assert.strictEqual(info.data.item.partyId, partyId);
+  const member = () => db.parties.find(x => x.id === partyId).members.find(m => m.personId === 'child-lina');
+  const disconnectedId = member().playSessionId;
+  const resumed = api(sess('child-lina'), 'resume', { token: 'resume-lina' });
+  assert.strictEqual(resumed.status, 200, resumed.data.message);
+  assert.strictEqual(member().playSessionId, disconnectedId, 'getrennte Sitzung wird fortgesetzt');
+  assert.strictEqual(db.playSessions.find(s => s.id === disconnectedId).status, 'active');
+  const firstKey = resumed.data.launch.slice(6);
+  assert.strictEqual(launches.get(firstKey)?.playSessionId, disconnectedId);
+  endSession(disconnectedId);
+  const restarted = api(sess('child-lina'), 'resume', { token: 'resume-lina-2' });
+  assert.strictEqual(restarted.status, 200, restarted.data.message);
+  const nextId = member().playSessionId;
+  assert.notStrictEqual(nextId, disconnectedId, 'beendete Sitzung wird ersetzt');
+  assert.strictEqual(db.playSessions.find(s => s.id === nextId).status, 'active');
+  assert.ok(!launches.has(firstKey), 'alter Launch-Grant entfernt');
+  assert.strictEqual(launches.get(restarted.data.launch.slice(6))?.partyId, partyId);
 });
 
 await check('zeitlimit: erschöpftes Mitgliedsbudget beendet dessen Sitzung', () => {
@@ -145,6 +190,35 @@ await check('leave: Mitglied geht, eigene Sitzung endet', () => {
   const p = db.parties.find(x => x.id === partyId);
   assert.ok(p.members.find(m => m.personId === 'child-lina').leftAt, 'leftAt gesetzt');
   assert.strictEqual(db.playSessions.find(s => s.id === p.members.find(m => m.personId === 'child-lina').playSessionId).status, 'ended');
+  const state = api(sess('child-tom'), 'state', { partyId });
+  assert.ok(state.data.departedNames.includes('Lina'), 'verlassenes Mitglied ist sichtbar');
+  assert.strictEqual(state.data.memberCount, 1);
+});
+
+await check('rejoin: ausgetretenes Mitglied kann wieder teilnehmen', () => {
+  const info = api(sess('child-lina'), 'rejoinable');
+  assert.strictEqual(info.data.found, true);
+  assert.strictEqual(info.data.rejoin, true, 'ausgetretene Mitgliedschaft wird erkannt');
+  assert.strictEqual(info.data.item.partyId, partyId);
+  const r = api(sess('child-lina'), 'rejoin', { token: 'rejoin-lina' });
+  assert.strictEqual(r.status, 200, r.data.message);
+  assert.strictEqual(r.data.partyId, partyId, 'dieselbe Partie wird fortgesetzt');
+  const member = db.parties.find(x => x.id === partyId).members.find(m => m.personId === 'child-lina');
+  assert.ok(!member.leftAt, 'leftAt ist wieder entfernt');
+  assert.strictEqual(db.playSessions.find(x => x.id === member.playSessionId).status, 'active', 'neue Spielsitzung läuft');
+  assert.strictEqual(launches.get(r.data.launch.slice(6))?.partyId, partyId);
+  const state = api(sess('child-tom'), 'state', { partyId });
+  assert.strictEqual(state.data.memberCount, 2);
+});
+
+await check('rejoin: Nichtmitglied und aktives Mitglied', () => {
+  assert.strictEqual(api(sess('child-mia'), 'rejoinable').data.found, false, 'fremdes Kind sieht keine Partie');
+  assert.strictEqual(api(sess('child-mia'), 'rejoin', { token: 'mia-x' }).status, 404);
+  const info = api(sess('child-tom'), 'rejoinable');
+  assert.strictEqual(info.data.found, true);
+  assert.strictEqual(info.data.rejoin, false, 'aktives Mitglied braucht keinen Wiederbeitritt');
+  const r = api(sess('child-tom'), 'rejoin', { token: 'rejoin-tom' });
+  assert.strictEqual(r.status, 200, 'aktives Mitglied fällt auf resume() zurück');
 });
 
 await check('end: nur Gastgeber; alle Sitzungen enden', () => {
@@ -160,6 +234,13 @@ await check('state nach Ende liefert letzten Stand', () => {
   const r = api(sess('child-tom'), 'state', { partyId });
   assert.strictEqual(r.status, 200);
   assert.strictEqual(r.data.status, 'ended');
+  assert.strictEqual(r.data.ended, true);
+});
+
+await check('resume nach Partieende → 404', () => {
+  assert.strictEqual(api(sess('child-tom'), 'resume', { token: 'tom-ended' }).status, 404);
+  assert.strictEqual(api(sess('child-tom'), 'rejoin', { token: 'tom-ended' }).status, 404, 'beendete Partie ist nicht wieder beitretbar');
+  assert.strictEqual(api(sess('child-lina'), 'rejoinable').data.found, false, 'beendete Partie bietet keinen Wiederbeitritt an');
 });
 
 // Toms erschöpfte Partie-Session auf gestern datieren — der Tagesverbrauch
@@ -181,13 +262,54 @@ await check('versionswechsel: geänderte Spielversion blockiert neue Beitritte',
 });
 
 await check('partie voll: maxPlayers wird erzwungen', () => {
-  const game = db.games.find(g => g.id === 'game-mp');
-  game.multiplayer.maxPlayers = 1;
+  const setMax = value => { db.games.find(g => g.id === 'game-mp').multiplayer.maxPlayers = value; };
+  setMax(1);
   const p3 = api(sess('child-tom'), 'create', { gameId: 'game-mp', areaId: 'room-sun-play' });
   assert.strictEqual(p3.status, 200);
   assert.strictEqual(api(sess('child-lina'), 'join', { partyId: p3.data.partyId }).status, 409);
-  game.multiplayer.maxPlayers = 4;
+  setMax(4);
   api(sess('child-tom'), 'leave', { partyId: p3.data.partyId });
+});
+
+await check('timeout-sweep: getrennt → beendet → Partie ohne aktive Sitzung endet', () => {
+  const created = api(sess('child-tom'), 'create', { gameId: 'game-mp', areaId: 'room-sun-play' });
+  assert.strictEqual(created.status, 200, JSON.stringify(created.data));
+  const pid = created.data.partyId;
+  const joined = api(sess('child-lina'), 'join', { partyId: pid });
+  assert.strictEqual(joined.status, 200, JSON.stringify(joined.data));
+  assert.strictEqual(api(sess('child-tom'), 'begin', { partyId: pid }).status, 200);
+  const party = () => db.parties.find(x => x.id === pid);
+  const sessionOf = personId => db.playSessions.find(s => s.id === party().members.find(m => m.personId === personId).playSessionId);
+  const tomId = sessionOf('child-tom').id, linaId = sessionOf('child-lina').id;
+  launches.set('sweep-tom', { playSessionId: tomId });
+  launches.set('sweep-lina', { playSessionId: linaId });
+
+  sweep();
+  assert.strictEqual(sessionOf('child-tom').status, 'active', 'frischer Heartbeat bleibt aktiv');
+  assert.strictEqual(party().status, 'playing');
+
+  sessionOf('child-tom').lastHeartbeatAt = iso(Date.now() - 3 * 60000);
+  sweep();
+  assert.strictEqual(sessionOf('child-tom').status, 'disconnected', 'kurze Stille markiert getrennt');
+  assert.strictEqual(party().status, 'playing');
+
+  sessionOf('child-tom').lastHeartbeatAt = iso(Date.now() - 11 * 60000);
+  sessionOf('child-lina').lastHeartbeatAt = iso(Date.now() - 3 * 60000);
+  sweep();
+  assert.strictEqual(sessionOf('child-tom').status, 'ended', 'Stillstand über der Frist beendet die Sitzung');
+  assert.strictEqual(sessionOf('child-lina').status, 'disconnected', 'aktiveres Mitglied bleibt in der Partie');
+  assert.strictEqual(party().status, 'playing', 'Partie läuft, solange eine Mitglieds-Sitzung besteht');
+  assert.ok(!launches.has('sweep-tom'), 'Launch-Grant der beendeten Sitzung entfernt');
+  assert.ok(launches.has('sweep-lina'), 'Launch-Grant der getrennten Sitzung bleibt');
+
+  sessionOf('child-lina').lastHeartbeatAt = iso(Date.now() - 11 * 60000);
+  launches.set('sweep-tom-ended', { playSessionId: tomId });
+  sweep();
+  assert.strictEqual(sessionOf('child-lina').status, 'ended');
+  assert.strictEqual(party().status, 'ended', 'Partie endet ohne aktive Mitglieds-Sitzung');
+  assert.ok(party().endedAt, 'endedAt gesetzt');
+  assert.ok(!launches.has('sweep-lina'), 'letzter Launch-Grant entfernt');
+  assert.ok(!launches.has('sweep-tom-ended'), 'alter Grant einer bereits beendeten Sitzung entfernt');
 });
 
 // ── E2E über den echten HTTP-Server (P4.5): zwei „Geräte", Launch→Party. ──
@@ -208,8 +330,8 @@ await check('e2e: zwei Kinder synchronisieren über Launch-Party-Endpunkt', asyn
       return { status: r.status, data: await r.json() };
     };
     // Zwei Kinder melden sich per Emoji-Code an (zwei „Geräte").
-    const tom = (await post('login', { areaId: 'house-sun', sequence: ['owl', 'flower', 'pig', 'elephant'] })).data;
-    const lina = (await post('login', { areaId: 'house-sun', sequence: ['dog', 'cat', 'tree', 'house'] })).data;
+    const tom = (await post('login', { sequence: ['owl', 'flower', 'pig', 'elephant'] })).data;
+    const lina = (await post('login', { sequence: ['dog', 'cat', 'tree', 'house'] })).data;
     assert.ok(tom.token && lina.token, 'beide angemeldet');
     // Beide starten das Mehrspieler-Spiel — je eine eigene Spielsitzung.
     const launchTom = (await post('launch', { token: tom.token, gameId: 'game-mp', areaId: 'room-sun-play' })).data;
@@ -237,7 +359,26 @@ await check('e2e: zwei Kinder synchronisieren über Launch-Party-Endpunkt', asyn
     assert.strictEqual(st2.data.actions[0].payload.zug, 'antwort');
     // Fremder Launch-Key bekommt nichts; fremdes Haus kommt nicht rein.
     assert.strictEqual((await post('party', { launchKey: 'x'.repeat(48), op: 'state', partyId: pid })).status, 401, 'ungültiger Key → 401');
-    assert.strictEqual((await post('party', { launchKey: keyTom, op: 'action', partyId: 'party-fremd', payload: {} })).status, 404, 'fremde Partie → 404');
+    assert.strictEqual((await post('party', { launchKey: keyTom, op: 'action', partyId: 'party-fremd', payload: {} })).status, 403, 'fremde Partie → 403');
+    // Resume über den normalen Konto-Endpunkt: der alte Launch wird ersetzt,
+    // nach einer beendeten Spielsitzung entsteht eine neue Sitzung + Grant.
+    const resumeInfo = await post('mp/resume-info', { token: lina.token });
+    assert.strictEqual(resumeInfo.data.item?.partyId, pid, 'resume-info findet eigene Partie');
+    const resumed = await post('mp/resume', { token: lina.token });
+    assert.strictEqual(resumed.status, 200, resumed.data.message);
+    const keyLina2 = resumed.data.launch.slice(6);
+    assert.strictEqual((await post('party', { launchKey: keyLina, op: 'state', partyId: pid })).status, 401, 'alter Launch-Grant widerrufen');
+    assert.strictEqual((await post('party', { launchKey: keyLina2, op: 'state', partyId: pid })).status, 200, 'neuer Launch-Grant gültig');
+    const sessionStatus = await post('play', { launchKey: keyLina2, action: 'status' });
+    assert.strictEqual(sessionStatus.status, 200, 'lesender Spielstatus über Launch-Grant');
+    assert.strictEqual(sessionStatus.data.status, 'active');
+    assert.ok(sessionStatus.data.playSessionId, 'Status liefert die fortgesetzte Sitzung');
+    assert.strictEqual((await post('play', { launchKey: keyLina2, action: 'end' })).data.status, 'ended');
+    const restarted = await post('mp/resume', { token: lina.token });
+    assert.strictEqual(restarted.status, 200, restarted.data.message);
+    const keyLina3 = restarted.data.launch.slice(6);
+    assert.notStrictEqual(keyLina3, keyLina2, 'neuer Launch-Schlüssel nach Session-Ende');
+    assert.strictEqual((await post('party', { launchKey: keyLina3, op: 'state', partyId: pid })).status, 200);
     await post('party', { launchKey: keyTom, op: 'end', partyId: pid });
   } finally {
     await new Promise(r => app.server.close(r));

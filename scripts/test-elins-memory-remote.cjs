@@ -39,8 +39,8 @@ const check = (name, fn) => Promise.resolve().then(fn).then(() => results.push([
 
     let tom, lina, finn, mia;
     await check('login: zwei Kinder desselben Hauses', async () => {
-      tom = (await post('login', { areaId: 'house-sun', sequence: ['owl', 'flower', 'pig', 'elephant'] })).data;
-      lina = (await post('login', { areaId: 'house-sun', sequence: ['dog', 'cat', 'tree', 'house'] })).data;
+      tom = (await post('login', { sequence: ['owl', 'flower', 'pig', 'elephant'] })).data;
+      lina = (await post('login', { sequence: ['dog', 'cat', 'tree', 'house'] })).data;
       assert.ok(tom.token && lina.token, 'beide angemeldet');
     });
 
@@ -83,7 +83,7 @@ const check = (name, fn) => Promise.resolve().then(fn).then(() => results.push([
     });
 
     await check('join: drittes Kind → Partie voll (maxPlayers 2)', async () => {
-      finn = (await post('login', { areaId: 'house-sun', sequence: ['house', 'tree', 'owl', 'pig'] })).data; // child-emil
+      finn = (await post('login', { sequence: ['house', 'tree', 'owl', 'pig'] })).data; // child-emil
       const lf = (await post('launch', { token: finn.token, gameId: 'game-memory-remote', areaId: 'room-sun-play' })).data;
       const r = await party(lf.launch.slice(6), 'join', { partyId: pid });
       assert.notStrictEqual(r.status, 200, 'Beitritt verweigert, Status=' + r.status);
@@ -119,7 +119,7 @@ const check = (name, fn) => Promise.resolve().then(fn).then(() => results.push([
     await check('Sicherheit: fremder Key 401, fremde Partie 404, anderes Haus', async () => {
       assert.strictEqual((await party('x'.repeat(48), 'state', { partyId: pid })).status, 401);
       assert.strictEqual((await party(keyTom, 'action', { partyId: 'party-fremd', payload: {} })).status, 404);
-      mia = (await post('login', { areaId: 'house-moon', sequence: ['dog', 'cat', 'tree', 'house'] })).data;
+      mia = (await post('login', { sequence: ['owl', 'dog', 'cat', 'tree'] })).data;
       const lm = await post('launch', { token: mia.token, gameId: 'game-memory-remote', areaId: 'room-sun-play' });
       assert.notStrictEqual(lm.status, 200, 'Hausgrenze: kein Launch in fremdem Raum');
     });

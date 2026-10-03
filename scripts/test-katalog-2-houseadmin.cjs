@@ -81,7 +81,7 @@ const PORT=15212;
   kat.mark('2.2',3,renamed&&roomOff,'umbenannt:'+renamed+' deaktiviert:'+roomOff);
   // Kind sieht deaktivierten Raum nicht + kein Spielstart
   const kid=await browser.newPage();
-  await emojiLogin(kid,base,['owl','flower','pig','elephant'],'house-sun'); // Tom
+  await emojiLogin(kid,base,['owl','flower','pig','elephant']); // Tom
   const kidRooms=await papi(kid,'rooms',{});
   const roomHidden=!JSON.stringify(kidRooms.data).includes('Familienraum');
   const startDenied=await papi(kid,'play/start',{areaId:renamed?.id||'room-nonexistent',gameId:'game-snake'});
@@ -107,25 +107,25 @@ const PORT=15212;
   const ownOnly=/Lina/.test(kinderCards)&&!/Mia/.test(kinderCards);
   kat.mark('2.3',2,ownOnly,'Kinderkarten: '+kinderCards.slice(0,120));
   kat.mark('2.7',1,ownOnly,'keine fremden Kinder (Mia fehlt): '+ownOnly);
-  // Doppelte Emoji-Folge (Linas Code) -> abgelehnt
+  // Doppelte Emoji-Folge (Mias Code aus Haus Mond) -> global abgelehnt
   await event(page,'Navigation_stage_house'); // zurueck in Raum-Modus
   await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_house');
   await busy(page);await cardWait(page,'Spielraum');await card(page,'Spielraum');
   await page.getByPlaceholder('Anzeigename',{exact:true}).fill('DupKind');
   await page.locator('[placeholder="🦊"]').fill('🐸');
-  await page.getByPlaceholder('dog,tree,house,elephant',{exact:true}).fill('dog,cat,tree,house');
+  await page.getByPlaceholder('dog,tree,house,elephant',{exact:true}).fill('owl,dog,cat,tree');
   await event(page,'PersonCreate');
-  kat.mark('2.3',3,/bereits|vergeben|doppelt|existiert/i.test(await status(page))&&!env.file().people.some(p=>p.name==='DupKind'),'Duplikat abgelehnt: "'+(await status(page))+'"');
+  kat.mark('2.3',3,/bereits|vergeben|doppelt|existiert/i.test(await status(page))&&!env.file().people.some(p=>p.name==='DupKind'),'Hausfremdes Duplikat global abgelehnt: "'+(await status(page))+'"');
   // Neues Kind kann sich sofort anmelden
   const nk=await browser.newPage();
-  await emojiLogin(nk,base,['elephant','dog','owl','cat'],'house-sun');
+  await emojiLogin(nk,base,['elephant','dog','owl','cat']);
   const nkStage=await stage(nk).catch(()=>'?');
   await nk.close();
   kat.mark('2.3',4,nkStage==='stage_gallery','Katalogkind Emoji-Login -> '+nkStage);
 
   // ── §2.4 Spielfreigaben ───────────────────────────────────────────
   const tom=await browser.newPage();
-  await emojiLogin(tom,base,['owl','flower','pig','elephant'],'house-sun');
+  await emojiLogin(tom,base,['owl','flower','pig','elephant']);
   const gamesBefore=await papi(tom,'games',{areaId:'room-sun-play'});
   const snakeVisible=/snake/i.test(JSON.stringify(gamesBefore.data));
   kat.mark('2.4',1,snakeVisible,'Snake für Kind sichtbar: '+snakeVisible);

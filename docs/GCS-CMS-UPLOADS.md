@@ -13,6 +13,14 @@
 
 Diese erste Upload-Version nimmt GCS-JSON-Projekte mit einer spielbaren Start-Stage und eindeutigen Komponenten-IDs an. HTML-Dateien, ZIP-Pakete und externe Medienpakete werden nicht unterstützt. Medien müssen eingebettet sein. Der Strukturtest ersetzt keinen vollständigen Spieltest. Hochgeladene Spiele laufen in einer isolierten Browser-Sandbox ohne Netzwerkzugriff; Online-/Multiplayer-Funktionen sind dort nicht verfügbar.
 
+**Mehrspieler-Spiele** deklarieren ihre Spielerzahl in der Projektdatei:
+
+```json
+"meta": { "multiplayer": { "minPlayers": 2, "maxPlayers": 4, "scope": "house" } }
+```
+
+Der Upload übernimmt das Feld in den Spieledatensatz — nur dann erscheint das Spiel in der Multiplayer-Lobby und Partien lassen sich erstellen. `minPlayers`/`maxPlayers` sind ganze Zahlen (2–8, `maxPlayers ≥ minPlayers`); `scope` ist derzeit immer `"house"` und darf weggelassen werden. Ungültige Angaben lassen den Upload mit einer klaren Meldung scheitern. Fehlt das Feld — oder wird die Datei später durch eine Version ohne Flag ersetzt — gilt das Spiel als Solospiel.
+
 ## Avatarbilder
 
 Nach der Spieleranmeldung **👤 → Eigenes Bild → Übertragen** wählen. PNG, JPEG und WebP sind erlaubt, maximal 2 MB. Der Server prüft den tatsächlichen Bildinhalt und speichert ein PNG mit höchstens 256 × 256 Pixeln. SVG wird nicht akzeptiert. Das Bild erscheint im persönlichen Bereich; die vorhandenen Emoji-Symbole in anderen Ansichten bleiben erhalten.

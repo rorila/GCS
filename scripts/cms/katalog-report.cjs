@@ -89,8 +89,8 @@ async function adminLogin(page,base,username,password){
 }
 
 /** Emoji-Anmeldung ueber die Spieler-Stage (echte UI). */
-async function emojiLogin(page,base,sequence,house){
- await page.goto(base+'/'+(house?'?house='+house:''));
+async function emojiLogin(page,base,sequence){
+ await page.goto(base+'/');
  await page.waitForFunction(()=>window.player?.runtime?.getObjects().some(o=>o.name==='Anmelden'));
  await page.waitForTimeout(600);
  for(const e of sequence)await event(page,'Emoji_'+e);

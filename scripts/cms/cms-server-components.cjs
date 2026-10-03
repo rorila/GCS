@@ -1,5 +1,5 @@
 const crypto=require('node:crypto'),fs=require('node:fs'),path=require('node:path');
-const {areaActive,canonEmojiSeq,EMOJI_IDS,childrenOf,guardiansOf,within,houseOf}=require('./cms-core.cjs');
+const {areaActive,canonEmojiSeq,avatarGlyph,EMOJI_IDS,childrenOf,guardiansOf,within,houseOf}=require('./cms-core.cjs');
 const {isSuper}=require('./cms-super.cjs');
 
 /** Serverseitige Komponentenmethoden: das einzige Code-Vocabulary, das die Server-Runtime aufrufen darf.
@@ -18,10 +18,58 @@ const ROLES={
 // Format-Signatur des Upload-Rohmaterials (Whitelist bleibt in der Komponente).
 const sniffImage=b=>b.length>11&&b[0]===0x89&&b[1]===0x50&&b[2]===0x4E&&b[3]===0x47?'png':b[0]===0xFF&&b[1]===0xD8?'jpeg':b.length>11&&b.toString('latin1',0,4)==='RIFF'&&b.toString('latin1',8,12)==='WEBP'?'webp':null;
 
+// Deklaratives Mehrspieler-Flag aus meta.multiplayer der Projektdatei.
+// Fehlt es → null (Solospiel); vorhanden, aber fehlerhaft → Upload wird
+// laut abgelehnt, damit kein falscher Katalog-Eintrag entsteht.
+const readMultiplayer=project=>{
+ const mp=project&&project.meta?project.meta.multiplayer:null;
+ if(mp===undefined||mp===null)return null;
+ if(typeof mp!=='object'||Array.isArray(mp))throw Error('meta.multiplayer muss ein Objekt sein.');
+ if(!Number.isInteger(mp.minPlayers)||!Number.isInteger(mp.maxPlayers)||mp.minPlayers<2||mp.maxPlayers<mp.minPlayers||mp.maxPlayers>8)throw Error('meta.multiplayer: minPlayers/maxPlayers als ganze Zahlen (2–8) angeben.');
+ const scope=mp.scope===undefined?'house':mp.scope;
+ if(scope!=='house')throw Error('meta.multiplayer.scope ist derzeit nur "house".');
+ return{minPlayers:mp.minPlayers,maxPlayers:mp.maxPlayers,scope};
+};
+
 const readCredentials=ctx=>{try{return fs.existsSync(ctx.credentialPath)?JSON.parse(fs.readFileSync(ctx.credentialPath,'utf8')):[];}catch(e){return[];}};
+const DEFAULT_AVATAR='/images/default-avatar.svg';
+const EMOJI_SEGMENTER=new Intl.Segmenter('de',{granularity:'grapheme'});
+const emojiInputItems=raw=>{
+ if(Array.isArray(raw))return raw;
+ if(typeof raw!=='string')return raw;
+ const text=raw.trim();
+ if(!text)return[];
+ return /[,;\s]/.test(text)?text.split(/[,;\s]+/).filter(Boolean):[...EMOJI_SEGMENTER.segment(text)].map(part=>part.segment);
+};
 
 // Prozesslokale Versuchszähler für TServerAuthenticate.throttle (DoS-Schutz).
 const THROTTLES=new Map();
+
+function removeLaunchesFor(ctx,sessionIds){
+ const ids=new Set(sessionIds);
+ for(const [key,l]of ctx.launches||[])if(ids.has(l.playSessionId))ctx.launches.delete(key);
+}
+
+function expireInvitations(ctx){
+ const db=ctx.core.db,now=Date.now(),expired=db.gameInvitations.filter(i=>i.status==='pending'&&Number(i.expiresAt)<=now);
+ if(!expired.length)return;
+ const ids=new Set(expired.map(i=>i.id)),parties=new Set(expired.map(i=>i.sessionId));
+ ctx.commit(ctx.session,'party-invite-expire',null,next=>{
+  for(const i of next.gameInvitations.filter(i=>ids.has(i.id))){
+   i.status='expired';const access=next.temporaryRoomAccess.find(a=>a.invitationId===i.id);if(access)access.active=false;
+   next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:i.inviterPersonId,type:'game-invitation-expired',invitationId:i.id,read:false,createdAt:new Date(now).toISOString()});
+  }
+  for(const p of next.parties.filter(p=>p.oneClick&&p.status==='open'&&parties.has(p.id))){
+   if(next.gameInvitations.some(i=>i.sessionId===p.id&&i.status==='pending'))continue;
+   p.status='ended';p.endedAt=new Date(now).toISOString();
+  }
+ });
+ for(const p of db.parties.filter(p=>p.oneClick&&p.status==='ended'&&parties.has(p.id))){
+  const sessionIds=p.members.filter(m=>!m.leftAt).map(m=>m.playSessionId);
+  removeLaunchesFor(ctx,sessionIds);
+  for(const id of sessionIds)ctx.play.api({personId:p.members.find(m=>m.playSessionId===id)?.personId},'end',{playSessionId:id});
+ }
+}
 
 const methods={
  TServerSession:{
@@ -45,12 +93,18 @@ const methods={
    const token=params?.[0]&&ctx.core.issueSession(params[0],'account');
    return token?{ok:true,token}:{ok:false};
   },
-  // Konto-Abmeldung: Spieler-Token verwerfen + zugehörige Launch-Grants aufräumen.
+  // Konto-Abmeldung: Spieler-Token, Raum-Präsenz und Launch-Grants aufräumen.
   logoutAccount(ctx){
    const token=ctx.body?.token;
    ctx.core.logout(token);
    if(ctx.launches)for(const [k,l]of ctx.launches)if(l.token===token)ctx.launches.delete(k);
    return{ok:true};
+  },
+  // Flüchtige Raum-Präsenz: Betreten/Heartbeat/Verlassen. Der Raumzutritt wird
+  // serverseitig gegen permanente oder temporäre Mitgliedschaft geprüft.
+  roomPresence(ctx,_component,params){
+   const spec=params?.[0]||{};
+   return ctx.core.setPresence(ctx.session.personId,exprOf(ctx,spec.areaId,{}),exprOf(ctx,spec.present,{})===true);
   }
  },
  // --- Anmeldung (E01): Versuchslimit + Emoji-Authentifizierung ----------------
@@ -63,11 +117,11 @@ const methods={
    let b=THROTTLES.get(key);if(!b||now-b.time>windowMs){b={time:now,n:0};THROTTLES.set(key,b);}
    return{ok:++b.n<=limit};
   },
-  // Emoji-Einwahl: Folge → Person → Spielersitzung. core.login meldet seine
-  // Schritte über emit (Sequenzen werden vom Trace-Store maskiert).
+  // Emoji-Einwahl: global eindeutige Folge → Person → Spielersitzung.
+  // core.login meldet seine Schritte über emit (Sequenzen werden maskiert).
   authenticate(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
-   const found=ctx.core.login(exprOf(ctx,spec.areaId,scope),exprOf(ctx,spec.sequence,scope),(label,data)=>ctx.emit(label,data));
+   const found=ctx.core.login(exprOf(ctx,spec.sequence,scope),(label,data)=>ctx.emit(label,data));
    return found?{ok:true,found:true,token:found.token,name:found.person?.name,avatar:found.person?.avatar}:{ok:true,found:false};
   },
   // Verwaltungseinwahl: admin.verify kapselt Versuchslimit, scrypt-Hash sowie
@@ -104,6 +158,13 @@ const methods={
    const ok=typeof v==='string'&&v.trim().length>0&&v.trim().length<=max&&!/[\x00-\x1f<>]/.test(v);
    return ok?{ok:true,value:v.trim()}:{ok:false,status:400,message:opts.message||`${field} erforderlich (max. ${max} Zeichen).`};
   },
+  // Optionaler Freitext: fehlende Eingabe wird als leerer Text gespeichert.
+  textOptional(ctx,_component,params){
+   const[field,opts={}]=params||[],max=opts.max??240,v=ctx.body?.[field];
+   if(v===undefined||v===null)return{ok:true,value:''};
+   const ok=typeof v==='string'&&v.trim().length<=max&&!/[\x00-\x1f<>]/.test(v);
+   return ok?{ok:true,value:v.trim()}:{ok:false,status:400,message:opts.message||`${field} darf maximal ${max} Zeichen enthalten.`};
+  },
   boolean(ctx,_component,params){
    const v=ctx.body?.[params?.[0]];
    return typeof v==='boolean'?{ok:true,value:v}:{ok:false,status:400,message:`${params?.[0]} muss ein boolescher Wert sein.`};
@@ -117,6 +178,12 @@ const methods={
   choice(ctx,_component,params){
    const v=ctx.body?.[params?.[0]],list=params?.[1];
    return Array.isArray(list)&&list.includes(v)?{ok:true,value:v}:{ok:false,status:400,message:`${params?.[0]} ist keine gültige Auswahl.`};
+  },
+  // Wie choice, aber fehlende/leere Eingaben erhalten deklarativ einen Standardwert.
+  choiceDefault(ctx,_component,params){
+   const[field,list,fallback]=params||[],v=ctx.body?.[field];
+   if(v===undefined||v===null||v==='')return{ok:true,value:fallback};
+   return Array.isArray(list)&&list.includes(v)?{ok:true,value:v}:{ok:false,status:400,message:`${field} ist keine gültige Auswahl.`};
   },
   // Tagesbudget in Minuten (0–1440).
   minutes(ctx,_component,params){
@@ -149,18 +216,19 @@ const methods={
    const b=ctx.body||{};
    return{ok:typeof b.username==='string'&&b.username.length>0&&b.username.length<=80&&typeof b.password==='string'&&b.password.length>0&&b.password.length<=200};
   },
-  // Anmeldeeingabe des Emoji-Logins: areaId (≤100) + sequence (4 Strings à ≤64).
+  // Anmeldeeingabe des Emoji-Logins: vier Emoji-Werte; das Haus folgt aus dem Code.
   loginInput(ctx){
    const b=ctx.body||{};
-   const ok=typeof b.areaId==='string'&&b.areaId.length<=100&&Array.isArray(b.sequence)&&b.sequence.length===4&&b.sequence.every(v=>typeof v==='string'&&v.length<=64);
+   const ok=Array.isArray(b.sequence)&&b.sequence.length===4&&b.sequence.every(v=>typeof v==='string'&&v.length<=64);
    return{ok};
   },
-  // Emoji-Einwahlsequenz: akzeptiert sequenceText (Komma-Liste) oder sequence (Array),
-  // kanonisiert und prüft gegen die erlaubten Emoji-IDs.
+  // Emoji-Einwahlsequenz: akzeptiert sequenceText (IDs oder Zeichen, mit Komma/
+  // Leerzeichen/Semikolon oder als zusammenhängende Emoji-Folge) oder sequence.
   emojiSeq(ctx,_component,params){
    const field=params?.[0]||'sequence';
-   const raw=typeof ctx.body?.sequenceText==='string'?ctx.body.sequenceText.split(',').map(x=>x.trim()):ctx.body?.[field];
-   const sequence=Array.isArray(raw)?canonEmojiSeq(raw):raw;
+   const text=ctx.body?.sequenceText;
+   const raw=typeof text==='string'&&text.trim()?text:ctx.body?.[field];
+   const sequence=canonEmojiSeq(emojiInputItems(raw));
    const ok=Array.isArray(sequence)&&sequence.length===4&&sequence.every(e=>EMOJI_IDS.includes(e));
    return ok?{ok:true,value:sequence}:{ok:false,status:400,message:'Vier gültige Emoji-IDs erforderlich.'};
   }
@@ -176,6 +244,14 @@ const methods={
    const extra={};
    for(const [key,expr]of Object.entries(spec.extra||{}))extra[key]=exprOf(ctx,expr,scope);
    return{items,...extra};
+  },
+  // Optionsliste für Dropdowns: Datensätze bleiben getrennt über list() abrufbar.
+  optionList(ctx,_component,params){
+   const spec=params?.[0];
+   if(!spec||typeof spec.entity!=='string')throw Error('TServerQuery.optionList benötigt eine Query-Spec mit entity.');
+   ensureEntity(ctx,spec.entity);
+   const rows=ctx.core.db[spec.entity].filter(item=>whereMatch(ctx,item,spec.where,{item}));
+   return{items:rows.map(item=>exprOf(ctx,spec.label??'$item.name',{item}))};
   },
   find(ctx,_component,params){
    const spec=params?.[0];
@@ -199,12 +275,12 @@ const methods={
    while(a&&a.type!=='house'&&!seen.has(a.id)){seen.add(a.id);a=ctx.core.db.areas.find(x=>x.id===a.parentId);}
    return a?{ok:true,found:true,item:a}:{ok:true,found:false,item:null};
   },
-  // Emoji-Folge im Haus schon vergeben (optional: eine Person ausnehmen).
+  // Emoji-Folge ist global schon vergeben (optional: eine Person ausnehmen).
   codeTaken(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
-   const areaId=exprOf(ctx,spec.areaId,scope),sequence=exprOf(ctx,spec.sequence,scope),exclude=exprOf(ctx,spec.excludePersonId,scope);
+   const sequence=exprOf(ctx,spec.sequence,scope),exclude=exprOf(ctx,spec.excludePersonId,scope);
    const wanted=JSON.stringify(sequence);
-   return ctx.core.db.codes.some(c=>c.areaId===areaId&&c.personId!==exclude&&JSON.stringify(canonEmojiSeq(c.sequence))===wanted);
+   return ctx.core.db.codes.some(c=>c.personId!==exclude&&JSON.stringify(canonEmojiSeq(c.sequence))===wanted);
   },
   // Gespeicherte Raumsicherung (roomBackups ist eine Map, keine Liste).
   backup(ctx,_component,params){
@@ -249,9 +325,16 @@ const methods={
    }
    return{ok:true,...flags,name:person?.name||''};
   },
-  // Spielerbare Räume der Sitzung (aktive Mitgliedschaft + aktive Bereichskette).
+  // Spielerbare Räume der Sitzung (aktive Mitgliedschaft + aktive Bereichskette)
+  // mit getrennter, flüchtiger Raum-Präsenz und laufenden Spielsitzungen.
   roomsFor(ctx){
-   return{items:ctx.core.rooms(ctx.session.personId).map(r=>({id:r.id,name:r.name,avatar:r.avatar||'🚪',active:r.active})),message:'🚪 Wähle deinen Raum'};
+   const db=ctx.core.db,now=Date.now();
+   const liveSession=s=>['active','paused'].includes(s.status)&&now-new Date(s.lastHeartbeatAt).getTime()<=disconnectMs();
+   const avatar=id=>{const p=db.people.find(x=>x.id===id&&x.active);return p?avatarGlyph(p.avatar):'🙂';};
+   const items=ctx.core.rooms(ctx.session.personId).map(r=>{const ids=ctx.core.presenceFor(r.id,now),playingIds=[...new Set(db.playSessions.filter(s=>s.areaId===r.id&&liveSession(s)).map(s=>s.childId))],presentIds=ids.filter(id=>!playingIds.includes(id));
+    const presentAvatars=presentIds.map(avatar),playingAvatars=playingIds.map(avatar);
+    return{id:r.id,name:r.name,avatar:avatarGlyph(r.avatar||'🚪'),active:r.active,presentCount:presentIds.length,presentAvatars,presentAvatarImages:presentIds.map(id=>db.people.find(x=>x.id===id)?.avatarImage||DEFAULT_AVATAR),presentLabel:'Im Raum: '+(presentAvatars.join(' ')||'—'),playingCount:playingIds.length,playingAvatars,playingAvatarImages:playingIds.map(id=>db.people.find(x=>x.id===id)?.avatarImage||DEFAULT_AVATAR),playingLabel:'Spielt: '+(playingAvatars.join(' ')||'—')};});
+   return{items,message:'🚪 Wähle deinen Raum'};
   },
   // Freigegebene Spiele eines Raums für die Sitzung (can 'play' je Spiel).
   gamesFor(ctx,_component,params){
@@ -375,6 +458,25 @@ const methods={
     if(active&&!next.roles.some(r=>r.areaId===areaId&&r.role==='areaAdmin'&&r.active&&r.primary))row.primary=true;
    });
    return{ok:true,active};
+  },
+  // Atomarer Wechsel: genau eine Person bleibt aktiver RaumAdmin dieses Raums.
+  replaceRoomAdmin(ctx,_component,params){
+   const spec=params?.[0]||{},scope={};
+   const personId=exprOf(ctx,spec.personId,scope),areaId=exprOf(ctx,spec.areaId,scope),audit=spec.audit||{};
+   const room=ctx.core.db.areas.find(a=>a.id===areaId&&a.type==='room');
+   if(!room)return{ok:false,status:404,message:'Raum nicht gefunden.'};
+   ctx.commit(ctx.session,exprOf(ctx,audit.action,scope)||'room-admin-replace',areaId,next=>{
+    if(next.people.find(p=>p.id===personId)?.kind==='child'){
+     let membership=next.memberships.find(m=>m.personId===personId&&m.areaId===areaId);
+     if(!membership){membership={personId,areaId};next.memberships.push(membership);}
+     membership.active=true;
+    }
+    for(const r of next.roles.filter(r=>r.areaId===areaId&&r.role==='areaAdmin')){r.active=false;delete r.primary;}
+    let row=next.roles.find(r=>r.personId===personId&&r.areaId===areaId&&r.role==='areaAdmin');
+    if(!row){row={personId,areaId,role:'areaAdmin'};next.roles.push(row);}
+    row.active=true;row.primary=true;
+   });
+   return{ok:true,personId,areaId};
   },
   // Domänenoperation: Person aktivieren/deaktivieren (Selbstschutz: eigenes Konto nicht).
   personActive(ctx,_component,params){
@@ -650,6 +752,10 @@ const methods={
    if(!s||s.childId!==ctx.session.personId)return{ok:false,status:404,message:'Spielsitzung nicht gefunden.'};
    if(s.status==='disconnected')s.status='active'; // Reconnect ohne Commit nötig
    if(s.status!=='active')return{ok:true,status:s.status,ended:s.status==='ended'};
+   if(db.parties.some(p=>p.oneClick&&p.status==='open'&&p.members.some(m=>m.playSessionId===id&&!m.leftAt))){
+    ctx.commit(ctx.session,'play-heartbeat-wait',s.areaId,next=>{next.playSessions.find(x=>x.id===id).lastHeartbeatAt=new Date().toISOString();});
+    return{ok:true,status:'active',remainingMinutes:remainingFor(db,s.childId,s.areaId)};
+   }
    const delta=Math.min(Date.now()-new Date(s.lastHeartbeatAt).getTime(),heartbeatCapMs());
    ctx.commit(ctx.session,'play-heartbeat',s.areaId,next=>{
     const ns=next.playSessions.find(x=>x.id===s.id);
@@ -703,12 +809,183 @@ const methods={
      reportedAt:new Date().toISOString(),source:'game',schemaVersion:Number(exprOf(ctx,spec.schemaVersion,scope))||1});
    });
    return{ok:true};
+  },
+  // Prozessweiter Stillstand-Sweep: ohne Heartbeat wird eine Sitzung zuerst
+  // getrennt und nach abandonAfterMs beendet; Partien ohne aktive Sitzung enden.
+  sweep(ctx,component){
+   ctx.session=ctx.session||{personId:'system'};
+   expireInvitations(ctx);
+   const db=ctx.core.db,now=Date.now(),at=new Date(now).toISOString();
+   const disconnectAfter=Number(component?.disconnectGraceMs)||disconnectMs(),abandonAfter=Number(component?.abandonAfterMs)||600000;
+   const endedIds=[],disconnectedIds=[];
+   const idleOf=s=>{const stamp=Date.parse(s.lastHeartbeatAt||s.startedAt||'');return Number.isFinite(stamp)?now-stamp:abandonAfter+1;};
+   for(const s of db.playSessions){
+    if(!['active','paused','disconnected'].includes(s.status))continue;
+    if(idleOf(s)>abandonAfter)endedIds.push(s.id);
+    else if(idleOf(s)>disconnectAfter&&s.status!=='disconnected')disconnectedIds.push(s.id);
+   }
+   const effectiveStatus=s=>endedIds.includes(s.id)?'ended':s.status;
+   const partyIds=db.parties.filter(p=>p.status==='playing'&&p.members.filter(m=>!m.leftAt).every(m=>{
+    const s=db.playSessions.find(x=>x.id===m.playSessionId);
+    return!s||effectiveStatus(s)==='ended';
+   })).map(p=>p.id);
+   if(endedIds.length||disconnectedIds.length||partyIds.length)ctx.commit(ctx.session,'session-sweep',null,next=>{
+    for(const s of next.playSessions){
+     if(endedIds.includes(s.id)){s.status='ended';s.endedAt=at;}
+     else if(disconnectedIds.includes(s.id))s.status='disconnected';
+    }
+    for(const p of next.parties.filter(p=>partyIds.includes(p.id))){
+     p.status='ended';p.endedAt=at;
+     for(const access of next.temporaryRoomAccess.filter(a=>a.sessionId===p.id))access.active=false;
+    }
+   });
+   removeLaunchesFor(ctx,db.playSessions.filter(s=>s.status==='ended').map(s=>s.id));
+   return{ok:true,disconnected:disconnectedIds.length,ended:endedIds.length,partiesEnded:partyIds.length};
   }
  },
  // --- Hausinterner Multiplayer (P4): Partien mit Aktionslog --------------------
  // Session-Lebenszyklus geht über ctx.play (der play-Adapter) — Zeitbudget greift
  // so auch in der Gruppe.
+ TServerLiveSync:{
+  input(ctx,_component,params){
+   const raw=params?.[0]||{};
+   if(!raw||typeof raw!=='object'||Array.isArray(raw))return{ok:false,status:400,message:'Ungültige Live-Eingabe.'};
+   const seq=Number(raw.seq),dir=Number(raw.dir);
+   if(!Number.isSafeInteger(seq)||seq<1||seq>1000000000)return{ok:false,status:400,message:'Ungültige Eingabe-Sequenz.'};
+   if(![-1,0,1].includes(dir))return{ok:false,status:400,message:'Ungültige Eingaberichtung.'};
+   const input={seq,dir,at:Date.now(),by:ctx.session.personId};
+   // Optionale eigene Paddle-Kinematik (geteilte Autoritaet): der Meldende ist
+   // fuer sein eigenes Paddle massgeblich; die Gegenseite interpoliert y/vy.
+   if(raw.y!==undefined){const y=Number(raw.y);if(!Number.isFinite(y)||y<-20||y>80)return{ok:false,status:400,message:'Ungültige Paddle-Position.'};input.y=y;}
+   if(raw.vy!==undefined){const vy=Number(raw.vy);if(!Number.isFinite(vy)||vy<-10||vy>10)return{ok:false,status:400,message:'Ungültige Paddle-Geschwindigkeit.'};input.vy=vy;}
+   return{ok:true,input};
+  },
+  state(ctx,_component,params){
+   const raw=params?.[0]||{},phases=['wait','serve','play','point','paused','finished'];
+   if(!raw||typeof raw!=='object'||Array.isArray(raw))return{ok:false,status:400,message:'Ungültiger Live-Stand.'};
+   const tick=Number(raw.tick),phase=String(raw.phase||'');
+   if(!Number.isSafeInteger(tick)||tick<1||tick>1000000000)return{ok:false,status:400,message:'Ungültiger State-Tick.'};
+   if(!phases.includes(phase))return{ok:false,status:400,message:'Ungültige Spielphase.'};
+   const num=(name,min,max)=>{const v=Number(raw[name]);return Number.isFinite(v)&&v>=min&&v<=max?v:null};
+   const state={tick,phase,
+    ballX:num('ballX',-20,100),ballY:num('ballY',-20,80),ballVX:num('ballVX',-10,10),ballVY:num('ballVY',-10,10),
+    leftY:num('leftY',-20,80),leftVY:num('leftVY',-10,10),rightY:num('rightY',-20,80),rightVY:num('rightVY',-10,10),
+    scoreLeft:num('scoreLeft',0,99),scoreRight:num('scoreRight',0,99),targetScore:num('targetScore',1,99),lastInputSeq:num('lastInputSeq',0,1000000000)};
+   if(Object.values(state).some(v=>v===null))return{ok:false,status:400,message:'Live-Stand außerhalb der zulässigen Grenzen.'};
+   state.at=Date.now();state.by=ctx.session.personId;
+   return{ok:true,state};
+  },
+  snapshot(ctx,component,params){
+   const p=params?.[0],live=params?.[1]||{},personId=params?.[2],since=Number(params?.[3])||0,db=ctx.core.db,now=Date.now();
+   const active=(p?.members||[]).filter(m=>!m.leftAt),remoteCandidates=Object.values(live.inputs||{}).filter(i=>i&&i.by!==personId).sort((a,b)=>Number(b.at)-Number(a.at)),remoteInput=remoteCandidates[0]||null,state=live.state||null;
+   return{ok:true,status:p?.status||'ended',ended:!p||p.status==='ended',memberCount:active.length,youAreHost:personId===p?.hostId,
+    live:state?{...state,ageMs:Math.max(0,now-Number(state.at||now)),stale:now-Number(state.at||now)>Number(component.maxStateAgeMs||2000)}:null,
+    remoteInput:remoteInput?{...remoteInput,ageMs:Math.max(0,now-Number(remoteInput.at||now)),expired:now-Number(remoteInput.at||now)>Number(component.inputTtlMs||750)}:null,
+    actions:(p?.actions||[]).filter(a=>a.seq>since),lastSeq:(p?.actions||[]).length?p.actions[p.actions.length-1].seq:0,
+    memberNames:active.map(m=>db.people.find(x=>x.id===m.personId)?.name||m.personId).join(', ')};
+  }
+ },
  TServerParty:{
+  startInvite(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,gameId=exprOf(ctx,spec.gameId,{}),areaId=exprOf(ctx,spec.areaId,{}),personId=exprOf(ctx,spec.personId,{});
+   const game=db.games.find(g=>g.id===gameId),house=houseOf(db,areaId),person=db.people.find(p=>p.id===personId&&p.active);
+   if(!game?.multiplayer||!ctx.core.can(ctx.session,'play',{game,areaId}))return{ok:false,status:403,message:'Mehrspieler-Spiel oder Raum nicht freigegeben.'};
+   if(!house||!person||personId===ctx.session.personId||!db.memberships.some(m=>m.personId===personId&&m.areaId===house.id&&m.active))return{ok:false,status:403,message:'Nur aktive Bewohner dieses Hauses können eingeladen werden.'};
+   expireInvitations(ctx);
+   if(db.parties.some(p=>p.status!=='ended'&&p.members.some(m=>m.personId===personId&&!m.leftAt)))return{ok:false,status:409,message:'Diese Person ist bereits in einer Partie.'};
+   const issue=(p,i)=>{const key=crypto.randomBytes(24).toString('hex'),playSessionId=p.members.find(m=>m.personId===ctx.session.personId&&!m.leftAt)?.playSessionId;ctx.launches.set(key,{token:ctx.body.token,gameId,areaId,playSessionId,partyId:p.id});return{ok:true,partyId:p.id,invitationId:i.id,expiresAt:i.expiresAt,launch:'/play/'+key,message:person.name+' wurde eingeladen.'};};
+   const existing=db.parties.find(p=>p.status!=='ended'&&p.members.some(m=>m.personId===ctx.session.personId&&!m.leftAt)),otherPending=db.gameInvitations.find(i=>i.invitedPersonId===personId&&i.status==='pending'&&Number(i.expiresAt)>Date.now()&&i.sessionId!==existing?.id);
+   if(otherPending)return{ok:false,status:409,message:'Für diese Person liegt bereits eine Einladung vor.'};
+   if(existing){
+    if(existing.hostId!==ctx.session.personId||existing.areaId!==areaId||existing.gameId!==gameId||existing.status!=='open'||existing.gameVersion!==(game.version||1)||existing.file!==game.file||existing.members.filter(m=>!m.leftAt).length!==1)return{ok:false,status:409,message:'Du bist bereits in einer Partie.'};
+    const pending=db.gameInvitations.filter(i=>i.sessionId===existing.id&&i.status==='pending');
+    if(pending.length){
+     if(pending.length!==1||pending[0].invitedPersonId!==personId)return{ok:false,status:409,message:'Für diese Partie besteht bereits eine andere Einladung.'};
+     if(!existing.oneClick)ctx.commit(ctx.session,'party-resume-invite',areaId,next=>{next.parties.find(p=>p.id===existing.id).oneClick=true;});
+     return issue(existing,pending[0]);
+    }
+    ctx.commit(ctx.session,'party-close-stale',areaId,next=>{const p=next.parties.find(p=>p.id===existing.id);p.status='ended';p.endedAt=new Date().toISOString();for(const a of next.temporaryRoomAccess.filter(a=>a.sessionId===p.id))a.active=false;});
+    const sessionIds=existing.members.filter(m=>!m.leftAt).map(m=>m.playSessionId);removeLaunchesFor(ctx,sessionIds);
+    for(const m of existing.members.filter(m=>!m.leftAt))ctx.play.api({personId:m.personId},'end',{playSessionId:m.playSessionId});
+   }
+   const started=ctx.play.api(ctx.session,'start',{gameId,areaId});
+   if(!started.data.ok)return{ok:false,status:started.status,message:started.data.message};
+   const now=Date.now(),partyId='party-'+crypto.randomUUID(),invitationId='invite-'+crypto.randomUUID(),expiresAt=now+5*60*1000;
+   try{ctx.commit(ctx.session,'party-start-invite',areaId,next=>{
+    next.parties.push({id:partyId,gameId,gameVersion:game.version||1,file:game.file,areaId,houseId:house.id,hostId:ctx.session.personId,status:'open',oneClick:true,members:[{personId:ctx.session.personId,playSessionId:started.data.playSessionId,joinedAt:new Date(now).toISOString()}],actions:[],createdAt:new Date(now).toISOString()});
+    next.gameInvitations.push({id:invitationId,sessionId:partyId,inviterPersonId:ctx.session.personId,invitedPersonId:personId,roomId:areaId,status:'pending',createdAt:new Date(now).toISOString(),expiresAt});
+    next.temporaryRoomAccess.push({id:'temp-room-'+crypto.randomUUID(),sessionId:partyId,invitationId,personId,roomId:areaId,active:true,createdAt:new Date(now).toISOString(),expiresAt});
+    next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:personId,type:'game-invitation',invitationId,read:false,createdAt:new Date(now).toISOString()});
+   });}catch(e){ctx.play.api(ctx.session,'end',{playSessionId:started.data.playSessionId});throw e;}
+   return issue(db.parties.find(p=>p.id===partyId),db.gameInvitations.find(i=>i.id===invitationId));
+  },
+  // Fortsetzen einer eigenen laufenden Partie: resume-info zeigt nur den
+  // serverseitig geprüften Hinweis, resume() stellt danach einen neuen
+  // Launch-Grant aus. Clientseitige Hinweise sind keine Berechtigung.
+  resumeInfo(ctx){
+   expireInvitations(ctx);
+   const p=activePartyFor(ctx);
+   return p?{ok:true,found:true,item:partyResumeInfo(ctx,p)}:{ok:true,found:false,item:null,message:'Keine laufende Partie.'};
+  },
+  resume(ctx){
+   expireInvitations(ctx);
+   const db=ctx.core.db,p=activePartyFor(ctx);
+   if(!p)return{ok:false,status:404,message:'Keine laufende Partie gefunden.'};
+   if(!['open','playing'].includes(p.status))return{ok:false,status:409,message:'Diese Partie ist beendet.'};
+   const member=p.members.find(m=>m.personId===ctx.session.personId&&!m.leftAt);
+   if(!member)return{ok:false,status:403,message:'Kein Mitglied dieser Partie.'};
+   const game=db.games.find(g=>g.id===p.gameId);
+   if(!game?.multiplayer||game.status!=='published'||(game.version||1)!==(p.gameVersion||1)||(p.file&&p.file!==game.file))return{ok:false,status:409,message:'Das Spiel wurde aktualisiert — die Partie kann nicht fortgesetzt werden.'};
+   if(!areaActive(db,p.areaId))return{ok:false,status:410,message:'Der Raum dieser Partie ist nicht mehr aktiv.'};
+   // Angenommene Einladungen erhalten Raumzutritt für die Partiedauer. Nach
+   // Ablauf wird derselbe fachliche Zutritt für das Fortsetzen erneuert.
+   const access=member.invitationId&&db.temporaryRoomAccess.find(a=>a.invitationId===member.invitationId);
+   if(access&&(!access.active||Number(access.expiresAt)<=Date.now()))ctx.commit(ctx.session,'party-resume-access',p.areaId,next=>{const a=next.temporaryRoomAccess.find(x=>x.id===access.id);if(a){a.active=true;a.expiresAt=Date.now()+60*60*1000;}});
+   if(!ctx.core.can(ctx.session,'play',{game,areaId:p.areaId}))return{ok:false,status:403,message:'Spiel oder Raum ist nicht mehr freigegeben.'};
+   const previousPlaySessionId=member.playSessionId,restarted=resumePartySession(ctx,p,member);
+   if(!restarted.ok)return{ok:false,status:restarted.status||500,message:restarted.message||'Partie kann nicht fortgesetzt werden.'};
+   const playSessionId=restarted.playSessionId;
+   removeLaunchesFor(ctx,[previousPlaySessionId,playSessionId].filter(Boolean));
+   const key=crypto.randomBytes(24).toString('hex');
+   ctx.launches.set(key,{token:ctx.body.token,gameId:p.gameId,areaId:p.areaId,playSessionId,partyId:p.id});
+   return{ok:true,...partyResumeInfo(ctx,p),launch:'/play/'+key,message:'Partie wird fortgesetzt.'};
+  },
+  // Wieder-Beitritt: findet auch ausgetretene eigene Mitgliedschaften (leftAt)
+  // in noch laufenden Partien. rejoin() nimmt das Mitglied wieder auf und
+  // stellt danach denselben Fortsetzungsweg wie resume() her.
+  rejoinable(ctx){
+   expireInvitations(ctx);
+   const p=rejoinablePartyFor(ctx);
+   if(!p)return{ok:true,found:false,item:null,message:'Keine laufende Partie.'};
+   const member=p.members.find(m=>m.personId===ctx.session.personId);
+   return{ok:true,found:true,rejoin:!!member?.leftAt,item:partyResumeInfo(ctx,p)};
+  },
+  rejoin(ctx){
+   expireInvitations(ctx);
+   const db=ctx.core.db,p=rejoinablePartyFor(ctx);
+   if(!p)return{ok:false,status:404,message:'Keine laufende Partie gefunden.'};
+   if(!['open','playing'].includes(p.status))return{ok:false,status:409,message:'Diese Partie ist beendet.'};
+   const member=p.members.find(m=>m.personId===ctx.session.personId);
+   if(!member)return{ok:false,status:403,message:'Kein Mitglied dieser Partie.'};
+   if(!member.leftAt)return methods.TServerParty.resume(ctx);
+   const game=db.games.find(g=>g.id===p.gameId);
+   if(!game?.multiplayer||game.status!=='published'||(game.version||1)!==(p.gameVersion||1)||(p.file&&p.file!==game.file))return{ok:false,status:409,message:'Das Spiel wurde aktualisiert — die Partie kann nicht wieder betreten werden.'};
+   if(!areaActive(db,p.areaId))return{ok:false,status:410,message:'Der Raum dieser Partie ist nicht mehr aktiv.'};
+   const access=member.invitationId&&db.temporaryRoomAccess.find(a=>a.invitationId===member.invitationId);
+   if(access&&(!access.active||Number(access.expiresAt)<=Date.now()))ctx.commit(ctx.session,'party-rejoin-access',p.areaId,next=>{const a=next.temporaryRoomAccess.find(x=>x.id===access.id);if(a){a.active=true;a.expiresAt=Date.now()+60*60*1000;}});
+   if(!ctx.core.can(ctx.session,'play',{game,areaId:p.areaId}))return{ok:false,status:403,message:'Spiel oder Raum ist nicht mehr freigegeben.'};
+   ctx.commit(ctx.session,'party-rejoin',p.areaId,next=>{
+    const m=next.parties.find(x=>x.id===p.id)?.members.find(x=>x.personId===ctx.session.personId);
+    if(m)delete m.leftAt;
+   });
+   const previousPlaySessionId=member.playSessionId,restarted=resumePartySession(ctx,p,member);
+   if(!restarted.ok)return{ok:false,status:restarted.status||500,message:restarted.message||'Partie kann nicht wieder betreten werden.'};
+   const playSessionId=restarted.playSessionId;
+   removeLaunchesFor(ctx,[previousPlaySessionId,playSessionId].filter(Boolean));
+   const key=crypto.randomBytes(24).toString('hex');
+   ctx.launches.set(key,{token:ctx.body.token,gameId:p.gameId,areaId:p.areaId,playSessionId,partyId:p.id});
+   return{ok:true,...partyResumeInfo(ctx,p),launch:'/play/'+key,message:'Du nimmst wieder an der Partie teil.'};
+  },
   // Einladbare Bewohner desselben Hauses. Ein Raumzutritt ist noch nicht nötig:
   // genau dafür legt invite() einen zeitlich begrenzten Zutritt an.
   inviteCandidates(ctx,_component,params){
@@ -717,8 +994,9 @@ const methods={
    if(p.hostId!==ctx.session.personId)return{ok:false,status:403,message:'Nur der Gastgeber kann einladen.'};
    if(p.status!=='open')return{ok:false,status:409,message:'Diese Partie nimmt keine Einladungen mehr an.'};
    const houseId=p.houseId||houseOf(db,p.areaId)?.id,activeMembers=new Set(p.members.filter(m=>!m.leftAt).map(m=>m.personId));
+   const busy=new Set(db.parties.filter(q=>q.status!=='ended').flatMap(q=>q.members.filter(m=>!m.leftAt).map(m=>m.personId)));
    const residents=new Set(db.memberships.filter(m=>m.areaId===houseId&&m.active).map(m=>m.personId));
-   const items=db.people.filter(person=>person.active&&residents.has(person.id)&&!activeMembers.has(person.id))
+   const items=db.people.filter(person=>person.active&&residents.has(person.id)&&!activeMembers.has(person.id)&&!busy.has(person.id))
     .map(person=>({id:person.id,name:person.name,avatar:person.avatar||'🙂',invited:(db.gameInvitations||[]).some(i=>i.sessionId===p.id&&i.invitedPersonId===person.id&&i.status==='pending'&&Number(i.expiresAt)>Date.now())}));
    return{ok:true,items,message:items.length?'Bewohner auswählen':'Alle Bewohner sind bereits dabei.'};
   },
@@ -730,7 +1008,8 @@ const methods={
    const houseId=p.houseId||houseOf(db,p.areaId)?.id,person=db.people.find(x=>x.id===personId&&x.active);
    if(!person||!db.memberships.some(m=>m.personId===personId&&m.areaId===houseId&&m.active))return{ok:false,status:403,message:'Nur aktive Bewohner dieses Hauses können eingeladen werden.'};
    if(p.members.some(m=>m.personId===personId&&!m.leftAt))return{ok:false,status:409,message:'Die Person ist bereits in der Partie.'};
-   if((db.gameInvitations||[]).some(i=>i.sessionId===p.id&&i.invitedPersonId===personId&&i.status==='pending'&&Number(i.expiresAt)>Date.now()))return{ok:false,status:409,message:'Für diese Person liegt bereits eine Einladung vor.'};
+   if(db.parties.some(q=>q.status!=='ended'&&q.members.some(m=>m.personId===personId&&!m.leftAt)))return{ok:false,status:409,message:'Diese Person ist bereits in einer Partie.'};
+   if((db.gameInvitations||[]).some(i=>i.invitedPersonId===personId&&i.status==='pending'&&Number(i.expiresAt)>Date.now()))return{ok:false,status:409,message:'Für diese Person liegt bereits eine Einladung vor.'};
    const id='invite-'+crypto.randomUUID(),accessId='temp-room-'+crypto.randomUUID(),now=Date.now(),expiresAt=now+5*60*1000;
    ctx.commit(ctx.session,'party-invite',p.areaId,next=>{
     next.gameInvitations.push({id,sessionId:p.id,inviterPersonId:ctx.session.personId,invitedPersonId:personId,roomId:p.areaId,status:'pending',createdAt:new Date(now).toISOString(),expiresAt});
@@ -740,24 +1019,27 @@ const methods={
    return{ok:true,invitationId:id,expiresAt,message:person.name+' wurde eingeladen.'};
   },
   invitations(ctx){
+   expireInvitations(ctx);
    const db=ctx.core.db,now=Date.now(),decorate=i=>{const p=db.parties.find(x=>x.id===i.sessionId),host=db.people.find(x=>x.id===i.inviterPersonId),game=p&&db.games.find(g=>g.id===p.gameId),room=p&&db.areas.find(a=>a.id===p.areaId);return{id:i.id,partyId:i.sessionId,status:i.status==='pending'&&Number(i.expiresAt)<=now?'expired':i.status,host:host?.name||'',game:game?.title||'',room:room?.name||'',expiresAt:i.expiresAt};};
    return{ok:true,items:(db.gameInvitations||[]).filter(i=>i.invitedPersonId===ctx.session.personId).map(decorate),outgoing:(db.gameInvitations||[]).filter(i=>i.inviterPersonId===ctx.session.personId).map(decorate)};
   },
   respondInvite(ctx,_component,params){
+   expireInvitations(ctx);
    const spec=params?.[0]||{},db=ctx.core.db,id=exprOf(ctx,spec.invitationId,{}),accept=!!exprOf(ctx,spec.accept,{}),inv=(db.gameInvitations||[]).find(i=>i.id===id);
    if(!inv)return{ok:false,status:404,message:'Einladung nicht gefunden.'};
    if(inv.invitedPersonId!==ctx.session.personId)return{ok:false,status:403,message:'Diese Einladung gehört zu einer anderen Person.'};
+   if(inv.status==='expired')return{ok:false,status:410,message:'Die Einladung ist nicht mehr gültig.'};
    if(inv.status!=='pending')return{ok:false,status:409,message:'Die Einladung wurde bereits bearbeitet.'};
    const p=db.parties.find(x=>x.id===inv.sessionId),now=Date.now();
    if(Number(inv.expiresAt)<=now||!p||p.status!=='open'){
     ctx.commit(ctx.session,'party-invite-expire',inv.roomId,next=>{next.gameInvitations.find(x=>x.id===id).status='expired';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;});
     return{ok:false,status:410,message:'Die Einladung ist nicht mehr gültig.'};
    }
-   if(!accept){ctx.commit(ctx.session,'party-invite-decline',p.areaId,next=>{next.gameInvitations.find(x=>x.id===id).status='declined';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-declined',invitationId:id,read:false,createdAt:new Date().toISOString()});});return{ok:true,status:'declined',message:'Einladung abgelehnt.'};}
+   if(!accept){ctx.commit(ctx.session,'party-invite-decline',p.areaId,next=>{next.gameInvitations.find(x=>x.id===id).status='declined';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-declined',invitationId:id,read:false,createdAt:new Date().toISOString()});const party=next.parties.find(x=>x.id===p.id);if(party.oneClick&&!next.gameInvitations.some(i=>i.sessionId===p.id&&i.status==='pending')){party.status='ended';party.endedAt=new Date().toISOString();}});if(p.oneClick&&db.parties.find(x=>x.id===p.id)?.status==='ended'){const sessionIds=p.members.filter(m=>!m.leftAt).map(m=>m.playSessionId);removeLaunchesFor(ctx,sessionIds);for(const m of p.members.filter(m=>!m.leftAt))ctx.play.api({personId:m.personId},'end',{playSessionId:m.playSessionId});}return{ok:true,status:'declined',message:'Einladung abgelehnt.'};}
    const game=db.games.find(g=>g.id===p.gameId),count=p.members.filter(m=>!m.leftAt).length,max=game?.multiplayer?.maxPlayers;
    if(max&&count>=max)return{ok:false,status:409,message:'Die Partie ist inzwischen voll.'};
    const started=ensurePartySession(ctx,p.gameId,p.areaId);if(!started.data.ok)return{ok:false,status:started.status,message:started.data.message};
-   ctx.commit(ctx.session,'party-invite-accept',p.areaId,next=>{const np=next.parties.find(x=>x.id===p.id);np.members.push({personId:ctx.session.personId,playSessionId:started.data.playSessionId,joinedAt:new Date().toISOString(),invitationId:id});next.gameInvitations.find(x=>x.id===id).status='accepted';next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-accepted',invitationId:id,read:false,createdAt:new Date().toISOString()});});
+   ctx.commit(ctx.session,'party-invite-accept',p.areaId,next=>{const np=next.parties.find(x=>x.id===p.id);np.members.push({personId:ctx.session.personId,playSessionId:started.data.playSessionId,joinedAt:new Date().toISOString(),invitationId:id});next.gameInvitations.find(x=>x.id===id).status='accepted';const access=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(access)access.expiresAt=Date.now()+60*60*1000;if(np.oneClick&&np.members.filter(m=>!m.leftAt).length>=(game.multiplayer?.minPlayers||2)){np.status='playing';np.startedAt=new Date().toISOString();const hostSession=next.playSessions.find(s=>s.id===np.members.find(m=>m.personId===np.hostId)?.playSessionId);if(hostSession)hostSession.lastHeartbeatAt=new Date().toISOString();}next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-accepted',invitationId:id,read:false,createdAt:new Date().toISOString()});});
    const key=crypto.randomBytes(24).toString('hex');ctx.launches.set(key,{token:ctx.body.token,gameId:p.gameId,areaId:p.areaId,playSessionId:started.data.playSessionId,partyId:p.id});
    return{ok:true,status:'accepted',partyId:p.id,launch:'/play/'+key,message:'Einladung angenommen. Die Partie wird geöffnet.'};
   },
@@ -768,7 +1050,7 @@ const methods={
    if(inv.status!=='accepted'||p.status!=='open')return{ok:false,status:409,message:'Der Beitritt kann jetzt nicht mehr zurückgezogen werden.'};
    const member=p.members.find(m=>m.personId===ctx.session.personId&&!m.leftAt);
    ctx.commit(ctx.session,'party-invite-withdraw',p.areaId,next=>{next.gameInvitations.find(x=>x.id===id).status='withdrawn';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;const m=next.parties.find(x=>x.id===p.id).members.find(x=>x.personId===ctx.session.personId&&!x.leftAt);if(m)m.leftAt=new Date().toISOString();next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-withdrawn',invitationId:id,read:false,createdAt:new Date().toISOString()});});
-   if(member?.playSessionId)ctx.play.api(ctx.session,'end',{playSessionId:member.playSessionId});
+   if(member?.playSessionId){removeLaunchesFor(ctx,[member.playSessionId]);ctx.play.api(ctx.session,'end',{playSessionId:member.playSessionId});}
    return{ok:true,message:'Teilnahme zurückgezogen. Der Gastgeber wurde informiert.'};
   },
   cancelInvite(ctx,_component,params){
@@ -778,10 +1060,10 @@ const methods={
    if(!['pending','accepted'].includes(inv.status)||p.status!=='open')return{ok:false,status:409,message:'Diese Einladung kann nicht mehr zurückgenommen werden.'};
    const member=p.members.find(m=>m.personId===inv.invitedPersonId&&!m.leftAt);
    ctx.commit(ctx.session,'party-invite-cancel',p.areaId,next=>{next.gameInvitations.find(x=>x.id===id).status='cancelled';const a=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(a)a.active=false;const m=next.parties.find(x=>x.id===p.id).members.find(x=>x.personId===inv.invitedPersonId&&!x.leftAt);if(m)m.leftAt=new Date().toISOString();next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:inv.invitedPersonId,type:'game-invitation-cancelled',invitationId:id,read:false,createdAt:new Date().toISOString()});});
-   if(member?.playSessionId)ctx.play.api({personId:inv.invitedPersonId},'end',{playSessionId:member.playSessionId});
+   if(member?.playSessionId){removeLaunchesFor(ctx,[member.playSessionId]);ctx.play.api({personId:inv.invitedPersonId},'end',{playSessionId:member.playSessionId});}
    return{ok:true,message:'Einladung zurückgenommen.'};
   },
-  notifications(ctx){const db=ctx.core.db;return{ok:true,items:(db.notifications||[]).filter(n=>n.recipientPersonId===ctx.session.personId).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).map(n=>({id:n.id,type:n.type,read:!!n.read,invitationId:n.invitationId||'',createdAt:n.createdAt}))};},
+  notifications(ctx){expireInvitations(ctx);const db=ctx.core.db;return{ok:true,items:(db.notifications||[]).filter(n=>n.recipientPersonId===ctx.session.personId).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).map(n=>({id:n.id,type:n.type,read:!!n.read,invitationId:n.invitationId||'',createdAt:n.createdAt}))};},
   markNotification(ctx,_component,params){const id=exprOf(ctx,params?.[0],{}),n=(ctx.core.db.notifications||[]).find(x=>x.id===id&&x.recipientPersonId===ctx.session.personId);if(!n)return{ok:false,status:404,message:'Hinweis nicht gefunden.'};ctx.commit(ctx.session,'notification-read','root',next=>{next.notifications.find(x=>x.id===id).read=true;});return{ok:true};},
   // Offene Partien eines Raums (Raumzugehörigkeit prüft der Task).
   partyList(ctx,_component,params){
@@ -839,13 +1121,15 @@ const methods={
    ctx.commit(ctx.session,'party-leave',p.areaId,next=>{
     const np=next.parties.find(x=>x.id===p.id);
     np.members.find(m=>m.personId===ctx.session.personId&&!m.leftAt).leftAt=new Date().toISOString();
+    if(me.invitationId){const access=next.temporaryRoomAccess.find(a=>a.invitationId===me.invitationId);if(access)access.active=false;}
     if(!np.members.some(m=>!m.leftAt)){np.status='ended';np.endedAt=new Date().toISOString();}
    });
-   if(me.playSessionId)ctx.play.api(ctx.session,'end',{playSessionId:me.playSessionId});
+   if(me.playSessionId){removeLaunchesFor(ctx,[me.playSessionId]);ctx.play.api(ctx.session,'end',{playSessionId:me.playSessionId});}
    return{ok:true};
   },
   // Polling-Stand: flache Ableitungen für deklarative Clients, Delta ab 'since'.
   state(ctx,_component,params){
+   expireInvitations(ctx);
    const spec=params?.[0]||{},scope={},db=ctx.core.db,p=db.parties.find(x=>x.id===exprOf(ctx,spec.partyId,scope));
    const since=Number(exprOf(ctx,spec.since,scope))||0;
    const members=p.members.filter(m=>!m.leftAt).map(m=>{
@@ -854,13 +1138,23 @@ const methods={
      connected:!!(s&&['active','paused'].includes(s.status)&&Date.now()-new Date(s.lastHeartbeatAt).getTime()<=disconnectMs()),
      host:m.personId===p.hostId};
    });
-   return{ok:true,status:p.status,members,memberCount:members.length,memberNames:members.map(m=>m.name).join(', '),
+   const nameOf=id=>db.people.find(x=>x.id===id)?.name||id;
+   const departed=p.members.filter(m=>m.leftAt).map(m=>m.personId);
+   const invitation=p.oneClick&&ctx.session.personId===p.hostId?db.gameInvitations.find(i=>i.sessionId===p.id):null;
+   return{ok:true,status:p.status,ended:p.status==='ended',members,memberCount:members.length,memberNames:members.map(m=>m.name).join(', '),
+    connectedNames:members.filter(m=>m.connected).map(m=>m.name),disconnectedNames:members.filter(m=>!m.connected).map(m=>m.name),
+    departedNames:departed.map(nameOf),
+    invitationStatus:invitation?.status||'',inviteeName:invitation?db.people.find(x=>x.id===invitation.invitedPersonId)?.name||'':'' ,
     youAreHost:ctx.session.personId===p.hostId,actions:p.actions.filter(a=>a.seq>since),
     lastSeq:p.actions.length?p.actions[p.actions.length-1].seq:0};
   },
   action(ctx,_component,params){
    const spec=params?.[0]||{},scope={},db=ctx.core.db,p=db.parties.find(x=>x.id===exprOf(ctx,spec.partyId,scope));
-   const payload=exprOf(ctx,spec.payload,scope);
+   const payload=exprOf(ctx,spec.payload,scope),last=p.actions[p.actions.length-1];
+   // Protokoll-Idempotenz: Eine neue Aufgabe darf die noch unbeantwortete
+   // letzte Aufgabe nicht ersetzen — Reloads/parallele Polls liefern dann
+   // dieselbe seq statt einer zweiten Aufgabe.
+   if(payload?.zug==='aufgabe'&&last?.payload?.zug==='aufgabe')return{ok:true,seq:last.seq,deduplicated:true};
    ctx.commit(ctx.session,'party-action',p.areaId,next=>{
     const np=next.parties.find(x=>x.id===p.id);
     np.actions.push({seq:(np.actions[np.actions.length-1]?.seq||0)+1,by:ctx.session.personId,payload,at:new Date().toISOString()});
@@ -879,7 +1173,10 @@ const methods={
    const db=ctx.core.db,p=db.parties.find(x=>x.id===exprOf(ctx,params?.[0],{}));
    ctx.commit(ctx.session,'party-end',p.areaId,next=>{
     Object.assign(next.parties.find(x=>x.id===p.id),{status:'ended',endedAt:new Date().toISOString()});
+    for(const a of next.temporaryRoomAccess.filter(a=>a.sessionId===p.id))a.active=false;
    });
+   const sessionIds=db.parties.find(x=>x.id===p.id).members.filter(m=>!m.leftAt).map(m=>m.playSessionId);
+   removeLaunchesFor(ctx,sessionIds);
    for(const m of db.parties.find(x=>x.id===p.id).members.filter(m=>!m.leftAt))
     ctx.play.api({personId:m.personId},'end',{playSessionId:m.playSessionId});
    return{ok:true};
@@ -893,7 +1190,7 @@ const methods={
   process(ctx,component){
    const up=ctx.upload||{},bytes=up.bytes||Buffer.alloc(0);
    if(bytes.length>component.maxBytes)return{ok:false,status:413,message:'Datei ist zu groß.'};
-   let content,filename,record,targetGame,description='',bundle=null,oldFile='';
+   let content,filename,record,targetGame,description='',bundle=null,oldFile='',multiplayer=null;
    try{
     if(component.kind==='game'){
      const meta=up.meta||{},title=typeof meta.title==='string'?meta.title.trim():'';
@@ -916,9 +1213,9 @@ const methods={
      const kind=bundle?bundle.kind:(/^\s*</.test(bytes.toString('utf8').slice(0,256))?'html':'json');
      const entry=bundle?bundle.entry:bytes;
      if(kind==='html'){ctx.uploads.validateHtml(entry);content=entry;}
-     else{const project=ctx.uploads.validateGame(entry,bundle?bundle.media:null);content=JSON.stringify(project);}
+     else{const project=ctx.uploads.validateGame(entry,bundle?bundle.media:null);content=JSON.stringify(project);multiplayer=readMultiplayer(project);}
      filename='game-'+crypto.randomUUID()+(kind==='html'?'.html':'.json');
-     if(record)record.file=filename;
+     if(record){record.file=filename;if(multiplayer)record.multiplayer=multiplayer;}
     }else{
      if(!sniffImage(bytes))throw Error('PNG, JPEG oder WebP erforderlich.');
      if(!up.png)throw Error(up.error||'Bild konnte nicht gelesen werden.');
@@ -931,7 +1228,7 @@ const methods={
    // löst diese Dateien später über uploads.gameMedia auf.
    const mediaDir=bundle?path.join(ctx.uploads.directory,filename.slice(0,-5)):null;
    if(bundle)for(const [rel,data]of bundle.media){const tp=path.join(mediaDir,rel);fs.mkdirSync(path.dirname(tp),{recursive:true});fs.writeFileSync(tp,data,{flag:'wx'});}
-   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame)Object.assign(next.games.find(g=>g.id===targetGame.id),{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});else next.people.find(p=>p.id===ctx.session.personId).avatarImage='/avatars/'+filename});}
+   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame){const row=next.games.find(g=>g.id===targetGame.id);Object.assign(row,{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});if(multiplayer)row.multiplayer=multiplayer;else delete row.multiplayer;}else next.people.find(p=>p.id===ctx.session.personId).avatarImage='/avatars/'+filename});}
    catch(e){fs.unlinkSync(f);if(mediaDir)fs.rmSync(mediaDir,{recursive:true,force:true});throw e;}
    // Ersetzte Datei erst nach erfolgreicher Zuordnung entfernen.
    if(oldFile&&oldFile!==filename)ctx.uploads.removeGameFile(oldFile);
@@ -1085,6 +1382,43 @@ function ensurePartySession(ctx,gameId,areaId){
  const live=db.playSessions.find(s=>s.childId===ctx.session.personId&&s.gameId===gameId&&s.areaId===areaId&&['active','paused'].includes(s.status));
  if(live)return{status:200,data:{ok:true,playSessionId:live.id}};
  return ctx.play.api(ctx.session,'start',{gameId,areaId});
+}
+/** Neueste nicht beendete Partie mit aktiver eigener Mitgliedschaft. */
+function activePartyFor(ctx){
+ return ctx.core.db.parties
+  .filter(p=>['open','playing'].includes(p.status)&&p.members.some(m=>m.personId===ctx.session.personId&&!m.leftAt))
+  .sort((a,b)=>new Date(b.startedAt||b.createdAt||0).getTime()-new Date(a.startedAt||a.createdAt||0).getTime())[0]||null;
+}
+/** Neueste nicht beendete Partie, in der die eigene Person Mitglied ist bzw.
+ *  war — auch nach freiwilligem Austritt (leftAt), solange die Partie läuft. */
+function rejoinablePartyFor(ctx){
+ return ctx.core.db.parties
+  .filter(p=>['open','playing'].includes(p.status)&&p.members.some(m=>m.personId===ctx.session.personId))
+  .sort((a,b)=>new Date(b.startedAt||b.createdAt||0).getTime()-new Date(a.startedAt||a.createdAt||0).getTime())[0]||null;
+}
+/** Flache Partiebeschreibung für die deklarative Fortsetzen-Oberfläche. */
+function partyResumeInfo(ctx,p){
+ const db=ctx.core.db,members=p.members.filter(m=>!m.leftAt),game=db.games.find(g=>g.id===p.gameId),room=db.areas.find(a=>a.id===p.areaId);
+ return{partyId:p.id,status:p.status,gameId:p.gameId,gameTitle:game?.title||'',areaId:p.areaId,roomName:room?.name||'',memberCount:members.length,memberNames:members.map(m=>db.people.find(x=>x.id===m.personId)?.name||m.personId).join(', '),youAreHost:p.hostId===ctx.session.personId,lastSeq:p.actions[p.actions.length-1]?.seq||0};
+}
+/** Sitzung einer Partie fortsetzen oder bei bereits beendeter Sitzung neu starten. */
+function resumePartySession(ctx,p,member){
+ const db=ctx.core.db,oldId=member.playSessionId;
+ const own=s=>s&&s.childId===ctx.session.personId&&s.gameId===p.gameId&&s.areaId===p.areaId;
+ let s=refreshSession(db,db.playSessions.find(x=>x.id===oldId));
+ if(own(s)&&['paused','disconnected'].includes(s.status)){
+  const resumed=ctx.play.api(ctx.session,'resume',{playSessionId:s.id});
+  if(!resumed.data.ok)return{ok:false,status:resumed.status,message:resumed.data.message};
+  s=refreshSession(db,db.playSessions.find(x=>x.id===s.id));
+ }
+ if(own(s)&&s.status==='active')return{ok:true,playSessionId:s.id};
+ const started=ctx.play.api(ctx.session,'start',{gameId:p.gameId,areaId:p.areaId});
+ if(!started.data.ok)return{ok:false,status:started.status,message:started.data.message};
+ ctx.commit(ctx.session,'party-resume-session',p.areaId,next=>{
+  const m=next.parties.find(x=>x.id===p.id)?.members.find(x=>x.personId===ctx.session.personId&&!x.leftAt);
+  if(m)m.playSessionId=started.data.playSessionId;
+ });
+ return{ok:true,playSessionId:started.data.playSessionId};
 }
 
 /** Kind-Karte für die Elternsicht (E01/E06): Live-Status, Tagesminuten, Budget.

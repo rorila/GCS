@@ -5,7 +5,9 @@ const {SCHEMA_VERSION}=require('./cms-migrations.cjs');
 const EMOJI_IDS=['dog','cat','tree','house','elephant','owl','flower','pig'];
 const EMOJI_GLYPHS=['🐶','🐱','🌳','🏠','🐘','🦉','🌷','🐷'];
 const GLYPH_TO_ID=new Map(EMOJI_GLYPHS.map((g,i)=>[g,EMOJI_IDS[i]]));
+const ID_TO_GLYPH=new Map(EMOJI_IDS.map((id,i)=>[id,EMOJI_GLYPHS[i]]));
 const canonEmojiSeq=seq=>Array.isArray(seq)?seq.map(v=>GLYPH_TO_ID.get(v)||v):seq;
+const avatarGlyph=value=>ID_TO_GLYPH.get(value)||value||'🙂';
 function validate(db){
  if(db.version!==SCHEMA_VERSION)throw Error('Unbekannte CMS-Datenversion: '+db.version);
  for(const key of ['people','areas','memberships','roles','guardians','games','grants','codes','invites','timeBudgets','playSessions','progress','deviceGrants','parties','gameInvitations','notifications','temporaryRoomAccess'])if(!Array.isArray(db[key]))throw Error('Fehlende Liste: '+key);
@@ -26,7 +28,7 @@ function validate(db){
  for(const i of db.gameInvitations)if(!person(i.inviterPersonId)||!person(i.invitedPersonId)||!db.parties.some(p=>p.id===i.sessionId))throw Error('Ungültige Multiplayer-Einladung');
  for(const n of db.notifications)if(!person(n.recipientPersonId))throw Error('Ungültige Benachrichtigung');
  for(const a of db.temporaryRoomAccess)if(!person(a.personId)||!area(a.roomId)||!db.parties.some(p=>p.id===a.sessionId))throw Error('Ungültiger temporärer Raumzutritt');
- const codes=new Set();for(const c of db.codes){const k=c.areaId+':'+JSON.stringify(canonEmojiSeq(c.sequence));if(!person(c.personId)||!area(c.areaId)||!Array.isArray(c.sequence)||c.sequence.length!==4||codes.has(k))throw Error('Ungültige oder doppelte Emoji-Folge');codes.add(k);}
+ const codes=new Set();for(const c of db.codes){const k=JSON.stringify(canonEmojiSeq(c.sequence));if(!person(c.personId)||!area(c.areaId)||!Array.isArray(c.sequence)||c.sequence.length!==4||codes.has(k))throw Error('Ungültige oder doppelte Emoji-Folge');codes.add(k);}
  return db;
 }
 function within(db,id,parent){const seen=new Set();while(id&&!seen.has(id)){if(id===parent)return true;seen.add(id);id=db.areas.find(a=>a.id===id)?.parentId;}return false;}
@@ -61,12 +63,17 @@ function can(db,session,action,{areaId,game,childId}={}){
  if(action==='manageArea')return roles.some(r=>['areaAdmin','superAdmin'].includes(r.role)&&within(db,areaId,r.areaId));
  return false;
 }
-function createCore(db){validate(db);const sessions=new Map();
- function login(areaId,sequence,onStep=()=>{}){const wanted=JSON.stringify(canonEmojiSeq(sequence));const c=db.codes.find(c=>c.areaId===areaId&&JSON.stringify(canonEmojiSeq(c.sequence))===wanted);onStep('Zugangsdaten zuordnen',{output:{matched:!!c}});if(!c)return null;const personActive=active(db,c.personId),houseActive=areaActive(db,areaId);onStep('Person und Bereich prüfen',{output:{personActive,houseActive}});const memberActive=db.memberships.some(m=>m.personId===c.personId&&m.areaId===areaId&&m.active&&areaActive(db,m.areaId));onStep('Hausmitgliedschaft prüfen',{output:{memberActive,areaId}});if(!personActive||!houseActive||!memberActive)return null;const token=crypto.randomBytes(32).toString('hex');sessions.set(token,{personId:c.personId,assurance:'profile',authVersion:db.people.find(p=>p.id===c.personId)?.authVersion||0,expires:Date.now()+3600000});onStep('Spielersitzung erstellen',{output:{personId:c.personId,assurance:'profile',validSeconds:3600}});return {token,person:db.people.find(p=>p.id===c.personId)};}
+function createCore(db){validate(db);const sessions=new Map(),roomPresence=new Map(),presenceTtlMs=Number(process.env.CMS_ROOM_PRESENCE_MS)||90000;
+ function login(sequence,onStep=()=>{}){const wanted=JSON.stringify(canonEmojiSeq(sequence)),matches=db.codes.filter(c=>JSON.stringify(canonEmojiSeq(c.sequence))===wanted);onStep('Zugangsdaten zuordnen',{output:{matched:matches.length===1,matches:matches.length}});if(matches.length!==1)return null;const c=matches[0],areaId=c.areaId,personActive=active(db,c.personId),houseActive=areaActive(db,areaId);onStep('Person und Bereich prüfen',{output:{personActive,houseActive}});const memberActive=db.memberships.some(m=>m.personId===c.personId&&m.areaId===areaId&&m.active&&areaActive(db,m.areaId));onStep('Hausmitgliedschaft prüfen',{output:{memberActive,areaId}});if(!personActive||!houseActive||!memberActive)return null;const token=crypto.randomBytes(32).toString('hex');sessions.set(token,{personId:c.personId,assurance:'profile',authVersion:db.people.find(p=>p.id===c.personId)?.authVersion||0,expires:Date.now()+3600000});onStep('Spielersitzung erstellen',{output:{personId:c.personId,assurance:'profile',validSeconds:3600}});return {token,person:db.people.find(p=>p.id===c.personId)};}
  function session(token){const s=sessions.get(token);if(!s||s.expires<=Date.now()||!active(db,s.personId)||(db.people.find(p=>p.id===s.personId)?.authVersion||0)!==(s.authVersion||0)){sessions.delete(token);return null;}return s;}
+ function prunePresence(now=Date.now()){for(const [personId,row]of roomPresence)if(now-row.lastSeenAt>=presenceTtlMs)roomPresence.delete(personId);}
+ function clearPresence(personId){if(personId)roomPresence.delete(personId);}
+ function setPresence(personId,roomId,present,now=Date.now()){prunePresence(now);if(!present){clearPresence(personId);return{ok:true,message:'Raum verlassen.'};}if(!roomId||!rooms(db,personId).some(r=>r.id===roomId))return{ok:false,status:403,message:'Für diesen Raum fehlt der Zutritt.'};roomPresence.set(personId,{roomId,lastSeenAt:now});return{ok:true,message:'Raum geöffnet.'};}
+ function presenceFor(roomId,now=Date.now()){prunePresence(now);return[...roomPresence].filter(([personId,row])=>row.roomId===roomId&&active(db,personId)).map(([personId])=>personId);}
+ function logout(token){const s=sessions.get(token);sessions.delete(token);if(s)clearPresence(s.personId);}
  // Verifizierte Konto-Sitzung (Eltern/Beobachter): Aufrufer muss Zugangsdaten
  // selbst geprüft haben — issueSession prüft nichts.
  function issueSession(personId,assurance='account',ttlMs=3600000){if(!active(db,personId))return null;const token=crypto.randomBytes(32).toString('hex');sessions.set(token,{personId,assurance,authVersion:db.people.find(p=>p.id===personId)?.authVersion||0,expires:Date.now()+ttlMs});return token;}
- return {db,login,session,logout:token=>sessions.delete(token),dropPerson:id=>{for(const [t,s]of sessions)if(s.personId===id)sessions.delete(t);},rooms:id=>rooms(db,id),childrenOf:id=>childrenOf(db,id),guardiansOf:id=>guardiansOf(db,id),issueSession,can:(s,a,c)=>can(db,s,a,c)};
+ return {db,login,session,logout,dropPerson:id=>{for(const [t,s]of sessions)if(s.personId===id)sessions.delete(t);clearPresence(id);},rooms:id=>rooms(db,id),childrenOf:id=>childrenOf(db,id),guardiansOf:id=>guardiansOf(db,id),issueSession,can:(s,a,c)=>can(db,s,a,c),setPresence,presenceFor,clearPresence,presenceTtlMs};
 }
-module.exports={areaActive,validate,within,can,rooms,houseOf,childrenOf,guardiansOf,createCore,canonEmojiSeq,EMOJI_IDS};
+module.exports={areaActive,validate,within,can,rooms,houseOf,childrenOf,guardiansOf,createCore,canonEmojiSeq,avatarGlyph,EMOJI_IDS};

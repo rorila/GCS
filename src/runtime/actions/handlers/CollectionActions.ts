@@ -254,7 +254,7 @@ export function registerCollectionActions() {
         const field = String(action.field || '').trim();
         if (field) {
             if (value && typeof value === 'object') {
-                value = (value as any)[field];
+                value = field in value ? (value as any)[field] : PropertyHelper.getPropertyValue(value, field);
                 if (value === undefined) {
                     runtimeLogger.warn(`list_get: Feld "${field}" existiert nicht in ${label}[${index}]`);
                     DebugLogService.getInstance().log('Event',

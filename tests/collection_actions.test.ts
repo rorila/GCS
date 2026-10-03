@@ -53,6 +53,9 @@ console.log('\n[Test 3: list_get]');
     globalVars['fruits'] = ['🍎', '🍊', '🍋'];
     await executor.execute({ type: 'list_get', target: 'fruits', index: '1', resultVariable: 'got' }, vars, globalVars);
     assert(globalVars['got'] === '🍊', 'Index 1 = 🍊');
+    globalVars['partyActions'] = [{ payload: { zug: 'aufgabe', a: 3 } }];
+    await executor.execute({ type: 'list_get', target: 'partyActions', index: '0', field: 'payload.zug', resultVariable: 'zug' }, vars, globalVars);
+    assert(globalVars['zug'] === 'aufgabe', 'Verschachteltes Feld payload.zug = aufgabe');
 }
 
 // ─── Test 4: list_get out-of-bounds → defaultValue ───

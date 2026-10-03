@@ -15,7 +15,7 @@ Zugehöriger Plan: `docs/CMS-Plan.md` (P0.1, P0.2).
 - **Server:** `stage_server_login` — `TServerEndpoint` → `TServerValidate` →
   `TServerAuthenticate` → `TServerResponse` (vertraglich geprüft durch
   `cms-login-workflow.cjs`)
-- **Daten:** `codes` (personId + areaId + sequence), `people`, `areas`
+- **Daten:** `codes` (personId + areaId + sequence; Folge global eindeutig), `people`, `areas`
 - **Sicherheit:** Rate-Limit 20/min je IP; Session-Token 32 Byte, 1h Gültigkeit
 - **Befund:** zwei konkurrierende Eingabepfade — `Waehle_*`-Tasks schreiben
   IDs (`dog`), sind aber **toter Code** (kein Event referenziert sie).

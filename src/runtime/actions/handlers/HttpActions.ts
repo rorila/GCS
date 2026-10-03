@@ -10,6 +10,24 @@ import { Logger } from '../../../utils/Logger';
 const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
 const dataLogger = Logger.get('Action', 'DataStore_Sync');
 
+const readAuthToken = (): string | null => {
+    try {
+        return localStorage.getItem('auth_token');
+    } catch {
+        return null;
+    }
+};
+
+const writeAuthToken = (token: string): boolean => {
+    try {
+        localStorage.setItem('auth_token', token);
+        return true;
+    } catch (error) {
+        dataLogger.warn('JWT token could not be saved to localStorage:', error);
+        return false;
+    }
+};
+
 export function registerHttpActions() {
     // 9. HTTP Request (API Call)
     actionRegistry.register('http', async (action, context) => {
@@ -98,8 +116,7 @@ export function registerHttpActions() {
 
                 if (action.requestJWT) {
                     dataLogger.info(`JWT Simulation Result:`, result);
-                    if (result && result.token) {
-                        localStorage.setItem('auth_token', result.token);
+                    if (result && result.token && writeAuthToken(result.token)) {
                         dataLogger.info('Auto-saved JWT token to localStorage "auth_token"');
                     }
                     if (result && result.user) {
@@ -183,7 +200,7 @@ export function registerHttpActions() {
                 headers: { 'Content-Type': 'application/json', ...(action.headers || {}) }
             };
 
-            const token = localStorage.getItem('auth_token');
+            const token = readAuthToken();
             if (token) {
                 (options.headers as any)['Authorization'] = `Bearer ${token}`;
             }
@@ -200,8 +217,7 @@ export function registerHttpActions() {
 
             if (action.requestJWT) {
                 dataLogger.info(`JWT Real Response:`, redactDebug(data));
-                if (data && data.token) {
-                    localStorage.setItem('auth_token', data.token);
+                if (data && data.token && writeAuthToken(data.token)) {
                     dataLogger.info('Auto-saved JWT token to localStorage "auth_token"');
                 }
                 if (data && data.user) {

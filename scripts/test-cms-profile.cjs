@@ -3,7 +3,7 @@ const {createServer}=require('./cms/cms-server.cjs');
 (async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'gcs-profile-')),file=path.join(dir,'cms.json'),app=createServer({dataPath:file}),base='http://127.0.0.1:15186',checks=[];let browser;
 const check=(n,v)=>{assert.ok(v,n);checks.push(n)},post=async(route,body)=>{const r=await fetch(base+'/api/cms/'+route,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(body)});return {status:r.status,data:await r.json()}};
 try{await new Promise(r=>app.server.listen(15186,'127.0.0.1',r));check('Ohne Sitzung kein Profil',(await post('profile/read',{})).status===401);
-const token=(await post('login',{areaId:'demo-house',sequence:['dog','tree','house','elephant']})).data.token;
+const token=(await post('login',{sequence:['dog','tree','house','elephant']})).data.token;
 const before=app.core.db.people.map(p=>({...p}));check('Eigenes Profil lesbar',(await post('profile/read',{token})).data.name==='Fuchskind');
 check('Ungültiger Avatar abgelehnt',!(await post('profile/save',{token,name:'Neu',avatar:'<script>'})).data.ok);
 check('Name und Avatar gespeichert',(await post('profile/save',{token,personId:'demo-adult',name:'Fuchs Neu',avatar:'🐼'})).data.ok);

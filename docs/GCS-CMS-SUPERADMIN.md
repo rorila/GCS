@@ -17,7 +17,7 @@ Eine Person kann mehrere Häuser verwalten, ein Haus mehrere HouseAdmins besitze
 ## Häuser und Spielerzugang
 Haus auswählen, Namen ändern und Speichern wählen. An/Aus deaktiviert oder reaktiviert das Haus. Räume, Personen, Mitgliedschaften und Freigaben bleiben erhalten. Deaktivierung sperrt neue Zugriffe und Spielstarts; bereits geladene Spiele werden nicht aktiv beendet.
 
-Spieler-Link zeigt den Einwahllink mit Hauskontext: http://localhost:8081/?house=HAUS-ID. Damit kann dieselbe Emoji-Folge in unterschiedlichen Häusern unterschiedliche Personen bezeichnen. Ohne Parameter bleibt das Demo-Haus vorbelegt. Die sichtbaren Demo-Hinweise gelten noch für dieses Demo-Haus und stellen keine Zugänge für ein neues Haus dar.
+Spieler-Link zeigt den allgemeinen Einwahllink ohne Hauskontext: http://localhost:8081/. Emoji-Folgen sind global eindeutig und ordnen die angemeldete Person automatisch ihrem Haus zu — ein Hausparameter ist nicht mehr nötig. Die sichtbaren Demo-Hinweise gelten weiterhin für das Demo-Haus und stellen keine Zugänge für ein neues Haus dar.
 
 ## Rechte und Einrichtung
 Superaktionen verlangen bei jeder Anfrage eine aktive SuperAdmin-Rolle im aktiven Wurzelbereich. HouseAdmins können sie nicht ausführen. Einrichtungslinks werden in den privaten CMS-Daten nur als Hash gespeichert. Vor Einlösung prüft der Server Ablauf, Aussteller, Person, aktives Haus und HouseAdmin-Zuweisung erneut. Passwörter verarbeitet ein separates Formular, damit sie nicht in GCS-Action-Protokolle gelangen; serverseitig wird ein scrypt-Hash gespeichert.

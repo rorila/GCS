@@ -4,7 +4,7 @@ import {ComponentRegistry} from '../utils/ComponentRegistry';
 import {browserUploadAdapter} from '../adapters/BrowserUploadAdapter';
 export class TFileUpload extends TWindow implements IRuntimeComponent {
  public className='TFileUpload';public picker='Dateiauswahl';public endpoint='/api/cms/upload/game';public progress=0;public busy=false;public message='';public result:any={};
- private objects:any[]=[];private emit=(event:string)=>{};private cancelOperation:(()=>void)|null=null;private stopped=false;
+ private objects:any[]=[];private emit=(_event:string)=>{};private cancelOperation:(()=>void)|null=null;private stopped=false;
  constructor(name='DateiUpload',x=0,y=0){super(name,x,y,5,2);this.isService=true;this.isHiddenInRun=true;}
  public initRuntime(c:any){this.objects=c.objects;this.emit=e=>c.handleEvent(this.id,e);this.stopped=false;this.busy=false;this.progress=0;this.result={};this.message=''}
  public async start(title='',description='',token='',gameId='',mode=''){

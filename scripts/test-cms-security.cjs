@@ -31,14 +31,14 @@ const { redact } = require('./cms/cms-trace.cjs');
     check('Gefälschter Token: 401', (await post('rooms', { token: 'f'.repeat(64) })).status === 401);
     check('Admin-API ohne Cookie: 401', (await post('admin/rooms', {})).status === 401);
 
-    const login = await post('login', { areaId: 'demo-house', sequence: ['dog', 'tree', 'house', 'elephant'] });
+    const login = await post('login', { sequence: ['dog', 'tree', 'house', 'elephant'] });
     check('Gültige Anmeldung liefert Token', !!login.data?.token);
     const token = login.data.token;
     check('Mit Token: Räume sichtbar', (await post('rooms', { token })).status === 200);
     check('Logout invalidiert Token', (await post('logout', { token })).status === 200 && (await post('rooms', { token })).status === 401);
 
     // Deaktivierte Person verliert laufende Sitzung
-    const login2 = await post('login', { areaId: 'demo-house', sequence: ['dog', 'tree', 'house', 'elephant'] });
+    const login2 = await post('login', { sequence: ['dog', 'tree', 'house', 'elephant'] });
     const p = app.core.db.people.find(x => x.id === 'demo-child');
     p.active = false;
     check('Deaktivierte Person: laufende Sitzung sofort ungültig', (await post('rooms', { token: login2.data.token })).status === 401);
@@ -51,7 +51,7 @@ const { redact } = require('./cms/cms-trace.cjs');
 
     // --- Rate-Limit ---
     let lastStatus = 0;
-    for (let i = 0; i < 25; i++) lastStatus = (await post('login', { areaId: 'demo-house', sequence: ['dog', 'dog', 'dog', 'dog'] })).status;
+    for (let i = 0; i < 25; i++) lastStatus = (await post('login', { sequence: ['dog', 'dog', 'dog', 'dog'] })).status;
     check('Rate-Limit greift (429 nach 20/min)', lastStatus === 429);
 
     // --- Diagnose- und Player-Grenzen ---

@@ -21,7 +21,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const playOp=(key,action,x)=>fetch(base+'/api/cms/play',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({launchKey:key,action,...(x||{})})}).then(r=>r.json());
  const partyOp=(key,op,x)=>fetch(base+'/api/cms/party',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({launchKey:key,op,...(x||{})})}).then(r=>r.json());
  const launchKeyOf=r=>String(r.data?.launch||'').split('/').pop();
- const kid=async(seq,house)=>{const p=await browser.newPage();await emojiLogin(p,base,seq,house);await busy(p);return p};
+ const kid=async seq=>{const p=await browser.newPage();await emojiLogin(p,base,seq);await busy(p);return p};
  try{
   browser=await chromium.launch({channel:'msedge',headless:true});
   // HouseAdmin-Session (Anna, Haus Sonne) fuer Verwaltungsaktionen
@@ -31,7 +31,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   if(annaEvent){await event(adm,'VerwaltungOeffnen');await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_admin',{timeout:10000}).catch(()=>{});}
 
   // ── §7.1 Ändern wirkt sofort ──────────────────────────────────────
-  const tom=await kid(['owl','flower','pig','elephant'],'house-sun');
+  const tom=await kid(['owl','flower','pig','elephant']);
   // Freigabe entziehen -> laufender Spielstart blockiert
   const grantOff=await api(adm,'admin/grant',{houseId:'house-sun',areaId:'room-sun-learn',id:'game-math',active:false});
   const blockedStart=await papi(tom,'launch',{gameId:'game-math',areaId:'room-sun-learn'});
@@ -43,11 +43,11 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const olgaTry=await api(olga,'admin/rooms',{houseId:'house-sun'});
   kat.mark('7.1',2,roleOff.status===200&&olgaTry.status!==200||(olgaTry.data?.items||[]).length===0,'Rollenentzug → rooms '+olgaTry.status+' items:'+(olgaTry.data?.items||[]).length);
   // Kind deaktivieren (Mitgliedschaft) -> Session + Login
-  const emil=await kid(['house','tree','owl','pig'],'house-sun');
+  const emil=await kid(['house','tree','owl','pig']);
   const memberOff=await api(adm,'admin/membership',{areaId:'room-sun-learn',id:'child-emil',active:false});
   const emilRooms=await papi(emil,'rooms',{});
   const emilRoomsList=(emilRooms.data?.items||[emilRooms.data?.slot0,emilRooms.data?.slot1,emilRooms.data?.slot2,emilRooms.data?.slot3].filter(Boolean)).map(x=>x&&(x.name||x.label||x.id)).filter(Boolean);
-  const emilRelog=await fetch(base+'/api/cms/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({areaId:'house-sun',sequence:['house','tree','owl','pig']})});
+  const emilRelog=await fetch(base+'/api/cms/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sequence:['house','tree','owl','pig']})});
   const emilRelogData=await emilRelog.json().catch(()=>({}));
   kat.mark('7.1',3,memberOff.status===200&&emilRoomsList.length===0&&emilRelogData.ok!==true,'Mitgliedschaft aus → Räume '+JSON.stringify(emilRoomsList)+' / Login '+emilRelog.status);
   await api(adm,'admin/membership',{areaId:'room-sun-learn',id:'child-emil',active:true}); // zuruecksetzen

@@ -54,7 +54,7 @@ ep.events={onRequest:'Server_Anmeldung_Verarbeiten'};
  login.actions=[
   n.act('DrosselPruefen','SpielerAuthentifizieren','throttle',[{bucket:'login',limit:20,windowMs:60000}],'Drossel'),
   n.act('EingabePruefen','AnmeldedatenPruefen','loginInput',[],'Eingabe'),
-  n.act('Authentifizieren','SpielerAuthentifizieren','authenticate',[{areaId:'$body.areaId',sequence:'$body.sequence'}],'Auth'),
+  n.act('Authentifizieren','SpielerAuthentifizieren','authenticate',[{sequence:'$body.sequence'}],'Auth'),
   n.act('Antworten','AnmeldeantwortSenden','send',[{token:'${Auth.token}',name:'${Auth.name}',avatar:'${Auth.avatar}',message:'${AnmeldeantwortSenden.successMessage}'}]),
   n.act('FehlerDrossel','AnmeldeantwortSenden','fail',[429,'⏳ Bitte kurz warten']),
   n.act('FehlerEingabe','AnmeldeantwortSenden','fail',[200,'${AnmeldedatenPruefen.failureMessage}']),
@@ -134,10 +134,29 @@ const withGuard=(n,inner)=>{const g=guard(n);g[1].then=inner;return g;};
  pactions.push(
   n.act('Laden','Datenbestand','roomsFor',[],'Raeume'),
   n.act('Seite','Datenbestand','page',[{items:'${Raeume.items}',page:'$body.page',
-   itemFields:{id:'$item.id',name:'$item.name',avatar:'$item.avatar',active:'$item.active'},
+   itemFields:{id:'$item.id',name:'$item.name',avatar:'$item.avatar',active:'$item.active',presentCount:'$item.presentCount',presentAvatars:'$item.presentAvatars',presentAvatarImages:'$item.presentAvatarImages',presentLabel:'$item.presentLabel',playingCount:'$item.playingCount',playingAvatars:'$item.playingAvatars',playingAvatarImages:'$item.playingAvatarImages',playingLabel:'$item.playingLabel'},
    fields:{id:'$item.id',label:{concat:['$item.avatar','  ','$item.name']},visible:true},
    message:'${Raeume.message}'}],'Seite'),
   n.act('Antworten','AntwortSenden','send',[{merge:'${Seite}'}]));
+}
+
+// room-presence — Betreten, Heartbeat und explizites Verlassen eines Raums.
+{const n=ns('RaumPraesenz');
+ ptasks.push({id:uid('srv_task'),name:'Server_RaumPraesenz_Verarbeiten',scope:'stage',
+  description:'Konto-Sitzung → Zustand prüfen → Raumzutritt serverseitig prüfen → flüchtige Präsenz setzen/entfernen',
+  actionSequence:withGuard(n,[
+   n.call('ZustandPruefen'),
+   n.cond('Präsenzzustand gültig?','PraesenzZustand.ok','==',true,[
+    n.call('Setzen'),
+    n.cond('Raumzugriff erlaubt?','Praesenz.ok','==',true,[n.call('Antworten')],[n.call('Fehler')])
+   ],[n.call('FehlerZustand')])
+  ])});
+ pactions.push(
+  n.act('ZustandPruefen','EingabePruefung','boolean',['present'],'PraesenzZustand'),
+  n.act('Setzen','KontoSitzung','roomPresence',[{areaId:'$body.areaId',present:'$vars.PraesenzZustand.value'}],'Praesenz'),
+  n.act('Antworten','AntwortSenden','send',[{message:'${Praesenz.message}'}]),
+  n.act('Fehler','AntwortSenden','fail',['${Praesenz.status}','${Praesenz.message}']),
+  n.act('FehlerZustand','AntwortSenden','fail',['${PraesenzZustand.status}','${PraesenzZustand.message}']));
 }
 
 // games — Raummitgliedschaft + aktive Kette nötig, dann freigegebene Spiele.
@@ -177,24 +196,80 @@ const withGuard=(n,inner)=>{const g=guard(n);g[1].then=inner;return g;};
   n.act('FehlerStart','AntwortSenden','fail',['${Launch.status}','${Launch.message}']));
 }
 
+const childRoomGuard=n=>withGuard(n,[
+ n.call('KindPruefen'),n.cond('Kind angemeldet?','Kind','==',true,[
+  n.call('RaumPruefen'),n.cond('Eigener aktiver Raum?','Raum.found','==',true,[
+   n.call('EigenerZutrittPruefen'),n.cond('Eigener Zutritt aktiv?','EigenerZutritt','==',true,[
+    n.call('HausErmitteln'),n.call('HausmitgliedPruefen'),
+    n.cond('Hausmitglied aktiv?','Hausmitglied','==',true,n.inner,[n.call('FehlerRaum')])
+   ],[n.call('FehlerRaum')])
+  ],[n.call('FehlerRaum')])
+ ],[n.call('FehlerRaum')])
+]);
+const childRoomActions=n=>[
+ n.act('KindPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$session.personId',kind:'child',active:true}}],'Kind'),
+ n.act('RaumPruefen','Datenbestand','find',[{entity:'areas',where:{id:'$body.areaId',type:'room',_activeChain:true,has:{entity:'roles',where:{personId:'$session.personId',areaId:'$item.id',role:'areaAdmin',active:true}}}}],'Raum'),
+ n.act('EigenerZutrittPruefen','Datenbestand','exists',[{entity:'memberships',where:{personId:'$session.personId',areaId:'$body.areaId',active:true}}],'EigenerZutritt'),
+ n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
+ n.act('HausmitgliedPruefen','Datenbestand','exists',[{entity:'memberships',where:{personId:'$session.personId',areaId:'$vars.Haus.item.id',active:true}}],'Hausmitglied'),
+ n.act('FehlerRaum','AntwortSenden','fail',[403,'Nur den eigenen aktiven Raum verwalten.'])
+];
+{const n=ns('KinderRaeume');
+ ptasks.push({id:uid('srv_task'),name:'Server_KinderRaeume_Verarbeiten',scope:'stage',description:'Emoji-Sitzung → aktive eigene Zimmer als RaumAdmin auflisten',actionSequence:withGuard(n,[n.call('KindPruefen'),n.cond('Kind angemeldet?','Kind','==',true,[n.call('Laden'),n.call('Antworten')],[n.call('FehlerKind')])])});
+ pactions.push(n.act('KindPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$session.personId',kind:'child',active:true}}],'Kind'),
+  n.act('Laden','Datenbestand','list',[{entity:'areas',where:{type:'room',_activeChain:true,has:{entity:'memberships',where:{personId:'$session.personId',areaId:'$item.id',active:true}},anyOf:[{has:{entity:'roles',where:{personId:'$session.personId',areaId:'$item.id',role:'areaAdmin',active:true}}}]},fields:{id:'$item.id',name:'$item.name',avatar:'$item.avatar'}}],'KinderRaeume'),
+  n.act('Antworten','AntwortSenden','send',[{items:'${KinderRaeume.items}',message:'Wähle dein Zimmer.'}]),
+  n.act('FehlerKind','AntwortSenden','fail',[403,'Nur Kinder mit eigenem Zimmer können diese Ansicht öffnen.']));
+}
+{const n=ns('KinderMitglieder');n.inner=[n.call('Laden'),n.call('Antworten')];
+ ptasks.push({id:uid('srv_task'),name:'Server_KinderMitglieder_Verarbeiten',scope:'stage',description:'Eigener Raum → aktive Hausbewohner und deren Zutrittsstatus lesen',actionSequence:childRoomGuard(n)});
+ pactions.push(...childRoomActions(n),
+  n.act('Laden','Datenbestand','list',[{entity:'people',where:{active:true,has:{entity:'memberships',where:{personId:'$item.id',areaId:'$vars.Haus.item.id',active:true}}},fields:{id:'$item.id',name:'$item.name',active:{exists:{entity:'memberships',where:{personId:'$item.id',areaId:'$body.areaId',active:true}}},locked:{if:[{eq:['$item.id','$session.personId']},true,{exists:{entity:'roles',where:{personId:'$item.id',areaId:'$vars.Haus.item.id',role:'areaAdmin',active:true}}}]},label:'$item.name'}}],'KinderMitglieder'),
+  n.act('Antworten','AntwortSenden','send',[{items:'${KinderMitglieder.items}',message:'Wer darf in mein Zimmer?'}]));
+}
+{const n=ns('KinderZutritt');n.inner=[
+ n.call('ZustandPruefen'),n.cond('Zustand gültig?','Zustand.ok','==',true,[
+  n.call('PersonPruefen'),n.cond('Hausbewohner aktiv?','Person','==',true,[
+   n.call('SelbstPruefen'),n.cond('Eigener oder HouseAdmin-Zutritt?','Gesperrt','==',false,[n.call('Speichern'),n.call('Antworten')],[n.call('FehlerGesperrt')])
+  ],[n.call('FehlerPerson')])
+ ],[n.call('FehlerZustand')])
+];
+ ptasks.push({id:uid('srv_task'),name:'Server_KinderZutritt_Verarbeiten',scope:'stage',description:'Eigener Raum → nur vorhandenen Hausbewohnern Zutritt geben oder entziehen',actionSequence:childRoomGuard(n)});
+ pactions.push(...childRoomActions(n),
+  n.act('ZustandPruefen','EingabePruefung','boolean',['active'],'Zustand'),
+  n.act('PersonPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.personId',active:true,has:{entity:'memberships',where:{personId:'$item.id',areaId:'$vars.Haus.item.id',active:true}}}}],'Person'),
+  n.act('SelbstPruefen','Datenbestand','exists',[{entity:'people',where:{id:'$body.personId',anyOf:[{id:'$session.personId'},{has:{entity:'roles',where:{personId:'$item.id',areaId:'$vars.Haus.item.id',role:'areaAdmin',active:true}}}]}}],'Gesperrt'),
+  n.act('Speichern','DatenSpeicher','upsert',[{entity:'memberships',match:{personId:'$body.personId',areaId:'$body.areaId'},set:{active:'$vars.Zustand.value'},audit:{action:'child-room-access',areaId:'$body.areaId'}}],'Aenderung'),
+  n.act('Antworten','AntwortSenden','send',[{message:'Zimmerzutritt gespeichert.'}]),
+  n.act('FehlerPerson','AntwortSenden','fail',[403,'Nur aktive Bewohner des Hauses zulässig.']),
+  n.act('FehlerGesperrt','AntwortSenden','fail',[403,'Dein eigener Zugang und HouseAdmins sind geschützt.']),
+  n.act('FehlerZustand','AntwortSenden','fail',[400,'Zutrittsstatus fehlt.']));
+}
+
 // --- Stage zusammensetzen -----------------------------------------------------
 const pEndpoints=[
  ['/api/cms/contexts','Ep_Kontexte','Server_Kontexte_Verarbeiten'],
  ['/api/cms/logout','Ep_Abmeldung','Server_Abmeldung_Verarbeiten'],
  ['/api/cms/rooms','Ep_Raeume','Server_Raeume_Verarbeiten'],
+ ['/api/cms/room-presence','Ep_RaumPraesenz','Server_RaumPraesenz_Verarbeiten'],
  ['/api/cms/games','Ep_Spiele','Server_Spiele_Verarbeiten'],
- ['/api/cms/launch','Ep_Spielstart','Server_Spielstart_Verarbeiten']
+ ['/api/cms/launch','Ep_Spielstart','Server_Spielstart_Verarbeiten'],
+ ['/api/cms/child/rooms','Ep_KinderRaeume','Server_KinderRaeume_Verarbeiten'],
+ ['/api/cms/child/members','Ep_KinderMitglieder','Server_KinderMitglieder_Verarbeiten'],
+ ['/api/cms/child/membership','Ep_KinderZutritt','Server_KinderZutritt_Verarbeiten']
 ];
 const pobjects=pEndpoints.map(([p,name,task],i)=>comp('TServerEndpoint',name,{endpointPath:p,httpMethod:'POST',traceEnabled:true,events:{onRequest:task},x:16,y:2+i*4}));
 pobjects.push(comp('TServerSession','KontoSitzung',{x:2,y:2}),
               comp('TServerQuery','Datenbestand',{x:2,y:7}),
+              comp('TServerValidate','EingabePruefung',{x:2,y:10}),
               comp('TServerPlaySession','SpielStart',{x:2,y:12}),
+              comp('TServerStore','DatenSpeicher',{x:2,y:15}),
               comp('TServerResponse','AntwortSenden',{x:2,y:17}));
 pactions.push(...guardActions);
 const playerStage={id:'stage_server_player',type:'standard',name:'Server · Spieler-Konto',
  grid:{cols:64,rows:40,cellSize:18,visible:false,snapToGrid:true,backgroundColor:'#122b39'},
  objects:pobjects,tasks:ptasks,actions:pactions,
- variables:['Pruefung','Kontexte','Abmeldung','Raeume','Seite','Mitglied','RaumAktiv','Spiele','Launch'].map(variable),
+ variables:['Pruefung','Kontexte','Abmeldung','Raeume','PraesenzZustand','Praesenz','Seite','Mitglied','RaumAktiv','Spiele','Launch','Kind','Raum','EigenerZutritt','Haus','Hausmitglied','KinderRaeume','KinderMitglieder','Zustand','Person','Gesperrt','Aenderung'].map(variable),
  flowCharts:{},events:{},startAnimation:'none',
  features:[{id:'server-player',name:'Spieler-Konto und Spielstart',
   blueprintTaskNames:ptasks.map(t=>t.name)}],

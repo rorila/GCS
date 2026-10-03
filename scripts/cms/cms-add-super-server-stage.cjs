@@ -448,7 +448,7 @@ endpoints.push({path:'/api/cms/admin/super-invite',task:'Server_SuperEinladung_V
 endpoints.push({path:'/api/cms/admin/super-player-link',task:'Server_SpielerLink_Verarbeiten',desc:'Rolle + Haus prüfen → Spieler-Link antworten',
  inner:[n.call('HausLaden'),n.cond('Haus gefunden?','Haus.found','==',true,[n.call('Antworten')],[n.call('Haus404')])],
  actions:[n.act('HausLaden','Datenbestand','find',[house],'Haus'),
-          n.act('Antworten','AntwortSenden','send',[{link:'/?house=${body.houseId}',message:'Spieler-Link für dieses Haus.'}]),
+          n.act('Antworten','AntwortSenden','send',[{link:'/',message:'Spieler-Link; der Emoji-Code ordnet die Person automatisch zu.'}]),
           n.act('Haus404','AntwortSenden','fail',[404,'Haus nicht gefunden.'])]});}
 
 const objects=[

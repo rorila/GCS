@@ -214,7 +214,7 @@ export class UserStoryExtractor {
     /**
      * Extrahiert Actions aus einem Task
      */
-    private static extractActionsFromTask(task: Task, project: GameProject): Action[] {
+    private static extractActionsFromTask(task: Task, project: GameProject, visited: Set<string> = new Set()): Action[] {
         const actions: Action[] = [];
         const tasks = project.tasks || [];
         const stages = project.stages || [];
@@ -237,15 +237,17 @@ export class UserStoryExtractor {
         }
 
         // Actions aus actionSequence extrahieren
-        this.extractActionsFromSequence(foundTask.actionSequence, actions, project);
+        this.extractActionsFromSequence(foundTask.actionSequence, actions, project, visited);
 
         return actions;
     }
 
     /**
-     * Extrahiert Actions rekursiv aus einer Sequence
+     * Extrahiert Actions rekursiv aus einer Sequence.
+     * visited verhindert Endlosrekursion bei Tasks, die sich selbst aufrufen
+     * (GCS-Schleifenmuster, z. B. task('AktionVerarbeiten')).
      */
-    private static extractActionsFromSequence(sequence: any[], actions: Action[], project: GameProject): void {
+    private static extractActionsFromSequence(sequence: any[], actions: Action[], project: GameProject, visited: Set<string> = new Set()): void {
         sequence.forEach(item => {
             if (item.type === 'action') {
                 const action = this.extractActionFromItem(item, project);
@@ -253,15 +255,19 @@ export class UserStoryExtractor {
                     actions.push(action);
                 }
             } else if (item.type === 'task') {
-                const task = this.extractTaskFromFlowChart(item.name, project);
-                const taskActions = this.extractActionsFromTask(task, project);
-                actions.push(...taskActions);
+                if (!visited.has(item.name)) {
+                    visited.add(item.name);
+                    const task = this.extractTaskFromFlowChart(item.name, project);
+                    const taskActions = this.extractActionsFromTask(task, project, visited);
+                    actions.push(...taskActions);
+                }
             } else if (item.then) {
-                this.extractActionsFromSequence(item.then, actions, project);
+                this.extractActionsFromSequence(item.then, actions, project, visited);
             } else if (item.else) {
-                this.extractActionsFromSequence(item.else, actions, project);
-            } else if (item.body) {
-                this.extractActionsFromSequence(item.body, actions, project);
+                this.extractActionsFromSequence(item.else, actions, project, visited);
+            } else {
+                if (item.body) this.extractActionsFromSequence(item.body, actions, project, visited);
+                if (item.elseBody) this.extractActionsFromSequence(item.elseBody, actions, project, visited);
             }
         });
     }

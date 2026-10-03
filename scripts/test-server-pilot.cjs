@@ -7,7 +7,7 @@ const {createServer}=require('./cms/cms-server.cjs'),{checkIntegrity}=require('.
  const login=async(body,id=crypto.randomUUID())=>{const r=await fetch(base+'/api/cms/login',{method:'POST',headers:{Origin:base,'Content-Type':'application/json','X-GCS-Trace-ID':id,Authorization:'Bearer secret-for-test'},body:JSON.stringify(body)});return {id,response:r,data:await r.json()};};
  try{await new Promise(r=>app.server.listen(15183,'127.0.0.1',r));
   const auth=await fetch(base+'/admin-login',{method:'POST',headers:{Origin:base,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:'test-admin',password}),redirect:'manual'}),cookie=auth.headers.get('set-cookie').split(';')[0];
-  const good={areaId:'demo-house',sequence:['dog','tree','house','elephant']},a=await login(good);
+  const good={sequence:['dog','tree','house','elephant']},a=await login(good);
   check('Bestehende Anmeldung funktioniert',a.data.ok&&a.data.name==='Fuchskind');check('Vorgangs-ID in Response',a.response.headers.get('X-GCS-Trace-ID')===a.id);
   const trace=async(id,authCookie=cookie)=>fetch(base+'/api/cms/debug/traces/'+id,{headers:{Cookie:authCookie}});
   check('Anonymer Zugriff auf Serverwerte gesperrt',(await trace(a.id,'')).status===403);check('HouseAdmin sieht keine globalen Serverwerte',(await trace(a.id)).status===403);
@@ -16,9 +16,9 @@ const {createServer}=require('./cms/cms-server.cjs'),{checkIntegrity}=require('.
   check('Server-Innenschritte sichtbar',data.steps.some(s=>s.label==='Zugangsdaten zuordnen')&&data.steps.some(s=>s.label==='Person und Bereich prüfen')&&data.steps.some(s=>s.label==='Spielersitzung erstellen'));
   check('Zugangscode, Header und Token maskiert',!serialized.includes(a.data.token)&&!serialized.includes('secret-for-test')&&!serialized.includes('elephant')&&serialized.includes('[maskiert]'));
   check('Flow-Bezug vorhanden',data.steps.some(s=>s.task==='Server_Anmeldung_Verarbeiten'&&s.label==='Action: Anmeldung_Authentifizieren'&&s.actionId));
-  const bad=await login({areaId:'demo-house',sequence:['bad','bad','bad','bad']});const denied=await (await trace(bad.id)).json();check('Fehlversuch bleibt abgelehnt',bad.data.ok===false&&!denied.steps.some(s=>s.label==='Spielersitzung erstellen'));
-  const invalid=await login({areaId:'demo-house',sequence:[]});const invalidTrace=await (await trace(invalid.id)).json();check('Ungültige Eingabe nimmt Fehlerzweig',invalidTrace.steps.some(s=>s.branch==='else')&&!invalidTrace.steps.some(s=>s.label==='Zugangsdaten zuordnen'));
-  const concurrent=await Promise.all([login(good),login({areaId:'demo-house',sequence:['cat','cat','tree','house']})]);const concurrentTraces=await Promise.all(concurrent.map(async x=>(await trace(x.id)).json()));check('Gleichzeitige Vorgänge bleiben getrennt',concurrentTraces[0].id!==concurrentTraces[1].id&&concurrentTraces[0].steps.at(-1).body.name==='Fuchskind'&&concurrentTraces[1].steps.at(-1).body.name==='Eulenfreund');
+  const bad=await login({sequence:['bad','bad','bad','bad']});const denied=await (await trace(bad.id)).json();check('Fehlversuch bleibt abgelehnt',bad.data.ok===false&&!denied.steps.some(s=>s.label==='Spielersitzung erstellen'));
+  const invalid=await login({sequence:[]});const invalidTrace=await (await trace(invalid.id)).json();check('Ungültige Eingabe nimmt Fehlerzweig',invalidTrace.steps.some(s=>s.branch==='else')&&!invalidTrace.steps.some(s=>s.label==='Zugangsdaten zuordnen'));
+  const concurrent=await Promise.all([login(good),login({sequence:['cat','cat','tree','house']})]);const concurrentTraces=await Promise.all(concurrent.map(async x=>(await trace(x.id)).json()));check('Gleichzeitige Vorgänge bleiben getrennt',concurrentTraces[0].id!==concurrentTraces[1].id&&concurrentTraces[0].steps.at(-1).body.name==='Fuchskind'&&concurrentTraces[1].steps.at(-1).body.name==='Eulenfreund');
   r=await fetch(base+'/api/cms/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(good)});check('Ohne Debug-Anforderung kein Trace-Header',!r.headers.has('X-GCS-Trace-ID'));
   // Integritätsvertrag: ein kaputter onRequest-Verweis der Login-Stage wird erkannt.
   const broken=JSON.parse(fs.readFileSync(path.join(__dirname,'../game-server/public/projects/GCS-CMS.json'),'utf8'));

@@ -50,8 +50,7 @@ check('Geschwister-/Fremddaten bleiben unangetastet', () => {
   assert.ok(db.people.find(p => p.id === 'child-emil').name === 'Emil');
 });
 check('Gelöschtes Kind kann sich nicht mehr anmelden', () => {
-  const c = { areaId: 'house-sun', sequence: ['cat', 'dog', 'flower', 'tree'] };
-  assert.strictEqual(core.login(c.areaId, c.sequence), null);
+  assert.strictEqual(core.login(['cat', 'dog', 'flower', 'tree']), null);
 });
 check('Spieleigentümer wird nicht gelöscht', () => {
   const r = privacy.deletePerson('super-admin', 'super-admin');

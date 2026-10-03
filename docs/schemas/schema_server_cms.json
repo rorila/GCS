@@ -186,6 +186,16 @@
           "default": 120000,
           "description": "Fortsetzungsfrist bei Verbindungsverlust (danach 'disconnected')"
         },
+        "abandonAfterMs": {
+          "type": "number",
+          "default": 600000,
+          "description": "Stillstandsfrist ohne Heartbeat, nach der die Sitzung beendet wird"
+        },
+        "sweepIntervalMs": {
+          "type": "number",
+          "default": 30000,
+          "description": "Serverintervall für den Stillstand-Sweep"
+        },
         "graceMinutes": {
           "type": "number",
           "default": 2,
@@ -236,6 +246,11 @@
           "params": [
             "sessionId"
           ]
+        },
+        {
+          "name": "sweep",
+          "description": "Serverseitiger Stillstand-Sweep: getrennt markieren, verlassene Sitzungen beenden und Partien ohne aktive Sitzung abschließen",
+          "params": []
         }
       ],
       "events": [
@@ -247,7 +262,7 @@
       ],
       "guarantees": [
         "Zeitbuchung nur aus serverseitigen Zeitstempeln, nie aus Client-Angaben",
-        "Fehlende Heartbeats führen zu 'disconnected', nicht zu 'ended'",
+        "Fehlende Heartbeats führen zuerst zu 'disconnected' und nach abandonAfterMs zu 'ended'",
         "Hintergrund-Tab zählt weiter, solange nicht tatsächlich pausiert",
         "Zeitzone des Budgets gehört zum Kinderprofil; Gerätewechsel erzeugt keinen neuen Tag"
       ],
@@ -377,6 +392,67 @@
         "Versionswechsel des Spiels sperrt neue Beitritte zur laufenden Partie"
       ],
       "status": "Implementiert (Phase 4: cms-mp.cjs, stage_server_mp)"
+    },
+    "TServerLiveSync": {
+      "description": "Flüchtige Echtzeit-Synchronisation einer Partie über WebSocket. Die Komponente vermittelt nur den jeweils neuesten Eingabe-/State-Stand; verlässliche Fachereignisse bleiben im Partie-Aktionslog.",
+      "stage": "server",
+      "category": "server",
+      "properties": {
+        "endpointPath": {
+          "type": "string",
+          "default": "/api/cms/party/live"
+        },
+        "maxPayloadBytes": {
+          "type": "number",
+          "default": 4096
+        },
+        "maxMessagesPerSecond": {
+          "type": "number",
+          "default": 30
+        },
+        "inputTtlMs": {
+          "type": "number",
+          "default": 750,
+          "description": "Maximales Alter einer anzuwendenden Fern-Eingabe"
+        },
+        "maxStateAgeMs": {
+          "type": "number",
+          "default": 2000,
+          "description": "Ab diesem Alter gilt ein Host-State als veraltet"
+        }
+      },
+      "methods": [
+        {
+          "name": "input",
+          "description": "Validiert eine Nicht-Host-Eingabe (seq, dir) und liefert den normalisierten Wert",
+          "params": ["payload"]
+        },
+        {
+          "name": "state",
+          "description": "Validiert einen Host-Syncpunkt und liefert den normalisierten Wert",
+          "params": ["payload"]
+        },
+        {
+          "name": "snapshot",
+          "description": "Liefert Partie-Status, Aktions-Delta, Host-State und relevante Fern-Eingabe",
+          "params": ["party", "live", "personId", "since"]
+        }
+      ],
+      "events": [
+        "onConnected",
+        "onDisconnected",
+        "onState",
+        "onInput",
+        "onRejected"
+      ],
+      "guarantees": [
+        "Verbindung nur mit gültigem Launch-Grant und aktiver Partienmitgliedschaft",
+        "Nur der Host darf den autoritativen State schreiben",
+        "Nicht-Hosts dürfen nur ihre eigene Eingabe schreiben",
+        "Live-Daten werden nur flüchtig im Prozess gehalten und nicht in den Aktionslog oder die Datenbank geschrieben",
+        "Veraltete State-Ticks und zu große oder zu häufige Payloads werden verworfen"
+      ],
+      "status": "Implementiert (cms-live.cjs + WebSocket-Bridge)"
     },
     "TServerPrivacy": {
       "description": "Personenexport und Löschung (P1.6, implementiert in cms-privacy.cjs). Löschung = Anonymisierung; Löschliste überlebt Wiederherstellungen.",
