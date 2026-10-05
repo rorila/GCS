@@ -4,27 +4,27 @@
     {
       "id": "VORAUS-A",
       "titel": "Haus Sonne + HouseAdmin „anna\"",
-      "offset": 0.1
+      "offset": 0.2
     },
     {
       "id": "VORAUS-R",
       "titel": "Raum „Spielraum\" angelegt",
-      "offset": 10.2
+      "offset": 5
     },
     {
       "id": "VORAUS-K",
       "titel": "Bewohnerin „Lina Kind\" angelegt und Spielraum zugeordnet",
-      "offset": 18
+      "offset": 11
     },
     {
       "id": "SPIEL-02b",
-      "titel": "Spielfreigabe im Raum durch „anna\"",
-      "offset": 73.7
+      "titel": "Spielfreigabe im Haus durch „anna\"",
+      "offset": 71.4
     },
     {
       "id": "SPIEL-03b",
       "titel": "Freigabeentzug sperrt Spielstart",
-      "offset": 87.5
+      "offset": 90
     }
   ]
 }

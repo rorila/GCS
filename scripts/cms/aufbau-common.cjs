@@ -28,6 +28,41 @@ async function click(page,name){
  *  check() die benoetigte Ressource nachweist (Fehlerfortsetzung). */
 const dep=(id,check)=>({id,check});
 
+/** Tabellenzeile eines GCS-Objekts klicken (wartet auf Sichtbarkeit). */
+async function rowClick(page,tableName,text){
+ const t=await sel(page,tableName);
+ const row=page.locator(t+' tbody tr',{hasText:text});
+ await row.waitFor({timeout:10000});
+ await row.click();
+ await page.waitForTimeout(150);await busy(page);
+}
+/** Auf das Vorhandensein einer Tabellenzeile warten. */
+async function rowWait(page,tableName,text){
+ const t=await sel(page,tableName);
+ await page.locator(t+' tbody tr',{hasText:text}).waitFor({timeout:10000});
+ return true;
+}
+
+/** Hauskontext herstellen: auf der Hausauswahl (stage_house) die Hauszeile
+ *  waehlen → stage_house_overview; optional danach in einen Arbeitsbereich
+ *  navigieren (z.B. 'stage_house_rooms'). Bereits gesetzter Kontext bleibt. */
+async function openHouseArea(page,houseName,section){
+ const sid=await page.evaluate(()=>window.player.runtime.stage.id);
+ if(sid==='stage_house'){
+  await rowClick(page,'HausTabelle',houseName);
+  await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_house_overview',null,{timeout:10000});
+  await busy(page);
+ }
+ if(section){
+  const cur=await page.evaluate(()=>window.player.runtime.stage.id);
+  if(cur!==section){
+   await click(page,'Navigation_'+section);
+   await page.waitForFunction(s=>window.player.runtime.stage.id===s,section,{timeout:10000});
+   await busy(page);
+  }
+ }
+}
+
 /** Aufgaben-Runner: Fehler stoppt nur abhaengige Folgeaufgaben. */
 function makeRunner(prefix){
  const done=new Set(),results=[];
@@ -51,7 +86,7 @@ function makeRunner(prefix){
   const __pt=globalThis.__gcsCurrentTask;
   if(VIDEO_DIR)globalThis.__gcsCurrentTask={id,name};
   // Aufnahme-Modus: Overlay erst lesen lassen, dann erst agieren.
-  if(VIDEO_DIR&&page)await nap(page,VIDEO_TASK_PRE_MS);
+  if(VIDEO_DIR&&page)await nap(page,VIDEO_TASK_PRE_MS*paceMul());
   let ok;
   try{await fn();done.add(id);results.push({id,name,status:'OK'});console.log('OK '+id+' '+name);ok=true;}
   catch(e){
@@ -60,7 +95,7 @@ function makeRunner(prefix){
    console.log('FEHLER '+id+' '+name+': '+results[results.length-1].note+(f?' ['+f+']':''));ok=false;
   }
   // Nachwirkzeit: letzte Aktion eines Kapitels nicht abhacken.
-  if(VIDEO_DIR&&page)await nap(page,VIDEO_TASK_POST_MS);
+  if(VIDEO_DIR&&page)await nap(page,VIDEO_TASK_POST_MS*paceMul());
   if(__pt)globalThis.__gcsCurrentTask=__pt;else delete globalThis.__gcsCurrentTask;
   return ok;
  }
@@ -142,7 +177,9 @@ async function setupHouseAdmin({browser,env,base,page,house='Haus Sonne',name='A
  await setup.locator('[name=username]').fill(username);
  await setup.locator('[name=password]').fill(TEST_PASSWORD);
  await setup.getByRole('button',{name:'Zugang anlegen'}).click();
- assert.ok((await setup.locator('body').innerText()).includes('Zugang eingerichtet'),'Enroll meldet keinen Erfolg');
+ // Erfolg ist der Auto-Login-Redirect auf die Haus-Stage (303), keine Erfolgsseite.
+ await setup.waitForURL(u=>u.pathname==='/house',{timeout:10000}).catch(()=>{});
+ assert.ok(setup.url().includes('/house')||((await setup.locator('body').innerText()).includes('Zugang eingerichtet')),'Enroll meldet keinen Erfolg');
  await setup.close();
  // Als neuer Admin anmelden → stage_house (eigener Kontext: Sitzungen
  // bleiben strikt getrennt, sonst traegt jeder Aufruf das letzte Cookie)
@@ -193,6 +230,10 @@ const VIDEO_POST_MS=+(process.env.GCS_VIDEO_POST_MS||700);   // Nachwirkzeit dan
 const VIDEO_TYPE_MS=+(process.env.GCS_VIDEO_TYPE_MS||110);   // pro Tastenanschlag
 const VIDEO_TASK_PRE_MS=+(process.env.GCS_VIDEO_TASK_PRE_MS||1400); // Overlay lesbar
 const VIDEO_TASK_POST_MS=+(process.env.GCS_VIDEO_TASK_POST_MS||900);
+// Einrichtungskapitel (VORAUS-*) sind Geruest, keine Nutzer-Aufgaben — dort
+// laeuft das Pacing gestrafft, echte Aufgaben behalten Erzaehltempo.
+const VIDEO_VORAUS_FAKTOR=+(process.env.GCS_VIDEO_VORAUS_FAKTOR||0.3);
+const paceMul=()=>/^VORAUS/.test((globalThis.__gcsCurrentTask&&globalThis.__gcsCurrentTask.id)||'')?VIDEO_VORAUS_FAKTOR:1;
 
 // Sichtbarer Cursor + Klick-Ripple + Ziel-Highlight. Folgt den echten
 // mousemove/mousedown-Events, die Playwright bei click()/mouse.move() feuert.
@@ -232,12 +273,12 @@ function wrapLocator(loc,page){
     await pace(page,t);
     try{
      await t.fill(''); // Feld erst leeren — pressSequentially wuerde sonst anhaengen
-     const r=await t.pressSequentially(String(v??''),{delay:VIDEO_TYPE_MS,...o});
-     await nap(page,VIDEO_POST_MS);return r;
+     const r=await t.pressSequentially(String(v??''),{delay:VIDEO_TYPE_MS*paceMul(),...o});
+     await nap(page,VIDEO_POST_MS*paceMul());return r;
     }
     catch(e){return t.fill(v,o);}
    };
-   if(ACTS.has(k))return async(...a)=>{await pace(page,t);const r=await t[k](...a);await nap(page,VIDEO_POST_MS);return r};
+   if(ACTS.has(k))return async(...a)=>{await pace(page,t);const r=await t[k](...a);await nap(page,VIDEO_POST_MS*paceMul());return r};
    const v=t[k];return typeof v==='function'?v.bind(t):v;
   }
  });
@@ -246,7 +287,7 @@ async function pace(page,loc){
  try{await loc.scrollIntoViewIfNeeded({timeout:4000}).catch(()=>{})}catch{}
  try{await loc.evaluate(el=>window.__gcsFlash&&window.__gcsFlash(el)).catch(()=>{})}catch{}
  try{const bb=await loc.boundingBox();if(bb)await page.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2,{steps:26})}catch{}
- await nap(page,VIDEO_STEP_MS);
+ await nap(page,VIDEO_STEP_MS*paceMul());
 }
 const nap=(page,ms)=>page.waitForTimeout(ms).catch(()=>{});
 function wrapPage(page){
@@ -300,7 +341,7 @@ async function videoMark(page,id,name){
    document.body.appendChild(o);
   }
   o.textContent=id+' · '+name;o.style.opacity='1';
-  setTimeout(()=>{o.style.opacity='0.38'},2800);
+  // Banner bleibt fuer die gesamte Task-Dauer sichtbar (Handbuch-Zuschauer)
  },{id,name}).catch(()=>{});
 }
 
@@ -333,4 +374,4 @@ async function finalizeBrowserVideos(browser,opts){
  return results;
 }
 
-module.exports={makeRunner,dep,click,setupHouseAdmin,initRequest,card,cardWait,cardTexts,status,ARTIFACTS,recordBrowser,videoMark,finalizeBrowserVideos};
+module.exports={makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,initRequest,card,cardWait,cardTexts,status,ARTIFACTS,recordBrowser,videoMark,finalizeBrowserVideos};

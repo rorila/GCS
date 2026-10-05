@@ -24,7 +24,7 @@ function createPrivacy(core, store) {
       progress: db.progress.filter(r => r.childId === personId),
       profileRequests: (db.profileRequests || []).filter(r => r.personId === personId),
       invites: db.invites.filter(i => i.personId === personId).map(i => ({ id: i.id, purpose: i.purpose, houseId: i.houseId, expires: i.expires, usedAt: i.usedAt || null })),
-      auditEntries: (db.audit || []).filter(a => a.actor === personId).map(a => ({ at: a.at, action: a.action, areaId: a.areaId })),
+      auditEntries: store.readAudit().filter(a => a.actor === personId).map(a => ({ at: a.at, action: a.action, areaId: a.areaId })),
       deviceGrantsIssued: (db.deviceGrants || []).filter(d => d.issuedBy === personId).map(d => ({ id: d.id, houseId: d.houseId, label: d.label })),
     };
   }

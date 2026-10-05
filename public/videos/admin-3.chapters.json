@@ -9,12 +9,12 @@
     {
       "id": "ADMIN-03b",
       "titel": "Haus geoeffnet, Leerzustand verstaendlich",
-      "offset": 10.3
+      "offset": 11.9
     },
     {
       "id": "ADMIN-03c",
       "titel": "/super fuehrt nicht in SuperAdmin-Verwaltung",
-      "offset": 12.6
+      "offset": 16.9
     }
   ]
 }

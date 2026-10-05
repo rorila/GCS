@@ -3,10 +3,10 @@
 // es → HouseAdmin gibt es im Raum frei → das Kind sieht es in der Galerie
 // und startet die Sitzung ueber die UI (kein API-Fallback!). Aufgaben
 // einzeln bewertet, Abhaengigkeiten ressourcenbasiert (dep).
-const path=require('node:path'),assert=require('node:assert/strict');
+const path=require('node:path'),fs=require('node:fs'),assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {bootMinimal,busy,sel,emojiLogin,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
-const {makeRunner,dep,click,setupHouseAdmin,card,cardWait}=require('./cms/aufbau-common.cjs');
+const {makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,card,cardWait}=require('./cms/aufbau-common.cjs');
 const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
 
 const PORT=15229;
@@ -33,31 +33,37 @@ const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('
   },page);
 
   await task('VORAUS-R','Raum „Spielraum" angelegt',[dep('VORAUS-A',()=>!!adm)],async()=>{
+   await openHouseArea(adm,'Haus Sonne','stage_house_rooms');
    await adm.getByPlaceholder('Raumname',{exact:true}).fill('Spielraum');
-   await click(adm,'RoomCreate');
+   await click(adm,'RaumAnlegen');
    raum=env.file().areas.find(a=>a.name==='Spielraum'&&a.parentId===sonne.id);
    assert.ok(raum,'Raum fehlt');
   },adm);
 
   // ── VORAUS-K: Bewohner anlegen und danach dem Raum zuordnen ────────
+  // Raumzutritt ist RaumAdmin-Aufgabe (stage_room_access). anna wurde beim
+  // Raum-Anlegen deklarativ selbst RaumAdmin (room-admin-initial).
   let lina=null;
   await task('VORAUS-K','Bewohnerin „Lina Kind" angelegt und Spielraum zugeordnet',[dep('VORAUS-R',()=>!!raum)],async()=>{
-   await click(adm,'Bewohner');
+   await openHouseArea(adm,'Haus Sonne','stage_house_residents');
    await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Lina Kind');
    await adm.locator('[placeholder="🦊"]').fill('🦊');
    await adm.getByPlaceholder('dog,tree,house,elephant',{exact:true}).fill('owl,dog,tree,house');
-   await click(adm,'PersonCreate');
+   await click(adm,'BewohnerAnlegen');
    lina=env.file().people.find(p=>p.name==='Lina Kind');
    assert.ok(lina&&env.file().codes.some(c=>c.personId===lina.id),'Kind/Code fehlt');
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&m.active),'Hausmitgliedschaft fehlt');
    assert.ok(!env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Bewohnerin wurde unerwartet direkt dem Raum zugeordnet');
-   await click(adm,'Navigation_stage_admin');
+   await adm.goto(base+'/admin',{waitUntil:'domcontentloaded'});
    await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_admin',null,{timeout:10000});
    await busy(adm);
-   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Raum')?.value,null,{timeout:10000});
-   await click(adm,'Mitglieder');
-   assert.ok(await cardWait(adm,'Lina Kind'),'Bewohnerin fehlt in der Raummitgliederliste');
-   assert.ok(await card(adm,'Lina Kind'),'Bewohnerin nicht zuordenbar');
+   await rowClick(adm,'RaumTabelle','Spielraum');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_room_overview',null,{timeout:10000});
+   await busy(adm);
+   await click(adm,'Navigation_stage_room_access');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_room_access',null,{timeout:10000});
+   await busy(adm);
+   await rowClick(adm,'MitgliederTabelle','Lina Kind');
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Raumzuordnung fehlt');
   },adm);
 
@@ -122,7 +128,7 @@ const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('
    assert.strictEqual(g2.status(),403,'Vorschau ohne Sitzung erreichbar: '+g2.status());
    await guest.close();
    // Zurueck aus der Vorschau: der Host-Layer muss sich wieder schliessen.
-   await page.locator('button[aria-label="Zurück zur Galerie"]').click();
+   await page.locator('button[aria-label="Spiel schließen"]').click();
    await page.waitForFunction(()=>{const f=document.querySelector('iframe[src*="/play/"]');return!f||f.parentElement.hidden},null,{timeout:5000});
   },page);
 
@@ -151,17 +157,20 @@ const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('
    assert.ok(!JSON.stringify(games.data).includes('Rechenduell'),'Spiel ohne Freigabe sichtbar');
   },kid);
 
-  // ── SPIEL-02b: HouseAdmin gibt das Spiel im Raum frei ──────────────
-  const grantAktiv=()=>env.file().grants.some(g=>g.areaId===raum?.id&&g.active===true&&JSON.stringify(g).includes(game?.id));
-  await task('SPIEL-02b','Spielfreigabe im Raum durch „anna"',[dep('SPIEL-01b',()=>!!game),dep('VORAUS-R',()=>!!raum)],async()=>{
-   await click(adm,'Navigation_stage_admin');
-   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_admin',null,{timeout:10000});
+  // ── SPIEL-02b: HouseAdmin gibt das Spiel im Haus frei ─────────────
+  // Freigaben sind seit dem Multi-Stage-Umbau Haus-Ebene (house-game-set,
+  // areaId=Haus) und gelten fuer alle Raeume des Hauses.
+  const grantAktiv=()=>env.file().grants.some(g=>g.areaId===sonne?.id&&g.active===true&&JSON.stringify(g).includes(game?.id));
+  await task('SPIEL-02b','Spielfreigabe im Haus durch „anna"',[dep('SPIEL-01b',()=>!!game),dep('VORAUS-R',()=>!!raum)],async()=>{
+   await adm.goto(base+'/house',{waitUntil:'domcontentloaded'});
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
    await busy(adm);
-   // Bei einem einzigen Raum oeffnet stage_admin ihn automatisch —
-   // die Freigabeliste laedt ohne Raumkartenklick.
-   await adm.waitForFunction(()=>{const v=window.player.runtime.getObjects().find(o=>o.name==='Raum');return v&&v.value},null,{timeout:10000});
-   assert.ok(await cardWait(adm,'Rechenduell'),'Spielkarte in Freigabeliste fehlt');
-   assert.ok(await card(adm,'Rechenduell'),'Spielkarte nicht klickbar');
+   await openHouseArea(adm,'Haus Sonne','stage_house_games');
+   const gr=adm.waitForResponse(r=>r.url().includes('house-game-set')&&r.request().method()==='POST',{timeout:10000});
+   gr.catch(()=>{}); // unhandled rejection vermeiden, falls der Zeilenklick scheitert
+   await rowClick(adm,'SpielTabelle','Rechenduell');
+   const resp=await gr;
+   assert.strictEqual(resp.status(),200,'Freigabe-Request fehlgeschlagen: '+resp.status());
    assert.ok(grantAktiv(),'kein aktiver Grant');
   },adm);
 
@@ -184,13 +193,16 @@ const papi=(page,route,body)=>page.evaluate(async([r,b])=>{const x=await fetch('
    assert.strictEqual(resp.status(),200,'UI-Spielstart fehlgeschlagen: '+resp.status());
    const body=await resp.json().catch(()=>({}));
    assert.ok(body.playSessionId&&body.launch,'keine Launch-Antwort: '+JSON.stringify(body).slice(0,200));
-   const s=env.file().playSessions.find(x=>x.id===body.playSessionId);
-   assert.ok(s&&s.gameId===game.id&&s.areaId===raum.id,'Spielsitzung nicht im Bestand (Spiel/Raum): '+JSON.stringify(env.file().playSessions).slice(0,200));
+   // Spielsitzungen sind Betriebsdaten → cms-v1-ops.json (seit der Store-Trennung).
+   const ops=JSON.parse(fs.readFileSync(env.dataPath.replace(/\.json$/,'-ops.json'),'utf8'));
+   const s=(ops.playSessions||[]).find(x=>x.id===body.playSessionId);
+   assert.ok(s&&s.gameId===game.id&&s.areaId===raum.id,'Spielsitzung nicht im Bestand (Spiel/Raum): '+JSON.stringify(ops.playSessions||[]).slice(0,200));
   },kid);
 
   // ── SPIEL-03b: Freigabeentzug wirkt sofort (streng: 403, fachlich) ─
   await task('SPIEL-03b','Freigabeentzug sperrt Spielstart',[dep('SPIEL-03a',grantAktiv)],async()=>{
-   assert.ok(await card(adm,'Rechenduell'),'Spielkarte nicht klickbar');
+   await openHouseArea(adm,'Haus Sonne','stage_house_games');
+   await rowClick(adm,'SpielTabelle','Rechenduell');
    assert.ok(!grantAktiv(),'Grant noch aktiv');
    // Ueber denselben Endpunkt wie die UI: launch → interner Start →
    // Vertrag: genau 403 „Spiel nicht freigegeben" — nicht irgendein Fehler.

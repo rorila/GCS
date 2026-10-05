@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCS-CMS | Datenverarbeitungskonzept (DV-Konzept)</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --sidebar-width: 320px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.65;
+    }
+    aside.sidebar {
+      width: var(--sidebar-width);
+      background: #0f172a;
+      color: #f1f5f9;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      box-shadow: 4px 0 12px rgba(0,0,0,0.06);
+      z-index: 30;
+    }
+    .brand {
+      padding: 20px;
+      background: #020617;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .brand-icon {
+      font-size: 24px;
+      background: #1e293b;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+    .brand-text h1 { font-size: 1.05rem; font-weight: 700; color: #fff; }
+    .brand-text span { font-size: 0.72rem; color: #94a3b8; }
+    .search-box {
+      padding: 12px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 8px 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .search-box input:focus { border-color: var(--primary); }
+    nav.nav-menu {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 10px;
+    }
+    .nav-group-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      font-weight: 700;
+      padding: 10px 10px 4px;
+    }
+    .nav-link {
+      display: block;
+      padding: 7px 10px;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 0.82rem;
+      border-radius: 6px;
+      margin-bottom: 2px;
+      transition: all 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .nav-link:hover { background: #1e293b; color: #fff; }
+    .nav-link.active { background: var(--primary); color: #fff; font-weight: 600; }
+    main.main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    header.header {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .badge-dv {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .print-btn {
+      padding: 6px 12px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .content-wrapper {
+      max-width: 1060px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 32px 80px;
+    }
+    .hero-card {
+      background: linear-gradient(135deg, #0c4a6e 0%, #0f172a 100%);
+      color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 28px;
+    }
+    .hero-card h2 { font-size: 1.7rem; font-weight: 800; margin-bottom: 6px; }
+    .hero-card p { color: #bae6fd; font-size: 0.98rem; }
+    .doc-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      margin-bottom: 28px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+      scroll-margin-top: 75px;
+    }
+    h2.section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f1f5f9;
+      scroll-margin-top: 75px;
+    }
+    h3.sub-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0c4a6e;
+      margin: 28px 0 10px;
+      padding-top: 14px;
+      border-top: 1px solid #f1f5f9;
+      scroll-margin-top: 75px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .uc-badge {
+      background: #0284c7;
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    p { margin-bottom: 12px; color: #334155; }
+    a.doc-link { color: var(--primary); text-decoration: underline; }
+    .mermaid-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 18px 0;
+      overflow-x: auto;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+    }
+    code.code-tag {
+      background: #f1f5f9;
+      color: #0369a1;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      font-size: 0.88em;
+    }
+    .steps-list { margin: 12px 0 16px 24px; }
+    .steps-list li { margin-bottom: 6px; font-size: 0.92rem; }
+    .custom-list { margin: 10px 0 14px 22px; }
+    .custom-list li { margin-bottom: 5px; font-size: 0.92rem; }
+    @media print {
+      aside.sidebar, header.header { display: none !important; }
+      body { background: #fff; }
+      .content-wrapper { padding: 0; max-width: 100%; }
+      .doc-card { border: 1px solid #ccc; box-shadow: none; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">📐</div>
+      <div class="brand-text">
+        <h1>GCS-CMS</h1>
+        <span>DV-Konzept</span>
+      </div>
+    </div>
+    <div class="search-box">
+      <input type="text" id="quickSearch" placeholder="Use Case suchen…">
+    </div>
+    <nav class="nav-menu" id="navMenu">
+      <div class="nav-group-title">Allgemein</div>
+      <a class="nav-link active" href="#1-einleitung-und-systemarchitektur">1. Systemarchitektur</a>
+      <a class="nav-link" href="#2-inhaltsverzeichnis-der-use-cases">2. Übersicht Use Cases</a>
+
+      <div class="nav-group-title">Teil A: Spieler & Kinder</div>
+      <a class="nav-link" href="#uc-01-emoji-pin-anmeldung--authentifizierung">UC-01: Emoji-PIN Anmeldung</a>
+      <a class="nav-link" href="#uc-02-spielhaus-galerie--raum-präsenztimer">UC-02: Galerie & Präsenztimer</a>
+      <a class="nav-link" href="#uc-03-spieleauswahl--spielstart">UC-03: Spieleauswahl & Start</a>
+      <a class="nav-link" href="#uc-04-spielerprofil-avatar-upload--zugangshilfe">UC-04: Profil & Avatar-Upload</a>
+      <a class="nav-link" href="#uc-05-mein-zimmer--persönliche-zutrittssteuerung">UC-05: Mein Zimmer Zutritt</a>
+      <a class="nav-link" href="#uc-06-mehrspieler-lobby--einladungsversand">UC-06: Multiplayer-Lobby</a>
+      <a class="nav-link" href="#uc-07-mehrspieler-postfach--spielbeitritt">UC-07: Multiplayer-Inbox</a>
+
+      <div class="nav-group-title">Teil B: Eltern & Beobachter</div>
+      <a class="nav-link" href="#uc-08-zentrale-verwaltungs-authentifizierung">UC-08: Admin-Login & Rollen</a>
+      <a class="nav-link" href="#uc-09-eltern-aktivitätsmonitoring--2-stufen-zeitbudget">UC-09: Eltern Zeitbudget</a>
+      <a class="nav-link" href="#uc-10-raum-puls--pädagogische-begleitung">UC-10: Beobachter Raum-Puls</a>
+
+      <div class="nav-group-title">Teil C: RaumAdmin</div>
+      <a class="nav-link" href="#uc-11-raum-zutrittsverwaltung">UC-11: Raum-Zutrittsverwaltung</a>
+      <a class="nav-link" href="#uc-12-raum-spielekatalog-kuratieren">UC-12: Raum-Spielekatalog</a>
+
+      <div class="nav-group-title">Teil D: HouseAdmin</div>
+      <a class="nav-link" href="#uc-13-raum-lebenszyklus--raumadmin-zuweisung">UC-13: Raum-Lebenszyklus</a>
+      <a class="nav-link" href="#uc-14-raum-sicherung--wiederherstellung-backuprestore">UC-14: Backup & Restore</a>
+      <a class="nav-link" href="#uc-15-bewohner-verwaltung--emoji-pin-reset">UC-15: Bewohner & PIN-Reset</a>
+      <a class="nav-link" href="#uc-16-familien-verknüpfung-eltern-kind-zuordnung">UC-16: Familien-Verknüpfung</a>
+      <a class="nav-link" href="#uc-17-hausweiter-spielekatalog">UC-17: Haus-Spielekatalog</a>
+      <a class="nav-link" href="#uc-18-einladungslinks-für-eltern--beobachter">UC-18: Einladungslinks</a>
+
+      <div class="nav-group-title">Teil E: SuperAdmin</div>
+      <a class="nav-link" href="#uc-19-spielhaus-gründung--plattformverwaltung">UC-19: Haus-Gründung</a>
+      <a class="nav-link" href="#uc-20-plattform--und-haus-admins-delegieren">UC-20: Admin-Delegation</a>
+      <a class="nav-link" href="#uc-21-spiele-bibliothek--paket-upload">UC-21: Bibliothek & Upload</a>
+      <a class="nav-link" href="#uc-22-sandbox-prüfung-freigabe-workflow--löschung">UC-22: Release & Sandbox</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="header">
+      <div class="badge-dv">GCS-CMS Datenverarbeitungskonzept (DV)</div>
+      <button class="print-btn" onclick="window.print()">🖨️ Drucken / PDF</button>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="hero-card">
+        <h2>DV-Konzept: GCS-CMS</h2>
+        <p>Detaillierte technische Spezifikation aller 22 Use Cases mit Sequenzdiagrammen, Task-Sequenzen und Action-Aufgaben.</p>
+      </div>
+
+      </section><section class="doc-card" id="1-einleitung-und-systemarchitektur">
+<h2 class="section-title">1. Einleitung und Systemarchitektur</h2>
+<p>Dieses Datenverarbeitungskonzept (DV-Konzept) spezifiziert die technische und funktionale Architektur des <strong>GCS-CMS</strong> (Game Creation Suite Content Management System).</p>
+<h3 class="sub-title" id="11-architekturschichten"><span class="uc-badge">UseCase</span> 1.1 Architekturschichten</h3>
+<ol class="steps-list">
+<li><strong>UI- & Präsentationsschicht (Stage-Ebene):</strong> Visuelle Komponenten (Buttons, Tabellen, Formulare, Dialoge, Timer), die in den Stages definiert sind.</li>
+<li><strong>Steuerungsschicht (Task- & Action-Flow):</strong> Reaktive Tasks, die Ereignisse (Klicks, Timer, Serverantworten) verarbeiten und atomare Actions sequentiell oder bedingt ausführen.</li>
+<li><strong>Zustandsschicht (State Management):</strong> Lokale Stage-Variablen und globale Blueprint-Variablen (<code class="code-tag">Token</code>, <code class="code-tag">Busy</code>, <code class="code-tag">Status</code>, <code class="code-tag">AnmeldeAntwort</code>, etc.).</li>
+<li><strong>Service- & Persistenzschicht (Backend-Services & REST-APIs):</strong> HTTP-Endpunkte (<code class="code-tag">/api/cms/...</code>), die Sessions, Rechtematrizen, Entitäten und Raumzustände verwalten.</li>
+</ol>
+<h3 class="sub-title" id="12-interaktionsmuster"><span class="uc-badge">UseCase</span> 1.2 Interaktionsmuster</h3>
+<p>Jeder Use Case folgt einem durchgängigen 4-Phasen-Muster:</p>
+<p><code class="code-tag">[Benutzer-Interaktion] → [UI-Event] → [Task-Sequenz & Guards] → [Action: Property/HTTP/Method] → [State-Update & UI-Reaktion]</code></p>
+</section><section class="doc-card" id="2-inhaltsverzeichnis-der-use-cases">
+<h2 class="section-title">2. Inhaltsverzeichnis der Use Cases</h2>
+<h3 class="sub-title" id="teil-a-spieler---kinder-sitzungen-front-office"><span class="uc-badge">UseCase</span> Teil A: Spieler- & Kinder-Sitzungen (Front-Office)</h3>
+<ul class="custom-list">
+<li><a href="#uc-01-emoji-pin-anmeldung--authentifizierung" class="doc-link">UC-01: Emoji-PIN Anmeldung & Authentifizierung</a></li>
+<li><a href="#uc-02-spielhaus-galerie--raum-präsenztimer" class="doc-link">UC-02: Spielhaus-Galerie & Raum-Präsenztimer</a></li>
+<li><a href="#uc-03-spieleauswahl--spielstart" class="doc-link">UC-03: Spieleauswahl & Spielstart</a></li>
+<li><a href="#uc-04-spielerprofil-avatar-upload--zugangshilfe" class="doc-link">UC-04: Spielerprofil, Avatar-Upload & Zugangshilfe</a></li>
+<li><a href="#uc-05-mein-zimmer--persönliche-zutrittssteuerung" class="doc-link">UC-05: Mein Zimmer – Persönliche Zutrittssteuerung</a></li>
+<li><a href="#uc-06-mehrspieler-lobby--einladungsversand" class="doc-link">UC-06: Mehrspieler-Lobby & Einladungsversand</a></li>
+<li><a href="#uc-07-mehrspieler-postfach--spielbeitritt" class="doc-link">UC-07: Mehrspieler-Postfach & Spielbeitritt</a></li>
+</ul>
+<h3 class="sub-title" id="teil-b-eltern--beobachter-family-office"><span class="uc-badge">UseCase</span> Teil B: Eltern & Beobachter (Family Office)</h3>
+<ul class="custom-list">
+<li><a href="#uc-08-zentrale-verwaltungs-authentifizierung" class="doc-link">UC-08: Zentrale Verwaltungs-Authentifizierung</a></li>
+<li><a href="#uc-09-eltern-aktivitätsmonitoring--2-stufen-zeitbudget" class="doc-link">UC-09: Eltern-Aktivitätsmonitoring & 2-Stufen-Zeitbudget</a></li>
+<li><a href="#uc-10-raum-puls--pädagogische-begleitung" class="doc-link">UC-10: Raum-Puls & Pädagogische Begleitung</a></li>
+</ul>
+<h3 class="sub-title" id="teil-c-raum-administration-raumadmin"><span class="uc-badge">UseCase</span> Teil C: Raum-Administration (RaumAdmin)</h3>
+<ul class="custom-list">
+<li><a href="#uc-11-raum-zutrittsverwaltung" class="doc-link">UC-11: Raum-Zutrittsverwaltung</a></li>
+<li><a href="#uc-12-raum-spielekatalog-kuratieren" class="doc-link">UC-12: Raum-Spielekatalog kuratieren</a></li>
+</ul>
+<h3 class="sub-title" id="teil-d-haus-administration-houseadmin"><span class="uc-badge">UseCase</span> Teil D: Haus-Administration (HouseAdmin)</h3>
+<ul class="custom-list">
+<li><a href="#uc-13-raum-lebenszyklus--raumadmin-zuweisung" class="doc-link">UC-13: Raum-Lebenszyklus & RaumAdmin-Zuweisung</a></li>
+<li><a href="#uc-14-raum-sicherung--wiederherstellung-backuprestore" class="doc-link">UC-14: Raum-Sicherung & Wiederherstellung (Backup/Restore)</a></li>
+<li><a href="#uc-15-bewohner-verwaltung--emoji-pin-reset" class="doc-link">UC-15: Bewohner-Verwaltung & Emoji-PIN-Reset</a></li>
+<li><a href="#uc-16-familien-verknüpfung-eltern-kind-zuordnung" class="doc-link">UC-16: Familien-Verknüpfung (Eltern-Kind-Zuordnung)</a></li>
+<li><a href="#uc-17-hausweiter-spielekatalog" class="doc-link">UC-17: Hausweiter Spielekatalog</a></li>
+<li><a href="#uc-18-einladungslinks-für-eltern--beobachter" class="doc-link">UC-18: Einladungslinks für Eltern & Beobachter</a></li>
+</ul>
+<h3 class="sub-title" id="teil-e-plattform-administration-superadmin"><span class="uc-badge">UseCase</span> Teil E: Plattform-Administration (SuperAdmin)</h3>
+<ul class="custom-list">
+<li><a href="#uc-19-spielhaus-gründung--plattformverwaltung" class="doc-link">UC-19: Spielhaus-Gründung & Plattformverwaltung</a></li>
+<li><a href="#uc-20-plattform--und-haus-admins-delegieren" class="doc-link">UC-20: Plattform- und Haus-Admins delegieren</a></li>
+<li><a href="#uc-21-spiele-bibliothek--paket-upload" class="doc-link">UC-21: Spiele-Bibliothek & Paket-Upload</a></li>
+<li><a href="#uc-22-sandbox-prüfung-freigabe-workflow--löschung" class="doc-link">UC-22: Sandbox-Prüfung, Freigabe-Workflow & Löschung</a></li>
+</ul>
+</section><section class="doc-card" id="teil-a-spieler---kinder-sitzungen-front-office">
+<h2 class="section-title">Teil A: Spieler- & Kinder-Sitzungen (Front-Office)</h2>
+<h3 class="sub-title" id="uc-01-emoji-pin-anmeldung--authentifizierung"><span class="uc-badge">UseCase</span> UC-01: Emoji-PIN Anmeldung & Authentifizierung</h3>
+<p><strong>Beschreibung:</strong> Ein Kind authentifiziert sich ohne Tastatur über eine 4-stellige Folge von Bildsymbolen. Die Eingabe wird visualisiert, geprüft und bei Erfolg eine Benutzersitzung initialisiert.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Kind as 🧒 Kind / Spieler
+    participant UI as stage_main (UI)
+    participant TE as TaskExecutor
+    participant Srv as CMS Server (/api/cms/login)
+    participant Gal as stage_gallery
+
+    Kind->>UI: Klickt 4 Emojis (z.B. 🐶, 🌳, 🏠, 🐘)
+    UI->>TE: Trigger Task Waehle_Emoji
+    TE->>UI: Act_Waehle_Emoji (setzt Code[i], Platz[i].text)
+    Kind->>UI: Klickt ✓ (Anmelden)
+    UI->>TE: Trigger Task Anmeldung
+    TE->>UI: Act_Emoji_Code_beim_Server_anmelden__Eingabe_Sperren (Busy=1)
+    TE->>Srv: HTTP POST /api/cms/login {code: [Code0..Code3]}
+    Srv-->>TE: JSON Response {ok: true, token, user}
+    alt AnmeldeAntwort.ok == true
+        TE->>TE: Trigger Task Angemeldet
+        TE->>UI: Act_Angemeldetes_Profil_anzeigen
+        TE->>Gal: Act_Zur_Galerie_Wechseln (Switch Stage)
+    else AnmeldeAntwort.ok == false
+        TE->>TE: Trigger Task AnmeldeFehler
+        TE->>UI: Act_Anmeldung_Fehler_Anzeigen (Busy=0, Fehlerhinweis)
+    end</pre></div>
+<p><strong>Beteiligte Tasks & Verzweigungen:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Waehle_dog</code> (etc.): Triggert bei Klick auf ein Emoji; füllt den nächsten freien Slot (0–3).</li>
+<li><code class="code-tag">LoeschenTask</code>: Triggert bei <code class="code-tag">⌫</code>; leert den zuletzt belegten Platz.</li>
+<li><code class="code-tag">Anmeldung</code>: Startet Authentifizierungs-Workflow.</li>
+<li><code class="code-tag">Angemeldet</code>: Folge-Task bei erfolgreicher Rückmeldung (<code class="code-tag">AnmeldeAntwort.ok == true</code>).</li>
+<li><code class="code-tag">AnmeldeFehler</code>: Folge-Task bei ungültiger PIN oder Serverfehler.</li>
+</ul>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Emoji_Code_beim_Server_anmelden__Eingabe_Sperren_Und_Warten_Anzeigen</code> (<em>Typ: property</em>):</li>
+<li><strong>Aufgabe:</strong> Verhindert Doppeleingaben während der Netzwerkkommunikation und signalisiert Aktivität.</li>
+<li><strong>Eingabe:</strong> <code class="code-tag">Busy = 1</code>, <code class="code-tag">Hinweis.text = 'Wird angemeldet …'</code>.</li>
+<li><strong>Auswirkung:</strong> UI-Elemente gesperrt, Spinner/Status aktiv.</li>
+<li><code class="code-tag">Act_Emoji_Code_beim_Server_anmelden__Server_EmojiCode_Pruefen_Und_Anmelden</code> (<em>Typ: http</em>):</li>
+<li><strong>Aufgabe:</strong> Sendet die vier erfassten Emojis zur Prüfung an das CMS-Backend.</li>
+<li><strong>Endpoint / Methode:</strong> <code class="code-tag">POST /api/cms/login</code> | <strong>Payload:</strong> <code class="code-tag">{ code: [Code0, Code1, Code2, Code3] }</code>.</li>
+<li><strong>Ergebnis:</strong> Antwort wird in der Variable <code class="code-tag">AnmeldeAntwort</code> abgelegt.</li>
+<li><code class="code-tag">Act_Zur_Galerie_Wechseln</code> (<em>Typ: switch_stage</em>): Navigiert nach erfolgreicher Anmeldung zur Spielhaus-Galerie (<code class="code-tag">stage_gallery</code>).</li>
+<li><code class="code-tag">Act_Anmeldung_Fehler_Anzeigen</code> (<em>Typ: property</em>): Setzt UI bei Fehleingabe zurück (<code class="code-tag">Busy = 0</code>, Fehlertext, Plätze geleert).</li>
+</ul>
+<h3 class="sub-title" id="uc-02-spielhaus-galerie--raum-präsenztimer"><span class="uc-badge">UseCase</span> UC-02: Spielhaus-Galerie & Raum-Präsenztimer</h3>
+<p><strong>Beschreibung:</strong> Lädt die für das Kind freigeschalteten Räume und sendet zyklisch einen Anwesenheits-Heartbeat an den Server.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    participant Gal as stage_gallery (UI)
+    participant TE as TaskExecutor
+    participant Srv as CMS Server
+
+    Gal->>TE: Stage OnStart -> Task Raumliste
+    TE->>Srv: HTTP POST /api/cms/rooms {token}
+    Srv-->>TE: JSON {ok: true, rooms: [...]}
+    TE->>Gal: Act_Raeume_Anzeigen (Bind an Karte0..3 & RaumTabelle)
+    loop Alle 15 Sekunden (PraesenzTimer)
+        Gal->>TE: OnTimer -> Task Praesenz_Tick
+        TE->>Srv: HTTP POST /api/cms/room-presence {roomId, token}
+        Srv-->>TE: JSON {ok: true, activeUsers: [...]}
+    end</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Raeume_Laden</code> (<em>Typ: http</em>): Ruft <code class="code-tag">POST /api/cms/rooms</code> auf, speichert Resultat in <code class="code-tag">RaumAntwort</code>.</li>
+<li><code class="code-tag">Act_Raeume_Darstellen</code> (<em>Typ: call_method</em>): Übergibt das Array <code class="code-tag">RaumAntwort.rooms</code> an die visuelle Rasterkomponente <code class="code-tag">TObjectList</code>.</li>
+<li><code class="code-tag">Act_Praesenz_Senden</code> (<em>Typ: http</em>): Sendet periodisch <code class="code-tag">POST /api/cms/room-presence</code> mit aktuellem <code class="code-tag">roomId</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-03-spieleauswahl--spielstart"><span class="uc-badge">UseCase</span> UC-03: Spieleauswahl & Spielstart</h3>
+<p><strong>Beschreibung:</strong> Der Spieler wählt ein Spiel. Das System prüft serverseitig Raumzugang und verbleibendes Zeitbudget vor der Freigabe.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Kind as 🧒 Kind
+    participant UI as stage_gallery
+    participant Srv as CMS Server
+
+    Kind->>UI: Klickt Spielkarte (z.B. Karte0)
+    UI->>Srv: HTTP POST /api/cms/launch {gameId, roomId, token}
+    alt Budget & Zutritt OK
+        Srv-->>UI: {ok: true, launchUrl, sessionToken, remainingMinutes}
+        UI->>UI: Startet Spiel-Runner / Frame
+    else Zeitbudget abgelaufen
+        Srv-->>UI: {ok: false, error: 'BUDGET_EXCEEDED'}
+        UI->>UI: Zeigt Pausenhinweis & sperrt Spielstart
+    end</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Spiel_Waehlen</code> (<em>Typ: property</em>): Merkt gewählte <code class="code-tag">gameId</code> in <code class="code-tag">SelectedGameId</code> vor.</li>
+<li><code class="code-tag">Act_Launch_Server</code> (<em>Typ: http</em>): Sendet <code class="code-tag">POST /api/cms/launch</code> mit <code class="code-tag">gameId</code> und <code class="code-tag">roomId</code>.</li>
+<li><code class="code-tag">Act_Spiel_Instanz_Oeffnen</code> (<em>Typ: call_method</em>): Startet die Spielinstanz im Player.</li>
+</ul>
+<h3 class="sub-title" id="uc-04-spielerprofil-avatar-upload--zugangshilfe"><span class="uc-badge">UseCase</span> UC-04: Spielerprofil, Avatar-Upload & Zugangshilfe</h3>
+<p><strong>Beschreibung:</strong> Anpassung des Profilnamens, Auswahl aus 8 Tier-Avataren oder eigener Bildupload. Im Problemfall: Alarmsignal an Betreuer.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Kind as 🧒 Kind
+    participant Prof as stage_profile
+    participant Srv as CMS Server
+
+    Kind->>Prof: Wählt Avatar (z.B. 🦊) oder Datei
+    Prof->>Prof: Act_Avatar_Waehlen (Vorschau aktualisieren)
+    Kind->>Prof: Klickt ✓ Speichern
+    Prof->>Srv: HTTP POST /api/cms/profile/save {name, avatar, token}
+    Srv-->>Prof: {ok: true}
+    opt Zugangshilfe benötigt
+        Kind->>Prof: Klickt 🆘 Zugangshilfe
+        Prof->>Srv: HTTP POST /api/cms/profile/help {token, message}
+        Srv-->>Prof: {ok: true, status: 'Betreuer alarmiert'}
+    end</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Profil_Laden</code> (<em>Typ: http</em>): Ruft <code class="code-tag">POST /api/cms/profile/read</code> ab, um aktuellen Stand anzuzeigen.</li>
+<li><code class="code-tag">Act_Avatar_Uebertragen</code> (<em>Typ: http / multipart</em>): Lädt Bilddatei hoch und liefert Asset-URL zurück.</li>
+<li><code class="code-tag">Act_Profil_Speichern</code> (<em>Typ: http</em>): Sichert Profiländerungen via <code class="code-tag">POST /api/cms/profile/save</code>.</li>
+<li><code class="code-tag">Act_Profil_Hilfe_Anfordern</code> (<em>Typ: http</em>): Sendet Hilferuf via <code class="code-tag">POST /api/cms/profile/help</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-05-mein-zimmer--persönliche-zutrittssteuerung"><span class="uc-badge">UseCase</span> UC-05: Mein Zimmer – Persönliche Zutrittssteuerung</h3>
+<p><strong>Beschreibung:</strong> Selbstbestimmte Zutrittsfreigabe für befreundete Kinder zum eigenen virtuellen Zimmer.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Kind as 🧒 Zimmer-Inhaber
+    participant UI as stage_child_room_access
+    participant Srv as CMS Server
+
+    UI->>Srv: POST /api/cms/child/rooms & /api/cms/child/members
+    Srv-->>UI: Liefert Zimmer & Liste der Hauskinder
+    Kind->>UI: Wählt Bewohner & klickt 'Zutritt ändern'
+    Kind->>UI: Klickt 'Zutritt bestätigen'
+    UI->>Srv: POST /api/cms/child/membership {roomId, targetPersonId, active}
+    Srv-->>UI: {ok: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Zimmer_Laden</code> (<em>Typ: http</em>): Liest Zimmer via <code class="code-tag">POST /api/cms/child/rooms</code> aus.</li>
+<li><code class="code-tag">Act_Zimmer_Mitglieder_Laden</code> (<em>Typ: http</em>): Ruft Bewohnerliste via <code class="code-tag">POST /api/cms/child/members</code> ab.</li>
+<li><code class="code-tag">Act_Zutritt_Umschalten_Server</code> (<em>Typ: http</em>): Setzt Beziehungsstatus via <code class="code-tag">POST /api/cms/child/membership</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-06-mehrspieler-lobby--einladungsversand"><span class="uc-badge">UseCase</span> UC-06: Mehrspieler-Lobby & Einladungsversand</h3>
+<p><strong>Beschreibung:</strong> Anwesende Mitspieler suchen, Spiel wählen und eine Mehrspielerpartie initiieren.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Host as 🧒 Gastgeber
+    participant Lobby as stage_multiplayer_lobby
+    participant Srv as CMS Server
+
+    Lobby->>Srv: POST /api/cms/mp/available
+    Srv-->>Lobby: {candidates: [...]}
+    Host->>Lobby: Wählt Mitspieler & Spiel -> 'Einladung senden'
+    Lobby->>Srv: POST /api/cms/mp/start-invite {targetPersonId, gameId, roomId}
+    Srv-->>Lobby: {ok: true, inviteId, status: 'WAITING'}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Lobby_Init</code> (<em>Typ: http</em>): Fragt verfügbare Spieler via <code class="code-tag">/api/cms/mp/available</code> ab.</li>
+<li><code class="code-tag">Act_Einladung_Senden_Server</code> (<em>Typ: http</em>): Erzeugt Einladung via <code class="code-tag">POST /api/cms/mp/start-invite</code>.</li>
+<li><code class="code-tag">Act_Partie_Beenden_Server</code> (<em>Typ: http</em>): Schließt die Sitzung mit <code class="code-tag">POST /api/cms/mp/end</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-07-mehrspieler-postfach--spielbeitritt"><span class="uc-badge">UseCase</span> UC-07: Mehrspieler-Postfach & Spielbeitritt</h3>
+<p><strong>Beschreibung:</strong> Empfangene Spieleinladungen verwalten, annehmen oder ablehnen.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Gast as 🧒 Eingeladenes Kind
+    participant Inbox as stage_multiplayer_inbox
+    participant Srv as CMS Server
+
+    Inbox->>Srv: POST /api/cms/mp/invitations
+    Srv-->>Inbox: {invites: [{id, fromUser, gameTitle}]}
+    Gast->>Inbox: Wählt Einladung & klickt 'Annehmen & öffnen'
+    Inbox->>Srv: POST /api/cms/mp/respond {inviteId, accept: true}
+    Srv-->>Inbox: {ok: true, launchUrl, sessionId}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Inbox_Laden</code> (<em>Typ: http</em>): Ruft Einladungen via <code class="code-tag">POST /api/cms/mp/invitations</code> ab.</li>
+<li><code class="code-tag">Act_Einladung_Antworten_Server</code> (<em>Typ: http</em>): Sendet Entscheidung über <code class="code-tag">POST /api/cms/mp/respond</code>.</li>
+<li><code class="code-tag">Act_Teilnahme_Zurueckziehen_Server</code> (<em>Typ: http</em>): Zieht Zusage mit <code class="code-tag">POST /api/cms/mp/withdraw</code> zurück.</li>
+</ul>
+</section><section class="doc-card" id="teil-b-eltern--beobachter-family-office">
+<h2 class="section-title">Teil B: Eltern & Beobachter (Family Office)</h2>
+<h3 class="sub-title" id="uc-08-zentrale-verwaltungs-authentifizierung"><span class="uc-badge">UseCase</span> UC-08: Zentrale Verwaltungs-Authentifizierung</h3>
+<p><strong>Beschreibung:</strong> Erwachsene melden sich mit Benutzername und Passwort an. Das CMS prüft das Passwort und fragt über <code class="code-tag">/api/cms/contexts</code> die Rollen ab, um die passenden Einstiegspunkte freizuschalten.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Admin as 👤 Erwachsener / Admin
+    participant Login as stage_admin_login
+    participant TE as TaskExecutor
+    participant Srv as CMS Server
+
+    Admin->>Login: Eingabe username & password
+    Admin->>Login: Klickt 'Anmelden'
+    Login->>TE: Trigger Task Anmeldung_Starten
+    TE->>Srv: HTTP POST /api/cms/admin-login {username, password}
+    Srv-->>TE: {ok: true, token, name}
+    TE->>Srv: HTTP POST /api/cms/contexts {token}
+    Srv-->>TE: {isSuperAdmin, isHouseAdmin, isRoomAdmin, isParent, isObserver}
+    TE->>Login: Task Kontexte_Anzeigen (Aktiviert passende Schaltflächen)</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Admin_Anmeldung_Server</code> (<em>Typ: http</em>): Prüft Logindaten via <code class="code-tag">POST /api/cms/admin-login</code>.</li>
+<li><code class="code-tag">Act_Sitzung_Lesen</code> (<em>Typ: http</em>): Fragt Berechtigungen über <code class="code-tag">POST /api/cms/contexts</code> ab.</li>
+<li><code class="code-tag">Act_Sitzung_Anzeigen</code> (<em>Typ: property</em>): Schaltet Aktionsknöpfe (<code class="code-tag">Verwaltung öffnen</code>, <code class="code-tag">Meine Kinder öffnen</code>, <code class="code-tag">Beobachtung öffnen</code>) sichtbar.</li>
+</ul>
+<h3 class="sub-title" id="uc-09-eltern-aktivitätsmonitoring--2-stufen-zeitbudget"><span class="uc-badge">UseCase</span> UC-09: Eltern-Aktivitätsmonitoring & 2-Stufen-Zeitbudget</h3>
+<p><strong>Beschreibung:</strong> Eltern sehen Aktivitäten und Bewertungen ein und steuern das tägliche Zeitlimit mit verbindlicher 2-Stufen-Bestätigung.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Eltern as 👨‍👩‍👧 Elternteil
+    participant UI as stage_parent
+    participant Srv as CMS Server
+
+    UI->>Srv: POST /api/cms/parent/my-children
+    Srv-->>UI: {children: [{id, name, currentBudget}]}
+    Eltern->>UI: Wählt Kind aus der Tabelle
+    UI->>Srv: POST /api/cms/parent/child-activity & /child-progress
+    Srv-->>UI: {sessions: [...], evaluations: [...]}
+    Eltern->>UI: Gibt BudgetMinuten ein & klickt 'Budget speichern'
+    UI->>Srv: POST /api/cms/parent/set-budget {childId, minutes}
+    Srv-->>UI: {ok: true, pendingApproval: true}
+    UI->>UI: Blendet 'Änderung bestätigen' ein
+    Eltern->>UI: Klickt 'Änderung bestätigen'
+    UI->>Srv: POST /api/cms/parent/approve-budget {childId}
+    Srv-->>UI: {ok: true, budgetApproved: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Kinder_Server</code> (<em>Typ: http</em>): Lädt verknüpfte Kinder via <code class="code-tag">POST /api/cms/parent/my-children</code>.</li>
+<li><code class="code-tag">Act_Details_Server</code> (<em>Typ: http</em>): Ruft Historie via <code class="code-tag">POST /api/cms/parent/child-activity</code> ab.</li>
+<li><code class="code-tag">Act_Budget_Server</code> (<em>Typ: http</em>): Reicht Budgetvorschlag via <code class="code-tag">POST /api/cms/parent/set-budget</code> ein.</li>
+<li><code class="code-tag">Act_Bestaetigen_Server</code> (<em>Typ: http</em>): Schließt die Freigabe via <code class="code-tag">POST /api/cms/parent/approve-budget</code> ab.</li>
+</ul>
+<h3 class="sub-title" id="uc-10-raum-puls--pädagogische-begleitung"><span class="uc-badge">UseCase</span> UC-10: Raum-Puls & Pädagogische Begleitung</h3>
+<p><strong>Beschreibung:</strong> Beobachter und Betreuer verfolgen in Echtzeit die Aktivität und Belegung aller Räume.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor Obs as 👁️ Beobachter
+    participant UI as stage_observer
+    participant Srv as CMS Server
+
+    UI->>Srv: POST /api/cms/parent/room-pulse
+    Srv-->>UI: {pulse: [{roomName, activeChildren, currentActivity}]}
+    UI->>UI: Act_Puls_Uebernehmen (Aktualisiert Puls-Tabelle)</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Puls_Server</code> (<em>Typ: http</em>): Ruft Raumauslastung via <code class="code-tag">POST /api/cms/parent/room-pulse</code> ab.</li>
+<li><code class="code-tag">Act_Puls_Uebernehmen</code> (<em>Typ: call_method</em>): Schreibt Datenzeilen in <code class="code-tag">PulsTabelle</code>.</li>
+</ul>
+</section><section class="doc-card" id="teil-c-raum-administration-raumadmin">
+<h2 class="section-title">Teil C: Raum-Administration (RaumAdmin)</h2>
+<h3 class="sub-title" id="uc-11-raum-zutrittsverwaltung"><span class="uc-badge">UseCase</span> UC-11: Raum-Zutrittsverwaltung</h3>
+<p><strong>Beschreibung:</strong> RaumAdmins steuern die Zutrittsberechtigung aller Hausbewohner für die von ihnen betreuten Räume.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor RAdmin as 🚪 RaumAdmin
+    participant UI as stage_room_access
+    participant Srv as CMS Server
+
+    UI->>Srv: POST /api/cms/admin/members {roomId}
+    Srv-->>UI: {members: [{personId, name, hasAccess}]}
+    RAdmin->>UI: Wählt Bewohner & klickt 'Zutritt umschalten'
+    UI->>Srv: POST /api/cms/admin/membership {roomId, personId, active}
+    Srv-->>UI: {ok: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Mitglieder_Laden</code> (<em>Typ: http</em>): Sendet <code class="code-tag">POST /api/cms/admin/members</code> mit <code class="code-tag">roomId</code>.</li>
+<li><code class="code-tag">Act_Zutritt_Umschalten</code> (<em>Typ: http</em>): Invertiert Zutritt via <code class="code-tag">POST /api/cms/admin/membership</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-12-raum-spielekatalog-kuratieren"><span class="uc-badge">UseCase</span> UC-12: Raum-Spielekatalog kuratieren</h3>
+<p><strong>Beschreibung:</strong> Der RaumAdmin schaltet gezielt Spiele frei, die im Raum zur Verfügung stehen sollen.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor RAdmin as 🚪 RaumAdmin
+    participant UI as stage_room_games
+    participant Srv as CMS Server
+
+    UI->>Srv: POST /api/cms/admin/games {roomId}
+    Srv-->>UI: {games: [{gameId, title, enabledInRoom}]}
+    RAdmin->>UI: Klickt auf Spiel & schaltet Freigabe um
+    UI->>Srv: POST /api/cms/admin/games {roomId, gameId, enabled}
+    Srv-->>UI: {ok: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_RaumSpiele_Laden</code> (<em>Typ: http</em>): Ruft Raumspiele via <code class="code-tag">POST /api/cms/admin/games</code> ab.</li>
+<li><code class="code-tag">Act_RaumSpiel_Umschalten</code> (<em>Typ: http</em>): Aktualisiert Freigabeflag des Spiels.</li>
+</ul>
+</section><section class="doc-card" id="teil-d-haus-administration-houseadmin">
+<h2 class="section-title">Teil D: Haus-Administration (HouseAdmin)</h2>
+<h3 class="sub-title" id="uc-13-raum-lebenszyklus--raumadmin-zuweisung"><span class="uc-badge">UseCase</span> UC-13: Raum-Lebenszyklus & RaumAdmin-Zuweisung</h3>
+<p><strong>Beschreibung:</strong> Der HouseAdmin erstellt neue Räume, bearbeitet Metadaten und weist verantwortliche RaumAdmins zu.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor HAdmin as 🏡 HouseAdmin
+    participant UI as stage_house_rooms & stage_house_room_detail
+    participant Srv as CMS Server
+
+    HAdmin->>UI: RaumName eingeben & 'Anlegen' klicken
+    UI->>Srv: POST /api/cms/admin/room-create {houseId, name}
+    Srv-->>UI: {ok: true, roomId}
+    HAdmin->>UI: Öffnet Raum-Detail & wählt Admin-Kandidaten
+    HAdmin->>UI: Klickt 'RaumAdmin übernehmen' & 'Bestätigen'
+    UI->>Srv: POST /api/cms/admin/room-admin-replace {roomId, newAdminPersonId}
+    Srv-->>UI: {ok: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Raum_Anlegen</code> (<em>Typ: http</em>): Legt Raum mit <code class="code-tag">POST /api/cms/admin/room-create</code> an.</li>
+<li><code class="code-tag">Act_RaumProfil_Speichern</code> (<em>Typ: http</em>): Sichert Stammdaten mit <code class="code-tag">POST /api/cms/admin/house-room-update</code>.</li>
+<li><code class="code-tag">Act_RaumAdmin_Zuweisen_Server</code> (<em>Typ: http</em>): Überträgt Leitung via <code class="code-tag">POST /api/cms/admin/room-admin-replace</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-14-raum-sicherung--wiederherstellung-backuprestore"><span class="uc-badge">UseCase</span> UC-14: Raum-Sicherung & Wiederherstellung (Backup/Restore)</h3>
+<p><strong>Beschreibung:</strong> Zur Risikominimierung können Raumeinstellungen und Mitgliederlisten als versionsgenauer Snapshot gesichert und wiederhergestellt werden.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor HAdmin as 🏡 HouseAdmin
+    participant UI as stage_house_room_detail
+    participant Srv as CMS Server
+
+    alt Sicherung erstellen
+        HAdmin->>UI: Klickt 'Sicherung erstellen'
+        UI->>Srv: POST /api/cms/admin/backup {roomId}
+        Srv-->>UI: {ok: true, backupTimestamp}
+    else Wiederherstellen
+        HAdmin->>UI: Klickt 'Wiederherstellen' & 'Bestätigen'
+        UI->>Srv: POST /api/cms/admin/restore {roomId}
+        Srv-->>UI: {ok: true, restored: true}
+    end</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_RaumBackup_Speichern</code> (<em>Typ: http</em>): Erzeugt Snapshot via <code class="code-tag">POST /api/cms/admin/backup</code>.</li>
+<li><code class="code-tag">Act_RaumRestore_Server</code> (<em>Typ: http</em>): Rekonstruiert Snapshot via <code class="code-tag">POST /api/cms/admin/restore</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-15-bewohner-verwaltung--emoji-pin-reset"><span class="uc-badge">UseCase</span> UC-15: Bewohner-Verwaltung & Emoji-PIN-Reset</h3>
+<p><strong>Beschreibung:</strong> Anlegen neuer Bewohner sowie Vergabe und Rücksetzen von Emoji-PINs bei vergessenem Passwort.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor HAdmin as 🏡 HouseAdmin
+    participant UI as stage_house_residents & detail
+    participant Srv as CMS Server
+
+    HAdmin->>UI: Neuer Bewohner (Name, Avatar, 4-Emoji-PIN)
+    UI->>Srv: POST /api/cms/admin/house-person-create {houseId, name, avatar, code}
+    Srv-->>UI: {ok: true, personId}
+    opt PIN-Reset
+        HAdmin->>UI: Trägt 4 neue Emojis ein & klickt 'Emoji-Code speichern'
+        UI->>Srv: POST /api/cms/admin/house-person-code {personId, code}
+        Srv-->>UI: {ok: true, codeUpdated: true}
+    end</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Bewohner_Anlegen</code> (<em>Typ: http</em>): Erstellt Person via <code class="code-tag">POST /api/cms/admin/house-person-create</code>.</li>
+<li><code class="code-tag">Act_BewohnerCode_Speichern</code> (<em>Typ: http</em>): Überschreibt PIN via <code class="code-tag">POST /api/cms/admin/house-person-code</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-16-familien-verknüpfung-eltern-kind-zuordnung"><span class="uc-badge">UseCase</span> UC-16: Familien-Verknüpfung (Eltern-Kind-Zuordnung)</h3>
+<p><strong>Beschreibung:</strong> Verknüpfung von Erziehungsberechtigten mit Kindern zur Freischaltung des Eltern-Dashboards.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor HAdmin as 🏡 HouseAdmin
+    participant UI as stage_house_families
+    participant Srv as CMS Server
+
+    UI->>Srv: POST /api/cms/admin/house-adults & /house-children
+    Srv-->>UI: Listen für Erwachsene & Kinder
+    HAdmin->>UI: Wählt Erwachsenen & Kind -> 'Ausgewählte Personen zuordnen'
+    HAdmin->>UI: Klickt 'Zuordnung bestätigen'
+    UI->>Srv: POST /api/cms/admin/guardian-set {adultId, childId, active: true}
+    Srv-->>UI: {ok: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Erwachsene_Laden</code> & <code class="code-tag">Act_Kinder_Laden</code> (<em>Typ: http</em>): Ruft Bewohner nach Kategorie ab.</li>
+<li><code class="code-tag">Act_Guardian_Set_Server</code> (<em>Typ: http</em>): Speichert Beziehung via <code class="code-tag">POST /api/cms/admin/guardian-set</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-17-hausweiter-spielekatalog"><span class="uc-badge">UseCase</span> UC-17: Hausweiter Spielekatalog</h3>
+<p><strong>Beschreibung:</strong> Der HouseAdmin aktiviert oder deaktiviert Plattformspiele für die gesamte Einrichtung.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor HAdmin as 🏡 HouseAdmin
+    participant UI as stage_house_games
+    participant Srv as CMS Server
+
+    UI->>Srv: POST /api/cms/admin/house-games {houseId}
+    Srv-->>UI: {games: [{gameId, active}]}
+    HAdmin->>UI: Klickt auf Spiel-Kippschalter
+    UI->>Srv: POST /api/cms/admin/house-game-set {houseId, gameId, active}
+    Srv-->>UI: {ok: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_House_Games_Laden</code> (<em>Typ: http</em>): Sendet <code class="code-tag">POST /api/cms/admin/house-games</code>.</li>
+<li><code class="code-tag">Act_House_Game_Set_Server</code> (<em>Typ: http</em>): Sendet Toggle via <code class="code-tag">POST /api/cms/admin/house-game-set</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-18-einladungslinks-für-eltern--beobachter"><span class="uc-badge">UseCase</span> UC-18: Einladungslinks für Eltern & Beobachter</h3>
+<p><strong>Beschreibung:</strong> Ausstellung tokenisierter Einladungslinks zur Selbstregistrierung von Eltern und Beobachtern.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor HAdmin as 🏡 HouseAdmin
+    participant UI as stage_house_invites
+    participant Srv as CMS Server
+
+    HAdmin->>UI: Name & Kind/Raum auswählen -> 'Einladungslink erstellen'
+    UI->>Srv: POST /api/cms/admin/parent-invite (oder /observer-invite)
+    Srv-->>UI: {ok: true, inviteLink, token}
+    UI->>UI: Stellt Link im Textfeld bereit
+    opt Widerruf
+        HAdmin->>UI: Klickt 'Ausgewählte Einladung widerrufen'
+        UI->>Srv: POST /api/cms/admin/house-invite-revoke {inviteId}
+        Srv-->>UI: {ok: true, revoked: true}
+    end</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Eltern_Einladen_Server</code> (<em>Typ: http</em>): Erzeugt Elternlink via <code class="code-tag">POST /api/cms/admin/parent-invite</code>.</li>
+<li><code class="code-tag">Act_Beobachter_Einladen_Server</code> (<em>Typ: http</em>): Erzeugt Beobachterlink via <code class="code-tag">POST /api/cms/admin/observer-invite</code>.</li>
+<li><code class="code-tag">Act_Einladung_Widerrufen_Server</code> (<em>Typ: http</em>): Macht Token ungültig via <code class="code-tag">POST /api/cms/admin/house-invite-revoke</code>.</li>
+</ul>
+</section><section class="doc-card" id="teil-e-plattform-administration-superadmin">
+<h2 class="section-title">Teil E: Plattform-Administration (SuperAdmin)</h2>
+<h3 class="sub-title" id="uc-19-spielhaus-gründung--plattformverwaltung"><span class="uc-badge">UseCase</span> UC-19: Spielhaus-Gründung & Plattformverwaltung</h3>
+<p><strong>Beschreibung:</strong> SuperAdmins gründen neue Häuser, verwalten Stammdaten und erzeugen Registrierungslinks für Spieler.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor SAdmin as 👑 SuperAdmin
+    participant UI as stage_super_houses & detail
+    participant Srv as CMS Server
+
+    SAdmin->>UI: HausEingabe ausfüllen & 'Anlegen' klicken
+    UI->>Srv: POST /api/cms/admin/super-house-create {name}
+    Srv-->>UI: {ok: true, houseId}
+    SAdmin->>UI: Klickt 'Spieler-Link'
+    UI->>Srv: POST /api/cms/admin/super-player-link {houseId}
+    Srv-->>UI: {ok: true, playerLink}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Super_House_Create</code> (<em>Typ: http</em>): Legt Haus via <code class="code-tag">POST /api/cms/admin/super-house-create</code> an.</li>
+<li><code class="code-tag">Act_Super_Player_Link</code> (<em>Typ: http</em>): Generiert Einladungslink via <code class="code-tag">POST /api/cms/admin/super-player-link</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-20-plattform--und-haus-admins-delegieren"><span class="uc-badge">UseCase</span> UC-20: Plattform- und Haus-Admins delegieren</h3>
+<p><strong>Beschreibung:</strong> Verwaltung von Administrationskonten, Rollenzuweisung (SuperAdmin, HouseAdmin) und Kontosperrungen.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor SAdmin as 👑 SuperAdmin
+    participant UI as stage_super_admins & detail
+    participant Srv as CMS Server
+
+    UI->>Srv: POST /api/cms/admin/super-admins
+    Srv-->>UI: {admins: [...]}
+    SAdmin->>UI: Wählt Person & vergibt Zuständigkeit
+    UI->>Srv: POST /api/cms/admin/super-admin-set {personId, houseId, role}
+    Srv-->>UI: {ok: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Super_Admins_Laden</code> (<em>Typ: http</em>): Liest Admins via <code class="code-tag">POST /api/cms/admin/super-admins</code>.</li>
+<li><code class="code-tag">Act_Super_Admin_Set</code> (<em>Typ: http</em>): Aktualisiert Rollenstatus via <code class="code-tag">POST /api/cms/admin/super-admin-set</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-21-spiele-bibliothek--paket-upload"><span class="uc-badge">UseCase</span> UC-21: Spiele-Bibliothek & Paket-Upload</h3>
+<p><strong>Beschreibung:</strong> Einstellen neuer Spielprojekte in die globale Bibliothek über Archivdateien (JSON oder ZIP) mit automatischer Versionierung.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor SAdmin as 👑 SuperAdmin
+    participant UI as stage_library & detail
+    participant Srv as CMS Server
+
+    SAdmin->>UI: SpielName eingeben & 'Spiel anlegen'
+    UI->>Srv: POST /api/cms/admin/super-game-create {name}
+    Srv-->>UI: {ok: true, gameId}
+    SAdmin->>UI: Datei auswählen & '📤 Hochladen' klicken
+    UI->>Srv: POST /api/cms/upload-library (multipart/form-data)
+    Srv-->>UI: {ok: true, packageUrl, version: 1}
+    SAdmin->>UI: '💾 Speichern'
+    UI->>Srv: POST /api/cms/admin/super-game-update {gameId, title, desc, packageUrl}
+    Srv-->>UI: {ok: true}</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Super_Game_Create</code> (<em>Typ: http</em>): Erzeugt Spiel-Eintrag via <code class="code-tag">POST /api/cms/admin/super-game-create</code>.</li>
+<li><code class="code-tag">Act_Game_Upload_Server</code> (<em>Typ: http / multipart</em>): Überträgt Archiv via <code class="code-tag">POST /api/cms/upload-library</code>.</li>
+<li><code class="code-tag">Act_Super_Game_Update</code> (<em>Typ: http</em>): Sichert Metadaten via <code class="code-tag">POST /api/cms/admin/super-game-update</code>.</li>
+</ul>
+<h3 class="sub-title" id="uc-22-sandbox-prüfung-freigabe-workflow--löschung"><span class="uc-badge">UseCase</span> UC-22: Sandbox-Prüfung, Freigabe-Workflow & Löschung</h3>
+<p><strong>Beschreibung:</strong> Qualitätssicherung in isolierter Sandbox, Release für alle Häuser oder Rückzug als Entwurf sowie abgesicherte 2-Stufen-Löschung.</p>
+<div class="mermaid-box"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor SAdmin as 👑 SuperAdmin
+    participant UI as stage_library_detail
+    participant Srv as CMS Server
+
+    opt Sandbox-Prüfung
+        SAdmin->>UI: Klickt '👁 Begutachten'
+        UI->>UI: Startet isolierte Spiel-Vorschau in Test-Canvas
+    end
+    alt Veröffentlichen
+        SAdmin->>UI: Klickt 'Veröffentlichen'
+        UI->>Srv: POST /api/cms/admin/super-game-update {gameId, status: 'published'}
+        Srv-->>UI: {ok: true, status: 'published'}
+    else Als Entwurf zurückziehen
+        SAdmin->>UI: Klickt 'Als Entwurf zurückziehen'
+        UI->>Srv: POST /api/cms/admin/super-game-update {gameId, status: 'draft'}
+        Srv-->>UI: {ok: true, status: 'draft'}
+    else Endgültig löschen (2 Stufen)
+        SAdmin->>UI: Klickt '🗑 Löschen'
+        UI->>UI: Blendet Warnung & '⚠ Endgültig löschen' ein
+        SAdmin->>UI: Klickt '⚠ Endgültig löschen'
+        UI->>Srv: POST /api/cms/admin/super-game-delete {gameId}
+        Srv-->>UI: {ok: true, deleted: true}
+    end</pre></div>
+<p><strong>Detaillierte Action-Beschreibung:</strong></p>
+<ul class="custom-list">
+<li><code class="code-tag">Act_Spiel_Begutachten</code> (<em>Typ: call_method</em>): Initialisiert temporären Standalone-Runner für Vorschau.</li>
+<li><code class="code-tag">Act_Spiel_Veroeffentlichen</code> (<em>Typ: http</em>): Ändert Status auf <code class="code-tag">published</code> via <code class="code-tag">POST /api/cms/admin/super-game-update</code>.</li>
+<li><code class="code-tag">Act_Spiel_Zurueckziehen</code> (<em>Typ: http</em>): Setzt Status auf <code class="code-tag">draft</code> via <code class="code-tag">POST /api/cms/admin/super-game-update</code>.</li>
+<li><code class="code-tag">Act_Spiel_Loeschen_Server</code> (<em>Typ: http</em>): Entfernt Spiel und Instanzen via <code class="code-tag">POST /api/cms/admin/super-game-delete</code>.</li>
+</ul>
+<p><em>DV-Konzept Stand: Oktober 2026 · Game Creation Suite Architecture Review.</em></p>
+
+    </div>
+  </main>
+
+  <script>
+    // Smooth scroll for all hash anchors
+    function scrollToAnchor(targetId) {
+      if (!targetId) return;
+      const clean = targetId.replace(/^#/, '');
+      const el = document.getElementById(clean) 
+              || document.querySelector('[name="' + clean + '"]')
+              || document.querySelector('[id*="' + clean + '"]');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', '#' + clean);
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href^="#"]');
+      if (link) {
+        const href = link.getAttribute('href');
+        if (href && href !== '#') {
+          e.preventDefault();
+          scrollToAnchor(href);
+        }
+      }
+    });
+
+    // Quick Search filter
+    const searchInput = document.getElementById('quickSearch');
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('section.doc-card').forEach(sec => {
+        if (!q || sec.textContent.toLowerCase().includes(q)) {
+          sec.style.display = 'block';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    });
+
+    // Update active nav link on scroll
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section.doc-card, h3.sub-title');
+      let currentId = '';
+      sections.forEach(sec => {
+        const top = sec.getBoundingClientRect().top;
+        if (top <= 140 && top >= -sec.offsetHeight + 140) {
+          currentId = sec.id;
+        }
+      });
+      if (currentId) {
+        document.querySelectorAll('.nav-link').forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

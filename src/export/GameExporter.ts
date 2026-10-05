@@ -165,34 +165,54 @@ export class GameExporter {
      */
     async exportCmsBundle(project: GameProject): Promise<void> {
         const cleanedProject = this.getCleanProject(project);
-        const mediaRefs = this.collectMediaRefs(cleanedProject);
+        const { refs: mediaRefs, patterns } = this.collectMediaRefs(cleanedProject);
 
         const projectName = (project.meta?.name || 'spiel').replace(/\s+/g, '_');
         const files: Record<string, Uint8Array> = {};
         files[`${projectName}.json`] = new TextEncoder().encode(JSON.stringify(cleanedProject, null, 2));
 
-        const missing: string[] = [];
-        for (const ref of mediaRefs.keys()) {
+        const cleanRel = (ref: string) => {
             let rel = ref;
             if (rel.startsWith('./')) rel = rel.substring(2);
             if (rel.startsWith('/')) rel = rel.substring(1);
+            return rel;
+        };
+        const baseUrl = (project.meta as any)?.baseUrl || network.getHttpUrl() || window.location.href;
+        const pack = async (ref: string): Promise<boolean> => {
+            const rel = cleanRel(ref);
+            if (files[rel]) return true;
             try {
-                const baseUrl = (project.meta as any)?.baseUrl || network.getHttpUrl() || window.location.href;
                 const urls = [new URL(rel, baseUrl).href];
                 if (!rel.startsWith('images/')) urls.push(new URL(`images/${rel}`, baseUrl).href);
-                let packed = false;
                 for (const tryUrl of urls) {
                     const resp = await fetch(tryUrl);
                     if (resp.ok && !(resp.headers.get('content-type') || '').includes('text/html')) {
                         files[rel] = new Uint8Array(await resp.arrayBuffer());
-                        packed = true;
-                        break;
+                        return true;
                     }
                 }
-                if (!packed) missing.push(rel);
             } catch (e) {
                 logger.warn(`[GameExporter] Bundle medium not loadable: ${ref}`, e);
-                missing.push(rel);
+            }
+            return false;
+        };
+
+        const missing: string[] = [];
+        for (const ref of mediaRefs.keys()) {
+            if (!(await pack(ref))) missing.push(cleanRel(ref));
+        }
+
+        // Dynamische Medienpfade (images/madn/w${Var_Wurf}.svg) gegen das
+        // Medienmanifest aufloesen und alle passenden Dateien mitpacken.
+        const unresolvedPatterns: string[] = [];
+        if (patterns.length) {
+            const manifestFiles = await this.loadMediaManifest(baseUrl);
+            for (const pattern of patterns) {
+                const regex = this.mediaPatternToRegExp(cleanRel(pattern));
+                const hits = manifestFiles.filter(f => regex.test(f));
+                let packed = 0;
+                for (const hit of hits) if (await pack(hit)) packed += 1;
+                if (!packed) unresolvedPatterns.push(pattern);
             }
         }
 
@@ -208,9 +228,10 @@ export class GameExporter {
         setTimeout(() => URL.revokeObjectURL(url), 2000);
 
         const mediaCount = Object.keys(files).length - 1;
-        NotificationToast.show(missing.length === 0
+        const problems = [...missing, ...unresolvedPatterns.map(p => `Muster: ${p}`)];
+        NotificationToast.show(problems.length === 0
             ? `CMS-Bundle exportiert: ${projectName}.zip\n\n${mediaCount} Mediendatei(en) enthalten — direkt unter „Meine Spiele" hochladbar.`
-            : `CMS-Bundle exportiert: ${projectName}.zip\n\n${mediaCount} Medien enthalten, ${missing.length} fehlen:\n${missing.slice(0, 10).join('\n')}${missing.length > 10 ? '\n…' : ''}`);
+            : `⚠ CMS-Bundle möglicherweise unvollständig: ${projectName}.zip\n\n${mediaCount} Medien enthalten, ${problems.length} nicht gepackt:\n${problems.slice(0, 10).join('\n')}${problems.length > 10 ? '\n…' : ''}`);
     }
 
     /**
@@ -625,12 +646,18 @@ ${pwaHead}
 
     /**
      * Collects all referenced media paths in the project (./images/…,
-     * variable bindings, list entries). Keys are the raw references;
+     * variable bindings, list entries). Keys of `refs` are the raw references;
      * embedMedia() fills the values with data URLs, the CMS bundle
      * needs only the keys.
+     *
+     * `patterns` sammelt zusaetzlich Medienpfade mit ${…}-Interpolationsstellen
+     * (z. B. images/madn/w${Var_Wurf}.svg): Sie sind zur Laufzeit dynamisch,
+     * koennen also nicht direkt gefetcht werden — der CMS-Bundle-Export loest
+     * sie gegen das Medienmanifest auf und packt alle passenden Dateien.
      */
-    private collectMediaRefs(project: any): Map<string, string> {
+    private collectMediaRefs(project: any): { refs: Map<string, string>; patterns: string[] } {
         const mediaRefs = new Map<string, string>(); // path -> dataUrl
+        const patterns: string[] = [];
 
         const mediaExtensions = /\.(png|jpg|jpeg|gif|svg|webp|bmp|ico|mp3|ogg|wav|m4a|mp4|webm|woff|woff2|ttf|otf)$/i;
         const isMediaPath = (s: string) => {
@@ -687,7 +714,16 @@ ${pwaHead}
         // 1. Collect all unique media paths from the project recursively
         const collectPaths = (obj: any) => {
             const tryCollect = (s: string) => {
-                if (isMediaPath(s)) {
+                if (/\$\{[^}]+\}/.test(s)) {
+                    // Interpolationsstelle vorhanden: Ganzbinding aufloesen
+                    // (${Var} -> bekannter Pfad), sonst als Muster merken.
+                    const resolved = resolveBinding(s);
+                    if (typeof resolved === 'string' && isMediaPath(resolved)) {
+                        mediaRefs.set(resolved, '');
+                    } else if (isMediaPath(s) && !patterns.includes(s)) {
+                        patterns.push(s);
+                    }
+                } else if (isMediaPath(s)) {
                     mediaRefs.set(s, '');
                 } else {
                     const resolved = resolveBinding(s);
@@ -718,14 +754,55 @@ ${pwaHead}
         };
 
         collectPaths(project);
-        return mediaRefs;
+        return { refs: mediaRefs, patterns };
+    }
+
+    /**
+     * Laedt public/media-manifest.json und liefert alle enthaltenen
+     * Medienpfade vollqualifiziert (images/<ordner>/<datei>).
+     * Leere Liste, wenn das Manifest nicht erreichbar ist.
+     */
+    private async loadMediaManifest(baseUrl: string): Promise<string[]> {
+        try {
+            const resp = await fetch(new URL('media-manifest.json', baseUrl).href);
+            if (!resp.ok) return [];
+            const manifest = await resp.json();
+            const files: string[] = [];
+            for (const [section, folders] of Object.entries(manifest)) {
+                if (!folders || typeof folders !== 'object') continue;
+                for (const [folder, names] of Object.entries(folders as Record<string, string[]>)) {
+                    if (!Array.isArray(names)) continue;
+                    for (const name of names) files.push(`${section}/${folder ? folder + '/' : ''}${name}`);
+                }
+            }
+            return files;
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Baut aus einem dynamischen Medienpfad eine Regex:
+     * statische Teile werden escaped, jede ${…}-Stelle matcht ein
+     * Nicht-Separator-Segment — images/madn/w${Var_Wurf}.svg trifft
+     * also w1.svg…w6.svg, aber keine Dateien in Unterordnern.
+     */
+    private mediaPatternToRegExp(pattern: string): RegExp {
+        const escaped = pattern
+            .split(/\$\{[^}]+\}/)
+            .map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            .join('[^/]+?');
+        return new RegExp(`^${escaped}$`);
     }
 
     /**
      * Finds and embeds all media references (Images, Audio) in the project as Base64 Data URLs.
      */
     private async embedMedia(project: any): Promise<void> {
-        const mediaRefs = this.collectMediaRefs(project);
+        const { refs: mediaRefs, patterns: mediaPatterns } = this.collectMediaRefs(project);
+        if (mediaPatterns.length) {
+            logger.warn('[GameExporter] Dynamische Medienpfade koennen im Einzelfile-Export nicht eingebettet werden:', mediaPatterns);
+        }
 
         // 2. Fetch and convert to Base64
         logger.info(`[GameExporter] Found ${mediaRefs.size} unique media files to embed.`);

@@ -106,13 +106,14 @@ const db = {
     code('child-left', 'house-sun', ['flower', 'flower', 'flower', 'flower']),
   ],
   games: [
-    { id: 'game-snake', title: 'Snake', avatar: '🐍', ownerId: 'super-admin', status: 'published', file: 'Snake-Lernprojekt.json', ratings: false },
-    { id: 'game-math', title: 'Mathe-Abenteuer', avatar: '🧮', ownerId: 'super-admin', status: 'published', file: 'Kopfrechnen.json', ratings: true, metrics: ['tasks_done', 'tasks_correct', 'hints_used', 'round_complete'] },
-    { id: 'game-mp', title: 'Zahlen-Duell (Multiplayer)', avatar: '⚔️', ownerId: 'super-admin', status: 'published', file: 'Zahlen-Duell.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' } },
-    { id: 'game-memory-remote', title: 'Elins Memory (Multiplayer)', avatar: '🃏', ownerId: 'super-admin', status: 'published', file: 'ElinsMemoryRemote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' } },
-    { id: 'game-pingpong-remote', title: 'PingPong (Multiplayer)', avatar: '🏓', ownerId: 'super-admin', status: 'published', file: 'PingPong-Remote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' } },
-    { id: 'game-draft', title: 'Unfertiges Spiel', avatar: '🚧', ownerId: 'super-admin', status: 'draft', file: 'Tetris.json' },
-    { id: 'game-blocked', title: 'Gesperrtes Spiel', avatar: '⛔', ownerId: 'super-admin', status: 'blocked', file: 'Tetris.json' },
+    { id: 'game-snake', title: 'Snake', avatar: '🐍', ownerId: 'super-admin', status: 'published', file: 'Snake-Lernprojekt.json', ratings: false, modes: ['solo'] },
+    { id: 'game-math', title: 'Mathe-Abenteuer', avatar: '🧮', ownerId: 'super-admin', status: 'published', file: 'Kopfrechnen.json', ratings: true, metrics: ['tasks_done', 'tasks_correct', 'hints_used', 'round_complete'], modes: ['solo'] },
+    { id: 'game-mp', title: 'Zahlen-Duell (Multiplayer)', avatar: '⚔️', ownerId: 'super-admin', status: 'published', file: 'Zahlen-Duell.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' }, modes: ['party'] },
+    { id: 'game-memory-remote', title: 'Elins Memory (Multiplayer)', avatar: '🃏', ownerId: 'super-admin', status: 'published', file: 'ElinsMemoryRemote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' }, modes: ['solo', 'party'] },
+    { id: 'game-pingpong-remote', title: 'PingPong (Multiplayer)', avatar: '🏓', ownerId: 'super-admin', status: 'published', file: 'PingPong-Remote.json', multiplayer: { minPlayers: 2, maxPlayers: 2, scope: 'house' }, modes: ['party'] },
+    { id: 'game-madn-remote', title: 'MADN (Multiplayer)', avatar: '🎲', ownerId: 'super-admin', status: 'published', file: 'Madn-Remote.json', multiplayer: { minPlayers: 2, maxPlayers: 4, scope: 'house' }, modes: ['solo', 'party'] },
+    { id: 'game-draft', title: 'Unfertiges Spiel', avatar: '🚧', ownerId: 'super-admin', status: 'draft', file: 'Tetris.json', modes: ['solo'] },
+    { id: 'game-blocked', title: 'Gesperrtes Spiel', avatar: '⛔', ownerId: 'super-admin', status: 'blocked', file: 'Tetris.json', modes: ['solo'] },
   ],
   grants: [
     { gameId: 'game-snake', areaId: 'room-sun-play', active: true },
@@ -121,6 +122,7 @@ const db = {
     { gameId: 'game-mp', areaId: 'room-sun-play', active: true },
     { gameId: 'game-memory-remote', areaId: 'room-sun-play', active: true },
     { gameId: 'game-pingpong-remote', areaId: 'room-sun-play', active: true },
+    { gameId: 'game-madn-remote', areaId: 'room-sun-play', active: true },
     { gameId: 'game-snake', areaId: 'room-sun-closed', active: true }, // Raum deaktiviert
     { gameId: 'game-snake', areaId: 'room-moon-play', active: true },
     { gameId: 'game-draft', areaId: 'room-sun-play', active: true },   // draft: darf nicht starten
@@ -211,7 +213,7 @@ const db = {
 // Alle übrigen Entitäten entstehen später ausschließlich über echte CMS-Wege.
 function buildMinimalDb(now = Date.now()) {
   const db = {
-    version: 4,
+    version: 5,
     areas: [
       { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     ],
@@ -223,6 +225,7 @@ function buildMinimalDb(now = Date.now()) {
     ],
     memberships: [], guardians: [], games: [], grants: [], codes: [], invites: [],
     timeBudgets: [], playSessions: [], progress: [], deviceGrants: [], parties: [],
+    gameInvitations: [], notifications: [], temporaryRoomAccess: [],
     audit: [], profileRequests: [],
     meta: { generatedBy: 'cms-seed-testdata.cjs', generatedAt: new Date(now).toISOString(), purpose: 'Aufbau ab null: Minimalbestand, synthetisch' },
     testMeta: { password: TEST_PASSWORD, mode: 'minimal' },

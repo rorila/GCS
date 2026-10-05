@@ -31,6 +31,21 @@ const readMultiplayer=project=>{
  return{minPlayers:mp.minPlayers,maxPlayers:mp.maxPlayers,scope};
 };
 
+// Spielmodi aus meta.modes: 'solo' (allein/Hotseat) | 'party' (CMS-Partie).
+// Altbestand ohne Angabe: multiplayer-Flag -> ['party'], sonst ['solo'].
+// Konsistenz mit meta.multiplayer wird beim Upload erzwungen — eine Partie
+// ohne deklarierte Spielerzahl oder umgekehrt ist ein abgelehnter Fehler.
+const readModes=project=>{
+ const meta=project&&project.meta||{},mp=meta.multiplayer,modes=meta.modes;
+ if(modes===undefined||modes===null)return mp?['party']:['solo'];
+ if(!Array.isArray(modes)||!modes.length||modes.some(m=>m!=='solo'&&m!=='party')||new Set(modes).size!==modes.length)throw Error('meta.modes muss eine nicht-leere Liste aus "solo"/"party" ohne Duplikate sein.');
+ if(modes.includes('party')!==!!mp)throw Error('meta.modes und meta.multiplayer widersprechen sich: "party" erfordert meta.multiplayer und umgekehrt.');
+ return modes;
+};
+// Gleiche Ableitung für Datensätze ohne explizites modes-Feld (Altbestand,
+// Hand-seeds, vor dieser Erweiterung hochgeladene Spiele).
+const modesOf=game=>game&&Array.isArray(game.modes)&&game.modes.length?game.modes:[game&&game.multiplayer?'party':'solo'];
+
 const readCredentials=ctx=>{try{return fs.existsSync(ctx.credentialPath)?JSON.parse(fs.readFileSync(ctx.credentialPath,'utf8')):[];}catch(e){return[];}};
 const DEFAULT_AVATAR='/images/default-avatar.svg';
 const EMOJI_SEGMENTER=new Intl.Segmenter('de',{granularity:'grapheme'});
@@ -44,6 +59,20 @@ const emojiInputItems=raw=>{
 
 // Prozesslokale Versuchszähler für TServerAuthenticate.throttle (DoS-Schutz).
 const THROTTLES=new Map();
+// Begrenzte JSON-Telegramme fuer generische Live-Staende/-Eingaben (rundenbasierte
+// Spiele): serialisierbar, max. Bytes, max. Verschachtelungstiefe — verhindert
+// gepolsterte oder zyklische Payloads im Partie-Live-Kanal.
+const liveDataOk=(v,maxBytes,maxDepth)=>{
+ try{
+  const s=JSON.stringify(v);
+  if(s===undefined||s.length>maxBytes)return false;
+ }catch{return false;}
+ const depth=o=>{
+  if(typeof o!=='object'||o===null)return 0;
+  return 1+Math.max(0,...Object.values(o).map(depth));
+ };
+ return depth(v)<=maxDepth;
+};
 
 function removeLaunchesFor(ctx,sessionIds){
  const ids=new Set(sessionIds);
@@ -339,7 +368,7 @@ const methods={
   // Freigegebene Spiele eines Raums für die Sitzung (can 'play' je Spiel).
   gamesFor(ctx,_component,params){
    const areaId=exprOf(ctx,params?.[0],{});
-   const items=ctx.core.db.games.filter(g=>ctx.core.can(ctx.session,'play',{game:g,areaId})).map(g=>({id:g.id,title:g.title,avatar:g.avatar,multiplayer:!!g.multiplayer}));
+   const items=ctx.core.db.games.filter(g=>ctx.core.can(ctx.session,'play',{game:g,areaId})&&modesOf(g).includes('solo')).map(g=>({id:g.id,title:g.title,avatar:g.avatar,multiplayer:!!g.multiplayer,modes:modesOf(g)}));
    return{items,message:items.length?'🎮 Wähle ein Spiel':'🌱 Hier kommen bald Spiele dazu'};
   },
   // 4er-Slot-Paginierung: {items,page,fields,itemFields?,message?}
@@ -753,7 +782,7 @@ const methods={
    if(s.status==='disconnected')s.status='active'; // Reconnect ohne Commit nötig
    if(s.status!=='active')return{ok:true,status:s.status,ended:s.status==='ended'};
    if(db.parties.some(p=>p.oneClick&&p.status==='open'&&p.members.some(m=>m.playSessionId===id&&!m.leftAt))){
-    ctx.commit(ctx.session,'play-heartbeat-wait',s.areaId,next=>{next.playSessions.find(x=>x.id===id).lastHeartbeatAt=new Date().toISOString();});
+    ctx.commit(ctx.session,'play-heartbeat-wait',s.areaId,next=>{next.playSessions.find(x=>x.id===id).lastHeartbeatAt=new Date().toISOString();},{audit:false});
     return{ok:true,status:'active',remainingMinutes:remainingFor(db,s.childId,s.areaId)};
    }
    const delta=Math.min(Date.now()-new Date(s.lastHeartbeatAt).getTime(),heartbeatCapMs());
@@ -767,7 +796,7 @@ const methods={
      ns.graceUntil=new Date(Date.now()+g).toISOString();
     }
     if(ns.graceUntil&&Date.now()>new Date(ns.graceUntil).getTime()){ns.status='ended';ns.endedAt=new Date().toISOString();}
-   });
+   },{audit:false});
    const cur=db.playSessions.find(x=>x.id===s.id);
    return{ok:true,status:cur.status,remainingMinutes:remainingFor(db,cur.childId,cur.areaId),warn:warnLevelOf(db,cur.childId,cur),ended:cur.status==='ended'};
   },
@@ -838,7 +867,7 @@ const methods={
      p.status='ended';p.endedAt=at;
      for(const access of next.temporaryRoomAccess.filter(a=>a.sessionId===p.id))access.active=false;
     }
-   });
+   },{audit:false});
    removeLaunchesFor(ctx,db.playSessions.filter(s=>s.status==='ended').map(s=>s.id));
    return{ok:true,disconnected:disconnectedIds.length,ended:endedIds.length,partiesEnded:partyIds.length};
   }
@@ -850,8 +879,14 @@ const methods={
   input(ctx,_component,params){
    const raw=params?.[0]||{};
    if(!raw||typeof raw!=='object'||Array.isArray(raw))return{ok:false,status:400,message:'Ungültige Live-Eingabe.'};
-   const seq=Number(raw.seq),dir=Number(raw.dir);
+   const seq=Number(raw.seq);
    if(!Number.isSafeInteger(seq)||seq<1||seq>1000000000)return{ok:false,status:400,message:'Ungültige Eingabe-Sequenz.'};
+   // Generische Zug-Absichten (z.B. MADN): kleines JSON-Telegramm statt dir/y/vy.
+   if(raw.data!==undefined){
+    if(!liveDataOk(raw.data,2000,4))return{ok:false,status:400,message:'Ungültige Eingabedaten.'};
+    return{ok:true,input:{seq,dir:0,data:raw.data,at:Date.now(),by:ctx.session.personId}};
+   }
+   const dir=Number(raw.dir);
    if(![-1,0,1].includes(dir))return{ok:false,status:400,message:'Ungültige Eingaberichtung.'};
    const input={seq,dir,at:Date.now(),by:ctx.session.personId};
    // Optionale eigene Paddle-Kinematik (geteilte Autoritaet): der Meldende ist
@@ -863,8 +898,17 @@ const methods={
   state(ctx,_component,params){
    const raw=params?.[0]||{},phases=['wait','serve','play','point','paused','finished'];
    if(!raw||typeof raw!=='object'||Array.isArray(raw))return{ok:false,status:400,message:'Ungültiger Live-Stand.'};
-   const tick=Number(raw.tick),phase=String(raw.phase||'');
+   const tick=Number(raw.tick);
    if(!Number.isSafeInteger(tick)||tick<1||tick>1000000000)return{ok:false,status:400,message:'Ungültiger State-Tick.'};
+   // Generischer Datenstand fuer rundenbasierte Spiele (z.B. MADN): tick +
+   // freie Phasenbezeichnung + kompaktes JSON-Telegramm statt PingPong-Schema.
+   if(raw.data!==undefined){
+    const phase=String(raw.phase||'');
+    if(!/^[a-z0-9_-]{1,24}$/i.test(phase))return{ok:false,status:400,message:'Ungültige Spielphase.'};
+    if(!liveDataOk(raw.data,3000,5))return{ok:false,status:400,message:'Live-Datenstand zu groß oder ungültig.'};
+    return{ok:true,state:{tick,phase,data:raw.data,at:Date.now(),by:ctx.session.personId}};
+   }
+   const phase=String(raw.phase||'');
    if(!phases.includes(phase))return{ok:false,status:400,message:'Ungültige Spielphase.'};
    const num=(name,min,max)=>{const v=Number(raw[name]);return Number.isFinite(v)&&v>=min&&v<=max?v:null};
    const state={tick,phase,
@@ -879,6 +923,7 @@ const methods={
    const p=params?.[0],live=params?.[1]||{},personId=params?.[2],since=Number(params?.[3])||0,db=ctx.core.db,now=Date.now();
    const active=(p?.members||[]).filter(m=>!m.leftAt),remoteCandidates=Object.values(live.inputs||{}).filter(i=>i&&i.by!==personId).sort((a,b)=>Number(b.at)-Number(a.at)),remoteInput=remoteCandidates[0]||null,state=live.state||null;
    return{ok:true,status:p?.status||'ended',ended:!p||p.status==='ended',memberCount:active.length,youAreHost:personId===p?.hostId,
+    seatIndex:active.findIndex(m=>m.personId===personId),memberIds:active.map(m=>m.personId),
     live:state?{...state,ageMs:Math.max(0,now-Number(state.at||now)),stale:now-Number(state.at||now)>Number(component.maxStateAgeMs||2000)}:null,
     remoteInput:remoteInput?{...remoteInput,ageMs:Math.max(0,now-Number(remoteInput.at||now)),expired:now-Number(remoteInput.at||now)>Number(component.inputTtlMs||750)}:null,
     actions:(p?.actions||[]).filter(a=>a.seq>since),lastSeq:(p?.actions||[]).length?p.actions[p.actions.length-1].seq:0,
@@ -1158,7 +1203,7 @@ const methods={
    ctx.commit(ctx.session,'party-action',p.areaId,next=>{
     const np=next.parties.find(x=>x.id===p.id);
     np.actions.push({seq:(np.actions[np.actions.length-1]?.seq||0)+1,by:ctx.session.personId,payload,at:new Date().toISOString()});
-   });
+   },{audit:false});
    return{ok:true,seq:db.parties.find(x=>x.id===p.id).actions.length};
   },
   begin(ctx,_component,params){
@@ -1190,7 +1235,7 @@ const methods={
   process(ctx,component){
    const up=ctx.upload||{},bytes=up.bytes||Buffer.alloc(0);
    if(bytes.length>component.maxBytes)return{ok:false,status:413,message:'Datei ist zu groß.'};
-   let content,filename,record,targetGame,description='',bundle=null,oldFile='',multiplayer=null;
+   let content,filename,record,targetGame,description='',bundle=null,oldFile='',multiplayer=null,modes=null;
    try{
     if(component.kind==='game'){
      const meta=up.meta||{},title=typeof meta.title==='string'?meta.title.trim():'';
@@ -1213,9 +1258,9 @@ const methods={
      const kind=bundle?bundle.kind:(/^\s*</.test(bytes.toString('utf8').slice(0,256))?'html':'json');
      const entry=bundle?bundle.entry:bytes;
      if(kind==='html'){ctx.uploads.validateHtml(entry);content=entry;}
-     else{const project=ctx.uploads.validateGame(entry,bundle?bundle.media:null);content=JSON.stringify(project);multiplayer=readMultiplayer(project);}
+     else{const project=ctx.uploads.validateGame(entry,bundle?bundle.media:null);content=JSON.stringify(project);multiplayer=readMultiplayer(project);modes=readModes(project);}
      filename='game-'+crypto.randomUUID()+(kind==='html'?'.html':'.json');
-     if(record){record.file=filename;if(multiplayer)record.multiplayer=multiplayer;}
+     if(record){record.file=filename;if(multiplayer)record.multiplayer=multiplayer;record.modes=modes;}
     }else{
      if(!sniffImage(bytes))throw Error('PNG, JPEG oder WebP erforderlich.');
      if(!up.png)throw Error(up.error||'Bild konnte nicht gelesen werden.');
@@ -1228,7 +1273,7 @@ const methods={
    // löst diese Dateien später über uploads.gameMedia auf.
    const mediaDir=bundle?path.join(ctx.uploads.directory,filename.slice(0,-5)):null;
    if(bundle)for(const [rel,data]of bundle.media){const tp=path.join(mediaDir,rel);fs.mkdirSync(path.dirname(tp),{recursive:true});fs.writeFileSync(tp,data,{flag:'wx'});}
-   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame){const row=next.games.find(g=>g.id===targetGame.id);Object.assign(row,{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});if(multiplayer)row.multiplayer=multiplayer;else delete row.multiplayer;}else next.people.find(p=>p.id===ctx.session.personId).avatarImage='/avatars/'+filename});}
+   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame){const row=next.games.find(g=>g.id===targetGame.id);Object.assign(row,{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});if(multiplayer)row.multiplayer=multiplayer;else delete row.multiplayer;row.modes=modes;}else next.people.find(p=>p.id===ctx.session.personId).avatarImage='/avatars/'+filename});}
    catch(e){fs.unlinkSync(f);if(mediaDir)fs.rmSync(mediaDir,{recursive:true,force:true});throw e;}
    // Ersetzte Datei erst nach erfolgreicher Zuordnung entfernen.
    if(oldFile&&oldFile!==filename)ctx.uploads.removeGameFile(oldFile);

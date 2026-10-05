@@ -9,7 +9,7 @@
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {bootMinimal,busy,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
-const {makeRunner,dep,click,setupHouseAdmin,card,cardWait,cardTexts,status}=require('./cms/aufbau-common.cjs');
+const {makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,card,cardWait,cardTexts,status,initRequest}=require('./cms/aufbau-common.cjs');
 const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
 
 const PORT=15226;
@@ -51,23 +51,26 @@ const enroll=async(browser,link,username)=>{
   },page);
 
   // ── VORAUS-R: Raum „Spielraum" durch anna anlegen ─────────────────
+  // Der anlegende HouseAdmin wird deklarativ selbst RaumAdmin des Raums
+  // (room-admin-initial) — so kann anna den Zutritt spaeter verwalten.
   let raum=null;
   await task('VORAUS-R','Raum „Spielraum" angelegt',[dep('VORAUS-A',()=>!!adm)],async()=>{
+   await openHouseArea(adm,'Haus Sonne','stage_house_rooms');
    await adm.getByPlaceholder('Raumname',{exact:true}).fill('Spielraum');
-   await click(adm,'RoomCreate');
+   await click(adm,'RaumAnlegen');
    raum=env.file().areas.find(a=>a.name==='Spielraum'&&a.parentId===sonne.id&&a.type==='room');
    assert.ok(raum,'Raum fehlt im Datenbestand');
-   assert.ok(await cardWait(adm,'Spielraum'),'Raumkarte nicht sichtbar');
+   assert.ok(await rowWait(adm,'RaumTabelle','Spielraum'),'Raumzeile nicht sichtbar');
   },adm);
 
   // ── BEWOHNER-01a: Bewohner auf Hausebene anlegen ──────────────────
   let lina=null;
   await task('BEWOHNER-01a','Hausbewohnerin „Lina Kind" ohne Raum angelegt',[dep('VORAUS-R',()=>!!raum)],async()=>{
-   await click(adm,'Bewohner');
+   await openHouseArea(adm,'Haus Sonne','stage_house_residents');
    await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Lina Kind');
    await adm.locator('[placeholder="🦊"]').fill('🦊');
    await adm.getByPlaceholder('dog,tree,house,elephant',{exact:true}).fill('owl,dog,tree,house');
-   await click(adm,'PersonCreate');
+   await click(adm,'BewohnerAnlegen');
    lina=env.file().people.find(p=>p.name==='Lina Kind');
    assert.ok(lina,'Bewohnerin fehlt im Datenbestand');
    assert.ok(env.file().codes.some(c=>c.personId===lina.id),'Emoji-Code fehlt');
@@ -77,31 +80,37 @@ const enroll=async(browser,link,username)=>{
 
   // ── BEWOHNER-01b: Bewohner in der Hausliste sichtbar ──────────────
   await task('BEWOHNER-01b','Bewohnerin erscheint in der Hausbewohnerliste',[dep('BEWOHNER-01a',()=>!!lina)],async()=>{
-   assert.ok(await cardWait(adm,'Lina Kind'),'Bewohnerkarte fehlt: '+(await cardTexts(adm)).join('|'));
+   await openHouseArea(adm,'Haus Sonne','stage_house_residents');
+   assert.ok(await rowWait(adm,'BewohnerTabelle','Lina Kind'),'Bewohnerzeile fehlt');
   },adm);
 
-  // ── RAUMMITGLIED-01: Hausbewohner einem Raum zuordnen ─────────────
+  // ── RAUMMITGLIED-01: RaumAdmin ordnet Hausbewohnerin dem Raum zu ───
+  // Raumzutritt ist RaumAdmin-Aufgabe (stage_room_access). anna ist
+  // RaumAdmin des Spielraums — sie oeffnet den Raumbereich ueber /admin.
   await task('RAUMMITGLIED-01','RaumAdmin ordnet Bewohnerin dem Spielraum zu',[dep('BEWOHNER-01b',()=>!!lina),dep('VORAUS-R',()=>!!raum)],async()=>{
-   await click(adm,'Navigation_stage_admin');
+   await adm.goto(base+'/admin',{waitUntil:'domcontentloaded'});
    await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_admin',null,{timeout:10000});
    await busy(adm);
-   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Raum')?.value, null, {timeout:10000});
-   await click(adm,'Mitglieder');
-   assert.ok(await cardWait(adm,'Lina Kind'),'Hausbewohnerin fehlt in der Raummitgliederliste');
-   assert.ok(await card(adm,'Lina Kind'),'Bewohnerin nicht waehlbar');
-   // Die Mitgliederkarte ist bewusst ein direkter An/Aus-Schalter. Das
-   // Haekchen erscheint nach erfolgreicher Serverantwort auf derselben Karte.
+   await rowClick(adm,'RaumTabelle','Spielraum');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_room_overview',null,{timeout:10000});
+   await busy(adm);
+   await click(adm,'Navigation_stage_room_access');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_room_access',null,{timeout:10000});
+   await busy(adm);
+   const ms=adm.waitForResponse(r=>r.url().includes('admin/membership')&&r.request().method()==='POST',{timeout:10000});
+   await rowClick(adm,'MitgliederTabelle','Lina Kind');
+   const resp=await ms;
+   assert.strictEqual(resp.status(),200,'Zutritt-Request fehlgeschlagen: '+resp.status());
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'aktive Raumzuordnung fehlt');
   },adm);
 
-  // ── KIND-01: Zugeordnete Bewohnerin ist als Kind nutzbar ──────────
-  await task('KIND-01','Zugeordnete Bewohnerin erscheint im Kinder-Tab',[dep('RAUMMITGLIED-01',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===raum?.id&&m.active))],async()=>{
-   await click(adm,'Navigation_stage_house');
+  // ── KIND-01: Zugeordnete Bewohnerin ist als Kind des Hauses nutzbar
+  await task('KIND-01','Bewohnerin erscheint in der Kinderliste des Hauses',[dep('RAUMMITGLIED-01',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===raum?.id&&m.active))],async()=>{
+   await adm.goto(base+'/house',{waitUntil:'domcontentloaded'});
    await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
    await busy(adm);
-   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Haus')?.value, null, {timeout:10000});
-   await click(adm,'KinderTab');
-   assert.ok(await cardWait(adm,'Lina Kind'),'Kinderkarte fehlt: '+(await cardTexts(adm)).join('|'));
+   await openHouseArea(adm,'Haus Sonne','stage_house_invites');
+   assert.ok(await rowWait(adm,'ElternKindTabelle','Lina Kind'),'Kind fehlt in der Kinderliste');
   },adm);
 
   // ── ELTERN-01: Elternteil einladen → ausstehende Zuordnung ────────
@@ -109,16 +118,18 @@ const enroll=async(browser,link,username)=>{
   const pending=()=>env.file().guardians.some(g=>g.childId===lina?.id&&g.guardianId===petra?.id&&g.status==='pending');
   const confirmed=()=>env.file().guardians.some(g=>g.childId===lina?.id&&g.guardianId===petra?.id&&g.status==='confirmed');
   await task('ELTERN-01','Eltern-Einladung erzeugt, Zuordnung ausstehend',[dep('KIND-01',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===raum?.id&&m.active))],async()=>{
-   assert.ok(await card(adm,'Lina Kind'),'Kinderkarte nicht waehlbar');
-   await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Petra Eltern');
+   await openHouseArea(adm,'Haus Sonne','stage_house_invites');
+   await rowClick(adm,'ElternKindTabelle','Lina Kind');
+   await adm.getByPlaceholder('Name des Elternteils',{exact:true}).fill('Petra Eltern');
    await click(adm,'ElternEinladen');
-   pLink=(await ctxVar(adm,'Antwort'))?.link||'';
+   pLink=await adm.getByPlaceholder('Einladungslink erscheint hier',{exact:true}).inputValue();
    petra=env.file().people.find(p=>p.name==='Petra Eltern');
-   assert.ok(pLink,'kein Einladungslink in Antwort');
+   assert.ok(pLink.includes('/parent-enroll?ticket='),'kein Einladungslink: '+pLink);
    assert.ok(petra,'Elternperson fehlt im Datenbestand');
    assert.ok(pending(),'ausstehende Zuordnung fehlt');
-   await click(adm,'ElternTab');
-   assert.ok(await cardWait(adm,'Petra Eltern'),'ausstehende Karte fehlt im Eltern-Tab');
+   // Die ausstehende Zuordnung ist in der Vier-Augen-Liste sichtbar.
+   await openHouseArea(adm,'Haus Sonne','stage_house_families');
+   assert.ok(await rowWait(adm,'ZuordnungTabelle','Petra Eltern'),'ausstehende Zuordnung fehlt in der Liste');
   },adm);
 
   // ── ELTERN-02a: Einladende darf nicht selbst bestaetigen ──────────
@@ -126,9 +137,10 @@ const enroll=async(browser,link,username)=>{
   // der Server muss ihn mit 409 ablehnen (Vier-Augen-Prinzip). „Bleibt
   // pending" allein waere auch bei nie abgeschicktem Request gruen.
   await task('ELTERN-02a','Selbstbestaetigung durch Einladende abgelehnt',[dep('ELTERN-01',pending)],async()=>{
-   assert.ok(await card(adm,'Petra Eltern'),'Elternkarte nicht waehlbar');
+   await openHouseArea(adm,'Haus Sonne','stage_house_families');
+   await rowClick(adm,'ZuordnungTabelle','Petra Eltern');
    const apResp=adm.waitForResponse(r=>r.url().includes('guardian-approve')&&r.request().method()==='POST',{timeout:10000});
-   await click(adm,'Confirm');
+   await click(adm,'FamilieBestaetigen');
    const resp=await apResp;
    const body=await resp.json().catch(()=>({}));
    assert.strictEqual(resp.status(),409,'Selbstbestaetigung nicht mit 409 abgelehnt: '+resp.status()+' '+JSON.stringify(body).slice(0,200));
@@ -138,12 +150,10 @@ const enroll=async(browser,link,username)=>{
 
   // ── ELTERN-02b: Zweiter HouseAdmin bestaetigt die Zuordnung ───────
   await task('ELTERN-02b','Zweitbestaetigung durch „paul"',[dep('ELTERN-02a',pending),dep('VORAUS-B',()=>!!adm2)],async()=>{
-   await adm2.waitForFunction(()=>{const v=window.player.runtime.getObjects().find(o=>o.name==='Haus');return v&&v.value},null,{timeout:10000});
-   await cardWait(adm2,'Spielraum');
-   await click(adm2,'ElternTab');
-   assert.ok(await cardWait(adm2,'Petra Eltern'),'ausstehende Karte bei paul nicht sichtbar');
-   assert.ok(await card(adm2,'Petra Eltern'),'Elternkarte nicht waehlbar');
-   await click(adm2,'Confirm');
+   await openHouseArea(adm2,'Haus Sonne','stage_house_families');
+   assert.ok(await rowWait(adm2,'ZuordnungTabelle','Petra Eltern'),'ausstehende Zuordnung bei paul nicht sichtbar');
+   await rowClick(adm2,'ZuordnungTabelle','Petra Eltern');
+   await click(adm2,'FamilieBestaetigen');
    const g=env.file().guardians.find(x=>x.childId===lina.id&&x.guardianId===petra.id);
    assert.strictEqual(g.status,'confirmed','Zuordnung nicht bestaetigt: status='+g.status);
   },adm2);
@@ -161,19 +171,13 @@ const enroll=async(browser,link,username)=>{
   // ── OBS-01a: Beobachterin raumgebunden einladen ───────────────────
   let oLink=null;
   await task('OBS-01a','Beobachter-Einladung raumgebunden erzeugt',[dep('VORAUS-R',()=>!!raum)],async()=>{
-   // Aus dem Eltern-Tab zurueck in den Raum-Modus wechseln.
-   await click(adm,'Navigation_stage_house');
-   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
-   await busy(adm);
-   await adm.waitForFunction(()=>{const v=window.player.runtime.getObjects().find(o=>o.name==='Haus');return v&&v.value},null,{timeout:10000});
-   await cardWait(adm,'Spielraum');
-   assert.ok(await card(adm,'Spielraum'),'Raumkarte nicht waehlbar');
-   await click(adm,'Admins');
-   await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Olga Beobachterin');
+   await openHouseArea(adm,'Haus Sonne','stage_house_invites');
+   await rowClick(adm,'BeobachterRaumTabelle','Spielraum');
+   await adm.getByPlaceholder('Name des Beobachters',{exact:true}).fill('Olga Beobachterin');
    await click(adm,'BeobachterEinladen');
-   oLink=(await ctxVar(adm,'Antwort'))?.link||'';
+   oLink=await adm.getByPlaceholder('Einladungslink erscheint hier',{exact:true}).inputValue();
    const inv=env.file().invites.find(i=>i.purpose==='observer'&&i.areaId===raum.id);
-   assert.ok(oLink,'kein Beobachter-Link in Antwort');
+   assert.ok(oLink.includes('/observer-enroll?ticket='),'kein Beobachter-Link: '+oLink);
    assert.ok(inv,'observer-Invite fehlt im Datenbestand');
    assert.strictEqual(inv.areaId,raum.id,'Invite nicht an den Raum gebunden');
   },adm);
@@ -189,22 +193,28 @@ const enroll=async(browser,link,username)=>{
   },null);
 
   // ── BEWOHNER-02: Hausstatus steuert alle Rechte in diesem Haus ────
-  await task('BEWOHNER-02a','HouseAdmin deaktiviert die Hausbewohnerin',[dep('RAUMMITGLIED-01',()=>!!lina)],async()=>{
-   await click(adm,'Navigation_stage_house');
+  // Die Hausmitgliedschaft wird auf der Bewohner-Detail-Stage verwaltet
+  // (MitgliedButton → vormerken → Confirm).
+  const mitgliedschaft=async()=>{
+   await adm.goto(base+'/house',{waitUntil:'domcontentloaded'});
    await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
    await busy(adm);
-   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Haus')?.value, null, {timeout:10000});
-   await click(adm,'Bewohner');
-   await adm.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='VerwaltungsModus')?.value==='house-people',null,{timeout:10000});
-   assert.ok(await card(adm,'Lina Kind'),'Bewohnerin zur Deaktivierung nicht waehlbar');
-   await click(adm,'PersonToggle');
+   await openHouseArea(adm,'Haus Sonne','stage_house_residents');
+   const detResp=initRequest(adm,'house-person-detail');
+   await rowClick(adm,'BewohnerTabelle','Lina Kind');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house_resident_detail',null,{timeout:10000});
+   await detResp;await busy(adm);
+   await click(adm,'MitgliedButton');
+   await click(adm,'Confirm');
+  };
+  await task('BEWOHNER-02a','HouseAdmin deaktiviert die Hausbewohnerin',[dep('RAUMMITGLIED-01',()=>!!lina)],async()=>{
+   await mitgliedschaft();
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&!m.active),'Hausmitgliedschaft nicht deaktiviert');
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&!m.active),'Raumzuordnung nicht entzogen');
   },adm);
 
   await task('BEWOHNER-02b','Reaktivierung stellt Raumzuordnung nicht automatisch wieder her',[dep('BEWOHNER-02a',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===sonne?.id&&!m.active))],async()=>{
-   assert.ok(await card(adm,'Lina Kind'),'deaktivierte Bewohnerin nicht mehr sichtbar');
-   await click(adm,'PersonToggle');
+   await mitgliedschaft();
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&m.active),'Hausmitgliedschaft nicht reaktiviert');
    assert.ok(!env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Raumzuordnung wurde unbemerkt wiederhergestellt');
   },adm);

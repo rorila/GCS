@@ -1,0 +1,6409 @@
+{
+  "meta": {
+    "id": "maumau",
+    "name": "MauMau",
+    "description": "MauMau — deklaratives GCS-Kartenspiel (2-4 Spieler, Hotseat), zunächst mit farbigen SVG-Karten.",
+    "version": "1.0",
+    "_sourcePath": "projects/MauMau.json"
+  },
+  "schemaVersion": "4.0.0",
+  "activeStageId": "main",
+  "stages": [
+    {
+      "id": "main",
+      "name": "Hauptstage",
+      "type": "main",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#eaf2f8"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "maumau-1-unzug",
+          "name": "TitelLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 1,
+          "width": 34,
+          "height": 3,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#273746",
+            "fontSize": 27,
+            "fontWeight": "700",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "MauMau"
+        },
+        {
+          "className": "TLabel",
+          "id": "maumau-2-he3ss",
+          "name": "WahlLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 35,
+          "y": 7,
+          "width": 18,
+          "height": 2,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#34495e",
+            "fontSize": 16,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Wie viele Spieler?"
+        },
+        {
+          "className": "TButton",
+          "id": "maumau-3-4dgip",
+          "name": "Btn2",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Anzahl2"
+          },
+          "visible": true,
+          "x": 35,
+          "y": 10,
+          "width": 7,
+          "height": 3,
+          "zIndex": 8,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#1976d2",
+            "borderColor": "#17202a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "2 Spieler",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "maumau-4-1k2ug",
+          "name": "Btn3",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Anzahl3"
+          },
+          "visible": true,
+          "x": 43,
+          "y": 10,
+          "width": 7,
+          "height": 3,
+          "zIndex": 8,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#1976d2",
+            "borderColor": "#17202a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "3 Spieler",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "maumau-5-5crzm",
+          "name": "Btn4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Anzahl4"
+          },
+          "visible": true,
+          "x": 51,
+          "y": 10,
+          "width": 7,
+          "height": 3,
+          "zIndex": 8,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#1976d2",
+            "borderColor": "#17202a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "4 Spieler",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "maumau-6-nz4wk",
+          "name": "NeustartBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Neustart"
+          },
+          "visible": false,
+          "x": 55,
+          "y": 1,
+          "width": 7,
+          "height": 3,
+          "zIndex": 8,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#616a6b",
+            "borderColor": "#17202a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "Neu starten",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "maumau-7-8lhpx",
+          "name": "StatusLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 13,
+          "y": 8,
+          "width": 26,
+          "height": 4,
+          "zIndex": 6,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#1b2631",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "maumau-8-pw1zg",
+          "name": "HandInfoLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 7,
+          "width": 18,
+          "height": 3,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#34495e",
+            "fontSize": 13,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-9-0wcgd",
+          "name": "StapelBild",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Nachziehen",
+            "onTouchStart": "Nachziehen"
+          },
+          "visible": false,
+          "x": 17,
+          "y": 14,
+          "width": 7,
+          "height": 12,
+          "zIndex": 4,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/back.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-a-hbj2d",
+          "name": "AblagePlatz",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 25,
+          "y": 15,
+          "width": 7,
+          "height": 10,
+          "zIndex": 1,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/ablage.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TButton",
+          "id": "maumau-b-9ugjr",
+          "name": "WunschHerz",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "WunschHerz"
+          },
+          "visible": false,
+          "x": 35,
+          "y": 16,
+          "width": 7,
+          "height": 3,
+          "zIndex": 8,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#c0392b",
+            "borderColor": "#17202a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "Herz",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "maumau-c-jki2j",
+          "name": "WunschKaro",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "WunschKaro"
+          },
+          "visible": false,
+          "x": 43,
+          "y": 16,
+          "width": 7,
+          "height": 3,
+          "zIndex": 8,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#e67e22",
+            "borderColor": "#17202a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "Karo",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "maumau-d-404df",
+          "name": "WunschPik",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "WunschPik"
+          },
+          "visible": false,
+          "x": 35,
+          "y": 20,
+          "width": 7,
+          "height": 3,
+          "zIndex": 8,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#2471a3",
+            "borderColor": "#17202a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "Pik",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "maumau-e-b5oci",
+          "name": "WunschKreuz",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "WunschKreuz"
+          },
+          "visible": false,
+          "x": 43,
+          "y": 20,
+          "width": 7,
+          "height": 3,
+          "zIndex": 8,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "fontSize": 15,
+            "fontWeight": "700",
+            "backgroundColor": "#229954",
+            "borderColor": "#17202a",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "Kreuz",
+          "icon": ""
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-f-07icf",
+          "name": "Karte_00",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-herz-7.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-g-1sd8j",
+          "name": "Karte_01",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-herz-8.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-h-8zt75",
+          "name": "Karte_02",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-herz-9.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-i-hz3l5",
+          "name": "Karte_03",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-herz-10.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-j-3zywx",
+          "name": "Karte_04",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-herz-B.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-k-okkyd",
+          "name": "Karte_05",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-herz-D.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-l-dgedn",
+          "name": "Karte_06",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-herz-K.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-m-6g07i",
+          "name": "Karte_07",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-herz-A.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-n-qqtuy",
+          "name": "Karte_08",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-karo-7.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-o-2rq09",
+          "name": "Karte_09",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-karo-8.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-p-8hvmt",
+          "name": "Karte_10",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-karo-9.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-q-a0ak4",
+          "name": "Karte_11",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-karo-10.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-r-g2s1f",
+          "name": "Karte_12",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-karo-B.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-s-vl71u",
+          "name": "Karte_13",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-karo-D.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-t-j502r",
+          "name": "Karte_14",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-karo-K.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-u-cn819",
+          "name": "Karte_15",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-karo-A.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-v-s1gdy",
+          "name": "Karte_16",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-pik-7.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-w-4gkof",
+          "name": "Karte_17",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-pik-8.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-x-p0gi3",
+          "name": "Karte_18",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-pik-9.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-y-opbv5",
+          "name": "Karte_19",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-pik-10.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-z-r25r4",
+          "name": "Karte_20",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-pik-B.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-10-w6lxv",
+          "name": "Karte_21",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-pik-D.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-11-i0wou",
+          "name": "Karte_22",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-pik-K.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-12-c2y8m",
+          "name": "Karte_23",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-pik-A.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-13-fwe50",
+          "name": "Karte_24",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-kreuz-7.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-14-l0hv4",
+          "name": "Karte_25",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-kreuz-8.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-15-eacej",
+          "name": "Karte_26",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-kreuz-9.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-16-18jmp",
+          "name": "Karte_27",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-kreuz-10.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-17-oucxa",
+          "name": "Karte_28",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-kreuz-B.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-18-ikoqv",
+          "name": "Karte_29",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-kreuz-D.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-19-c2xjf",
+          "name": "Karte_30",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-kreuz-K.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TImage",
+          "id": "maumau-1a-0o4yn",
+          "name": "Karte_31",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "KarteGewaehlt",
+            "onTouchStart": "KarteGewaehlt"
+          },
+          "visible": false,
+          "x": -10,
+          "y": -10,
+          "width": 3.1,
+          "height": 4.5,
+          "zIndex": 10,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "src": "images/maumau/karte-kreuz-A.svg",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "matchValue": 0
+        },
+        {
+          "className": "TObjectList",
+          "id": "maumau-1b-lnfpv",
+          "name": "KartenListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 58,
+          "y": 0,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "dataSource": "",
+          "keyField": "id",
+          "selectedKey": "",
+          "selectedRecord": null,
+          "data": [
+            {
+              "index": 0,
+              "objectId": "maumau-f-07icf",
+              "name": "Karte_00",
+              "cardIdx": 0,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 7,
+              "rankName": "7",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_00",
+              "cardId": "maumau-f-07icf",
+              "image": "images/maumau/karte-herz-7.svg"
+            },
+            {
+              "index": 1,
+              "objectId": "maumau-g-1sd8j",
+              "name": "Karte_01",
+              "cardIdx": 1,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 8,
+              "rankName": "8",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_01",
+              "cardId": "maumau-g-1sd8j",
+              "image": "images/maumau/karte-herz-8.svg"
+            },
+            {
+              "index": 2,
+              "objectId": "maumau-h-8zt75",
+              "name": "Karte_02",
+              "cardIdx": 2,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 9,
+              "rankName": "9",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_02",
+              "cardId": "maumau-h-8zt75",
+              "image": "images/maumau/karte-herz-9.svg"
+            },
+            {
+              "index": 3,
+              "objectId": "maumau-i-hz3l5",
+              "name": "Karte_03",
+              "cardIdx": 3,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 10,
+              "rankName": "10",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_03",
+              "cardId": "maumau-i-hz3l5",
+              "image": "images/maumau/karte-herz-10.svg"
+            },
+            {
+              "index": 4,
+              "objectId": "maumau-j-3zywx",
+              "name": "Karte_04",
+              "cardIdx": 4,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 11,
+              "rankName": "B",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_04",
+              "cardId": "maumau-j-3zywx",
+              "image": "images/maumau/karte-herz-B.svg"
+            },
+            {
+              "index": 5,
+              "objectId": "maumau-k-okkyd",
+              "name": "Karte_05",
+              "cardIdx": 5,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 12,
+              "rankName": "D",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_05",
+              "cardId": "maumau-k-okkyd",
+              "image": "images/maumau/karte-herz-D.svg"
+            },
+            {
+              "index": 6,
+              "objectId": "maumau-l-dgedn",
+              "name": "Karte_06",
+              "cardIdx": 6,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 13,
+              "rankName": "K",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_06",
+              "cardId": "maumau-l-dgedn",
+              "image": "images/maumau/karte-herz-K.svg"
+            },
+            {
+              "index": 7,
+              "objectId": "maumau-m-6g07i",
+              "name": "Karte_07",
+              "cardIdx": 7,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 14,
+              "rankName": "A",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_07",
+              "cardId": "maumau-m-6g07i",
+              "image": "images/maumau/karte-herz-A.svg"
+            },
+            {
+              "index": 8,
+              "objectId": "maumau-n-qqtuy",
+              "name": "Karte_08",
+              "cardIdx": 8,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 7,
+              "rankName": "7",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_08",
+              "cardId": "maumau-n-qqtuy",
+              "image": "images/maumau/karte-karo-7.svg"
+            },
+            {
+              "index": 9,
+              "objectId": "maumau-o-2rq09",
+              "name": "Karte_09",
+              "cardIdx": 9,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 8,
+              "rankName": "8",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_09",
+              "cardId": "maumau-o-2rq09",
+              "image": "images/maumau/karte-karo-8.svg"
+            },
+            {
+              "index": 10,
+              "objectId": "maumau-p-8hvmt",
+              "name": "Karte_10",
+              "cardIdx": 10,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 9,
+              "rankName": "9",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_10",
+              "cardId": "maumau-p-8hvmt",
+              "image": "images/maumau/karte-karo-9.svg"
+            },
+            {
+              "index": 11,
+              "objectId": "maumau-q-a0ak4",
+              "name": "Karte_11",
+              "cardIdx": 11,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 10,
+              "rankName": "10",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_11",
+              "cardId": "maumau-q-a0ak4",
+              "image": "images/maumau/karte-karo-10.svg"
+            },
+            {
+              "index": 12,
+              "objectId": "maumau-r-g2s1f",
+              "name": "Karte_12",
+              "cardIdx": 12,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 11,
+              "rankName": "B",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_12",
+              "cardId": "maumau-r-g2s1f",
+              "image": "images/maumau/karte-karo-B.svg"
+            },
+            {
+              "index": 13,
+              "objectId": "maumau-s-vl71u",
+              "name": "Karte_13",
+              "cardIdx": 13,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 12,
+              "rankName": "D",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_13",
+              "cardId": "maumau-s-vl71u",
+              "image": "images/maumau/karte-karo-D.svg"
+            },
+            {
+              "index": 14,
+              "objectId": "maumau-t-j502r",
+              "name": "Karte_14",
+              "cardIdx": 14,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 13,
+              "rankName": "K",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_14",
+              "cardId": "maumau-t-j502r",
+              "image": "images/maumau/karte-karo-K.svg"
+            },
+            {
+              "index": 15,
+              "objectId": "maumau-u-cn819",
+              "name": "Karte_15",
+              "cardIdx": 15,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 14,
+              "rankName": "A",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_15",
+              "cardId": "maumau-u-cn819",
+              "image": "images/maumau/karte-karo-A.svg"
+            },
+            {
+              "index": 16,
+              "objectId": "maumau-v-s1gdy",
+              "name": "Karte_16",
+              "cardIdx": 16,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 7,
+              "rankName": "7",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_16",
+              "cardId": "maumau-v-s1gdy",
+              "image": "images/maumau/karte-pik-7.svg"
+            },
+            {
+              "index": 17,
+              "objectId": "maumau-w-4gkof",
+              "name": "Karte_17",
+              "cardIdx": 17,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 8,
+              "rankName": "8",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_17",
+              "cardId": "maumau-w-4gkof",
+              "image": "images/maumau/karte-pik-8.svg"
+            },
+            {
+              "index": 18,
+              "objectId": "maumau-x-p0gi3",
+              "name": "Karte_18",
+              "cardIdx": 18,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 9,
+              "rankName": "9",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_18",
+              "cardId": "maumau-x-p0gi3",
+              "image": "images/maumau/karte-pik-9.svg"
+            },
+            {
+              "index": 19,
+              "objectId": "maumau-y-opbv5",
+              "name": "Karte_19",
+              "cardIdx": 19,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 10,
+              "rankName": "10",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_19",
+              "cardId": "maumau-y-opbv5",
+              "image": "images/maumau/karte-pik-10.svg"
+            },
+            {
+              "index": 20,
+              "objectId": "maumau-z-r25r4",
+              "name": "Karte_20",
+              "cardIdx": 20,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 11,
+              "rankName": "B",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_20",
+              "cardId": "maumau-z-r25r4",
+              "image": "images/maumau/karte-pik-B.svg"
+            },
+            {
+              "index": 21,
+              "objectId": "maumau-10-w6lxv",
+              "name": "Karte_21",
+              "cardIdx": 21,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 12,
+              "rankName": "D",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_21",
+              "cardId": "maumau-10-w6lxv",
+              "image": "images/maumau/karte-pik-D.svg"
+            },
+            {
+              "index": 22,
+              "objectId": "maumau-11-i0wou",
+              "name": "Karte_22",
+              "cardIdx": 22,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 13,
+              "rankName": "K",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_22",
+              "cardId": "maumau-11-i0wou",
+              "image": "images/maumau/karte-pik-K.svg"
+            },
+            {
+              "index": 23,
+              "objectId": "maumau-12-c2y8m",
+              "name": "Karte_23",
+              "cardIdx": 23,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 14,
+              "rankName": "A",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_23",
+              "cardId": "maumau-12-c2y8m",
+              "image": "images/maumau/karte-pik-A.svg"
+            },
+            {
+              "index": 24,
+              "objectId": "maumau-13-fwe50",
+              "name": "Karte_24",
+              "cardIdx": 24,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 7,
+              "rankName": "7",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_24",
+              "cardId": "maumau-13-fwe50",
+              "image": "images/maumau/karte-kreuz-7.svg"
+            },
+            {
+              "index": 25,
+              "objectId": "maumau-14-l0hv4",
+              "name": "Karte_25",
+              "cardIdx": 25,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 8,
+              "rankName": "8",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_25",
+              "cardId": "maumau-14-l0hv4",
+              "image": "images/maumau/karte-kreuz-8.svg"
+            },
+            {
+              "index": 26,
+              "objectId": "maumau-15-eacej",
+              "name": "Karte_26",
+              "cardIdx": 26,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 9,
+              "rankName": "9",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_26",
+              "cardId": "maumau-15-eacej",
+              "image": "images/maumau/karte-kreuz-9.svg"
+            },
+            {
+              "index": 27,
+              "objectId": "maumau-16-18jmp",
+              "name": "Karte_27",
+              "cardIdx": 27,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 10,
+              "rankName": "10",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_27",
+              "cardId": "maumau-16-18jmp",
+              "image": "images/maumau/karte-kreuz-10.svg"
+            },
+            {
+              "index": 28,
+              "objectId": "maumau-17-oucxa",
+              "name": "Karte_28",
+              "cardIdx": 28,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 11,
+              "rankName": "B",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_28",
+              "cardId": "maumau-17-oucxa",
+              "image": "images/maumau/karte-kreuz-B.svg"
+            },
+            {
+              "index": 29,
+              "objectId": "maumau-18-ikoqv",
+              "name": "Karte_29",
+              "cardIdx": 29,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 12,
+              "rankName": "D",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_29",
+              "cardId": "maumau-18-ikoqv",
+              "image": "images/maumau/karte-kreuz-D.svg"
+            },
+            {
+              "index": 30,
+              "objectId": "maumau-19-c2xjf",
+              "name": "Karte_30",
+              "cardIdx": 30,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 13,
+              "rankName": "K",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_30",
+              "cardId": "maumau-19-c2xjf",
+              "image": "images/maumau/karte-kreuz-K.svg"
+            },
+            {
+              "index": 31,
+              "objectId": "maumau-1a-0o4yn",
+              "name": "Karte_31",
+              "cardIdx": 31,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 14,
+              "rankName": "A",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_31",
+              "cardId": "maumau-1a-0o4yn",
+              "image": "images/maumau/karte-kreuz-A.svg"
+            }
+          ],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Name",
+              "width": "1fr"
+            },
+            {
+              "property": "uiScope",
+              "label": "Scope",
+              "width": "60px"
+            },
+            {
+              "property": "usageCount",
+              "label": "Links",
+              "width": "50px"
+            }
+          ],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "sourceMode": "objects",
+          "records": [],
+          "recordKey": "id",
+          "fields": [
+            {
+              "name": "cardIdx",
+              "type": "number",
+              "defaultValue": -1
+            },
+            {
+              "name": "suit",
+              "type": "number",
+              "defaultValue": -1
+            },
+            {
+              "name": "suitName",
+              "type": "string",
+              "defaultValue": ""
+            },
+            {
+              "name": "rank",
+              "type": "number",
+              "defaultValue": 0
+            },
+            {
+              "name": "rankName",
+              "type": "string",
+              "defaultValue": ""
+            },
+            {
+              "name": "owner",
+              "type": "number",
+              "defaultValue": -1
+            },
+            {
+              "name": "handIndex",
+              "type": "number",
+              "defaultValue": -1
+            },
+            {
+              "name": "pileIndex",
+              "type": "number",
+              "defaultValue": -1
+            },
+            {
+              "name": "playable",
+              "type": "boolean",
+              "defaultValue": false
+            },
+            {
+              "name": "cardName",
+              "type": "string",
+              "defaultValue": ""
+            },
+            {
+              "name": "cardId",
+              "type": "string",
+              "defaultValue": ""
+            },
+            {
+              "name": "image",
+              "type": "string",
+              "defaultValue": ""
+            }
+          ],
+          "items": [
+            "maumau-f-07icf",
+            "maumau-g-1sd8j",
+            "maumau-h-8zt75",
+            "maumau-i-hz3l5",
+            "maumau-j-3zywx",
+            "maumau-k-okkyd",
+            "maumau-l-dgedn",
+            "maumau-m-6g07i",
+            "maumau-n-qqtuy",
+            "maumau-o-2rq09",
+            "maumau-p-8hvmt",
+            "maumau-q-a0ak4",
+            "maumau-r-g2s1f",
+            "maumau-s-vl71u",
+            "maumau-t-j502r",
+            "maumau-u-cn819",
+            "maumau-v-s1gdy",
+            "maumau-w-4gkof",
+            "maumau-x-p0gi3",
+            "maumau-y-opbv5",
+            "maumau-z-r25r4",
+            "maumau-10-w6lxv",
+            "maumau-11-i0wou",
+            "maumau-12-c2y8m",
+            "maumau-13-fwe50",
+            "maumau-14-l0hv4",
+            "maumau-15-eacej",
+            "maumau-16-18jmp",
+            "maumau-17-oucxa",
+            "maumau-18-ikoqv",
+            "maumau-19-c2xjf",
+            "maumau-1a-0o4yn"
+          ],
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "recordData": {
+            "maumau-f-07icf": {
+              "cardIdx": 0,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 7,
+              "rankName": "7",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_00",
+              "cardId": "maumau-f-07icf",
+              "image": "images/maumau/karte-herz-7.svg"
+            },
+            "maumau-g-1sd8j": {
+              "cardIdx": 1,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 8,
+              "rankName": "8",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_01",
+              "cardId": "maumau-g-1sd8j",
+              "image": "images/maumau/karte-herz-8.svg"
+            },
+            "maumau-h-8zt75": {
+              "cardIdx": 2,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 9,
+              "rankName": "9",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_02",
+              "cardId": "maumau-h-8zt75",
+              "image": "images/maumau/karte-herz-9.svg"
+            },
+            "maumau-i-hz3l5": {
+              "cardIdx": 3,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 10,
+              "rankName": "10",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_03",
+              "cardId": "maumau-i-hz3l5",
+              "image": "images/maumau/karte-herz-10.svg"
+            },
+            "maumau-j-3zywx": {
+              "cardIdx": 4,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 11,
+              "rankName": "B",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_04",
+              "cardId": "maumau-j-3zywx",
+              "image": "images/maumau/karte-herz-B.svg"
+            },
+            "maumau-k-okkyd": {
+              "cardIdx": 5,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 12,
+              "rankName": "D",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_05",
+              "cardId": "maumau-k-okkyd",
+              "image": "images/maumau/karte-herz-D.svg"
+            },
+            "maumau-l-dgedn": {
+              "cardIdx": 6,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 13,
+              "rankName": "K",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_06",
+              "cardId": "maumau-l-dgedn",
+              "image": "images/maumau/karte-herz-K.svg"
+            },
+            "maumau-m-6g07i": {
+              "cardIdx": 7,
+              "suit": 0,
+              "suitName": "Herz",
+              "rank": 14,
+              "rankName": "A",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_07",
+              "cardId": "maumau-m-6g07i",
+              "image": "images/maumau/karte-herz-A.svg"
+            },
+            "maumau-n-qqtuy": {
+              "cardIdx": 8,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 7,
+              "rankName": "7",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_08",
+              "cardId": "maumau-n-qqtuy",
+              "image": "images/maumau/karte-karo-7.svg"
+            },
+            "maumau-o-2rq09": {
+              "cardIdx": 9,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 8,
+              "rankName": "8",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_09",
+              "cardId": "maumau-o-2rq09",
+              "image": "images/maumau/karte-karo-8.svg"
+            },
+            "maumau-p-8hvmt": {
+              "cardIdx": 10,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 9,
+              "rankName": "9",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_10",
+              "cardId": "maumau-p-8hvmt",
+              "image": "images/maumau/karte-karo-9.svg"
+            },
+            "maumau-q-a0ak4": {
+              "cardIdx": 11,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 10,
+              "rankName": "10",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_11",
+              "cardId": "maumau-q-a0ak4",
+              "image": "images/maumau/karte-karo-10.svg"
+            },
+            "maumau-r-g2s1f": {
+              "cardIdx": 12,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 11,
+              "rankName": "B",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_12",
+              "cardId": "maumau-r-g2s1f",
+              "image": "images/maumau/karte-karo-B.svg"
+            },
+            "maumau-s-vl71u": {
+              "cardIdx": 13,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 12,
+              "rankName": "D",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_13",
+              "cardId": "maumau-s-vl71u",
+              "image": "images/maumau/karte-karo-D.svg"
+            },
+            "maumau-t-j502r": {
+              "cardIdx": 14,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 13,
+              "rankName": "K",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_14",
+              "cardId": "maumau-t-j502r",
+              "image": "images/maumau/karte-karo-K.svg"
+            },
+            "maumau-u-cn819": {
+              "cardIdx": 15,
+              "suit": 1,
+              "suitName": "Karo",
+              "rank": 14,
+              "rankName": "A",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_15",
+              "cardId": "maumau-u-cn819",
+              "image": "images/maumau/karte-karo-A.svg"
+            },
+            "maumau-v-s1gdy": {
+              "cardIdx": 16,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 7,
+              "rankName": "7",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_16",
+              "cardId": "maumau-v-s1gdy",
+              "image": "images/maumau/karte-pik-7.svg"
+            },
+            "maumau-w-4gkof": {
+              "cardIdx": 17,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 8,
+              "rankName": "8",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_17",
+              "cardId": "maumau-w-4gkof",
+              "image": "images/maumau/karte-pik-8.svg"
+            },
+            "maumau-x-p0gi3": {
+              "cardIdx": 18,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 9,
+              "rankName": "9",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_18",
+              "cardId": "maumau-x-p0gi3",
+              "image": "images/maumau/karte-pik-9.svg"
+            },
+            "maumau-y-opbv5": {
+              "cardIdx": 19,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 10,
+              "rankName": "10",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_19",
+              "cardId": "maumau-y-opbv5",
+              "image": "images/maumau/karte-pik-10.svg"
+            },
+            "maumau-z-r25r4": {
+              "cardIdx": 20,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 11,
+              "rankName": "B",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_20",
+              "cardId": "maumau-z-r25r4",
+              "image": "images/maumau/karte-pik-B.svg"
+            },
+            "maumau-10-w6lxv": {
+              "cardIdx": 21,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 12,
+              "rankName": "D",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_21",
+              "cardId": "maumau-10-w6lxv",
+              "image": "images/maumau/karte-pik-D.svg"
+            },
+            "maumau-11-i0wou": {
+              "cardIdx": 22,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 13,
+              "rankName": "K",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_22",
+              "cardId": "maumau-11-i0wou",
+              "image": "images/maumau/karte-pik-K.svg"
+            },
+            "maumau-12-c2y8m": {
+              "cardIdx": 23,
+              "suit": 2,
+              "suitName": "Pik",
+              "rank": 14,
+              "rankName": "A",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_23",
+              "cardId": "maumau-12-c2y8m",
+              "image": "images/maumau/karte-pik-A.svg"
+            },
+            "maumau-13-fwe50": {
+              "cardIdx": 24,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 7,
+              "rankName": "7",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_24",
+              "cardId": "maumau-13-fwe50",
+              "image": "images/maumau/karte-kreuz-7.svg"
+            },
+            "maumau-14-l0hv4": {
+              "cardIdx": 25,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 8,
+              "rankName": "8",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_25",
+              "cardId": "maumau-14-l0hv4",
+              "image": "images/maumau/karte-kreuz-8.svg"
+            },
+            "maumau-15-eacej": {
+              "cardIdx": 26,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 9,
+              "rankName": "9",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_26",
+              "cardId": "maumau-15-eacej",
+              "image": "images/maumau/karte-kreuz-9.svg"
+            },
+            "maumau-16-18jmp": {
+              "cardIdx": 27,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 10,
+              "rankName": "10",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_27",
+              "cardId": "maumau-16-18jmp",
+              "image": "images/maumau/karte-kreuz-10.svg"
+            },
+            "maumau-17-oucxa": {
+              "cardIdx": 28,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 11,
+              "rankName": "B",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_28",
+              "cardId": "maumau-17-oucxa",
+              "image": "images/maumau/karte-kreuz-B.svg"
+            },
+            "maumau-18-ikoqv": {
+              "cardIdx": 29,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 12,
+              "rankName": "D",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_29",
+              "cardId": "maumau-18-ikoqv",
+              "image": "images/maumau/karte-kreuz-D.svg"
+            },
+            "maumau-19-c2xjf": {
+              "cardIdx": 30,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 13,
+              "rankName": "K",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_30",
+              "cardId": "maumau-19-c2xjf",
+              "image": "images/maumau/karte-kreuz-K.svg"
+            },
+            "maumau-1a-0o4yn": {
+              "cardIdx": 31,
+              "suit": 3,
+              "suitName": "Kreuz",
+              "rank": 14,
+              "rankName": "A",
+              "owner": -1,
+              "handIndex": -1,
+              "pileIndex": -1,
+              "playable": false,
+              "cardName": "Karte_31",
+              "cardId": "maumau-1a-0o4yn",
+              "image": "images/maumau/karte-kreuz-A.svg"
+            }
+          }
+        },
+        {
+          "className": "TListVariable",
+          "id": "maumau-1c-2f2hk",
+          "name": "StapelBasis",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": [
+            "maumau-f-07icf",
+            "maumau-g-1sd8j",
+            "maumau-h-8zt75",
+            "maumau-i-hz3l5",
+            "maumau-j-3zywx",
+            "maumau-k-okkyd",
+            "maumau-l-dgedn",
+            "maumau-m-6g07i",
+            "maumau-n-qqtuy",
+            "maumau-o-2rq09",
+            "maumau-p-8hvmt",
+            "maumau-q-a0ak4",
+            "maumau-r-g2s1f",
+            "maumau-s-vl71u",
+            "maumau-t-j502r",
+            "maumau-u-cn819",
+            "maumau-v-s1gdy",
+            "maumau-w-4gkof",
+            "maumau-x-p0gi3",
+            "maumau-y-opbv5",
+            "maumau-z-r25r4",
+            "maumau-10-w6lxv",
+            "maumau-11-i0wou",
+            "maumau-12-c2y8m",
+            "maumau-13-fwe50",
+            "maumau-14-l0hv4",
+            "maumau-15-eacej",
+            "maumau-16-18jmp",
+            "maumau-17-oucxa",
+            "maumau-18-ikoqv",
+            "maumau-19-c2xjf",
+            "maumau-1a-0o4yn"
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "maumau-1d-ir8f0",
+          "name": "StapelListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": []
+        },
+        {
+          "className": "TListVariable",
+          "id": "maumau-1e-d8l0s",
+          "name": "AblageListe",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": []
+        },
+        {
+          "className": "TListVariable",
+          "id": "maumau-1f-9zbhy",
+          "name": "HandCounts",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "maumau-1g-kuzk9",
+          "name": "SpielerNamen",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": [
+            "Spieler 1",
+            "Spieler 2",
+            "Spieler 3",
+            "Spieler 4"
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "maumau-1h-7zxv9",
+          "name": "Farben",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#7b1fa2",
+            "borderWidth": 2
+          },
+          "items": [
+            "#dc143c",
+            "#1e90ff",
+            "#228b22",
+            "#ffd700"
+          ]
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1i-qu0gg",
+          "name": "Var_PlayerCount",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 0,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1j-uf3rf",
+          "name": "Var_CurrPlayer",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 1,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1k-3eier",
+          "name": "Var_NextPlayer",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 2,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1l-trjlx",
+          "name": "Var_Richtung",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 3,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 1,
+          "value": 1,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1m-tklss",
+          "name": "Var_Skip",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 4,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1n-27hkl",
+          "name": "Var_Phase",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 5,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": "setup",
+          "value": "setup",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1o-kxdkw",
+          "name": "Var_ZiehPflicht",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 6,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1p-c9orl",
+          "name": "Var_Wunsch",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 7,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": -1,
+          "value": -1,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1q-gbqy2",
+          "name": "Var_AblageSuit",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 8,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": -1,
+          "value": -1,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1r-dibvx",
+          "name": "Var_AblageRank",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 9,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1s-blxzr",
+          "name": "Var_CardIdx",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 10,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": -1,
+          "value": -1,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1t-6oifg",
+          "name": "Var_KarteId",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 11,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1u-4efdd",
+          "name": "Var_CardOwner",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 12,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": -1,
+          "value": -1,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1v-azpj4",
+          "name": "Var_CardSuit",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 13,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": -1,
+          "value": -1,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1w-8ff6s",
+          "name": "Var_CardRank",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 14,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1x-hob54",
+          "name": "Var_PlayedSuit",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 15,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": -1,
+          "value": -1,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1y-c69k8",
+          "name": "Var_PlayedRank",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 16,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-1z-13rwz",
+          "name": "Var_CardName",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 17,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-20-91qhj",
+          "name": "Var_CardImage",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 18,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-21-sfi77",
+          "name": "Var_CardPile",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 19,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": -1,
+          "value": -1,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-22-1hr52",
+          "name": "Var_CardPlayable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 20,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-23-li24j",
+          "name": "Var_Spielbar",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 21,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-24-x202r",
+          "name": "Var_PlayableCount",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 22,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-25-x5w7v",
+          "name": "Var_HandIndex",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 23,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-26-7i0qc",
+          "name": "Var_NextHandIndex",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 24,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-27-cu0o9",
+          "name": "Var_StapelLen",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 25,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-28-o3kzi",
+          "name": "Var_AblageLen",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 26,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-29-yvpdw",
+          "name": "Var_X",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 27,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2a-89nhy",
+          "name": "Var_Y",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 28,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2b-9hwjo",
+          "name": "Var_Z",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 29,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2c-0q29l",
+          "name": "Var_SpielerName",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 30,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2d-204l3",
+          "name": "Var_HandInfo",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 31,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2e-iq2d7",
+          "name": "Var_DrawTotal",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 32,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2f-lv97r",
+          "name": "Var_LastPlayer",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 33,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2g-fnlkb",
+          "name": "i",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 34,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2h-t7bls",
+          "name": "p",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 35,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2i-gj6ej",
+          "name": "k",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 36,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TVariable",
+          "id": "maumau-2j-rm5kv",
+          "name": "item",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "isManagedInSidepanel": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 60,
+          "y": 37,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        }
+      ],
+      "actions": [
+        {
+          "id": "maumau-2k-gzysa",
+          "type": "property",
+          "name": "Act_Set2",
+          "showDetails": false,
+          "changes": {
+            "Var_PlayerCount": 2
+          }
+        },
+        {
+          "id": "maumau-2l-n00fc",
+          "type": "property",
+          "name": "Act_Set3",
+          "showDetails": false,
+          "changes": {
+            "Var_PlayerCount": 3
+          }
+        },
+        {
+          "id": "maumau-2m-1ufbn",
+          "type": "property",
+          "name": "Act_Set4",
+          "showDetails": false,
+          "changes": {
+            "Var_PlayerCount": 4
+          }
+        },
+        {
+          "id": "maumau-2n-qwxsq",
+          "type": "calculate",
+          "name": "Act_LastPlayer",
+          "showDetails": false,
+          "formula": "Var_PlayerCount - 1",
+          "resultVariable": "Var_LastPlayer",
+          "resultVariable_ref": "maumau-2f-lv97r"
+        },
+        {
+          "id": "maumau-2o-ovovu",
+          "type": "property",
+          "name": "Act_SetupAus",
+          "showDetails": false,
+          "changes": {
+            "WahlLabel.visible": false,
+            "Btn2.visible": false,
+            "Btn3.visible": false,
+            "Btn4.visible": false,
+            "NeustartBtn.visible": true,
+            "StapelBild.visible": true,
+            "AblagePlatz.visible": true
+          }
+        },
+        {
+          "id": "maumau-2p-nf1y8",
+          "type": "property",
+          "name": "Act_SetupAn",
+          "showDetails": false,
+          "changes": {
+            "WahlLabel.visible": true,
+            "Btn2.visible": true,
+            "Btn3.visible": true,
+            "Btn4.visible": true,
+            "NeustartBtn.visible": false,
+            "StapelBild.visible": false,
+            "AblagePlatz.visible": false,
+            "StatusLabel.text": "",
+            "HandInfoLabel.text": ""
+          }
+        },
+        {
+          "id": "maumau-2q-y1gh9",
+          "type": "property",
+          "name": "Act_WunschAn",
+          "showDetails": false,
+          "changes": {
+            "WunschHerz.visible": true,
+            "WunschKaro.visible": true,
+            "WunschPik.visible": true,
+            "WunschKreuz.visible": true
+          }
+        },
+        {
+          "id": "maumau-2r-56c19",
+          "type": "property",
+          "name": "Act_WunschAus",
+          "showDetails": false,
+          "changes": {
+            "WunschHerz.visible": false,
+            "WunschKaro.visible": false,
+            "WunschPik.visible": false,
+            "WunschKreuz.visible": false
+          }
+        },
+        {
+          "id": "maumau-2s-gi324",
+          "type": "property",
+          "name": "Act_StartWerte",
+          "showDetails": false,
+          "changes": {
+            "Var_CurrPlayer": 0,
+            "Var_NextPlayer": 0,
+            "Var_Richtung": 1,
+            "Var_Skip": 0,
+            "Var_ZiehPflicht": 0,
+            "Var_Wunsch": -1,
+            "Var_AblageSuit": -1,
+            "Var_AblageRank": 0,
+            "Var_PlayableCount": 0
+          }
+        },
+        {
+          "id": "maumau-2t-bjgx3",
+          "type": "property",
+          "name": "Act_PhaseSetup",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "setup"
+          }
+        },
+        {
+          "id": "maumau-2u-cyt81",
+          "type": "property",
+          "name": "Act_PhasePlay",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "play"
+          }
+        },
+        {
+          "id": "maumau-2v-t9637",
+          "type": "property",
+          "name": "Act_PhaseDraw",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "draw"
+          }
+        },
+        {
+          "id": "maumau-2w-rfwl3",
+          "type": "property",
+          "name": "Act_PhaseWunsch",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "wish"
+          }
+        },
+        {
+          "id": "maumau-2x-qc8q0",
+          "type": "property",
+          "name": "Act_PhaseEnde",
+          "showDetails": false,
+          "changes": {
+            "Var_Phase": "ende"
+          }
+        },
+        {
+          "id": "maumau-2y-ui3am",
+          "type": "list_clear",
+          "name": "Act_StapelLeer",
+          "showDetails": false,
+          "target": "StapelListe",
+          "target_ref": "maumau-1d-ir8f0"
+        },
+        {
+          "id": "maumau-2z-crbku",
+          "type": "list_clear",
+          "name": "Act_AblageLeer",
+          "showDetails": false,
+          "target": "AblageListe",
+          "target_ref": "maumau-1e-d8l0s"
+        },
+        {
+          "id": "maumau-30-frah7",
+          "type": "list_push",
+          "name": "Act_StapelPush",
+          "showDetails": false,
+          "target": "StapelListe",
+          "value": "${item}",
+          "target_ref": "maumau-1d-ir8f0"
+        },
+        {
+          "id": "maumau-31-4faz3",
+          "type": "list_shuffle",
+          "name": "Act_StapelMischen",
+          "showDetails": false,
+          "target": "StapelListe",
+          "target_ref": "maumau-1d-ir8f0"
+        },
+        {
+          "id": "maumau-32-7imd8",
+          "type": "list_pop",
+          "name": "Act_StapelPop",
+          "showDetails": false,
+          "target": "StapelListe",
+          "resultVariable": "Var_KarteId",
+          "target_ref": "maumau-1d-ir8f0",
+          "resultVariable_ref": "maumau-1t-6oifg"
+        },
+        {
+          "id": "maumau-33-qc03m",
+          "type": "list_pop",
+          "name": "Act_StartPop",
+          "showDetails": false,
+          "target": "StapelListe",
+          "resultVariable": "Var_KarteId",
+          "target_ref": "maumau-1d-ir8f0",
+          "resultVariable_ref": "maumau-1t-6oifg"
+        },
+        {
+          "id": "maumau-34-qgjle",
+          "type": "list_length",
+          "name": "Act_StapelLen",
+          "showDetails": false,
+          "target": "StapelListe",
+          "resultVariable": "Var_StapelLen",
+          "target_ref": "maumau-1d-ir8f0",
+          "resultVariable_ref": "maumau-27-cu0o9"
+        },
+        {
+          "id": "maumau-35-a4lg0",
+          "type": "list_length",
+          "name": "Act_AblageLen",
+          "showDetails": false,
+          "target": "AblageListe",
+          "resultVariable": "Var_AblageLen",
+          "target_ref": "maumau-1e-d8l0s",
+          "resultVariable_ref": "maumau-28-o3kzi"
+        },
+        {
+          "id": "maumau-36-gdbj4",
+          "type": "list_remove",
+          "name": "Act_AblageAlt",
+          "showDetails": false,
+          "target": "AblageListe",
+          "index": 0,
+          "resultVariable": "Var_KarteId",
+          "target_ref": "maumau-1e-d8l0s",
+          "resultVariable_ref": "maumau-1t-6oifg"
+        },
+        {
+          "id": "maumau-37-ixfim",
+          "type": "list_push",
+          "name": "Act_StapelAltPush",
+          "showDetails": false,
+          "target": "StapelListe",
+          "value": "${Var_KarteId}",
+          "target_ref": "maumau-1d-ir8f0"
+        },
+        {
+          "id": "maumau-38-tb862",
+          "type": "list_set",
+          "name": "Act_Count0",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": 0,
+          "value": 0,
+          "target_ref": "maumau-1f-9zbhy"
+        },
+        {
+          "id": "maumau-39-9fqem",
+          "type": "list_set",
+          "name": "Act_Count1",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": 1,
+          "value": 0,
+          "target_ref": "maumau-1f-9zbhy"
+        },
+        {
+          "id": "maumau-3a-d7var",
+          "type": "list_set",
+          "name": "Act_Count2",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": 2,
+          "value": 0,
+          "target_ref": "maumau-1f-9zbhy"
+        },
+        {
+          "id": "maumau-3b-hhc47",
+          "type": "list_set",
+          "name": "Act_Count3",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": 3,
+          "value": 0,
+          "target_ref": "maumau-1f-9zbhy"
+        },
+        {
+          "id": "maumau-3c-gpwsh",
+          "type": "list_get",
+          "name": "Act_HandCount",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": "${Var_CurrPlayer}",
+          "resultVariable": "Var_HandIndex",
+          "target_ref": "maumau-1f-9zbhy",
+          "resultVariable_ref": "maumau-25-x5w7v"
+        },
+        {
+          "id": "maumau-3d-hjqj4",
+          "type": "list_get",
+          "name": "Act_HandCountP",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": "${p}",
+          "resultVariable": "Var_HandIndex",
+          "target_ref": "maumau-1f-9zbhy",
+          "resultVariable_ref": "maumau-25-x5w7v"
+        },
+        {
+          "id": "maumau-3e-h4ldd",
+          "type": "calculate",
+          "name": "Act_HandIndexPlus",
+          "showDetails": false,
+          "formula": "Var_HandIndex + 1",
+          "resultVariable": "Var_NextHandIndex",
+          "resultVariable_ref": "maumau-26-7i0qc"
+        },
+        {
+          "id": "maumau-3f-hfpdu",
+          "type": "list_set",
+          "name": "Act_HandCountSet",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": "${Var_CurrPlayer}",
+          "value": "${Var_NextHandIndex}",
+          "target_ref": "maumau-1f-9zbhy"
+        },
+        {
+          "id": "maumau-3g-8wcyq",
+          "type": "list_set",
+          "name": "Act_HandCountSetP",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": "${p}",
+          "value": "${Var_NextHandIndex}",
+          "target_ref": "maumau-1f-9zbhy"
+        },
+        {
+          "id": "maumau-3h-2blan",
+          "type": "list_get",
+          "name": "Act_CountByOwner",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": "${Var_CardOwner}",
+          "resultVariable": "Var_HandIndex",
+          "target_ref": "maumau-1f-9zbhy",
+          "resultVariable_ref": "maumau-25-x5w7v"
+        },
+        {
+          "id": "maumau-3i-f6on5",
+          "type": "calculate",
+          "name": "Act_HandIndexNum",
+          "showDetails": false,
+          "formula": "Var_HandIndex * 1",
+          "resultVariable": "Var_HandIndex",
+          "resultVariable_ref": "maumau-25-x5w7v"
+        },
+        {
+          "id": "maumau-3j-ymv9w",
+          "type": "list_set",
+          "name": "Act_CountByOwnerSet",
+          "showDetails": false,
+          "target": "HandCounts",
+          "index": "${Var_CardOwner}",
+          "value": "${Var_NextHandIndex}",
+          "target_ref": "maumau-1f-9zbhy"
+        },
+        {
+          "id": "maumau-3k-mqz8d",
+          "type": "record_reset",
+          "name": "Act_OwnerReset",
+          "showDetails": false,
+          "list": "KartenListe",
+          "field": "owner",
+          "value": -1,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3l-usmiv",
+          "type": "record_reset",
+          "name": "Act_HandIdxReset",
+          "showDetails": false,
+          "list": "KartenListe",
+          "field": "handIndex",
+          "value": -1,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3m-t55u0",
+          "type": "record_reset",
+          "name": "Act_PileReset",
+          "showDetails": false,
+          "list": "KartenListe",
+          "field": "pileIndex",
+          "value": -1,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3n-g8unz",
+          "type": "record_reset",
+          "name": "Act_PlayableReset",
+          "showDetails": false,
+          "list": "KartenListe",
+          "field": "playable",
+          "value": false,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3o-31ia0",
+          "type": "record_set",
+          "name": "Act_OwnerDeck",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "owner",
+          "value": -1,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3p-6tp87",
+          "type": "record_set",
+          "name": "Act_HandIdxLeer",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "handIndex",
+          "value": -1,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3q-m83jh",
+          "type": "record_set",
+          "name": "Act_PileLeer",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "pileIndex",
+          "value": -1,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3r-yphgv",
+          "type": "record_set",
+          "name": "Act_KarteNichtSpielbar",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "playable",
+          "value": false,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3s-0z8s0",
+          "type": "record_set",
+          "name": "Act_OwnerCurr",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "owner",
+          "value": "${Var_CurrPlayer}",
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3t-2a05u",
+          "type": "record_set",
+          "name": "Act_HandIdxCurr",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "handIndex",
+          "value": "${Var_HandIndex}",
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3u-obyer",
+          "type": "record_set",
+          "name": "Act_OwnerP",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "owner",
+          "value": "${p}",
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3v-udfks",
+          "type": "record_set",
+          "name": "Act_HandIdxP",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "handIndex",
+          "value": "${Var_HandIndex}",
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3w-5t51y",
+          "type": "record_set",
+          "name": "Act_OwnerAblage",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "owner",
+          "value": 4,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3x-oalti",
+          "type": "record_set",
+          "name": "Act_PileSet",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "pileIndex",
+          "value": "${Var_AblageLen}",
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-3y-8invl",
+          "type": "record_get",
+          "name": "Act_KarteSuit",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "suit",
+          "resultVariable": "Var_CardSuit",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1v-azpj4"
+        },
+        {
+          "id": "maumau-3z-bjq88",
+          "type": "record_get",
+          "name": "Act_KarteRank",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "rank",
+          "resultVariable": "Var_CardRank",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1w-8ff6s"
+        },
+        {
+          "id": "maumau-40-jj4wk",
+          "type": "record_get",
+          "name": "Act_KarteName",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "cardName",
+          "resultVariable": "Var_CardName",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1z-13rwz"
+        },
+        {
+          "id": "maumau-41-bc4yw",
+          "type": "record_get",
+          "name": "Act_KarteBild",
+          "showDetails": false,
+          "target": "${Var_KarteId}",
+          "list": "KartenListe",
+          "field": "image",
+          "resultVariable": "Var_CardImage",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-20-91qhj"
+        },
+        {
+          "id": "maumau-42-b029g",
+          "type": "record_get",
+          "name": "Act_KarteIdxSuit",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "suit",
+          "resultVariable": "Var_CardSuit",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1v-azpj4"
+        },
+        {
+          "id": "maumau-43-21ctn",
+          "type": "record_get",
+          "name": "Act_KarteIdxRank",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "rank",
+          "resultVariable": "Var_CardRank",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1w-8ff6s"
+        },
+        {
+          "id": "maumau-44-u91xm",
+          "type": "record_get",
+          "name": "Act_KarteIdxOwner",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "owner",
+          "resultVariable": "Var_CardOwner",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1u-4efdd"
+        },
+        {
+          "id": "maumau-45-cs4c2",
+          "type": "record_get",
+          "name": "Act_KarteIdxHand",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "handIndex",
+          "resultVariable": "Var_HandIndex",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-25-x5w7v"
+        },
+        {
+          "id": "maumau-46-q6bvv",
+          "type": "record_get",
+          "name": "Act_KarteIdxPile",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "pileIndex",
+          "resultVariable": "Var_CardPile",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-21-sfi77"
+        },
+        {
+          "id": "maumau-47-5xikn",
+          "type": "record_get",
+          "name": "Act_KarteIdxName",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "cardName",
+          "resultVariable": "Var_CardName",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1z-13rwz"
+        },
+        {
+          "id": "maumau-48-b4rqz",
+          "type": "record_get",
+          "name": "Act_KarteIdxBild",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "image",
+          "resultVariable": "Var_CardImage",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-20-91qhj"
+        },
+        {
+          "id": "maumau-49-0p9tm",
+          "type": "record_get",
+          "name": "Act_KarteIdxPlayable",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "playable",
+          "resultVariable": "Var_CardPlayable",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-22-1hr52"
+        },
+        {
+          "id": "maumau-4a-3u0o0",
+          "type": "record_set",
+          "name": "Act_KarteIdxSpielbarSet",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "playable",
+          "value": "${Var_Spielbar}",
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-4b-e8taw",
+          "type": "record_set",
+          "name": "Act_KarteIdxUnspielbar",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "playable",
+          "value": false,
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-4c-kkbtc",
+          "type": "record_set",
+          "name": "Act_KarteIdxHandSet",
+          "showDetails": false,
+          "target": "${i}",
+          "list": "KartenListe",
+          "field": "handIndex",
+          "value": "${Var_HandIndex}",
+          "list_ref": "maumau-1b-lnfpv"
+        },
+        {
+          "id": "maumau-4d-euboy",
+          "type": "record_index",
+          "name": "Act_ClickIdx",
+          "showDetails": false,
+          "target": "self",
+          "list": "KartenListe",
+          "resultVariable": "Var_CardIdx",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1s-blxzr"
+        },
+        {
+          "id": "maumau-4e-lsu63",
+          "type": "record_get",
+          "name": "Act_ClickOwner",
+          "showDetails": false,
+          "target": "${Var_CardIdx}",
+          "list": "KartenListe",
+          "field": "owner",
+          "resultVariable": "Var_CardOwner",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1u-4efdd"
+        },
+        {
+          "id": "maumau-4f-sewxo",
+          "type": "record_get",
+          "name": "Act_ClickSuit",
+          "showDetails": false,
+          "target": "${Var_CardIdx}",
+          "list": "KartenListe",
+          "field": "suit",
+          "resultVariable": "Var_CardSuit",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1v-azpj4"
+        },
+        {
+          "id": "maumau-4g-lyr9t",
+          "type": "record_get",
+          "name": "Act_ClickRank",
+          "showDetails": false,
+          "target": "${Var_CardIdx}",
+          "list": "KartenListe",
+          "field": "rank",
+          "resultVariable": "Var_CardRank",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1w-8ff6s"
+        },
+        {
+          "id": "maumau-4h-ypj2e",
+          "type": "record_get",
+          "name": "Act_ClickId",
+          "showDetails": false,
+          "target": "${Var_CardIdx}",
+          "list": "KartenListe",
+          "field": "cardId",
+          "resultVariable": "Var_KarteId",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-1t-6oifg"
+        },
+        {
+          "id": "maumau-4i-42hbl",
+          "type": "record_get",
+          "name": "Act_ClickPlayable",
+          "showDetails": false,
+          "target": "${Var_CardIdx}",
+          "list": "KartenListe",
+          "field": "playable",
+          "resultVariable": "Var_CardPlayable",
+          "list_ref": "maumau-1b-lnfpv",
+          "resultVariable_ref": "maumau-22-1hr52"
+        },
+        {
+          "id": "maumau-4j-mn0ws",
+          "type": "property",
+          "name": "Act_PlayedMerken",
+          "showDetails": false,
+          "changes": {
+            "Var_PlayedSuit": "${Var_CardSuit}",
+            "Var_PlayedRank": "${Var_CardRank}"
+          }
+        },
+        {
+          "id": "maumau-4k-yr7w0",
+          "type": "calculate",
+          "name": "Act_SpielbarCalc",
+          "showDetails": false,
+          "formula": "Var_CardRank === 11 || (Var_Wunsch >= 0 ? Var_CardSuit === Var_Wunsch : (Var_CardSuit === Var_AblageSuit || Var_CardRank === Var_AblageRank))",
+          "resultVariable": "Var_Spielbar",
+          "resultVariable_ref": "maumau-23-li24j"
+        },
+        {
+          "id": "maumau-4l-zzzi4",
+          "type": "property",
+          "name": "Act_PlayableNull",
+          "showDetails": false,
+          "changes": {
+            "Var_PlayableCount": 0
+          }
+        },
+        {
+          "id": "maumau-4m-iyvnh",
+          "type": "calculate",
+          "name": "Act_PlayablePlus",
+          "showDetails": false,
+          "formula": "Var_PlayableCount + 1",
+          "resultVariable": "Var_PlayableCount",
+          "resultVariable_ref": "maumau-24-x202r"
+        },
+        {
+          "id": "maumau-4n-5kpxh",
+          "type": "calculate",
+          "name": "Act_ZiehPflichtPlus",
+          "showDetails": false,
+          "formula": "Var_ZiehPflicht + 2",
+          "resultVariable": "Var_ZiehPflicht",
+          "resultVariable_ref": "maumau-1o-kxdkw"
+        },
+        {
+          "id": "maumau-4o-017d3",
+          "type": "property",
+          "name": "Act_ZiehPflicht0",
+          "showDetails": false,
+          "changes": {
+            "Var_ZiehPflicht": 0
+          }
+        },
+        {
+          "id": "maumau-4p-zwbol",
+          "type": "property",
+          "name": "Act_Skip1",
+          "showDetails": false,
+          "changes": {
+            "Var_Skip": 1
+          }
+        },
+        {
+          "id": "maumau-4q-mocjr",
+          "type": "property",
+          "name": "Act_Skip0",
+          "showDetails": false,
+          "changes": {
+            "Var_Skip": 0
+          }
+        },
+        {
+          "id": "maumau-4r-4srnu",
+          "type": "calculate",
+          "name": "Act_NextPlayer",
+          "showDetails": false,
+          "formula": "(Var_CurrPlayer + Var_Richtung * (1 + Var_Skip) + Var_PlayerCount * 2) % Var_PlayerCount",
+          "resultVariable": "Var_NextPlayer",
+          "resultVariable_ref": "maumau-1k-3eier"
+        },
+        {
+          "id": "maumau-4s-xwvcg",
+          "type": "calculate",
+          "name": "Act_PlayerUebernehmen",
+          "showDetails": false,
+          "formula": "Var_NextPlayer * 1",
+          "resultVariable": "Var_CurrPlayer",
+          "resultVariable_ref": "maumau-1j-uf3rf"
+        },
+        {
+          "id": "maumau-4t-m4i7c",
+          "type": "property",
+          "name": "Act_WunschHerz",
+          "showDetails": false,
+          "changes": {
+            "Var_Wunsch": 0
+          }
+        },
+        {
+          "id": "maumau-4u-m6s36",
+          "type": "property",
+          "name": "Act_WunschKaro",
+          "showDetails": false,
+          "changes": {
+            "Var_Wunsch": 1
+          }
+        },
+        {
+          "id": "maumau-4v-6o7v6",
+          "type": "property",
+          "name": "Act_WunschPik",
+          "showDetails": false,
+          "changes": {
+            "Var_Wunsch": 2
+          }
+        },
+        {
+          "id": "maumau-4w-fvj7s",
+          "type": "property",
+          "name": "Act_WunschKreuz",
+          "showDetails": false,
+          "changes": {
+            "Var_Wunsch": 3
+          }
+        },
+        {
+          "id": "maumau-4x-z6zip",
+          "type": "property",
+          "name": "Act_TopWerte",
+          "showDetails": false,
+          "changes": {
+            "Var_AblageSuit": "${Var_CardSuit}",
+            "Var_AblageRank": "${Var_CardRank}",
+            "Var_Wunsch": -1
+          }
+        },
+        {
+          "id": "maumau-4y-u6onp",
+          "type": "list_push",
+          "name": "Act_AblagePush",
+          "showDetails": false,
+          "target": "AblageListe",
+          "value": "${Var_KarteId}",
+          "target_ref": "maumau-1e-d8l0s"
+        },
+        {
+          "id": "maumau-4z-5sq8w",
+          "type": "calculate",
+          "name": "Act_X",
+          "showDetails": false,
+          "formula": "Var_CardOwner === 4 ? 30.5 : (Var_CardOwner === 2 ? 1 : (Var_CardOwner === 3 ? 60 : 3 + Var_HandIndex * 2.75))",
+          "resultVariable": "Var_X",
+          "resultVariable_ref": "maumau-29-yvpdw"
+        },
+        {
+          "id": "maumau-50-33wky",
+          "type": "calculate",
+          "name": "Act_Y",
+          "showDetails": false,
+          "formula": "Var_CardOwner === 4 ? 15.5 : (Var_CardOwner === 0 ? 31 : (Var_CardOwner === 1 ? 2.5 : 8 + Var_HandIndex * 1.65))",
+          "resultVariable": "Var_Y",
+          "resultVariable_ref": "maumau-2a-89nhy"
+        },
+        {
+          "id": "maumau-51-xd1zs",
+          "type": "calculate",
+          "name": "Act_Z",
+          "showDetails": false,
+          "formula": "Var_CardOwner === 4 ? 20 + Var_CardPile : (Var_CardOwner === Var_CurrPlayer ? 10 : 5)",
+          "resultVariable": "Var_Z",
+          "resultVariable_ref": "maumau-2b-9hwjo"
+        },
+        {
+          "id": "maumau-52-vr7h2",
+          "type": "property",
+          "name": "Act_KarteXY",
+          "showDetails": false,
+          "changes": {
+            "${Var_CardName}.x": "${Var_X}",
+            "${Var_CardName}.y": "${Var_Y}",
+            "${Var_CardName}.zIndex": "${Var_Z}"
+          }
+        },
+        {
+          "id": "maumau-53-vq2ns",
+          "type": "property",
+          "name": "Act_KarteFront",
+          "showDetails": false,
+          "changes": {
+            "${Var_CardName}.src": "${Var_CardImage}",
+            "${Var_CardName}.visible": true
+          }
+        },
+        {
+          "id": "maumau-54-0bif1",
+          "type": "property",
+          "name": "Act_KarteBack",
+          "showDetails": false,
+          "changes": {
+            "${Var_CardName}.src": "images/maumau/back.svg",
+            "${Var_CardName}.visible": true
+          }
+        },
+        {
+          "id": "maumau-55-sp8dc",
+          "type": "property",
+          "name": "Act_KarteAus",
+          "showDetails": false,
+          "changes": {
+            "${Var_CardName}.visible": false
+          }
+        },
+        {
+          "id": "maumau-56-7t6dl",
+          "type": "property",
+          "name": "Act_KarteHl",
+          "showDetails": false,
+          "changes": {
+            "${Var_CardName}.style.borderColor": "#ffff00",
+            "${Var_CardName}.style.borderWidth": 5
+          }
+        },
+        {
+          "id": "maumau-57-68apm",
+          "type": "property",
+          "name": "Act_KarteHlAus",
+          "showDetails": false,
+          "changes": {
+            "${Var_CardName}.style.borderColor": "transparent",
+            "${Var_CardName}.style.borderWidth": 0
+          }
+        },
+        {
+          "id": "maumau-58-szxox",
+          "type": "list_get",
+          "name": "Act_SpielerName",
+          "showDetails": false,
+          "target": "SpielerNamen",
+          "index": "${Var_CurrPlayer}",
+          "resultVariable": "Var_SpielerName",
+          "target_ref": "maumau-1g-kuzk9",
+          "resultVariable_ref": "maumau-2c-0q29l"
+        },
+        {
+          "id": "maumau-59-klo7e",
+          "type": "calculate",
+          "name": "Act_HandInfo",
+          "showDetails": false,
+          "formula": "\"Karten: \" + HandCounts[0] + \" | \" + HandCounts[1] + (Var_PlayerCount > 2 ? \" | \" + HandCounts[2] : \"\") + (Var_PlayerCount > 3 ? \" | \" + HandCounts[3] : \"\")",
+          "resultVariable": "Var_HandInfo",
+          "resultVariable_ref": "maumau-2d-204l3"
+        },
+        {
+          "id": "maumau-5a-owznc",
+          "type": "property",
+          "name": "Act_HandInfoAn",
+          "showDetails": false,
+          "changes": {
+            "HandInfoLabel.text": "${Var_HandInfo}"
+          }
+        },
+        {
+          "id": "maumau-5b-foa93",
+          "type": "property",
+          "name": "Act_StatusZug",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_SpielerName} ist am Zug — Karte spielen oder ziehen."
+          }
+        },
+        {
+          "id": "maumau-5c-8u80b",
+          "type": "property",
+          "name": "Act_StatusZiehen",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_SpielerName} muss ${Var_ZiehPflicht} Karten ziehen."
+          }
+        },
+        {
+          "id": "maumau-5d-9pqik",
+          "type": "property",
+          "name": "Act_StatusWunsch",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "${Var_SpielerName}: Farbe wählen!"
+          }
+        },
+        {
+          "id": "maumau-5e-tum0p",
+          "type": "property",
+          "name": "Act_StatusUngueltig",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "Diese Karte passt nicht — Farbe, Wert oder Bube wählen."
+          }
+        },
+        {
+          "id": "maumau-5f-dnp1w",
+          "type": "property",
+          "name": "Act_StatusLeer",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "Der Stapel ist leer."
+          }
+        },
+        {
+          "id": "maumau-5g-us3d7",
+          "type": "property",
+          "name": "Act_Gewinn",
+          "showDetails": false,
+          "changes": {
+            "StatusLabel.text": "🏆 ${Var_SpielerName} hat gewonnen!",
+            "StapelBild.visible": false
+          }
+        },
+        {
+          "id": "maumau-5h-5q2hq",
+          "type": "calculate",
+          "name": "Act_DrawTotal",
+          "showDetails": false,
+          "formula": "Var_ZiehPflicht * 1",
+          "resultVariable": "Var_DrawTotal",
+          "resultVariable_ref": "maumau-2e-iq2d7"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "maumau-5i-tozcd",
+          "name": "SpielStarten",
+          "description": "Karten mischen, je fünf Karten geben und die Startkarte ablegen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SetupAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_LastPlayer"
+            },
+            {
+              "type": "action",
+              "name": "Act_StartWerte"
+            },
+            {
+              "type": "action",
+              "name": "Act_PhasePlay"
+            },
+            {
+              "type": "action",
+              "name": "Act_WunschAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_StapelLeer"
+            },
+            {
+              "type": "action",
+              "name": "Act_AblageLeer"
+            },
+            {
+              "type": "action",
+              "name": "Act_OwnerReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandIdxReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_PileReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_PlayableReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_Count0"
+            },
+            {
+              "type": "action",
+              "name": "Act_Count1"
+            },
+            {
+              "type": "action",
+              "name": "Act_Count2"
+            },
+            {
+              "type": "action",
+              "name": "Act_Count3"
+            },
+            {
+              "type": "foreach",
+              "sourceArray": "StapelBasis",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_StapelPush"
+                }
+              ],
+              "name": "foreach"
+            },
+            {
+              "type": "action",
+              "name": "Act_StapelMischen"
+            },
+            {
+              "type": "for",
+              "iteratorVar": "p",
+              "from": 0,
+              "to": "${Var_LastPlayer}",
+              "body": [
+                {
+                  "type": "for",
+                  "iteratorVar": "k",
+                  "from": 0,
+                  "to": 4,
+                  "body": [
+                    {
+                      "type": "task",
+                      "name": "KarteAnSpieler"
+                    }
+                  ],
+                  "name": "for"
+                }
+              ],
+              "name": "for"
+            },
+            {
+              "type": "task",
+              "name": "StartkarteLegen"
+            },
+            {
+              "type": "task",
+              "name": "RundeAktualisieren"
+            },
+            {
+              "type": "action",
+              "name": "Act_StatusZug"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5j-dzeb5",
+          "name": "KarteAnSpieler",
+          "description": "Oberste Karte vom Stapel an Spieler p geben.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_StapelPop"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandCountP"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandIndexNum"
+            },
+            {
+              "type": "action",
+              "name": "Act_OwnerP"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandIdxP"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandIndexPlus"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandCountSetP"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5k-mcdkt",
+          "name": "StartkarteLegen",
+          "description": "Erste Karte auf die Ablage legen und ihren Wert merken.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_StartPop"
+            },
+            {
+              "type": "action",
+              "name": "Act_AblageLen"
+            },
+            {
+              "type": "action",
+              "name": "Act_OwnerAblage"
+            },
+            {
+              "type": "action",
+              "name": "Act_PileSet"
+            },
+            {
+              "type": "action",
+              "name": "Act_KarteSuit"
+            },
+            {
+              "type": "action",
+              "name": "Act_KarteRank"
+            },
+            {
+              "type": "action",
+              "name": "Act_TopWerte"
+            },
+            {
+              "type": "action",
+              "name": "Act_AblagePush"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5l-djl38",
+          "name": "HandIndizesBerechnen",
+          "description": "Handpositionen der aktiven Spieler neu nummerieren und Kartenanzahl messen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Count0"
+            },
+            {
+              "type": "action",
+              "name": "Act_Count1"
+            },
+            {
+              "type": "action",
+              "name": "Act_Count2"
+            },
+            {
+              "type": "action",
+              "name": "Act_Count3"
+            },
+            {
+              "type": "foreach",
+              "sourceArray": "KartenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxOwner"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_CardOwner}",
+                    "rightValue": 0,
+                    "operator": ">="
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_CardOwner}",
+                        "rightValue": 4,
+                        "operator": "<"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_CountByOwner"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_HandIndexNum"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_KarteIdxHandSet"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_HandIndexPlus"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_CountByOwnerSet"
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "name": "foreach"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5m-sxevp",
+          "name": "KartenMarkieren",
+          "description": "Alle spielbaren Karten des aktiven Spielers markieren.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_PlayableNull"
+            },
+            {
+              "type": "foreach",
+              "sourceArray": "KartenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxUnspielbar"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxOwner"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_CardOwner}",
+                    "rightValue": "${Var_CurrPlayer}",
+                    "rightType": "variable"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_KarteIdxSuit"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_KarteIdxRank"
+                    },
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_ZiehPflicht}",
+                        "rightValue": 0
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_SpielbarCalc"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_KarteIdxSpielbarSet"
+                        },
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "leftValue": "${Var_Spielbar}",
+                            "rightValue": true
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_PlayablePlus"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "name": "foreach"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5n-rcfz9",
+          "name": "KartenZeichnen",
+          "description": "Karten je nach Besitzer zeigen, verdecken oder auf die Ablage legen.",
+          "actionSequence": [
+            {
+              "type": "foreach",
+              "sourceArray": "KartenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxOwner"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxHand"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxPile"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxName"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxBild"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxPlayable"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_X"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Y"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Z"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteXY"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_CardOwner}",
+                    "rightValue": -1
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_KarteAus"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_CardOwner}",
+                        "rightValue": 4
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_KarteFront"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_KarteHlAus"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "leftValue": "${Var_CardOwner}",
+                            "rightValue": "${Var_CurrPlayer}",
+                            "rightType": "variable"
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_KarteFront"
+                            },
+                            {
+                              "type": "condition",
+                              "condition": {
+                                "leftValue": "${Var_CardPlayable}",
+                                "rightValue": true
+                              },
+                              "body": [
+                                {
+                                  "type": "action",
+                                  "name": "Act_KarteHl"
+                                }
+                              ],
+                              "elseBody": [
+                                {
+                                  "type": "action",
+                                  "name": "Act_KarteHlAus"
+                                }
+                              ]
+                            }
+                          ],
+                          "elseBody": [
+                            {
+                              "type": "action",
+                              "name": "Act_KarteBack"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Act_KarteHlAus"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "name": "foreach"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandInfo"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandInfoAn"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5o-2yb5t",
+          "name": "RundeAktualisieren",
+          "description": "Karten, Zählungen und Spieleranzeige aktualisieren.",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "HandIndizesBerechnen"
+            },
+            {
+              "type": "task",
+              "name": "KartenMarkieren"
+            },
+            {
+              "type": "task",
+              "name": "KartenZeichnen"
+            },
+            {
+              "type": "action",
+              "name": "Act_SpielerName"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5p-6pmlz",
+          "name": "KarteGewaehlt",
+          "description": "Nur eigene, als spielbar markierte Karten ausspielen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_Phase}",
+                "rightValue": "play"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_ClickIdx"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ClickOwner"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ClickId"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ClickSuit"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ClickRank"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_ClickPlayable"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_CardOwner}",
+                    "rightValue": "${Var_CurrPlayer}",
+                    "rightType": "variable"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "leftValue": "${Var_CardPlayable}",
+                        "rightValue": true
+                      },
+                      "body": [
+                        {
+                          "type": "task",
+                          "name": "KarteAusspielen"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "action",
+                          "name": "Act_StatusUngueltig"
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5q-ug7r5",
+          "name": "KarteAusspielen",
+          "description": "Karte ablegen, Sonderwirkung vormerken und Zug beenden.",
+          "actionSequence": [
+            {
+              "name": "Act_PlayedMerken",
+              "type": "action"
+            },
+            {
+              "name": "Act_AblageLen",
+              "type": "action"
+            },
+            {
+              "name": "Act_OwnerAblage",
+              "type": "action"
+            },
+            {
+              "name": "Act_PileSet",
+              "type": "action"
+            },
+            {
+              "name": "Act_KarteNichtSpielbar",
+              "type": "action"
+            },
+            {
+              "name": "Act_TopWerte",
+              "type": "action"
+            },
+            {
+              "name": "Act_AblagePush",
+              "type": "action"
+            },
+            {
+              "condition": {
+                "leftValue": "${Var_PlayedRank}",
+                "rightValue": 7
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "Act_ZiehPflichtPlus",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${Var_PlayedRank}",
+                    "rightValue": 8
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "Act_Skip1",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "task",
+                      "name": "RundeAktualisieren"
+                    },
+                    {
+                      "name": "Act_HandCount",
+                      "type": "action"
+                    },
+                    {
+                      "name": "Act_HandIndexNum",
+                      "type": "action"
+                    },
+                    {
+                      "condition": {
+                        "leftValue": "${Var_HandIndex}",
+                        "rightValue": 0,
+                        "operator": "<="
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "Act_PhaseEnde",
+                          "type": "action"
+                        },
+                        {
+                          "name": "Act_WunschAus",
+                          "type": "action",
+                          "layout": "horizontal"
+                        },
+                        {
+                          "name": "Act_Gewinn",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${Var_PlayedRank}",
+                            "rightValue": 11
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "Act_PhaseWunsch",
+                              "type": "action"
+                            },
+                            {
+                              "name": "Act_WunschAn",
+                              "type": "action"
+                            },
+                            {
+                              "name": "Act_StatusWunsch",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": [
+                            {
+                              "type": "task",
+                              "name": "SpielerWeiter"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "scope": "stage",
+          "params": []
+        },
+        {
+          "id": "maumau-5r-hxfcy",
+          "name": "WunschHerz",
+          "description": "Herz wünschen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WunschHerz"
+            },
+            {
+              "type": "task",
+              "name": "WunschFertig"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5s-18k8v",
+          "name": "WunschKaro",
+          "description": "Karo wünschen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WunschKaro"
+            },
+            {
+              "type": "task",
+              "name": "WunschFertig"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5t-j5hun",
+          "name": "WunschPik",
+          "description": "Pik wünschen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WunschPik"
+            },
+            {
+              "type": "task",
+              "name": "WunschFertig"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5u-us7nr",
+          "name": "WunschKreuz",
+          "description": "Kreuz wünschen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_WunschKreuz"
+            },
+            {
+              "type": "task",
+              "name": "WunschFertig"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5v-ajbvp",
+          "name": "WunschFertig",
+          "description": "Farbwunsch speichern und den Zug weitergeben.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_Phase}",
+                "rightValue": "wish"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_WunschAus"
+                },
+                {
+                  "type": "task",
+                  "name": "SpielerWeiter"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5w-cdheq",
+          "name": "Nachziehen",
+          "description": "Nachziehstapel: eine Karte oder die offene Zieh-Pflicht nehmen.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_Phase}",
+                "rightValue": "play"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_ZiehPflicht}",
+                    "rightValue": 0,
+                    "operator": ">"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_DrawTotal"
+                    },
+                    {
+                      "type": "for",
+                      "iteratorVar": "i",
+                      "from": 1,
+                      "to": "${Var_DrawTotal}",
+                      "body": [
+                        {
+                          "type": "task",
+                          "name": "KarteZiehen"
+                        }
+                      ],
+                      "name": "for"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_ZiehPflicht0"
+                    },
+                    {
+                      "type": "task",
+                      "name": "SpielerWeiter"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "task",
+                      "name": "KarteZiehen"
+                    },
+                    {
+                      "type": "task",
+                      "name": "SpielerWeiter"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "leftValue": "${Var_Phase}",
+                    "rightValue": "draw"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_DrawTotal"
+                    },
+                    {
+                      "type": "for",
+                      "iteratorVar": "i",
+                      "from": 1,
+                      "to": "${Var_DrawTotal}",
+                      "body": [
+                        {
+                          "type": "task",
+                          "name": "KarteZiehen"
+                        }
+                      ],
+                      "name": "for"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_ZiehPflicht0"
+                    },
+                    {
+                      "type": "task",
+                      "name": "SpielerWeiter"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ]
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5x-sddfx",
+          "name": "KarteZiehen",
+          "description": "Eine Karte vom Stapel an den aktiven Spieler geben; leeren Stapel nachmischen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_StapelLen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_StapelLen}",
+                "rightValue": 0
+              },
+              "body": [
+                {
+                  "type": "task",
+                  "name": "StapelNachmischen"
+                }
+              ],
+              "elseBody": []
+            },
+            {
+              "type": "action",
+              "name": "Act_StapelLen"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_StapelLen}",
+                "rightValue": 0,
+                "operator": ">"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_StapelPop"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_HandCount"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_HandIndexNum"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_OwnerCurr"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_HandIdxCurr"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_HandIndexPlus"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_HandCountSet"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "Act_StatusLeer"
+                }
+              ]
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5y-xv7hf",
+          "name": "StapelNachmischen",
+          "description": "Alle Ablagekarten außer der obersten in den Nachziehstapel zurücklegen und mischen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_AblageLen"
+            },
+            {
+              "type": "while",
+              "condition": {
+                "leftValue": "${Var_AblageLen}",
+                "operator": ">",
+                "rightValue": 1
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_AblageAlt"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_OwnerDeck"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_HandIdxLeer"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_PileLeer"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteNichtSpielbar"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_StapelAltPush"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_AblageLen"
+                }
+              ],
+              "name": "while"
+            },
+            {
+              "type": "action",
+              "name": "Act_StapelMischen"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-5z-phn2n",
+          "name": "SpielerWeiter",
+          "description": "Zum nächsten Spieler wechseln; 8 lässt einen Spieler aussetzen.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_NextPlayer"
+            },
+            {
+              "type": "action",
+              "name": "Act_PlayerUebernehmen"
+            },
+            {
+              "type": "action",
+              "name": "Act_Skip0"
+            },
+            {
+              "type": "task",
+              "name": "RundeAktualisieren"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "${Var_ZiehPflicht}",
+                "rightValue": 0,
+                "operator": ">"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_PhaseDraw"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_StatusZiehen"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "action",
+                  "name": "Act_PhasePlay"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_StatusZug"
+                }
+              ]
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-60-za9fx",
+          "name": "Neustart",
+          "description": "Zurück zur Spielerwahl.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_SetupAn"
+            },
+            {
+              "type": "action",
+              "name": "Act_PhaseSetup"
+            },
+            {
+              "type": "action",
+              "name": "Act_WunschAus"
+            },
+            {
+              "type": "action",
+              "name": "Act_OwnerReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_HandIdxReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_PileReset"
+            },
+            {
+              "type": "action",
+              "name": "Act_PlayableReset"
+            },
+            {
+              "type": "foreach",
+              "sourceArray": "KartenListe",
+              "itemVar": "item",
+              "indexVar": "i",
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_KarteIdxName"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_KarteAus"
+                }
+              ],
+              "name": "foreach"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-61-prczc",
+          "name": "Anzahl2",
+          "description": "2 Spieler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Set2"
+            },
+            {
+              "type": "task",
+              "name": "SpielStarten"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-62-nyqd9",
+          "name": "Anzahl3",
+          "description": "3 Spieler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Set3"
+            },
+            {
+              "type": "task",
+              "name": "SpielStarten"
+            }
+          ],
+          "scope": "stage"
+        },
+        {
+          "id": "maumau-63-h5630",
+          "name": "Anzahl4",
+          "description": "4 Spieler",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Set4"
+            },
+            {
+              "type": "task",
+              "name": "SpielStarten"
+            }
+          ],
+          "scope": "stage"
+        }
+      ],
+      "variables": [],
+      "events": {},
+      "flow": {},
+      "flowCharts": {}
+    }
+  ],
+  "userStories": {
+    "userStories": []
+  },
+  "objects": [],
+  "variables": [],
+  "tasks": [],
+  "actions": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  }
+}

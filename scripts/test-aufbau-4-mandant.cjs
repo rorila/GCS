@@ -6,7 +6,7 @@
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {bootMinimal,busy,sel,api,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
-const {makeRunner,dep,click,setupHouseAdmin,initRequest,card,cardWait}=require('./cms/aufbau-common.cjs');
+const {makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,initRequest}=require('./cms/aufbau-common.cjs');
 const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
 
 const PORT=15228;
@@ -36,8 +36,9 @@ const PORT=15228;
 
   // ── VORAUS-AR: Sonnenraum anlegen ─────────────────────────────────
   await task('VORAUS-AR','„Sonnenraum" angelegt',[dep('VORAUS-A',()=>!!adm)],async()=>{
+   await openHouseArea(adm,'Haus Sonne','stage_house_rooms');
    await adm.getByPlaceholder('Raumname',{exact:true}).fill('Sonnenraum');
-   await click(adm,'RoomCreate');
+   await click(adm,'RaumAnlegen');
    assert.ok(env.file().areas.some(a=>a.name==='Sonnenraum'&&a.parentId===sonne.id),'Sonnenraum fehlt');
   },adm);
 
@@ -50,8 +51,9 @@ const PORT=15228;
 
   // ── VORAUS-MR: Mondraum anlegen ───────────────────────────────────
   await task('VORAUS-MR','„Mondraum" angelegt',[dep('MOND-01',()=>!!mia)],async()=>{
+   await openHouseArea(mia,'Haus Mond','stage_house_rooms');
    await mia.getByPlaceholder('Raumname',{exact:true}).fill('Mondraum');
-   await click(mia,'RoomCreate');
+   await click(mia,'RaumAnlegen');
    assert.ok(env.file().areas.some(a=>a.name==='Mondraum'&&a.parentId===mond.id),'Mondraum fehlt');
   },mia);
 
@@ -101,6 +103,8 @@ const PORT=15228;
   },page);
 
   // ── MULTI-01b: anna waehlt Haus Mond per UI ────────────────────────
+  // stage_house ist die Hausauswahl: HausTabelle listet beide Haeuser,
+  // der Zeilenklick setzt CMSHausId und oeffnet die Hausuebersicht.
   let admM=null;
   await task('MULTI-01b','anna: Hauswahl zeigt beide Haeuser, Mond oeffnet',[dep('MULTI-01a',mondRolle)],async()=>{
    admM=await (await browser.newContext()).newPage();
@@ -108,14 +112,16 @@ const PORT=15228;
    await adminLogin(admM,base,'anna',TEST_PASSWORD);
    await admM.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
    await busy(admM);
-   // Kein Haus vorausgewaehlt → beide Haeuser als Karten
-   assert.ok(await cardWait(admM,'Haus Sonne'),'Haus-Sonne-Karte fehlt');
-   assert.ok(await cardWait(admM,'Haus Mond'),'Haus-Mond-Karte fehlt');
-   assert.ok(await card(admM,'Haus Mond'),'Haus Mond nicht waehlbar');
-   await admM.waitForFunction(()=>{const v=window.player.runtime.getObjects().find(o=>o.name==='Haus');return v&&v.value},null,{timeout:10000});
-   const hv=await admM.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='Haus').value);
+   // Kein Haus vorausgewaehlt → beide Haeuser als Tabellenzeilen
+   assert.ok(await rowWait(admM,'HausTabelle','Haus Sonne'),'Haus-Sonne-Zeile fehlt');
+   assert.ok(await rowWait(admM,'HausTabelle','Haus Mond'),'Haus-Mond-Zeile fehlt');
+   await rowClick(admM,'HausTabelle','Haus Mond');
+   await admM.waitForFunction(()=>window.player.runtime.stage.id==='stage_house_overview',null,{timeout:10000});
+   await busy(admM);
+   const hv=await admM.evaluate(()=>window.player.runtime.contextVars?.CMSHausId);
    assert.strictEqual(hv,mond.id,'falsches Haus geoeffnet: '+hv);
-   assert.ok(await cardWait(admM,'Mondraum'),'Mondraum nicht sichtbar');
+   await openHouseArea(admM,'Haus Mond','stage_house_rooms');
+   assert.ok(await rowWait(admM,'RaumTabelle','Mondraum'),'Mondraum nicht sichtbar');
   },admM);
 
   // ── MULTI-01c: Kontextwechsel zurueck zu Haus Sonne ───────────────
@@ -123,12 +129,14 @@ const PORT=15228;
    await click(admM,'Navigation_stage_house');
    await admM.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
    await busy(admM);
-   assert.ok(await cardWait(admM,'Haus Sonne'),'Haus-Sonne-Karte fehlt nach Wechsel');
-   assert.ok(await card(admM,'Haus Sonne'),'Haus Sonne nicht waehlbar');
-   await admM.waitForFunction(sid=>{const v=window.player.runtime.getObjects().find(o=>o.name==='Haus');return v&&v.value===sid},sonne.id,{timeout:10000});
-   const hv=await admM.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='Haus').value);
+   assert.ok(await rowWait(admM,'HausTabelle','Haus Sonne'),'Haus-Sonne-Zeile fehlt nach Wechsel');
+   await rowClick(admM,'HausTabelle','Haus Sonne');
+   await admM.waitForFunction(()=>window.player.runtime.stage.id==='stage_house_overview',null,{timeout:10000});
+   await busy(admM);
+   const hv=await admM.evaluate(()=>window.player.runtime.contextVars?.CMSHausId);
    assert.strictEqual(hv,sonne.id,'falsches Haus geoeffnet: '+hv);
-   assert.ok(await cardWait(admM,'Sonnenraum'),'Sonnenraum nicht sichtbar');
+   await openHouseArea(admM,'Haus Sonne','stage_house_rooms');
+   assert.ok(await rowWait(admM,'RaumTabelle','Sonnenraum'),'Sonnenraum nicht sichtbar');
   },admM);
  }finally{
   if(browser)await finalizeBrowserVideos(browser,{base:process.env.GCS_VIDEO_BASE||'aufbau-mandant'});

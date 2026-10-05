@@ -4,22 +4,22 @@
     {
       "id": "VORAUS-A",
       "titel": "Haus Sonne + HouseAdmin „anna\"",
-      "offset": 0.1
+      "offset": 0.2
     },
     {
       "id": "VORAUS-AR",
       "titel": "„Sonnenraum\" angelegt",
-      "offset": 10.3
+      "offset": 5
     },
     {
       "id": "GRENZE-01a",
       "titel": "anna: kein Zugriff auf Haus Mond",
-      "offset": 74.7
+      "offset": 73.7
     },
     {
       "id": "GRENZE-01c",
       "titel": "anna: keine SuperAdmin-Endpunkte",
-      "offset": 79.3
+      "offset": 78.4
     }
   ]
 }

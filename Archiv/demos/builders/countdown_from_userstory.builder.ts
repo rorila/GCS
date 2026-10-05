@@ -8,7 +8,7 @@
  * Aufruf:
  *   npx tsx scripts/agent-run.ts demos/builders/countdown_from_userstory.builder.ts demos/CountdownFromUserStory.json
  */
-import { ProjectBuilder } from '../../scripts/agent-run';
+import { ProjectBuilder } from '../../../scripts/agent-run';
 
 export default function build(agent: ProjectBuilder): void {
     agent.setMeta(

@@ -7,7 +7,7 @@
  * Aufruf:
  *   npx tsx scripts/agent-run.ts demos/builders/moving_button.builder.ts demos/MovingButton.json
  */
-import type { ProjectBuilder } from '../../scripts/agent-run';
+import type { ProjectBuilder } from '../../../scripts/agent-run';
 
 export default function build(agent: ProjectBuilder): void {
     agent.setMeta(

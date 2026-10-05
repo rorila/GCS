@@ -24,7 +24,7 @@ async function verifyCredentials(credentialPath, username, password) {
 function createParent(core, credentialPath, store, cmsFile) {
   let _rt;
   const rt = () => _rt ?? (_rt = require('./cms-runtime.cjs').loadRuntime(cmsFile || CMS_FILE));
-  const commit = (s, action, areaId, change) => store.commit(core.db, { actor: s.personId, action, areaId }, change);
+  const commit = (s, action, areaId, change, opts) => store.commit(core.db, { actor: s.personId, action, areaId, ...opts }, change);
   const attempts = new Map();
 
   async function login(req, body) {

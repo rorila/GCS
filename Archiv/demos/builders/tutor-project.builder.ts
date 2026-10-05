@@ -7,7 +7,7 @@
  * Aufruf: npx tsx scripts/agent-run.ts demos/builders/tutor-project.builder.ts projects/Tutor_Project.json
  */
 
-import { ProjectBuilder } from '../../scripts/agent-run';
+import { ProjectBuilder } from '../../../scripts/agent-run';
 
 export default function build(agent: ProjectBuilder): void {
 

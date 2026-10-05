@@ -9,27 +9,27 @@
     {
       "id": "LEBEN-01a",
       "titel": "Rollenentzug wirkt sofort",
-      "offset": 58.4
+      "offset": 30.5
     },
     {
       "id": "LEBEN-01b",
       "titel": "Erneute Rollenvergabe wirkt sofort",
-      "offset": 72.5
+      "offset": 46.1
     },
     {
       "id": "LEBEN-02a",
       "titel": "Deaktivierung sperrt Sitzung und Anmeldung",
-      "offset": 79.4
+      "offset": 53.6
     },
     {
       "id": "LEBEN-02b",
       "titel": "Reaktivierung erlaubt Anmeldung wieder",
-      "offset": 93.5
+      "offset": 69.3
     },
     {
       "id": "LEBEN-03a",
       "titel": "Reset-Link erzeugt",
-      "offset": 107.6
+      "offset": 85
     }
   ]
 }

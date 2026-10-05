@@ -5,6 +5,11 @@ import { ComponentRegistry } from '../utils/ComponentRegistry';
 
 const logger = Logger.get('TCmsLiveSync');
 
+/** Reaktive Proxys/Fremdobjekte in einfache JSON-Daten ueberfuehren. */
+function jsonClone(value: any): any {
+    try { return JSON.parse(JSON.stringify(value)); } catch { return null; }
+}
+
 export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
     public className: string = 'TCmsLiveSync';
     public launchKey: string = '';
@@ -19,6 +24,8 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
     public lastSeq: number = 0;
     public inputSeq: number = 0;
     public stateTick: number = 0;
+    public seatIndex: number = -1;
+    public memberIds: any[] = [];
     public live: any = null;
     public remoteInput: any = null;
     public actions: any[] = [];
@@ -51,6 +58,7 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
             { name: 'lastSeq', label: 'Letzte Aktions-Seq', type: 'number', readonly: true, group: 'Live-Sync' },
             { name: 'inputSeq', label: 'Eingabe-Seq', type: 'number', readonly: true, group: 'Live-Sync' },
             { name: 'stateTick', label: 'State-Tick', type: 'number', readonly: true, group: 'Live-Sync' },
+            { name: 'seatIndex', label: 'Eigener Sitzplatz', type: 'number', readonly: true, group: 'Live-Sync' },
             { name: 'lastError', label: 'Letzter Fehler', type: 'string', readonly: true, group: 'Live-Sync' }
         ];
     }
@@ -125,6 +133,37 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
                 targetScore: Math.max(1, Number(targetScore) || 0),
                 lastInputSeq: Number(lastProcessedInputSeq) || 0
             },
+            since: Number(since ?? this.lastSeq) || 0
+        });
+    }
+
+    /**
+     * Generischer Spielstand fuer rundenbasierte Spiele (z.B. MADN): Der Host
+     * publiziert ein kompaktes JSON-Telegramm (Figurenpositionen, aktiver
+     * Spieler, Wuerfel ...), der Server validiert Groesse/Tiefe und verteilt
+     * es unveraendert an alle Partie-Mitglieder.
+     */
+    public async sendGameState(data: any, phase?: any, since?: any): Promise<any> {
+        this.stateTick += 1;
+        return this.request({
+            state: {
+                tick: this.stateTick,
+                phase: String(phase || 'play'),
+                data: jsonClone(data)
+            },
+            since: Number(since ?? this.lastSeq) || 0
+        });
+    }
+
+    /**
+     * Zug-Absicht eines Gastes (z.B. Wuerfeln oder Figurwahl): kleines
+     * JSON-Telegramm im Input-Kanal; der Host validiert es fachlich
+     * (Zugberechtigung, Gueltigkeit) und wendet es autoritativ an.
+     */
+    public async sendIntent(data: any, since?: any): Promise<any> {
+        this.inputSeq += 1;
+        return this.request({
+            input: { seq: this.inputSeq, dir: 0, data: jsonClone(data) },
             since: Number(since ?? this.lastSeq) || 0
         });
     }
@@ -280,6 +319,8 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
             this.live = data.live ?? null;
             this.remoteInput = data.remoteInput ?? null;
             this.actions = Array.isArray(data.actions) ? data.actions : [];
+            this.seatIndex = Number(data.seatIndex ?? -1);
+            this.memberIds = Array.isArray(data.memberIds) ? data.memberIds : [];
             if (!wasConnected) this.emit('onConnected', data);
             this.emit('onLive', data);
             return data;

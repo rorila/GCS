@@ -16,10 +16,12 @@ Diese erste Upload-Version nimmt GCS-JSON-Projekte mit einer spielbaren Start-St
 **Mehrspieler-Spiele** deklarieren ihre Spielerzahl in der Projektdatei:
 
 ```json
-"meta": { "multiplayer": { "minPlayers": 2, "maxPlayers": 4, "scope": "house" } }
+"meta": { "modes": ["solo", "party"], "multiplayer": { "minPlayers": 2, "maxPlayers": 4, "scope": "house" } }
 ```
 
-Der Upload übernimmt das Feld in den Spieledatensatz — nur dann erscheint das Spiel in der Multiplayer-Lobby und Partien lassen sich erstellen. `minPlayers`/`maxPlayers` sind ganze Zahlen (2–8, `maxPlayers ≥ minPlayers`); `scope` ist derzeit immer `"house"` und darf weggelassen werden. Ungültige Angaben lassen den Upload mit einer klaren Meldung scheitern. Fehlt das Feld — oder wird die Datei später durch eine Version ohne Flag ersetzt — gilt das Spiel als Solospiel.
+Der Upload übernimmt die Felder in den Spieledatensatz — nur Spiele mit `multiplayer` erscheinen in der Multiplayer-Lobby und Partien lassen sich erstellen. `minPlayers`/`maxPlayers` sind ganze Zahlen (2–8, `maxPlayers ≥ minPlayers`); `scope` ist derzeit immer `"house"` und darf weggelassen werden. Ungültige Angaben lassen den Upload mit einer klaren Meldung scheitern.
+
+`modes` beschreibt die spielbaren Varianten: `"solo"` (allein bzw. Hotseat am selben Bildschirm), `"party"` (Partie über die Multiplayer-Lobby). Ein Hybrid-Spiel führt beide auf und läuft je nach Startweg — Partie-Start setzt den Live-Kanal, Solo-Start läuft lokal. `["party"]` ohne `"solo"` taucht nur in der Lobby auf und wird aus dem Solo-Spielkatalog herausgefiltert. Fehlt `modes`, leitet der Server ab: mit `multiplayer` nur `party`, sonst `solo`. `modes` und `multiplayer` müssen zueinander passen (`"party"` erfordert `multiplayer` und umgekehrt); widersprüchliche Angaben lassen den Upload scheitern. Fehlt `multiplayer` ganz — oder wird die Datei später durch eine Version ohne Flag ersetzt — gilt das Spiel als Solospiel.
 
 ## Avatarbilder
 

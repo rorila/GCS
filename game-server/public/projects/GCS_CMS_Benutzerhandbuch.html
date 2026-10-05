@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCS-CMS | Interaktives Benutzerhandbuch</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --accent: #10b981;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --sidebar-width: 290px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.65;
+    }
+    aside.sidebar {
+      width: var(--sidebar-width);
+      background: #0f172a;
+      color: #f1f5f9;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      box-shadow: 4px 0 12px rgba(0,0,0,0.06);
+      z-index: 30;
+    }
+    .brand {
+      padding: 22px 20px;
+      background: #020617;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .brand-icon {
+      font-size: 26px;
+      background: #1e293b;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .brand-text h1 { font-size: 1.1rem; font-weight: 700; color: #fff; line-height: 1.2; }
+    .brand-text span { font-size: 0.75rem; color: #94a3b8; }
+    .search-box {
+      padding: 14px 18px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 8px 14px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+    }
+    .search-box input:focus { border-color: var(--primary); }
+    nav.nav-menu {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 12px;
+    }
+    .nav-group-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      font-weight: 700;
+      padding: 10px 12px 4px;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 0.88rem;
+      border-radius: 6px;
+      margin-bottom: 2px;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .nav-link:hover { background: #1e293b; color: #fff; }
+    .nav-link.active { background: var(--primary); color: #fff; font-weight: 600; }
+    main.main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    header.header {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .badge-cms {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .print-btn {
+      padding: 7px 14px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .print-btn:hover { background: #e2e8f0; }
+    .content-wrapper {
+      max-width: 1040px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 36px 32px 80px;
+    }
+    .hero-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #fff;
+      padding: 32px;
+      border-radius: 14px;
+      margin-bottom: 32px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    }
+    .hero-card h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+    .hero-card p { color: #94a3b8; font-size: 1.02rem; }
+    .quick-roles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .role-tile {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .role-tile:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    }
+    .role-tile .icon { font-size: 24px; margin-bottom: 8px; }
+    .role-tile .title { font-weight: 700; font-size: 0.95rem; color: #0f172a; }
+    .role-tile .desc { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+    .doc-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      scroll-margin-top: 85px;
+    }
+    h2.section-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      scroll-margin-top: 85px;
+    }
+    h3.sub-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 24px 0 10px;
+      scroll-margin-top: 85px;
+    }
+    h4.sub-sub-title {
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: #334155;
+      margin: 16px 0 8px;
+      scroll-margin-top: 85px;
+    }
+    p { margin-bottom: 12px; color: #334155; }
+    a.doc-link {
+      color: var(--primary);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    a.doc-link:hover {
+      color: var(--primary-dark);
+    }
+    .table-container {
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+    th {
+      background: #f8fafc;
+      padding: 10px 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+    code {
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      font-size: 0.85em;
+    }
+    .steps-list {
+      margin: 14px 0 18px 24px;
+      padding-left: 6px;
+    }
+    .steps-list li { margin-bottom: 8px; font-size: 0.93rem; }
+    .custom-list {
+      margin: 12px 0 16px 24px;
+    }
+    .custom-list li { margin-bottom: 6px; font-size: 0.93rem; }
+    .alert {
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 0.92rem;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      border-left: 4px solid transparent;
+    }
+    .alert-icon { font-size: 1.2rem; line-height: 1; }
+    .alert-tip { background: #f0fdf4; border-color: #10b981; color: #065f46; }
+    .alert-info { background: #eff6ff; border-color: #3b82f6; color: #1e40af; }
+    .alert-warning { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
+    .alert-important { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+    @media print {
+      aside.sidebar, header.header { display: none !important; }
+      body { background: #fff; }
+      .content-wrapper { padding: 0; max-width: 100%; }
+      .doc-card { border: 1px solid #ccc; box-shadow: none; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🎮</div>
+      <div class="brand-text">
+        <h1>GCS-CMS</h1>
+        <span>Benutzerhandbuch</span>
+      </div>
+    </div>
+    <div class="search-box">
+      <input type="text" id="quickSearch" placeholder="Thema suchen…">
+    </div>
+    <nav class="nav-menu" id="navMenu">
+      <div class="nav-group-title">Start</div>
+      <a class="nav-link active" href="#1-überblick-und-systemarchitektur"><span>🏠</span> Übersicht</a>
+      <a class="nav-link" href="#2-rollen--und-berechtigungskonzept"><span>👥</span> Rollen & Rechte</a>
+
+      <div class="nav-group-title">Rollen-Leitfäden</div>
+      <a class="nav-link" href="#3-bereich-1-kinder--spieler"><span>🧒</span> Kinder & Spieler</a>
+      <a class="nav-link" href="#4-bereich-2-eltern--beobachter"><span>👨‍👩‍👧</span> Eltern & Beobachter</a>
+      <a class="nav-link" href="#5-bereich-3-zentrale-verwaltungs-anmeldung"><span>🔑</span> Verwaltungs-Login</a>
+      <a class="nav-link" href="#6-bereich-4-raum-administration-raumadmin"><span>🚪</span> RaumAdmin</a>
+      <a class="nav-link" href="#7-bereich-5-haus-administration-houseadmin"><span>🏡</span> HouseAdmin</a>
+      <a class="nav-link" href="#8-bereich-6-plattform-administration-superadmin"><span>👑</span> SuperAdmin</a>
+
+      <div class="nav-group-title">Hilfe & Technik</div>
+      <a class="nav-link" href="#9-technische-referenz--api-endpunkte"><span>⚙️</span> API-Endpunkte</a>
+      <a class="nav-link" href="#10-häufige-fragen-faq--problembehebung"><span>❓</span> FAQ & Hilfe</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="header">
+      <div class="badge-cms">GCS-CMS Version 0.1.0</div>
+      <button class="print-btn" onclick="window.print()">🖨️ Drucken / PDF</button>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="hero-card">
+        <h2>Benutzerhandbuch: GCS-CMS</h2>
+        <p>Das vollintegrierte Content-Management- und Sicherheits-System der Game Creation Suite. Wählen Sie einen Bereich aus oder nutzen Sie die Suche links.</p>
+      </div>
+
+      <div class="quick-roles">
+        <div class="role-tile" onclick="scrollToAnchor('3-bereich-1-kinder--spieler')">
+          <div class="icon">🧒</div>
+          <div class="title">Kinder & Spieler</div>
+          <div class="desc">Emoji-Login, Galerie, Zimmer & Multiplayer</div>
+        </div>
+        <div class="role-tile" onclick="scrollToAnchor('4-bereich-2-eltern--beobachter')">
+          <div class="icon">👨‍👩‍👧</div>
+          <div class="title">Eltern & Beobachter</div>
+          <div class="desc">Zeitbudget festlegen, Spielzeiten & Raum-Puls</div>
+        </div>
+        <div class="role-tile" onclick="scrollToAnchor('7-bereich-5-haus-administration-houseadmin')">
+          <div class="icon">🏡</div>
+          <div class="title">HouseAdmin</div>
+          <div class="desc">Räume, Bewohner, PIN-Reset & Backups</div>
+        </div>
+        <div class="role-tile" onclick="scrollToAnchor('8-bereich-6-plattform-administration-superadmin')">
+          <div class="icon">👑</div>
+          <div class="title">SuperAdmin</div>
+          <div class="desc">Häuser, Admins, Spiele-Upload & Release</div>
+        </div>
+      </div>
+
+      </section><section class="doc-card" id="inhaltsverzeichnis">
+<h2 class="section-title">📌 Inhaltsverzeichnis</h2>
+<ol class="steps-list">
+<li><a href="#1-überblick-und-systemarchitektur" class="doc-link">Überblick und Systemarchitektur</a></li>
+<li><a href="#2-rollen--und-berechtigungskonzept" class="doc-link">Rollen- und Berechtigungskonzept</a></li>
+<li><a href="#3-bereich-1-kinder--spieler" class="doc-link">Bereich 1: Kinder & Spieler</a></li>
+</ol>
+<ul class="custom-list">
+<li>3.1 <a href="#31-emoji-anmeldung-stage_main" class="doc-link">Emoji-Anmeldung (stage_main)</a></li>
+<li>3.2 <a href="#32-spielhaus-galerie-räume--spiele-stage_gallery" class="doc-link">Spielhaus-Galerie: Räume & Spiele (stage_gallery)</a></li>
+<li>3.3 <a href="#33-mein-bereich-profil--avatar-stage_profile" class="doc-link">Mein Bereich: Profil & Avatar (stage_profile)</a></li>
+<li>3.4 <a href="#34-mein-zimmer-eigene-zutrittsrechte-verwalten-stage_child_room_access" class="doc-link">Mein Zimmer: Eigene Zutrittsrechte verwalten (stage_child_room_access)</a></li>
+<li>3.5 <a href="#35-mehrspieler--lobby-mitspieler-einladen-stage_multiplayer_lobby" class="doc-link">Mehrspieler & Lobby: Mitspieler einladen (stage_multiplayer_lobby)</a></li>
+<li>3.6 <a href="#36-mehrspieler-postfach-einladungen-empfangen-stage_multiplayer_inbox" class="doc-link">Mehrspieler-Postfach: Einladungen empfangen (stage_multiplayer_inbox)</a></li>
+</ul>
+<ol class="steps-list">
+<li><a href="#4-bereich-2-eltern--beobachter" class="doc-link">Bereich 2: Eltern & Beobachter</a></li>
+</ol>
+<ul class="custom-list">
+<li>4.1 <a href="#41-elternbereich-meine-kinder--zeitbudgets-stage_parent" class="doc-link">Elternbereich: Meine Kinder & Zeitbudgets (stage_parent)</a></li>
+<li>4.2 <a href="#42-beobachterbereich-raum-puls--übersicht-stage_observer" class="doc-link">Beobachterbereich: Raum-Puls & Übersicht (stage_observer)</a></li>
+</ul>
+<ol class="steps-list">
+<li><a href="#5-bereich-3-zentrale-verwaltungs-anmeldung" class="doc-link">Bereich 3: Zentrale Verwaltungs-Anmeldung</a></li>
+</ol>
+<ul class="custom-list">
+<li>5.1 <a href="#51-login--rollenweiterleitung-stage_admin_login" class="doc-link">Login & Rollenweiterleitung (stage_admin_login)</a></li>
+</ul>
+<ol class="steps-list">
+<li><a href="#6-bereich-4-raum-administration-raumadmin" class="doc-link">Bereich 4: Raum-Administration (RaumAdmin)</a></li>
+</ol>
+<ul class="custom-list">
+<li>6.1 <a href="#61-meine-räume--raumübersicht-stage_admin--stage_room_overview" class="doc-link">Meine Räume & Raumübersicht (stage_admin & stage_room_overview)</a></li>
+<li>6.2 <a href="#62-zutrittsverwaltung-für-räume-stage_room_access" class="doc-link">Zutrittsverwaltung für Räume (stage_room_access)</a></li>
+<li>6.3 <a href="#63-spielefreigaben-im-raum-stage_room_games" class="doc-link">Spielefreigaben im Raum (stage_room_games)</a></li>
+</ul>
+<ol class="steps-list">
+<li><a href="#7-bereich-5-haus-administration-houseadmin" class="doc-link">Bereich 5: Haus-Administration (HouseAdmin)</a></li>
+</ol>
+<ul class="custom-list">
+<li>7.1 <a href="#71-hausübersicht-stage_house--stage_house_overview" class="doc-link">Hausübersicht (stage_house & stage_house_overview)</a></li>
+<li>7.2 <a href="#72-räume-verwalten--konfigurieren-stage_house_rooms--stage_house_room_detail" class="doc-link">Räume verwalten & konfigurieren (stage_house_rooms & stage_house_room_detail)</a></li>
+<li>7.3 <a href="#73-raum-sicherung--wiederherstellung-backup--restore" class="doc-link">Raum-Sicherung & Wiederherstellung (Backup & Restore)</a></li>
+<li>7.4 <a href="#74-bewohner-anlegen--pflegen-stage_house_residents--stage_house_resident_detail" class="doc-link">Bewohner anlegen & pflegen (stage_house_residents & stage_house_resident_detail)</a></li>
+<li>7.5 <a href="#75-familien-zuordnen-stage_house_families" class="doc-link">Familien zuordnen (stage_house_families)</a></li>
+<li>7.6 <a href="#76-spielekatalog-des-hauses-stage_house_games" class="doc-link">Spielekatalog des Hauses (stage_house_games)</a></li>
+<li>7.7 <a href="#77-einladungen-für-eltern--beobachter-erstellen-stage_house_invites" class="doc-link">Einladungen für Eltern & Beobachter erstellen (stage_house_invites)</a></li>
+</ul>
+<ol class="steps-list">
+<li><a href="#8-bereich-6-plattform-administration-superadmin" class="doc-link">Bereich 6: Plattform-Administration (SuperAdmin)</a></li>
+</ol>
+<ul class="custom-list">
+<li>8.1 <a href="#81-plattform-dashboard-stage_super" class="doc-link">Plattform-Dashboard (stage_super)</a></li>
+<li>8.2 <a href="#82-häuser-management-stage_super_houses--stage_super_house" class="doc-link">Häuser-Management (stage_super_houses & stage_super_house)</a></li>
+<li>8.3 <a href="#83-plattform--und-haus-admins-verwalten-stage_super_admins--stage_super_admin_detail" class="doc-link">Plattform- und Haus-Admins verwalten (stage_super_admins & stage_super_admin_detail)</a></li>
+<li>8.4 <a href="#84-spiele-zentrale-bibliothek--upload-stage_library--stage_library_detail" class="doc-link">Spiele-Zentrale: Bibliothek & Upload (stage_library & stage_library_detail)</a></li>
+<li>8.5 <a href="#85-versionierung-sandbox-prüfung--veröffentlichung" class="doc-link">Versionierung, Sandbox-Prüfung & Veröffentlichung</a></li>
+</ul>
+<ol class="steps-list">
+<li><a href="#9-technische-referenz--api-endpunkte" class="doc-link">Technische Referenz & API-Endpunkte</a></li>
+<li><a href="#10-häufige-fragen-faq--problembehebung" class="doc-link">Häufige Fragen (FAQ) & Problembehebung</a></li>
+</ol>
+</section><section class="doc-card" id="1-überblick-und-systemarchitektur">
+<h2 class="section-title">🏠 1. Überblick und Systemarchitektur</h2>
+<p>Das <strong>GCS-CMS</strong> (Game Creation Suite - Content Management System) ist eine vollintegrierte Plattform zur Verwaltung von barrierefreien, modularen Spielräumen, Spielen, Benutzerkonten und Sicherheitsrichtlinien für Kinder, Familien und Administratoren.</p>
+<p>Das System verbindet eine kindgerechte, grafische Benutzeroberfläche (Emoji-basierte Authentifizierung, visuelle Spieleauswahl, Avatar-Anpassung) mit differenzierten administrativen Ebenen:</p>
+<ul class="custom-list">
+<li><strong>Hierarchische Struktur:</strong> Plattform (root) -> Häuser (house) -> Räume (room)</li>
+<li><strong>Dual-Engine-Konzept:</strong> Sämtliche Benutzeroberflächen sowie die Backend-Dienste laufen nahtlos innerhalb des GCS-Laufzeitsystems (<code>GCS-CMS.json</code>). Backend-Kommunikation und Datenhaltung erfolgen über definierte Endpunkte unter <code>/api/cms/...</code>.</li>
+<li><strong>Echtzeit-Synchronisation:</strong> Raum-Präsenzen, Mehrspieler-Sitzungen und Aktivitätsüberwachung werden über zyklische Timer und Heartbeats synchronisiert.</li>
+</ul>
+</section><section class="doc-card" id="2-rollen--und-berechtigungskonzept">
+<h2 class="section-title">👥 2. Rollen- und Berechtigungskonzept</h2>
+<div class="table-container"><table>
+<thead><tr><th>Rolle</th><th>Zielgruppe</th><th>Hauptfunktionen</th><th>Anmeldeverfahren</th></tr></thead><tbody>
+<tr><td><strong>Spieler / Kind</strong></td><td>Kinder, Schüler, Bewohner</td><td>Räume betreten, Spiele starten, eigenes Profil/Avatar anpassen, eigenes Zimmer freigeben, Multiplayer-Partien starten</td><td><strong>4-stelliges Emoji-Passwort</strong></td></tr>
+<tr><td><strong>Eltern</strong></td><td>Erziehungsberechtigte</td><td>Spielzeiten einsehen, Aktivitäten und Fortschritte verfolgen, tägliches Zeitbudget (Minuten) festlegen</td><td>Benutzername & Passwort</td></tr>
+<tr><td><strong>Beobachter</strong></td><td>Pädagogen, Betreuer</td><td>Aktivitätsübersicht ("Raum-Puls"), Begleitung ohne Verwaltungsrechte</td><td>Benutzername & Passwort</td></tr>
+<tr><td><strong>RaumAdmin</strong></td><td>Raumverantwortliche</td><td>Zutritt für bestimmte Räume steuern, Spieleauswahl im zugewiesenen Raum festlegen</td><td>Benutzername & Passwort</td></tr>
+<tr><td><strong>HouseAdmin</strong></td><td>Hausverwaltung</td><td>Räume erstellen, sichern und wiederherstellen, Bewohner anlegen, Emoji-Pins vergeben, Eltern-Kind-Familien verknüpfen, Einladungslinks erzeugen</td><td>Benutzername & Passwort</td></tr>
+<tr><td><strong>SuperAdmin</strong></td><td>Plattform-Betreiber</td><td>Neue Häuser anlegen, globale und Haus-Admins ernennen, Spiele hochladen, versionieren, testen und veröffentlichen</td><td>Benutzername & Passwort</td></tr>
+</tbody></table></div>
+</section><section class="doc-card" id="3-bereich-1-kinder--spieler">
+<h2 class="section-title">🧒 3. Bereich 1: Kinder & Spieler</h2>
+<h3 class="sub-title" id="31-emoji-anmeldung-stage_main">3.1 Emoji-Anmeldung (stage_main)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 1 Lehrvideo zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-03a · Kind sieht Spiel + UI-Klick startet Spielsitzung</div>
+        <video controls preload="none" playsinline src="/videos/spiele-4.webm#t=12.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Der Zugang für Kinder erfolgt passwortlos und kinderfreundlich über eine 4-stellige Emoji-Kombination.</p>
+<h4 class="sub-sub-title" id="bildschirmaufbau">Bildschirmaufbau:</h4>
+<ul class="custom-list">
+<li><strong>Titel:</strong> <code>🏡 DEIN SPIELHAUS</code></li>
+<li><strong>Eingabezeile:</strong> Vier Plätze (<code>Platz0</code> bis <code>Platz3</code>), die anfangs mit Kreisen (<code>○</code>) markiert sind und sich bei Klick mit den gewählten Emojis füllen.</li>
+<li><strong>Emoji-Tastatur:</strong></li>
+<li>🐶 Hund</li>
+<li>🐱 Katze</li>
+<li>🌳 Baum</li>
+<li>🏠 Haus</li>
+<li>🐘 Elefant</li>
+<li>🦉 Eule</li>
+<li>🌷 Tulpe</li>
+<li>🐷 Schwein</li>
+<li><strong>Schaltflächen:</strong></li>
+<li><code>⌫</code> (Löschen): Entfernt das zuletzt gewählte Emoji.</li>
+<li><code>✓</code> (Anmelden): Bestätigt die 4-stellige Kombination und sendet die Anmeldung an den Server.</li>
+<li><code>Verwaltung</code>: Wechselt zur administrativen Anmeldung für Erwachsene.</li>
+</ul>
+<h4 class="sub-sub-title" id="schritt-für-schritt">Schritt-für-Schritt:</h4>
+<ol class="steps-list">
+<li>Wähle nacheinander deine 4 persönlichen Bilder aus der Tastatur.</li>
+<li>Deine Auswahl erscheint in den vier Feldern oben.</li>
+<li>Hast du dich vertippt, drücke auf <code>⌫</code>, um das letzte Emoji zu löschen.</li>
+<li>Sobald alle 4 Felder belegt sind, klicke auf <code>✓</code>.</li>
+<li>Bei Erfolg wirst du automatisch in das Spielhaus weitergeleitet.</li>
+</ol>
+<div class="alert alert-info"><span class="alert-icon">ℹ️</span><div><strong>Demo-Zugänge zum Testen:</strong></div></div>
+<div class="alert alert-info"><span class="alert-icon">ℹ️</span><div>- <code>🐶 🌳 🏠 🐘</code> = Fuchskind</div></div>
+<div class="alert alert-info"><span class="alert-icon">ℹ️</span><div>- <code>🐱 🐱 🌳 🏠</code> = Eulenfreund</div></div>
+<h3 class="sub-title" id="32-spielhaus-galerie-räume--spiele-stage_gallery">3.2 Spielhaus-Galerie: Räume & Spiele (stage_gallery)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 1 Lehrvideo zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-03b · Freigabeentzug sperrt Spielstart</div>
+        <video controls preload="none" playsinline src="/videos/spiele-3.webm#t=90"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Nach der Anmeldung befindet sich der Spieler im Hauptbereich des Hauses. Hier werden zugewiesene Räume und die darin enthaltenen Spiele angezeigt.</p>
+<h4 class="sub-sub-title" id="bedienung">Bedienung:</h4>
+<ul class="custom-list">
+<li><strong>Karten-Raster (<code>Karte0</code> bis <code>Karte3</code>):</strong> Zeigt die verfügbaren Räume oder Spiele mit Bild und Titel.</li>
+<li><strong>Blättern:</strong></li>
+<li><code>◀</code> (Vorherige Seite): Blättert in der Liste zurück.</li>
+<li><code>▶</code> (Nächste Seite): Blättert in der Liste vor.</li>
+<li><strong>Navigation:</strong></li>
+<li><code>⬅ 🏠</code> (Zurück zum Haus): Kehrt von der Spieleauswahl eines Raums zurück zur Raumübersicht.</li>
+<li><code>🚪</code> (Abmelden): Beendet die Sitzung sicher und führt zurück zur Emoji-Anmeldung.</li>
+<li><code>👤</code> (Mein Bereich): Öffnet die Profileinstellungen des Spielers.</li>
+<li><code>👥</code> (Mehrspieler): Öffnet die Mehrspieler-Lobby.</li>
+<li><code>Mein Zimmer</code>: Öffnet die persönliche Raum-Zutrittskontrolle.</li>
+</ul>
+<div class="alert alert-info"><span class="alert-icon">ℹ️</span><div>Das System hält im Hintergrund über den <code>PraesenzTimer</code> die Anwesenheit im aktuellen Raum aufrecht (<code>/api/cms/room-presence</code>). So sehen Betreuer und Freunde, wer gerade aktiv ist.</div></div>
+<h3 class="sub-title" id="33-mein-bereich-profil--avatar-stage_profile">3.3 Mein Bereich: Profil & Avatar (stage_profile)</h3>
+<p>Hier können Kinder ihren Anzeigenamen und ihren Avatar individuell anpassen.</p>
+<h4 class="sub-sub-title" id="funktionen--bedienelemente">Funktionen & Bedienelemente:</h4>
+<ul class="custom-list">
+<li><strong>Profilname (<code>ProfilName</code>):</strong> Eingabefeld zur Änderung des Spielernamens.</li>
+<li><strong>Avatar-Auswahl:</strong> Schnellauswahl aus 8 Standard-Tiercharakteren:</li>
+<li>🦊 Fuchs, 🦉 Eule, 🐶 Hund, 🐱 Katze, 🐼 Panda, 🐸 Frosch, 🦁 Löwe, 🐰 Hase.</li>
+<li><strong>Eigenes Bild hochladen:</strong></li>
+</ul>
+<ol class="steps-list">
+<li>Klicke auf <code>📁 Eigenes Bild</code>, um ein lokales Bild auszuwählen.</li>
+<li>Klicke auf <code>📤 Übertragen</code>, um das Bild auf den Server zu laden.</li>
+</ol>
+<ul class="custom-list">
+<li><strong>Speichern:</strong> Klicke auf <code>✓ Speichern</code>, um die Änderungen dauerhaft zu sichern.</li>
+<li><strong>Zugangshilfe:</strong> Über <code>🆘 Zugangshilfe</code> kann das Kind ein Signal an Betreuer/HausAdmins senden, falls es Hilfe benötigt.</li>
+</ul>
+<h3 class="sub-title" id="34-mein-zimmer-eigene-zutrittsrechte-verwalten-stage_child_room_access">3.4 Mein Zimmer: Eigene Zutrittsrechte verwalten (stage_child_room_access)</h3>
+<p>Jeder Spieler verfügt über ein persönliches virtuelles Zimmer und kann selbst bestimmen, welche anderen Hausbewohner Zutritt haben.</p>
+<h4 class="sub-sub-title" id="schritt-für-schritt">Schritt-für-Schritt:</h4>
+<ol class="steps-list">
+<li>Klicke in der Galerie auf <code>Mein Zimmer</code>.</li>
+<li>Wähle das gewünschte Zimmer aus der Liste.</li>
+<li>Wähle aus der Bewohnerliste das befreundete Kind aus.</li>
+<li>Klicke auf <code>Zutritt ändern</code>, um den Zutritt zu gewähren oder zu entziehen.</li>
+<li>Bestätige mit <code>Zutritt_Bestaetigen</code> oder breche mit <code>Abbrechen</code> ab.</li>
+</ol>
+<h3 class="sub-title" id="35-mehrspieler--lobby-mitspieler-einladen-stage_multiplayer_lobby">3.5 Mehrspieler & Lobby: Mitspieler einladen (stage_multiplayer_lobby)</h3>
+<p>Ermöglicht das gemeinsame Spielen im hauseigenen Netzwerk.</p>
+<h4 class="sub-sub-title" id="funktionen">Funktionen:</h4>
+<ul class="custom-list">
+<li><strong>Partie starten:</strong> Wähle einen Raum, das gewünschte Mehrspieler-Spiel und einen Mitspieler aus der Liste der anwesenden Bewohner.</li>
+<li><strong>Einladung versenden:</strong> Drücke auf <code>Einladung senden</code>. Der Mitspieler erhält sofort eine Benachrichtigung.</li>
+<li><strong>Laufende Spiele fortsetzen:</strong></li>
+<li><code>▶ Partie fortsetzen</code>: Setzt eine pausierte Mehrspielerpartie fort.</li>
+<li><code>↩ Wieder teilnehmen</code>: Ermöglicht den Rejoin nach einem Verbindungsabbruch.</li>
+<li><strong>Partie beenden:</strong> <code>⏹ Partie beenden</code> schließt die Mehrspieler-Runde für alle Teilnehmer bzw. verlässt das Spiel.</li>
+</ul>
+<h3 class="sub-title" id="36-mehrspieler-postfach-einladungen-empfangen-stage_multiplayer_inbox">3.6 Mehrspieler-Postfach: Einladungen empfangen (stage_multiplayer_inbox)</h3>
+<p>Erhaltene Spiel-Einladungen werden im Postfach gesammelt.</p>
+<h4 class="sub-sub-title" id="bedienung">Bedienung:</h4>
+<ul class="custom-list">
+<li><strong>Einladungsliste:</strong> Zeigt alle eingehenden Spieleinladungen mit Absender und Spieltitel.</li>
+<li><strong>Aktionen:</strong></li>
+<li><code>Annehmen & öffnen</code>: Nimmt die Einladung an und lädt das Spiel direkt.</li>
+<li><code>Ablehnen</code>: Lehnt die Anfrage freundlich ab.</li>
+<li><code>Teilnahme zurückziehen</code>: Verlässt eine zuvor angenommene Sitzung.</li>
+<li><code>Neu laden</code>: Aktualisiert das Postfach.</li>
+</ul>
+</section><section class="doc-card" id="4-bereich-2-eltern--beobachter">
+<h2 class="section-title">👨‍👩‍👧 4. Bereich 2: Eltern & Beobachter</h2>
+<h3 class="sub-title" id="41-elternbereich-meine-kinder--zeitbudgets-stage_parent">4.1 Elternbereich: Meine Kinder & Zeitbudgets (stage_parent)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 1 Lehrvideo zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ELTERN-03 · Elternzugang eingerichtet, Kind sichtbar</div>
+        <video controls preload="none" playsinline src="/videos/personen-6.webm#t=0"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Der Elternbereich bietet eine transparente Übersicht über die Spielaktivitäten und Werkzeuge zur gesunden Medienzeitsteuerung.</p>
+<h4 class="sub-sub-title" id="funktionen">Funktionen:</h4>
+<ol class="steps-list">
+<li><strong>Kinderübersicht (<code>KinderTabelle</code>):</strong></li>
+</ol>
+<ul class="custom-list">
+<li>Zeigt alle mit dem Elternkonto verknüpften Kinder.</li>
+<li>Ein Klick auf ein Kind lädt dessen Details.</li>
+</ul>
+<ol class="steps-list">
+<li><strong>Aktivitäts- und Bewertungsverlauf:</strong></li>
+</ol>
+<ul class="custom-list">
+<li><code>SitzungTabelle</code>: Protokolliert gespielte Spiele, Startzeit, Dauer und Spielräume.</li>
+<li><code>BewertungTabelle</code>: Zeigt erreichte Spielziele und eventuelle Rückmeldungen.</li>
+</ul>
+<ol class="steps-list">
+<li><strong>Tägliches Zeitbudget einstellen:</strong></li>
+</ol>
+<ul class="custom-list">
+<li>Trage im Feld <code>BudgetMinuten</code> die erlaubte Spielzeit pro Tag (in Minuten) ein.</li>
+<li>Klicke auf <code>Budget speichern</code>.</li>
+<li>Zur Sicherheit muss die Änderung über die Schaltfläche <code>Änderung bestätigen</code> bestätigt werden.</li>
+<li>Das Budget wird serverseitig überwacht; bei Ablauf der Zeit wird die Spielsitzung des Kindes sanft beendet.</li>
+</ul>
+<h3 class="sub-title" id="42-beobachterbereich-raum-puls--übersicht-stage_observer">4.2 Beobachterbereich: Raum-Puls & Übersicht (stage_observer)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 1 Lehrvideo zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 OBS-01b · Beobachterzugang eingerichtet, Anmeldung ok</div>
+        <video controls preload="none" playsinline src="/videos/personen-7.webm#t=0"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Für Betreuer, Lehrer oder Begleitpersonen, die einen Überblick über die aktuellen Aktivitäten im Haus benötigen, ohne Konfigurationen zu verändern.</p>
+<h4 class="sub-sub-title" id="funktionen">Funktionen:</h4>
+<ul class="custom-list">
+<li><strong>Raum-Puls:</strong> Zeigt in Echtzeit, in welchen Räumen gerade Aktivitäten stattfinden und wie viele Kinder anwesend sind.</li>
+<li><strong>Aktualisieren:</strong> Über <code>↻ Aktualisieren</code> werden die Messwerte sofort neu geladen.</li>
+</ul>
+</section><section class="doc-card" id="5-bereich-3-zentrale-verwaltungs-anmeldung">
+<h2 class="section-title">🔑 5. Bereich 3: Zentrale Verwaltungs-Anmeldung</h2>
+<h3 class="sub-title" id="51-login--rollenweiterleitung-stage_admin_login">5.1 Login & Rollenweiterleitung (stage_admin_login)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 3 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ADMIN-03a · Login „anna" → stage_house</div>
+        <video controls preload="none" playsinline src="/videos/admin-1.webm#t=50"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ADMIN-03b · Haus geoeffnet, Leerzustand verstaendlich</div>
+        <video controls preload="none" playsinline src="/videos/admin-3.webm#t=11.9,16.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ADMIN-03c · /super fuehrt nicht in SuperAdmin-Verwaltung</div>
+        <video controls preload="none" playsinline src="/videos/admin-3.webm#t=16.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Alle administrativen Rollen (Eltern, Beobachter, RaumAdmin, HouseAdmin, SuperAdmin) nutzen dieselbe zentrale Anmeldemaske.</p>
+<h4 class="sub-sub-title" id="anmeldevorgang">Anmeldevorgang:</h4>
+<ol class="steps-list">
+<li>Gib deinen <strong>Benutzernamen</strong> in das Feld <code>username</code> ein.</li>
+<li>Gib dein <strong>Passwort</strong> in das Feld <code>password</code> ein.</li>
+<li>Klicke auf <code>Anmelden</code>.</li>
+<li>Das System analysiert deine hinterlegten Zuständigkeiten und Rollen (<code>/api/cms/contexts</code>):</li>
+</ol>
+<ul class="custom-list">
+<li><strong>SuperAdmin:</strong> Schaltfläche <code>Verwaltung öffnen →</code> führt direkt in die Plattformverwaltung.</li>
+<li><strong>HouseAdmin / RaumAdmin:</strong> Führt zur Haus- bzw. Raumverwaltung.</li>
+<li><strong>Eltern:</strong> Schaltfläche <code>Meine Kinder öffnen →</code> wird aktiv.</li>
+<li><strong>Beobachter:</strong> Schaltfläche <code>Beobachtung öffnen →</code> wird aktiv.</li>
+</ul>
+<ol class="steps-list">
+<li><strong>Bestehende Sitzung:</strong> Wurde eine aktive Sitzung erkannt, bietet das System sofort <code>Weiter zur Verwaltung</code> oder <code>Abmelden</code> an.</li>
+</ol>
+</section><section class="doc-card" id="6-bereich-4-raum-administration-raumadmin">
+<h2 class="section-title">🚪 6. Bereich 4: Raum-Administration (RaumAdmin)</h2>
+<h3 class="sub-title" id="61-meine-räume--raumübersicht-stage_admin--stage_room_overview">6.1 Meine Räume & Raumübersicht (stage_admin & stage_room_overview)</h3>
+<p>Ein RaumAdmin ist für einen oder mehrere Räume innerhalb eines Hauses zuständig (z.B. "Gruppenraum B" oder "Labor").</p>
+<ul class="custom-list">
+<li><strong>Raumliste:</strong> Zeigt alle Räume, für die der angemeldete Benutzer Zuständigkeit besitzt.</li>
+<li><strong>Schnellaktionen:</strong></li>
+<li><code>Zutritt verwalten</code>: Öffnet die Zutrittskontrolle.</li>
+<li><code>Verfügbare Spiele</code>: Öffnet die Spieleauswahl.</li>
+</ul>
+<h3 class="sub-title" id="62-zutrittsverwaltung-für-räume-stage_room_access">6.2 Zutrittsverwaltung für Räume (stage_room_access)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 2 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 RAUMMITGLIED-01 · RaumAdmin ordnet Bewohnerin dem Spielraum zu</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=55.2,66.3"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 BEWOHNER-02b · Reaktivierung stellt Raumzuordnung nicht automatisch wieder her</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=188.3"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<ul class="custom-list">
+<li>Zeigt die Liste aller Hausbewohner.</li>
+<li>Per Klick auf einen Bewohner und die Schaltfläche <code>Zutritt_Umschalten</code> wird der Zutritt gewährt (aktiv) oder gesperrt (inaktiv).</li>
+</ul>
+<h3 class="sub-title" id="63-spielefreigaben-im-raum-stage_room_games">6.3 Spielefreigaben im Raum (stage_room_games)</h3>
+<ul class="custom-list">
+<li>Zeigt die im Hauskatalog verfügbaren Spiele.</li>
+<li>Der RaumAdmin entscheidet, welche dieser Spiele für Besucher dieses Raums freigeschaltet sind.</li>
+</ul>
+</section><section class="doc-card" id="7-bereich-5-haus-administration-houseadmin">
+<h2 class="section-title">🏡 7. Bereich 5: Haus-Administration (HouseAdmin)</h2>
+<h3 class="sub-title" id="71-hausübersicht-stage_house--stage_house_overview">7.1 Hausübersicht (stage_house & stage_house_overview)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 4 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 HAUS-01a · Häuser-Tabelle zeigt Leerzustand</div>
+        <video controls preload="none" playsinline src="/videos/basis-1.webm#t=13.9,18.8"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 HAUS-01b · Haus Sonne angelegt + sichtbar</div>
+        <video controls preload="none" playsinline src="/videos/basis-1.webm#t=18.8,27.7"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 HAUS-01c · Doppelter Hausname abgelehnt</div>
+        <video controls preload="none" playsinline src="/videos/basis-1.webm#t=27.7"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 MULTI-01a · anna erhaelt Hausrolle auf Haus Mond</div>
+        <video controls preload="none" playsinline src="/videos/mandant-1.webm#t=106.1"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Der HouseAdmin leitet die Organisation einer Einrichtung (z.B. Jugendtreff, Schule, Familie).</p>
+<p>Die Navigationsleiste bietet direkten Zugriff auf alle Teilbereiche:</p>
+<ul class="custom-list">
+<li><code>Übersicht</code> | <code>Räume</code> | <code>Bewohner</code> | <code>Familien</code> | <code>Spiele</code> | <code>Einladungen</code> | <code>Abmelden</code></li>
+</ul>
+<h3 class="sub-title" id="72-räume-verwalten--konfigurieren-stage_house_rooms--stage_house_room_detail">7.2 Räume verwalten & konfigurieren (stage_house_rooms & stage_house_room_detail)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 7 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 RAUM-01a · Raum „Spielraum" angelegt + sichtbar</div>
+        <video controls preload="none" playsinline src="/videos/raeume-3.webm#t=4.9,18.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 RAUM-01b · Doppelter Raumname abgelehnt</div>
+        <video controls preload="none" playsinline src="/videos/raeume-3.webm#t=18.9,27.6"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 RAUM-02 · Spielraum → „Familienraum" umbenannt</div>
+        <video controls preload="none" playsinline src="/videos/raeume-3.webm#t=36.2,50.6"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 RAUM-03 · Raum „Lernraum" angelegt + sichtbar</div>
+        <video controls preload="none" playsinline src="/videos/raeume-3.webm#t=27.6,36.2"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 RAUM-04a · Raum deaktiviert</div>
+        <video controls preload="none" playsinline src="/videos/raeume-3.webm#t=50.6,60.8"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 RAUM-04b · Raum reaktiviert</div>
+        <video controls preload="none" playsinline src="/videos/raeume-3.webm#t=60.8,73.6"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 GRENZE-02 · Zugriff auf unbekanntes Haus verweigert</div>
+        <video controls preload="none" playsinline src="/videos/raeume-3.webm#t=73.6"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<h4 class="sub-sub-title" id="neuen-raum-anlegen">Neuen Raum anlegen:</h4>
+<ol class="steps-list">
+<li>Navigiere zu <code>Räume</code>.</li>
+<li>Gib den gewünschten Raumnamen in das Eingabefeld <code>RaumName</code> ein.</li>
+<li>Klicke auf <code>Anlegen</code>. Der Raum wird sofort initialisiert.</li>
+</ol>
+<h4 class="sub-sub-title" id="raum-bearbeiten">Raum bearbeiten:</h4>
+<ol class="steps-list">
+<li>Wähle den Raum aus der Liste aus.</li>
+<li>In der Detailmaske können Name (<code>RaumDetailName</code>) und Beschreibung (<code>RaumBeschreibung</code>) angepasst werden.</li>
+<li><strong>RaumAdmin zuweisen:</strong> Wähle eine Person aus und klicke auf <code>RaumAdmin übernehmen</code>.</li>
+<li><strong>Status ändern:</strong> Schalte den Raum bei Bedarf vorübergehend inaktiv (<code>RaumStatus_Vormerken</code>).</li>
+<li><strong>2-Stufen-Sicherheit:</strong> Jede kritische Änderung muss mit <code>Bestätigen</code> gesichert oder mit <code>Abbrechen</code> verworfen werden.</li>
+</ol>
+<h3 class="sub-title" id="73-raum-sicherung--wiederherstellung-backup--restore">7.3 Raum-Sicherung & Wiederherstellung (Backup & Restore)</h3>
+<p>In der Maske <code>stage_house_room_detail</code>:</p>
+<ul class="custom-list">
+<li><strong>Sicherung erstellen (<code>Sicherung erstellen</code>):</strong> Erstellt einen versionsgenauen Snapshot aller Einstellungen, Zugriffsrechte und Spiele des Raumes.</li>
+<li><strong>Wiederherstellen (<code>Wiederherstellen</code>):</strong> Stellt einen früheren Zustand aus einem Backup wieder her. Vor der Ausführung fordert das System eine Bestätigung an.</li>
+</ul>
+<h3 class="sub-title" id="74-bewohner-anlegen--pflegen-stage_house_residents--stage_house_resident_detail">7.4 Bewohner anlegen & pflegen (stage_house_residents & stage_house_resident_detail)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 4 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 BEWOHNER-01a · Hausbewohnerin „Lina Kind" ohne Raum angelegt</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=33.8,52.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 BEWOHNER-01b · Bewohnerin erscheint in der Hausbewohnerliste</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=52.9,55.2"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 BEWOHNER-02a · HouseAdmin deaktiviert die Hausbewohnerin</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=171.9,188.3"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 BEWOHNER-02b · Reaktivierung stellt Raumzuordnung nicht automatisch wieder her</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=188.3"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<h4 class="sub-sub-title" id="neuen-bewohner-anlegen">Neuen Bewohner anlegen:</h4>
+<ol class="steps-list">
+<li>Gehe auf <code>Bewohner</code>.</li>
+<li>Trage Name (<code>BewohnerName</code>), Initial-Avatar (<code>BewohnerAvatar</code>, z.B. Emoji) und den gewünschten 4-stelligen Code (<code>BewohnerCode</code>) ein.</li>
+<li>Klicke auf <code>Anlegen</code>.</li>
+</ol>
+<h4 class="sub-sub-title" id="bewohner-bearbeiten--emoji-code-zurücksetzen">Bewohner bearbeiten & Emoji-Code zurücksetzen:</h4>
+<ol class="steps-list">
+<li>Klicke auf den Bewohner in der Liste.</li>
+<li><strong>Name & Mitgliedschaft:</strong> Ändere den Namen und sichere mit <code>Profil speichern</code>.</li>
+<li><strong>Emoji-Code neu vergeben:</strong> Trage in <code>CodeEingabe</code> vier neue Emojis ein und klicke auf <code>Emoji-Code speichern</code>.</li>
+</ol>
+<h3 class="sub-title" id="75-familien-zuordnen-stage_house_families">7.5 Familien zuordnen (stage_house_families)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 3 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ELTERN-01 · Eltern-Einladung erzeugt, Zuordnung ausstehend</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=74.8,89.2"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ELTERN-02a · Selbstbestaetigung durch Einladende abgelehnt</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=89.2,131.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ELTERN-02b · Zweitbestaetigung durch „paul"</div>
+        <video controls preload="none" playsinline src="/videos/personen-5.webm#t=73.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Verknüpft Elternkonten mit ihren Kindern für das Eltern-Dashboard.</p>
+<ol class="steps-list">
+<li>Wähle in der linken Liste die erwachsene Person (Elternteil).</li>
+<li>Wähle in der rechten Liste das entsprechende Kind.</li>
+<li>Klicke auf <code>Ausgewählte Personen zuordnen</code>.</li>
+<li>Zur Bestätigung klicke auf <code>Zuordnung bestätigen</code>.</li>
+<li>Bestehende Verbindungen können über <code>Ausgewählte Zuordnung aufheben</code> gelöst werden.</li>
+</ol>
+<h3 class="sub-title" id="76-spielekatalog-des-hauses-stage_house_games">7.6 Spielekatalog des Hauses (stage_house_games)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 2 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-02a · Kind sieht Spiel ohne Freigabe nicht</div>
+        <video controls preload="none" playsinline src="/videos/spiele-4.webm#t=0.2,12.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-02b · Spielfreigabe im Haus durch „anna"</div>
+        <video controls preload="none" playsinline src="/videos/spiele-3.webm#t=71.4,90"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<ul class="custom-list">
+<li>Zeigt alle von der Plattform (SuperAdmin) bereitgestellten Spiele.</li>
+<li>Per Klick auf <code>Spiel_Umschalten</code> wird ein Spiel für das gesamte Haus ein- oder ausgeblendet.</li>
+</ul>
+<h3 class="sub-title" id="77-einladungen-für-eltern--beobachter-erstellen-stage_house_invites">7.7 Einladungen für Eltern & Beobachter erstellen (stage_house_invites)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 3 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ELTERN-01 · Eltern-Einladung erzeugt, Zuordnung ausstehend</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=74.8,89.2"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 OBS-01a · Beobachter-Einladung raumgebunden erzeugt</div>
+        <video controls preload="none" playsinline src="/videos/personen-3.webm#t=131.9,171.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 OBS-01b · Beobachterzugang eingerichtet, Anmeldung ok</div>
+        <video controls preload="none" playsinline src="/videos/personen-7.webm#t=0"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Erlaubt das Einladen von Erwachsenen über Registrierungslinks.</p>
+<h4 class="sub-sub-title" id="eltern-einladung">Eltern-Einladung:</h4>
+<ol class="steps-list">
+<li>Trage den Namen des Elternteils in <code>ElternName</code> ein.</li>
+<li>Wähle das zugehörige Kind aus.</li>
+<li>Klicke auf <code>Einladungslink erstellen</code>.</li>
+<li>Der generierte Token-Link (<code>EinladungLink</code>) kann kopiert und dem Elternteil zugesendet werden.</li>
+</ol>
+<h4 class="sub-sub-title" id="beobachter-einladung">Beobachter-Einladung:</h4>
+<ol class="steps-list">
+<li>Trage den Namen in <code>BeobachterName</code> ein.</li>
+<li>Wähle den zu beobachtenden Raum aus.</li>
+<li>Klicke auf <code>Einladungslink erstellen</code>.</li>
+</ol>
+<h4 class="sub-sub-title" id="einladung-widerrufen">Einladung widerrufen:</h4>
+<ul class="custom-list">
+<li>Markiere eine offene Einladung und klicke auf <code>Ausgewählte Einladung widerrufen</code>.</li>
+</ul>
+</section><section class="doc-card" id="8-bereich-6-plattform-administration-superadmin">
+<h2 class="section-title">👑 8. Bereich 6: Plattform-Administration (SuperAdmin)</h2>
+<h3 class="sub-title" id="81-plattform-dashboard-stage_super">8.1 Plattform-Dashboard (stage_super)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 2 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 BASIS-01b · Einwahl lädt, SuperAdmin landet auf stage_super</div>
+        <video controls preload="none" playsinline src="/videos/basis-1.webm#t=0.3,11.5"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 BASIS-01c · Kennzahlen: 0 Häuser, 1 SuperAdmin</div>
+        <video controls preload="none" playsinline src="/videos/basis-1.webm#t=11.5,13.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<p>Die oberste Verwaltungsebene für den gesamten GCS-Betrieb. Ermöglicht den Wechsel zwischen:</p>
+<ul class="custom-list">
+<li><code>🏠 Häuser verwalten</code></li>
+<li><code>🛡️ SuperAdmins verwalten</code></li>
+<li><code>🎮 Meine Spiele</code></li>
+</ul>
+<h3 class="sub-title" id="82-häuser-management-stage_super_houses--stage_super_house">8.2 Häuser-Management (stage_super_houses & stage_super_house)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 9 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 HAUS-01a · Häuser-Tabelle zeigt Leerzustand</div>
+        <video controls preload="none" playsinline src="/videos/basis-1.webm#t=13.9,18.8"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 HAUS-01b · Haus Sonne angelegt + sichtbar</div>
+        <video controls preload="none" playsinline src="/videos/basis-1.webm#t=18.8,27.7"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 MOND-01 · Haus Mond + HouseAdmin „mia"</div>
+        <video controls preload="none" playsinline src="/videos/mandant-1.webm#t=36.7,106.1"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 MULTI-01a · anna erhaelt Hausrolle auf Haus Mond</div>
+        <video controls preload="none" playsinline src="/videos/mandant-1.webm#t=106.1"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 MULTI-01b · anna: Hauswahl zeigt beide Haeuser, Mond oeffnet</div>
+        <video controls preload="none" playsinline src="/videos/mandant-6.webm#t=0.2,16.3"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 MULTI-01c · anna: Wechsel zurueck zu Haus Sonne</div>
+        <video controls preload="none" playsinline src="/videos/mandant-6.webm#t=16.3"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 GRENZE-01a · anna: kein Zugriff auf Haus Mond</div>
+        <video controls preload="none" playsinline src="/videos/mandant-3.webm#t=73.7,78.4"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 GRENZE-01b · mia: kein Zugriff auf Haus Sonne</div>
+        <video controls preload="none" playsinline src="/videos/mandant-5.webm#t=20.2"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 GRENZE-01c · anna: keine SuperAdmin-Endpunkte</div>
+        <video controls preload="none" playsinline src="/videos/mandant-3.webm#t=78.4"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<h4 class="sub-sub-title" id="neues-haus-gründen">Neues Haus gründen:</h4>
+<ol class="steps-list">
+<li>Feld <code>HausEingabe</code>: Name des neuen Hauses eingeben.</li>
+<li>Klick auf <code>Anlegen</code>.</li>
+</ol>
+<h4 class="sub-sub-title" id="haus-konfigurieren">Haus konfigurieren:</h4>
+<ul class="custom-list">
+<li><strong>Umbenennen / Deaktivieren:</strong> Im Detailbereich mit Bestätigungsschritt.</li>
+<li><strong>HouseAdmin ernennen:</strong> Klicke auf <code>+ Admin hinzufügen</code>, wähle eine Person und weise ihr die Hausverantwortung zu.</li>
+<li><strong>Spieler-Einladungslink:</strong> Über <code>Spieler-Link</code> wird ein direkter Zugangslink für neue Spieler dieses Hauses erzeugt.</li>
+</ul>
+<h3 class="sub-title" id="83-plattform--und-haus-admins-verwalten-stage_super_admins--stage_super_admin_detail">8.3 Plattform- und Haus-Admins verwalten (stage_super_admins & stage_super_admin_detail)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 10 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ADMIN-01a · Person „Anna Admin" angelegt</div>
+        <video controls preload="none" playsinline src="/videos/admin-1.webm#t=10,23.9"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ADMIN-01b · Hausrolle zugewiesen, Anna in Admin-Liste</div>
+        <video controls preload="none" playsinline src="/videos/admin-1.webm#t=23.9,31.5"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ADMIN-02a · Detailseite + Einrichtungslink</div>
+        <video controls preload="none" playsinline src="/videos/admin-1.webm#t=31.5,50"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ADMIN-02b · Zugang „anna" eingerichtet</div>
+        <video controls preload="none" playsinline src="/videos/admin-2.webm#t=0"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 LEBEN-01a · Rollenentzug wirkt sofort</div>
+        <video controls preload="none" playsinline src="/videos/leben-1.webm#t=30.5,46.1"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 LEBEN-01b · Erneute Rollenvergabe wirkt sofort</div>
+        <video controls preload="none" playsinline src="/videos/leben-1.webm#t=46.1,53.6"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 LEBEN-02a · Deaktivierung sperrt Sitzung und Anmeldung</div>
+        <video controls preload="none" playsinline src="/videos/leben-1.webm#t=53.6,69.3"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 LEBEN-02b · Reaktivierung erlaubt Anmeldung wieder</div>
+        <video controls preload="none" playsinline src="/videos/leben-1.webm#t=69.3,85"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 LEBEN-03a · Reset-Link erzeugt</div>
+        <video controls preload="none" playsinline src="/videos/leben-1.webm#t=85"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 LEBEN-03b · Reset invalidiert laufende Sitzung, Passwortwechsel wirkt</div>
+        <video controls preload="none" playsinline src="/videos/leben-4.webm#t=0"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<ul class="custom-list">
+<li><strong>Neue Administratoren anlegen:</strong> Über <code>Person anlegen</code> oder <code>Einladen</code>.</li>
+<li><strong>Zuständigkeit ändern:</strong> Berechtigungsstufen vergeben (z.B. Zuweisung zu Häusern oder Beförderung zum SuperAdmin).</li>
+<li><strong>Deaktivieren / Reaktivieren:</strong> Temporäre oder dauerhafte Sperrung von Konten mit <code>Deaktivieren</code>.</li>
+</ul>
+<h3 class="sub-title" id="84-spiele-zentrale-bibliothek--upload-stage_library--stage_library_detail">8.4 Spiele-Zentrale: Bibliothek & Upload (stage_library & stage_library_detail)</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 3 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-01a · Spiel „Rechenduell Testspiel" hochgeladen</div>
+        <video controls preload="none" playsinline src="/videos/spiele-1.webm#t=49.4,76.8"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-01c · Entwurf per „Begutachten“ in Vorschau geoeffnet</div>
+        <video controls preload="none" playsinline src="/videos/spiele-1.webm#t=76.8,87.6"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-01b · Spiel veroeffentlicht</div>
+        <video controls preload="none" playsinline src="/videos/spiele-1.webm#t=87.6"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<h4 class="sub-sub-title" id="neues-spiel-in-den-katalog-aufnehmen">Neues Spiel in den Katalog aufnehmen:</h4>
+<ol class="steps-list">
+<li>Gehe zu <code>Meine Spiele</code> und trage den Titel in <code>SpielName</code> ein.</li>
+<li>Klicke auf <code>Spiel anlegen</code>.</li>
+<li>In der Detailansicht:</li>
+</ol>
+<ul class="custom-list">
+<li>Metadaten pflegen (<code>SpielTitel</code>, <code>SpielBeschreibung</code>).</li>
+<li>Spiel-Paketdatei (JSON oder ZIP) auswählen über <code>📁 Datei auswählen</code>.</li>
+<li>Hochladen über <code>📤 Hochladen</code>.</li>
+<li>Speichern über <code>💾 Speichern</code>.</li>
+</ul>
+<h3 class="sub-title" id="85-versionierung-sandbox-prüfung--veröffentlichung">8.5 Versionierung, Sandbox-Prüfung & Veröffentlichung</h3>
+<!-- gcs-video -->
+<details class="lehrvideo" style="margin:8px 0 14px;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;">
+  <summary style="cursor:pointer;font:600 14px/1.4 system-ui;color:#1d4ed8;">🎬 2 Lehrvideos zu diesem Abschnitt</summary>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-01c · Entwurf per „Begutachten“ in Vorschau geoeffnet</div>
+        <video controls preload="none" playsinline src="/videos/spiele-1.webm#t=76.8,87.6"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+      <div class="lv-clip" style="margin:10px 0;">
+        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 SPIEL-02b · Spielfreigabe im Haus durch „anna"</div>
+        <video controls preload="none" playsinline src="/videos/spiele-3.webm#t=71.4,90"
+          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>
+      </div>
+</details>
+<!-- /gcs-video -->
+<ul class="custom-list">
+<li><strong>Sandbox-Test (<code>👁 Begutachten</code>):</strong> Startet das Spiel in einer isolierten Vorschau-Umgebung, um Gameplay, Performance und Fehlerfreiheit vor der Freigabe zu prüfen.</li>
+<li><strong>Freigabe (<code>Veröffentlichen</code>):</strong> Gibt das Spiel offiziell für alle Häuser frei.</li>
+<li><strong>Rückzug (<code>Als Entwurf zurückziehen</code>):</strong> Versteckt das Spiel sofort vor den Häusern, um Korrekturen vorzunehmen.</li>
+<li><strong>Neue Version bereitstellen (<code>⬆ Neue Version</code>):</strong> Ermöglicht das unterbrechungsfreie Einspielen von Updates.</li>
+<li><strong>Endgültiges Löschen (<code>🗑 Löschen</code> -> <code>⚠ Endgültig löschen</code>):</strong> Schützt vor versehentlichem Datenverlust durch eine zwingende 2-stufige Bestätigung.</li>
+</ul>
+</section><section class="doc-card" id="9-technische-referenz--api-endpunkte">
+<h2 class="section-title">⚙️ 9. Technische Referenz & API-Endpunkte</h2>
+<p>Das GCS-CMS kommuniziert über JSON-REST-Endpunkte. Nachfolgend sind die wichtigsten Schnittstellen zusammengefasst:</p>
+<h3 class="sub-title" id="authentifizierung--sitzungen">Authentifizierung & Sitzungen</h3>
+<ul class="custom-list">
+<li><code>POST /api/cms/login</code>: 4-Emoji-Login für Kinder.</li>
+<li><code>POST /api/cms/admin-login</code>: Benutzername/Passwort-Login für Erwachsene.</li>
+<li><code>POST /api/cms/admin/logout</code>: Beendet die Verwaltungssitzung.</li>
+<li><code>POST /api/cms/contexts</code>: Gibt die für die aktive Sitzung verfügbaren Rollen und Bereiche zurück.</li>
+</ul>
+<h3 class="sub-title" id="spielhaus-räume--präsenz">Spielhaus, Räume & Präsenz</h3>
+<ul class="custom-list">
+<li><code>POST /api/cms/rooms</code>: Liefert alle zugänglichen Räume des Spielers.</li>
+<li><code>POST /api/cms/games</code>: Liefert alle freigegebenen Spiele eines Raumes.</li>
+<li><code>POST /api/cms/room-presence</code>: Meldet periodischen Anwesenheits-Heartbeat.</li>
+<li><code>POST /api/cms/child/rooms</code>: Zimmerübersicht für die persönliche Zimmer-Zutrittskontrolle.</li>
+</ul>
+<h3 class="sub-title" id="mehrspieler-dienst-`-api-cms-mp-`">Mehrspieler-Dienst (<code>/api/cms/mp/...</code>)</h3>
+<ul class="custom-list">
+<li><code>/api/cms/mp/available</code>: Liste der anwesenden Mitspieler.</li>
+<li><code>/api/cms/mp/start-invite</code>: Neue Mehrspielerpartie initiieren & Einladung absenden.</li>
+<li><code>/api/cms/mp/invitations</code>: Eingehende Einladungen abrufen.</li>
+<li><code>/api/cms/mp/respond</code>: Einladung akzeptieren oder ablehnen.</li>
+<li><code>/api/cms/mp/rejoinable</code> & <code>/api/cms/mp/rejoin</code>: Wiederbeitritt nach Verbindungsverlust.</li>
+<li><code>/api/cms/mp/end</code>: Spielrunde beenden.</li>
+</ul>
+<h3 class="sub-title" id="eltern---budgetverwaltung">Eltern- & Budgetverwaltung</h3>
+<ul class="custom-list">
+<li><code>POST /api/cms/parent/my-children</code>: Zugeordnete Kinder abfragen.</li>
+<li><code>POST /api/cms/parent/child-activity</code>: Spielsitzungen und Aktivitätsprotokoll abrufen.</li>
+<li><code>POST /api/cms/parent/set-budget</code>: Tägliches Zeitbudget vorbereiten.</li>
+<li><code>POST /api/cms/parent/approve-budget</code>: Zeitbudget final bestätigen.</li>
+</ul>
+<h3 class="sub-title" id="haus---raum-administration">Haus- & Raum-Administration</h3>
+<ul class="custom-list">
+<li><code>POST /api/cms/admin/house-rooms</code> & <code>/api/cms/admin/room-create</code>: Räume auflisten / anlegen.</li>
+<li><code>POST /api/cms/admin/backup</code> & <code>/api/cms/admin/restore</code>: Raum-Snapshots sichern und wiederherstellen.</li>
+<li><code>POST /api/cms/admin/house-people</code> & <code>/api/cms/admin/house-person-create</code>: Bewohner anlegen und verwalten.</li>
+<li><code>POST /api/cms/admin/house-person-code</code>: Emoji-Pin für einen Bewohner aktualisieren.</li>
+<li><code>POST /api/cms/admin/house-guardians</code> & <code>/api/cms/admin/guardian-set</code>: Eltern-Kind-Verknüpfungen verwalten.</li>
+<li><code>POST /api/cms/admin/house-invites</code>: Einladungslinks generieren und widerrufen.</li>
+</ul>
+<h3 class="sub-title" id="plattform--superadmin">Plattform & SuperAdmin</h3>
+<ul class="custom-list">
+<li><code>POST /api/cms/admin/super-houses</code> & <code>/api/cms/admin/super-house-create</code>: Häuser verwalten.</li>
+<li><code>POST /api/cms/admin/super-games</code>: Eigene Spiele auflisten und versionieren.</li>
+<li><code>POST /api/cms/upload-library</code>: Hochladen von Spiel-Archiven in die Bibliothek.</li>
+</ul>
+</section><section class="doc-card" id="10-häufige-fragen-faq--problembehebung">
+<h2 class="section-title">❓ 10. Häufige Fragen (FAQ) & Problembehebung</h2>
+<h4 class="sub-sub-title" id="f-ein-kind-hat-seinen-emoji-code-vergessen-was-ist-zu-tun">F: Ein Kind hat seinen Emoji-Code vergessen. Was ist zu tun?</h4>
+<p><strong>A:</strong> Ein HouseAdmin navigiert in den Bereich <code>Bewohner</code>, wählt das Kind aus und vergibt im Feld <code>CodeEingabe</code> vier neue Emojis. Nach Klick auf <code>Emoji-Code speichern</code> kann sich das Kind sofort mit dem neuen Code anmelden.</p>
+<h4 class="sub-sub-title" id="f-ein-spiel-wird-im-raum-eines-kindes-nicht-angezeigt-woran-liegt-das">F: Ein Spiel wird im Raum eines Kindes nicht angezeigt. Woran liegt das?</h4>
+<p><strong>A:</strong> Bitte prüfe folgende Kette:</p>
+<ol class="steps-list">
+<li><strong>SuperAdmin:</strong> Ist das Spiel in der Bibliothek auf <code>Veröffentlicht</code> gesetzt?</li>
+<li><strong>HouseAdmin:</strong> Ist das Spiel im Bereich <code>HouseAdmin · Spiele</code> für das jeweilige Haus aktiviert?</li>
+<li><strong>RaumAdmin:</strong> Ist das Spiel im Bereich <code>RaumAdmin · Spiele</code> für den jeweiligen Raum freigeschaltet?</li>
+</ol>
+<h4 class="sub-sub-title" id="f-das-zeitbudget-eines-kindes-ist-abgelaufen-was-passiert">F: Das Zeitbudget eines Kindes ist abgelaufen. Was passiert?</h4>
+<p><strong>A:</strong> Das System beendet das laufende Spiel ordnungsgemäß und führt das Kind zurück zum Startbildschirm mit einem Hinweis auf das erreichte Tageslimit. Eltern können das Limit jederzeit im Elternbereich anpassen.</p>
+<h4 class="sub-sub-title" id="f-wie-kann-eine-versehentliche-änderung-an-einem-raum-rückgängig-gemacht-werden">F: Wie kann eine versehentliche Änderung an einem Raum rückgängig gemacht werden?</h4>
+<p><strong>A:</strong> Sofern zuvor eine Sicherung erstellt wurde, wählt der HouseAdmin in den Raum-Details <code>Wiederherstellen</code>. Nach Bestätigung wird der letzte gesicherte Stand reaktiviert.</p>
+<p><em>Stand der Dokumentation: Oktober 2026 · Erstellt für die Game Creation Suite (GCS).</em></p>
+
+    </div>
+  </main>
+
+  <script>
+    // Smooth scroll to anchor with robust fallback
+    function scrollToAnchor(targetId) {
+      if (!targetId) return;
+      const clean = targetId.replace(/^#/, '');
+      const el = document.getElementById(clean) 
+              || document.querySelector('[name="' + clean + '"]')
+              || document.querySelector('[id*="' + clean + '"]');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', '#' + clean);
+      }
+    }
+
+    // Intercept all internal anchor clicks
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href^="#"]');
+      if (link) {
+        const href = link.getAttribute('href');
+        if (href && href !== '#') {
+          e.preventDefault();
+          scrollToAnchor(href);
+        }
+      }
+    });
+
+    // Quick Search filter
+    const searchInput = document.getElementById('quickSearch');
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('section.doc-card').forEach(sec => {
+        if (!q || sec.textContent.toLowerCase().includes(q)) {
+          sec.style.display = 'block';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    });
+
+    // Update active nav link on scroll
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section.doc-card');
+      let currentId = '';
+      sections.forEach(sec => {
+        const top = sec.getBoundingClientRect().top;
+        if (top <= 140 && top >= -sec.offsetHeight + 140) {
+          currentId = sec.id;
+        }
+      });
+      if (currentId) {
+        document.querySelectorAll('.nav-link').forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

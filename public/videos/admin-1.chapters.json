@@ -9,22 +9,22 @@
     {
       "id": "ADMIN-01a",
       "titel": "Person „Anna Admin\" angelegt",
-      "offset": 19.8
+      "offset": 10
     },
     {
       "id": "ADMIN-01b",
       "titel": "Hausrolle zugewiesen, Anna in Admin-Liste",
-      "offset": 32.2
+      "offset": 23.9
     },
     {
       "id": "ADMIN-02a",
       "titel": "Detailseite + Einrichtungslink",
-      "offset": 39.2
+      "offset": 31.5
     },
     {
       "id": "ADMIN-03a",
       "titel": "Login „anna\" → stage_house",
-      "offset": 55.2
+      "offset": 50
     }
   ]
 }

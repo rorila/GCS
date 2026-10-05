@@ -217,7 +217,7 @@ const mpFns=[
     where:{status:'published',multiplayer:{truthy:true},has:{entity:'grants',where:{
      gameId:'$item.id',active:true,areaId:{in:{union:['$body.areaId','$vars.Haus.item.id']}}
     }}},
-    fields:{id:'$item.id',title:'$item.title',avatar:'$item.avatar',multiplayer:true}
+    fields:{id:'$item.id',title:'$item.title',avatar:'$item.avatar',multiplayer:true,modes:'$item.modes'}
    }],'Spiele'),
    n.act('BewohnerLaden','Datenbestand','list',[{entity:'people',where:{active:true,id:{not:'$session.personId'},has:{entity:'memberships',where:{personId:'$item.id',areaId:'$vars.Haus.item.id',active:true}}},fields:{id:'$item.id',name:'$item.name',avatar:'$item.avatar',invited:false}}],'Kandidaten'),
    n.act('Antworten','AntwortSenden','send',[{games:'${Spiele.items}',candidates:'${Kandidaten.items}'}]),

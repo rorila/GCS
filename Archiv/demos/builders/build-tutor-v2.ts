@@ -1,5 +1,5 @@
-import { AgentController } from '../../src/services/AgentController';
-import { GameProject } from '../../src/model/types';
+import { AgentController } from '../../../src/services/AgentController';
+import { GameProject } from '../../../src/model/types';
 import * as fs from 'fs';
 import * as path from 'path';
 

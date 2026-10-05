@@ -9,22 +9,22 @@
     {
       "id": "BASIS-01c",
       "titel": "Kennzahlen: 0 Häuser, 1 SuperAdmin",
-      "offset": 9.9
+      "offset": 11.5
     },
     {
       "id": "HAUS-01a",
       "titel": "Häuser-Tabelle zeigt Leerzustand",
-      "offset": 12.2
+      "offset": 13.9
     },
     {
       "id": "HAUS-01b",
       "titel": "Haus Sonne angelegt + sichtbar",
-      "offset": 16.8
+      "offset": 18.8
     },
     {
       "id": "HAUS-01c",
       "titel": "Doppelter Hausname abgelehnt",
-      "offset": 24.8
+      "offset": 27.7
     }
   ]
 }

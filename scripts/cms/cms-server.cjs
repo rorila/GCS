@@ -27,7 +27,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  // Profil: kein Legacy-Handler mehr — TServerEndpoint-Tasks in stage_server_profile.
  const uploads=createUploads(core,admin,store,cmsFile,'stage_server_uploads');
  const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json');
- const commit=(s,action,areaId,change)=>store.commit(core.db,{actor:s.personId,action,areaId},change);
+ const commit=(s,action,areaId,change,opts)=>store.commit(core.db,{actor:s.personId,action,areaId,...opts},change);
  const parent=createParent(core,credentialPath,store,cmsFile,'stage_server_parent');
  parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
  parent.enrollObserver=b=>enrollObserver(core,credentialPath,b.ticket,b.username,b.password,commit);
@@ -204,7 +204,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const session=launch&&core.session(launch.token),game=launch&&core.db.games.find(g=>g.id===launch.gameId);
     if(!launch||!session||!core.can(session,'play',{game,areaId:launch.areaId}))return reply(res,403,{error:'Spiel nicht freigegeben'});
     // Erste Ausbaustufe: nur die zwei geprüften lokalen Lernprojekte; keine freien Uploads.
-    const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json','game-mp':'Zahlen-Duell.json','game-memory-remote':'ElinsMemoryRemote.json','game-pingpong-remote':'PingPong-Remote.json'},uploaded=uploads.game(game);if(!uploaded&&(!allowed[game.id]||allowed[game.id]!==game.file))return reply(res,403,{error:'Projekt nicht zugelassen'});
+    const allowed={'snake':'Snake-Lernprojekt.json','breakout':'Breakout-Lernprojekt.json','game-mp':'Zahlen-Duell.json','game-memory-remote':'ElinsMemoryRemote.json','game-pingpong-remote':'PingPong-Remote.json','game-madn-remote':'Madn-Remote.json'},uploaded=uploads.game(game);if(!uploaded&&(!allowed[game.id]||allowed[game.id]!==game.file))return reply(res,403,{error:'Projekt nicht zugelassen'});
     if(uploaded)res.setHeader('Content-Security-Policy',playCsp);
     // Fremdspiel als HTML-Dokument: ohne GCS-Runtime-Wrapper ausliefern.
     if(uploaded&&/\.html$/i.test(game.file)){

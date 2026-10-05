@@ -7,7 +7,7 @@
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {bootMinimal,obj,busy,sel,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
-const {makeRunner,dep,click,initRequest}=require('./cms/aufbau-common.cjs');
+const {makeRunner,dep,click,initRequest,rowWait,rowClick}=require('./cms/aufbau-common.cjs');
 const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
 
 const PORT=15222;
@@ -93,7 +93,9 @@ const PORT=15222;
    await setup.locator('[name=username]').fill('anna');
    await setup.locator('[name=password]').fill(TEST_PASSWORD);
    await setup.getByRole('button',{name:'Zugang anlegen'}).click();
-   await setup.waitForFunction(()=>document.body.innerText.includes('Zugang eingerichtet'),null,{timeout:10000});
+   // Erfolg ist der Auto-Login-Redirect auf die Haus-Stage (303), keine Erfolgsseite.
+   await setup.waitForURL(u=>u.pathname==='/house',null,{timeout:10000}).catch(()=>{});
+   assert.ok(setup.url().includes('/house')||await setup.evaluate(()=>document.body.innerText.includes('Zugang eingerichtet')),'Enroll meldet keinen Erfolg');
    await setup.close();
   },null);
 
@@ -110,16 +112,18 @@ const PORT=15222;
    await busy(adm);
   },page);
 
-  // ── ADMIN-03b: eigenes Haus geoeffnet, verständlicher Leerzustand ──
+  // ── ADMIN-03b: eigenes Haus waehlbar, verständlicher Leerzustand ──
+  // stage_house ist seit dem Multi-Stage-Umbau die Hausauswahl: die
+  // HausTabelle fuehrt in die Hausuebersicht (Kontext = CMSHausId).
   await task('ADMIN-03b','Haus geoeffnet, Leerzustand verstaendlich',[dep('ADMIN-03a',()=>!!adm)],async()=>{
-   await adm.waitForFunction(()=>{const v=window.player.runtime.getObjects().find(o=>o.name==='Haus');return v&&v.value},null,{timeout:10000});
-   const hausVar=await adm.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='Haus').value);
-   assert.strictEqual(hausVar,sonne.id,'falsches/kein Haus: '+hausVar);
-   // Leerzustand: das Raumdatenobjekt muss existieren und leer sein ODER
-   // die Tabelle muss eine sichtbare Leerzustandszeile zeigen.
-   const raeume=await adm.evaluate(()=>{const o=window.player.runtime.getObjects().find(x=>x.name==='Raeume');return o?(o.records||o.data||[]).length:null});
-   const leer=raeume===0||await adm.locator('tbody tr',{hasText:'Keine Daten'}).count()>0;
-   assert.ok(leer,'kein verstaendlicher Leerzustand (Raeume='+raeume+')');
+   await rowWait(adm,'HausTabelle','Haus Sonne');
+   await rowClick(adm,'HausTabelle','Haus Sonne');
+   await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house_overview',null,{timeout:10000});
+   await busy(adm);
+   const hausVar=await adm.evaluate(()=>window.player.runtime.contextVars?.CMSHausId);
+   assert.strictEqual(hausVar,sonne.id,'falsches/kein Haus im Kontext: '+hausVar);
+   // Leerzustand: die Uebersicht meldet explizit 0 Raeume.
+   await adm.waitForFunction(()=>/Räume · 0/.test(window.player.runtime.getObjects().find(o=>o.name==='RaeumeKarte')?.text||''),null,{timeout:8000});
   },adm);
 
   // ── ADMIN-03c: kein Zugriff auf die SuperAdmin-Verwaltung ──────────

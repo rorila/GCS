@@ -4,7 +4,7 @@
  * Erstellt das Raketen-Countdown-Projekt vollständig über die ProjectBuilder-API.
  * Aufruf: npx tsx scripts/agent-run.ts demos/builders/raketen-countdown.builder.ts demos/RaketenCountdown_API.json
  */
-import { ProjectBuilder } from '../../scripts/agent-run';
+import { ProjectBuilder } from '../../../scripts/agent-run';
 
 export default function build(agent: ProjectBuilder): void {
 

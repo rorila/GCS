@@ -62,7 +62,7 @@ function createUploads(core,admin,store,configFile,stageId){
  const config=require('./cms-project.cjs').readWorkflow(configFile,stageId),stage=config.stages[0];
  const nodes=stage.objects.filter(o=>o.className==='TServerUpload');
  if(nodes.length!==2||nodes.some(n=>!Number.isInteger(n.maxBytes)||n.maxBytes<1))throw Error('Upload-Konfiguration fehlt');
- const commit=(actor,action,change)=>store.commit(core.db,{actor:actor.personId,action},change);
+ const commit=(actor,action,change,opts)=>store.commit(core.db,{actor:actor.personId,action,...opts},change);
  return {
   directory,commit,validateGame,validateHtml,unpackGameBundle,isZip,mediaType:n=>MEDIA_MIME[String(n).split('.').pop().toLowerCase()]||'application/octet-stream',
   // Größenlimits aus den TServerUpload-Komponenten; hardCap deckelt den Stream

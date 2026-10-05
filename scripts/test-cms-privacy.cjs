@@ -29,7 +29,7 @@ check('Export unbekannter Person: null', () => assert.strictEqual(privacy.export
 
 let preDeleteAudit;
 check('Löschung anonymisiert Kind und entfernt Kanten', () => {
-  preDeleteAudit = db.audit.length;
+  preDeleteAudit = store.readAudit().length;
   const r = privacy.deletePerson('super-admin', 'child-finn');
   assert.ok(r.ok, r.message);
   const p = db.people.find(x => x.id === 'child-finn');
@@ -40,7 +40,8 @@ check('Löschung anonymisiert Kind und entfernt Kanten', () => {
   assert.ok(!db.progress.some(r => r.childId === 'child-finn'));
   assert.ok(!db.playSessions.some(s => s.childId === 'child-finn'));
   assert.ok(!db.timeBudgets.some(t => t.childId === 'child-finn'));
-  assert.strictEqual(db.audit.length, preDeleteAudit + 1);
+  assert.strictEqual(store.readAudit().length, preDeleteAudit + 1);
+  assert.strictEqual(store.readAudit().at(-1).action, 'person-delete');
 });
 check('Löschung schreibt Tombstone-Datei', () => {
   assert.ok(store.readDeletions().some(d => d.personId === 'child-finn'));

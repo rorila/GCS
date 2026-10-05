@@ -32,14 +32,32 @@ check('Laden ist idempotent', () => {
   const again = store.load();
   assert.strictEqual(again.version, SCHEMA_VERSION);
 });
-check('commit schreibt Audit und persistiert', () => {
-  const before = (db.audit || []).length;
+check('commit schreibt Audit in die Log-Datei (nicht ins DB-Dokument)', () => {
+  const before = store.readAudit().length;
   store.commit(db, { actor: db.people[0].id, action: 'test-mutation', areaId: 'root' }, next => {
     next.people.find(p => p.id === next.people[0].id).avatar = '⭐';
   });
   const onDisk = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-  assert.strictEqual(onDisk.audit.length, before + 1);
-  assert.strictEqual(onDisk.audit.at(-1).action, 'test-mutation');
+  assert.strictEqual(store.readAudit().length, before + 1);
+  assert.strictEqual(store.readAudit().at(-1).action, 'test-mutation');
+  assert.ok(!(onDisk.audit || []).length, 'Audit darf nicht in der Daten-Datei landen');
+});
+check('commit mit audit:false protokolliert nicht', () => {
+  const before = store.readAudit().length;
+  store.commit(db, { actor: db.people[0].id, action: 'technischer-puls', areaId: 'root', audit: false }, next => {
+    next.people.find(p => p.id === next.people[0].id).avatar = '🔧';
+  });
+  assert.strictEqual(store.readAudit().length, before);
+});
+check('Betriebsdaten landen in der Ops-Datei, nicht im Stamm-Dokument', () => {
+  store.commit(db, { actor: db.people[0].id, action: 'ops-test', areaId: 'root' }, next => {
+    next.playSessions.push({ id: 'ps-ops-test', childId: next.people[0].id, gameId: next.games[0].id, areaId: next.areas[0].id, status: 'active', startedAt: new Date().toISOString(), lastHeartbeatAt: new Date().toISOString(), endedAt: null, minutes: 0 });
+  });
+  const ops = JSON.parse(fs.readFileSync(store.opsPath, 'utf8'));
+  const master = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  assert.ok(ops.playSessions.some(s => s.id === 'ps-ops-test'), 'Session fehlt in Ops-Datei');
+  assert.ok(!('playSessions' in master), 'playSessions darf nicht in der Stammdatei liegen');
+  assert.ok(!('parties' in master), 'parties darf nicht in der Stammdatei liegen');
 });
 check('commit verwirft ungültige Mutation', () => {
   const before = fs.readFileSync(dataPath, 'utf8');

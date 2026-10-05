@@ -4,17 +4,17 @@
     {
       "id": "MOND-01",
       "titel": "Haus Mond + HouseAdmin „mia\"",
-      "offset": 0.1
+      "offset": 0.2
     },
     {
       "id": "VORAUS-MR",
       "titel": "„Mondraum\" angelegt",
-      "offset": 10.1
+      "offset": 11.8
     },
     {
       "id": "GRENZE-01b",
       "titel": "mia: kein Zugriff auf Haus Sonne",
-      "offset": 20.1
+      "offset": 20.2
     }
   ]
 }

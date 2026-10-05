@@ -10,7 +10,7 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
  let _rt;const rt=()=>_rt??(_rt=require('./cms-runtime.cjs').loadRuntime(cmsFile||CMS_FILE));
  const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json'),sessions=new Map(),attempts=new Map();
  function readSession(req){const token=(req.headers.cookie||'').split('; ').find(s=>s.startsWith('cms_admin='))?.slice(10),s=sessions.get(token);if(!s||s.expires<Date.now()||!core.db.people.some(p=>p.id===s.personId&&p.active&&(p.authVersion||0)===(s.authVersion||0))){sessions.delete(token);return null;}return s;}
- const commit=(s,action,areaId,change)=>store.commit(core.db,{actor:s.personId,action,areaId},change);
+ const commit=(s,action,areaId,change,opts)=>store.commit(core.db,{actor:s.personId,action,areaId,...opts},change);
  const fail=(status,message)=>({status,data:{ok:false,message}}),ok=data=>({status:200,data:{ok:true,...data}});
  // Modul-Adapter: alle Verwaltungsrouten laufen über die deklarativen
  // TServerEndpoint-Tasks der Projektdatei (stage_server_admin/_house/_super).

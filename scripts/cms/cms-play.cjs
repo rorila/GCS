@@ -11,7 +11,7 @@ const fail = (status, message) => ({ status, data: { ok: false, message } });
 function createPlay(core, store, cmsFile) {
   let _rt;
   const rt = () => _rt ?? (_rt = require('./cms-runtime.cjs').loadRuntime(cmsFile || CMS_FILE));
-  const commit = (s, action, areaId, change) => store.commit(core.db, { actor: s.personId, action, areaId }, change);
+  const commit = (s, action, areaId, change, opts) => store.commit(core.db, { actor: s.personId, action, areaId, ...opts }, change);
 
   // Modul-Adapter: Routen laufen über die TServerEndpoint-Tasks der Projektdatei.
   function api(session, route, b = {}) {

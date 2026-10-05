@@ -23,7 +23,7 @@ export async function runTests(): Promise<TestResult[]> {
 
     try {
         // Builder laden und ausführen
-        const builderModule = await import('../demos/builders/mathe-quiz.builder.js');
+        const builderModule = await import('../Archiv/demos/builders/mathe-quiz.builder.js');
         const builderFn = builderModule.default;
 
         const builder = new ProjectBuilder();
