@@ -62,8 +62,12 @@ export interface FeatureFlowGraph {
     container: FeatureFlowContainer | null;
 }
 
-/** Wie viele Aufrufebenen pro Zeile nach rechts aufgelöst werden. */
-export const FEATURE_CALL_DEPTH = 2;
+/**
+ * Maximale Aufrufiefe ab einem Story-Task. Zyklen sind über das
+ * expanded-Set ohnehin abgesichert — die Grenze ist nur ein
+ * Sicherheitsnetz gegen pathologische Projekte, kein Sichtlimit.
+ */
+export const FEATURE_CALL_DEPTH = 20;
 
 /** Alle per execute_task/task aufgerufenen Task-Namen einer Sequenz (rekursiv über Zweige). */
 function collectCalledTasks(seq: any[] | undefined, out: string[]): void {

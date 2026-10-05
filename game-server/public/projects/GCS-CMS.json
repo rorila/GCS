@@ -88,7 +88,7 @@
       "tasks": [
         {
           "name": "Fehler",
-          "description": "Fehlermeldung anzeigen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "name": "Act_Fehlermeldung_anzeigen__Status_Und_Anzeige_Aktualisieren",
@@ -168,7 +168,7 @@
         },
         {
           "name": "Profil_Anzeigen",
-          "description": "Profil_Anzeigen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "name": "Act_Zur_Profil_Stage_Wechseln",
@@ -191,7 +191,7 @@
         },
         {
           "name": "Profil_Fehler",
-          "description": "Profil_Fehler",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -2030,21 +2030,7 @@
           "triggerMode": "local-sync",
           "params": [],
           "id": "36b75458-148a-46f1-88a8-c70120bf0864",
-          "scope": "stage",
-          "flowLayout": {
-            "Pruefen": {
-              "x": 40,
-              "y": 40
-            },
-            "Anzahl == 4": {
-              "x": 40,
-              "y": 140
-            },
-            "Anmeldung": {
-              "x": 240,
-              "y": 140
-            }
-          }
+          "scope": "stage"
         },
         {
           "name": "Anmeldung",
@@ -2082,33 +2068,7 @@
           "triggerMode": "local-sync",
           "params": [],
           "id": "4bc99fbe-09f7-4884-a287-f785f194b187",
-          "scope": "stage",
-          "flowLayout": {
-            "Anmeldung": {
-              "x": 40,
-              "y": 40
-            },
-            "Act_Emoji_Code_beim_Server_anmelden__Eingabe_Sperren_Und_Warten_Anzeigen": {
-              "x": 40,
-              "y": 140
-            },
-            "Act_Emoji_Code_beim_Server_anmelden__Server_EmojiCode_Pruefen_Und_Anmelden": {
-              "x": 40,
-              "y": 240
-            },
-            "AnmeldeAntwort.ok == true": {
-              "x": 40,
-              "y": 340
-            },
-            "Angemeldet": {
-              "x": 740,
-              "y": 340
-            },
-            "AnmeldeFehler": {
-              "x": 40,
-              "y": 440
-            }
-          }
+          "scope": "stage"
         },
         {
           "name": "Angemeldet",
@@ -2305,45 +2265,7 @@
           "triggerMode": "local-sync",
           "params": [],
           "id": "e1b6098d-037a-4d47-9a76-bdcf4e780b02",
-          "scope": "stage",
-          "flowLayout": {
-            "Waehle_dog": {
-              "x": 40,
-              "y": 40
-            },
-            "Branch: Anzahl == 3": {
-              "x": 40,
-              "y": 140
-            },
-            "Waehle_dog_3": {
-              "x": 240,
-              "y": 140
-            },
-            "Branch: Anzahl == 2": {
-              "x": 40,
-              "y": 240
-            },
-            "Waehle_dog_2": {
-              "x": 240,
-              "y": 240
-            },
-            "Branch: Anzahl == 1": {
-              "x": 40,
-              "y": 340
-            },
-            "Waehle_dog_1": {
-              "x": 240,
-              "y": 340
-            },
-            "Branch: Anzahl == 0": {
-              "x": 40,
-              "y": 440
-            },
-            "Waehle_dog_0": {
-              "x": 240,
-              "y": 440
-            }
-          }
+          "scope": "stage"
         },
         {
           "name": "Waehle_dog_3",
@@ -2472,45 +2394,7 @@
           "triggerMode": "local-sync",
           "params": [],
           "id": "596c2f7e-445b-4d94-bb82-f930bd5b7e2d",
-          "scope": "stage",
-          "flowLayout": {
-            "Waehle_cat": {
-              "x": 40,
-              "y": 40
-            },
-            "Anzahl == 3": {
-              "x": 40,
-              "y": 140
-            },
-            "Waehle_cat_3": {
-              "x": 240,
-              "y": 140
-            },
-            "Anzahl == 2": {
-              "x": 40,
-              "y": 240
-            },
-            "Waehle_cat_2": {
-              "x": 240,
-              "y": 240
-            },
-            "Anzahl == 1": {
-              "x": 40,
-              "y": 340
-            },
-            "Waehle_cat_1": {
-              "x": 240,
-              "y": 340
-            },
-            "Anzahl == 0": {
-              "x": 40,
-              "y": 440
-            },
-            "Waehle_cat_0": {
-              "x": 240,
-              "y": 440
-            }
-          }
+          "scope": "stage"
         },
         {
           "name": "Waehle_cat_3",
@@ -2541,8 +2425,8 @@
           "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "Act_Emoji_Katze_an_Position_3_eintragen__Eingabe_Und_Auswahl_Aktualisieren"
+              "name": "Act_Emoji_Katze_an_Position_3_eintragen__Eingabe_Und_Auswahl_Aktualisieren",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -3513,21 +3397,7 @@
           "triggerMode": "local-sync",
           "params": [],
           "id": "464d70a8-c07b-47a8-b8a0-8e8b4418b8ca",
-          "scope": "stage",
-          "flowLayout": {
-            "Sperre_Pruefen": {
-              "x": 40,
-              "y": 40
-            },
-            "Busy == 0": {
-              "x": 40,
-              "y": 140
-            },
-            "Pruefen": {
-              "x": 240,
-              "y": 140
-            }
-          }
+          "scope": "stage"
         },
         {
           "name": "Sperre_LoeschenTask",
@@ -3886,16 +3756,6 @@
             }
           ],
           "params": [],
-          "flowLayout": {
-            "AnmeldeFehler": {
-              "x": 40,
-              "y": 40
-            },
-            "Act_Anmeldeantwort_Fehler_Anzeigen": {
-              "x": 40,
-              "y": 140
-            }
-          },
           "description": "Aufgerufener Task (keine Story)"
         },
         {
@@ -5701,7 +5561,7 @@
       "tasks": [
         {
           "name": "Raeume",
-          "description": "Zur Raumauswahl wechseln",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -5731,7 +5591,7 @@
         },
         {
           "name": "RaumLaden",
-          "description": "Spielegalerie des Raumes öffnen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -5757,7 +5617,7 @@
         },
         {
           "name": "Spiele",
-          "description": "Freigegebene Spiele laden",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -5796,7 +5656,7 @@
         },
         {
           "name": "KartenZeigen",
-          "description": "Raum- oder Spielkarten anzeigen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "name": "Act_Raum_oder_Spielkarten_anzeigen__Listenkarten_Und_Status_Aktualisieren",
@@ -5820,7 +5680,7 @@
         },
         {
           "name": "Auswaehlen",
-          "description": "Raum- oder Spielauswahl auswerten",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "condition",
@@ -5851,7 +5711,7 @@
         },
         {
           "name": "SpielStarten",
-          "description": "Spielstart beim Server anfordern",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -5890,7 +5750,7 @@
         },
         {
           "name": "SpielBereit",
-          "description": "Freigegebenes Spiel im Host öffnen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "name": "Act_Freigegebenes_Spiel_im_Host_oeffnen__Status_Und_Anzeige_Aktualisieren",
@@ -5914,7 +5774,7 @@
         },
         {
           "name": "ZurueckTask",
-          "description": "Zur Raumauswahl zurückkehren",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "task",
@@ -5928,7 +5788,7 @@
         },
         {
           "name": "VorherTask",
-          "description": "Vorherige Listenseite anzeigen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -5946,7 +5806,7 @@
         },
         {
           "name": "WeiterTask",
-          "description": "Nächste Listenseite anzeigen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "name": "Act_Naechste_Listenseite_anzeigen__Naechste_Seitennummer_Berechnen",
@@ -5978,7 +5838,7 @@
         },
         {
           "name": "NeuLaden",
-          "description": "Aktuelle Raum- oder Spieleliste laden",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "condition": {
@@ -6026,7 +5886,7 @@
         },
         {
           "name": "Raumliste",
-          "description": "Zugewiesene Räume laden",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -6098,7 +5958,7 @@
         },
         {
           "name": "KarteWaehlen0",
-          "description": "Listeneintrag 1 auswählen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -6116,7 +5976,7 @@
         },
         {
           "name": "KarteWaehlen1",
-          "description": "Listeneintrag 2 auswählen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -6134,7 +5994,7 @@
         },
         {
           "name": "KarteWaehlen2",
-          "description": "Listeneintrag 3 auswählen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -6152,7 +6012,7 @@
         },
         {
           "name": "KarteWaehlen3",
-          "description": "Listeneintrag 4 auswählen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -6170,7 +6030,7 @@
         },
         {
           "name": "Sperre_ZurueckTask",
-          "description": "Doppeleingabe verhindern: ZurueckTask",
+          "description": "Story: ⬅ 🏠 – Blättern und zur Raumauswahl zurückkehren",
           "actionSequence": [
             {
               "type": "condition",
@@ -6196,7 +6056,7 @@
         },
         {
           "name": "Sperre_VorherTask",
-          "description": "Doppeleingabe verhindern: VorherTask",
+          "description": "Story: ◀ – Blättern und zur Raumauswahl zurückkehren",
           "actionSequence": [
             {
               "type": "condition",
@@ -6222,7 +6082,7 @@
         },
         {
           "name": "Sperre_WeiterTask",
-          "description": "Doppeleingabe verhindern: WeiterTask",
+          "description": "Story: ▶ – Blättern und zur Raumauswahl zurückkehren",
           "actionSequence": [
             {
               "condition": {
@@ -6261,7 +6121,7 @@
         },
         {
           "name": "EingabeSperre_Karte0",
-          "description": "Doppeleingabe verhindern: Karte0",
+          "description": "Story: Eintrag 1 auswählen",
           "actionSequence": [
             {
               "type": "condition",
@@ -6287,7 +6147,7 @@
         },
         {
           "name": "EingabeSperre_Karte1",
-          "description": "Doppeleingabe verhindern: Karte1",
+          "description": "Story: Eintrag 2 auswählen",
           "actionSequence": [
             {
               "type": "condition",
@@ -6313,7 +6173,7 @@
         },
         {
           "name": "EingabeSperre_Karte2",
-          "description": "Doppeleingabe verhindern: Karte2",
+          "description": "Story: Eintrag 3 auswählen",
           "actionSequence": [
             {
               "type": "condition",
@@ -6339,7 +6199,7 @@
         },
         {
           "name": "EingabeSperre_Karte3",
-          "description": "Doppeleingabe verhindern: Karte3",
+          "description": "Story: Eintrag 4 auswählen",
           "actionSequence": [
             {
               "type": "condition",
@@ -6365,7 +6225,7 @@
         },
         {
           "name": "Profil_Oeffnen",
-          "description": "Profil_Oeffnen",
+          "description": "Story: Meinen persönlichen Bereich öffnen",
           "actionSequence": [
             {
               "type": "condition",
@@ -6390,7 +6250,7 @@
         },
         {
           "name": "Profil_Laden",
-          "description": "Profil_Laden",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -6513,7 +6373,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "description": "Aufgerufener Task (keine Story)"
         },
         {
           "id": "cms_table_task_Raumliste_Fehler",
@@ -6523,7 +6384,8 @@
               "type": "action",
               "name": "Act_Raumlistenfehler_Anzeigen"
             }
-          ]
+          ],
+          "description": "Aufgerufener Task (keine Story)"
         },
         {
           "id": "cms_task-cd3e8643-a786-489f-aed5-806b2def3912",
@@ -6579,7 +6441,7 @@
               "else": []
             }
           ],
-          "description": "Raumzeile öffnen und Raum-Präsenz setzen",
+          "description": "Story: Räume als Tabelle anzeigen und auswählen",
           "triggerMode": "local-sync",
           "params": [],
           "scope": "stage"
@@ -9459,7 +9321,7 @@
       "tasks": [
         {
           "name": "Anmeldung_Starten",
-          "description": "Anmeldung_Starten",
+          "description": "Story: Mit meinem Verwaltungszugang anmelden",
           "actionSequence": [
             {
               "type": "condition",
@@ -9485,7 +9347,7 @@
         },
         {
           "name": "Eingaben_Pruefen",
-          "description": "Eingaben_Pruefen",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -9520,7 +9382,7 @@
         },
         {
           "name": "Anmeldung_Anfordern",
-          "description": "Anmeldung_Anfordern",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -9542,7 +9404,7 @@
         },
         {
           "name": "Anmeldung_Auswerten",
-          "description": "Anmeldung_Auswerten",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -9659,11 +9521,11 @@
         },
         {
           "name": "Eingaben_Unvollstaendig",
-          "description": "Eingaben_Unvollstaendig",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "Act_Pflichtfeldhinweis_Anzeigen"
+              "name": "Act_Pflichtfeldhinweis_Anzeigen",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -10983,7 +10845,7 @@
         {
           "id": "cms_task-098d51c1-3821-4781-adaa-77be2b215ad6",
           "name": "EigeneRaeume_Laden",
-          "description": "EigeneRaeume laden",
+          "description": "Story: Eigenen Raum auswählen",
           "actionSequence": [
             {
               "type": "action",
@@ -37502,7 +37364,7 @@
         {
           "id": "task-5aa9c6f8-3fd9-4fc0-aa8e-0f7f9d2290f5",
           "name": "AdminLaden",
-          "description": "Liste gemäß ListModus vom Server laden",
+          "description": "Aufgerufener Task (keine Story)",
           "actionSequence": [
             {
               "type": "action",
@@ -37660,48 +37522,46 @@
         {
           "id": "task-3e11dd3c-0b06-43ca-9132-61c71277f1a1",
           "name": "Sperre_Confirm",
-          "description": "Zuweisung bestätigen → speichern → zurück zur Admin-Liste",
+          "description": "Story: Admin-Zuweisung wirklich ändern? – HouseAdmin-Zuständigkeit vergeben oder entziehen",
           "actionSequence": [
             {
-              "type": "condition",
-              "name": "Branch: Busy == 0",
               "condition": {
                 "variable": "Busy",
                 "operator": "==",
                 "value": 0
               },
-              "then": [
+              "type": "condition",
+              "body": [
                 {
-                  "type": "action",
-                  "name": "Act_AdminSet_Warten"
+                  "name": "Act_AdminSet_Warten",
+                  "type": "action"
                 },
                 {
-                  "type": "action",
-                  "name": "Act_AdminSet_Server"
+                  "name": "Act_AdminSet_Server",
+                  "type": "action"
                 },
                 {
-                  "type": "condition",
-                  "name": "Branch: Antwort.ok == true",
                   "condition": {
                     "variable": "Antwort.ok",
                     "operator": "==",
                     "value": true
                   },
-                  "then": [
+                  "type": "condition",
+                  "body": [
                     {
-                      "type": "action",
-                      "name": "Act_Modus_Zugeordnet"
+                      "name": "Act_Modus_Zugeordnet",
+                      "type": "action"
                     },
                     {
                       "type": "task",
                       "name": "AdminLaden"
                     },
                     {
-                      "type": "action",
-                      "name": "Act_Zugewiesen_Hinweis"
+                      "name": "Act_Zugewiesen_Hinweis",
+                      "type": "action"
                     }
                   ],
-                  "else": [
+                  "elseBody": [
                     {
                       "type": "task",
                       "name": "Fehler"
@@ -37709,7 +37569,7 @@
                   ]
                 }
               ],
-              "else": []
+              "elseBody": []
             }
           ],
           "triggerMode": "local-sync",
