@@ -440,7 +440,7 @@ export class AgentScriptExportService {
             const createFeatureStage = STAGE_PLACEHOLDER || exportStageId;
             ops.push({
                 method: 'createFeature',
-                params: [createFeatureStage, { id: feature.id, name: feature.name, description: feature.description, userStoryIds: feature.userStoryIds, blueprintTaskNames: feature.blueprintTaskNames }]
+                params: [createFeatureStage, { id: feature.id, name: feature.name, description: feature.description, userStoryIds: feature.userStoryIds, blueprintTaskNames: feature.blueprintTaskNames, actionSequence: feature.actionSequence }]
             });
         }
 

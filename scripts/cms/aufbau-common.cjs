@@ -10,6 +10,7 @@
 // - card/cardWait/status: Karten-Vertrag von Karte0..3 wie in den Katalogsuiten
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const assert=require('node:assert/strict');
+const {execFileSync}=require('node:child_process');
 const {busy,sel,obj,adminLogin,TEST_PASSWORD}=require('./katalog-report.cjs');
 
 const ARTIFACTS=path.join(os.tmpdir(),'gcs-aufbau-artifacts');
@@ -345,6 +346,55 @@ async function videoMark(page,id,name){
  },{id,name}).catch(()=>{});
 }
 
+// ── Sprachausgabe fuer Feature-Videos (GCS_VIDEO_NARR=1) ─────────────
+// narr(page,'text'): rendert die Ansage ueber edge-tts (neurale Stimme),
+// wartet den groessten Teil der Clipdauer ab — die naechste Aktion faellt
+// damit in den Klang der Ansage (Schritt-fuer-Schritt synchron zur Maus).
+// Zeitstempel+Dauer je Page → <base>-<nr>.narration.json, die Clips
+// landen nach dem Finalisieren unter <outDir>/_narr/.
+const NARR=!!(VIDEO_DIR&&process.env.GCS_VIDEO_NARR);
+const NARR_VOICE=process.env.GCS_VIDEO_NARR_VOICE||'de-DE-KatjaNeural';
+const NARR_WAIT=+(process.env.GCS_VIDEO_NARR_WAIT||0.75); // Anteil vorab abwarten
+const NARR_MIN_MS=+(process.env.GCS_VIDEO_NARR_MIN||350); // Restpause nach Ansage
+let __ttsCmd=null,__narrSeq=0;
+function ttsCmd(){
+ if(__ttsCmd)return __ttsCmd;
+ const cands=[[process.env.GCS_TTS_PYTHON,['-m','edge_tts','--list-voices']],['python',['-m','edge_tts','--list-voices']],['py',['-3','-m','edge_tts','--list-voices']]];
+ for(const c of cands){
+  if(!c[0])continue;
+  try{execFileSync(c[0],c[1],{stdio:'pipe',timeout:30000});__ttsCmd=c[0];return __ttsCmd}catch{}
+ }
+ __ttsCmd='python';return __ttsCmd;
+}
+function ttsRender(text,dest){
+ try{execFileSync(ttsCmd(),['-m','edge_tts','--voice',NARR_VOICE,'--text',text,'--write-media',dest],{stdio:'pipe',timeout:60000})}
+ catch(e){console.log('  NARR-TTS fehlgeschlagen: '+String(e.message||e).split('\n')[0]);return null}
+ try{
+  const fp=require('ffprobe-static').path;
+  const d=+execFileSync(fp,['-v','error','-show_entries','format=duration','-of','csv=p=0',dest],{timeout:15000}).toString().trim();
+  return Number.isFinite(d)?d:null;
+ }catch{return null}
+}
+/** Kuratierte Ansage: rendert TTS, wartet Clip-nahe Zeit, loggt Offset. */
+async function narr(page,text){
+ if(!NARR||!page||!page.__recT0)return;
+ const dir=path.join(VIDEO_DIR,'_narr');
+ fs.mkdirSync(dir,{recursive:true});
+ const base='n'+String(++__narrSeq).padStart(4,'0')+'.mp3';
+ const file=path.join(dir,base);
+ const dur=ttsRender(text,file);
+ if(dur==null)return;
+ (page.__narrEvents=page.__narrEvents||[]).push({t:Math.round((Date.now()-page.__recT0)/100)/10,file:base,text,dur:Math.round(dur*100)/100});
+ await nap(page,Math.max(NARR_MIN_MS,dur*1000*NARR_WAIT));
+}
+function narrFinalize(outDir,base,nr,page){
+ const ev=page.__narrEvents||[];
+ if(!ev.length)return;
+ const nd=path.join(outDir,'_narr');fs.mkdirSync(nd,{recursive:true});
+ for(const e of ev){try{fs.copyFileSync(path.join(VIDEO_DIR,'_narr',e.file),path.join(nd,e.file))}catch{}}
+ try{fs.writeFileSync(path.join(outDir,base+'-'+nr+'.narration.json'),JSON.stringify({seite:nr,events:ev},null,2))}catch{}
+}
+
 /** Videos aller Pages finalisieren → [{pfad,seite,aufgaben}]. */
 async function finalizeBrowserVideos(browser,opts){
  const outDir=(opts&&opts.outDir)||path.join('public','videos');
@@ -369,9 +419,10 @@ async function finalizeBrowserVideos(browser,opts){
    console.log('  VIDEO '+base+'-'+nr+'.webm ('+chapters.length+' Kapitel)');
   }catch(e){console.log('  Video '+nr+': '+e.message)}
   try{fs.writeFileSync(path.join(outDir,base+'-'+nr+'.chapters.json'),JSON.stringify({seite:nr,chapters},null,2))}catch{}
+  try{narrFinalize(outDir,base,nr,page)}catch{}
  }
  try{await browser.close()}catch{}
  return results;
 }
 
-module.exports={makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,initRequest,card,cardWait,cardTexts,status,ARTIFACTS,recordBrowser,videoMark,finalizeBrowserVideos};
+module.exports={makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,initRequest,card,cardWait,cardTexts,status,ARTIFACTS,recordBrowser,videoMark,narr,finalizeBrowserVideos};

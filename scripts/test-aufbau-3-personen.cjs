@@ -10,7 +10,7 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {bootMinimal,busy,adminLogin,TEST_PASSWORD}=require('./cms/katalog-report.cjs');
 const {makeRunner,dep,click,rowClick,rowWait,openHouseArea,setupHouseAdmin,card,cardWait,cardTexts,status,initRequest}=require('./cms/aufbau-common.cjs');
-const {recordBrowser,finalizeBrowserVideos}=require('./cms/aufbau-common.cjs');
+const {recordBrowser,finalizeBrowserVideos,narr}=require('./cms/aufbau-common.cjs');
 
 const PORT=15226;
 const url=(base,l)=>l.startsWith('http')?l:base+l;
@@ -39,6 +39,7 @@ const enroll=async(browser,link,username)=>{
 
   // ── VORAUS-A: HouseAdmin „anna" komplett einrichten ───────────────
   await task('VORAUS-A','HouseAdmin „anna" eingerichtet + angemeldet',[],async()=>{
+   await narr(page,'Zuerst richten wir eine Haus-Administratorin für das Haus Sonne ein — komplett über die echte Oberfläche: Person anlegen, Rolle zuweisen, Zugang einrichten.');
    await adminLogin(page,base,'super',TEST_PASSWORD);
    const r=await setupHouseAdmin({browser,env,base,page,house:'Haus Sonne',name:'Anna Admin',username:'anna'});
    sonne=r.sonne;adm=r.adm;adm.on('pageerror',e=>errors.push(e.message));
@@ -46,6 +47,7 @@ const enroll=async(browser,link,username)=>{
 
   // ── VORAUS-B: zweiter HouseAdmin (Vier-Augen-Prinzip) ─────────────
   await task('VORAUS-B','Zweiter HouseAdmin „paul" am selben Haus',[dep('VORAUS-A',()=>!!sonne)],async()=>{
+   await narr(page,'Für das Vier-Augen-Prinzip braucht das Haus eine zweite Administratorin — wir richten Paul auf demselben Weg ein.');
    const r=await setupHouseAdmin({browser,env,base,page,house:'Haus Sonne',name:'Paul Zweitadmin',username:'paul'});
    adm2=r.adm;adm2.on('pageerror',e=>errors.push(e.message));
   },page);
@@ -55,6 +57,7 @@ const enroll=async(browser,link,username)=>{
   // (room-admin-initial) — so kann anna den Zutritt spaeter verwalten.
   let raum=null;
   await task('VORAUS-R','Raum „Spielraum" angelegt',[dep('VORAUS-A',()=>!!adm)],async()=>{
+   await narr(adm,'Anna öffnet die Raum-Verwaltung ihres Hauses und legt den Spielraum an.');
    await openHouseArea(adm,'Haus Sonne','stage_house_rooms');
    await adm.getByPlaceholder('Raumname',{exact:true}).fill('Spielraum');
    await click(adm,'RaumAnlegen');
@@ -66,6 +69,7 @@ const enroll=async(browser,link,username)=>{
   // ── BEWOHNER-01a: Bewohner auf Hausebene anlegen ──────────────────
   let lina=null;
   await task('BEWOHNER-01a','Hausbewohnerin „Lina Kind" ohne Raum angelegt',[dep('VORAUS-R',()=>!!raum)],async()=>{
+   await narr(adm,'Jetzt legen wir die Bewohnerin Lina Kind an — zunächst nur für das Haus, noch ohne Raum. Wir geben ihren Namen ein, wählen ein Erkennungs-Bild und ihren persönlichen Emoji-Code — damit meldet sich das Kind später an.');
    await openHouseArea(adm,'Haus Sonne','stage_house_residents');
    await adm.getByPlaceholder('Anzeigename',{exact:true}).fill('Lina Kind');
    await adm.locator('[placeholder="🦊"]').fill('🦊');
@@ -80,6 +84,7 @@ const enroll=async(browser,link,username)=>{
 
   // ── BEWOHNER-01b: Bewohner in der Hausliste sichtbar ──────────────
   await task('BEWOHNER-01b','Bewohnerin erscheint in der Hausbewohnerliste',[dep('BEWOHNER-01a',()=>!!lina)],async()=>{
+   await narr(adm,'Und da ist sie — Lina Kind steht jetzt in der Bewohner-Liste des Hauses.');
    await openHouseArea(adm,'Haus Sonne','stage_house_residents');
    assert.ok(await rowWait(adm,'BewohnerTabelle','Lina Kind'),'Bewohnerzeile fehlt');
   },adm);
@@ -97,6 +102,7 @@ const enroll=async(browser,link,username)=>{
    await click(adm,'Navigation_stage_room_access');
    await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_room_access',null,{timeout:10000});
    await busy(adm);
+   await narr(adm,'Damit Lina den Spielraum betreten darf, ordnet Anna sie dem Raum zu — ein Klick auf ihre Zeile genügt.');
    const ms=adm.waitForResponse(r=>r.url().includes('admin/membership')&&r.request().method()==='POST',{timeout:10000});
    await rowClick(adm,'MitgliederTabelle','Lina Kind');
    const resp=await ms;
@@ -109,6 +115,7 @@ const enroll=async(browser,link,username)=>{
    await adm.goto(base+'/house',{waitUntil:'domcontentloaded'});
    await adm.waitForFunction(()=>window.player.runtime.stage.id==='stage_house',null,{timeout:10000});
    await busy(adm);
+   await narr(adm,'In der Einladungs-Ansicht des Hauses steht Lina jetzt in der Kinderliste — bereit für die Eltern-Einladung.');
    await openHouseArea(adm,'Haus Sonne','stage_house_invites');
    assert.ok(await rowWait(adm,'ElternKindTabelle','Lina Kind'),'Kind fehlt in der Kinderliste');
   },adm);
@@ -119,6 +126,7 @@ const enroll=async(browser,link,username)=>{
   const confirmed=()=>env.file().guardians.some(g=>g.childId===lina?.id&&g.guardianId===petra?.id&&g.status==='confirmed');
   await task('ELTERN-01','Eltern-Einladung erzeugt, Zuordnung ausstehend',[dep('KIND-01',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===raum?.id&&m.active))],async()=>{
    await openHouseArea(adm,'Haus Sonne','stage_house_invites');
+   await narr(adm,'Nun laden wir die Mutter ein: Wir wählen Lina in der Kinderliste, tragen den Namen des Elternteils ein und erzeugen den Einladungs-Link.');
    await rowClick(adm,'ElternKindTabelle','Lina Kind');
    await adm.getByPlaceholder('Name des Elternteils',{exact:true}).fill('Petra Eltern');
    await click(adm,'ElternEinladen');
@@ -128,6 +136,7 @@ const enroll=async(browser,link,username)=>{
    assert.ok(petra,'Elternperson fehlt im Datenbestand');
    assert.ok(pending(),'ausstehende Zuordnung fehlt');
    // Die ausstehende Zuordnung ist in der Vier-Augen-Liste sichtbar.
+   await narr(adm,'Der Link ist fertig — aber die Zuordnung zum Kind ist noch ausstehend. In der Familien-Ansicht wartet sie auf ihre Bestätigung.');
    await openHouseArea(adm,'Haus Sonne','stage_house_families');
    assert.ok(await rowWait(adm,'ZuordnungTabelle','Petra Eltern'),'ausstehende Zuordnung fehlt in der Liste');
   },adm);
@@ -138,6 +147,7 @@ const enroll=async(browser,link,username)=>{
   // pending" allein waere auch bei nie abgeschicktem Request gruen.
   await task('ELTERN-02a','Selbstbestaetigung durch Einladende abgelehnt',[dep('ELTERN-01',pending)],async()=>{
    await openHouseArea(adm,'Haus Sonne','stage_house_families');
+   await narr(adm,'Wichtig: Wer eingeladen hat, darf nicht selbst bestätigen. Anna versucht es trotzdem — der Server lehnt ab. Das ist das Vier-Augen-Prinzip.');
    await rowClick(adm,'ZuordnungTabelle','Petra Eltern');
    const apResp=adm.waitForResponse(r=>r.url().includes('guardian-approve')&&r.request().method()==='POST',{timeout:10000});
    await click(adm,'FamilieBestaetigen');
@@ -151,6 +161,7 @@ const enroll=async(browser,link,username)=>{
   // ── ELTERN-02b: Zweiter HouseAdmin bestaetigt die Zuordnung ───────
   await task('ELTERN-02b','Zweitbestaetigung durch „paul"',[dep('ELTERN-02a',pending),dep('VORAUS-B',()=>!!adm2)],async()=>{
    await openHouseArea(adm2,'Haus Sonne','stage_house_families');
+   await narr(adm2,'Nun kommt der zweite Administrator ins Spiel: Paul sieht dieselbe ausstehende Zuordnung und bestätigt sie. Erst jetzt ist die Familie wirksam verbunden.');
    assert.ok(await rowWait(adm2,'ZuordnungTabelle','Petra Eltern'),'ausstehende Zuordnung bei paul nicht sichtbar');
    await rowClick(adm2,'ZuordnungTabelle','Petra Eltern');
    await click(adm2,'FamilieBestaetigen');
@@ -161,6 +172,7 @@ const enroll=async(browser,link,username)=>{
   // ── ELTERN-03: Elternteil richtet Zugang ein und sieht das Kind ────
   await task('ELTERN-03','Elternzugang eingerichtet, Kind sichtbar',[dep('ELTERN-02b',confirmed)],async()=>{
    const par=await enroll(browser,url(base,pLink),'petra');
+   await narr(par,'Petra öffnet ihren Einladungs-Link, legt Benutzername und Passwort fest — und sieht nach der Anmeldung ihr Kind.');
    await adminLogin(par,base,'petra',TEST_PASSWORD);
    const mc=await papi(par,'parent/my-children',{token:await vget(par,'Token')});
    assert.strictEqual(mc.status,200,'my-children nicht erfolgreich: '+mc.status);
@@ -172,6 +184,7 @@ const enroll=async(browser,link,username)=>{
   let oLink=null;
   await task('OBS-01a','Beobachter-Einladung raumgebunden erzeugt',[dep('VORAUS-R',()=>!!raum)],async()=>{
    await openHouseArea(adm,'Haus Sonne','stage_house_invites');
+   await narr(adm,'Für die Beobachterin gilt dasselbe Prinzip — nur raumgebunden: Wir wählen den Spielraum, tragen ihren Namen ein und erzeugen den Link. Er berechtigt ausschließlich zur Beobachtung dieses einen Raums.');
    await rowClick(adm,'BeobachterRaumTabelle','Spielraum');
    await adm.getByPlaceholder('Name des Beobachters',{exact:true}).fill('Olga Beobachterin');
    await click(adm,'BeobachterEinladen');
@@ -185,6 +198,7 @@ const enroll=async(browser,link,username)=>{
   // ── OBS-01b: Beobachterin richtet Zugang ein und meldet an ────────
   await task('OBS-01b','Beobachterzugang eingerichtet, Anmeldung ok',[dep('OBS-01a',()=>!!oLink)],async()=>{
    const ob=await enroll(browser,url(base,oLink),'olga');
+   await narr(ob,'Olga richtet ihren Zugang ein, meldet sich an und öffnet die Beobachtung des Raums.');
    await adminLogin(ob,base,'olga',TEST_PASSWORD);
    // Wie Verwaltungszugaenge: Anmeldung → explizit „Beobachtung öffnen".
    await click(ob,'BeobachtungOeffnen');
@@ -208,12 +222,14 @@ const enroll=async(browser,link,username)=>{
    await click(adm,'Confirm');
   };
   await task('BEWOHNER-02a','HouseAdmin deaktiviert die Hausbewohnerin',[dep('RAUMMITGLIED-01',()=>!!lina)],async()=>{
+   await narr(adm,'Zum Schluss der Lebenszyklus: Anna öffnet Linas Detail-Seite und deaktiviert die Haus-Mitgliedschaft. Lina verliert sofort alle Rechte im Haus — auch den Raum-Zutritt.');
    await mitgliedschaft();
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&!m.active),'Hausmitgliedschaft nicht deaktiviert');
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&!m.active),'Raumzuordnung nicht entzogen');
   },adm);
 
   await task('BEWOHNER-02b','Reaktivierung stellt Raumzuordnung nicht automatisch wieder her',[dep('BEWOHNER-02a',()=>env.file().memberships.some(m=>m.personId===lina?.id&&m.areaId===sonne?.id&&!m.active))],async()=>{
+   await narr(adm,'Bei der Reaktivierung gilt: Die Haus-Mitgliedschaft kommt zurück — der Raum-Zutritt aber bewusst nicht. Er muss neu vergeben werden.');
    await mitgliedschaft();
    assert.ok(env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===sonne.id&&m.active),'Hausmitgliedschaft nicht reaktiviert');
    assert.ok(!env.file().memberships.some(m=>m.personId===lina.id&&m.areaId===raum.id&&m.active),'Raumzuordnung wurde unbemerkt wiederhergestellt');

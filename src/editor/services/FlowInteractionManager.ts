@@ -36,6 +36,8 @@ export interface FlowInteractionHost {
 import { DnDHelper, DnDPayload } from '../utils/DnDHelper';
 import { Logger } from '../../utils/Logger';
 import { SecurityUtils } from '../../utils/SecurityUtils';
+import { isFeatureContext } from '../../model/FeatureHierarchy';
+import { NotificationToast } from '../ui/NotificationToast';
 
 const logger = Logger.get('FlowInteractionManager');
 
@@ -166,6 +168,7 @@ export class FlowInteractionManager {
     public handleCanvasContextMenu(e: MouseEvent) {
         if (e.target === this.host.canvas) {
             e.preventDefault();
+            if (isFeatureContext(this.host.currentFlowContext)) return; // read-only
             this.host.menuProvider.handleCanvasContextMenu(e);
         }
     }
@@ -173,16 +176,22 @@ export class FlowInteractionManager {
     public handleNodeContextMenu(e: MouseEvent, node: FlowElement) {
         e.preventDefault();
         e.stopPropagation();
+        if (isFeatureContext(this.host.currentFlowContext)) return; // read-only
         this.host.menuProvider.handleNodeContextMenu(e, node);
     }
 
     public handleConnectionContextMenu(e: MouseEvent, conn: FlowConnection) {
         e.preventDefault();
         e.stopPropagation();
+        if (isFeatureContext(this.host.currentFlowContext)) return; // read-only
         this.host.menuProvider.handleConnectionContextMenu(e, conn);
     }
 
     private handleDrop(payload: DnDPayload, e: DragEvent) {
+        if (isFeatureContext(this.host.currentFlowContext)) {
+            NotificationToast.show('Die Feature-Übersicht ist schreibgeschützt.', 'info');
+            return;
+        }
         let type = payload.toolType;
         let name = payload.name || (type === 'task' ? 'Task' : type);
 
@@ -230,6 +239,9 @@ export class FlowInteractionManager {
             if (targetTag === 'input' || targetTag === 'textarea') {
                 return;
             }
+
+            // Feature-Übersicht: read-only — Selektion erlaubt, kein Drag
+            if (isFeatureContext(this.host.currentFlowContext)) return;
 
             // --- Drag-Logik ---
             const startX = e.clientX;
@@ -289,6 +301,7 @@ export class FlowInteractionManager {
                 e.stopPropagation();
                 e.preventDefault();
                 if (!isOutput) return;
+                if (isFeatureContext(this.host.currentFlowContext)) return; // read-only
 
                 const rect = this.host.canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left + this.host.canvas.scrollLeft;

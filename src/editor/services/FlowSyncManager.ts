@@ -8,6 +8,7 @@ import { FlowSyncHost } from './flow/FlowSyncTypes';
 import { FlowRegistrySync } from './flow/FlowRegistrySync';
 import { FlowSequenceBuilder } from './flow/FlowSequenceBuilder';
 import { FlowDataParser } from './flow/FlowDataParser';
+import { isFeatureContext } from '../../model/FeatureHierarchy';
 
 export type { FlowSyncHost };
 
@@ -68,7 +69,8 @@ export class FlowSyncManager {
     public syncToProject(currentContext: string) {
         if (!this.host.project) return;
         FlowSyncManager.logger.info(`[TRACE] syncToProject start (Context: ${currentContext})`);
-        if (currentContext === 'event-map' || currentContext === 'element-overview') {
+        if (currentContext === 'event-map' || currentContext === 'element-overview' || isFeatureContext(currentContext)) {
+            // Feature-Übersicht ist read-only/abgeleitet — kein Rückschreiben.
             FlowSyncManager.logger.debug(`syncToProject skipped for special context: ${currentContext}`);
             return;
         }
@@ -111,6 +113,9 @@ export class FlowSyncManager {
 
         this.host.nodes.forEach(node => {
             const nodeType = node.getType().toLowerCase();
+            // Feature-Flow: Root-Node und offene Story-Schritte sind keine
+            // echten Tasks/Actions — nicht als Ghost-Definition registrieren.
+            if (node.data?.isFeatureRoot || node.data?.type === 'story') return;
             if ((nodeType === 'action' || nodeType === 'data_action') && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {

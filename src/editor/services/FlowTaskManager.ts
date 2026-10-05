@@ -1,4 +1,5 @@
 import { GameProject, StageDefinition } from '../../model/types';
+import { isFeatureContext } from '../../model/FeatureHierarchy';
 import { RefactoringManager } from '../RefactoringManager';
 import { mediatorService } from '../../services/MediatorService';
 import { FlowNamingService } from './FlowNamingService';
@@ -89,6 +90,11 @@ export class FlowTaskManager {
     public async deleteCurrentTaskFlow() {
         if (!this.host.project || this.host.currentFlowContext === 'global') {
             NotificationToast.show('Cannot delete the Main Flow (Global).', 'warning');
+            return;
+        }
+
+        if (isFeatureContext(this.host.currentFlowContext)) {
+            NotificationToast.show('Feature-Flows werden über die User-Story-Verwaltung gelöscht.', 'warning');
             return;
         }
 

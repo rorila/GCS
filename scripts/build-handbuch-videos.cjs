@@ -59,9 +59,13 @@ html = html.replace(/\s*<!-- gcs-video -->[\s\S]*?<!-- \/gcs-video -->/g, '');
 
 const clipHtml = (c, id) => {
   const t = c.end != null ? `#t=${c.offset},${c.end}` : `#t=${c.offset}`;
+  // Bevorzugt die vertonte Variante <name>-de.webm, sonst das Original.
+  let file = path.basename(c.pfad);
+  const de = file.replace(/\.webm$/, '-de.webm');
+  if (fs.existsSync(path.join(SRC_DIR, de))) file = de;
   return '      <div class="lv-clip" style="margin:10px 0;">\n'
     + '        <div style="font:600 13px/1.4 system-ui;color:#334155;margin-bottom:4px;">🎬 ' + id + ' · ' + c.titel + '</div>\n'
-    + '        <video controls preload="none" playsinline src="' + VIDEO_BASE + path.basename(c.pfad) + t + '"\n'
+    + '        <video controls preload="none" playsinline src="' + VIDEO_BASE + file + t + '"\n'
     + '          style="width:100%;max-width:760px;border-radius:8px;background:#0f172a;box-shadow:0 1px 6px rgba(0,0,0,.25);"></video>\n'
     + '      </div>\n';
 };

@@ -1,5 +1,5 @@
 import { projectStore } from '../ProjectStore';
-import { canParentFeature } from '../../model/FeatureHierarchy';
+import { canParentFeature, seedFeatureSequence } from '../../model/FeatureHierarchy';
 import { ProjectVariable, VariableScope, VariableType } from '../../model/types';
 import { Logger } from '../../utils/Logger';
 import { RESERVED_VARIABLE_NAMES } from '../../runtime/EventContext';
@@ -77,7 +77,7 @@ export class AgentProjectService {
 
         if (!stage.features) stage.features = [];
 
-        const { id, name, description, tags, keywords, parentId, userStoryIds = [], blueprintTaskNames = [] } = featureData || {};
+        const { id, name, description, tags, keywords, parentId, userStoryIds = [], blueprintTaskNames = [], actionSequence, standaloneNodes, standaloneConnections } = featureData || {};
         if (!id) throw new Error('Feature requires an id.');
         if (!name) throw new Error('Feature requires a name.');
         if (parentId !== undefined && (typeof parentId !== 'string' || !canParentFeature(stage.features, id, parentId))) throw new Error('Ungültiger übergeordneter Feature-Bereich.');
@@ -95,6 +95,17 @@ export class AgentProjectService {
             feature = { id, name, description, tags, keywords, parentId, userStoryIds, blueprintTaskNames };
             stage.features.push(feature);
         }
+
+        // Feature-Ablauf: explizit uebergeben -> speichern; neu & leer -> aus
+        // User Stories ableiten (plannedTask -> Task-Schritt, sonst offen).
+        if (actionSequence !== undefined) {
+            feature.actionSequence = actionSequence;
+        } else if (!feature.actionSequence || feature.actionSequence.length === 0) {
+            const seeded = seedFeatureSequence(project, feature);
+            if (seeded.length) feature.actionSequence = seeded;
+        }
+        if (standaloneNodes !== undefined) feature.standaloneNodes = standaloneNodes;
+        if (standaloneConnections !== undefined) feature.standaloneConnections = standaloneConnections;
 
         // User Story featureId synchronisieren
         const userStories = project.userStories?.userStories || [];

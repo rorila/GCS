@@ -65,7 +65,8 @@ export class FlowSequenceBuilder {
                 const actionName = node.data?.name || node.data?.actionName || node.properties?.name || node.properties?.text;
                 if (actionName) {
                     let realType = 'action';
-                    if (node.data?.isLinked) {
+                    if (node.data?.type === 'story') realType = 'story';
+                    else if (node.data?.isLinked) {
                         const stage = this.host.getActiveStage();
                         const globalDef = (this.host.project.actions || []).find((a: any) => a.name === actionName)
                             || (stage?.actions || []).find((a: any) => a.name === actionName);

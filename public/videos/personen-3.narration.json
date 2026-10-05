@@ -1,0 +1,71 @@
+{
+  "seite": "3",
+  "events": [
+    {
+      "t": 34.7,
+      "file": "n0003.mp3",
+      "text": "Anna öffnet die Raum-Verwaltung ihres Hauses und legt den Spielraum an.",
+      "dur": 5.28
+    },
+    {
+      "t": 47.5,
+      "file": "n0004.mp3",
+      "text": "Jetzt legen wir die Bewohnerin Lina Kind an — zunächst nur für das Haus, noch ohne Raum. Wir geben ihren Namen ein, wählen ein Erkennungs-Bild und ihren persönlichen Emoji-Code — damit meldet sich das Kind später an.",
+      "dur": 14.33
+    },
+    {
+      "t": 76.1,
+      "file": "n0005.mp3",
+      "text": "Und da ist sie — Lina Kind steht jetzt in der Bewohner-Liste des Hauses.",
+      "dur": 4.85
+    },
+    {
+      "t": 89.9,
+      "file": "n0006.mp3",
+      "text": "Damit Lina den Spielraum betreten darf, ordnet Anna sie dem Raum zu — ein Klick auf ihre Zeile genügt.",
+      "dur": 7.13
+    },
+    {
+      "t": 101.4,
+      "file": "n0007.mp3",
+      "text": "In der Einladungs-Ansicht des Hauses steht Lina jetzt in der Kinderliste — bereit für die Eltern-Einladung.",
+      "dur": 6.94
+    },
+    {
+      "t": 115.2,
+      "file": "n0008.mp3",
+      "text": "Nun laden wir die Mutter ein: Wir wählen Lina in der Kinderliste, tragen den Namen des Elternteils ein und erzeugen den Einladungs-Link.",
+      "dur": 9.31
+    },
+    {
+      "t": 133.3,
+      "file": "n0009.mp3",
+      "text": "Der Link ist fertig — aber die Zuordnung zum Kind ist noch ausstehend. In der Familien-Ansicht wartet sie auf ihre Bestätigung.",
+      "dur": 9.1
+    },
+    {
+      "t": 146.8,
+      "file": "n0010.mp3",
+      "text": "Wichtig: Wer eingeladen hat, darf nicht selbst bestätigen. Anna versucht es trotzdem — der Server lehnt ab. Das ist das Vier-Augen-Prinzip.",
+      "dur": 11.23
+    },
+    {
+      "t": 214.9,
+      "file": "n0013.mp3",
+      "text": "Für die Beobachterin gilt dasselbe Prinzip — nur raumgebunden: Wir wählen den Spielraum, tragen ihren Namen ein und erzeugen den Link. Er berechtigt ausschließlich zur Beobachtung dieses einen Raums.",
+      "dur": 13.7
+    },
+    {
+      "t": 265.8,
+      "file": "n0015.mp3",
+      "text": "Zum Schluss der Lebenszyklus: Anna öffnet Linas Detail-Seite und deaktiviert die Haus-Mitgliedschaft. Lina verliert sofort alle Rechte im Haus — auch den Raum-Zutritt.",
+      "dur": 12.05
+    },
+    {
+      "t": 291.3,
+      "file": "n0016.mp3",
+      "text": "Bei der Reaktivierung gilt: Die Haus-Mitgliedschaft kommt zurück — der Raum-Zutritt aber bewusst nicht. Er muss neu vergeben werden.",
+      "dur": 9.1
+    }
+  ]
+}

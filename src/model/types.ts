@@ -454,6 +454,12 @@ export interface Feature {
     keywords?: string[];          // Alternative Stichwort-Liste für Suche
     userStoryIds?: string[];      // IDs der zugehörigen User Stories
     blueprintTaskNames?: string[]; // Tasks aus der Blueprint-Stage (zur Kennzeichnung)
+    // Bindender Feature-Ablauf: dieselbe Struktur wie GameTask.actionSequence
+    // (task-Aufrufe, condition mit body/elseBody). Ein Feature ist „ein Task
+    // aus Tasks" — der FlowEditor rendert es im Kontext 'feature:<id>'.
+    actionSequence?: SequenceItem[];
+    standaloneNodes?: any[];      // Unverbundene Nodes im Feature-Flow
+    standaloneConnections?: any[];
 }
 
 export interface StageDefinition {

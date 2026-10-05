@@ -1,0 +1,327 @@
+{
+  "version": 3,
+  "people": [
+    {
+      "id": "demo-child",
+      "name": "Fuchskind",
+      "avatar": "🦊",
+      "active": true,
+      "kind": "child"
+    },
+    {
+      "id": "demo-adult",
+      "name": "Eulenfreund",
+      "avatar": "🦉",
+      "active": true,
+      "avatarImage": "/avatars/4085b539-2096-4ff5-a3bd-e05f4e166878.png",
+      "kind": "adult"
+    },
+    {
+      "id": "person-8774ad52-1d82-4ce8-9475-b747c39297c1",
+      "name": "Rolf",
+      "avatar": "👤",
+      "active": true,
+      "kind": "adult"
+    }
+  ],
+  "areas": [
+    {
+      "id": "root",
+      "name": "GCS",
+      "type": "root",
+      "parentId": null,
+      "active": true
+    },
+    {
+      "id": "demo-house",
+      "name": "Spielhaus",
+      "type": "house",
+      "parentId": "root",
+      "active": true
+    },
+    {
+      "id": "garden",
+      "name": "Spielegarten",
+      "avatar": "🌳",
+      "type": "room",
+      "parentId": "demo-house",
+      "active": true
+    },
+    {
+      "id": "stars",
+      "name": "Sternenzimmer",
+      "avatar": "⭐",
+      "type": "room",
+      "parentId": "demo-house",
+      "active": true
+    },
+    {
+      "id": "room-1c78afeb-f624-40fd-8b27-7c50d76cf345",
+      "name": "Kinderzimmer",
+      "type": "room",
+      "parentId": "demo-house",
+      "avatar": "🚪",
+      "active": true
+    },
+    {
+      "id": "house-d4ce1508-a48e-43fe-baab-27c0366d2cc6",
+      "name": "Kinderzimmer",
+      "type": "house",
+      "parentId": "root",
+      "active": true,
+      "avatar": "🏡"
+    }
+  ],
+  "memberships": [
+    {
+      "personId": "demo-child",
+      "areaId": "garden",
+      "active": true
+    },
+    {
+      "personId": "demo-child",
+      "areaId": "stars",
+      "active": false
+    },
+    {
+      "personId": "demo-adult",
+      "areaId": "garden",
+      "active": true
+    },
+    {
+      "areaId": "stars",
+      "personId": "demo-adult",
+      "active": true
+    }
+  ],
+  "roles": [
+    {
+      "personId": "demo-child",
+      "areaId": "garden",
+      "role": "player",
+      "active": true
+    },
+    {
+      "personId": "demo-adult",
+      "areaId": "demo-house",
+      "role": "areaAdmin",
+      "active": true
+    },
+    {
+      "personId": "demo-adult",
+      "areaId": "garden",
+      "role": "player",
+      "active": true
+    },
+    {
+      "personId": "demo-adult",
+      "areaId": "root",
+      "role": "superAdmin",
+      "active": true
+    }
+  ],
+  "guardians": [
+    {
+      "guardianId": "demo-adult",
+      "childId": "demo-child",
+      "status": "confirmed",
+      "createdAt": null,
+      "confirmedBy": null,
+      "revokedAt": null
+    }
+  ],
+  "codes": [
+    {
+      "personId": "demo-child",
+      "areaId": "demo-house",
+      "sequence": [
+        "🐶",
+        "🌳",
+        "🏠",
+        "🐘"
+      ]
+    },
+    {
+      "personId": "demo-adult",
+      "areaId": "demo-house",
+      "sequence": [
+        "🐱",
+        "🐱",
+        "🌳",
+        "🏠"
+      ]
+    }
+  ],
+  "games": [
+    {
+      "id": "snake",
+      "ownerId": "demo-adult",
+      "title": "Snake",
+      "avatar": "🐍",
+      "file": "Snake-Lernprojekt.json",
+      "status": "published"
+    },
+    {
+      "id": "breakout",
+      "ownerId": "demo-adult",
+      "title": "Breakout",
+      "avatar": "🧱",
+      "file": "Breakout-Lernprojekt.json",
+      "status": "published"
+    },
+    {
+      "id": "game-8ccf5d8b-74d8-4121-9dd4-ca21e77545da",
+      "title": "UfoShooter",
+      "description": "Mit einer Kanone kann man Ufos abschießen",
+      "avatar": "🎮",
+      "ownerId": "demo-adult",
+      "status": "published",
+      "storage": "upload",
+      "file": "game-8ccf5d8b-74d8-4121-9dd4-ca21e77545da.json"
+    }
+  ],
+  "grants": [
+    {
+      "areaId": "garden",
+      "gameId": "snake",
+      "active": true
+    },
+    {
+      "areaId": "garden",
+      "gameId": "breakout",
+      "active": true
+    },
+    {
+      "areaId": "stars",
+      "gameId": "snake",
+      "active": true
+    },
+    {
+      "areaId": "garden",
+      "gameId": "game-8ccf5d8b-74d8-4121-9dd4-ca21e77545da",
+      "active": true
+    }
+  ],
+  "audit": [
+    {
+      "id": "854a7966-2fd1-4ba0-b881-784e800a5fa5",
+      "at": "2026-09-09T14:24:43.666Z",
+      "actor": "demo-adult",
+      "action": "room-create",
+      "areaId": "demo-house"
+    },
+    {
+      "id": "5b70b861-7253-45ce-a3f7-39f9b6257964",
+      "at": "2026-09-09T14:32:40.035Z",
+      "actor": "demo-adult",
+      "action": "local-superadmin-bootstrap",
+      "areaId": "root"
+    },
+    {
+      "id": "ffaf9897-fc43-42be-814f-55240cc512e2",
+      "at": "2026-09-09T15:33:17.329Z",
+      "actor": "demo-adult",
+      "action": "house-create",
+      "areaId": "root"
+    },
+    {
+      "id": "e8289055-261e-44cd-8a3b-44f36551b695",
+      "at": "2026-09-09T15:33:24.901Z",
+      "actor": "demo-adult",
+      "action": "house-update",
+      "areaId": "house-d4ce1508-a48e-43fe-baab-27c0366d2cc6"
+    },
+    {
+      "id": "a128e590-0809-462b-bc5a-00816abf66f1",
+      "at": "2026-09-09T15:33:26.258Z",
+      "actor": "demo-adult",
+      "action": "house-update",
+      "areaId": "house-d4ce1508-a48e-43fe-baab-27c0366d2cc6"
+    },
+    {
+      "id": "fcbfe720-0053-4fb6-91e8-247091b3f59e",
+      "at": "2026-09-09T15:33:47.989Z",
+      "actor": "demo-adult",
+      "action": "admin-person-create",
+      "areaId": "root"
+    },
+    {
+      "id": "8b3966f7-b142-47ff-b80e-a3c539bb270b",
+      "at": "2026-09-11T08:09:30.572Z",
+      "actor": "demo-adult",
+      "action": "membership",
+      "areaId": "stars"
+    },
+    {
+      "id": "61530492-3d46-4758-a2fc-e1e0f04092f4",
+      "at": "2026-09-11T08:09:39.931Z",
+      "actor": "demo-adult",
+      "action": "membership",
+      "areaId": "stars"
+    },
+    {
+      "id": "affd7bf8-c7a3-4b77-a938-04b34e3a8c32",
+      "at": "2026-09-11T08:09:54.815Z",
+      "actor": "demo-adult",
+      "action": "membership",
+      "areaId": "stars"
+    },
+    {
+      "id": "0b0a9c7f-bdbc-4d97-abc5-5e69c5a134eb",
+      "at": "2026-09-11T08:17:38.215Z",
+      "actor": "demo-adult",
+      "action": "membership",
+      "areaId": "stars"
+    },
+    {
+      "id": "ba2491d6-a4d9-484e-9a7a-a8653f506c4b",
+      "actor": "demo-child",
+      "action": "profile-help",
+      "at": "2026-09-11T13:23:44.955Z"
+    },
+    {
+      "id": "0668b255-ea9f-4d3a-9673-c336be7a834b",
+      "at": "2026-09-12T09:22:22.350Z",
+      "actor": "demo-adult",
+      "action": "game-upload"
+    },
+    {
+      "id": "ee93c0cf-f531-4550-a100-33c7ea21db41",
+      "at": "2026-09-12T09:22:41.164Z",
+      "actor": "demo-adult",
+      "action": "game-publish"
+    },
+    {
+      "id": "f3d4b1b3-3569-4e8b-811c-35aab4e903f5",
+      "at": "2026-09-12T09:24:56.241Z",
+      "actor": "demo-adult",
+      "action": "grant",
+      "areaId": "garden"
+    },
+    {
+      "id": "198b0e45-ebda-4409-bcc0-0536cc2d8b0a",
+      "at": "2026-09-13T07:41:13.318Z",
+      "actor": "demo-adult",
+      "action": "avatar-upload"
+    }
+  ],
+  "profileRequests": [
+    {
+      "id": "0072d81b-e610-4562-8baa-766c6a6bbe62",
+      "personId": "demo-child",
+      "type": "access-help",
+      "status": "open",
+      "at": "2026-09-11T13:23:44.955Z"
+    }
+  ],
+  "invites": [],
+  "timeBudgets": [],
+  "playSessions": [],
+  "progress": [],
+  "deviceGrants": [],
+  "meta": {
+    "migratedFrom": 2,
+    "migratedAt": "2026-09-21T09:22:30.017Z"
+  },
+  "parties": []
+}

@@ -4,57 +4,57 @@
     {
       "id": "VORAUS-A",
       "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
-      "offset": 0.2
+      "offset": 0.1
     },
     {
       "id": "VORAUS-R",
       "titel": "Raum „Spielraum\" angelegt",
-      "offset": 27.7
+      "offset": 32.6
     },
     {
       "id": "BEWOHNER-01a",
       "titel": "Hausbewohnerin „Lina Kind\" ohne Raum angelegt",
-      "offset": 33.8
+      "offset": 43.8
     },
     {
       "id": "BEWOHNER-01b",
       "titel": "Bewohnerin erscheint in der Hausbewohnerliste",
-      "offset": 52.9
+      "offset": 73.3
     },
     {
       "id": "RAUMMITGLIED-01",
       "titel": "RaumAdmin ordnet Bewohnerin dem Spielraum zu",
-      "offset": 55.2
+      "offset": 80.7
     },
     {
       "id": "KIND-01",
       "titel": "Bewohnerin erscheint in der Kinderliste des Hauses",
-      "offset": 66.3
+      "offset": 98.5
     },
     {
       "id": "ELTERN-01",
       "titel": "Eltern-Einladung erzeugt, Zuordnung ausstehend",
-      "offset": 74.8
+      "offset": 112.2
     },
     {
       "id": "ELTERN-02a",
       "titel": "Selbstbestaetigung durch Einladende abgelehnt",
-      "offset": 89.2
+      "offset": 143.4
     },
     {
       "id": "OBS-01a",
       "titel": "Beobachter-Einladung raumgebunden erzeugt",
-      "offset": 131.9
+      "offset": 209.1
     },
     {
       "id": "BEWOHNER-02a",
       "titel": "HouseAdmin deaktiviert die Hausbewohnerin",
-      "offset": 171.9
+      "offset": 262.1
     },
     {
       "id": "BEWOHNER-02b",
       "titel": "Reaktivierung stellt Raumzuordnung nicht automatisch wieder her",
-      "offset": 188.3
+      "offset": 288.3
     }
   ]
 }

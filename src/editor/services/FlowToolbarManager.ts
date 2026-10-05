@@ -1,4 +1,5 @@
 import { GameProject, StageDefinition } from '../../model/types';
+import { featureContextId } from '../../model/FeatureHierarchy';
 import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('FlowEditor', 'FlowToolbarManager');
@@ -138,6 +139,22 @@ export class FlowToolbarManager {
         optOverviewGroup.appendChild(overOpt);
 
         this.flowSelect.appendChild(optOverviewGroup);
+
+        // --- Features: Ablauf ueber Task-Grenzen hinweg (feature:<id>) ---
+        const featureGroup = document.createElement('optgroup');
+        featureGroup.label = '✨ FEATURES';
+        for (const stage of this.host.project.stages || []) {
+            for (const f of stage.features || []) {
+                const opt = document.createElement('option');
+                opt.value = featureContextId(f.id);
+                opt.innerText = `📦 ${f.name}${this.host.project.stages!.length > 1 ? ` (${stage.name})` : ''}`;
+                opt.selected = currentFlowContext === opt.value;
+                featureGroup.appendChild(opt);
+            }
+        }
+        if (featureGroup.children.length > 0) {
+            this.flowSelect.appendChild(featureGroup);
+        }
 
         const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint' || activeStage?.id === 'blueprint';
 

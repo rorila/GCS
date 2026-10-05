@@ -1,6 +1,7 @@
 import { coreStore } from '../services/registry/CoreStore';
 import { projectTaskRegistry } from '../services/registry/TaskRegistry';
 import { GameProject, StageDefinition } from '../model/types';
+import { isFeatureContext, parseFeatureContext, findFeatureById } from '../model/FeatureHierarchy';
 
 import { FlowElement } from './flow/FlowElement';
 import { FlowAction } from './flow/FlowAction';
@@ -363,6 +364,8 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
                 }
                 if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable)) return;
 
+                if (isFeatureContext(this.currentFlowContext)) return; // Feature-Übersicht: read-only
+
                 if (this.selectedConnection) {
                     this.deleteConnection(this.selectedConnection);
                 } else if (this.selectedNode) {
@@ -579,7 +582,12 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         localStorage.setItem('gcs_last_flow_context', context);
 
         // --- NEW: Sync activeStageId based on Task location ---
-        if (context !== 'global' && context !== 'event-map' && context !== 'element-overview') {
+        if (isFeatureContext(context)) {
+            const found = findFeatureById(this.project, parseFeatureContext(context));
+            if (found?.stage?.id && found.stage.id !== coreStore.getActiveStageId()) {
+                coreStore.setActiveStageId(found.stage.id);
+            }
+        } else if (context !== 'global' && context !== 'event-map' && context !== 'element-overview') {
             const container = projectTaskRegistry.getTaskContainer(context);
             if (container.type === 'stage' && container.stageId) {
                 FlowEditor.logger.info(`Auto-switching projectRegistry.activeStageId to ${container.stageId} for task ${context}`);
@@ -790,10 +798,12 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     }
 
     public deleteConnection(conn: FlowConnection) {
+        if (isFeatureContext(this.currentFlowContext)) return; // Feature-Übersicht: read-only
         this.graphManager.deleteConnection(conn);
     }
 
     public deleteNode(node: FlowElement) {
+        if (isFeatureContext(this.currentFlowContext)) return; // Feature-Übersicht: read-only
         this.graphManager.deleteNode(node);
     }
 

@@ -1,5 +1,5 @@
 {
-  "erzeugt": "2026-10-05T16:10:07.341Z",
+  "erzeugt": "2026-10-05T16:31:55.289Z",
   "rollen": [
     {
       "key": "superadmin",
@@ -216,7 +216,7 @@
           "id": "VORAUS-B",
           "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
           "video": "videos/personen-1.webm",
-          "offset": 30.3,
+          "offset": 39.1,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -232,7 +232,7 @@
           "id": "VORAUS-A",
           "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
           "video": "videos/personen-3.webm",
-          "offset": 0.2,
+          "offset": 0.1,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -240,7 +240,7 @@
           "id": "VORAUS-R",
           "titel": "Raum „Spielraum\" angelegt",
           "video": "videos/personen-3.webm",
-          "offset": 27.7,
+          "offset": 32.6,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -248,7 +248,7 @@
           "id": "BEWOHNER-01a",
           "titel": "Hausbewohnerin „Lina Kind\" ohne Raum angelegt",
           "video": "videos/personen-3.webm",
-          "offset": 33.8,
+          "offset": 43.8,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -256,7 +256,7 @@
           "id": "BEWOHNER-01b",
           "titel": "Bewohnerin erscheint in der Hausbewohnerliste",
           "video": "videos/personen-3.webm",
-          "offset": 52.9,
+          "offset": 73.3,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -264,7 +264,7 @@
           "id": "KIND-01",
           "titel": "Bewohnerin erscheint in der Kinderliste des Hauses",
           "video": "videos/personen-3.webm",
-          "offset": 66.3,
+          "offset": 98.5,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -272,7 +272,7 @@
           "id": "ELTERN-01",
           "titel": "Eltern-Einladung erzeugt, Zuordnung ausstehend",
           "video": "videos/personen-3.webm",
-          "offset": 74.8,
+          "offset": 112.2,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -280,7 +280,7 @@
           "id": "ELTERN-02a",
           "titel": "Selbstbestaetigung durch Einladende abgelehnt",
           "video": "videos/personen-3.webm",
-          "offset": 89.2,
+          "offset": 143.4,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -288,7 +288,7 @@
           "id": "OBS-01a",
           "titel": "Beobachter-Einladung raumgebunden erzeugt",
           "video": "videos/personen-3.webm",
-          "offset": 131.9,
+          "offset": 209.1,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -296,7 +296,7 @@
           "id": "BEWOHNER-02a",
           "titel": "HouseAdmin deaktiviert die Hausbewohnerin",
           "video": "videos/personen-3.webm",
-          "offset": 171.9,
+          "offset": 262.1,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -304,7 +304,7 @@
           "id": "BEWOHNER-02b",
           "titel": "Reaktivierung stellt Raumzuordnung nicht automatisch wieder her",
           "video": "videos/personen-3.webm",
-          "offset": 188.3,
+          "offset": 288.3,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -320,7 +320,7 @@
           "id": "VORAUS-B",
           "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
           "video": "videos/personen-5.webm",
-          "offset": 0.2,
+          "offset": 0.1,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -328,7 +328,7 @@
           "id": "ELTERN-02b",
           "titel": "Zweitbestaetigung durch „paul\"",
           "video": "videos/personen-5.webm",
-          "offset": 73.9,
+          "offset": 132.5,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         },
         {
@@ -606,7 +606,7 @@
           "id": "RAUMMITGLIED-01",
           "titel": "RaumAdmin ordnet Bewohnerin dem Spielraum zu",
           "video": "videos/personen-3.webm",
-          "offset": 55.2,
+          "offset": 80.7,
           "suite": "Hausbewohner, Raumzuordnung, Eltern und Beobachter"
         }
       ]
@@ -863,7 +863,7 @@
             {
               "id": "VORAUS-B",
               "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
-              "offset": 30.3
+              "offset": 39.1
             }
           ]
         },
@@ -885,57 +885,57 @@
             {
               "id": "VORAUS-A",
               "titel": "HouseAdmin „anna\" eingerichtet + angemeldet",
-              "offset": 0.2
+              "offset": 0.1
             },
             {
               "id": "VORAUS-R",
               "titel": "Raum „Spielraum\" angelegt",
-              "offset": 27.7
+              "offset": 32.6
             },
             {
               "id": "BEWOHNER-01a",
               "titel": "Hausbewohnerin „Lina Kind\" ohne Raum angelegt",
-              "offset": 33.8
+              "offset": 43.8
             },
             {
               "id": "BEWOHNER-01b",
               "titel": "Bewohnerin erscheint in der Hausbewohnerliste",
-              "offset": 52.9
+              "offset": 73.3
             },
             {
               "id": "RAUMMITGLIED-01",
               "titel": "RaumAdmin ordnet Bewohnerin dem Spielraum zu",
-              "offset": 55.2
+              "offset": 80.7
             },
             {
               "id": "KIND-01",
               "titel": "Bewohnerin erscheint in der Kinderliste des Hauses",
-              "offset": 66.3
+              "offset": 98.5
             },
             {
               "id": "ELTERN-01",
               "titel": "Eltern-Einladung erzeugt, Zuordnung ausstehend",
-              "offset": 74.8
+              "offset": 112.2
             },
             {
               "id": "ELTERN-02a",
               "titel": "Selbstbestaetigung durch Einladende abgelehnt",
-              "offset": 89.2
+              "offset": 143.4
             },
             {
               "id": "OBS-01a",
               "titel": "Beobachter-Einladung raumgebunden erzeugt",
-              "offset": 131.9
+              "offset": 209.1
             },
             {
               "id": "BEWOHNER-02a",
               "titel": "HouseAdmin deaktiviert die Hausbewohnerin",
-              "offset": 171.9
+              "offset": 262.1
             },
             {
               "id": "BEWOHNER-02b",
               "titel": "Reaktivierung stellt Raumzuordnung nicht automatisch wieder her",
-              "offset": 188.3
+              "offset": 288.3
             }
           ]
         },
@@ -957,12 +957,12 @@
             {
               "id": "VORAUS-B",
               "titel": "Zweiter HouseAdmin „paul\" am selben Haus",
-              "offset": 0.2
+              "offset": 0.1
             },
             {
               "id": "ELTERN-02b",
               "titel": "Zweitbestaetigung durch „paul\"",
-              "offset": 73.9
+              "offset": 132.5
             }
           ]
         },

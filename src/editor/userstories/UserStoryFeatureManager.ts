@@ -1,9 +1,16 @@
 import { NotificationToast } from '../ui/NotificationToast';
 import { AgentController } from '../../services/AgentController';
 import { AgentScriptIO } from '../../services/agent/AgentScriptIO';
-import { canParentFeature } from '../../model/FeatureHierarchy';
+import { canParentFeature, seedFeatureSequence } from '../../model/FeatureHierarchy';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import type { UserStoriesViewManager } from './UserStoriesViewManager';
+
+function mkOption(text: string, value: string): HTMLOptionElement {
+    const o = document.createElement('option');
+    o.textContent = text;
+    o.value = value;
+    return o;
+}
 
 export async function exportUserStoryAsFeatureScript(self: UserStoriesViewManager, userStoryId: string) {
         const project = self.host.project;
@@ -107,7 +114,7 @@ export function showFeatureDialog(self: UserStoriesViewManager, stageId: string,
         overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 
         const dialog = document.createElement('div');
-        dialog.style.cssText = 'background:#1a1a2e;border:1px solid #3a3a6a;border-radius:8px;padding:24px;width:90%;max-width:600px;display:flex;flex-direction:column;gap:16px;color:#e0e0e0;';
+        dialog.style.cssText = 'background:#1a1a2e;border:1px solid #3a3a6a;border-radius:8px;padding:24px;width:90%;max-width:780px;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;gap:16px;color:#e0e0e0;';
 
         const title = document.createElement('h2');
         title.textContent = isNew ? '➕ Feature anlegen' : '✏️ Feature bearbeiten';
@@ -127,9 +134,9 @@ export function showFeatureDialog(self: UserStoriesViewManager, stageId: string,
         const parentSelect = document.createElement('select');
         parentSelect.setAttribute('aria-label', 'Übergeordneter Bereich');
         parentSelect.style.cssText = nameInput.style.cssText;
-        parentSelect.add(new Option('Ohne übergeordneten Bereich', ''));
+        parentSelect.add(mkOption('Ohne übergeordneten Bereich', ''));
         for (const candidate of stage?.features || []) {
-            if (canParentFeature(stage?.features || [], existing?.id || '', candidate.id)) parentSelect.add(new Option(candidate.name, candidate.id));
+            if (canParentFeature(stage?.features || [], existing?.id || '', candidate.id)) parentSelect.add(mkOption(candidate.name, candidate.id));
         }
         parentSelect.value = existing?.parentId || '';
 
@@ -151,6 +158,18 @@ export function showFeatureDialog(self: UserStoriesViewManager, stageId: string,
         tagsInput.value = existingTags;
         tagsInput.placeholder = 'z.B. movement, physics, score';
         tagsInput.style.cssText = 'padding:8px 10px;background:#0d0d1f;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;font-size:14px;';
+
+        // ── Bindender Ablauf (feature.actionSequence) ────────────────
+        const seqLabel = document.createElement('label');
+        seqLabel.innerHTML = 'Ablauf <span style="color:#6a6a9a">(bindende Reihenfolge — Task-Schritte und Bedingungen)</span>';
+        seqLabel.style.cssText = 'font-size:13px;color:#9090b0;';
+        const seqHost = document.createElement('div');
+        const workingSeq: any[] = JSON.parse(JSON.stringify(
+            existing?.actionSequence?.length ? existing.actionSequence
+                : seedFeatureSequence(project, { userStoryIds: existing?.userStoryIds || initialUserStoryIds || [] })
+        ));
+        const seqEditor = buildSequenceEditor(seqHost, workingSeq, project);
+        seqEditor.render();
 
         const buttons = document.createElement('div');
         buttons.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;';
@@ -184,7 +203,8 @@ export function showFeatureDialog(self: UserStoriesViewManager, stageId: string,
                 keywords: tags.slice(),
                 parentId: parentSelect.value,
                 userStoryIds: existing?.userStoryIds || initialUserStoryIds || [],
-                blueprintTaskNames: existing?.blueprintTaskNames || []
+                blueprintTaskNames: existing?.blueprintTaskNames || [],
+                actionSequence: workingSeq
             };
             try {
                 const controller = AgentController.getInstance();
@@ -212,6 +232,8 @@ export function showFeatureDialog(self: UserStoriesViewManager, stageId: string,
         dialog.appendChild(descInput);
         dialog.appendChild(tagsLabel);
         dialog.appendChild(tagsInput);
+        dialog.appendChild(seqLabel);
+        dialog.appendChild(seqHost);
         dialog.appendChild(buttons);
         overlay.appendChild(dialog);
         document.body.appendChild(overlay);
@@ -385,3 +407,147 @@ export function buildUserStoryFromInteraction(self: UserStoriesViewManager, inte
             updatedAt: new Date().toISOString()
         };
     }
+
+// ── Feature-Ablauf-Editor (bindende Reihenfolge) ─────────────────────
+// Rendert feature.actionSequence als editierbare Schrittliste:
+// Task-Schritte (⚙️), Bedingungen (◇ mit dann/sonst-Zweigen) und offene
+// Story-Schritte (▫, noch ohne geplanten Task). Mutiert `seq` direkt.
+export function buildSequenceEditor(host: HTMLElement, seq: any[], project: any) {
+    const css = {
+        row: 'display:flex;align-items:center;gap:6px;padding:4px 8px;background:#14142a;border:1px solid #2a2a4e;border-radius:6px;margin:3px 0;',
+        btn: 'padding:2px 7px;background:#2a2a4a;color:#e0e0e0;border:1px solid #3a3a6a;border-radius:4px;cursor:pointer;font-size:12px;',
+        input: 'padding:3px 6px;background:#0d0d1f;border:1px solid #3a3a6a;border-radius:4px;color:#e0e0e0;font-size:12px;',
+        add: 'padding:4px 10px;background:#1d4ed8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;margin:6px 6px 0 0;'
+    };
+    const allTasks: { name: string; stage: string }[] = [];
+    const seen = new Set<string>();
+    (project.stages || []).forEach((s: any) => (s.tasks || []).forEach((t: any) => {
+        const key = s.id + '/' + t.name;
+        if (!seen.has(key)) { seen.add(key); allTasks.push({ name: t.name, stage: s.name }); }
+    }));
+    (project.tasks || []).forEach((t: any) => {
+        const key = 'global/' + t.name;
+        if (!seen.has(key)) { seen.add(key); allTasks.push({ name: t.name, stage: 'global' }); }
+    });
+    const taskNames = [...new Set(allTasks.map(t => t.name))].sort((a, b) => a.localeCompare(b));
+
+    const mkBtn = (label: string, title: string, onclick: () => void, style = css.btn) => {
+        const b = document.createElement('button');
+        b.textContent = label; b.title = title; b.style.cssText = style;
+        b.onclick = (e) => { e.preventDefault(); onclick(); };
+        return b;
+    };
+    const move = (list: any[], i: number, d: number) => {
+        const j = i + d;
+        if (j < 0 || j >= list.length) return;
+        [list[i], list[j]] = [list[j], list[i]];
+        render();
+    };
+    const taskSelect = (current: string, onchange: (v: string) => void) => {
+        const s = document.createElement('select');
+        s.style.cssText = css.input + 'min-width:150px;';
+        s.add(mkOption('— Task wählen —', ''));
+        taskNames.forEach(n => s.add(mkOption(n, n)));
+        s.value = current || '';
+        s.onchange = () => onchange(s.value);
+        return s;
+    };
+    const addTaskStep = (list: any[]) => {
+        if (!taskNames.length) { NotificationToast.show('Keine Tasks im Projekt vorhanden.', 'warning'); return; }
+        list.push({ type: 'task', name: taskNames[0] });
+        render();
+    };
+
+    const stepRow = (list: any[], i: number, indent: number): HTMLElement => {
+        const it = list[i];
+        const row = document.createElement('div');
+        row.style.cssText = css.row + `margin-left:${indent * 22}px;`;
+
+        if (it.type === 'condition') {
+            // Bedingungszeile: ◇ [variable] [op] [value] + Steuertasten
+            const icon = document.createElement('span'); icon.textContent = '◇';
+            icon.style.color = '#f0b429';
+            const c = it.condition = it.condition || { variable: '', operator: '==', value: '' };
+            const vIn = document.createElement('input');
+            vIn.value = c.variable || ''; vIn.placeholder = 'Variable';
+            vIn.style.cssText = css.input + 'width:110px;';
+            vIn.onchange = () => { c.variable = vIn.value; render(); };
+            const op = document.createElement('select');
+            ['==', '!=', '>', '<', '>=', '<='].forEach(o => op.add(mkOption(o, o)));
+            op.value = c.operator || '==';
+            op.style.cssText = css.input;
+            op.onchange = () => { c.operator = op.value; };
+            const val = document.createElement('input');
+            val.value = c.value ?? ''; val.placeholder = 'Wert';
+            val.style.cssText = css.input + 'width:80px;';
+            val.onchange = () => { c.value = val.value; };
+            row.append(icon, vIn, op, val);
+        } else {
+            // Task- oder offener Story-Schritt
+            const isStory = it.type === 'story';
+            const icon = document.createElement('span'); icon.textContent = isStory ? '▫' : '⚙️';
+            if (isStory) icon.style.color = '#9090b0';
+            const sel = taskSelect(it.type === 'task' ? it.name : '', v => {
+                if (v) { it.type = 'task'; it.name = v; } else { it.type = 'story'; it.name = it.name || '(offen)'; }
+                render();
+            });
+            if (isStory) {
+                const lbl = document.createElement('span');
+                lbl.textContent = it.name + ' (Story ohne Task)';
+                lbl.style.cssText = 'color:#9090b0;font-size:12px;font-style:italic;';
+                row.append(icon, lbl, sel);
+            } else {
+                row.append(icon, sel);
+            }
+        }
+        const spacer = document.createElement('span'); spacer.style.flex = '1';
+        row.append(spacer,
+            mkBtn('↑', 'Nach oben', () => move(list, i, -1)),
+            mkBtn('↓', 'Nach unten', () => move(list, i, 1)),
+            mkBtn('✕', 'Entfernen', () => { list.splice(i, 1); render(); }));
+        return row;
+    };
+
+    const branchEditor = (label: string, list: any[], color: string): HTMLElement => {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = `border-left:2px solid ${color};padding-left:8px;margin:2px 0 2px 22px;`;
+        const head = document.createElement('div');
+        head.style.cssText = 'font-size:11px;color:#9090b0;display:flex;align-items:center;gap:6px;';
+        head.textContent = label;
+        head.appendChild(mkBtn('+ Task', 'Task-Schritt in diesem Zweig hinzufügen', () => addTaskStep(list)));
+        wrap.appendChild(head);
+        list.forEach((_, i) => wrap.appendChild(stepRow(list, i, 0)));
+        return wrap;
+    };
+
+    function render() {
+        host.innerHTML = '';
+        const box = document.createElement('div');
+        box.style.cssText = 'border:1px solid #2a2a4e;border-radius:8px;padding:10px;background:#0f0f20;max-height:340px;overflow-y:auto;';
+        if (!seq.length) {
+            const empty = document.createElement('div');
+            empty.textContent = 'Noch keine Schritte — Task oder Bedingung hinzufügen.';
+            empty.style.cssText = 'color:#6a6a9a;font-size:12px;padding:6px;';
+            box.appendChild(empty);
+        }
+        seq.forEach((it, i) => {
+            box.appendChild(stepRow(seq, i, 0));
+            if (it.type === 'condition') {
+                it.body = it.body || []; it.elseBody = it.elseBody || [];
+                box.appendChild(branchEditor('dann', it.body, '#4caf50'));
+                box.appendChild(branchEditor('sonst', it.elseBody, '#e57373'));
+            }
+        });
+        const foot = document.createElement('div');
+        foot.append(
+            mkBtn('+ Task-Schritt', 'Task ans Ende des Ablaufs anhängen', () => addTaskStep(seq), css.add),
+            mkBtn('+ Bedingung', 'Verzweigung einfügen (dann/sonst)', () => {
+                seq.push({ type: 'condition', name: '', condition: { variable: '', operator: '==', value: '' }, body: [], elseBody: [] });
+                render();
+            }, css.add)
+        );
+        box.appendChild(foot);
+        host.appendChild(box);
+    }
+    return { render };
+}
