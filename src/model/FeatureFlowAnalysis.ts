@@ -150,6 +150,17 @@ export function analyzeFeatureFlow(project: any, rootFeature: any, stageFeatures
             return stories.indexOf(a) - stories.indexOf(b);
         });
 
+        // Blatt-Feature ohne Stories: Lücke sichtbar machen statt
+        // eines leeren Containers, der wie ein Darstellungsfehler wirkt.
+        if (orderedStories.length === 0 && childrenOf(feature.id).length === 0) {
+            addNode({
+                id: `empty:${feature.id}`, kind: 'story-open',
+                label: '▫ keine User Stories zugeordnet',
+                containerId: feature.id, rowIndex: rowCounter++, xIndex: 0, subRow: 0
+            });
+            return;
+        }
+
         for (const us of orderedStories) {
             const rowIndex = rowCounter++;
             const fid = feature.id;
@@ -179,6 +190,7 @@ export function analyzeFeatureFlow(project: any, rootFeature: any, stageFeatures
                 addNode({
                     id: evId, kind: 'event', label: `⚡ ${evName}${comp}`,
                     containerId: fid, rowIndex, xIndex: 0, subRow: 0,
+                    storyId: us.id, storyTitle: us.title,
                     triggerText: `${evName}${comp}`
                 });
                 addEdge(evId, taskNodeId, 'event');

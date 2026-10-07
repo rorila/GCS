@@ -45,10 +45,13 @@ admin.push({ns:'AdmRaeume',path:'/api/cms/admin/rooms',task:'Server_VerwaltbareR
           n.act('Antworten','AntwortSenden','send',[{items:'${Raeume.items}',message:'${Raeume.message}'}])]});}
 
 {const n=ns('AdmSpiele');
-admin.push({ns:'AdmSpiele',path:'/api/cms/admin/games',task:'Server_Spielfreigaben_Verarbeiten',desc:'Bereich prüfen → Spiele mit Freigabestand auflisten',
- inner:[n.call('BereichLaden'),n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[n.call('Abfragen'),n.call('Antworten')],[n.call('Bereich403')])],
+admin.push({ns:'AdmSpiele',path:'/api/cms/admin/games',task:'Server_Spielfreigaben_Verarbeiten',desc:'Bereich prüfen → Hauskatalog → Spiele mit Raum-Freigabestand auflisten',
+ inner:[n.call('BereichLaden'),n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[n.call('HausErmitteln'),n.call('Abfragen'),n.call('Antworten')],[n.call('Bereich403')])],
  actions:[n.act('BereichLaden','Datenbestand','find',[MANAGED_ROOM],'Bereich'),
-          n.act('Abfragen','Datenbestand','list',[{entity:'games',where:{status:'published'},fields:{id:'$item.id',label:'$item.title',name:'$item.title',active:{exists:{entity:'grants',where:{gameId:'$item.id',areaId:'$body.areaId',active:true}}}},extra:{message:{concat:['$vars.Bereich.item.name',' · Spielefreigaben']}}}],'Spiele'),
+          n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
+          // Nur Spiele, die der HouseAdmin dem Haus freigegeben hat — der
+          // RaumAdmin schaltet aus dem Hauskatalog für seinen Raum um.
+          n.act('Abfragen','Datenbestand','list',[{entity:'games',where:{status:'published',has:{entity:'grants',where:{gameId:'$item.id',areaId:'$vars.Haus.item.id',active:true}}},fields:{id:'$item.id',label:'$item.title',name:'$item.title',active:{exists:{entity:'grants',where:{gameId:'$item.id',areaId:'$body.areaId',active:true}}}},extra:{message:{concat:['$vars.Bereich.item.name',' · Spielefreigaben']}}}],'Spiele'),
           n.act('Antworten','AntwortSenden','send',[{items:'${Spiele.items}',message:'${Spiele.message}'}]),
           n.act('Bereich403','AntwortSenden','fail',[403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.'])]});}
 
@@ -75,7 +78,7 @@ for(const [slug,path,route,isGame]of [['Freigabe','/api/cms/admin/grant','grant'
    n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[
     n.call('AktivPruefen'),
     n.cond('Zustand gültig?','AktivWert.ok','==',true,[
-     ...(isGame?[]:[n.call('HausErmitteln')]),
+     n.call('HausErmitteln'),
      n.call('EintragPruefen'),
      n.cond('Eintrag verfügbar?','Vorhanden','==',true,[
       n.call('Speichern'),n.call('Antworten')
@@ -86,10 +89,11 @@ for(const [slug,path,route,isGame]of [['Freigabe','/api/cms/admin/grant','grant'
   actions:[n.act('BereichLaden','Datenbestand','find',[MANAGED_ROOM],'Bereich'),
            n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),
            n.act('EintragPruefen','Datenbestand','exists',[isGame
-             ?{entity:'games',where:{id:'$body.id',status:'published'}}
+             // Hauskatalog-Hoheit: nur haus-freigegebene Spiele sind im Raum schaltbar.
+             ?{entity:'games',where:{id:'$body.id',status:'published',has:{entity:'grants',where:{gameId:'$body.id',areaId:'$vars.Haus.item.id',active:true}}}}
              :{entity:'people',where:{id:'$body.id',active:true,has:{entity:'memberships',where:{personId:'$body.id',active:true,areaId:'$vars.Haus.item.id'}}}}
             ],'Vorhanden'),
-           ...(isGame?[]:[n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus')]),
+           n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
            n.act('Speichern','DatenSpeicher','upsert',[{entity:isGame?'grants':'memberships',match:{areaId:'$body.areaId',[isGame?'gameId':'personId']:'$body.id'},set:{active:'$vars.AktivWert.value'},audit:{action:route,areaId:'$body.areaId'}}],'Ergebnis'),
            n.act('Antworten','AntwortSenden','send',[{message:'Gespeichert'}]),
            n.act('Eintrag403','AntwortSenden','fail',[403,'Eintrag nicht verfügbar.']),
@@ -349,7 +353,7 @@ house.push({ns:'HausbewohnerDetail',path:'/api/cms/admin/house-person-detail',ta
  actions:[n.act('PersonLaden','Datenbestand','find',[{entity:'people',where:{id:'$body.personId',has:{entity:'memberships',where:{personId:'$body.personId',areaId:'$body.houseId'}}}}],'Person'),
           n.act('MitgliedLesen','Datenbestand','exists',[{entity:'memberships',where:{personId:'$body.personId',areaId:'$body.houseId',active:true}}],'Zuordnung'),
           n.act('CodeLesen','Datenbestand','exists',[{entity:'codes',where:{personId:'$body.personId',areaId:'$body.houseId'}}],'HatCode'),
-          n.act('Antworten','AntwortSenden','send',[{person:{id:'${Person.item.id}',name:'${Person.item.name}',avatar:'${Person.item.avatar}',kind:'${Person.item.kind}',active:'${Person.item.active}',houseActive:'${Zuordnung}',hasCode:'${HatCode}'},houseName:'${Haus.item.name}',message:'${Person.item.name} · Bewohner'}]),
+          n.act('Antworten','AntwortSenden','send',[{person:{id:'${Person.item.id}',name:'${Person.item.name}',avatar:'${Person.item.avatar}',avatarImage:'${Person.item.avatarImage}',kind:'${Person.item.kind}',active:'${Person.item.active}',houseActive:'${Zuordnung}',hasCode:'${HatCode}'},houseName:'${Haus.item.name}',message:'${Person.item.name} · Bewohner'}]),
           n.act('Person404','AntwortSenden','fail',[404,'Bewohner gehört nicht zu diesem Haus.'])]});}
 
 {const n=ns('HausbewohnerStatus');
@@ -396,7 +400,7 @@ house.push({ns:'HausbewohnerCode',path:'/api/cms/admin/house-person-code',task:'
 house.push({ns:'HausPersonen',path:'/api/cms/admin/house-people',task:'Server_HausPersonen_Verarbeiten',desc:'Haus prüfen → Personen des Hauses auflisten',
  inner:[n.call('Abfragen'),n.call('Antworten')],
  actions:[n.act('Abfragen','Datenbestand','list',[{entity:'people',where:peopleOfHouse,
-            fields:{id:'$item.id',name:'$item.name',avatar:'$item.avatar',kind:'$item.kind',typ:{if:[{eq:['$item.kind','child']},'Kind','Erwachsener']},label:{concat:['$item.avatar','  ','$item.name']},active:{exists:{entity:'memberships',where:{personId:'$item.id',areaId:'$body.houseId',active:true}}}},
+            fields:{id:'$item.id',name:'$item.name',avatar:'$item.avatar',avatarImage:'$item.avatarImage',kind:'$item.kind',typ:{if:[{eq:['$item.kind','child']},'Kind','Erwachsener']},label:{concat:['$item.avatar','  ','$item.name']},active:{exists:{entity:'memberships',where:{personId:'$item.id',areaId:'$body.houseId',active:true}}}},
             extra:{message:{concat:['$vars.Haus.item.name',' · Bewohner']}}}],'Personen'),
           n.act('Antworten','AntwortSenden','send',[{items:'${Personen.items}',message:'${Personen.message}'}])]});}
 
@@ -643,9 +647,10 @@ function buildStage(id,name,endpoints,{hausGateDefault=true}={}){
   tasks,actions,flowCharts:[],events:{},startAnimation:null,features:[],group:'Server'};
 }
 
-// RaumAdmins arbeiten ausschließlich mit Raumübersicht, Bewohnerzutritt und
-// einer lesenden Spieleliste. Freigaben, Codes und Sicherungen sind Hausaufgaben.
-const roomAdminEndpoints=admin.filter(ep=>['/api/cms/admin/logout','/api/cms/admin/rooms','/api/cms/admin/games','/api/cms/admin/members','/api/cms/admin/membership'].includes(ep.path));
+// RaumAdmins arbeiten mit Raumübersicht, Bewohnerzutritt und den Spielen des
+// Hauskatalogs (grant schaltet nur haus-freigegebene Spiele — geprüft im Task).
+// Codes und Sicherungen sind Hausaufgaben.
+const roomAdminEndpoints=admin.filter(ep=>['/api/cms/admin/logout','/api/cms/admin/rooms','/api/cms/admin/games','/api/cms/admin/grant','/api/cms/admin/members','/api/cms/admin/membership'].includes(ep.path));
 // Sicherung/Wiederherstellung sind Hausverwaltung, bleiben aber raumbezogen:
 // Der eigene MANAGED_ROOM-Gate der beiden Tasks prüft die Zuständigkeit.
 const houseWithRoomBackups=[...house,...admin.filter(ep=>['/api/cms/admin/backup','/api/cms/admin/restore'].includes(ep.path)).map(ep=>({...ep,hausGate:false}))];

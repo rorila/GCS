@@ -31,6 +31,31 @@ export function registerProjectRoutes(app: express.Application) {
     });
 
     /**
+     * Liefert Revision UND Inhalt der Projektdatei aus game-server/public in einem Schritt.
+     * WICHTIG: Projektdateien NIE per fetch('/projects/...') lesen — das beantwortet Vite
+     * aus dem Root-Ordner public/ (anderer, veralteter Bestand bzw. index.html-Fallback).
+     */
+    app.post('/api/dev/project-file', (req, res) => {
+        try {
+            const filePath = String(req.body?.filePath || '');
+            const absolute = publicProjectPath(filePath);
+            if (!fs.existsSync(absolute)) return res.json({ exists: false, revision: null, mtimeMs: 0, project: null });
+            const raw = fs.readFileSync(absolute);
+            const stat = fs.statSync(absolute);
+            const revision = crypto.createHash('sha256').update(raw).digest('hex');
+            let project: any;
+            try {
+                project = JSON.parse(raw.toString('utf-8').replace(/^\uFEFF/, ''));
+            } catch (parseErr: any) {
+                return res.status(422).json({ exists: true, revision, mtimeMs: stat.mtimeMs, error: 'Projektdatei ist kein gültiges JSON: ' + (parseErr?.message || '') });
+            }
+            res.json({ exists: true, revision, mtimeMs: stat.mtimeMs, project });
+        } catch (err: any) {
+            res.status(403).json({ error: err?.message || 'Zugriff verweigert' });
+        }
+    });
+
+    /**
      * POST /api/dev/save-project - Speichert die project.json auf Disk
      * NUR FÜR ENTWICKLUNGSZWECKE (Dev-Mode)
      */

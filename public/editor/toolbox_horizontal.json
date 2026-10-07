@@ -90,6 +90,11 @@
           "label": "Audio"
         },
         {
+          "type": "Speech",
+          "icon": "🗣️",
+          "label": "Sprache"
+        },
+        {
           "type": "Video",
           "icon": "🎬",
           "label": "Video"

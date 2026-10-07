@@ -1,5 +1,13 @@
 # Änderungen der technischen Kopie
 
+## 2026-10-07 (Autosave-Revision-Guard & KI-Schutz)
+
+- **Schutz gegen Überschreiben externer KI-Optimierungen:** Neuer Server-Endpunkt `POST /api/dev/project-file` liest Projektdateien und SHA-256 Revisionen atomar direkt aus `game-server/public` (mit UTF-8 BOM Toleranz), anstatt über Vite-URLs (`/projects/...`), die auf veraltete Root-Stände zielten.
+- **DiskRevisionGuard:** Ausgelagertes Guard-Modul (`src/editor/services/DiskRevisionGuard.ts`) entscheidet anhand von Basis-Revision und Plattenrevision über Ladeannahme oder Konfliktsperre.
+- **Sperre & Nutzer-Bestätigung:** Im `EditorProjectLoader` wird bei abweichender Plattenrevision der AutoSave blockiert und ein Dialog zur Übernahme des Plattenstands oder expliziten Bestätigung angeboten.
+- **Cache-Sicherung:** `EditorProjectSaver` und `EditorSessionManager` überschreiben `_diskRevision` im Browser-Speicher nicht mehr blind mit `null`.
+- **Tests:** 17 neue Unit-/Integrationstests (`tests/disk_revision_guard.test.ts`) sowie Playwright-E2E-Tests (`tests/e2e/project-revision-guard.spec.ts`) validiert.
+
 ## 2026-09-06
 
 - Bereinigte technische Kopie des vollständigen lokalen v1-Arbeitsstands erstellt.

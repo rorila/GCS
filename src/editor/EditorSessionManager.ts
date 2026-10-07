@@ -1,6 +1,7 @@
 import { Logger } from '../utils/Logger';
 import type { Editor } from './Editor';
 import { NotificationToast } from './ui/NotificationToast';
+import { fetchDiskProject, stampDiskProject, isServerManagedPath } from './services/DiskRevisionGuard';
 
 export class EditorSessionManager {
     private static logger = Logger.get('EditorSessionManager', 'Session');
@@ -10,27 +11,27 @@ export class EditorSessionManager {
         this.editor = editor;
     }
 
+    /**
+     * Stellt den Browserstand nur wieder her, wenn die Platten-Datei nicht extern geändert wurde.
+     * Inhalt + Revision werden atomar über /api/dev/project-file aus game-server/public gelesen.
+     * NIE fetch('/projects/…') verwenden: das beantwortet Vite aus dem Root-Ordner public/.
+     * Fällt die Prüfung aus, wird der Browserstand zwar geladen, der Disk-AutoSave bleibt aber
+     * bis zur Revisionsprüfung im Loader gesperrt (DiskRevisionGuard).
+     */
     private async restoreSafely(project: any, savedAt: number, sourcePath: string): Promise<void> {
-        if (!/^[a-zA-Z]:\//.test(sourcePath)) {
+        if (isServerManagedPath(sourcePath)) {
             try {
-                const response = await fetch('/api/dev/project-version', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filePath: sourcePath })
-                });
-                if (response.ok) {
-                    const info = await response.json();
-                    const knownRevision = project.meta?._diskRevision || null;
-                    const diskChanged = info.exists && (knownRevision ? info.revision !== knownRevision : info.mtimeMs > savedAt);
-                    if (diskChanged) {
-                        const diskResponse = await fetch('/' + sourcePath.replace(/^\//, '') + '?t=' + Date.now(), { cache: 'no-store' });
-                        if (diskResponse.ok) {
-                            const diskProject = await diskResponse.json();
-                            this.editor.loadProject(diskProject, sourcePath);
-                            this.editor.themeStageService.restoreSession();
-                            NotificationToast.show('Neuere Projektdatei erkannt. Der Stand von der Platte wurde geladen; der alte Browserstand wurde nicht gespeichert.', 'warning');
-                            EditorSessionManager.logger.warn(`Browserstand verworfen, da die Plattenrevision von ${sourcePath} abweicht.`);
-                            return;
-                        }
-                    }
+                const disk = await fetchDiskProject(sourcePath);
+                const knownRevision = project.meta?._diskRevision || null;
+                const diskChanged = disk.exists && (knownRevision ? disk.revision !== knownRevision : disk.mtimeMs > savedAt);
+                if (diskChanged) {
+                    const diskProject = stampDiskProject(disk, sourcePath);
+                    if (!diskProject) throw new Error('Plattenstand ohne Inhalt');
+                    this.editor.loadProject(diskProject, sourcePath);
+                    this.editor.themeStageService.restoreSession();
+                    NotificationToast.show('Neuere Projektdatei erkannt. Der Stand von der Platte wurde geladen; der alte Browserstand wurde nicht gespeichert.', 'warning');
+                    EditorSessionManager.logger.warn(`Browserstand verworfen, da die Plattenrevision von ${sourcePath} abweicht.`);
+                    return;
                 }
             } catch (err) {
                 EditorSessionManager.logger.warn('Startprüfung der Projektdatei nicht möglich; Disk-AutoSave bleibt bis zur Revisionsprüfung gesperrt.', err);

@@ -278,14 +278,14 @@ function addFeature(stage,id,name,tasks){stage.features.push({id:stage.id+'_'+id
  s.objects.push(list('RaumListe','Eigene Räume'),table('RaumTabelle','RaumListe',[{field:'name',label:'Raum',type:'header',x:0,y:0},{field:'active',label:'Aktiv',type:'badge',x:14,y:0}],15,9,47,29,'Raum_Oeffnen'));
  s.actions.push(prop('Act_Raum_Merken',{CMSRaumId:'${RaumTabelle.selectedKey}',CMSRaumName:'${RaumTabelle.selectedRecord.name}',CMSAuswahlActive:'${RaumTabelle.selectedRecord.active}'}),nav('Act_Raum_Oeffnen','stage_room_overview'));
  s.tasks.push(task('Raum_Oeffnen',[A('Act_Raum_Merken'),A('Act_Raum_Oeffnen')]));
- addLoad(s,{prefix:'EigeneRaeume',url:'/api/cms/admin/rooms',body:{},listName:'RaumListe',init:'RaumAdminInit'});addFeature(s,'select','Eigenen Raum auswählen',['EigeneRaeume_Laden','Raum_Oeffnen']);replaceStage(s);
+ addLoad(s,{prefix:'EigeneRaeume',url:'/api/cms/admin/rooms',body:{token:'${Token}'},listName:'RaumListe',init:'RaumAdminInit'});addFeature(s,'select','Eigenen Raum auswählen',['EigeneRaeume_Laden','Raum_Oeffnen']);replaceStage(s);
 }
 
 // ── RaumAdmin: Übersicht ───────────────────────────────────────────────────
 {
  const s=shell('stage_room_overview','RaumAdmin · Raumübersicht','Raumübersicht',ROOM_NAV,'stage_room_overview','room');
  s.objects.push(button('ZutrittKarte','Zutritt verwalten',15,11,22,7,'Navigation_stage_room_access'),button('SpieleKarte','Verfügbare Spiele',39,11,22,7,'Navigation_stage_room_games'),label('RaumHinweis','Du verwaltest ausschließlich den Zutritt bereits vorhandener Hausbewohner. Raumdaten und Hausfreigaben bleiben Aufgabe des HouseAdmins.',15,21,46,8,{style:{...textStyle,backgroundColor:'#193b49',borderColor:'#315565',borderWidth:1,borderRadius:10,padding:16}}),timer('RaumUebersichtInit'));
- s.tasks.push(task('RaumUebersichtInit',[A('Act_Kontext_Anzeigen'),propStepFallback()]));s.actions.push(prop('Act_RaumUebersicht_Status',{Busy:0,'Status.text':'Raum auswählen oder Zutritt verwalten.'}));s.tasks[ s.tasks.length-1 ].actionSequence[1]=A('Act_RaumUebersicht_Status');
+ s.tasks.push(task('RaumUebersichtInit',[A('Act_Kontext_Anzeigen'),propStepFallback()]));s.actions.push(prop('Act_RaumUebersicht_Status',{Busy:0,'Status.text':'Zutritt und Spiele für diesen Raum verwalten.'}));s.tasks[ s.tasks.length-1 ].actionSequence[1]=A('Act_RaumUebersicht_Status');
  addFeature(s,'overview','Raumzuständigkeit anzeigen',['RaumUebersichtInit']);replaceStage(s);
 }
 
@@ -293,16 +293,20 @@ function addFeature(stage,id,name,tasks){stage.features.push({id:stage.id+'_'+id
 {
  const s=shell('stage_room_access','RaumAdmin · Zutritt','Zutritt verwalten',ROOM_NAV,'stage_room_access','room');
  s.objects.push(list('MitgliederListe','Hausbewohner und Raumstatus'),table('MitgliederTabelle','MitgliederListe',[{field:'name',label:'Hausbewohner',type:'header',x:0,y:0},{field:'active',label:'Zutritt',type:'badge',x:15,y:0}],15,9,47,29,'Zutritt_Umschalten'));
- s.actions.push(prop('Act_Zutritt_Merken',{CMSAuswahlActive:'${MitgliederTabelle.selectedRecord.active}'}),action('Act_Zutritt_Berechnen','calculate',{formula:'CMSAuswahlActive ? false : true',resultVariable:'ZielAktiv'}),http('Act_Zutritt_Erlauben_Server','/api/cms/admin/membership',{areaId:'${CMSRaumId}',id:'${MitgliederTabelle.selectedKey}',active:true}),http('Act_Zutritt_Entziehen_Server','/api/cms/admin/membership',{areaId:'${CMSRaumId}',id:'${MitgliederTabelle.selectedKey}',active:false}),prop('Act_Zutritt_Fertig',{Busy:0,'Status.text':'✓ Raumzutritt gespeichert.'}));
+ s.actions.push(prop('Act_Zutritt_Merken',{CMSAuswahlActive:'${MitgliederTabelle.selectedRecord.active}'}),action('Act_Zutritt_Berechnen','calculate',{formula:'CMSAuswahlActive ? false : true',resultVariable:'ZielAktiv'}),http('Act_Zutritt_Erlauben_Server','/api/cms/admin/membership',{token:'${Token}',areaId:'${CMSRaumId}',id:'${MitgliederTabelle.selectedKey}',active:true}),http('Act_Zutritt_Entziehen_Server','/api/cms/admin/membership',{token:'${Token}',areaId:'${CMSRaumId}',id:'${MitgliederTabelle.selectedKey}',active:false}),prop('Act_Zutritt_Fertig',{Busy:0,'Status.text':'✓ Raumzutritt gespeichert.'}));
  s.tasks.push(task('Zutritt_Umschalten',[A('Act_Zutritt_Merken'),A('Act_Zutritt_Berechnen'),C('Zutritt erlauben?','ZielAktiv','==',true,[A('Act_Zutritt_Erlauben_Server')],[A('Act_Zutritt_Entziehen_Server')]),C('Zutritt gespeichert?','Antwort.ok','==',true,[A('Act_Zutritt_Fertig'),T('Mitglieder_Laden')],[T('Fehler')])]));
- addLoad(s,{prefix:'Mitglieder',url:'/api/cms/admin/members',body:{areaId:'${CMSRaumId}'},listName:'MitgliederListe',init:'ZutrittInit'});addFeature(s,'access','Hausbewohnern Raumzutritt gewähren oder entziehen',['Mitglieder_Laden','Zutritt_Umschalten']);replaceStage(s);
+ addLoad(s,{prefix:'Mitglieder',url:'/api/cms/admin/members',body:{token:'${Token}',areaId:'${CMSRaumId}'},listName:'MitgliederListe',init:'ZutrittInit'});addFeature(s,'access','Hausbewohnern Raumzutritt gewähren oder entziehen',['Mitglieder_Laden','Zutritt_Umschalten']);replaceStage(s);
 }
 
-// ── RaumAdmin: Spiele (nur lesend) ─────────────────────────────────────────
+// ── RaumAdmin: Spiele — Hauskatalog für den Raum umschalten ────────────────
 {
  const s=shell('stage_room_games','RaumAdmin · Spiele','Verfügbare Spiele',ROOM_NAV,'stage_room_games','room');
- s.objects.push(list('SpielListe','Spiele des Raumes'),table('SpielTabelle','SpielListe',[{field:'name',label:'Spiel',type:'header',x:0,y:0},{field:'active',label:'Verfügbar',type:'badge',x:15,y:0}],15,9,47,29));
- addLoad(s,{prefix:'RaumSpiele',url:'/api/cms/admin/games',body:{areaId:'${CMSRaumId}'},listName:'SpielListe',init:'RaumSpieleInit'});addFeature(s,'games','Freigegebene Spiele lesen',['RaumSpiele_Laden']);replaceStage(s);
+ const spielTabelle=table('SpielTabelle','SpielListe',[{field:'name',label:'Spiel',type:'header',x:0,y:0},{field:'active',label:'Verfügbar',type:'badge',x:15,y:0}],15,9,47,29,'Spiel_Umschalten');
+ spielTabelle.events={onRowClick:'Spiel_Umschalten'};
+ s.objects.push(list('SpielListe','Spiele des Hauses — für diesen Raum umschalten'),spielTabelle);
+ s.actions.push(prop('Act_Spiel_Merken',{CMSAuswahlActive:'${SpielTabelle.selectedRecord.active}'}),action('Act_Spiel_Berechnen','calculate',{formula:'CMSAuswahlActive ? false : true',resultVariable:'ZielAktiv'}),http('Act_Spiel_Erlauben_Server','/api/cms/admin/grant',{token:'${Token}',areaId:'${CMSRaumId}',id:'${SpielTabelle.selectedKey}',active:true}),http('Act_Spiel_Entziehen_Server','/api/cms/admin/grant',{token:'${Token}',areaId:'${CMSRaumId}',id:'${SpielTabelle.selectedKey}',active:false}),prop('Act_Spiel_Fertig',{Busy:0,'Status.text':'✓ Spielfreigabe gespeichert.'}));
+ s.tasks.push(task('Spiel_Umschalten',[A('Act_Spiel_Merken'),A('Act_Spiel_Berechnen'),C('Freigabe erlauben?','ZielAktiv','==',true,[A('Act_Spiel_Erlauben_Server')],[A('Act_Spiel_Entziehen_Server')]),C('Freigabe gespeichert?','Antwort.ok','==',true,[A('Act_Spiel_Fertig'),T('RaumSpiele_Laden')],[T('Fehler')])]));
+ addLoad(s,{prefix:'RaumSpiele',url:'/api/cms/admin/games',body:{token:'${Token}',areaId:'${CMSRaumId}'},listName:'SpielListe',init:'RaumSpieleInit'});addFeature(s,'games','Haus-freigegebene Spiele für den Raum schalten',['RaumSpiele_Laden','Spiel_Umschalten']);replaceStage(s);
 }
 
 function propStepFallback(){return A('__wird_ersetzt__');}
@@ -321,7 +325,7 @@ for(const [name,type,def] of [
 // mit nachvollziehbaren Geschichten dokumentieren.
 const roleStageIds=new Set([...HOUSE_NAV,...ROOM_NAV].map(x=>x[0]));
 project.userStories=project.userStories||{userStories:[]};
-project.userStories.userStories=project.userStories.userStories.filter(u=>!((u.relatedStages||[]).some(id=>roleStageIds.has(id))&&u.featureId&&!project.stages.some(s=>(u.relatedStages||[]).includes(s.id)&&(s.features||[]).some(f=>f.id===u.featureId))));
+project.userStories.userStories=project.userStories.userStories.filter(u=>{const rs=Array.isArray(u.relatedStages)?u.relatedStages:(typeof u.relatedStages==='string'?[u.relatedStages]:[]);return !(rs.some(id=>roleStageIds.has(id))&&u.featureId&&!project.stages.some(s=>rs.includes(s.id)&&(s.features||[]).some(f=>f.id===u.featureId)));});
 for(const s of project.stages.filter(s=>roleStageIds.has(s.id)))for(const f of s.features||[]){
  const id='role_story_'+f.id;if(project.userStories.userStories.some(u=>u.id===id))continue;
  project.userStories.userStories.push({id,projectId:project.id,title:f.name,description:f.description||'Nachvollziehbarer GCS-Arbeitsablauf',acceptanceCriteria:['Der Ablauf ist über sichtbare Komponenten ausführbar; Serverfehler werden in der Stage angezeigt.'],priority:'high',status:'completed',relatedComponents:[],relatedVariables:[],relatedStages:[s.id],interactions:[],plannedComponent:null,plannedEvent:'',plannedTask:f.blueprintTaskNames?.[0]||'',featureId:f.id,plannedActions:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});

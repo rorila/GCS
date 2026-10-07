@@ -65,7 +65,10 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(!ep)return reply(res,404,{ok:false,message:'Endpunkt fehlt'});
     const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id)}const emit=(label,data)=>traces.step(trace,label,data);
     emit('Request empfangen',{method:req.method,url:url.pathname,headers:req.headers,note:'Binärinhalt nicht protokolliert'});
-    const session=kind==='game'?admin.readSession(req):core.session((req.headers.authorization||'').replace(/^Bearer /,''));
+    // Avatar-Uploads akzeptieren beide Sitzungsarten: Spieler laden ihr
+    // eigenes Bild per Konto-Token hoch, HouseAdmins ordnen Bilder über
+    // ihre Admin-Sitzung (cms_admin-Cookie) zu. Berechtigung → Task.
+    const session=kind==='game'?admin.readSession(req):(core.session((req.headers.authorization||'').replace(/^Bearer /,''))||admin.readSession(req));
     let bytes=0,chunks=[];for await(const chunk of req.iterator({destroyOnReturn:false})){bytes+=chunk.length;if(bytes>uploads.hardCap){req.resume();emit('Datei zu groß',{bytes});return reply(res,413,{ok:false,message:'Datei ist zu groß.'});}chunks.push(chunk);}
     let meta=null;try{meta=JSON.parse(decodeURIComponent(req.headers['x-upload-metadata']||'%7B%7D'))}catch{}
     if(meta===null)return reply(res,400,{ok:false,message:'Ungültige Upload-Angaben.'});
@@ -78,22 +81,28 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(process.env.CMS_TRACE_ADMIN!=='off'){const actor=admin.readSession(req);if(!actor||!core.can(actor,'manageArea',{areaId:'root'}))return reply(res,403,{ok:false,message:'SuperAdmin-Anmeldung für Server-Diagnose erforderlich.'});}
     const trace=traces.get(url.pathname.slice('/api/cms/debug/traces/'.length));return reply(res,trace?200:404,trace||{ok:false,message:'Vorgang abgelaufen oder Diagnose ausgeschaltet.'});
    }
-   if(req.method==='GET'&&['/admin','/house','/super'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
+   if(req.method==='GET'&&['/admin','/house','/super','/roles'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
     const session=admin.readSession(req);
     if(!session)return res.end(loginPage());
-    const activeRoles=core.db.roles.filter(r=>r.personId===session.personId&&r.active&&areaActive(core.db,r.areaId));
-    const isSuper=activeRoles.some(r=>r.role==='superAdmin'&&r.areaId==='root');
-    const isHouse=isSuper||activeRoles.some(r=>r.role==='areaAdmin'&&core.db.areas.find(a=>a.id===r.areaId)?.type==='house');
+    // Rollenwahl: die gewählte Verwaltungsrolle (activeRole) scopet die
+    // Sitzung; bei ausstehender Wahl (null) geht es zur Wahlseite.
+    const ar=session.activeRole;
+    if(url.pathname==='/roles')return res.end(renderCms(cmsFile,'stage_admin_roles'));
+    if(!ar){res.writeHead(303,{Location:'/roles','Cache-Control':'no-store'});return res.end();}
+    const isSuper=ar.role==='superAdmin'&&areaActive(core.db,'root')&&core.db.roles.some(r=>r.personId===session.personId&&r.role==='superAdmin'&&r.areaId==='root'&&r.active);
+    const isHouse=isSuper||(ar.role==='areaAdmin'&&areaActive(core.db,ar.areaId)&&core.db.areas.find(a=>a.id===ar.areaId)?.type==='house'&&core.db.roles.some(r=>r.personId===session.personId&&r.role==='areaAdmin'&&r.areaId===ar.areaId&&r.active));
     // Eine sichtbare Stage ist noch kein Recht: direkte URLs werden ebenfalls
     // nach Rolle begrenzt. Fachaktionen prüfen zusätzlich jedes areaId.
     if(url.pathname==='/super'&&!isSuper){res.writeHead(303,{Location:isHouse?'/house':'/admin','Cache-Control':'no-store'});return res.end();}
     if(url.pathname==='/house'&&!isHouse){res.writeHead(303,{Location:'/admin','Cache-Control':'no-store'});return res.end();}
     if(url.pathname==='/house'&&url.searchParams.has('house')){
-     const houseId=url.searchParams.get('house'),house=core.db.areas.find(a=>a.id===houseId&&a.type==='house'&&a.active),assigned=activeRoles.some(r=>r.role==='areaAdmin'&&r.areaId===houseId);
+     const houseId=url.searchParams.get('house'),house=core.db.areas.find(a=>a.id===houseId&&a.type==='house'&&a.active),assigned=isSuper||ar.areaId===houseId;
      if(!house||!assigned){res.writeHead(303,{Location:'/house','Cache-Control':'no-store'});return res.end();}
      return res.end(renderCms(cmsFile,'stage_house_overview',{CMSHausId:house.id,CMSHausName:house.name}));
     }
+    // HouseAdmin ohne ?house= landet direkt in seiner (einzigen) Hausverwaltung.
+    if(url.pathname==='/house'&&!isSuper)return res.end(renderCms(cmsFile,'stage_house_overview',{CMSHausId:ar.areaId,CMSHausName:core.db.areas.find(a=>a.id===ar.areaId)?.name||''}));
     return res.end(renderCms(cmsFile,{'/super':'stage_super','/house':'stage_house','/admin':'stage_admin'}[url.pathname]));
    }
    // Eltern- und Beobachterbereich: Konto-Sitzung (cms_account), kein Admin-Cookie nötig.
@@ -144,11 +153,12 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(res,413,{error:'Zu groß'});}
     endPreviousSessions(req);
     const result=admin.login(req,Object.fromEntries(new URLSearchParams(raw)));
+    console.log('[Rollenwahl] /admin-login → result.roles:',JSON.stringify(result.roles),'| super:',result.super,'| house:',result.house);
     if(result.error){res.writeHead(401,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Set-Cookie':CLEAR_COOKIES});return res.end(loginPage());}
     const cookies=[];if(result.token)cookies.push(`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
     // Konto-Cookie nur bei Eltern-/Beobachterkontext oder fehlender Verwaltungszuständigkeit.
     if(result.accountToken&&(result.contexts?.some(c=>c!=='admin')||!result.token))cookies.push(accountCookie(result.accountToken));
-    res.writeHead(303,{'Location':result.token?(result.super?'/super':result.house?'/house':'/admin'):(result.contexts||[]).includes('observer')?'/observer':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
+    res.writeHead(303,{'Location':result.token?((result.roles||[]).length>1?'/roles':(result.super?'/super':result.house?'/house':'/admin')):(result.contexts||[]).includes('observer')?'/observer':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
    }
    if(req.method==='GET'&&['/','/runtime-standalone.js','/cms-shell.js'].includes(url.pathname)){
     if(url.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(renderCms(cmsFile,'stage_main'));}
@@ -268,12 +278,17 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(body.confirm==='true')body.confirm=true;
     // Registrierte TServerEndpoint-Tasks laufen über die Runtime; Rest bleibt beim Legacy-Dispatch.
     const ep=runtime.find(url.pathname,'POST');
+    if(url.pathname.includes('/rol'))console.log('[Rollenwahl] →',url.pathname,'| ep:',ep?'gefunden':'NICHT in Runtime','| session:',admin.readSession(req)?'da':'keine');
     let result;
     if(ep){
      const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
      const emit=(label,data)=>traces.step(trace,label,data);
      emit('Request empfangen',{method:req.method,path:url.pathname,body});
-     result=runtime.run(ep,{session:admin.readSession(req),body,emit,core,admin,commit,credentialPath,uploads});
+     // Konto-Sitzungen (Emoji, z. B. RaumAdmin) werden als Fallback aufgelöst:
+     // requireRole('admin') verlangt nur eine gültige Sitzung — die fachliche
+     // Zuständigkeit prüft weiterhin _manageable/manageArea pro Bereich.
+     // Legacy-Endpunkte (admin.api) bleiben Admin-Cookie-only.
+     result=runtime.run(ep,{session:admin.readSession(req)||core.session(body.token||cookie(req,'cms_account')),body,emit,core,admin,commit,credentialPath,uploads});
      emit('Response gesendet',{status:result.status,body:result.data});
     }else{
      result=admin.api(req,url.pathname.slice('/api/cms/admin/'.length),body);
@@ -356,4 +371,6 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  return {server,core,store};
 }
 if(require.main===module){const {server}=createServer();server.listen(Number(process.env.CMS_PORT||8081),'127.0.0.1',()=>console.log('GCS-CMS: http://localhost:'+(process.env.CMS_PORT||8081)));}
+ // Diagnose: beim Start anzeigen, ob die Rollenwahl-Endpunkte in der Runtime sind.
+ if(require.main===module){const {loadRuntime:_lr}=require('./cms-runtime.cjs');const _rt=_lr(cmsFile);for(const p of ['/api/cms/admin/roles','/api/cms/admin/role','/api/cms/account-roles','/api/cms/account-role'])console.log('  [Rollenwahl-EP]',p,_rt.find(p,'POST')?'OK':'FEHLT');}
 module.exports={createServer};

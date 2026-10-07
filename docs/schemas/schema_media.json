@@ -81,6 +81,35 @@
       }
     },
 
+    "TSpeech": {
+      "description": "Sprachausgabe (Text-to-Speech) über die Web Speech API. Service-Komponente; erste Ausgabe benötigt eine Nutzeraktion (Autoplay-Policy).",
+      "stage": "main",
+      "category": "media",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "text":   { "type": "string", "default": "", "description": "Zu sprechender Text" },
+        "lang":   { "type": "string", "default": "de-DE", "description": "Sprache (BCP-47)" },
+        "voice":  { "type": "string", "default": "", "description": "Stimmname aus getVoices(), leer = Systemstimme" },
+        "rate":   { "type": "number", "default": 1.0, "min": 0.1, "max": 10, "step": 0.1, "description": "Sprechtempo" },
+        "pitch":  { "type": "number", "default": 1.0, "min": 0, "max": 2, "step": 0.1, "description": "Tonhöhe" },
+        "volume": { "type": "number", "default": 1.0, "min": 0, "max": 1, "step": 0.1, "description": "Lautstärke" }
+      },
+      "methods": [
+        { "name": "speak", "description": "Text aussprechen; optionales Argument überschreibt die text-Property", "params": ["text?"] },
+        { "name": "stop", "description": "Ausgabe abbrechen" },
+        { "name": "pause", "description": "Ausgabe pausieren" },
+        { "name": "resume", "description": "Ausgabe fortsetzen" },
+        { "name": "getVoices", "description": "Verfügbare Stimmen als Liste liefern (resultVariable)" }
+      ],
+      "events": ["onStart", "onEnd", "onError", "onPause", "onResume"],
+      "example": {
+        "className": "TSpeech", "name": "Ansage", "x": 2, "y": 2, "width": 4, "height": 2,
+        "isService": true, "isHiddenInRun": true,
+        "text": "Punkt für links", "lang": "de-DE", "rate": 1.0
+      }
+    },
+
     "TVideo": {
       "description": "Video-Player. Zeigt eingebettete Videos an.",
       "stage": "main",

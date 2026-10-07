@@ -146,6 +146,7 @@ export class DialogDomainHelper {
             'TVideo': ['play', 'pause', 'stop', 'seek', 'setSrc', 'moveTo'],
             'TLink': ['open', 'show', 'hide', 'moveTo'],
             'TAudio': ['play', 'pause', 'stop', 'setSrc'],
+            'TSpeech': ['speak', 'stop', 'pause', 'resume', 'getVoices'],
             'TGameServer': ['connect', 'disconnect', 'createRoom', 'joinRoom', 'leaveRoom', 'sendMessage'],
             'TGameCard': ['flip', 'reset', 'moveTo'],
             'TInputController': ['enable', 'disable'],

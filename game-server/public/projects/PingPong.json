@@ -3,7 +3,8 @@
     "name": "PingPong",
     "version": "1.0.0",
     "author": "RoRiLa",
-    "_sourcePath": "projects/PingPong.json"
+    "_sourcePath": "projects/PingPong.json",
+    "_diskRevision": "bcdc4aaebb8e4420637ecd1a1554b5bf81c49088eeb09aa358d22e4b2a7006ce"
   },
   "stages": [
     {
@@ -22,6 +23,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 1,
           "y": 9,
@@ -56,6 +58,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 1,
           "y": 11,
@@ -86,6 +89,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "x": 1,
           "y": 13,
@@ -424,6 +428,7 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "description": "",
           "visible": true,
           "width": 6,
           "height": 2,
@@ -555,6 +560,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -605,6 +619,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -796,6 +819,15 @@
           "appearanceMode": "simple",
           "backgroundImage": "",
           "objectFit": "contain",
+          "sourceWidth": 0,
+          "sourceHeight": 0,
+          "sourceRectX": 0,
+          "sourceRectY": 0,
+          "sourceRectWidth": 0,
+          "sourceRectHeight": 0,
+          "puzzleEdges": "",
+          "puzzleTabDepth": 0,
+          "matchValue": "",
           "imageListId": "",
           "imageIndex": 0,
           "animationId": "",
@@ -1177,6 +1209,41 @@
           },
           "text": "Impressum",
           "icon": ""
+        },
+        {
+          "className": "TSpeech",
+          "id": "obj_1791308099131_vajc5bzlw",
+          "name": "Speech_29",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 37,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#00838f",
+            "borderColor": "#006064",
+            "borderWidth": 2
+          },
+          "text": "Achtung, es geht los!",
+          "lang": "de-DE",
+          "voice": "Katja",
+          "rate": 1,
+          "pitch": 1,
+          "volume": 1,
+          "speaking": false,
+          "paused": false,
+          "lastError": ""
         }
       ],
       "gameName": "NewTennis",
@@ -1215,29 +1282,15 @@
               "type": "action",
               "scope": "global",
               "sourceStage": "stage_blueprint"
+            },
+            {
+              "name": "Act_aud_EsGehtLos",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "id": "0eea8e94-03b8-482e-a28b-d7e8a8ff9dce",
-          "flowLayout": {
-            "StartTheGame": {
-              "x": 40,
-              "y": 40
-            },
-            "EnableSpriteMoving": {
-              "x": 40,
-              "y": 140
-            },
-            "EnableCollisions": {
-              "x": 40,
-              "y": 240
-            },
-            "SetBallVelocity": {
-              "x": 40,
-              "y": 340
-            }
-          }
+          "id": "0eea8e94-03b8-482e-a28b-d7e8a8ff9dce"
         },
         {
           "name": "MoveLeftPaddleUp",
@@ -1676,6 +1729,17 @@
           "showDetails": false,
           "scope": "global",
           "sourceStage": "stage_blueprint"
+        },
+        {
+          "id": "node-1791308158688",
+          "details": "",
+          "type": "call_method",
+          "name": "Act_aud_EsGehtLos",
+          "showDetails": false,
+          "target": "Speech_29",
+          "changes": {},
+          "target_ref": "obj_1791308099131_vajc5bzlw",
+          "method": "speak"
         }
       ],
       "variables": [],

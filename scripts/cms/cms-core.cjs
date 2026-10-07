@@ -40,6 +40,9 @@ function areaActive(db,id){const seen=new Set();while(id){if(seen.has(id))return
 function active(db,id){return db.people.some(p=>p.id===id&&p.active);}
 function rooms(db,id){const now=Date.now();return db.areas.filter(a=>a.type==='room'&&areaActive(db,a.id)&&(
  db.memberships.some(m=>m.personId===id&&m.active&&m.areaId===a.id)||
+ // Raumverwaltung schließt Zutritt ein: ein areaAdmin betritt den Raum,
+ // den er verwaltet, ohne separate Mitgliedschaft.
+ db.roles.some(r=>r.personId===id&&r.role==='areaAdmin'&&r.areaId===a.id&&r.active)||
  (db.temporaryRoomAccess||[]).some(x=>x.personId===id&&x.roomId===a.id&&x.active&&Number(x.expiresAt)>now)
 ));}
 function houseOf(db,areaId){let a=db.areas.find(x=>x.id===areaId),seen=new Set();while(a&&a.type!=='house'&&!seen.has(a.id)){seen.add(a.id);a=db.areas.find(x=>x.id===a.parentId);}return a?.type==='house'?a:null;}
@@ -56,15 +59,29 @@ function can(db,session,action,{areaId,game,childId}={}){
  if(action==='viewChild'||action==='viewProgress')return childrenOf(db,session.personId).includes(childId);
  // Beobachter: eigene Rolle auf Raum/Haus, kein Admin-Zugang nötig (E01).
  if(action==='observe')return db.roles.some(r=>r.personId===session.personId&&r.role==='observer'&&r.active&&areaActive(db,r.areaId)&&within(db,areaId,r.areaId));
- if(session.assurance!=='admin')return false;
- const roles=db.roles.filter(r=>r.personId===session.personId&&r.active&&areaActive(db,r.areaId));
+ if(session.assurance!=='admin'){
+  // RaumAdmin agiert über die Konto-Sitzung in der gewählten Raum-Rolle.
+  if(action==='manageArea')return session.activeRole?.role==='areaAdmin'&&areaActive(db,session.activeRole.areaId)&&db.roles.some(r=>r.personId===session.personId&&r.role==='areaAdmin'&&r.areaId===session.activeRole.areaId&&r.active)&&within(db,areaId,session.activeRole.areaId);
+  return false;
+ }
+ // Verwaltungsrollenwahl: noch nicht gewählte Rolle (null) sperrt, die
+ // gewählte scopet die Sitzung; Sitzungen ohne Feld (legacy) nutzen alle Rollen.
+ if(session.activeRole===null)return false;
+ const roles=session.activeRole?[session.activeRole]:db.roles.filter(r=>r.personId===session.personId&&r.active&&areaActive(db,r.areaId));
  if(action==='moderate')return roles.some(r=>r.role==='oversight'&&r.areaId==='root');
  if(action==='publish'||action==='editOwnGame')return roles.some(r=>r.role==='superAdmin'&&r.areaId==='root')&&(!game||game.ownerId===session.personId);
  if(action==='manageArea')return roles.some(r=>['areaAdmin','superAdmin'].includes(r.role)&&within(db,areaId,r.areaId));
  return false;
 }
 function createCore(db){validate(db);const sessions=new Map(),roomPresence=new Map(),presenceTtlMs=Number(process.env.CMS_ROOM_PRESENCE_MS)||90000;
- function login(sequence,onStep=()=>{}){const wanted=JSON.stringify(canonEmojiSeq(sequence)),matches=db.codes.filter(c=>JSON.stringify(canonEmojiSeq(c.sequence))===wanted);onStep('Zugangsdaten zuordnen',{output:{matched:matches.length===1,matches:matches.length}});if(matches.length!==1)return null;const c=matches[0],areaId=c.areaId,personActive=active(db,c.personId),houseActive=areaActive(db,areaId);onStep('Person und Bereich prüfen',{output:{personActive,houseActive}});const memberActive=db.memberships.some(m=>m.personId===c.personId&&m.areaId===areaId&&m.active&&areaActive(db,m.areaId));onStep('Hausmitgliedschaft prüfen',{output:{memberActive,areaId}});if(!personActive||!houseActive||!memberActive)return null;const token=crypto.randomBytes(32).toString('hex');sessions.set(token,{personId:c.personId,assurance:'profile',authVersion:db.people.find(p=>p.id===c.personId)?.authVersion||0,expires:Date.now()+3600000});onStep('Spielersitzung erstellen',{output:{personId:c.personId,assurance:'profile',validSeconds:3600}});return {token,person:db.people.find(p=>p.id===c.personId)};}
+ function login(sequence,onStep=()=>{}){const wanted=JSON.stringify(canonEmojiSeq(sequence)),matches=db.codes.filter(c=>JSON.stringify(canonEmojiSeq(c.sequence))===wanted);onStep('Zugangsdaten zuordnen',{output:{matched:matches.length===1,matches:matches.length}});if(matches.length!==1)return null;const c=matches[0],areaId=c.areaId,personActive=active(db,c.personId),houseActive=areaActive(db,areaId);onStep('Person und Bereich prüfen',{output:{personActive,houseActive}});const memberActive=db.memberships.some(m=>m.personId===c.personId&&m.areaId===areaId&&m.active&&areaActive(db,m.areaId));onStep('Hausmitgliedschaft prüfen',{output:{memberActive,areaId}});if(!personActive||!houseActive||!memberActive)return null;const token=crypto.randomBytes(32).toString('hex');
+ // Konto-Rollenwahl (Emoji-Kanal): jede Einwahl ist Spieler; kommen
+ // Raumverwaltungsrollen (areaAdmin auf Räumen dieses Hauses) hinzu,
+ // wartet die Sitzung mit activeRole=null auf die Wahl.
+ const accountRoles=[{role:'player',areaId,label:'Als Spieler · '+(db.areas.find(a=>a.id===areaId)?.name||areaId)}];
+ for(const r of db.roles.filter(r=>r.personId===c.personId&&r.role==='areaAdmin'&&r.active&&areaActive(db,r.areaId)&&db.areas.find(a=>a.id===r.areaId)?.type==='room'&&houseOf(db,r.areaId)?.id===areaId))
+  accountRoles.push({role:'areaAdmin',areaId:r.areaId,label:'Raumverwaltung · '+(db.areas.find(a=>a.id===r.areaId)?.name||r.areaId)});
+ sessions.set(token,{personId:c.personId,assurance:'profile',authVersion:db.people.find(p=>p.id===c.personId)?.authVersion||0,expires:Date.now()+3600000,houseId:areaId,accountRoles,activeRole:accountRoles.length===1?accountRoles[0]:null});onStep('Spielersitzung erstellen',{output:{personId:c.personId,assurance:'profile',validSeconds:3600}});return {token,person:db.people.find(p=>p.id===c.personId),roles:accountRoles,houseId:areaId,needRole:accountRoles.length>1};}
  function session(token){const s=sessions.get(token);if(!s||s.expires<=Date.now()||!active(db,s.personId)||(db.people.find(p=>p.id===s.personId)?.authVersion||0)!==(s.authVersion||0)){sessions.delete(token);return null;}return s;}
  function prunePresence(now=Date.now()){for(const [personId,row]of roomPresence)if(now-row.lastSeenAt>=presenceTtlMs)roomPresence.delete(personId);}
  function clearPresence(personId){if(personId)roomPresence.delete(personId);}

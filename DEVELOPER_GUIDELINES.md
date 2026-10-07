@@ -52,6 +52,8 @@
 - **isProjectDirty — Originator prüfen**: In `EditorViewManager.initMediator` wird `isProjectDirty = true` NUR bei echten User-Änderungen gesetzt.
 - **saveProjectToFile — Reihenfolge**: `isProjectChangeAvailable.defaultValue` und `isProjectDirty` müssen VOR `JSON.stringify` zurückgesetzt werden.
 - **loadProject — isProjectDirty**: `isProjectDirty=false` muss NACH `setProject()` und `notifyDataChanged()` gesetzt werden (synchron + `setTimeout(100)`).
+- **DO NOT (Projektdateien nie über Vite-Pfad lesen)**: Projektdateien NIEMALS via `fetch('/projects/...')` oder relative Pfade über den Frontend-Dev-Server laden! Vite bedient dies aus dem Root-Ordner `public/` (alter/unvollständiger Datenbestand) oder liefert bei fehlenden Dateien per SPA-Fallback `index.html` (Status 200). Das atomare Laden von Platteninhalt und SHA256-Revision MUSS immer über `fetchDiskProject()` (`/api/dev/project-file`) aus `game-server/public` erfolgen.
+- **DO NOT (Blinde Revisionsübernahme)**: In `captureDiskRevision()` und Session-Restores NIEMALS blind die Plattenrevision als aktuell akzeptieren, ohne die Basis-Revision des Datenstands zu prüfen (`DiskRevisionGuard`). Sonst wird der 409-Konfliktschutz des Servers ausgehebelt und externe/KI-Optimierungen werden vom Browser-AutoSave überschrieben.
 
 ## 4. Inspector & Flow-Editor
 

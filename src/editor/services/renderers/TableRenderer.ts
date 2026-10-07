@@ -177,7 +177,27 @@ export class TableRenderer {
                 cols.forEach((col: any) => {
                     const td = document.createElement('td');
                     td.style.cssText = 'padding:6px 12px;';
-                    td.innerText = String(col.format === 'boolean' ? (row[col.field || col.property] ? '✓' : '—') : (row[col.field || col.property] ?? ''));
+                    const fieldName = col.field || col.property;
+                    const type = col.type || 'text';
+                    if (type === 'image') {
+                        const size = Math.max(18, Math.min(64, (obj.rowHeight || 30) - 8));
+                        const thumb = document.createElement('div');
+                        thumb.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;`
+                            + `background:rgba(255,255,255,0.08);display:flex;align-items:center;`
+                            + `justify-content:center;overflow:hidden;`;
+                        const src = row[fieldName];
+                        if (src) {
+                            thumb.style.backgroundImage = `url(${src})`;
+                            thumb.style.backgroundSize = 'cover';
+                            thumb.style.backgroundPosition = 'center';
+                        } else if (col.fallback) {
+                            thumb.innerText = String(row[col.fallback] ?? '');
+                            thumb.style.fontSize = `${Math.round(size * 0.6)}px`;
+                        }
+                        td.appendChild(thumb);
+                    } else {
+                        td.innerText = String(col.format === 'boolean' ? (row[fieldName] ? '✓' : '—') : (row[fieldName] ?? ''));
+                    }
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);

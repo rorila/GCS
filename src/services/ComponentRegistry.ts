@@ -4,6 +4,7 @@ import {TServerUpload} from '../components/TServerUpload';
 import { TWindow } from '../components/TWindow';
 import { TVirtualGamepad } from '../components/TVirtualGamepad';
 import { TAudio } from '../components/TAudio';
+import { TSpeech } from '../components/TSpeech';
 import { TImage } from '../components/TImage';
 import { TImageList } from '../components/TImageList';
 import { TImageSplitter } from '../components/TImageSplitter';
@@ -131,6 +132,7 @@ export class ComponentRegistry {
         this.register('TWindow', TWindow);
         this.register('TVirtualGamepad', TVirtualGamepad);
         this.register('TAudio', TAudio);
+        this.register('TSpeech', TSpeech);
         this.register('TImage', TImage);
         this.register('TImageList', TImageList);
         this.register('TImageSplitter', TImageSplitter);
@@ -245,6 +247,7 @@ export class ComponentRegistry {
         this.typeMapping.set('RichText', 'TRichText');
         this.typeMapping.set('GroupPanel', 'TGroupPanel');
         this.typeMapping.set('Audio', 'TAudio');
+        this.typeMapping.set('Speech', 'TSpeech');
         this.typeMapping.set('Image', 'TImage');
         this.typeMapping.set('ImageList', 'TImageList');
         this.typeMapping.set('ImageSplitter', 'TImageSplitter');

@@ -30,6 +30,7 @@ import { FlowTaskManager, FlowTaskHost } from './services/FlowTaskManager';
 import { FlowNodeFactory, FlowNodeHost } from './services/FlowNodeFactory';
 import { FlowPascalManager, FlowPascalHost } from './services/FlowPascalManager';
 import { FlowToolbarManager, FlowToolbarHost } from './services/FlowToolbarManager';
+import { openSequenceDiagramDialog } from './services/SequenceDiagramDialog';
 import { Editor } from './Editor';
 
 const logger = Logger.get('FlowEditor');
@@ -611,6 +612,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
         // 7. Update back button visibility
         this.toolbarManager.updateBackButtonVisibility(this.contextHistory.length);
+        this.toolbarManager.updateSequenceButton(context);
 
         // 8. Restore scroll position for new context (or reset to top)
         const savedPos = this.scrollPositions.get(context);
@@ -834,9 +836,31 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         return this.hydrationManager.importTaskGraph(targetNode, task, isLinked);
     }
 
+    /**
+     * Öffnet das On-Demand-Sequenzdiagramm (nur im feature:<id>-Kontext).
+     * Ohne storyId wird die erste Story des Features verwendet.
+     */
+    public openSequenceDiagram(storyId?: string) {
+        if (!isFeatureContext(this.currentFlowContext)) return;
+        const fid = parseFeatureContext(this.currentFlowContext);
+        if (!fid || !this.project) return;
+        void openSequenceDiagramDialog(this, fid, storyId);
+    }
+
     public handleNodeDoubleClick(node: FlowElement) {
         // DEBUG: Log every double-click
         FlowEditor.logger.info(`=== DOUBLE-CLICK on node: ${node.name} ===`);
+
+        // 0. Feature-Übersicht (read-only): Story-/Event-Knoten → Sequenzdiagramm.
+        //    Task-Knoten behalten den Drill-Down in den Task-Flow.
+        if (isFeatureContext(this.currentFlowContext)) {
+            const role = node.data?.featureRole;
+            if ((role === 'story-open' || role === 'event') && node.data?.storyId) {
+                this.openSequenceDiagram(node.data.storyId);
+                return;
+            }
+            if (role === 'story-open' || role === 'event' || role === 'legend') return;
+        }
 
         const isTask = node instanceof FlowTask;
         const taskName = isTask ? (node.data?.taskName || node.Name) : null;

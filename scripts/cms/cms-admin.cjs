@@ -33,7 +33,18 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
   // HouseAdmin landet in der Hausverwaltung (dort legt er Räume an).
   const isSuper=core.db.roles.some(r=>r.personId===c.personId&&r.role==='superAdmin'&&r.areaId==='root'&&r.active);
   const isHouse=core.db.roles.some(r=>r.personId===c.personId&&r.role==='areaAdmin'&&r.active&&core.db.areas.find(a=>a.id===r.areaId)?.type==='house'&&areaActive(core.db,r.areaId));
-  verified.add(s);return {session:s,contexts:['admin',...contexts],super:isSuper,house:isHouse};
+  // Rollenwahl: SuperAdmin + HouseAdmin (areaAdmin nur auf Areas vom Typ
+  // 'house' — RaumAdmin gehört zum Emoji-Kanal). Bei genau einer Rolle wird
+  // sie sofort aktiv; bei mehreren bleibt activeRole null bis zur Wahl
+  // auf /roles — danach gelten Rechte nur noch im gewählten Scope.
+  const adminRoles=core.db.roles
+   .filter(r=>r.personId===c.personId&&r.active&&areaActive(core.db,r.areaId)&&(r.role==='superAdmin'||(r.role==='areaAdmin'&&core.db.areas.find(a=>a.id===r.areaId)?.type==='house')))
+   .map(r=>({role:r.role,areaId:r.areaId,label:(r.role==='superAdmin'?'Super-Administration':'Hausverwaltung')+' · '+(core.db.areas.find(a=>a.id===r.areaId)?.name||r.areaId)}));
+  s.adminRoles=adminRoles;s.activeRole=adminRoles.length===1?adminRoles[0]:null;
+  console.log('[Rollenwahl] Login',c.personId,
+   '| Rollen gesamt:',JSON.stringify(core.db.roles.filter(r=>r.personId===c.personId).map(r=>({role:r.role,areaId:r.areaId,active:r.active,type:core.db.areas.find(a=>a.id===r.areaId)?.type}))),
+   '| adminRoles:',adminRoles.length,'| activeRole:',JSON.stringify(s.activeRole));
+  verified.add(s);return {session:s,contexts:['admin',...contexts],super:isSuper,house:isHouse,roles:adminRoles};
  }
  const verified=new WeakSet();
  function createSession(s){if(!verified.has(s))throw Error('Nicht geprüfte Verwaltungssitzung');verified.delete(s);const now=Date.now();for(const [k,v]of sessions)if(v.expires<now)sessions.delete(k);const token=crypto.randomBytes(32).toString('hex');sessions.set(token,s);return {token};
@@ -42,7 +53,7 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
  // die Antwortdaten enthalten die Tokens als Transportfelder für den Aufrufer.
  function login(req,body){const ep=rt().find('/api/cms/admin-login','POST');if(!ep)return{error:'Anmeldeendpunkt fehlt.'};
   const r=rt().run(ep,{session:null,body,core,admin:self,commit,credentialPath,remoteAddress:req.socket?.remoteAddress},{strict:true}),d=r.data||{};
-  if(d.adminToken)return{token:d.adminToken,accountToken:d.accountToken,personId:d.personId,contexts:d.contexts||['admin'],super:!!d.super,house:!!d.house};
+  if(d.adminToken)return{token:d.adminToken,accountToken:d.accountToken,personId:d.personId,contexts:d.contexts||['admin'],super:!!d.super,house:!!d.house,roles:d.roles||[]};
   if(d.accountToken)return{accountToken:d.accountToken,personId:d.personId,contexts:d.contexts||[]};
   return{error:d.message||'Anmeldung nicht möglich.'};
  }

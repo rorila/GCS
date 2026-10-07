@@ -1,6 +1,8 @@
 const crypto=require('node:crypto'),fs=require('node:fs');
 const {areaActive}=require('./cms-core.cjs');
-const isSuper=(db,s)=>s?.assurance==='admin'&&db.people.some(p=>p.id===s.personId&&p.active)&&areaActive(db,'root')&&db.roles.some(r=>r.personId===s.personId&&r.role==='superAdmin'&&r.areaId==='root'&&r.active);
+// SuperAdmin wirkt nur über die gewählte Verwaltungsrolle der Sitzung —
+// die Personen-Rolle muss zusätzlich weiterhin aktiv sein.
+const isSuper=(db,s)=>s?.assurance==='admin'&&s.activeRole?.role==='superAdmin'&&db.people.some(p=>p.id===s.personId&&p.active)&&areaActive(db,'root')&&db.roles.some(r=>r.personId===s.personId&&r.role==='superAdmin'&&r.areaId==='root'&&r.active);
 function enroll(core,credentialPath,ticket,username,password,commit){
  const fail=message=>({ok:false,message});if(!/^[a-f0-9]{64}$/.test(ticket||'')||!/^[a-zA-Z0-9_-]{3,40}$/.test(username||'')||typeof password!=='string'||password.length<12||password.length>200)return fail('Gültigen Link, Benutzernamen (3–40 Zeichen) und Passwort (12–200 Zeichen) angeben.');
  const hash=crypto.createHash('sha256').update(ticket).digest('hex'),invite=(core.db.invites||[]).find(i=>['admin-setup','admin-reset'].includes(i.purpose)&&i.hash===hash&&i.expires>Date.now());

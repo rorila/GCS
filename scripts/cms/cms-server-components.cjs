@@ -18,6 +18,26 @@ const ROLES={
 // Format-Signatur des Upload-Rohmaterials (Whitelist bleibt in der Komponente).
 const sniffImage=b=>b.length>11&&b[0]===0x89&&b[1]===0x50&&b[2]===0x4E&&b[3]===0x47?'png':b[0]===0xFF&&b[1]===0xD8?'jpeg':b.length>11&&b.toString('latin1',0,4)==='RIFF'&&b.toString('latin1',8,12)==='WEBP'?'webp':null;
 
+// Fremd-Avatar (Admin/Betreuer → Bewohner): erlaubt für SuperAdmin,
+// bestätigte Erziehungsberechtigte des Kindes (guardians) oder
+// HouseAdmin — areaAdmin-Rolle auf einer Area vom Typ 'house', in der
+// die Zielperson aktive Mitgliedschaft hat.
+const canAssignAvatar=(db,session,target)=>{
+ if(!session||!target)return false;
+ // Verwaltungspfade gelten nur in der gewählten Admin-Rolle der Sitzung
+ // (activeRole) — die Rolle muss der Person zudem weiterhin gehören.
+ const ar=session.activeRole;
+ if(ar?.role==='superAdmin'&&db.roles.some(r=>r.personId===session.personId&&r.role==='superAdmin'&&r.areaId==='root'&&r.active))return true;
+ if(target.kind==='child'&&childrenOf(db,session.personId).includes(target.id))return true;
+ const houseId=ar?.role==='areaAdmin'&&areaActive(db,ar.areaId)
+  &&db.areas.find(a=>a.id===ar.areaId)?.type==='house'
+  &&db.roles.some(r=>r.personId===session.personId&&r.role==='areaAdmin'&&r.areaId===ar.areaId&&r.active)
+  ?ar.areaId:null;
+ if(!houseId)return false;
+ return db.memberships.some(m=>m.personId===target.id&&m.active&&areaActive(db,m.areaId)
+  &&houseOf(db,m.areaId)?.id===houseId);
+};
+
 // Deklaratives Mehrspieler-Flag aus meta.multiplayer der Projektdatei.
 // Fehlt es → null (Solospiel); vorhanden, aber fehlerhaft → Upload wird
 // laut abgelehnt, damit kein falscher Katalog-Eintrag entsteht.
@@ -105,11 +125,41 @@ const methods={
   requireRole(ctx,_component,params){
    const policy=ROLES[params?.[0]];
    if(!policy)throw Error('Unbekannte Rollenrichtlinie: '+params?.[0]);
+   if(!ctx.session)console.log('[Rollenwahl] requireRole('+params?.[0]+') ← KEINE Session');
    if(!ctx.session)return{ok:false,status:401,message:'Bitte Verwaltung neu anmelden.'};
    if(!policy.check(ctx))return{ok:false,status:403,message:policy.deny};
    return{ok:true,personId:ctx.session.personId};
   },
   logout(ctx){ctx.admin?.endSession(ctx.session);return{ok:true};},
+  // Rollenwahl: liefert die Kandidaten der Sitzung (Verwaltung: adminRoles,
+  // Konto: accountRoles). Rein lesend — die Rechte entscheidet can().
+  roles(ctx){
+   const list=ctx.session?.adminRoles||ctx.session?.accountRoles||[];
+   // Die Wahl-Tabellen speichern Datensätze über recordKey 'id'; die
+   // fachliche Rolle selbst hat keinen Primärschlüssel. Die ID bleibt
+   // deterministisch, damit Runde und Browser dieselbe Auswahl finden.
+   const roles=list.map(r=>({...r,id:r.id||`${r.role}:${r.areaId}`}));
+   console.log('[Rollenwahl] roles() ← session:',ctx.session?ctx.session.personId+'/'+ctx.session.assurance:'KEINE','| adminRoles:',ctx.session?.adminRoles?.length??'-','| accountRoles:',ctx.session?.accountRoles?.length??'-','| liefert:',list.length);
+   return{ok:true,roles};
+  },
+  // Wählt die aktive Rolle der Sitzung. Admin-Sitzungen bekommen ein
+  // Oberflächen-Ziel (target), Konto-Sitzungen eine Stage + Kontextwerte.
+  chooseRole(ctx,_component,params){
+   console.log('[Rollenwahl] chooseRole ←',JSON.stringify(params?.[0]),'| session:',ctx.session?.personId||'KEINE');
+   const sel=exprOf(ctx,params?.[0],{})||{},db=ctx.core.db;
+   const list=ctx.session?.adminRoles||ctx.session?.accountRoles||[];
+   const match=list.find(r=>r.role===sel.role&&r.areaId===sel.areaId);
+   if(!match)return{ok:false,message:'Diese Rolle steht nicht zur Verfügung.'};
+   if(match.role!=='player'&&!db.roles.some(r=>r.personId===ctx.session.personId&&r.role===match.role&&r.areaId===match.areaId&&r.active&&(r.areaId==='root'||areaActive(db,r.areaId))))
+    return{ok:false,message:'Diese Rolle steht nicht mehr zur Verfügung.'};
+   ctx.session.activeRole=match;
+   ctx.emit('Rolle gewählt',{personId:ctx.session.personId,role:match.role,areaId:match.areaId});
+   if(ctx.session.adminRoles)return{ok:true,target:match.role==='superAdmin'?'/super':(db.areas.find(a=>a.id===match.areaId)?.type==='house'?'/house?house='+match.areaId:'/admin')};
+   return{ok:true,stage:match.role==='areaAdmin'?'stage_room_overview':'stage_gallery',
+    houseId:ctx.session.houseId||'',roomId:match.role==='areaAdmin'?match.areaId:'',
+    houseName:db.areas.find(a=>a.id===ctx.session.houseId)?.name||'',
+    roomName:db.areas.find(a=>a.id===match.areaId)?.name||''};
+  },
   // Verwaltungssitzung aus geprüftem Zugang (verifyAdmin). Das Token bleibt
   // Transportfeld — der Server wandelt es in ein HttpOnly-Cookie um.
   createAdmin(ctx,_component,params){
@@ -151,20 +201,20 @@ const methods={
   authenticate(ctx,_component,params){
    const spec=params?.[0]||{},scope={};
    const found=ctx.core.login(exprOf(ctx,spec.sequence,scope),(label,data)=>ctx.emit(label,data));
-   return found?{ok:true,found:true,token:found.token,name:found.person?.name,avatar:found.person?.avatar}:{ok:true,found:false};
+   return found?{ok:true,found:true,token:found.token,name:found.person?.name,avatar:found.person?.avatar,roles:found.roles||[],houseId:found.houseId||'',needRole:!!found.needRole}:{ok:true,found:false};
   },
   // Verwaltungseinwahl: admin.verify kapselt Versuchslimit, scrypt-Hash sowie
   // Person- und Zuständigkeitsprüfung (emit-Schritte bleiben im Trace).
   verifyAdmin(ctx){
    const checked=ctx.admin.verify(ctx.remoteAddress,ctx.body||{},(l,d)=>ctx.emit(l,d));
-   return{hasSession:!!checked.session,session:checked.session||null,personId:checked.session?.personId||checked.personId||null,contexts:checked.contexts||[],super:!!checked.super,house:!!checked.house,message:checked.error||''};
+   return{hasSession:!!checked.session,session:checked.session||null,personId:checked.session?.personId||checked.personId||null,contexts:checked.contexts||[],super:!!checked.super,house:!!checked.house,adminRoles:checked.session?.adminRoles||[],message:checked.error||''};
   },
   // Antwortdaten der Verwaltungsanmeldung: ok + Kontext-Flags; Tokens sind
   // Transportfelder — der Server wandelt sie in HttpOnly-Cookies um.
   adminResult(ctx,_component,params){
    const spec=params?.[0]||{},tok=ctx.vars.Verwaltung?.token,acc=ctx.vars.Konto?.token,g=ctx.vars.Geprueft||{},ctxs=g.contexts||[];
    const ok=!!(tok||acc),d={ok,message:tok?spec.successMessage:acc?spec.accountMessage:(g.message||spec.failureMessage)};
-   if(ok)Object.assign(d,{contexts:ctxs,admin:ctxs.includes('admin'),parent:ctxs.includes('parent'),observer:ctxs.includes('observer'),super:!!g.super,house:!!g.house});
+   if(ok)Object.assign(d,{contexts:ctxs,admin:ctxs.includes('admin'),parent:ctxs.includes('parent'),observer:ctxs.includes('observer'),super:!!g.super,house:!!g.house,roles:g.adminRoles||[],needRole:(g.adminRoles||[]).length>1});
    if(tok)d.adminToken=tok;if(acc)d.accountToken=acc;if(g.personId)d.personId=g.personId;
    return d;
   }
@@ -1084,6 +1134,12 @@ const methods={
    const game=db.games.find(g=>g.id===p.gameId),count=p.members.filter(m=>!m.leftAt).length,max=game?.multiplayer?.maxPlayers;
    if(max&&count>=max)return{ok:false,status:409,message:'Die Partie ist inzwischen voll.'};
    const started=ensurePartySession(ctx,p.gameId,p.areaId);if(!started.data.ok)return{ok:false,status:started.status,message:started.data.message};
+   // Wer eine Spieleinladung annimmt, agiert als Spieler: aktive Rolle der
+   // Konto-Sitzung auf 'player' setzen (Haus der Partie), falls vorhanden.
+   const partyHouse=houseOf(db,p.areaId);
+   const playerRole=(ctx.session.accountRoles||[]).find(r=>r.role==='player'&&r.areaId===partyHouse?.id)
+    ||(ctx.session.accountRoles||[]).find(r=>r.role==='player');
+   if(playerRole)ctx.session.activeRole=playerRole;
    ctx.commit(ctx.session,'party-invite-accept',p.areaId,next=>{const np=next.parties.find(x=>x.id===p.id);np.members.push({personId:ctx.session.personId,playSessionId:started.data.playSessionId,joinedAt:new Date().toISOString(),invitationId:id});next.gameInvitations.find(x=>x.id===id).status='accepted';const access=next.temporaryRoomAccess.find(x=>x.invitationId===id);if(access)access.expiresAt=Date.now()+60*60*1000;if(np.oneClick&&np.members.filter(m=>!m.leftAt).length>=(game.multiplayer?.minPlayers||2)){np.status='playing';np.startedAt=new Date().toISOString();const hostSession=next.playSessions.find(s=>s.id===np.members.find(m=>m.personId===np.hostId)?.playSessionId);if(hostSession)hostSession.lastHeartbeatAt=new Date().toISOString();}next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:p.hostId,type:'game-invitation-accepted',invitationId:id,read:false,createdAt:new Date().toISOString()});});
    const key=crypto.randomBytes(24).toString('hex');ctx.launches.set(key,{token:ctx.body.token,gameId:p.gameId,areaId:p.areaId,playSessionId:started.data.playSessionId,partyId:p.id});
    return{ok:true,status:'accepted',partyId:p.id,launch:'/play/'+key,message:'Einladung angenommen. Die Partie wird geöffnet.'};
@@ -1235,6 +1291,19 @@ const methods={
   process(ctx,component){
    const up=ctx.upload||{},bytes=up.bytes||Buffer.alloc(0);
    if(bytes.length>component.maxBytes)return{ok:false,status:413,message:'Datei ist zu groß.'};
+   // Fremd-Avatar: personId aus den Upload-Metadaten (wie gameId beim
+   // Spiel-Upload). Ohne personId bleibt es beim eigenen Profilbild.
+   // Berechtigung wird VOR Datei-Schreiben und Commit erzwungen.
+   let targetPerson=null;
+   if(component.kind==='avatar'){
+    const pid=typeof up.meta?.personId==='string'?up.meta.personId:'';
+    if(pid&&pid!==ctx.session?.personId){
+     targetPerson=ctx.core.db.people.find(p=>p.id===pid&&p.active);
+     if(!targetPerson)return{ok:false,status:404,message:'Die Person ist nicht mehr verfügbar.'};
+     if(!canAssignAvatar(ctx.core.db,ctx.session,targetPerson))return{ok:false,status:403,message:'Keine Berechtigung für diese Person.'};
+     ctx.emit('Fremd-Avatar angefordert',{ownerId:ctx.session?.personId,targetId:targetPerson.id});
+    }
+   }
    let content,filename,record,targetGame,description='',bundle=null,oldFile='',multiplayer=null,modes=null;
    try{
     if(component.kind==='game'){
@@ -1273,12 +1342,12 @@ const methods={
    // löst diese Dateien später über uploads.gameMedia auf.
    const mediaDir=bundle?path.join(ctx.uploads.directory,filename.slice(0,-5)):null;
    if(bundle)for(const [rel,data]of bundle.media){const tp=path.join(mediaDir,rel);fs.mkdirSync(path.dirname(tp),{recursive:true});fs.writeFileSync(tp,data,{flag:'wx'});}
-   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame){const row=next.games.find(g=>g.id===targetGame.id);Object.assign(row,{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});if(multiplayer)row.multiplayer=multiplayer;else delete row.multiplayer;row.modes=modes;}else next.people.find(p=>p.id===ctx.session.personId).avatarImage='/avatars/'+filename});}
+   try{ctx.uploads.commit(ctx.session,component.kind+'-upload',next=>{if(record)next.games.push(record);else if(targetGame){const row=next.games.find(g=>g.id===targetGame.id);Object.assign(row,{description,storage:'upload',file:filename,version:(targetGame.version||0)+1,status:'draft'});if(multiplayer)row.multiplayer=multiplayer;else delete row.multiplayer;row.modes=modes;}else next.people.find(p=>p.id===(targetPerson?.id||ctx.session.personId)).avatarImage='/avatars/'+filename});}
    catch(e){fs.unlinkSync(f);if(mediaDir)fs.rmSync(mediaDir,{recursive:true,force:true});throw e;}
    // Ersetzte Datei erst nach erfolgreicher Zuordnung entfernen.
    if(oldFile&&oldFile!==filename)ctx.uploads.removeGameFile(oldFile);
    const gameId=record?.id||targetGame?.id;
-   ctx.emit('Datei und Zuordnung gespeichert',{kind:component.kind,ownerId:ctx.session.personId,id:gameId});
+   ctx.emit('Datei und Zuordnung gespeichert',{kind:component.kind,ownerId:ctx.session.personId,id:gameId,targetId:targetPerson?.id});
    return{ok:true,message:component.successMessage,...(component.kind==='game'?{id:gameId,status:'draft'}:{avatarImage:'/avatars/'+filename})};
   },
   // Entfernt Upload-Datei + Bundle-Verzeichnis eines Spiels — technische

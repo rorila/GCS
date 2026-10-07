@@ -1,5 +1,6 @@
 import { GameProject, StageDefinition } from '../../model/types';
-import { featureContextId } from '../../model/FeatureHierarchy';
+import { featureContextId, isFeatureContext, parseFeatureContext, findFeatureById } from '../../model/FeatureHierarchy';
+import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
 import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('FlowEditor', 'FlowToolbarManager');
@@ -13,6 +14,7 @@ export interface FlowToolbarHost {
     // Callbacks
     switchActionFlow(context: string, addToHistory?: boolean, skipSync?: boolean): void;
     onGoBack(): void;
+    openSequenceDiagram?(): void;
     createNewTaskFlow(): void;
     deleteCurrentTaskFlow(): void;
     toggleDetailsView(): void;
@@ -25,6 +27,7 @@ export class FlowToolbarManager {
     private host: FlowToolbarHost;
     public flowSelect!: HTMLSelectElement;
     public backButton!: HTMLButtonElement;
+    public seqDiagramBtn!: HTMLButtonElement;
     public detailsToggleBtn!: HTMLButtonElement;
     public actionCheckBtn!: HTMLButtonElement;
     public filterInput!: HTMLInputElement;
@@ -50,6 +53,14 @@ export class FlowToolbarManager {
         this.backButton.style.cssText = 'padding:5px 10px;background:#555;color:white;border:none;border-radius:4px;cursor:pointer;margin-right:5px;display:none';
         this.backButton.onclick = () => this.host.onGoBack();
         toolbar.appendChild(this.backButton);
+
+        // Sequence Diagram Button (nur im Feature-Kontext sichtbar)
+        this.seqDiagramBtn = document.createElement('button');
+        this.seqDiagramBtn.innerText = '📈 Sequenz';
+        this.seqDiagramBtn.title = 'Sequenzdiagramm der Story anzeigen';
+        this.seqDiagramBtn.style.cssText = 'padding:5px 10px;background:#00695c;color:white;border:none;border-radius:4px;cursor:pointer;margin-right:5px;display:none';
+        this.seqDiagramBtn.onclick = () => this.host.openSequenceDiagram?.();
+        toolbar.appendChild(this.seqDiagramBtn);
 
         // New Task Button
         const newFlowBtn = document.createElement('button');
@@ -141,16 +152,23 @@ export class FlowToolbarManager {
         this.flowSelect.appendChild(optOverviewGroup);
 
         // --- Features: Ablauf ueber Task-Grenzen hinweg (feature:<id>) ---
+        const allStories: any[] = this.host.project.userStories?.userStories || [];
+        const isEmptyLeaf = (stage: StageDefinition, f: any): boolean => {
+            const hasChildren = (stage.features || []).some((c: any) => c.parentId === f.id);
+            if (hasChildren) return false;
+            const linkedIds = new Set<string>(f.userStoryIds || []);
+            return !allStories.some((us: any) => us.featureId === f.id || linkedIds.has(us.id));
+        };
         const featureGroup = document.createElement('optgroup');
         featureGroup.label = '✨ FEATURES';
-        for (const stage of this.host.project.stages || []) {
-            for (const f of stage.features || []) {
-                const opt = document.createElement('option');
-                opt.value = featureContextId(f.id);
-                opt.innerText = `📦 ${f.name}${this.host.project.stages!.length > 1 ? ` (${stage.name})` : ''}`;
-                opt.selected = currentFlowContext === opt.value;
-                featureGroup.appendChild(opt);
-            }
+        for (const f of activeStage?.features || []) {
+            const opt = document.createElement('option');
+            opt.value = featureContextId(f.id);
+            const emptyMark = isEmptyLeaf(activeStage!, f) ? ' ⚠' : '';
+            opt.innerText = `📦 ${f.name}${emptyMark}`;
+            opt.title = emptyMark ? 'Keine User Stories zugeordnet' : '';
+            opt.selected = currentFlowContext === opt.value;
+            featureGroup.appendChild(opt);
         }
         if (featureGroup.children.length > 0) {
             this.flowSelect.appendChild(featureGroup);
@@ -256,15 +274,60 @@ export class FlowToolbarManager {
             }
 
             if (!found) {
-                logger.warn(`Current context "${currentFlowContext}" nicht im Dropdown gefunden (falsche Stage?). Wechsle zur Übersicht.`, { activeStage: activeStage?.id });
-                
-                setTimeout(() => {
-                    this.host.switchActionFlow('element-overview', false, true);
-                }, 10);
+                // Kein harter Sprung zur Übersicht, solange der Kontext im Projekt
+                // existiert — der Dropdown listet nur Tasks/Features der aktiven
+                // Stage, Kontexte anderer Stages/Scopes wären sonst unberechtigt
+                // rausgeflogen. Stattdessen Kontext als Option oben einblenden.
+                if (this.contextExistsInProject(currentFlowContext)) {
+                    logger.info(`Current context "${currentFlowContext}" nicht im Dropdown (andere Stage), existiert aber im Projekt — behalte Kontext.`, { activeStage: activeStage?.id });
+                    const opt = document.createElement('option');
+                    opt.value = currentFlowContext;
+                    opt.innerText = `→ Kontext: ${this.contextLabel(currentFlowContext)}`;
+                    opt.selected = true;
+                    this.flowSelect.prepend(opt);
+                } else {
+                    logger.warn(`Current context "${currentFlowContext}" existiert nicht mehr im Projekt. Wechsle zur Übersicht.`, { activeStage: activeStage?.id });
+                    setTimeout(() => {
+                        this.host.switchActionFlow('element-overview', false, true);
+                    }, 10);
+                }
             }
         }
 
+        // Sequenzdiagramm-Button nur im Feature-Kontext anbieten
+        this.updateSequenceButton(currentFlowContext);
+
         this.flowSelect.value = currentFlowContext;
+    }
+
+    /** 📈-Button nur im feature:<id>-Kontext zeigen (auch bei switchActionFlow ohne Selector-Rebuild). */
+    public updateSequenceButton(context?: string): void {
+        if (this.seqDiagramBtn) {
+            const ctx = context ?? this.host.currentFlowContext;
+            this.seqDiagramBtn.style.display = isFeatureContext(ctx) ? '' : 'none';
+        }
+    }
+
+    private contextLabel(context: string): string {
+        if (isFeatureContext(context)) {
+            const found = findFeatureById(this.host.project, parseFeatureContext(context));
+            return found ? `${found.feature.name || context} (${found.stage?.name || '?'})` : context;
+        }
+        const container = projectTaskRegistry.getTaskContainer(context);
+        if (container.type === 'stage' && container.stageId) {
+            const stage = this.host.project?.stages?.find(s => s.id === container.stageId);
+            return `${context} (${stage?.name || container.stageId})`;
+        }
+        return container.type === 'global' ? `${context} (global)` : context;
+    }
+
+    private contextExistsInProject(context: string): boolean {
+        const project = this.host.project;
+        if (!project) return false;
+        if (isFeatureContext(context)) {
+            return !!findFeatureById(project, parseFeatureContext(context));
+        }
+        return projectTaskRegistry.getTaskContainer(context).type !== 'none';
     }
 
     public updateBackButtonVisibility(historyLength: number) {

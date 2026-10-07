@@ -13,6 +13,7 @@ import { mediatorService } from '../../services/MediatorService';
 import { dataService } from '../../services/DataService';
 import { Logger } from '../../utils/Logger';
 import type { EditorDataManager, EditorDataHost } from './EditorDataManager';
+import { decideDiskRevision, readBaseRevision, fetchDiskProject, stampDiskProject, isServerManagedPath } from './DiskRevisionGuard';
 
 export class EditorProjectLoader {
     private manager: EditorDataManager;
@@ -26,24 +27,91 @@ export class EditorProjectLoader {
         this.manager = manager;
     }
 
+    /**
+     * Ermittelt die Plattenrevision und prüft, ob die geladenen Daten darauf basieren.
+     * KRITISCH: Niemals blind die aktuelle Revision übernehmen — sonst überschreibt der
+     * AutoSave extern geänderte Dateien (z.B. KI-Optimierung) mit altem Browserstand.
+     */
     private async captureDiskRevision(data: any): Promise<void> {
         const filePath = this.manager.currentSavePath;
+        // Session-Zustand VOR dem Zurücksetzen merken (eigene Writes, z.B. Undo-Snapshots)
+        const sessionVerified = this.manager.diskRevisionReady && !this.manager.diskSaveConflict;
+        const sessionRevision = this.manager.diskRevision;
+        // Basis-Revision SYNCHRON lesen, bevor Post-Load-Schritte data.meta anfassen
+        const { baseKnown, base } = readBaseRevision(data);
         this.manager.diskRevisionReady = false;
         this.manager.diskSaveConflict = false;
-        if (!filePath || /^[a-zA-Z]:\//.test(filePath)) return;
+        if (!filePath || !isServerManagedPath(filePath)) return;
         try {
             const response = await fetch('/api/dev/project-version', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filePath })
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const info = await response.json();
-            this.manager.diskRevision = info.revision ?? null;
-            this.manager.diskRevisionReady = true;
+            const current: string | null = info.revision ?? null;
             if (!data.meta) data.meta = {};
-            data.meta._diskRevision = this.manager.diskRevision;
-            this.logger.info(`[LoadProject] Dateirevision erfasst: ${String(this.manager.diskRevision).slice(0, 12) || 'neue Datei'}`);
+
+            const decision = decideDiskRevision({ baseKnown, base, current, sessionRevision, sessionVerified });
+            if (decision === 'conflict') {
+                // Basis-Revision behalten → auch manuelles Speichern erhält vom Server 409
+                this.manager.diskRevision = base;
+                this.manager.diskRevisionReady = true;
+                this.manager.diskSaveConflict = true;
+                data.meta._diskRevision = base;
+                this.logger.warn(`[LoadProject] KONFLIKT: Daten basieren auf ${String(base).slice(0, 12)}, Platte ist ${String(current).slice(0, 12)}. Disk-AutoSave gesperrt.`);
+                void this.resolveRevisionConflict(filePath, data, current);
+                return;
+            }
+
+            this.manager.diskRevision = current;
+            this.manager.diskRevisionReady = true;
+            data.meta._diskRevision = current;
+            if (this.host.project === data) projectPersistenceService.autoSaveToLocalStorage(data);
+            this.logger.info(`[LoadProject] Dateirevision erfasst: ${String(current).slice(0, 12) || 'neue Datei'}`);
         } catch (err) {
             this.logger.warn('[LoadProject] Dateirevision nicht prüfbar; Disk-AutoSave bleibt aus Sicherheitsgründen gesperrt.', err);
+        }
+    }
+
+    /**
+     * Benutzerentscheidung bei abweichender Plattenrevision.
+     * Standard (empfohlen): Plattenstand laden. Überschreiben nur nach expliziter Bestätigung.
+     */
+    private async resolveRevisionConflict(filePath: string, data: any, current: string | null): Promise<void> {
+        const loadDisk = await ConfirmDialog.show(
+            `Die Projektdatei „${filePath}" wurde außerhalb dieses Browsers geändert (z.B. durch eine KI-Optimierung).\n\n` +
+            'Der Browser enthält einen älteren Stand. Der AutoSave ist gesperrt, damit nichts überschrieben wird.\n\n' +
+            'Empfohlen: Stand von der Platte laden.',
+            'Projektdatei wurde extern geändert', 'Plattenstand laden', 'Browserstand behalten'
+        );
+        if (loadDisk) {
+            try {
+                const disk = await fetchDiskProject(filePath);
+                const project = stampDiskProject(disk, filePath);
+                if (!disk.exists || !project) throw new Error(`Datei nicht gefunden: ${filePath}`);
+                this.loadProject(project, filePath);
+                NotificationToast.show('Stand von der Platte geladen.', 'success');
+            } catch (err: any) {
+                this.logger.error('[LoadProject] Plattenstand konnte nicht geladen werden:', err);
+                NotificationToast.show('Plattenstand konnte nicht geladen werden: ' + (err?.message || err) + ' — AutoSave bleibt gesperrt.', 'error');
+            }
+            return;
+        }
+        const overwrite = await ConfirmDialog.show(
+            'Browserstand behalten UND die Datei auf der Platte beim nächsten Speichern überschreiben?\n\n' +
+            'Die externen Änderungen (z.B. KI-Optimierung) gehen dabei verloren.',
+            'Überschreiben bestätigen', 'Ja, überschreiben', 'Nein, AutoSave gesperrt lassen'
+        );
+        if (overwrite && this.host.project === data) {
+            this.manager.diskRevision = current;
+            this.manager.diskRevisionReady = true;
+            this.manager.diskSaveConflict = false;
+            data.meta._diskRevision = current;
+            this.host.isProjectDirty = true;
+            this.manager.autoSaveToLocalStorage();
+            NotificationToast.show('Browserstand wird auf die Platte geschrieben.', 'warning');
+        } else {
+            NotificationToast.show('AutoSave bleibt gesperrt. Über „Vom Server neu laden (Force)" kann der Plattenstand geladen werden.', 'warning');
         }
     }
 
@@ -378,12 +446,29 @@ export class EditorProjectLoader {
 
         try {
             this.logger.info('Force Reload: Fetching project from server...');
-            const projectData = await projectPersistenceService.fetchProjectFromServer();
+            const filePath = this.manager.currentSavePath;
+            let projectData: any;
+            if (filePath && isServerManagedPath(filePath)) {
+                // Aktuelle Projektdatei aus game-server/public (NICHT über Vite /projects/…)
+                const disk = await fetchDiskProject(filePath);
+                if (!disk.exists || !disk.project) throw new Error(`Datei nicht gefunden: ${filePath}`);
+                projectData = stampDiskProject(disk, filePath);
+            } else {
+                projectData = await projectPersistenceService.fetchProjectFromServer();
+            }
+
+            // Ab hier keine Disk-Writes mehr aus dem alten Browserstand
+            this.manager.diskSaveConflict = true;
+            if (this.manager.diskSaveTimer !== null) {
+                clearTimeout(this.manager.diskSaveTimer);
+                this.manager.diskSaveTimer = null;
+            }
 
             // In IndexedDB speichern (ersetzt LocalStorage seit v3.32.0)
             const { IndexedDBAdapter } = await import('../../adapters/IndexedDBAdapter');
             const idb = new IndexedDBAdapter();
             await idb.save(projectData);
+            this.host.isProjectDirty = false; // kein beforeunload-Dialog für den verworfenen Stand
 
             this.logger.info('Force Reload successful. Reloading page...');
             window.location.reload();

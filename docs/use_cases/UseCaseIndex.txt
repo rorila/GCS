@@ -1,3 +1,17 @@
+### 2026-10-07
+[UC-2026-10-07-Autosave-Revision-Guard]
+Beschreibung: Schutz vor dem Überschreiben extern (durch KI oder Editor) optimierter Projektdateien durch den AutoSave des Browsers.
+Beteiligte Dateien:
+- game-server/src/routes/projectRoutes.ts (Z. 37–62): [NEU] Endpunkt `POST /api/dev/project-file` zum atomaren Lesen von Inhalt und SHA256-Revision aus game-server/public (inkl. UTF-8 BOM Toleranz).
+- src/editor/services/DiskRevisionGuard.ts (Z. 1–89): [NEU] Modul für deterministische Revisionsentscheidungen (decideDiskRevision, readBaseRevision, isServerManagedPath, fetchDiskProject, stampDiskProject).
+- src/editor/services/EditorProjectLoader.ts (Z. 29–88, 440–475): [GEÄNDERT] `captureDiskRevision()` prüft Basis-Revision und blockiert bei externen Änderungen (Konfliktdialog + AutoSave-Sperre). `loadFromServer()` liest atomar per `fetchDiskProject` und stoppt Writes vor Reload.
+- src/editor/services/EditorProjectSaver.ts (Z. 453–465): [GEÄNDERT] `updateProjectJSON()` überschreibt `_diskRevision` im Browser-Cache nur nach erfolgreicher Revisionsverifikation; unverifizierte Altstände werden mit `null` markiert.
+- src/editor/EditorSessionManager.ts (Z. 13–35): [GEÄNDERT] `restoreSafely()` liest Plattendateien atomar per `/api/dev/project-file` statt über die veraltete Vite-URL `/projects/...`.
+- tests/disk_revision_guard.test.ts (Z. 1–95): [NEU] Unit- und Integrationstests für Guard-Entscheidungslogik, BOM-Behandlung, 409-Schutz bei externer Änderung und Schlechtfall-Prüfungen.
+- tests/e2e/project-revision-guard.spec.ts (Z. 1–75): [GEÄNDERT] E2E-Tests auf `/api/dev/project-file` umgestellt und Test für AutoSave-Sperre bei abweichender Revision ergänzt.
+- scripts/test_runner.ts (Z. 54, 444): [GEÄNDERT] `DiskRevisionGuard`-Suite in Testrunner integriert.
+Ergebnis: Alle 17 DiskRevisionGuard-Tests bestanden, E2E-Playwright-Tests grün.
+
 ### 2026-09-02
 [UC-2026-09-02-Test-Suite-Sanitization]
 Beschreibung: Bereinigung und Reparatur aller pre-existierenden Testfehlschläge. Alle 352 Tests der Suite sind nun grün.

@@ -453,7 +453,16 @@ export class EditorProjectSaver {
     public updateProjectJSON(): void {
         if (this.host.project) {
             if (!this.host.project.meta) this.host.project.meta = {} as any;
-            (this.host.project.meta as any)._diskRevision = this.manager.diskRevision;
+            // --- CRITICAL AI-GUARD ---
+            // _diskRevision NUR mit verifizierter Revision überschreiben! Direkt nach dem Seitenstart
+            // ist diskRevision noch null; ein Überschreiben würde die Basis-Revision im Browser-Cache
+            // löschen → der Start-Check erkennt externe Dateiänderungen (KI) nicht mehr.
+            if (this.manager.diskRevisionReady && !this.manager.diskSaveConflict) {
+                (this.host.project.meta as any)._diskRevision = this.manager.diskRevision;
+            } else if (!Object.prototype.hasOwnProperty.call(this.host.project.meta, '_diskRevision')) {
+                // Feld fehlt = „frisch von Platte" (DiskRevisionGuard). Browserstand daher explizit als unverifiziert markieren.
+                (this.host.project.meta as any)._diskRevision = null;
+            }
             // 1. In LocalStorage sichern (Crash-Schutz)
             projectPersistenceService.autoSaveToLocalStorage(this.host.project);
 
