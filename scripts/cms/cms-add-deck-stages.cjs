@@ -35,6 +35,13 @@ const task = (name, actionSequence, description) => ({ id: uid('task'), name, de
 const callTask = name => ({ type: 'task', name });
 const cond = (variable, value, then, else_ = [], operator = '==') => ({ type: 'condition', name: `Branch: ${variable} ${operator} ${value}`, condition: { variable, operator, value }, then, else: else_ });
 const busyGuard = inner => [cond('Busy', 0, inner)];
+// Ersetzt nur Einträge, die dieser Generator selbst erzeugt (gleiche Namen) —
+// fremde Inhalte anderer Generatoren oder des Editors bleiben erhalten.
+const nameOf = x => typeof x === 'string' ? x : x?.name;
+const mergeByName = (existing = [], generated = []) => {
+  const names = new Set(generated.map(nameOf));
+  return [...existing.filter(x => !names.has(nameOf(x))), ...generated];
+};
 const bind = stage => ({
   prop: (name, changes) => (stage.actions.push({ id: uid('act'), name, type: 'property', changes, scope: 'stage' }), { type: 'action', name }),
   http: (name, url, body, resultVariable = 'Antwort') => (stage.actions.push({ id: uid('act'), name, type: 'http', url, method: 'POST', body, resultVariable, scope: 'stage', queryOperator: '==' }), { type: 'action', name }),
@@ -118,8 +125,8 @@ const decksServer = stageShell('stage_server_decks', 'Server · Kartenstapel');
       { deckId: '$body.deckId', childId: '$body.childId' },
       'Server_StapelUebernehmen_Verarbeiten', 'requireRole(account) → Stapelkarten in den Kasten kopieren (Dedup)'),
   ];
-  decksServer.objects = endpoints.map(([p, name, t], i) => srvComp('TServerEndpoint', name, { endpointPath: p, httpMethod: 'POST', traceEnabled: true, events: { onRequest: t }, x: 16, y: 2 + i * 4 }));
-  decksServer.objects.push(
+  const objects = endpoints.map(([p, name, t], i) => srvComp('TServerEndpoint', name, { endpointPath: p, httpMethod: 'POST', traceEnabled: true, events: { onRequest: t }, x: 16, y: 2 + i * 4 }));
+  objects.push(
     srvComp('TServerSession', 'Kontositzung', { x: 2, y: 2 }),
     srvComp('TServerQuery', 'Datenbestand', { x: 2, y: 7 }),
     srvComp('TServerDecks', 'Stapel', { x: 2, y: 12 }),
@@ -129,11 +136,12 @@ const decksServer = stageShell('stage_server_decks', 'Server · Kartenstapel');
     { id: uid('srv_act'), name: 'Act_KontoRolle_Pruefen', type: 'call_method', target: 'Kontositzung', method: 'requireRole', params: ['account'], resultVariable: 'Pruefung', scope: 'stage' },
     { id: uid('srv_act'), name: 'Act_Fehler_Rolle', type: 'call_method', target: 'AntwortSenden', method: 'fail', params: ['${Pruefung.status}', '${Pruefung.message}'], scope: 'stage' });
   const varOf = name => ({ className: 'TObjectVariable', id: uid('cms_var'), name, scope: 'stage', isVariable: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', description: '', visible: true, x: 0, y: 0, width: 6, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, type: 'object', defaultValue: null, value: null, objectModel: '' });
-  decksServer.tasks = tasks; decksServer.actions = actions;
-  decksServer.variables = ['Pruefung', 'Ergebnis'].map(varOf);
+  decksServer.objects = mergeByName(decksServer.objects, objects);
+  decksServer.tasks = mergeByName(decksServer.tasks, tasks); decksServer.actions = mergeByName(decksServer.actions, actions);
+  decksServer.variables = mergeByName(decksServer.variables, ['Pruefung', 'Ergebnis'].map(varOf));
   decksServer.generatedBy = 'cms-add-deck-stages.cjs';
   decksServer.group = 'Server';
-  decksServer.features = [{ id: 'server-decks', name: 'Kartenstapel-Endpunkte', description: 'Deklarative Endpunkte für Kartenstapel: Sichtbarkeit, Pflege, Freigabe, Zuordnung an Kinder, Übernahme.', tags: ['CMS', 'Server', 'Kartenstapel'], userStoryIds: [], blueprintTaskNames: tasks.map(t => t.name) }];
+  decksServer.features = mergeByName(decksServer.features, [{ id: 'server-decks', name: 'Kartenstapel-Endpunkte', description: 'Deklarative Endpunkte für Kartenstapel: Sichtbarkeit, Pflege, Freigabe, Zuordnung an Kinder, Übernahme.', tags: ['CMS', 'Server', 'Kartenstapel'], userStoryIds: [], blueprintTaskNames: tasks.map(t => t.name) }]);
 }
 
 // ============================================================

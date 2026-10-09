@@ -34,6 +34,13 @@ const task = (name, actionSequence, description) => ({ id: uid('task'), name, de
 const callTask = name => ({ type: 'task', name });
 const cond = (variable, value, then, else_ = [], operator = '==') => ({ type: 'condition', name: `Branch: ${variable} ${operator} ${value}`, condition: { variable, operator, value }, then, else: else_ });
 const busyGuard = inner => [cond('Busy', 0, inner)];
+// Ersetzt nur Einträge, die dieser Generator selbst erzeugt (gleiche Namen) —
+// fremde Inhalte anderer Generatoren oder des Editors bleiben erhalten.
+const nameOf = x => typeof x === 'string' ? x : x?.name;
+const mergeByName = (existing = [], generated = []) => {
+  const names = new Set(generated.map(nameOf));
+  return [...existing.filter(x => !names.has(nameOf(x))), ...generated];
+};
 const bind = stage => ({
   prop: (name, changes) => (stage.actions.push({ id: uid('act'), name, type: 'property', changes, scope: 'stage' }), { type: 'action', name }),
   http: (name, url, body, resultVariable = 'Antwort') => (stage.actions.push({ id: uid('act'), name, type: 'http', url, method: 'POST', body, resultVariable, scope: 'stage', queryOperator: '==' }), { type: 'action', name }),
@@ -88,8 +95,8 @@ const cardsServer = stageShell('stage_server_cards', 'Server · Karteikästen');
       { cardId: '$body.cardId' },
       'Server_KarteInfo_Verarbeiten', 'requireRole(account) → einzelne Karte für die Bearbeitungs-Stage'),
   ];
-  cardsServer.objects = endpoints.map(([p, name, t], i) => srvComp('TServerEndpoint', name, { endpointPath: p, httpMethod: 'POST', traceEnabled: true, events: { onRequest: t }, x: 16, y: 2 + i * 4 }));
-  cardsServer.objects.push(
+  const objects = endpoints.map(([p, name, t], i) => srvComp('TServerEndpoint', name, { endpointPath: p, httpMethod: 'POST', traceEnabled: true, events: { onRequest: t }, x: 16, y: 2 + i * 4 }));
+  objects.push(
     srvComp('TServerSession', 'Kontositzung', { x: 2, y: 2 }),
     srvComp('TServerQuery', 'Datenbestand', { x: 2, y: 7 }),
     srvComp('TServerCards', 'Karten', { x: 2, y: 12 }),
@@ -99,11 +106,12 @@ const cardsServer = stageShell('stage_server_cards', 'Server · Karteikästen');
     { id: uid('srv_act'), name: 'Act_KontoRolle_Pruefen', type: 'call_method', target: 'Kontositzung', method: 'requireRole', params: ['account'], resultVariable: 'Pruefung', scope: 'stage' },
     { id: uid('srv_act'), name: 'Act_Fehler_Rolle', type: 'call_method', target: 'AntwortSenden', method: 'fail', params: ['${Pruefung.status}', '${Pruefung.message}'], scope: 'stage' });
   const varOf = name => ({ className: 'TObjectVariable', id: uid('cms_var'), name, scope: 'stage', isVariable: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', description: '', visible: true, x: 0, y: 0, width: 6, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, type: 'object', defaultValue: null, value: null, objectModel: '' });
-  cardsServer.tasks = tasks; cardsServer.actions = actions;
-  cardsServer.variables = ['Pruefung', 'Ergebnis'].map(varOf);
+  cardsServer.objects = mergeByName(cardsServer.objects, objects);
+  cardsServer.tasks = mergeByName(cardsServer.tasks, tasks); cardsServer.actions = mergeByName(cardsServer.actions, actions);
+  cardsServer.variables = mergeByName(cardsServer.variables, ['Pruefung', 'Ergebnis'].map(varOf));
   cardsServer.generatedBy = 'cms-add-card-stages.cjs';
   cardsServer.group = 'Server';
-  cardsServer.features = [{ id: 'server-cards', name: 'Karteikasten-Endpunkte', description: 'Deklarative Endpunkte für den persönlichen Karteikasten (Leitner).', tags: ['CMS', 'Server', 'Karteikasten'], userStoryIds: [], blueprintTaskNames: tasks.map(t => t.name) }];
+  cardsServer.features = mergeByName(cardsServer.features, [{ id: 'server-cards', name: 'Karteikasten-Endpunkte', description: 'Deklarative Endpunkte für den persönlichen Karteikasten (Leitner).', tags: ['CMS', 'Server', 'Karteikasten'], userStoryIds: [], blueprintTaskNames: tasks.map(t => t.name) }]);
 }
 
 // ============================================================

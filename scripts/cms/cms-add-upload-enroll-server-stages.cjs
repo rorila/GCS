@@ -19,6 +19,13 @@ const ns=prefix=>({
  cond:(name,variable,operator,value,then,else_)=>({type:'condition',name,condition:{variable,operator,value},then,else:else_}),
  act:(name,target,method,params,resultVariable)=>({id:uid('srv_act'),name:prefix+'_'+name,type:'call_method',target,method,params:params||[],resultVariable,scope:'stage'})
 });
+// Ersetzt nur Einträge, die dieser Generator selbst erzeugt (gleiche Namen) —
+// fremde Inhalte anderer Generatoren oder des Editors bleiben erhalten.
+const nameOf=x=>typeof x==='string'?x:x?.name;
+const mergeByName=(existing=[],generated=[])=>{
+ const names=new Set(generated.map(nameOf));
+ return [...existing.filter(x=>!names.has(nameOf(x))),...generated];
+};
 
 // --- stage_server_uploads ----------------------------------------------------
 const uploads=project.stages.find(s=>s.id==='stage_server_uploads');
@@ -27,7 +34,7 @@ if(uploads.generatedBy&&uploads.generatedBy!==BUILDER){console.log('stage_server
 const gameNode=uploads.objects.find(o=>o.className==='TServerUpload'&&o.kind==='game'),
       avatarNode=uploads.objects.find(o=>o.className==='TServerUpload'&&o.kind==='avatar');
 if(!gameNode||!avatarNode)throw Error('Upload-Stage: TServerUpload-Komponenten fehlen');
-uploads.objects=[
+uploads.objects=mergeByName(uploads.objects,[
  comp('TServerEndpoint','BibliothekEmpfangen',{endpointPath:'/api/cms/upload-library',httpMethod:'POST',traceEnabled:true,events:{onRequest:'Server_Bibliothek_Verarbeiten'},x:16,y:2}),
  comp('TServerEndpoint','SpielUploadEmpfangen',{endpointPath:'/api/cms/upload/game',httpMethod:'POST',traceEnabled:true,events:{onRequest:'Spiel_Upload_Verarbeiten'},x:16,y:6}),
  comp('TServerEndpoint','AvatarUploadEmpfangen',{endpointPath:'/api/cms/upload/avatar',httpMethod:'POST',traceEnabled:true,events:{onRequest:'Avatar_Upload_Verarbeiten'},x:16,y:10}),
@@ -36,10 +43,10 @@ uploads.objects=[
  comp('TServerQuery','BibliothekDaten',{x:2,y:7}),
  comp('TServerAccess','BibliothekSpeichern',{x:2,y:12}),
  comp('TServerResponse','AntwortSenden',{x:2,y:17})
-];
+]);
 {
  const n=ns('Bibliothek');
- uploads.tasks=[
+ uploads.tasks=mergeByName(uploads.tasks,[
   // Bibliothek: SuperAdmin → ggf. veröffentlichen → eigene Spiele listen.
   {id:uid('srv_task'),name:'Server_Bibliothek_Verarbeiten',scope:'stage',
    description:'SuperAdmin → Spielbesitz und GCS-Datei prüfen → Entwurf/Veröffentlichung oder Vorschau → eigene Spiele listen',
@@ -77,8 +84,8 @@ uploads.objects=[
     n.call('AvatarVerarbeiten'),
     n.cond('Verarbeitung gelungen?','Ergebnis.ok','==',true,[n.call('UploadAntworten')],[n.call('FehlerDatei')])
    ]}
- ];
- uploads.actions=[
+ ]);
+ uploads.actions=mergeByName(uploads.actions,[
   // Upload-Vertrag: fehlende Berechtigung → 403 (nicht 401 wie bei Konto-APIs).
   n.act('Rolle','Sitzung','requireRole',['superAdmin'],'Pruefung'),
   n.act('FehlerRolle','AntwortSenden','fail',[403,'${Pruefung.message}']),
@@ -97,8 +104,8 @@ uploads.objects=[
   n.act('Antworten','AntwortSenden','send',[{merge:'${Liste}'}]),
   n.act('UploadAntworten','AntwortSenden','send',[{merge:'${Ergebnis}'}]),
   n.act('FehlerDatei','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}'])
- ];
- uploads.variables=['Pruefung','Veroeffentlicht','Vorschau','Spiel','Liste','Ergebnis'].map(variable);
+ ]);
+ uploads.variables=mergeByName(uploads.variables,['Pruefung','Veroeffentlicht','Vorschau','Spiel','Liste','Ergebnis'].map(variable));
  uploads.generatedBy=BUILDER;
 }
 
@@ -134,7 +141,12 @@ const eRoutes=[
   flowCharts:{},events:{},startAnimation:'none',
   features:[{id:'server-enroll',name:'Einrichtung per Einladungslink',blueprintTaskNames:etasks.map(t=>t.name)}],
   group:'Server',generatedBy:BUILDER};
- if(enroll)Object.assign(enroll,enrollStage);
+ if(enroll)Object.assign(enroll,{...enrollStage,
+  objects:mergeByName(enroll.objects,enrollStage.objects),
+  tasks:mergeByName(enroll.tasks,enrollStage.tasks),
+  actions:mergeByName(enroll.actions,enrollStage.actions),
+  variables:mergeByName(enroll.variables,enrollStage.variables),
+  features:mergeByName(enroll.features,enrollStage.features)});
  else{const idx=project.stages.findIndex(s=>s.id==='stage_server_uploads');project.stages.splice(idx<0?project.stages.length:idx+1,0,enrollStage);}
 }
 

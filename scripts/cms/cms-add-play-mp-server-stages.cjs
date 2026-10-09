@@ -15,6 +15,13 @@ const ns=prefix=>({
  cond:(name,variable,operator,value,then,else_)=>({type:'condition',name,condition:{variable,operator,value},then,else:else_}),
  act:(name,target,method,params,resultVariable)=>({id:uid('srv_act'),name:prefix+'_'+name,type:'call_method',target,method,params:params||[],resultVariable,scope:'stage'})
 });
+// Ersetzt nur Einträge, die dieser Generator selbst erzeugt (gleiche Namen) —
+// fremde Inhalte anderer Generatoren oder des Editors bleiben erhalten.
+const nameOf=x=>typeof x==='string'?x:x?.name;
+const mergeByName=(existing=[],generated=[])=>{
+ const names=new Set(generated.map(nameOf));
+ return [...existing.filter(x=>!names.has(nameOf(x))),...generated];
+};
 
 // Gemeinsamer Vorspann: Spieler-Sitzung (assurance 'profile') muss vorhanden sein.
 const guard=n=>[
@@ -47,8 +54,10 @@ function build(stageId,markerClass,markerName,buildFns,endpoints,vars,extraComps
  actions.unshift(
   {id:uid('srv_act'),name:'Act_KontoRolle_Pruefen',type:'call_method',target:'Kontositzung',method:'requireRole',params:['account'],resultVariable:'Pruefung',scope:'stage'},
   {id:uid('srv_act'),name:'Act_Fehler_Rolle',type:'call_method',target:'AntwortSenden',method:'fail',params:['${Pruefung.status}','${Pruefung.message}'],scope:'stage'});
- Object.assign(stage,{generatedBy:'cms-add-play-mp-server-stages.cjs',objects,tasks,actions,
-  variables:vars.map(variable)});
+ Object.assign(stage,{generatedBy:'cms-add-play-mp-server-stages.cjs',
+  objects:mergeByName(stage.objects,objects),tasks:mergeByName(stage.tasks,tasks),
+  actions:mergeByName(stage.actions,actions),
+  variables:mergeByName(stage.variables,vars.map(variable))});
  console.log(stageId+': '+endpoints.length+' Endpunkte umgebaut');
  return{stage,marker};
 }
@@ -510,7 +519,7 @@ const mp=build('stage_server_mp','TServerParty','Partien',mpFns,[
  ['/api/cms/mp/notification-read','Ep_HinweisGelesen','Server_HinweisGelesen_Verarbeiten']
 ],['Pruefung','Raum','Haus','Spiele','Partien','Spiel','Erlaubt','InPartie','Partie','Mitglied','Plaetze','Erstellt','Beitritt','VerlassenErgebnis','Zustand','Nutzlast','Gebucht','Begonnen','Beendet','Kandidaten','StartEinladung','FortsetzenInfo','Fortsetzen','WiederbeitrittInfo','Wiederbeitritt','Einladung','Einladungen','Einladungsantwort','Rueckzug','Stornierung','Hinweise','Hinweisstatus']);
 mp.marker.events={onList:'Server_PartieListe_Verarbeiten',onCreate:'Server_PartieErstellen_Verarbeiten',onJoin:'Server_PartieBeitreten_Verarbeiten',onLeave:'Server_PartieVerlassen_Verarbeiten',onState:'Server_PartieStatus_Verarbeiten',onAction:'Server_PartieAktion_Verarbeiten',onBegin:'Server_PartieBeginnen_Verarbeiten',onEnd:'Server_PartieBeenden_Verarbeiten',onResumeInfo:'Server_PartieFortsetzenInfo_Verarbeiten',onResume:'Server_PartieFortsetzen_Verarbeiten',onRejoinable:'Server_PartieWiederbeitrittInfo_Verarbeiten',onRejoin:'Server_PartieWiederbeitreten_Verarbeiten',onCandidates:'Server_EinladbareBewohner_Verarbeiten',onInvite:'Server_BewohnerEinladen_Verarbeiten',onInvitations:'Server_EinladungenLesen_Verarbeiten',onRespond:'Server_EinladungBeantworten_Verarbeiten',onWithdraw:'Server_TeilnahmeZurueckziehen_Verarbeiten',onCancelInvite:'Server_EinladungZuruecknehmen_Verarbeiten',onNotifications:'Server_HinweiseLesen_Verarbeiten',onNotificationRead:'Server_HinweisGelesen_Verarbeiten'};
-mp.stage.objects.push(comp('TServerLiveSync','LiveSync',{id:'server_livesync',endpointPath:'/api/cms/party/live',maxPayloadBytes:4096,maxMessagesPerSecond:30,inputTtlMs:750,maxStateAgeMs:2000,livePolicy:'Nur Partienmitglieder; nur der Host schreibt Spielstand; Nicht-Hosts schreiben nur Eingaben; Live-Daten bleiben fluechtig',x:16,y:27}));
+mp.stage.objects=mergeByName(mp.stage.objects,[comp('TServerLiveSync','LiveSync',{id:'server_livesync',endpointPath:'/api/cms/party/live',maxPayloadBytes:4096,maxMessagesPerSecond:30,inputTtlMs:750,maxStateAgeMs:2000,livePolicy:'Nur Partienmitglieder; nur der Host schreibt Spielstand; Nicht-Hosts schreiben nur Eingaben; Live-Daten bleiben fluechtig',x:16,y:27})]);
 
 fs.writeFileSync(file,JSON.stringify(project,null,1));
 console.log('fertig');

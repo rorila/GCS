@@ -1,0 +1,32 @@
+{
+  "passed": 26,
+  "checks": [
+    "Fremder Ursprung gesperrt",
+    "Falsches Passwort ohne Sitzung",
+    "Sonderzeichenpasswort funktioniert",
+    "HttpOnly und SameSite erhalten",
+    "Kein Sitzungstoken im JSON",
+    "Rollenliste vor der Wahl",
+    "Verwaltungsrolle gewählt",
+    "Sitzungsschritt im Trace",
+    "Passwort nicht im Servertrace",
+    "Projekt-Rückmeldung wirkt",
+    "Kaputter Verweis wird erkannt",
+    "Dialog stammt aus Projektdatei",
+    "Passwortfeld verdeckt",
+    "Pflichtfelder lokal geprüft",
+    "Passwort nicht im Clientlog",
+    "Request und Serverresponse sichtbar",
+    "Server-Schritte ohne aktive Rolle geschützt",
+    "HouseAdmin landet über die Rollenwahl in der Hausübersicht",
+    "Native Anmeldung erfolgreich",
+    "Nur das Haus der gewählten Rolle sichtbar",
+    "Zweites eigenes Haus ohne Rollenwechsel nicht sichtbar",
+    "Fremdes Haus nicht aufgelistet",
+    "Fremdes Haus serverseitig gesperrt",
+    "SuperAdmin-Stage für HouseAdmin gesperrt",
+    "Verwaltung im selben Fenster geöffnet",
+    "Keine Browserfehler"
+  ],
+  "errors": []
+}

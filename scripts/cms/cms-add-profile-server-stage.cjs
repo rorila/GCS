@@ -19,6 +19,13 @@ const ns=prefix=>({
  cond:(name,variable,operator,value,then,else_)=>({type:'condition',name,condition:{variable,operator,value},then,else:else_}),
  act:(name,target,method,params,resultVariable)=>({id:uid('srv_act'),name:prefix+'_'+name,type:'call_method',target,method,params:params||[],resultVariable,scope:'stage'})
 });
+// Ersetzt nur Einträge, die dieser Generator selbst erzeugt (gleiche Namen) —
+// fremde Inhalte anderer Generatoren oder des Editors bleiben erhalten.
+const nameOf=x=>typeof x==='string'?x:x?.name;
+const mergeByName=(existing=[],generated=[])=>{
+ const names=new Set(generated.map(nameOf));
+ return [...existing.filter(x=>!names.has(nameOf(x))),...generated];
+};
 
 // Gemeinsamer Vorspann jedes Tasks: Sitzung → Person laden → ggf. 200/Failure.
 const guard=n=>[
@@ -94,7 +101,7 @@ actions.unshift(
  {id:uid('srv_act'),name:'Act_Fehler_Profil',type:'call_method',target:'AntwortSenden',method:'fail',params:[200,'${EigenesProfil.failureMessage}'],scope:'stage'});
 
 Object.assign(stage,{generatedBy:'cms-add-profile-server-stage.cjs',
- objects,tasks,actions,
- variables:['Pruefung','Person','Namen','AvatarWert','Belegt','Ergebnis'].map(variable)});
+ objects:mergeByName(stage.objects,objects),tasks:mergeByName(stage.tasks,tasks),actions:mergeByName(stage.actions,actions),
+ variables:mergeByName(stage.variables,['Pruefung','Person','Namen','AvatarWert','Belegt','Ergebnis'].map(variable))});
 fs.writeFileSync(file,JSON.stringify(project,null,1));
 console.log('stage_server_profile: 3 Endpunkte umgebaut');

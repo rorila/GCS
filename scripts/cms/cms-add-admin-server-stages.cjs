@@ -17,6 +17,13 @@ const ns=prefix=>({
  cond:(name,variable,operator,value,then,else_)=>({type:'condition',name,condition:{variable,operator,value},then,else:else_}),
  act:(name,target,method,params,resultVariable)=>({id:uid('srv_act'),name:prefix+'_'+name,type:'call_method',target,method,params:params||[],resultVariable,scope:'stage'})
 });
+// Ersetzt nur Einträge, die dieser Generator selbst erzeugt (gleiche Namen) —
+// fremde Inhalte anderer Generatoren oder des Editors bleiben erhalten.
+const nameOf=x=>typeof x==='string'?x:x?.name;
+const mergeByName=(existing=[],generated=[])=>{
+ const names=new Set(generated.map(nameOf));
+ return [...existing.filter(x=>!names.has(nameOf(x))),...generated];
+};
 
 // --- Geteilte Query-Spezifikationen -------------------------------------------
 const MANAGED_ROOM={entity:'areas',where:{id:'$body.areaId',type:'room',_manageable:true}};        // Raum in meiner Zuständigkeit
@@ -657,7 +664,14 @@ const houseWithRoomBackups=[...house,...admin.filter(ep=>['/api/cms/admin/backup
 for(const st of [buildStage('stage_server_admin','Server · Raumverwaltung',roomAdminEndpoints,{hausGateDefault:false}),buildStage('stage_server_house','Server · Hausverwaltung',houseWithRoomBackups)]){
  const idx=project.stages.findIndex(s=>s.id===st.id);
  if(idx>=0&&project.stages[idx].generatedBy!=='cms-add-admin-server-stages.cjs'){console.log(st.id+' wurde im Editor verändert — Abbruch (JSON ist Master).');process.exit(1);}
- if(idx>=0)project.stages[idx]=st;else project.stages.push(st);
+ if(idx>=0){const old=project.stages[idx];// eigene Inhalte ersetzen, fremde erhalten
+  Object.assign(old,{...st,
+   objects:mergeByName(old.objects,st.objects),tasks:mergeByName(old.tasks,st.tasks),
+   actions:mergeByName(old.actions,st.actions),variables:mergeByName(old.variables,st.variables),
+   features:mergeByName(old.features,st.features),
+   flowCharts:(st.flowCharts||[]).length?st.flowCharts:(old.flowCharts||st.flowCharts),
+   events:Object.keys(st.events||{}).length?st.events:(old.events||{})});
+ }else project.stages.push(st);
  console.log(st.id+': '+st.objects.filter(o=>o.className==='TServerEndpoint').length+' Endpunkte');
 }
 fs.writeFileSync(file,JSON.stringify(project,null,2));

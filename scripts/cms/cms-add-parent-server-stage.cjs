@@ -19,6 +19,13 @@ const ns=prefix=>({
  cond:(name,variable,operator,value,then,else_)=>({type:'condition',name,condition:{variable,operator,value},then,else:else_}),
  act:(name,target,method,params,resultVariable)=>({id:uid('srv_act'),name:prefix+'_'+name,type:'call_method',target,method,params:params||[],resultVariable,scope:'stage'})
 });
+// Ersetzt nur Einträge, die dieser Generator selbst erzeugt (gleiche Namen) —
+// fremde Inhalte anderer Generatoren oder des Editors bleiben erhalten.
+const nameOf=x=>typeof x==='string'?x:x?.name;
+const mergeByName=(existing=[],generated=[])=>{
+ const names=new Set(generated.map(nameOf));
+ return [...existing.filter(x=>!names.has(nameOf(x))),...generated];
+};
 
 // Gemeinsamer Vorspann jedes Tasks: Konto-Sitzung → fachliche Rechteprüfung.
 // requireRole('account') verlangt eine gültige Eltern-/Beobachtersitzung.
@@ -275,8 +282,8 @@ actions.unshift(
  {id:uid('srv_act'),name:'Act_Fehler_Rolle',type:'call_method',target:'AntwortSenden',method:'fail',params:['${Pruefung.status}','${Pruefung.message}'],scope:'stage'});
 
 Object.assign(stage,{generatedBy:'cms-add-parent-server-stage.cjs',
- objects,tasks,actions,
- variables:['Pruefung','Sicht','Kinder','Karte','Sitzungen','Eintraege','Minuten','Fenster','AndereEltern','Budget','Vorschlag','Ergebnis','Beob','Puls','Raeume','Gestartet','KartenListe','Export'].map(variable),
- features:[{id:'stage_server_parent_parent-v2',name:'Eltern- und Beobachterzugang',description:'Serverseitige Endpunkte für Elternsicht und Beobachter mit Kind-Räumen und Spielstart.',tags:['CMS','Server'],userStoryIds:[],blueprintTaskNames:tasks.map(t=>t.name)}]});
+ objects:mergeByName(stage.objects,objects),tasks:mergeByName(stage.tasks,tasks),actions:mergeByName(stage.actions,actions),
+ variables:mergeByName(stage.variables,['Pruefung','Sicht','Kinder','Karte','Sitzungen','Eintraege','Minuten','Fenster','AndereEltern','Budget','Vorschlag','Ergebnis','Beob','Puls','Raeume','Gestartet','KartenListe','Export'].map(variable)),
+ features:mergeByName(stage.features,[{id:'stage_server_parent_parent-v2',name:'Eltern- und Beobachterzugang',description:'Serverseitige Endpunkte für Elternsicht und Beobachter mit Kind-Räumen und Spielstart.',tags:['CMS','Server'],userStoryIds:[],blueprintTaskNames:tasks.map(t=>t.name)}])});
 fs.writeFileSync(file,JSON.stringify(project,null,1));
 console.log('stage_server_parent: '+endpoints.length+' Endpunkte umgebaut');

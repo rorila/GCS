@@ -11,6 +11,12 @@ const {createServer}=require('./cms/cms-server.cjs'),{checkIntegrity,renderCms}=
   check('Fremder Ursprung gesperrt',(await post({username:'tester',password},'http://fremd.invalid')).status===403);
   let response=await post({username:'tester',password:'falsch'});check('Falsches Passwort ohne Sitzung',!(await response.json()).ok&&response.headers.getSetCookie().every(c=>c.includes('Max-Age=0')));
   response=await post({username:'tester',password});const cookie=response.headers.get('set-cookie'),body=await response.json();check('Sonderzeichenpasswort funktioniert',body.ok);check('HttpOnly und SameSite erhalten',cookie.includes('HttpOnly')&&cookie.includes('SameSite=Strict'));check('Kein Sitzungstoken im JSON',!body.token);
+  // Mehrere Verwaltungsrollen → Sitzung wartet mit activeRole=null auf die
+  // Wahl; erst danach hat sie Rechte (u. a. auf den Diagnose-Endpunkt).
+  const rolesBody=await (await fetch(base+'/api/cms/admin/roles',{method:'POST',headers:{Origin:base,'Content-Type':'application/json',Cookie:cookie.split(';')[0]}})).json();
+  check('Rollenliste vor der Wahl',rolesBody.ok===true&&rolesBody.roles.length===2);
+  const pickBody=await (await fetch(base+'/api/cms/admin/role',{method:'POST',headers:{Origin:base,'Content-Type':'application/json',Cookie:cookie.split(';')[0]},body:JSON.stringify({role:'superAdmin',areaId:'root'})})).json();
+  check('Verwaltungsrolle gewählt',pickBody.ok===true);
   const trace=await (await fetch(base+'/api/cms/debug/traces/'+response.headers.get('x-gcs-trace-id'),{headers:{Cookie:cookie.split(';')[0]}})).json();check('Sitzungsschritt im Trace',trace.steps.some(s=>s.label==='Verwaltungssitzung erstellen'));check('Passwort nicht im Servertrace',!JSON.stringify(trace).includes(password));
   // Deklarativer Vertrag: die Erfolgsmeldung steht in der Projektdatei — mit
   // injizierten Fakes läuft derselbe Task wie auf dem Server.
@@ -39,20 +45,32 @@ const {createServer}=require('./cms/cms-server.cjs'),{checkIntegrity,renderCms}=
   const click=async name=>{await page.evaluate(name=>{const rt=window.player.runtime;rt.handleEvent(rt.getObjects().find(o=>o.name===name).id,'onClick')},name);};
   await click('Anmelden');await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Status').text.includes('ausfüllen'));check('Pflichtfelder lokal geprüft',true);
   await page.locator('[name=username]').fill('tester');await page.locator('[name=password]').fill(password);await page.locator('[name=password]').press('Enter');
-  await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_house'&&window.player.runtime.getObjects().some(o=>o.name==='HausTabelle'));
-  check('HouseAdmin landet direkt in der Hausauswahl',
-    await page.evaluate(()=>window.player.runtime.stage.id==='stage_house'&&window.player.runtime.getObjects().some(o=>o.name==='HausTabelle')));
+  // Mehrere Verwaltungsrollen → Anmeldung landet auf der Rollenwahlseite.
+  // Das Client-Log lebt im selben Fenster — vor der Navigation auslesen.
+  await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_admin_roles');
+  const logs=await page.evaluate(()=>JSON.stringify(window._globalDebugLogService.getLogs()));
+  check('Passwort nicht im Clientlog',!logs.includes(password)&&!logs.includes(JSON.stringify(password).slice(1,-1)));
+  // Server-Schritte sind erst nach gewählter Rolle lesbar — die Sitzung
+  // ohne aktive Rolle erhält bewusst nur „Details geschützt".
+  check('Request und Serverresponse sichtbar',logs.includes('CLIENT · Request')&&logs.includes('CLIENT · Response'));
+  check('Server-Schritte ohne aktive Rolle geschützt',logs.includes('SERVER · Details geschützt'));
+  await page.evaluate(()=>{const rt=window.player.runtime,t=rt.getObjects().find(o=>o.name==='RollenTabelle');t.selectedRecord={role:'areaAdmin',areaId:'demo-house'};rt.handleEvent(t.id,'onRowClick',{data:t.selectedRecord});});
+  await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_house_overview');
+  check('HouseAdmin landet über die Rollenwahl in der Hausübersicht',
+    await page.evaluate(()=>window.player.runtime.stage.id==='stage_house_overview'));
   check('Native Anmeldung erfolgreich',true);
   const sessionCookie=(await page.context().cookies(base)).find(c=>c.name==='cms_admin');
   const authHeaders={Origin:base,'Content-Type':'application/json',Cookie:'cms_admin='+sessionCookie.value};
   const ownResponse=await fetch(base+'/api/cms/admin/houses',{method:'POST',headers:authHeaders,body:'{}'}),own=await ownResponse.json();
-  check('Mehrere eigene Häuser sichtbar',ownResponse.status===200&&own.items.length===2&&own.items.some(h=>h.id==='demo-house')&&own.items.some(h=>h.id==='second-house'));
+  // activeRole-Scoping: die Sitzung sieht nur Bereiche der gewählten Rolle —
+  // zweite eigene Häuser werden über einen erneuten Rollenwechsel erreicht.
+  check('Nur das Haus der gewählten Rolle sichtbar',ownResponse.status===200&&own.items.length===1&&own.items[0].id==='demo-house');
+  check('Zweites eigenes Haus ohne Rollenwechsel nicht sichtbar',!own.items.some(h=>h.id==='second-house'));
   check('Fremdes Haus nicht aufgelistet',!own.items.some(h=>h.id==='foreign-house'));
   const foreignResponse=await fetch(base+'/api/cms/admin/house-rooms',{method:'POST',headers:authHeaders,body:JSON.stringify({houseId:'foreign-house'})});
   check('Fremdes Haus serverseitig gesperrt',foreignResponse.status===403);
   const superResponse=await fetch(base+'/super',{headers:{Cookie:'cms_admin='+sessionCookie.value},redirect:'manual'});
   check('SuperAdmin-Stage für HouseAdmin gesperrt',superResponse.status===303&&superResponse.headers.get('location')==='/house');
-  const logs=await page.evaluate(()=>JSON.stringify(window._globalDebugLogService.getLogs()));check('Passwort nicht im Clientlog',!logs.includes(password)&&!logs.includes(JSON.stringify(password).slice(1,-1)));check('Request und Serverresponse sichtbar',logs.includes('Verwaltungssitzung erstellen')&&logs.includes('CLIENT · Response'));
   await page.waitForTimeout(600);await page.screenshot({path:path.join(__dirname,'../docs/cms-anmeldung.png')});
   check('Verwaltung im selben Fenster geöffnet',true);
   check('Keine Browserfehler',errors.length===0);fs.writeFileSync(path.join(__dirname,'../docs/cms-login-test.json'),JSON.stringify({passed:checks.length,checks,errors},null,2));console.log(JSON.stringify({passed:checks.length,checks}));
