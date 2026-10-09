@@ -3,7 +3,7 @@
   "name": "Karteikasten-Quiz",
   "description": "Eigenständiges Muster-Quiz: zieht Karten aus dem persönlichen Karteikasten des angemeldeten Kindes (Leitner 1–5, Ablage 6). KartenFach/KartenThema = Art der Karten; leer = alles. Zum Kopieren in eigene Spiele oder als Overlay-Stage gedacht.",
   "generatedBy": "cms-add-quiz-demo.cjs",
-  "generatedAt": "2026-10-08T11:35:20.074Z"
+  "generatedAt": "2026-10-09T17:10:08.962Z"
  },
  "activeStageId": "stage_quiz",
  "schemaVersion": 3,
@@ -24,7 +24,7 @@
    "objects": [
     {
      "className": "TLabel",
-     "id": "q_lbl-2a928fab-629f-498c-9f86-bbcd82211a1f",
+     "id": "q_lbl-f5f93d72-b809-4d59-8506-530486109fbf",
      "name": "Titel",
      "scope": "stage",
      "draggable": false,
@@ -51,7 +51,7 @@
     },
     {
      "className": "TLabel",
-     "id": "q_lbl-4e8af1ee-e031-48ad-9cd1-70f89ee7a2c5",
+     "id": "q_lbl-e5fd3c2e-ef65-4298-9161-1e4e76b17e62",
      "name": "FachLabel",
      "scope": "stage",
      "draggable": false,
@@ -78,7 +78,7 @@
     },
     {
      "className": "TLabel",
-     "id": "q_lbl-c5d9f5a3-da5a-4fe3-84af-559ec2b2b1e6",
+     "id": "q_lbl-5489ecd3-ff09-4862-bfd1-c7260ad58632",
      "name": "ZaehlerLabel",
      "scope": "stage",
      "draggable": false,
@@ -105,7 +105,7 @@
     },
     {
      "className": "TLabel",
-     "id": "q_lbl-b2e9edb3-3377-4def-94c5-e0c2114f7050",
+     "id": "q_lbl-0a20f535-5d93-41c3-83cd-d27973831681",
      "name": "FrageLabel",
      "scope": "stage",
      "draggable": false,
@@ -132,7 +132,7 @@
     },
     {
      "className": "TLabel",
-     "id": "q_lbl-0a094d46-3df1-40e6-af07-6e28ca50401c",
+     "id": "q_lbl-a46b024f-d522-483a-bf60-9b4930664514",
      "name": "LoesungLabel",
      "scope": "stage",
      "draggable": false,
@@ -159,7 +159,7 @@
     },
     {
      "className": "TEdit",
-     "id": "q_edit-480b1b97-3a43-4267-9bda-afa1849a293e",
+     "id": "q_edit-467cabc9-1005-4ab6-8dc0-1a0c19470dfa",
      "name": "AntwortEdit",
      "scope": "stage",
      "draggable": false,
@@ -180,7 +180,7 @@
     },
     {
      "className": "TButton",
-     "id": "q_btn-c67591cc-bb19-4ab2-9c42-845f92db0051",
+     "id": "q_btn-e66d6e3a-1f6c-4548-99d2-5429357eba4f",
      "name": "AntwortZeigen",
      "scope": "stage",
      "draggable": false,
@@ -204,7 +204,7 @@
     },
     {
      "className": "TButton",
-     "id": "q_btn-c8892a0a-bf03-47e2-b2f5-bd3e2762df4d",
+     "id": "q_btn-e8e2e827-ae84-4d9b-ae77-a48e4bbf4540",
      "name": "Pruefen",
      "scope": "stage",
      "draggable": false,
@@ -228,7 +228,7 @@
     },
     {
      "className": "TButton",
-     "id": "q_btn-0d8b5b5e-8feb-4882-9814-3ca9c6899006",
+     "id": "q_btn-9f557e0a-9322-4c97-84e0-f169096018f5",
      "name": "Richtig",
      "scope": "stage",
      "draggable": false,
@@ -252,7 +252,7 @@
     },
     {
      "className": "TButton",
-     "id": "q_btn-6192e40d-c879-46af-92a6-e2b2d8ea6a8a",
+     "id": "q_btn-2b7dfbb3-70c7-4e64-bb3a-fca7d4f685f5",
      "name": "FalschSelbst",
      "scope": "stage",
      "draggable": false,
@@ -276,7 +276,7 @@
     },
     {
      "className": "TButton",
-     "id": "q_btn-d9ac44a8-4880-47f7-9f97-17bcdd4d8590",
+     "id": "q_btn-78fc489f-a42e-4481-949e-836952c7af2b",
      "name": "Naechste",
      "scope": "stage",
      "draggable": false,
@@ -300,7 +300,7 @@
     },
     {
      "className": "TButton",
-     "id": "q_btn-560d6fea-caca-44b9-8825-e22cb263cf68",
+     "id": "q_btn-1f95ae76-e702-47d8-8341-7053708a0012",
      "name": "Beenden",
      "scope": "stage",
      "draggable": false,
@@ -324,7 +324,7 @@
     },
     {
      "className": "TLabel",
-     "id": "q_lbl-6e78fa06-c9ae-44c1-9148-98bdac3ad361",
+     "id": "q_lbl-70f4ee31-7d68-4a6a-8ea6-96980cf31e5c",
      "name": "StatusLabel",
      "scope": "stage",
      "draggable": false,
@@ -351,7 +351,7 @@
     },
     {
      "className": "TTimer",
-     "id": "q_timer-7d942acc-8a61-4668-85af-8f9b7b58c319",
+     "id": "q_timer-c6a07717-0c1a-4977-af96-d6209e53c3d4",
      "name": "QuizInit",
      "scope": "stage",
      "isService": true,
@@ -381,7 +381,7 @@
    "variables": [
     {
      "className": "TStringVariable",
-     "id": "q_var-54ecdc9a-9e73-4e7d-b5da-450a55ec317c",
+     "id": "q_var-5d4a7fe4-d8ef-4160-9bf7-86bf31cce287",
      "name": "CMS_LAUNCH",
      "scope": "stage",
      "isVariable": true,
@@ -407,7 +407,7 @@
     },
     {
      "className": "TStringVariable",
-     "id": "q_var-1d845af4-f882-4895-b750-9b8ad2c6d502",
+     "id": "q_var-92f95fb4-8b5a-4263-8625-c777607ebeb1",
      "name": "KartenFach",
      "scope": "stage",
      "isVariable": true,
@@ -433,7 +433,7 @@
     },
     {
      "className": "TStringVariable",
-     "id": "q_var-dd07313c-7000-48f2-bda5-e08f8aee256f",
+     "id": "q_var-ca3e3742-72a8-4998-a849-bdd1023989e8",
      "name": "KartenThema",
      "scope": "stage",
      "isVariable": true,
@@ -459,7 +459,7 @@
     },
     {
      "className": "TStringVariable",
-     "id": "q_var-5782c2ff-f51b-456e-9b30-9f8a892deec4",
+     "id": "q_var-4a0b26f9-11de-497d-a317-f61e58a5f477",
      "name": "GezogeneIds",
      "scope": "stage",
      "isVariable": true,
@@ -485,7 +485,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "q_var-959090ff-f081-4971-a222-5d40b88b2e7e",
+     "id": "q_var-1303cfbc-07aa-41a0-8c11-c13201cee7a3",
      "name": "AktuelleKarte",
      "scope": "stage",
      "isVariable": true,
@@ -511,7 +511,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "q_var-041accdb-c9a4-4faa-bb4b-82955aca01ba",
+     "id": "q_var-28e91f79-de78-4b58-bed5-f701d17578f7",
      "name": "KartenAntwort",
      "scope": "stage",
      "isVariable": true,
@@ -537,7 +537,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "q_var-a17ea209-afa7-4ebd-8fe4-2e9419bed1b0",
+     "id": "q_var-5816104b-37b1-4a03-a218-350e2cbdb2cc",
      "name": "BewertungAntwort",
      "scope": "stage",
      "isVariable": true,
@@ -563,7 +563,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "q_var-c3a66d0b-28c6-4703-8799-8e018d54e2f3",
+     "id": "q_var-401a2c43-018f-439e-95ce-cb6053370e24",
      "name": "EndeAntwort",
      "scope": "stage",
      "isVariable": true,
@@ -589,7 +589,7 @@
     },
     {
      "className": "TIntegerVariable",
-     "id": "q_var-e1bbd9d1-b98d-418f-a939-2e8961142aaa",
+     "id": "q_var-d2ac0a55-e056-4a06-8ba0-0022a05b6bb8",
      "name": "Richtig",
      "scope": "stage",
      "isVariable": true,
@@ -615,7 +615,7 @@
     },
     {
      "className": "TIntegerVariable",
-     "id": "q_var-f777777a-a9dc-43ad-b8b8-1e22a6a0b0e3",
+     "id": "q_var-96f59ec8-9672-4246-b2fe-c66fcc1ed398",
      "name": "Falsch",
      "scope": "stage",
      "isVariable": true,
@@ -641,7 +641,7 @@
     },
     {
      "className": "TIntegerVariable",
-     "id": "q_var-a54d403e-4987-47d7-9a57-4165074d49d8",
+     "id": "q_var-14209cbf-3602-43b8-b62a-e57b2dcb9bbe",
      "name": "Busy",
      "scope": "stage",
      "isVariable": true,
@@ -667,7 +667,7 @@
     },
     {
      "className": "TStringVariable",
-     "id": "q_var-7ff8f8f1-c36e-4fff-8f83-db3138f8d878",
+     "id": "q_var-97c63633-1b1b-48fa-b622-459c1fe27c7f",
      "name": "AktuelleAntwort",
      "scope": "stage",
      "isVariable": true,
@@ -694,7 +694,7 @@
    ],
    "tasks": [
     {
-     "id": "q_task-ebf14905-b3d2-4484-8ac7-2122e4f828b6",
+     "id": "q_task-3f219049-e62c-4426-a537-44036b49c26e",
      "name": "Quiz_Start",
      "description": "Erstladung: erste Karte aus dem Karteikasten ordern",
      "actionSequence": [
@@ -708,7 +708,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_task-fff411b3-06d3-4676-a6e3-5f6430aa539b",
+     "id": "q_task-d2d85ebd-cff3-486e-8842-e957fedd01c9",
      "name": "Karte_Ziehen",
      "description": "Server ordert die nächste Karte: Fach aufsteigend, je Fach älteste zuerst",
      "actionSequence": [
@@ -731,43 +731,64 @@
         },
         {
          "type": "condition",
-         "name": "Karte gefunden?",
+         "name": "Server antwortet?",
          "condition": {
-          "variable": "KartenAntwort.card",
-          "operator": "truthy",
+          "variable": "KartenAntwort.ok",
+          "operator": "!=",
           "value": true
          },
          "body": [
           {
            "type": "action",
-           "name": "Act_Karte_Uebernehmen"
-          },
+           "name": "Act_ZiehFehler"
+          }
+         ],
+         "elseBody": [
           {
            "type": "condition",
-           "name": "Eingabe-Format?",
+           "name": "Karte gefunden?",
            "condition": {
-            "variable": "KartenAntwort.card.answerFormat",
-            "operator": "==",
-            "value": "text"
+            "variable": "KartenAntwort.card",
+            "operator": "truthy",
+            "value": true
            },
            "body": [
             {
              "type": "action",
-             "name": "Act_TextBereit"
+             "name": "Act_Karte_Objekt"
+            },
+            {
+             "type": "action",
+             "name": "Act_Karte_Uebernehmen"
+            },
+            {
+             "type": "condition",
+             "name": "Eingabe-Format?",
+             "condition": {
+              "variable": "KartenAntwort.card.answerFormat",
+              "operator": "==",
+              "value": "text"
+             },
+             "body": [
+              {
+               "type": "action",
+               "name": "Act_TextBereit"
+              }
+             ],
+             "elseBody": [
+              {
+               "type": "action",
+               "name": "Act_SelfBereit"
+              }
+             ]
             }
            ],
            "elseBody": [
             {
              "type": "action",
-             "name": "Act_SelfBereit"
+             "name": "Act_QuizEnde"
             }
            ]
-          }
-         ],
-         "elseBody": [
-          {
-           "type": "action",
-           "name": "Act_QuizEnde"
           }
          ]
         }
@@ -779,7 +800,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_task-7ad8cda4-42f8-4868-a63a-4f3c9a180af9",
+     "id": "q_task-04c9692f-052e-4db0-ae4f-d5470adaae31",
      "name": "Antwort_Pruefen",
      "description": "Texteingabe gegen answers-Array prüfen (case-sensitiv; Varianten einzeln hinterlegen)",
      "actionSequence": [
@@ -810,7 +831,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_task-a8f25bb1-bc0e-4a56-9c2a-a3ea3615a7cf",
+     "id": "q_task-129928b9-b855-4968-8ab2-d222e59a3fa2",
      "name": "Antwort_Zeigen",
      "description": "Selbstbewertung: Lösung aufdecken, Richtig/Falsch-Buttons",
      "actionSequence": [
@@ -824,7 +845,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_task-bf8a2a32-582b-47c1-a0d0-a164b705d6e6",
+     "id": "q_task-4d1b5660-cd59-416c-b236-907b92265140",
      "name": "Selbst_Richtig",
      "description": "Selbst_Richtig",
      "actionSequence": [
@@ -838,7 +859,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_task-f81d87d7-1197-403c-b73b-4d99e6754633",
+     "id": "q_task-fdfd3636-e77a-4b1b-aa3b-7f4e3da248c1",
      "name": "Selbst_Falsch",
      "description": "Selbst_Falsch",
      "actionSequence": [
@@ -852,7 +873,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_task-6557ebd8-40da-4501-affb-f8a4f08d9295",
+     "id": "q_task-9a46d363-8762-41fb-8faf-d3c14a73d953",
      "name": "Bewerten_Richtig",
      "description": "Richtig: Lernfach +1 (Fach 5 → Ablage 6), Karte in Rundenliste",
      "actionSequence": [
@@ -895,7 +916,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_task-bc497064-6bc3-4446-9529-277d307705cd",
+     "id": "q_task-8504fe50-4518-44c9-b59d-2899f07cbf2a",
      "name": "Bewerten_Falsch",
      "description": "Falsch: zurück auf Lernfach 1, Karte in Rundenliste",
      "actionSequence": [
@@ -938,7 +959,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_task-a8856f90-dd7f-4ae3-8164-e52c83c0104a",
+     "id": "q_task-19ed4f23-3bdf-49da-8c37-15be8d379c10",
      "name": "Quiz_Beenden",
      "description": "Spielsitzung sauber beenden (Zeitbuchung abschließen)",
      "actionSequence": [
@@ -954,7 +975,7 @@
    ],
    "actions": [
     {
-     "id": "q_act-ac8ee96c-0194-4ac6-9747-968425f8073c",
+     "id": "q_act-939b082d-cc71-4256-a6c2-84c569d6ace0",
      "name": "Act_Ziehen_Start",
      "type": "property",
      "changes": {
@@ -972,7 +993,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-e3142ba3-05ba-436c-acf1-21428857a9ef",
+     "id": "q_act-39233c18-a56b-4493-afa5-a196060c20d8",
      "name": "Act_Karte_Server",
      "type": "http",
      "url": "/api/cms/play",
@@ -983,11 +1004,31 @@
      "queryOperator": "=="
     },
     {
-     "id": "q_act-584f2736-7750-4eb7-952d-b651aa1a51a8",
+     "id": "q_act-3c5debdf-e5d4-4271-b14f-1460319fe777",
+     "name": "Act_ZiehFehler",
+     "type": "property",
+     "changes": {
+      "Busy": 0,
+      "FrageLabel.text": "⚠️ Verbindungsproblem",
+      "StatusLabel.text": "${KartenAntwort.message}",
+      "FachLabel.text": ""
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "q_act-3fafb879-d115-4634-ba0c-af1356cff25f",
+     "name": "Act_Karte_Objekt",
+     "type": "variable",
+     "source": "KartenAntwort",
+     "sourceProperty": "card",
+     "variableName": "AktuelleKarte",
+     "scope": "stage"
+    },
+    {
+     "id": "q_act-e76b6c1b-b02a-4281-be43-696982335c81",
      "name": "Act_Karte_Uebernehmen",
      "type": "property",
      "changes": {
-      "AktuelleKarte": "${KartenAntwort.card}",
       "FrageLabel.text": "${KartenAntwort.card.question}",
       "FachLabel.text": "${KartenAntwort.card.subject} · ${KartenAntwort.card.topic} · Fach ${KartenAntwort.card.box}",
       "Busy": 0
@@ -995,7 +1036,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-abcb2bdc-b7d3-44d8-aed5-3f253f9407af",
+     "id": "q_act-072700c5-f13e-422f-9903-34de39382890",
      "name": "Act_TextBereit",
      "type": "property",
      "changes": {
@@ -1006,7 +1047,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-bb887455-4c48-4326-82d9-9af602c64429",
+     "id": "q_act-461ee078-691a-4361-95a1-7d213a4a5585",
      "name": "Act_SelfBereit",
      "type": "property",
      "changes": {
@@ -1015,7 +1056,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-72435ff7-631b-48e8-8eba-0c75a6177bab",
+     "id": "q_act-bc0131ee-17d3-42ca-8001-1625e9d813ef",
      "name": "Act_QuizEnde",
      "type": "property",
      "changes": {
@@ -1027,7 +1068,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-52ac3c8f-e7f0-4fac-b04d-732495689515",
+     "id": "q_act-64377ff1-3fde-427a-ad15-60f6a89e14a3",
      "name": "Act_Loesung_Anzeigen",
      "type": "property",
      "changes": {
@@ -1039,7 +1080,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-f8bb1a02-f5c8-4667-91ac-54c1dc4007f1",
+     "id": "q_act-73c421a1-788e-4ffa-a1c7-7a8ff2c4370e",
      "name": "Act_BewertenR_Start",
      "type": "property",
      "changes": {
@@ -1049,7 +1090,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-cdf1172e-d7fd-4cc3-bfe1-956eb91dde6d",
+     "id": "q_act-19247639-86d3-4dca-88b3-cc7bd71d6ebc",
      "name": "Act_BewertungR_Server",
      "type": "http",
      "url": "/api/cms/play",
@@ -1060,7 +1101,7 @@
      "queryOperator": "=="
     },
     {
-     "id": "q_act-fa0dd369-c9de-4b5a-ae0a-2f4f26e09f1a",
+     "id": "q_act-d1d5248c-f832-4f63-90c0-48f43f5b505e",
      "name": "Act_Richtig_Plus",
      "type": "calculate",
      "formula": "Richtig + 1",
@@ -1068,7 +1109,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-1ddaad1b-687d-4a68-bda5-9a7e5fb0bb15",
+     "id": "q_act-f97e4c75-1f0c-47da-84fd-b268941a32e6",
      "name": "Act_BewertetR",
      "type": "property",
      "changes": {
@@ -1086,7 +1127,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-a4d0d219-743c-4418-a0f3-3eb42f86ec84",
+     "id": "q_act-b26eed71-a554-4c14-b730-492509d521c7",
      "name": "Act_BuchFehler",
      "type": "property",
      "changes": {
@@ -1096,7 +1137,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-463a7242-21f6-4e76-906f-c86d10b5b572",
+     "id": "q_act-395a321e-4eeb-4268-91fd-0cdaf4c2830a",
      "name": "Act_BewertenF_Start",
      "type": "property",
      "changes": {
@@ -1106,7 +1147,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-79dacc6d-ca17-4ea9-9952-2cbf18720520",
+     "id": "q_act-2c72601e-a920-46af-89ca-216774314571",
      "name": "Act_BewertungF_Server",
      "type": "http",
      "url": "/api/cms/play",
@@ -1117,7 +1158,7 @@
      "queryOperator": "=="
     },
     {
-     "id": "q_act-a3b26bce-20c3-4a67-8e60-d4bfeff646ba",
+     "id": "q_act-947e5b37-8069-4d1a-a09c-a924f42a8e19",
      "name": "Act_Falsch_Plus",
      "type": "calculate",
      "formula": "Falsch + 1",
@@ -1125,7 +1166,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-6e5b13c0-ec45-42a8-87dd-4f4087d297a4",
+     "id": "q_act-be507a2e-7195-46e4-afee-5817e97299a7",
      "name": "Act_BewertetF",
      "type": "property",
      "changes": {
@@ -1143,7 +1184,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-39b050b7-e144-421d-8e81-a4086b459e11",
+     "id": "q_act-a0032ee3-4b47-433a-bb42-e83c4577357f",
      "name": "Act_BuchFehlerF",
      "type": "property",
      "changes": {
@@ -1153,7 +1194,7 @@
      "scope": "stage"
     },
     {
-     "id": "q_act-a4e0c415-85be-46fa-abe5-90add9359042",
+     "id": "q_act-d68b0cf5-0e8a-406c-8efd-7ba16d2ff674",
      "name": "Act_Sitzung_Ende",
      "type": "http",
      "url": "/api/cms/play",

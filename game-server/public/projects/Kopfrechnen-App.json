@@ -1,0 +1,1542 @@
+{
+ "meta": {
+  "id": "kopfrechnen-app",
+  "name": "Kopfrechnen-App",
+  "version": "0.1.0",
+  "description": "Kopfrechen-App mit Karteikasten-Anbindung: Karten aus dem Leitner-Kasten des Kindes (z. B. 1xN-Stapel), 3 Antwort-Buttons, richtig/falsch wird per cardAnswer gebucht. Übergabedaten als Overlay: { \"aufgaben\": 10 }.",
+  "generatedBy": "cms-add-kopfrechen-app.cjs",
+  "generatedAt": "2026-10-09T17:10:09.042Z"
+ },
+ "activeStageId": "stage_rechnen",
+ "schemaVersion": 3,
+ "flow": {},
+ "stages": [
+  {
+   "id": "stage_rechnen",
+   "type": "standard",
+   "name": "Kopfrechnen",
+   "grid": {
+    "cols": 64,
+    "rows": 40,
+    "cellSize": 18,
+    "visible": false,
+    "snapToGrid": true,
+    "backgroundColor": "#122b39"
+   },
+   "objects": [
+    {
+     "className": "TLabel",
+     "id": "kr_lbl-1de10865-c8e5-45e0-aea2-97ce33a5bc64",
+     "name": "Titel",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "KOPFRECHNEN",
+     "visible": true,
+     "x": 4,
+     "y": 2,
+     "width": 56,
+     "height": 3,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {
+      "color": "#edf7f4",
+      "fontSize": 30,
+      "textAlign": "center",
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderWidth": 0
+     }
+    },
+    {
+     "className": "TLabel",
+     "id": "kr_lbl-c9823559-6756-4c34-9855-f07e305b665b",
+     "name": "FachLabel",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "",
+     "visible": true,
+     "x": 4,
+     "y": 5,
+     "width": 56,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {
+      "color": "#edf7f4",
+      "fontSize": 16,
+      "textAlign": "center",
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderWidth": 0
+     }
+    },
+    {
+     "className": "TLabel",
+     "id": "kr_lbl-2dbcb383-6f55-4ca3-af36-9285f52440e3",
+     "name": "FortschrittLabel",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "",
+     "visible": true,
+     "x": 4,
+     "y": 7,
+     "width": 56,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {
+      "color": "#edf7f4",
+      "fontSize": 14,
+      "textAlign": "center",
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderWidth": 0
+     }
+    },
+    {
+     "className": "TLabel",
+     "id": "kr_lbl-36a7021f-5301-4099-a8b1-067aafde0155",
+     "name": "ZaehlerLabel",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "Richtig: 0 · Falsch: 0",
+     "visible": true,
+     "x": 4,
+     "y": 9,
+     "width": 56,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {
+      "color": "#edf7f4",
+      "fontSize": 14,
+      "textAlign": "center",
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderWidth": 0
+     }
+    },
+    {
+     "className": "TLabel",
+     "id": "kr_lbl-c0af5810-4c54-41cb-86d2-07c38b606735",
+     "name": "FrageLabel",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "",
+     "visible": true,
+     "x": 8,
+     "y": 13,
+     "width": 48,
+     "height": 6,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {
+      "color": "#edf7f4",
+      "fontSize": 34,
+      "textAlign": "center",
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderWidth": 0
+     }
+    },
+    {
+     "className": "TButton",
+     "id": "kr_btn-fa87d12f-3263-45f7-805b-67f1392e0f69",
+     "name": "BtnAntwortA",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "?",
+     "icon": "",
+     "visible": false,
+     "x": 8,
+     "y": 22,
+     "width": 15,
+     "height": 4,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "matchValue": "",
+     "style": {
+      "color": "#ffffff",
+      "fontSize": 28,
+      "fontWeight": "700",
+      "backgroundColor": "#2f6fed",
+      "borderColor": "#1d4fb8",
+      "borderWidth": 2,
+      "borderRadius": 12
+     },
+     "events": {
+      "onClick": "Antwort_Gewaehlt"
+     }
+    },
+    {
+     "className": "TButton",
+     "id": "kr_btn-b5a7ade9-aa8f-43cc-8817-5b45f15c2747",
+     "name": "BtnAntwortB",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "?",
+     "icon": "",
+     "visible": false,
+     "x": 24.5,
+     "y": 22,
+     "width": 15,
+     "height": 4,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "matchValue": "",
+     "style": {
+      "color": "#ffffff",
+      "fontSize": 28,
+      "fontWeight": "700",
+      "backgroundColor": "#2f6fed",
+      "borderColor": "#1d4fb8",
+      "borderWidth": 2,
+      "borderRadius": 12
+     },
+     "events": {
+      "onClick": "Antwort_Gewaehlt"
+     }
+    },
+    {
+     "className": "TButton",
+     "id": "kr_btn-a9a2d5bb-c123-47f1-b9c8-aeaeafd35200",
+     "name": "BtnAntwortC",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "?",
+     "icon": "",
+     "visible": false,
+     "x": 41,
+     "y": 22,
+     "width": 15,
+     "height": 4,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "matchValue": "",
+     "style": {
+      "color": "#ffffff",
+      "fontSize": 28,
+      "fontWeight": "700",
+      "backgroundColor": "#2f6fed",
+      "borderColor": "#1d4fb8",
+      "borderWidth": 2,
+      "borderRadius": 12
+     },
+     "events": {
+      "onClick": "Antwort_Gewaehlt"
+     }
+    },
+    {
+     "className": "TLabel",
+     "id": "kr_lbl-13ec9183-9bab-4bce-bfae-fd661e1f8fde",
+     "name": "LoesungLabel",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "",
+     "visible": true,
+     "x": 8,
+     "y": 28,
+     "width": 48,
+     "height": 3,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {
+      "color": "#edf7f4",
+      "fontSize": 20,
+      "textAlign": "center",
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderWidth": 0
+     }
+    },
+    {
+     "className": "TLabel",
+     "id": "kr_lbl-2ae80b38-932f-41fa-9434-73e8c080ca62",
+     "name": "StatusLabel",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "",
+     "visible": true,
+     "x": 8,
+     "y": 31,
+     "width": 48,
+     "height": 3,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {
+      "color": "#edf7f4",
+      "fontSize": 18,
+      "textAlign": "center",
+      "backgroundColor": "transparent",
+      "borderColor": "transparent",
+      "borderWidth": 0
+     }
+    },
+    {
+     "className": "TButton",
+     "id": "kr_btn-ecf81048-1afc-4ab4-bff8-6430323776ee",
+     "name": "Naechste",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "➡ Nächste Aufgabe",
+     "icon": "",
+     "visible": false,
+     "x": 26,
+     "y": 34,
+     "width": 16,
+     "height": 3,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "matchValue": "",
+     "style": {
+      "color": "#ffffff",
+      "fontSize": 18,
+      "fontWeight": "600",
+      "backgroundColor": "#1d9e77",
+      "borderColor": "#147a5d",
+      "borderWidth": 2,
+      "borderRadius": 10
+     },
+     "events": {
+      "onClick": "Aufgabe_Ziehen"
+     }
+    },
+    {
+     "className": "TButton",
+     "id": "kr_btn-4c124b99-688a-461b-8762-395f01ae4ad7",
+     "name": "Beenden",
+     "scope": "stage",
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "text": "🏁 Beenden",
+     "icon": "",
+     "visible": true,
+     "x": 8,
+     "y": 34,
+     "width": 12,
+     "height": 3,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "matchValue": "",
+     "style": {
+      "color": "#ffffff",
+      "fontSize": 18,
+      "fontWeight": "600",
+      "backgroundColor": "#3d4c5c",
+      "borderColor": "#2b3844",
+      "borderWidth": 2,
+      "borderRadius": 10
+     },
+     "events": {
+      "onClick": "App_Beenden"
+     }
+    },
+    {
+     "className": "TTimer",
+     "id": "kr_timer-af418ea4-798a-4ad3-a7e4-64b843620641",
+     "name": "AppInit",
+     "scope": "stage",
+     "isService": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "visible": true,
+     "x": 1,
+     "y": 1,
+     "width": 4,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "interval": 400,
+     "enabled": true,
+     "maxInterval": 1,
+     "currentInterval": 0,
+     "events": {
+      "onTimer": "App_Start"
+     }
+    }
+   ],
+   "variables": [
+    {
+     "className": "TStringVariable",
+     "id": "kr_var-41cd35ed-3401-4794-8250-d01269e9e88e",
+     "name": "CMS_LAUNCH",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "string",
+     "defaultValue": "",
+     "value": "",
+     "objectModel": ""
+    },
+    {
+     "className": "TStringVariable",
+     "id": "kr_var-002a304d-63a7-46d5-a732-dad083ec6ca1",
+     "name": "KartenFach",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "string",
+     "defaultValue": "Mathe",
+     "value": "Mathe",
+     "objectModel": ""
+    },
+    {
+     "className": "TStringVariable",
+     "id": "kr_var-49956173-b267-448a-9173-e8ce308e1d77",
+     "name": "KartenThema",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "string",
+     "defaultValue": "",
+     "value": "",
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-de906a6f-39cb-4a2f-b57f-ab66be19070a",
+     "name": "Aufgaben",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 10,
+     "value": 10,
+     "objectModel": ""
+    },
+    {
+     "className": "TStringVariable",
+     "id": "kr_var-44a176c4-f49d-4843-a5b8-3c341d834976",
+     "name": "GezogeneIds",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "string",
+     "defaultValue": "",
+     "value": "",
+     "objectModel": ""
+    },
+    {
+     "className": "TObjectVariable",
+     "id": "kr_var-b2cd2fbb-98c8-427a-93af-dcfd803a9ddc",
+     "name": "AktuelleKarte",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "object",
+     "defaultValue": null,
+     "value": null,
+     "objectModel": ""
+    },
+    {
+     "className": "TObjectVariable",
+     "id": "kr_var-4220da04-2565-412b-a33e-eeffad28beb0",
+     "name": "KartenAntwort",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "object",
+     "defaultValue": null,
+     "value": null,
+     "objectModel": ""
+    },
+    {
+     "className": "TObjectVariable",
+     "id": "kr_var-850152dd-8037-4f9f-991a-241d5b539921",
+     "name": "BewertungAntwort",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "object",
+     "defaultValue": null,
+     "value": null,
+     "objectModel": ""
+    },
+    {
+     "className": "TObjectVariable",
+     "id": "kr_var-df4e5c0a-7fbc-4b16-86e7-33d8b8dcbfe9",
+     "name": "EndeAntwort",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "object",
+     "defaultValue": null,
+     "value": null,
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-9796ba90-67db-4465-9675-77f2b234a238",
+     "name": "Richtig",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 0,
+     "value": 0,
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-a9d8d6df-95b8-4475-b7df-9d56a6bdb7da",
+     "name": "Falsch",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 0,
+     "value": 0,
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-9f3de867-6039-4bc7-9e3f-128d7de5d3bd",
+     "name": "Busy",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 0,
+     "value": 0,
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-6db5c173-287b-49af-945a-17646f31b522",
+     "name": "AufgabenNr",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 0,
+     "value": 0,
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-708dd5be-a626-43fc-b6eb-c42f4f2f4eac",
+     "name": "Ergebnis",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 0,
+     "value": 0,
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-a949add1-36fb-4d4c-9d33-efd4c0ed22b8",
+     "name": "Distrakt1",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 0,
+     "value": 0,
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-310afb68-2224-4cc4-bf35-92f9c3d97dbb",
+     "name": "Distrakt2",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 0,
+     "value": 0,
+     "objectModel": ""
+    },
+    {
+     "className": "TIntegerVariable",
+     "id": "kr_var-ed6be948-278c-4103-87d2-c130bbe6b1db",
+     "name": "Pos",
+     "scope": "stage",
+     "isVariable": true,
+     "isHiddenInRun": true,
+     "draggable": false,
+     "droppable": false,
+     "dragMode": "move",
+     "description": "",
+     "visible": true,
+     "x": 0,
+     "y": 0,
+     "width": 6,
+     "height": 2,
+     "zIndex": 0,
+     "rotation": 0,
+     "align": "NONE",
+     "collisionEnabled": false,
+     "style": {},
+     "type": "integer",
+     "defaultValue": 0,
+     "value": 0,
+     "objectModel": ""
+    }
+   ],
+   "tasks": [
+    {
+     "id": "kr_task-09ba34cc-1bd8-4658-a616-85671d8a7875",
+     "name": "App_Start",
+     "description": "Erstladung: erste Karte aus dem Karteikasten ordern",
+     "actionSequence": [
+      {
+       "type": "task",
+       "name": "Aufgabe_Ziehen"
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": [],
+     "scope": "stage"
+    },
+    {
+     "id": "kr_task-dcb00813-fb16-447f-ae85-78cf58154c50",
+     "name": "Aufgabe_Ziehen",
+     "description": "Server ordert die nächste Karte; Distraktoren = Ergebnis±1 bzw. +2, Position zufällig",
+     "actionSequence": [
+      {
+       "type": "condition",
+       "name": "Rundenlimit erreicht?",
+       "condition": {
+        "variable": "AufgabenNr",
+        "operator": ">=",
+        "value": "${Aufgaben}",
+        "rightType": "variable"
+       },
+       "body": [
+        {
+         "type": "task",
+         "name": "Abschluss"
+        }
+       ],
+       "elseBody": [
+        {
+         "type": "condition",
+         "name": "Runde läuft?",
+         "condition": {
+          "variable": "Busy",
+          "operator": "==",
+          "value": 0
+         },
+         "body": [
+          {
+           "type": "action",
+           "name": "Act_Ziehen_Start"
+          },
+          {
+           "type": "action",
+           "name": "Act_Karte_Server"
+          },
+          {
+           "type": "condition",
+           "name": "Server antwortet?",
+           "condition": {
+            "variable": "KartenAntwort.ok",
+            "operator": "!=",
+            "value": true
+           },
+           "body": [
+            {
+             "type": "action",
+             "name": "Act_ZiehFehler"
+            }
+           ],
+           "elseBody": [
+            {
+             "type": "condition",
+             "name": "Karte gefunden?",
+             "condition": {
+              "variable": "KartenAntwort.card",
+              "operator": "truthy",
+              "value": true
+             },
+             "body": [
+              {
+               "type": "action",
+               "name": "Act_Karte_Objekt"
+              },
+              {
+               "type": "action",
+               "name": "Act_Nr_Plus"
+              },
+              {
+               "type": "action",
+               "name": "Act_Karte_Uebernehmen"
+              },
+              {
+               "type": "action",
+               "name": "Act_Ergebnis"
+              },
+              {
+               "type": "action",
+               "name": "Act_Distraktor1"
+              },
+              {
+               "type": "action",
+               "name": "Act_Distraktor2"
+              },
+              {
+               "type": "action",
+               "name": "Act_Position"
+              },
+              {
+               "type": "condition",
+               "name": "Pos 1?",
+               "condition": {
+                "variable": "Pos",
+                "operator": "==",
+                "value": 1
+               },
+               "body": [
+                {
+                 "type": "action",
+                 "name": "Act_VarianteA"
+                }
+               ],
+               "elseBody": [
+                {
+                 "type": "condition",
+                 "name": "Pos 2?",
+                 "condition": {
+                  "variable": "Pos",
+                  "operator": "==",
+                  "value": 2
+                 },
+                 "body": [
+                  {
+                   "type": "action",
+                   "name": "Act_VarianteB"
+                  }
+                 ],
+                 "elseBody": [
+                  {
+                   "type": "action",
+                   "name": "Act_VarianteC"
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "type": "action",
+               "name": "Act_Buttons_Bereit"
+              }
+             ],
+             "elseBody": [
+              {
+               "type": "task",
+               "name": "Abschluss"
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": [],
+     "scope": "stage"
+    },
+    {
+     "id": "kr_task-45ad86a0-073e-4213-9f69-dd385bb91d30",
+     "name": "Antwort_Gewaehlt",
+     "description": "matchValue des geklickten Buttons mit dem Ergebnis vergleichen",
+     "actionSequence": [
+      {
+       "type": "condition",
+       "name": "Runde läuft?",
+       "condition": {
+        "variable": "Busy",
+        "operator": "==",
+        "value": 0
+       },
+       "body": [
+        {
+         "type": "condition",
+         "name": "Treffer?",
+         "condition": {
+          "variable": "self.matchValue",
+          "operator": "==",
+          "value": "${Ergebnis}",
+          "rightType": "variable"
+         },
+         "body": [
+          {
+           "type": "task",
+           "name": "Bewerten_Richtig"
+          }
+         ],
+         "elseBody": [
+          {
+           "type": "task",
+           "name": "Bewerten_Falsch"
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": [],
+     "scope": "stage"
+    },
+    {
+     "id": "kr_task-f8448aeb-9ba4-4867-959b-2be009a997ff",
+     "name": "Bewerten_Richtig",
+     "description": "Richtig: Lernfach +1 (Fach 5 → Ablage 6), direkt nächste Aufgabe",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "Act_BewertenR_Start"
+      },
+      {
+       "type": "action",
+       "name": "Act_BewertungR_Server"
+      },
+      {
+       "type": "condition",
+       "name": "Gebucht?",
+       "condition": {
+        "variable": "BewertungAntwort.ok",
+        "operator": "==",
+        "value": true
+       },
+       "body": [
+        {
+         "type": "action",
+         "name": "Act_Richtig_Plus"
+        },
+        {
+         "type": "action",
+         "name": "Act_BewertetR"
+        },
+        {
+         "type": "task",
+         "name": "Aufgabe_Ziehen"
+        }
+       ],
+       "elseBody": [
+        {
+         "type": "action",
+         "name": "Act_BuchFehler"
+        }
+       ]
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": [],
+     "scope": "stage"
+    },
+    {
+     "id": "kr_task-91a0c226-cf1c-4190-92b6-0a982808397c",
+     "name": "Bewerten_Falsch",
+     "description": "Falsch: zurück auf Lernfach 1, Lösung zeigen, per Button weiter",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "Act_BewertenF_Start"
+      },
+      {
+       "type": "action",
+       "name": "Act_BewertungF_Server"
+      },
+      {
+       "type": "condition",
+       "name": "Gebucht?",
+       "condition": {
+        "variable": "BewertungAntwort.ok",
+        "operator": "==",
+        "value": true
+       },
+       "body": [
+        {
+         "type": "action",
+         "name": "Act_Falsch_Plus"
+        },
+        {
+         "type": "action",
+         "name": "Act_BewertetF"
+        }
+       ],
+       "elseBody": [
+        {
+         "type": "action",
+         "name": "Act_BuchFehlerF"
+        }
+       ]
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": [],
+     "scope": "stage"
+    },
+    {
+     "id": "kr_task-31d8e1af-9a8a-424f-9cdb-78f0f9366e82",
+     "name": "Abschluss",
+     "description": "Ergebnis anzeigen, Spielsitzung beenden (Zeitbuchung), Ergebnis ans Hauptspiel zurückmelden",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "Act_Abschluss"
+      },
+      {
+       "type": "action",
+       "name": "Act_Sitzung_Ende"
+      },
+      {
+       "type": "action",
+       "name": "Act_Ergebnis_Rueckmelden"
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": [],
+     "scope": "stage"
+    },
+    {
+     "id": "kr_task-6563e7b2-dc08-43cf-9475-203324ee1db7",
+     "name": "App_Beenden",
+     "description": "Manuell beenden: Zeitbuchung abschließen",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "Act_Ende_Server"
+      },
+      {
+       "type": "action",
+       "name": "Act_Beendet"
+      }
+     ],
+     "triggerMode": "local-sync",
+     "params": [],
+     "scope": "stage"
+    }
+   ],
+   "actions": [
+    {
+     "id": "kr_act-1a5ac02e-242c-4d2f-871c-d3075f9a69db",
+     "name": "Act_Ziehen_Start",
+     "type": "property",
+     "changes": {
+      "Busy": 1,
+      "StatusLabel.text": "Aufgabe wird geladen …",
+      "LoesungLabel.text": "",
+      "Naechste.visible": false,
+      "BtnAntwortA.visible": false,
+      "BtnAntwortB.visible": false,
+      "BtnAntwortC.visible": false
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-4314ad8f-61c9-4987-b2d9-0e1baaeff3d1",
+     "name": "Act_Karte_Server",
+     "type": "http",
+     "url": "/api/cms/play",
+     "method": "POST",
+     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardNext\",\"subject\":\"${KartenFach}\",\"topic\":\"${KartenThema}\",\"formats\":[\"text\"],\"excludeIds\":\"${GezogeneIds}\"}",
+     "resultVariable": "KartenAntwort",
+     "scope": "stage",
+     "queryOperator": "=="
+    },
+    {
+     "id": "kr_act-a28d8fcb-34ff-49ae-8388-2a79ff06dbbe",
+     "name": "Act_ZiehFehler",
+     "type": "property",
+     "changes": {
+      "Busy": 0,
+      "FrageLabel.text": "⚠️ Verbindungsproblem",
+      "StatusLabel.text": "${KartenAntwort.message}",
+      "FachLabel.text": ""
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-5d33bb67-7b1d-4136-a97c-4b34765d6f20",
+     "name": "Act_Karte_Objekt",
+     "type": "variable",
+     "source": "KartenAntwort",
+     "sourceProperty": "card",
+     "variableName": "AktuelleKarte",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-3d443e3c-9f6f-4049-aabb-2d02eafefdf2",
+     "name": "Act_Nr_Plus",
+     "type": "calculate",
+     "formula": "AufgabenNr + 1",
+     "resultVariable": "AufgabenNr",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-93ca6b04-2895-4c4f-8e2a-3e0101941ca2",
+     "name": "Act_Karte_Uebernehmen",
+     "type": "property",
+     "changes": {
+      "FrageLabel.text": "${KartenAntwort.card.question}",
+      "FachLabel.text": "${KartenAntwort.card.subject} · ${KartenAntwort.card.topic} · Fach ${KartenAntwort.card.box}",
+      "FortschrittLabel.text": "Aufgabe ${AufgabenNr} von ${Aufgaben}"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-e1f6f0be-a0eb-4daf-af93-98c584635493",
+     "name": "Act_Ergebnis",
+     "type": "calculate",
+     "formula": "parseInt(AktuelleKarte.answers[0])",
+     "resultVariable": "Ergebnis",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-e4375457-6357-4b17-9ac8-b205d072199c",
+     "name": "Act_Distraktor1",
+     "type": "calculate",
+     "formula": "Ergebnis + 1",
+     "resultVariable": "Distrakt1",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-6d1174e6-486f-4d30-b39d-06788ae1aecc",
+     "name": "Act_Distraktor2",
+     "type": "calculate",
+     "formula": "Ergebnis > 1 ? Ergebnis - 1 : Ergebnis + 2",
+     "resultVariable": "Distrakt2",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-e4ee12b2-d966-4212-aa19-f1db8b1fb3f6",
+     "name": "Act_Position",
+     "type": "calculate",
+     "formula": "Math.floor(Math.random() * 3) + 1",
+     "resultVariable": "Pos",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-e0b396e9-8e40-449f-b753-741f17ffad52",
+     "name": "Act_VarianteA",
+     "type": "property",
+     "changes": {
+      "BtnAntwortA.text": "${Ergebnis}",
+      "BtnAntwortA.matchValue": "${Ergebnis}",
+      "BtnAntwortB.text": "${Distrakt1}",
+      "BtnAntwortB.matchValue": "${Distrakt1}",
+      "BtnAntwortC.text": "${Distrakt2}",
+      "BtnAntwortC.matchValue": "${Distrakt2}"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-b3f67c04-3e21-40a6-bf40-c6e3729fec79",
+     "name": "Act_VarianteB",
+     "type": "property",
+     "changes": {
+      "BtnAntwortA.text": "${Distrakt1}",
+      "BtnAntwortA.matchValue": "${Distrakt1}",
+      "BtnAntwortB.text": "${Ergebnis}",
+      "BtnAntwortB.matchValue": "${Ergebnis}",
+      "BtnAntwortC.text": "${Distrakt2}",
+      "BtnAntwortC.matchValue": "${Distrakt2}"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-053a8cfd-458a-49d7-849a-88c4e3a4f4c1",
+     "name": "Act_VarianteC",
+     "type": "property",
+     "changes": {
+      "BtnAntwortA.text": "${Distrakt1}",
+      "BtnAntwortA.matchValue": "${Distrakt1}",
+      "BtnAntwortB.text": "${Distrakt2}",
+      "BtnAntwortB.matchValue": "${Distrakt2}",
+      "BtnAntwortC.text": "${Ergebnis}",
+      "BtnAntwortC.matchValue": "${Ergebnis}"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-b0dc36d9-71dc-479e-b741-3acb4d7fdf8b",
+     "name": "Act_Buttons_Bereit",
+     "type": "property",
+     "changes": {
+      "Busy": 0,
+      "StatusLabel.text": "",
+      "BtnAntwortA.visible": true,
+      "BtnAntwortB.visible": true,
+      "BtnAntwortC.visible": true
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-97b71d80-f153-4019-9848-1a68abfa8ee0",
+     "name": "Act_BewertenR_Start",
+     "type": "property",
+     "changes": {
+      "Busy": 1,
+      "BtnAntwortA.visible": false,
+      "BtnAntwortB.visible": false,
+      "BtnAntwortC.visible": false,
+      "StatusLabel.text": "✔ Richtig!"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-ebc1f865-eff0-4b9e-a0a5-c9a5d387cf6e",
+     "name": "Act_BewertungR_Server",
+     "type": "http",
+     "url": "/api/cms/play",
+     "method": "POST",
+     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":true}",
+     "resultVariable": "BewertungAntwort",
+     "scope": "stage",
+     "queryOperator": "=="
+    },
+    {
+     "id": "kr_act-c137c041-a288-495f-b354-bb11e305c9c6",
+     "name": "Act_Richtig_Plus",
+     "type": "calculate",
+     "formula": "Richtig + 1",
+     "resultVariable": "Richtig",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-0861aef6-0bc3-4c1b-a178-41e6bd62672c",
+     "name": "Act_BewertetR",
+     "type": "property",
+     "changes": {
+      "Busy": 0,
+      "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
+      "GezogeneIds": "${GezogeneIds}${AktuelleKarte.id},"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-fa3c4949-1bf3-444f-8b88-34bcc489d254",
+     "name": "Act_BuchFehler",
+     "type": "property",
+     "changes": {
+      "Busy": 0,
+      "StatusLabel.text": "${BewertungAntwort.message}"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-d2cd80b1-4a56-4116-b270-ff1e7f6cce70",
+     "name": "Act_BewertenF_Start",
+     "type": "property",
+     "changes": {
+      "Busy": 1,
+      "BtnAntwortA.visible": false,
+      "BtnAntwortB.visible": false,
+      "BtnAntwortC.visible": false
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-656b8476-a8b2-485e-a080-206256ed1cee",
+     "name": "Act_BewertungF_Server",
+     "type": "http",
+     "url": "/api/cms/play",
+     "method": "POST",
+     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":false}",
+     "resultVariable": "BewertungAntwort",
+     "scope": "stage",
+     "queryOperator": "=="
+    },
+    {
+     "id": "kr_act-4cbd68d6-b13b-47b2-a49b-10a0d7117ee3",
+     "name": "Act_Falsch_Plus",
+     "type": "calculate",
+     "formula": "Falsch + 1",
+     "resultVariable": "Falsch",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-172b4a17-11f2-4ad4-aa08-dc1dc3eaa530",
+     "name": "Act_BewertetF",
+     "type": "property",
+     "changes": {
+      "Busy": 0,
+      "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
+      "LoesungLabel.text": "${AktuelleKarte.question} = ${AktuelleKarte.answers}",
+      "StatusLabel.text": "Fast — schau dir die Lösung an.",
+      "Naechste.visible": true,
+      "GezogeneIds": "${GezogeneIds}${AktuelleKarte.id},"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-86a3a141-23d5-4b4a-a9e2-ef88102b3088",
+     "name": "Act_BuchFehlerF",
+     "type": "property",
+     "changes": {
+      "Busy": 0,
+      "StatusLabel.text": "${BewertungAntwort.message}"
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-0f2a8d54-9937-405a-a4eb-81e417f47bec",
+     "name": "Act_Abschluss",
+     "type": "property",
+     "changes": {
+      "Busy": 0,
+      "FrageLabel.text": "🎉 Geschafft!",
+      "FachLabel.text": "",
+      "FortschrittLabel.text": "",
+      "StatusLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
+      "LoesungLabel.text": "",
+      "Naechste.visible": false,
+      "BtnAntwortA.visible": false,
+      "BtnAntwortB.visible": false,
+      "BtnAntwortC.visible": false
+     },
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-8f0e5c0b-9c39-499e-9c54-b27dd193e174",
+     "name": "Act_Sitzung_Ende",
+     "type": "http",
+     "url": "/api/cms/play",
+     "method": "POST",
+     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"end\"}",
+     "resultVariable": "EndeAntwort",
+     "scope": "stage",
+     "queryOperator": "=="
+    },
+    {
+     "id": "kr_act-4a5a2c58-a83a-4875-8308-f6dafd26eac9",
+     "name": "Act_Ergebnis_Rueckmelden",
+     "type": "close_overlay",
+     "result": "{\"richtig\": ${Richtig}, \"fehler\": ${Falsch}, \"gesamt\": ${AufgabenNr}}",
+     "scope": "stage"
+    },
+    {
+     "id": "kr_act-21fb608c-dd04-4822-b3c1-dba52373e5f9",
+     "name": "Act_Ende_Server",
+     "type": "http",
+     "url": "/api/cms/play",
+     "method": "POST",
+     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"end\"}",
+     "resultVariable": "EndeAntwort",
+     "scope": "stage",
+     "queryOperator": "=="
+    },
+    {
+     "id": "kr_act-0e66efd7-3872-4641-9ea3-b08cbe06aac4",
+     "name": "Act_Beendet",
+     "type": "property",
+     "changes": {
+      "StatusLabel.text": "Sitzung beendet."
+     },
+     "scope": "stage"
+    }
+   ],
+   "events": {},
+   "features": [
+    {
+     "id": "kopfrechnen-karteikasten",
+     "name": "Kopfrechnen-App",
+     "description": "Karteikasten andocken (KartenFach/KartenThema), cardNext-Loop, 3-Button-Antworten mit berechneten Distraktoren, Leitner-Buchung über cardAnswer. Eigenständig oder als Overlay nutzbar.",
+     "tags": [
+      "Karteikasten",
+      "Kopfrechnen",
+      "Muster"
+     ],
+     "userStoryIds": [],
+     "blueprintTaskNames": [
+      "App_Start",
+      "Aufgabe_Ziehen",
+      "Antwort_Gewaehlt",
+      "Bewerten_Richtig",
+      "Bewerten_Falsch",
+      "Abschluss"
+     ]
+    }
+   ]
+  }
+ ],
+ "userStories": [],
+ "objects": [],
+ "variables": [],
+ "tasks": [],
+ "actions": []
+}

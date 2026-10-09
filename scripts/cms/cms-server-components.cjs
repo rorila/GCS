@@ -239,7 +239,7 @@ const methods={
  TServerResponse:{
   // send({feld:expr, merge:objVar}) — 'merge' breitet ein Ergebnisobjekt (z. B. Kind-Karte) in die Antwort aus.
   send(ctx,_component,params){const p=params?.[0]||{},merge=p.merge&&typeof p.merge==='object'?p.merge:{};const rest={...p};delete rest.merge;ctx.result={status:200,data:{ok:true,...merge,...rest}};},
-  fail(ctx,_component,params){ctx.result={status:Number(params?.[0])||400,data:{ok:false,message:String(params?.[1]||'Anfrage abgelehnt.')}};}
+  fail(ctx,_component,params){const extra=params?.[2]&&typeof params[2]==='object'&&!Array.isArray(params[2])?params[2]:{};ctx.result={status:Number(params?.[0])||400,data:{ok:false,message:String(params?.[1]||'Anfrage abgelehnt.'),...extra}};}
  },
  TServerValidate:{
   avatar(ctx,_component,params){
@@ -1248,6 +1248,10 @@ const methods={
    const childSession={personId:childId,assurance:'profile'};
    const started=ctx.play.api(childSession,'start',{gameId,areaId});
    if(!started.data.ok)return{ok:false,status:started.status,message:started.data.message};
+   // Launch-Grant braucht eine Sitzung des Kindes — der Start lief über ein
+   // session-Objekt ohne Token, also hier eine Profil-Sitzung ausstellen.
+   const childToken=ctx.core.issueSession(childId,'profile');
+   if(!childToken)return{ok:false,status:403,message:'Kind ist nicht aktiv.'};
    const now=Date.now();
    if(personId){
     // Einladungsvariante: ein weiterer Bewohner wird eingeladen.
@@ -1264,12 +1268,12 @@ const methods={
      next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:personId,type:'game-invitation',invitationId,read:false,createdAt:new Date(now).toISOString()});
     });
     const key=crypto.randomBytes(24).toString('hex');
-    ctx.launches.set(key,{token:started.token,gameId,areaId,playSessionId:started.data.playSessionId,partyId});
+    ctx.launches.set(key,{token:childToken,gameId,areaId,playSessionId:started.data.playSessionId,partyId});
     return{ok:true,partyId,invitationId,launch:'/play/'+key,message:invitee.name+' wurde eingeladen — Spiel wird für '+db.people.find(p=>p.id===childId)?.name+' geöffnet.'};
    }
    // Solospiel direkt starten (keine Partie, aber Launch für die Elternansicht).
    const key=crypto.randomBytes(24).toString('hex');
-   ctx.launches.set(key,{token:started.token,gameId,areaId,playSessionId:started.data.playSessionId});
+   ctx.launches.set(key,{token:childToken,gameId,areaId,playSessionId:started.data.playSessionId});
    return{ok:true,launch:'/play/'+key,message:'Spiel wird für '+db.people.find(p=>p.id===childId)?.name+' geöffnet.'};
   },
   // Offene Partien eines Raums (Raumzugehörigkeit prüft der Task).

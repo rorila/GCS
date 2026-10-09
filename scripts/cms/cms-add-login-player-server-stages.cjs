@@ -18,6 +18,14 @@ const ns=prefix=>({
  cond:(name,variable,operator,value,then,else_)=>({type:'condition',name,condition:{variable,operator,value},then,else:else_}),
  act:(name,target,method,params,resultVariable)=>({id:uid('srv_act'),name:prefix+'_'+name,type:'call_method',target,method,params:params||[],resultVariable,scope:'stage'})
 });
+// Ersetzt nur Einträge, die dieser Generator selbst erzeugt (gleiche Namen) —
+// fremde Tasks/Actions/Objekte/Variablen anderer Generatoren (z. B. Rollenwahl)
+// oder des Editors bleiben erhalten.
+const nameOf=x=>typeof x==='string'?x:x?.name;
+const mergeByName=(existing=[],generated=[])=>{
+ const names=new Set(generated.map(nameOf));
+ return [...existing.filter(x=>!names.has(nameOf(x))),...generated];
+};
 // Gemeinsamer Vorspann: Konto-Sitzung erforderlich (401 bei fehlender Sitzung).
 const guard=n=>[
  {type:'action',name:'Act_KontoRolle_Pruefen'},
@@ -38,7 +46,7 @@ for(const cls of ['TServerValidate','TServerAuthenticate','TServerResponse'])
  if(!login.objects.some(o=>o.className===cls))throw Error('Login-Stage: Komponente fehlt: '+cls);
 ep.events={onRequest:'Server_Anmeldung_Verarbeiten'};
 {const n=ns('Anmeldung');
- login.tasks=[{id:uid('srv_task'),name:'Server_Anmeldung_Verarbeiten',scope:'stage',
+ login.tasks=mergeByName(login.tasks,[{id:uid('srv_task'),name:'Server_Anmeldung_Verarbeiten',scope:'stage',
   description:'Versuchslimit → Eingabeprüfung → Emoji-Authentifizierung → Antwort',
   actionSequence:[
    n.call('DrosselPruefen'),
@@ -50,16 +58,17 @@ ep.events={onRequest:'Server_Anmeldung_Verarbeiten'};
      [n.call('Antworten')],
      [n.call('FehlerAuth')])
    ],[n.call('FehlerEingabe')])
-  ]}];
- login.actions=[
+  ]}]);
+ login.actions=mergeByName(login.actions,[
   n.act('DrosselPruefen','SpielerAuthentifizieren','throttle',[{bucket:'login',limit:20,windowMs:60000}],'Drossel'),
   n.act('EingabePruefen','AnmeldedatenPruefen','loginInput',[],'Eingabe'),
   n.act('Authentifizieren','SpielerAuthentifizieren','authenticate',[{sequence:'$body.sequence'}],'Auth'),
-  n.act('Antworten','AnmeldeantwortSenden','send',[{token:'${Auth.token}',name:'${Auth.name}',avatar:'${Auth.avatar}',message:'${AnmeldeantwortSenden.successMessage}'}]),
+  // roles/houseId/needRole steuern die Kontrollen-Rollenwahl (needRole → stage_player_roles).
+  n.act('Antworten','AnmeldeantwortSenden','send',[{token:'${Auth.token}',name:'${Auth.name}',avatar:'${Auth.avatar}',message:'${AnmeldeantwortSenden.successMessage}',roles:'${Auth.roles}',houseId:'${Auth.houseId}',needRole:'${Auth.needRole}'}]),
   n.act('FehlerDrossel','AnmeldeantwortSenden','fail',[429,'⏳ Bitte kurz warten']),
   n.act('FehlerEingabe','AnmeldeantwortSenden','fail',[200,'${AnmeldedatenPruefen.failureMessage}']),
-  n.act('FehlerAuth','AnmeldeantwortSenden','fail',[200,'${SpielerAuthentifizieren.failureMessage}'])];
- login.variables=['Drossel','Eingabe','Auth'].map(variable);
+  n.act('FehlerAuth','AnmeldeantwortSenden','fail',[200,'${SpielerAuthentifizieren.failureMessage}'])]);
+ login.variables=mergeByName(login.variables,['Drossel','Eingabe','Auth'].map(variable));
  login.generatedBy=BUILDER;
 }
 
@@ -75,7 +84,7 @@ if(adminLogin.generatedBy&&adminLogin.generatedBy!==BUILDER){console.log('stage_
   if(!adminLogin.objects.some(o=>o.className===cls))throw Error('Admin-Login-Stage: Komponente fehlt: '+cls);
  aep.events={onRequest:'Server_Verwaltungsanmeldung_Verarbeiten'};
  const n=ns('Verwaltung');
- adminLogin.tasks=[{id:uid('srv_task'),name:'Server_Verwaltungsanmeldung_Verarbeiten',scope:'stage',
+ adminLogin.tasks=mergeByName(adminLogin.tasks,[{id:uid('srv_task'),name:'Server_Verwaltungsanmeldung_Verarbeiten',scope:'stage',
   description:'Eingabe → Zugang (Versuchslimit + Hash + Zuständigkeit) → Sitzungen → Antwort',
   actionSequence:[
    n.call('EingabePruefen'),
@@ -86,16 +95,16 @@ if(adminLogin.generatedBy&&adminLogin.generatedBy!==BUILDER){console.log('stage_
     n.call('AntwortDaten'),
     n.call('Antworten')
    ],[n.call('FehlerEingabe')])
-  ]}];
- adminLogin.actions=[
+  ]}]);
+ adminLogin.actions=mergeByName(adminLogin.actions,[
   n.act('EingabePruefen','AnmeldedatenPruefen','adminInput',[],'Eingabe'),
   n.act('ZugangPruefen','VerwaltungszugangPruefen','verifyAdmin',[],'Geprueft'),
   n.act('SitzungErstellen','VerwaltungssitzungErstellen','createAdmin',['${Geprueft.session}'],'Verwaltung'),
   n.act('KontoErstellen','VerwaltungssitzungErstellen','createAccount',['${Geprueft.personId}'],'Konto'),
   n.act('AntwortDaten','VerwaltungszugangPruefen','adminResult',[{successMessage:'${AnmeldeantwortSenden.successMessage}',accountMessage:'Angemeldet.',failureMessage:'${VerwaltungszugangPruefen.failureMessage}'}],'AntwortDaten'),
   n.act('Antworten','AnmeldeantwortSenden','send',[{merge:'${AntwortDaten}'}]),
-  n.act('FehlerEingabe','AnmeldeantwortSenden','fail',[200,'${AnmeldedatenPruefen.failureMessage}'])];
- adminLogin.variables=['Eingabe','Geprueft','Verwaltung','Konto','AntwortDaten'].map(variable);
+  n.act('FehlerEingabe','AnmeldeantwortSenden','fail',[200,'${AnmeldedatenPruefen.failureMessage}'])]);
+ adminLogin.variables=mergeByName(adminLogin.variables,['Eingabe','Geprueft','Verwaltung','Konto','AntwortDaten'].map(variable));
  adminLogin.generatedBy=BUILDER;
 }
 
@@ -246,6 +255,23 @@ const childRoomActions=n=>[
   n.act('FehlerZustand','AntwortSenden','fail',[400,'Zutrittsstatus fehlt.']));
 }
 
+// session-stop — das Kind beendet seine eigene laufende Spielsitzung selbst
+// (verwaiste Sitzung nach Absturz/Gerätewechsel). Die Einzelsitzungsregel
+// bleibt; nur die eigene, via activeSession gefundene Sitzung wird beendet.
+{const n=ns('SitzungStop');
+ ptasks.push({id:uid('srv_task'),name:'Server_SitzungStop_Verarbeiten',scope:'stage',
+  description:'Konto-Sitzung → eigene aktive/pausierte Spielsitzung beenden',
+  actionSequence:withGuard(n,[
+   n.call('LaufendeLaden'),
+   n.cond('Sitzung läuft?','Aktiv.found','==',true,[n.call('Beenden'),n.call('Antworten')],[n.call('Leer')])
+  ])});
+ pactions.push(
+  n.act('LaufendeLaden','SpielStart','activeSession',['$session.personId'],'Aktiv'),
+  n.act('Beenden','SpielStart','setStatus',[{id:'${Aktiv.item.id}',status:'ended'}],'Beendet'),
+  n.act('Antworten','AntwortSenden','send',[{message:'Laufendes Spiel wurde beendet.'}]),
+  n.act('Leer','AntwortSenden','send',[{message:'Keine laufende Sitzung.'}]));
+}
+
 // --- Stage zusammensetzen -----------------------------------------------------
 const pEndpoints=[
  ['/api/cms/contexts','Ep_Kontexte','Server_Kontexte_Verarbeiten'],
@@ -256,7 +282,8 @@ const pEndpoints=[
  ['/api/cms/launch','Ep_Spielstart','Server_Spielstart_Verarbeiten'],
  ['/api/cms/child/rooms','Ep_KinderRaeume','Server_KinderRaeume_Verarbeiten'],
  ['/api/cms/child/members','Ep_KinderMitglieder','Server_KinderMitglieder_Verarbeiten'],
- ['/api/cms/child/membership','Ep_KinderZutritt','Server_KinderZutritt_Verarbeiten']
+ ['/api/cms/child/membership','Ep_KinderZutritt','Server_KinderZutritt_Verarbeiten'],
+ ['/api/cms/session-stop','Ep_SitzungStop','Server_SitzungStop_Verarbeiten']
 ];
 const pobjects=pEndpoints.map(([p,name,task],i)=>comp('TServerEndpoint',name,{endpointPath:p,httpMethod:'POST',traceEnabled:true,events:{onRequest:task},x:16,y:2+i*4}));
 pobjects.push(comp('TServerSession','KontoSitzung',{x:2,y:2}),
@@ -269,13 +296,23 @@ pactions.push(...guardActions);
 const playerStage={id:'stage_server_player',type:'standard',name:'Server · Spieler-Konto',
  grid:{cols:64,rows:40,cellSize:18,visible:false,snapToGrid:true,backgroundColor:'#122b39'},
  objects:pobjects,tasks:ptasks,actions:pactions,
- variables:['Pruefung','Kontexte','Abmeldung','Raeume','PraesenzZustand','Praesenz','Seite','Mitglied','RaumAktiv','Spiele','Launch','Kind','Raum','EigenerZutritt','Haus','Hausmitglied','KinderRaeume','KinderMitglieder','Zustand','Person','Gesperrt','Aenderung'].map(variable),
+ variables:['Pruefung','Kontexte','Abmeldung','Raeume','PraesenzZustand','Praesenz','Seite','Mitglied','RaumAktiv','Spiele','Launch','Kind','Raum','EigenerZutritt','Haus','Hausmitglied','KinderRaeume','KinderMitglieder','Zustand','Person','Gesperrt','Aenderung','Aktiv','Beendet'].map(variable),
  flowCharts:{},events:{},startAnimation:'none',
  features:[{id:'server-player',name:'Spieler-Konto und Spielstart',
   blueprintTaskNames:ptasks.map(t=>t.name)}],
  group:'Server',generatedBy:BUILDER};
-if(player)Object.assign(player,playerStage);
-else{const idx=project.stages.findIndex(s=>s.id==='stage_server_mp');project.stages.splice(idx<0?project.stages.length:idx+1,0,playerStage);}
+if(player){
+ // Nur die eigenen Generat-Inhalte ersetzen — fremde Endpunkte/Tasks/Actions/
+ // Variablen (z. B. die Rollenwahl-Endpunkte aus cms-add-role-choice.cjs) bleiben.
+ Object.assign(player,{...playerStage,
+  objects:mergeByName(player.objects,playerStage.objects),
+  tasks:mergeByName(player.tasks,playerStage.tasks),
+  actions:mergeByName(player.actions,playerStage.actions),
+  variables:mergeByName(player.variables,playerStage.variables),
+  features:mergeByName(player.features,playerStage.features),
+  flowCharts:Object.keys(playerStage.flowCharts).length?playerStage.flowCharts:(player.flowCharts||{}),
+  events:Object.keys(playerStage.events).length?playerStage.events:(player.events||{})});
+}else{const idx=project.stages.findIndex(s=>s.id==='stage_server_mp');project.stages.splice(idx<0?project.stages.length:idx+1,0,playerStage);}
 
 fs.writeFileSync(file,JSON.stringify(project,null,1));
-console.log('Login-Stages: echte Anmeldeflows · stage_server_player: 5 Endpunkte');
+console.log('Login-Stages: echte Anmeldeflows · stage_server_player: '+pEndpoints.length+' eigene Endpunkte (fremde bleiben erhalten)');

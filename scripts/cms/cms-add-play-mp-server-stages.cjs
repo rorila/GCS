@@ -78,7 +78,7 @@ const playFns=[
    n.act('BudgetPruefen','Spielsitzungen','budgetLeft',[{childId:'$session.personId',areaId:'$body.areaId'}],'Budget'),
    n.act('Starten','Spielsitzungen','start',[{gameId:'$body.gameId',areaId:'$body.areaId'}],'Gestartet'),
    n.act('Antworten','AntwortSenden','send',[{merge:'${Gestartet}'}]),
-   n.act('FehlerDoppelt','AntwortSenden','fail',[409,'Es läuft bereits eine Spielsitzung — erst auf dem anderen Gerät beenden.']),
+   n.act('FehlerDoppelt','AntwortSenden','fail',[409,'Es läuft bereits eine Spielsitzung — erst beenden.',{conflict:true}]),
    n.act('FehlerBudget','AntwortSenden','fail',[403,'Tagesbudget aufgebraucht. Morgen geht es weiter.']),
    n.act('FehlerFreigabe','AntwortSenden','fail',[403,'Spiel nicht freigegeben.']));
  },

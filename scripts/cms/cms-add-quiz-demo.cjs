@@ -24,6 +24,7 @@ const actions = [];
 const prop = (name, changes) => (actions.push({ id: uid('q_act'), name, type: 'property', changes, scope: 'stage' }), { type: 'action', name });
 const http = (name, body, resultVariable) => (actions.push({ id: uid('q_act'), name, type: 'http', url: '/api/cms/play', method: 'POST', body, resultVariable, scope: 'stage', queryOperator: '==' }), { type: 'action', name });
 const calc = (name, formula, resultVariable) => (actions.push({ id: uid('q_act'), name, type: 'calculate', formula, resultVariable, scope: 'stage' }), { type: 'action', name });
+const varset = (name, source, sourceProperty, variableName) => (actions.push({ id: uid('q_act'), name, type: 'variable', source, sourceProperty, variableName, scope: 'stage' }), { type: 'action', name });
 const call = (name, target, method, params, resultVariable) => (actions.push({ id: uid('q_act'), name, type: 'call_method', target, method, params: params || [], ...(resultVariable ? { resultVariable } : {}), scope: 'stage' }), { type: 'action', name });
 const task = (name, actionSequence, description) => ({ id: uid('q_task'), name, description: description || name, actionSequence, triggerMode: 'local-sync', params: [], scope: 'stage' });
 const cond = (name, variable, operator, value, body, elseBody) => ({ type: 'condition', name, condition: { variable, operator, value }, body, elseBody });
@@ -65,15 +66,20 @@ const stage = {
       cond('Runde läuft?', 'Busy', '==', 0, [
         prop('Act_Ziehen_Start', { Busy: 1, 'StatusLabel.text': 'Karte wird geladen …', 'LoesungLabel.text': '', 'Naechste.visible': false, 'Pruefen.visible': false, 'Richtig.visible': false, 'FalschSelbst.visible': false, 'AntwortZeigen.visible': false, 'AntwortEdit.visible': false, 'AntwortEdit.text': '' }),
         http('Act_Karte_Server', '{"launchKey":"${CMS_LAUNCH}","action":"cardNext","subject":"${KartenFach}","topic":"${KartenThema}","formats":["text","self"],"excludeIds":"${GezogeneIds}"}', 'KartenAntwort'),
-        cond('Karte gefunden?', 'KartenAntwort.card', 'truthy', true, [
-          prop('Act_Karte_Uebernehmen', { AktuelleKarte: '${KartenAntwort.card}', 'FrageLabel.text': '${KartenAntwort.card.question}', 'FachLabel.text': '${KartenAntwort.card.subject} · ${KartenAntwort.card.topic} · Fach ${KartenAntwort.card.box}', Busy: 0 }),
-          cond('Eingabe-Format?', 'KartenAntwort.card.answerFormat', '==', 'text', [
-            prop('Act_TextBereit', { 'AntwortEdit.visible': true, 'Pruefen.visible': true, 'AntwortEdit.text': '' }),
-          ], [
-            prop('Act_SelfBereit', { 'AntwortZeigen.visible': true }),
-          ]),
+        cond('Server antwortet?', 'KartenAntwort.ok', '!=', true, [
+          prop('Act_ZiehFehler', { Busy: 0, 'FrageLabel.text': '⚠️ Verbindungsproblem', 'StatusLabel.text': '${KartenAntwort.message}', 'FachLabel.text': '' }),
         ], [
-          prop('Act_QuizEnde', { Busy: 0, 'FrageLabel.text': '🎉 Fertig!', 'StatusLabel.text': 'Keine passenden Karten mehr — Richtig: ${Richtig} · Falsch: ${Falsch}', 'FachLabel.text': '' }),
+          cond('Karte gefunden?', 'KartenAntwort.card', 'truthy', true, [
+            varset('Act_Karte_Objekt', 'KartenAntwort', 'card', 'AktuelleKarte'),
+            prop('Act_Karte_Uebernehmen', { 'FrageLabel.text': '${KartenAntwort.card.question}', 'FachLabel.text': '${KartenAntwort.card.subject} · ${KartenAntwort.card.topic} · Fach ${KartenAntwort.card.box}', Busy: 0 }),
+            cond('Eingabe-Format?', 'KartenAntwort.card.answerFormat', '==', 'text', [
+              prop('Act_TextBereit', { 'AntwortEdit.visible': true, 'Pruefen.visible': true, 'AntwortEdit.text': '' }),
+            ], [
+              prop('Act_SelfBereit', { 'AntwortZeigen.visible': true }),
+            ]),
+          ], [
+            prop('Act_QuizEnde', { Busy: 0, 'FrageLabel.text': '🎉 Fertig!', 'StatusLabel.text': 'Keine passenden Karten mehr — Richtig: ${Richtig} · Falsch: ${Falsch}', 'FachLabel.text': '' }),
+          ]),
         ]),
       ]),
     ], 'Server ordert die nächste Karte: Fach aufsteigend, je Fach älteste zuerst'),

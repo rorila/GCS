@@ -58,6 +58,24 @@ export class TaskConditionEvaluator {
             case '<': return Number(leftValue) < Number(rightValue);
             case '>=': return Number(leftValue) >= Number(rightValue);
             case '<=': return Number(leftValue) <= Number(rightValue);
+            // Semantik identisch zum serverseitigen Evaluator (cms-runtime.cjs):
+            // der String 'false' zaehlt als falsy, da Variablen als Text ankommen.
+            case 'truthy': return !!(leftValue && leftValue !== 'false');
+            case 'falsy': return !(leftValue && leftValue !== 'false');
+            case 'in':
+            case 'not in': {
+                // Rechte Seite kann ein "${Var}"-Literal sein (rightType 'literal'
+                // loest nicht auf) — dann erst die Variable zur Liste aufloesen.
+                let list = rightValue;
+                if (typeof list === 'string' && /^\$\{.+\}$/.test(list.trim())) {
+                    list = this.resolveValue(list.trim(), vars, globalVars);
+                }
+                // Strikte Mitgliedschaft wie serverseitig: nur echte Listen —
+                // kein Teiltext ("4" in "42" ist kein Treffer). Einträge werden
+                // als Strings verglichen (Eingaben sind textbasiert).
+                const hit = Array.isArray(list) && list.some(v => String(v) === String(leftValue));
+                return operator === 'in' ? hit : !hit;
+            }
             default: return String(leftValue) === String(rightValue);
         }
     }
