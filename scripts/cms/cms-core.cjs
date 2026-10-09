@@ -46,7 +46,28 @@ function rooms(db,id){const now=Date.now();return db.areas.filter(a=>a.type==='r
  (db.temporaryRoomAccess||[]).some(x=>x.personId===id&&x.roomId===a.id&&x.active&&Number(x.expiresAt)>now)
 ));}
 function houseOf(db,areaId){let a=db.areas.find(x=>x.id===areaId),seen=new Set();while(a&&a.type!=='house'&&!seen.has(a.id)){seen.add(a.id);a=db.areas.find(x=>x.id===a.parentId);}return a?.type==='house'?a:null;}
-function can(db,session,action,{areaId,game,childId}={}){
+// Haus einer Person über ihre aktive Hausmitgliedschaft.
+function houseOfPerson(db,personId){
+ const m=db.memberships.find(m=>m.personId===personId&&m.active&&areaActive(db,m.areaId));
+ return m?houseOf(db,m.areaId)?.id||null:null;
+}
+// Wirksame Verwaltungsrollen der Sitzung: activeRole scopet (null = noch
+// keine Wahl → keine Rolle), fehlende Angabe nutzt alle aktiven Rollen.
+function activeRoles(db,session){
+ if(session.activeRole===null)return[];
+ const all=db.roles.filter(r=>r.personId===session.personId&&r.active&&areaActive(db,r.areaId));
+ return session.activeRole?all.filter(r=>r.role===session.activeRole.role&&r.areaId===session.activeRole.areaId):all;
+}
+// Stapel-Sichtbarkeit für ein Kind: eigener Stapel immer; sonst nur
+// veröffentlichte — entweder dem Kind zugeordnet oder freigegebener
+// Kind-Stapel aus demselben Haus (Zuordnung an Kinder, nicht Räume).
+function deckVisibleForChild(db,deck,childId){
+ if(deck.ownerId===childId)return true;
+ if(!deck.published||deck.pendingApproval)return false;
+ if((deck.assignedChildIds||[]).includes(childId))return true;
+ return deck.ownerType==='child'&&deck.houseId&&deck.houseId===houseOfPerson(db,childId);
+}
+function can(db,session,action,{areaId,game,childId,deck}={}){
  if(!session||!active(db,session.personId))return false;
  if(action==='play'){
   const permanent=rooms(db,session.personId).some(r=>r.id===areaId);
@@ -57,6 +78,51 @@ function can(db,session,action,{areaId,game,childId}={}){
  }
  // Elternsicht: nur über bestätigte Beziehung, unabhängig von assurance/ Rolle.
  if(action==='viewChild'||action==='viewProgress')return childrenOf(db,session.personId).includes(childId);
+ // Karteikasten: das Kind selbst (jede aktive Sitzung) oder ein bestätigter
+ // Erziehungsberechtigter. Feinrechte (eigene vs. fremde Karten) liegen in
+ // den Card-Methoden, nicht in can().
+ if(action==='manageCards'||action==='viewCards')return session.personId===childId||childrenOf(db,session.personId).includes(childId);
+ // Kartenstapel: Sicht- und Importkontext ist der Karteikasten eines Kindes
+ // (das Kind selbst oder bestätigte Erziehungsberechtigte, wie bei Karten).
+ if(action==='viewDecks'||action==='importDeck')return session.personId===childId||childrenOf(db,session.personId).includes(childId);
+ if(action==='viewDeck')return!!deck&&(session.personId===childId||childrenOf(db,session.personId).includes(childId))&&deckVisibleForChild(db,deck,childId);
+ // Stapel erstellen: Kinder (eigene Stapel) sowie Erwachsene mit Mandat —
+ // Eltern (bestätigte Kinder), Haus-/RaumAdmin oder SuperAdmin.
+ if(action==='createDeck'){
+  const p=db.people.find(x=>x.id===session.personId);
+  if(!p)return false;
+  if(p.kind==='child')return true;
+  return childrenOf(db,session.personId).length>0||activeRoles(db,session).some(r=>['areaAdmin','superAdmin'].includes(r.role));
+ }
+ // Stapel pflegen: Ersteller (Kind nur solange unveröffentlicht — danach
+ // eingefroren) plus Moderation durch SuperAdmin/HouseAdmin des Stapel-Hauses.
+ if(action==='manageDeck'){
+  if(!deck)return false;
+  if(deck.ownerId===session.personId){
+   const p=db.people.find(x=>x.id===session.personId);
+   return p?.kind==='child'?!deck.published:true;
+  }
+  return activeRoles(db,session).some(r=>(r.role==='superAdmin'&&r.areaId==='root')||(r.role==='areaAdmin'&&deck.houseId&&r.areaId===deck.houseId));
+ }
+ // Freigabe veröffentlichter Kind-Stapel: Erziehungsberechtigte des Kindes,
+ // HouseAdmin des Stapel-Hauses oder SuperAdmin (Kinderschutz).
+ if(action==='approveDeck'){
+  if(!deck||deck.ownerType!=='child'||!deck.pendingApproval)return false;
+  if(childrenOf(db,session.personId).includes(deck.ownerId))return true;
+  return activeRoles(db,session).some(r=>(r.role==='superAdmin'&&r.areaId==='root')||(r.role==='areaAdmin'&&deck.houseId&&r.areaId===deck.houseId));
+ }
+ // Stapel einem Kind zuordnen — rollenbegrenzt: Eltern nur eigene Kinder,
+ // HouseAdmin Kinder seines Hauses, RaumAdmin Kinder seiner Räume,
+ // SuperAdmin alle. Fremde Stapel nur wenn veröffentlicht.
+ if(action==='assignDeck'){
+  if(!deck||!childId||!(deck.published||deck.ownerId===session.personId))return false;
+  if(childrenOf(db,session.personId).includes(childId))return true;
+  const rs=activeRoles(db,session);
+  if(rs.some(r=>r.role==='superAdmin'&&r.areaId==='root'))return true;
+  const childHouse=houseOfPerson(db,childId);
+  if(childHouse&&rs.some(r=>r.role==='areaAdmin'&&r.areaId===childHouse))return true;
+  return rs.some(r=>r.role==='areaAdmin'&&db.areas.find(a=>a.id===r.areaId)?.type==='room'&&db.memberships.some(m=>m.personId===childId&&m.areaId===r.areaId&&m.active&&areaActive(db,m.areaId)));
+ }
  // Beobachter: eigene Rolle auf Raum/Haus, kein Admin-Zugang nötig (E01).
  if(action==='observe')return db.roles.some(r=>r.personId===session.personId&&r.role==='observer'&&r.active&&areaActive(db,r.areaId)&&within(db,areaId,r.areaId));
  if(session.assurance!=='admin'){
@@ -81,6 +147,8 @@ function createCore(db){validate(db);const sessions=new Map(),roomPresence=new M
  const accountRoles=[{role:'player',areaId,label:'Als Spieler · '+(db.areas.find(a=>a.id===areaId)?.name||areaId)}];
  for(const r of db.roles.filter(r=>r.personId===c.personId&&r.role==='areaAdmin'&&r.active&&areaActive(db,r.areaId)&&db.areas.find(a=>a.id===r.areaId)?.type==='room'&&houseOf(db,r.areaId)?.id===areaId))
   accountRoles.push({role:'areaAdmin',areaId:r.areaId,label:'Raumverwaltung · '+(db.areas.find(a=>a.id===r.areaId)?.name||r.areaId)});
+ // Erziehungsberechtigte bekommen ihren Kontext nicht über den Emoji-Kanal —
+ // ihr Zugang ist der Passwort-Login (cms-admin-auth.json) mit 'account'-Sitzung.
  sessions.set(token,{personId:c.personId,assurance:'profile',authVersion:db.people.find(p=>p.id===c.personId)?.authVersion||0,expires:Date.now()+3600000,houseId:areaId,accountRoles,activeRole:accountRoles.length===1?accountRoles[0]:null});onStep('Spielersitzung erstellen',{output:{personId:c.personId,assurance:'profile',validSeconds:3600}});return {token,person:db.people.find(p=>p.id===c.personId),roles:accountRoles,houseId:areaId,needRole:accountRoles.length>1};}
  function session(token){const s=sessions.get(token);if(!s||s.expires<=Date.now()||!active(db,s.personId)||(db.people.find(p=>p.id===s.personId)?.authVersion||0)!==(s.authVersion||0)){sessions.delete(token);return null;}return s;}
  function prunePresence(now=Date.now()){for(const [personId,row]of roomPresence)if(now-row.lastSeenAt>=presenceTtlMs)roomPresence.delete(personId);}
@@ -93,4 +161,4 @@ function createCore(db){validate(db);const sessions=new Map(),roomPresence=new M
  function issueSession(personId,assurance='account',ttlMs=3600000){if(!active(db,personId))return null;const token=crypto.randomBytes(32).toString('hex');sessions.set(token,{personId,assurance,authVersion:db.people.find(p=>p.id===personId)?.authVersion||0,expires:Date.now()+ttlMs});return token;}
  return {db,login,session,logout,dropPerson:id=>{for(const [t,s]of sessions)if(s.personId===id)sessions.delete(t);clearPresence(id);},rooms:id=>rooms(db,id),childrenOf:id=>childrenOf(db,id),guardiansOf:id=>guardiansOf(db,id),issueSession,can:(s,a,c)=>can(db,s,a,c),setPresence,presenceFor,clearPresence,presenceTtlMs};
 }
-module.exports={areaActive,validate,within,can,rooms,houseOf,childrenOf,guardiansOf,createCore,canonEmojiSeq,avatarGlyph,EMOJI_IDS};
+module.exports={areaActive,validate,within,can,rooms,houseOf,houseOfPerson,activeRoles,deckVisibleForChild,childrenOf,guardiansOf,createCore,canonEmojiSeq,avatarGlyph,EMOJI_IDS};

@@ -1,7 +1,7 @@
 // CMS-Schema-Migrationen. Jede Migration ist idempotent und wird einmal pro
 // Versionsgrenze ausgeführt; Reihenfolge strikt aufsteigend. Reihenfolge:
 // up() arbeitet auf einer Kopie, validate() entscheidet über das Ergebnis.
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 7;
 
 // v1 -> v2: Zielmodellkern (E02/E03/E06/E07)
 // - people.kind: 'child'|'adult' (fachliche Grundlage für Eltern-/Kinderlogik)
@@ -100,11 +100,50 @@ function v4_to_v5(db) {
   return db;
 }
 
+// v5 -> v6: persönliche Karteikästen (Leitner). Karten gehören zum Kind
+// (childId); das "Karteikasten"-Objekt selbst ist implizit — ein Kind hat
+// genau die Menge seiner Karten. box 1..5 = Lernfächer, box 6 = Ablage
+// "gelernt" (aus Quiz-Ziehung ausgeschlossen, dort manuell löschbar).
+function v5_to_v6(db) {
+  db.version = 6;
+  if (!Array.isArray(db.flashcards)) db.flashcards = [];
+  for (const c of db.flashcards) {
+    if (!Number.isInteger(c.box) || c.box < 1) c.box = 1;
+    if (c.box > 6) c.box = 6;
+    if (!Array.isArray(c.answers)) c.answers = [];
+    if (typeof c.status !== 'string') c.status = 'active';
+    if (typeof c.active !== 'boolean') c.active = true;
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 5, migratedAt: new Date().toISOString() };
+  return db;
+}
+
+// v6 -> v7: Kartenstapel (cardDecks). Stapel werden Kindern zugeordnet
+// (assignedChildIds), nicht Räumen. Zwei Arten: verwaltete Stapel
+// (ownerType 'account', Erwachsene ordnen zu) und Kind-Stapel
+// (ownerType 'child', Veröffentlichung braucht Erwachsenen-Freigabe).
+// Stapelkarten liegen in flashcards mit deckId statt childId; übernommene
+// Kopien tragen sourceDeckId/sourceCardId (Nachladen dedupliziert darüber).
+function v6_to_v7(db) {
+  db.version = 7;
+  if (!Array.isArray(db.cardDecks)) db.cardDecks = [];
+  for (const d of db.cardDecks) {
+    if (!Array.isArray(d.assignedChildIds)) d.assignedChildIds = [];
+    if (typeof d.published !== 'boolean') d.published = false;
+    if (typeof d.pendingApproval !== 'boolean') d.pendingApproval = false;
+    if (typeof d.active !== 'boolean') d.active = true;
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 6, migratedAt: new Date().toISOString() };
+  return db;
+}
+
 const MIGRATIONS = [
   { from: 1, to: 2, up: v1_to_v2 },
   { from: 2, to: 3, up: v2_to_v3 },
   { from: 3, to: 4, up: v3_to_v4 },
   { from: 4, to: 5, up: v4_to_v5 },
+  { from: 5, to: 6, up: v5_to_v6 },
+  { from: 6, to: 7, up: v6_to_v7 },
 ];
 
 // Führt alle anstehenden Migrationen auf einer Kopie aus (das Original bleibt

@@ -53,7 +53,7 @@ export function attachCmsGameHost(getRuntime: () => any): () => void {
         const data = event.data, key = launchKey();
         if (!key || data?.type !== 'gcs-cms-bridge' || typeof data.id !== 'string' || data.id.length > 80 || !['/api/cms/party', '/api/cms/play'].includes(data.route) || data.body?.launchKey !== key || JSON.stringify(data.body).length > 4096) return;
         if (data.route === '/api/cms/party' && !['list','state','action','begin','end','join','leave','create','live'].includes(data.body.op)) return;
-        if (data.route === '/api/cms/play' && !['heartbeat','end','progress','pause','resume','status'].includes(data.body.action)) return;
+        if (data.route === '/api/cms/play' && !['heartbeat','end','progress','pause','resume','status','cards','cardNext','cardAnswer'].includes(data.body.action)) return;
         let status: number, result: any;
         if (data.body.op === 'live') { const live = await livePost(key, data.id, data.body); status = live.status; result = live.data; }
         else {

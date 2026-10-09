@@ -55,6 +55,7 @@ export class TableRenderer {
         onEvent?: any,
         cellSize: number = 20
     ) {
+        console.log('[KarteFlip] renderGrid', obj.name, '| flippable =', obj.flippable, '| rows =', rawData.length, '| cellSize =', cellSize);
         const config = obj.gridConfig || obj.cardConfig || {};
         const cardWidth = config.cardWidth ?? config.width ?? 180;
         const cardHeight = config.cardHeight ?? config.height ?? 120;
@@ -67,7 +68,7 @@ export class TableRenderer {
         scrollArea.style.alignContent = 'flex-start';
 
         rawData.forEach((row: any, idx: number) => {
-            const card = document.createElement('div');
+            const card: any = document.createElement('div');
             card.className = 'gcs-card-item';
             card.style.cssText = `position: relative; width: ${cardWidth}px; height: ${cardHeight}px; background: ${config.backgroundColor || 'rgba(255, 255, 255, 0.05)'}; border: ${config.borderWidth || 1}px solid ${config.borderColor || 'rgba(255, 255, 255, 0.1)'}; border-radius: ${config.borderRadius || 12}px; padding: ${config.padding || 12}px; cursor: pointer; overflow: hidden; transition: transform 0.2s, background 0.2s; box-sizing: border-box;`;
 
@@ -76,24 +77,57 @@ export class TableRenderer {
                 card.style.borderColor = '#0ed7b5';
             }
 
-            card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
-            card.onmouseleave = () => card.style.transform = 'none';
+            card.onmouseenter = () => { if (!card.__flipping) card.style.transform = 'translateY(-2px)'; };
+            card.onmouseleave = () => { if (!card.__flipping) card.style.transform = 'none'; };
             card.onclick = (e) => {
                 e.stopPropagation();
+                console.log('[KarteFlip] Klick auf', obj.name, '| flippable =', obj.flippable, '| flipped =', !!row.__flipped);
+                if (obj.flippable) {
+                    // Memory-Flip: scaleX 1→0→1, am Wendepunkt wird die Rückseite aufgebaut.
+                    // Auswahl + Events laufen erst NACH der Animation — selectRow löst ein
+                    // Re-Render aus, das das animierte DOM-Element sonst sofort verwirft.
+                    if (card.__flipping) return;
+                    card.__flipping = true;
+                    const half = Math.max(1, (Number(obj.flipDuration) || 500) / 2);
+                    card.style.transition = `transform ${half}ms ease-in`;
+                    card.style.transform = 'scaleX(0)';
+                    setTimeout(() => {
+                        row.__flipped = !row.__flipped;
+                        console.log('[KarteFlip] Wendepunkt →', row.__flipped ? 'Rückseite' : 'Vorderseite');
+                        buildItems();
+                        card.style.transition = `transform ${half}ms ease-out`;
+                        card.style.transform = 'scaleX(1)';
+                        setTimeout(() => {
+                            card.__flipping = false;
+                            const changed = obj.selectedIndex !== idx || obj.selectedRecord !== row;
+                            if (typeof obj.selectRow === 'function') obj.selectRow(idx); else obj.selectedIndex = idx;
+                            if (onEvent) { if (changed) onEvent(obj.id, 'onSelectionChanged', {index:idx, data:row, key:obj.selectedKey}); onEvent(obj.id, 'onRowClick', {index:idx, data:row, key:obj.selectedKey}); }
+                            if (onEvent) onEvent(obj.id, 'onSelect', { index: idx, data: row });
+                            this.renderTable(el, obj, onEvent, cellSize);
+                        }, half);
+                    }, half);
+                    return;
+                }
                 const changed = obj.selectedIndex !== idx || obj.selectedRecord !== row;
                 if (typeof obj.selectRow === 'function') obj.selectRow(idx); else obj.selectedIndex = idx;
                 if (onEvent) { if (changed) onEvent(obj.id, 'onSelectionChanged', {index:idx, data:row, key:obj.selectedKey}); onEvent(obj.id, 'onRowClick', {index:idx, data:row, key:obj.selectedKey}); }
                 if (onEvent) onEvent(obj.id, 'onSelect', { index: idx, data: row });
-                this.renderTable(el, obj, onEvent);
+                this.renderTable(el, obj, onEvent, cellSize);
             };
 
+            const buildItems = () => {
+                card.querySelectorAll('.gcs-card-field').forEach((n: any) => n.remove());
+                const flipped = !!row.__flipped;
             cols.forEach((col: any) => {
-                const fieldName = col.field || col.property;
-                const value = row[fieldName] ?? '';
+                const baseField = col.field || col.property;
+                const fieldName = flipped ? (col.flipField || baseField) : baseField;
+                let value = fieldName ? (row[fieldName] ?? '') : (flipped ? (col.flipText ?? col.text ?? '') : (col.text ?? ''));
+                if (Array.isArray(value)) value = value.join(' / ');
                 const type = col.type || 'text';
                 const colStyle = col.style || {};
 
                 const itemEl = document.createElement('div');
+                itemEl.className = 'gcs-card-field';
                 itemEl.style.position = 'absolute';
                 if (col.x !== undefined) itemEl.style.left = `${col.x * cellSize}px`;
                 if (col.y !== undefined) itemEl.style.top = `${col.y * cellSize}px`;
@@ -103,6 +137,7 @@ export class TableRenderer {
                 if (colStyle.fontSize) itemEl.style.fontSize = typeof colStyle.fontSize === 'number' ? `${colStyle.fontSize}px` : colStyle.fontSize;
                 if (colStyle.color) itemEl.style.color = colStyle.color;
                 if (colStyle.fontWeight) itemEl.style.fontWeight = colStyle.fontWeight;
+                if (colStyle.textAlign) itemEl.style.textAlign = colStyle.textAlign;
 
                 if (type === 'image') {
                     itemEl.style.borderRadius = '50%';
@@ -121,6 +156,8 @@ export class TableRenderer {
                 }
                 card.appendChild(itemEl);
             });
+            };
+            buildItems();
             scrollArea.appendChild(card);
         });
     }
@@ -195,8 +232,39 @@ export class TableRenderer {
                             thumb.style.fontSize = `${Math.round(size * 0.6)}px`;
                         }
                         td.appendChild(thumb);
+                    } else if (type === 'badge') {
+                        // Pill-Badge wie im Kartenmodus; badgeColor steuert Text-/Rahmenfarbe,
+                        // dot:true stellt einen Statuspunkt voran.
+                        const cellVal = row[fieldName];
+                        const pill = document.createElement('span');
+                        const badgeColor = col.badgeColor || col.style?.color || '#0ed7b5';
+                        if (col.dot) {
+                            const dot = document.createElement('span');
+                            dot.style.cssText = `display:inline-block;width:7px;height:7px;border-radius:50%;background:${badgeColor};margin-right:6px;`;
+                            pill.appendChild(dot);
+                        }
+                        pill.appendChild(document.createTextNode(String(cellVal ?? '')));
+                        pill.style.cssText += `display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:${col.style?.fontSize || 11}px;font-weight:600;color:${badgeColor};border:1px solid ${badgeColor};background:rgba(0,0,0,0.25);white-space:nowrap;`;
+                        td.appendChild(pill);
+                    } else if (type === 'action') {
+                        // Aktions-Button pro Zeile: wählt die Zeile und feuert onAction
+                        // (Action-Name via col.actionName, Beschriftung col.actionLabel).
+                        const btn = document.createElement('button');
+                        btn.innerText = col.actionLabel || '✎';
+                        btn.title = col.title || col.actionName || '';
+                        btn.style.cssText = 'padding:2px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer;font-size:12px;';
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (typeof obj.selectRow === 'function') obj.selectRow(idx); else obj.selectedIndex = idx;
+                            if (onEvent) {
+                                onEvent(obj.id, 'onSelectionChanged', { index: idx, data: row, key: obj.selectedKey });
+                                onEvent(obj.id, 'onAction', { index: idx, data: row, key: obj.selectedKey, action: col.actionName || 'edit' });
+                            }
+                        };
+                        td.appendChild(btn);
                     } else {
-                        td.innerText = String(col.format === 'boolean' ? (row[fieldName] ? '✓' : '—') : (row[fieldName] ?? ''));
+                        const cellVal = row[fieldName];
+                        td.innerText = col.format === 'boolean' ? (cellVal ? '✓' : '—') : (Array.isArray(cellVal) ? cellVal.join(' / ') : String(cellVal ?? ''));
                     }
                     tr.appendChild(td);
                 });

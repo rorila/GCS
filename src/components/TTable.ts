@@ -28,6 +28,7 @@ export class TTable extends TWindow {
     public showHeader: boolean = true;
     public striped: boolean = true;
     public displayMode: 'table' | 'cards' = 'table';
+    public flippable: boolean = false;
     public cardConfig: any = {
         width: 250,
         height: 100,
@@ -77,7 +78,7 @@ export class TTable extends TWindow {
     }
 
     public getEvents(): string[] {
-        return ['onSelect', 'onRowClick', 'onSelectionChanged', 'onDoubleClick', ...super.getEvents()];
+        return ['onSelect', 'onRowClick', 'onSelectionChanged', 'onDoubleClick', 'onAction', ...super.getEvents()];
     }
 
     public getInspectorProperties(): TPropertyDef[] {
@@ -91,6 +92,7 @@ export class TTable extends TWindow {
             { name: 'data', label: 'Daten-Basis (JSON)', type: 'json', group: 'Tabelle', hint: 'Wird oft zur Laufzeit überschrieben' },
             { name: 'columns', label: 'Spalten (JSON)', type: 'json', group: 'Tabelle', hint: '[{"field":"id", "label":"ID"}] - Leer lassen für Auto-Columns' },
             { name: 'displayMode', label: 'Anzeige-Modus', type: 'select', options: ['table', 'cards'], group: 'Tabelle' },
+            { name: 'flippable', label: 'Karten umdrehbar', type: 'boolean', group: 'Tabelle', hint: 'Nur im Modus "cards": Klick dreht die Karte (Spalten mit flipField/flipText wechseln auf die Rückseite)' },
             { name: 'cardConfig', label: 'Karten-Design (JSON)', type: 'json', group: 'Tabelle', hint: 'Nur im Modus "cards" relevant' },
             { name: 'rowHeight', label: 'Zeilenhöhe (px)', type: 'number', group: 'Tabelle' },
             { name: 'showHeader', label: 'Kopfzeile zeigen', type: 'boolean', group: 'Tabelle' },
@@ -109,6 +111,7 @@ export class TTable extends TWindow {
             showHeader: this.showHeader,
             striped: this.striped,
             displayMode: this.displayMode,
+            flippable: this.flippable,
             cardConfig: this.cardConfig
         };
     }

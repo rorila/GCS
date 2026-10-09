@@ -18,7 +18,7 @@ for(const [name,y,hint,type,auto,max]of [['username',12,'Benutzername','text','u
 agent.addObject(main,{className:'TButton',name:'Anmelden',x:12,y:23,width:40,height:3,text:'Anmelden',style:{backgroundColor:'#285464',color:'#fff',borderColor:'#76c6bb',borderWidth:1,borderRadius:9,fontSize:20}});
 label('Status',28,'Bitte Benutzername und Passwort eingeben.',17);
 agent.addObject(main,{className:'TLink',name:'VerwaltungOeffnen',x:12,y:32,width:40,height:2,text:'Verwaltung öffnen →',url:'/admin',target:'_self',visible:false});
-agent.addObject(main,{className:'TLink',name:'SpielerEinwahl',x:12,y:36,width:40,height:2,text:'Zur Spieler-Einwahl',url:'/',target:'_self'});
+agent.addObject(main,{className:'TLink',name:'SpielerEinwahl',x:12,y:38,width:40,height:2,text:'Zur Spieler-Einwahl',url:'/',target:'_self'});
 const task=(name:string)=>agent.createTask(bp,name,name);
 const action=(task:string,type:any,name:string,params:any)=>agent.addAction(task,type,name,params);
 const property=(task:string,name:string,changes:any)=>action(task,'property',name,{changes});

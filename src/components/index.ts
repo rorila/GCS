@@ -112,6 +112,8 @@ export * from './TServerParentAccount';
 export * from './TServerPlaySession';
 export * from './TServerParty';
 export * from './TServerLiveSync';
+export * from './TServerCards';
+export * from './TServerDecks';
 
 export * from './TFilePicker';
 export * from './TFileUpload';

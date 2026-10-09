@@ -81,6 +81,8 @@ import {TServerParentAccount} from '../components/TServerParentAccount';
 import {TServerPlaySession} from '../components/TServerPlaySession';
 import {TServerParty} from '../components/TServerParty';
 import {TServerLiveSync} from '../components/TServerLiveSync';
+import {TServerCards} from '../components/TServerCards';
+import {TServerDecks} from '../components/TServerDecks';
 import { TAPIServer } from '../components/TAPIServer';
 import { TToast } from '../components/TToast';
 import { TEmojiPicker } from '../components/TEmojiPicker';
@@ -205,6 +207,8 @@ export class ComponentRegistry {
         this.register('TServerPlaySession',TServerPlaySession);this.typeMapping.set('ServerPlaySession','TServerPlaySession');
         this.register('TServerParty',TServerParty);this.typeMapping.set('ServerParty','TServerParty');
         this.register('TServerLiveSync',TServerLiveSync);this.typeMapping.set('ServerLiveSync','TServerLiveSync');
+        this.register('TServerCards',TServerCards);this.typeMapping.set('ServerCards','TServerCards');
+        this.register('TServerDecks',TServerDecks);this.typeMapping.set('ServerDecks','TServerDecks');
         this.register('TToast', TToast);
         this.register('TEmojiPicker', TEmojiPicker);
         this.register('TDataStore', TDataStore);

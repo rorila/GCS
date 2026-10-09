@@ -28,11 +28,12 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  const uploads=createUploads(core,admin,store,cmsFile,'stage_server_uploads');
  const credentialPath=path.join(path.dirname(dataPath),'cms-admin-auth.json');
  const commit=(s,action,areaId,change,opts)=>store.commit(core.db,{actor:s.personId,action,areaId,...opts},change);
- const parent=createParent(core,credentialPath,store,cmsFile,'stage_server_parent');
- parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
- parent.enrollObserver=b=>enrollObserver(core,credentialPath,b.ticket,b.username,b.password,commit);
  const play=require('./cms-play.cjs').createPlay(core,store,cmsFile,'stage_server_play');
  const mp=require('./cms-mp.cjs').createMp(core,store,play,cmsFile,launches);
+ const parent=createParent(core,credentialPath,store,cmsFile,'stage_server_parent');
+ parent.setPlayAdapter(play,launches);
+ parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
+ parent.enrollObserver=b=>enrollObserver(core,credentialPath,b.ticket,b.username,b.password,commit);
  const playComponent=runtime.find('/api/cms/play/status','POST')?.stage?.objects?.find(o=>o.className==='TServerPlaySession')||{};
  const liveComponent=runtime.find('/api/cms/mp/state','POST')?.stage?.objects?.find(o=>o.className==='TServerLiveSync')||{};
  const live=createLiveSync({core,launches,component:liveComponent});

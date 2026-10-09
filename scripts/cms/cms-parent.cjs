@@ -21,11 +21,13 @@ async function verifyCredentials(credentialPath, username, password) {
   return c && crypto.timingSafeEqual(hash, Buffer.from(c.hash, 'hex')) ? c : null;
 }
 
-function createParent(core, credentialPath, store, cmsFile) {
+function createParent(core, credentialPath, store, cmsFile, stageName, opts = {}) {
   let _rt;
   const rt = () => _rt ?? (_rt = require('./cms-runtime.cjs').loadRuntime(cmsFile || CMS_FILE));
-  const commit = (s, action, areaId, change, opts) => store.commit(core.db, { actor: s.personId, action, areaId, ...opts }, change);
+  const commit = (s, action, areaId, change, opts_) => store.commit(core.db, { actor: s.personId, action, areaId, ...opts_ }, change);
   const attempts = new Map();
+  let playAdapter = opts.play || null;
+  let launches = opts.launches || null;
 
   async function login(req, body) {
     const key = req.socket.remoteAddress, now = Date.now();
@@ -42,14 +44,16 @@ function createParent(core, credentialPath, store, cmsFile) {
   function api(session, route, b = {}) {
     if (!session) return fail(401, 'Bitte anmelden.');
     if (route !== 'room-pulse' && route !== 'my-children'
-        && !core.can(session, 'viewChild', { childId: b.childId }))
+        && (!b.childId || !core.can(session, 'viewChild', { childId: b.childId })))
       return fail(403, 'Nur eigene, bestätigt zugeordnete Kinder.');
     const ep = rt().find('/api/cms/parent/' + route, 'POST');
-    return ep ? rt().run(ep, { session, body: b, core, commit, credentialPath }, { strict: true })
+    return ep ? rt().run(ep, { session, body: b, core, commit, credentialPath, play: playAdapter, launches }, { strict: true })
               : fail(404, 'Unbekannte Aktion.');
   }
 
-  return { login, api };
+  function setPlayAdapter(play, map) { playAdapter = play; launches = map; }
+
+  return { login, api, setPlayAdapter };
 }
 
 // Einladung einlösen (purpose 'parent'): Zugangsdaten anlegen + Guardian-

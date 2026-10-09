@@ -126,7 +126,7 @@ const ensureTask=(st,t)=>{const e=st.tasks.find(x=>x.name===t.name);if(!e)st.tas
  const st={id:'stage_player_roles',type:'standard',name:'Spieler · Rolle wählen',grid:{...stage('stage_main').grid,visible:false},objects:[],tasks:[],actions:[],variables:[],flowCharts:[],events:{},features:[],group:'Spiel'};
  const title={...refTitle,id:uid('cms_obj'),name:'SeitenTitel',x:2,y:3,width:50,height:2.5,text:'Wer bist du gerade?',style:{...refTitle.style,fontSize:28}};
  delete title.events;
- const hint={...refTitle,id:uid('cms_obj'),name:'Hinweis',x:2,y:6,width:50,height:2.8,text:'Du kannst spielen oder einen Raum verwalten.\nTippe auf das, was du jetzt machen möchtest.',style:{...refTitle.style,fontSize:20,color:'#9fd8d2'}};
+ const hint={...refTitle,id:uid('cms_obj'),name:'Hinweis',x:2,y:6,width:50,height:2.8,text:'Du kannst spielen, einen Raum verwalten oder deine Kinder beobachten.\nTippe auf das, was du jetzt machen möchtest.',style:{...refTitle.style,fontSize:20,color:'#9fd8d2'}};
  delete hint.events;
  const list={...refList,id:uid('cms_obj'),name:'RollenListe',description:'Verfügbare Rollen im Haus'};
  const table={...refTable,id:uid('cms_obj'),name:'RollenTabelle',x:2,y:10,width:50,height:14,dataSource:'RollenListe',events:{onRowClick:'KontoRolle_Waehlen'},columns:[{field:'label',label:'Rolle',type:'header',x:0,y:0}],rowHeight:64,data:[],selectedKey:'',selectedRecord:null};
@@ -153,14 +153,26 @@ const ensureTask=(st,t)=>{const e=st.tasks.find(x=>x.name===t.name);if(!e)st.tas
  const GALERIE_EINSTIEG=[step('Act_Navigation_stage_gallery'),
   step('Act_Angemeldetes_Profil_anzeigen__Eingabe_Und_Auswahl_Aktualisieren'),
   {type:'task',name:'Raeume'},step('Act_Profilzugang_Anzeigen')];
+ // Erziehungsberechtigte öffnen die Eltern-Übersicht.
+ const PARENT_NAV=[{type:'task',name:'Navigation_stage_parent'}];
  ensureTask(st,task('KontoRolle_Waehlen','Kontorolle wählen und Stage öffnen',
   [step('Wahl_Send'),cond('Wahl ok?','Antwort.ok','==',true,
-   [step('Raum_Kontext'),cond('Raumverwaltung?','Antwort.stage','==','stage_room_overview',[step('Act_Navigation_stage_room_overview')],GALERIE_EINSTIEG)],
+   [step('Raum_Kontext'),
+    cond('Elternkontext?','Antwort.stage','==','stage_parent',PARENT_NAV,
+     [cond('Raumverwaltung?','Antwort.stage','==','stage_room_overview',[step('Act_Navigation_stage_room_overview')],GALERIE_EINSTIEG)])],
    [step('Wahl_Fehler')])]));
  // Nachpflege: bestehende Stage ohne Galerie-Init nachrüsten.
  const wt=stage('stage_player_roles')?.tasks.find(x=>x.name==='KontoRolle_Waehlen');
  const rc=wt?.actionSequence.find(i=>i.name==='Wahl ok?')?.then?.find(i=>i.name==='Raumverwaltung?');
- if(rc&&!rc.else?.some(i=>i.type==='task'&&i.name==='Raeume'))rc.else=GALERIE_EINSTIEG;
+ if(rc){
+  // Reparatur: falls Parent-Zweig fehlt, neu einhängen.
+  const parentBr=rc.else.find(i=>i.name==='Elternkontext?');
+  if(!parentBr){
+   rc.else=[cond('Elternkontext?','Antwort.stage','==','stage_parent',PARENT_NAV,rc.else)];
+  }else{
+   parentBr.then=PARENT_NAV;
+  }
+ }
  if(!stage('stage_player_roles'))p.stages.push(st);
 }
 
@@ -234,11 +246,12 @@ for(const [sid,aname] of [['stage_server_admin_login','VerwRolle_Waehlen'],['sta
  addStory(story('us_admin_role_reject','Fremde Verwaltungsrolle abgelehnt',['stage_server_admin_login'],'stage_admin_roles_role-choice','Server_VerwRolleWaehlen_Verarbeiten'));
  const pla=stage('stage_player_roles');
  add(pla,{id:'stage_player_roles_role-choice',name:'Rolle im Haus wählen',
-  description:'Nach der Emoji-Anmeldung wählt eine Person mit mehreren Rollen (Spieler, RaumAdmin) ihre aktive Rolle.',
-  tags:['CMS','Spiel'],userStoryIds:['us_konto_role_pick','us_konto_role_direct','us_konto_role_room'],blueprintTaskNames:['KontoRollenInit','KontoRolle_Waehlen']});
+  description:'Nach der Emoji-Anmeldung wählt eine Person mit mehreren Rollen (Spieler, RaumAdmin, Erziehungsberechtigte) ihre aktive Rolle.',
+  tags:['CMS','Spiel'],userStoryIds:['us_konto_role_pick','us_konto_role_direct','us_konto_role_room','us_konto_role_parent'],blueprintTaskNames:['KontoRollenInit','KontoRolle_Waehlen']});
  addStory(story('us_konto_role_pick','Rolle nach Emoji-Anmeldung wählen',['stage_player_roles','stage_server_player'],'stage_player_roles_role-choice','KontoRolle_Waehlen'));
  addStory(story('us_konto_role_direct','Ein-Rollen-Spieler ohne Wahl direkt durch',['stage_main','stage_server_login'],'stage_player_roles_role-choice','Angemeldet'));
  addStory(story('us_konto_role_room','RaumAdmin erhält nur Raumrechte',['stage_player_roles','stage_room_overview'],'stage_player_roles_role-choice','Server_KontoRolleWaehlen_Verarbeiten'));
+ addStory(story('us_konto_role_parent','Erziehungsberechtigte öffnen Meine Kinder',['stage_player_roles','stage_parent'],'stage_player_roles_role-choice','KontoRolle_Waehlen'));
 }
 
 fs.writeFileSync(file,JSON.stringify(p,null,2));

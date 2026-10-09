@@ -28,7 +28,7 @@ const withSession=(n,inner)=>withGuard(n,[
  n.cond('Sitzung vorhanden?','Sitzung.found','==',true,inner,[n.call('FehlerSitzung')])
 ]);
 
-function build(stageId,markerClass,markerName,buildFns,endpoints,vars){
+function build(stageId,markerClass,markerName,buildFns,endpoints,vars,extraComps=[]){
  const stage=project.stages.find(s=>s.id===stageId);
  if(!stage)throw Error(stageId+' fehlt');
  if(stage.generatedBy&&stage.generatedBy!=='cms-add-play-mp-server-stages.cjs'){console.log(stageId+' wurde im Editor verändert — Abbruch.');process.exit(1);}
@@ -41,7 +41,8 @@ function build(stageId,markerClass,markerName,buildFns,endpoints,vars){
               comp('TServerValidate','EingabePruefung',{x:2,y:7}),
               comp('TServerQuery','Datenbestand',{x:2,y:12}),
               comp('TServerStore','DatenSpeicher',{x:2,y:17}),
-              comp('TServerResponse','AntwortSenden',{x:2,y:22}));
+              comp('TServerResponse','AntwortSenden',{x:2,y:22}),
+              ...extraComps);
  marker.x=2;marker.y=27;objects.push(marker);
  actions.unshift(
   {id:uid('srv_act'),name:'Act_KontoRolle_Pruefen',type:'call_method',target:'Kontositzung',method:'requireRole',params:['account'],resultVariable:'Pruefung',scope:'stage'},
@@ -182,6 +183,61 @@ const playFns=[
    n.act('FehlerMetrik','AntwortSenden','fail',[400,'Unbekannte Metrik für dieses Spiel.']),
    n.act('FehlerEingabe','AntwortSenden','fail',[400,'eventId und numerischer Wert erforderlich.']),
    n.act('FehlerSitzung','AntwortSenden','fail',[404,'Spielsitzung nicht gefunden.']));
+ },
+ // cards: Übersicht der Kandidaten im Karteikasten des spielenden Kindes
+ // (z. B. „23 passende Karten" vor Rundenbeginn). Identität aus der
+ // Sitzung (launchKey), nie vom Client.
+ (tasks,actions)=>{const n=ns('KartenListe');
+  tasks.push({id:uid('srv_task'),name:'Server_KartenListe_Verarbeiten',scope:'stage',description:'Konto-Sitzung → Kandidatenliste des Kindes (subject/topic/formats-Filter, Fach 1–5)',
+   actionSequence:withGuard(n,[
+    n.call('Laden'),
+    n.cond('Geladen?','Geladen.ok','==',true,[n.call('Antworten')],[n.call('Fehler')])
+   ])});
+  actions.push(
+   n.act('Laden','Karten','filter',[{subject:'$body.subject',topic:'$body.topic',formats:'$body.formats'}],'Geladen'),
+   n.act('Antworten','AntwortSenden','send',[{merge:'${Geladen}'}]),
+   n.act('Fehler','AntwortSenden','fail',['${Geladen.status}','${Geladen.message}']));
+ },
+ // cardNext: „nächste Karte ordern" — die Ziehregel liegt deklarativ hier:
+ // Fach 1 → Fach 2 → … → Fach 5; je Fach die älteste Karte (pick 'oldest',
+ // nach lastReviewedAt||createdAt). Erst wenn ein Fach leer ist, wird das
+ // nächste bedient. excludeIds schließt schon gezogene Karten der Runde
+ // aus — die Runde hält ihre temporäre Auswahl selbst.
+ (tasks,actions)=>{
+  const n=ns('KarteZiehen');
+  // Kaskade Fach 5 → 1 aufgebaut, damit sie als else-Verschachtelung
+  // lesbar bleibt: jede Stufe prüft „Karte gefunden?".
+  const leer=[n.call('AntwortLeer')];
+  let kette=leer;
+  for(let fach=5;fach>=1;fach--){
+   kette=[
+    n.call('Fach'+fach+'Laden'),
+    n.call('Fach'+fach+'Ziehen'),
+    n.cond('Fach '+fach+' liefert Karte?','Karte.card','truthy',true,[n.call('Antworten')],kette)
+   ];
+  }
+  tasks.push({id:uid('srv_task'),name:'Server_KarteZiehen_Verarbeiten',scope:'stage',
+   description:'Fachaufsteigend: je Fach die älteste Karte zuerst; leeres Fach → nächstes Fach; alles leer → empty',
+   actionSequence:withGuard(n,kette)});
+  actions.push(
+   ...[1,2,3,4,5].flatMap(fach=>[
+    n.act('Fach'+fach+'Laden','Karten','filter',[{subject:'$body.subject',topic:'$body.topic',formats:'$body.formats',excludeIds:'$body.excludeIds',boxMin:fach,boxMax:fach}],'Fach'),
+    n.act('Fach'+fach+'Ziehen','Karten','pick',['${Fach.items}','oldest'],'Karte'),
+   ]),
+   n.act('Antworten','AntwortSenden','send',[{card:'${Karte.card}'}]),
+   n.act('AntwortLeer','AntwortSenden','send',[{ok:true,empty:true,message:'Keine passenden Karten im Karteikasten.'}]));
+ },
+ // cardAnswer: Leitner-Übergang aus dem laufenden Spiel; nur Kastenbesitzer.
+ (tasks,actions)=>{const n=ns('KarteBewerten');
+  tasks.push({id:uid('srv_task'),name:'Server_KarteBewerten_Verarbeiten',scope:'stage',description:'Konto-Sitzung → Leitner-Übergang (richtig: +1, Fach5→6 gelernt; falsch: →1)',
+   actionSequence:withGuard(n,[
+    n.call('Bewerten'),
+    n.cond('Bewertet?','Bewertet.ok','==',true,[n.call('Antworten')],[n.call('Fehler')])
+   ])});
+  actions.push(
+   n.act('Bewerten','Karten','answer',[{cardId:'$body.cardId',correct:'$body.correct'}],'Bewertet'),
+   n.act('Antworten','AntwortSenden','send',[{merge:'${Bewertet}'}]),
+   n.act('Fehler','AntwortSenden','fail',['${Bewertet.status}','${Bewertet.message}']));
  }
 ];
 const play=build('stage_server_play','TServerPlaySession','Spielsitzungen',playFns,[
@@ -191,8 +247,12 @@ const play=build('stage_server_play','TServerPlaySession','Spielsitzungen',playF
  ['/api/cms/play/pause','Ep_SpielPausieren','Server_SpielPausieren_Verarbeiten'],
  ['/api/cms/play/resume','Ep_SpielFortsetzen','Server_SpielFortsetzen_Verarbeiten'],
  ['/api/cms/play/end','Ep_SpielBeenden','Server_SpielBeenden_Verarbeiten'],
- ['/api/cms/play/progress','Ep_BewertungMelden','Server_BewertungMelden_Verarbeiten']
-],['Pruefung','Spiel','Erlaubt','Aktiv','Budget','Gestartet','Sitzung','Wieder','Gebucht','Gewechselt','Beendet','Ereignis','Wert','Belegt','Ergebnis']);
+ ['/api/cms/play/progress','Ep_BewertungMelden','Server_BewertungMelden_Verarbeiten'],
+ ['/api/cms/play/cards','Ep_KartenListe','Server_KartenListe_Verarbeiten'],
+ ['/api/cms/play/cardNext','Ep_KarteZiehen','Server_KarteZiehen_Verarbeiten'],
+ ['/api/cms/play/cardAnswer','Ep_KarteBewerten','Server_KarteBewerten_Verarbeiten']
+],['Pruefung','Spiel','Erlaubt','Aktiv','Budget','Gestartet','Sitzung','Wieder','Gebucht','Gewechselt','Beendet','Ereignis','Wert','Belegt','Ergebnis','Geladen','Fach','Karte','Bewertet'],
+ [comp('TServerCards','Karten',{x:2,y:32})]);
 play.marker.events={onStart:'Server_SpielStart_Verarbeiten',onHeartbeat:'Server_SpielHeartbeat_Verarbeiten',onPause:'Server_SpielPausieren_Verarbeiten',onResume:'Server_SpielFortsetzen_Verarbeiten',onEnd:'Server_SpielBeenden_Verarbeiten',onProgress:'Server_BewertungMelden_Verarbeiten'};
 if(play.marker.abandonAfterMs==null)play.marker.abandonAfterMs=600000;
 if(play.marker.sweepIntervalMs==null)play.marker.sweepIntervalMs=30000;

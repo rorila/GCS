@@ -39,7 +39,7 @@ const childGuard=(n,inner,perm='viewChild',msg='Nur eigene, bestätigt zugeordne
 
 // --- my-children -------------------------------------------------------------
 {const n=ns('ElternKinder');
- tasks.push({id:uid('srv_task'),name:'Server_ElternKinder_Verarbeiten',scope:'stage',description:'Konto-Sitzung → Karten der bestätigt zugeordneten Kinder',
+ tasks.push({id:uid('srv_task'),name:'Server_ElternKinder_Verarbeiten_v2',scope:'stage',description:'Konto-Sitzung → Karten der bestätigt zugeordneten Kinder',
   actionSequence:withGuard(n,[n.call('Laden'),n.call('Antworten')])});
  actions.push(
   n.act('Laden','Datenbestand','childCards',[],'Kinder'),
@@ -48,7 +48,7 @@ const childGuard=(n,inner,perm='viewChild',msg='Nur eigene, bestätigt zugeordne
 
 // --- child-activity ----------------------------------------------------------
 {const n=ns('ElternAktivitaet');
- tasks.push({id:uid('srv_task'),name:'Server_ElternAktivitaet_Verarbeiten',scope:'stage',description:'viewChild → Kind-Karte + letzte Sitzungen',
+ tasks.push({id:uid('srv_task'),name:'Server_ElternAktivitaet_Verarbeiten_v2',scope:'stage',description:'viewChild → Kind-Karte + letzte Sitzungen',
   actionSequence:childGuard(n,[n.call('Karte'),n.call('Sitzungen'),n.call('Antworten')])});
  actions.push(
   n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
@@ -60,7 +60,7 @@ const childGuard=(n,inner,perm='viewChild',msg='Nur eigene, bestätigt zugeordne
 
 // --- child-progress ----------------------------------------------------------
 {const n=ns('ElternBewertungen');
- tasks.push({id:uid('srv_task'),name:'Server_ElternBewertungen_Verarbeiten',scope:'stage',description:'viewProgress → Lernbewertungen des Kindes',
+ tasks.push({id:uid('srv_task'),name:'Server_ElternBewertungen_Verarbeiten_v2',scope:'stage',description:'viewProgress → Lernbewertungen des Kindes',
   actionSequence:childGuard(n,[n.call('Laden'),n.call('Antworten')],'viewProgress','Bewertungen nur für eigene Kinder.')});
  actions.push(
   n.act('KindSehen','Datenbestand','can',['viewProgress',{childId:'$body.childId'}],'Sicht'),
@@ -74,7 +74,7 @@ const childGuard=(n,inner,perm='viewChild',msg='Nur eigene, bestätigt zugeordne
 // Elternteilen → pendingBudget, Zweitbestätigung über approve-budget.
 {const n=ns('ElternBudget');
  const setzen=[n.call('Setzen'),n.call('Gespeichert')];
- tasks.push({id:uid('srv_task'),name:'Server_ElternBudget_Verarbeiten',scope:'stage',description:'viewChild → Minuten/Fenster prüfen → E06: Verschärfen sofort, Lockerung vormerken',
+ tasks.push({id:uid('srv_task'),name:'Server_ElternBudget_Verarbeiten_v2',scope:'stage',description:'viewChild → Minuten/Fenster prüfen → E06: Verschärfen sofort, Lockerung vormerken',
   actionSequence:childGuard(n,[
    n.call('MinutenPruefen'),
    n.cond('Minuten gültig?','Minuten.ok','==',true,[
@@ -106,7 +106,7 @@ const childGuard=(n,inner,perm='viewChild',msg='Nur eigene, bestätigt zugeordne
 
 // --- approve-budget (E06 Zweitbestätigung) ------------------------------------
 {const n=ns('ElternBudgetOk');
- tasks.push({id:uid('srv_task'),name:'Server_ElternBudgetOk_Verarbeiten',scope:'stage',description:'viewChild → ausstehende Änderung → nicht selbst bestätigen → übernehmen',
+ tasks.push({id:uid('srv_task'),name:'Server_ElternBudgetOk_Verarbeiten_v2',scope:'stage',description:'viewChild → ausstehende Änderung → nicht selbst bestätigen → übernehmen',
   actionSequence:childGuard(n,[
    n.call('VorschlagLaden'),
    n.cond('Vorschlag vorhanden?','Vorschlag.found','==',true,[
@@ -125,9 +125,76 @@ const childGuard=(n,inner,perm='viewChild',msg='Nur eigene, bestätigt zugeordne
   n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
 }
 
+// --- child-rooms: Räume des Kindes + Zutritt verwalten -----------------------
+{const n=ns('KindRaeume');
+ tasks.push({id:uid('srv_task'),name:'Server_KindRaeume_Verarbeiten',scope:'stage',description:'viewChild → Räume des Kindes im Haus',
+  actionSequence:childGuard(n,[n.call('Laden'),n.call('Antworten')])});
+ actions.push(
+  n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
+  n.act('Laden','Datenbestand','childRooms',['$body.childId'],'Raeume'),
+  n.act('Antworten','AntwortSenden','send',[{items:'${Raeume.items}',message:'${Raeume.message}'}]),
+  n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
+}
+{const n=ns('KindZutritt');
+ tasks.push({id:uid('srv_task'),name:'Server_KindZutritt_Verarbeiten',scope:'stage',description:'viewChild → Zutritt für Kind in Raum setzen/entziehen',
+  actionSequence:childGuard(n,[n.call('Speichern'),n.call('Antworten')])});
+ actions.push(
+  n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
+  n.act('Speichern','Datenbestand','setChildMembership',['$body'],'Ergebnis'),
+  n.act('Antworten','AntwortSenden','send',[{merge:'${Ergebnis}'}]),
+  n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
+}
+// --- start-game-for-child ----------------------------------------------------
+{const n=ns('SpielFuerKind');
+ tasks.push({id:uid('srv_task'),name:'Server_SpielFuerKind_Verarbeiten',scope:'stage',description:'viewChild → Spiel/Raum für Kind starten; optional Bewohner einladen',
+  actionSequence:childGuard(n,[n.call('Starten'),n.call('Antworten')])});
+ actions.push(
+  n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
+  n.act('Starten','PartyVerwaltung','startGameForChild',['$body'],'Gestartet'),
+  n.act('Antworten','AntwortSenden','send',[{merge:'${Gestartet}'}]),
+  n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
+}
+
+// --- child-cards: Karteikasten des Kindes (Eltern dürfen alles) ----------------
+{const n=ns('KindKarten');
+ tasks.push({id:uid('srv_task'),name:'Server_KindKarten_Verarbeiten',scope:'stage',description:'viewChild → Kartenliste mit Filtern + Fachvorschlägen',
+  actionSequence:childGuard(n,[n.call('Laden'),n.call('Antworten')])});
+ actions.push(
+  n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
+  n.act('Laden','Karten','list',[{childId:'$body.childId',subject:'$body.subject',topic:'$body.topic',box:'$body.box'}],'KartenListe'),
+  n.act('Antworten','AntwortSenden','send',[{merge:'${KartenListe}'}]),
+  n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
+}
+{const n=ns('KindKarteSpeichern');
+ tasks.push({id:uid('srv_task'),name:'Server_KindKarteSpeichern_Verarbeiten',scope:'stage',description:'viewChild → Karte anlegen/ändern (Inhaltsänderung setzt Fach zurück)',
+  actionSequence:childGuard(n,[
+   n.call('Speichern'),
+   n.cond('Gespeichert?','Ergebnis.ok','==',true,[n.call('Antworten')],[n.call('FehlerFachlich')])
+  ])});
+ actions.push(
+  n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
+  n.act('Speichern','Karten','save',[{childId:'$body.childId',cardId:'$body.cardId',question:'$body.question',answers:'$body.answers',subject:'$body.subject',topic:'$body.topic',answerFormat:'$body.answerFormat'}],'Ergebnis'),
+  n.act('Antworten','AntwortSenden','send',[{merge:'${Ergebnis}'}]),
+  n.act('FehlerFachlich','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}']),
+  n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
+}
+{const n=ns('KindKarteLoeschen');
+ tasks.push({id:uid('srv_task'),name:'Server_KindKarteLoeschen_Verarbeiten',scope:'stage',description:'viewChild → Karte löschen (Fach 6-Ablage inklusive)',
+  actionSequence:childGuard(n,[
+   n.call('Loeschen'),
+   n.cond('Gelöscht?','Ergebnis.ok','==',true,[n.call('Antworten')],[n.call('FehlerFachlich')])
+  ])});
+ actions.push(
+  n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
+  n.act('Loeschen','Karten','remove',[{childId:'$body.childId',cardId:'$body.cardId'}],'Ergebnis'),
+  n.act('Antworten','AntwortSenden','send',[{merge:'${Ergebnis}'}]),
+  n.act('FehlerFachlich','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}']),
+  n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
+}
+
 // --- room-pulse (E01 Beobachter) ----------------------------------------------
 {const n=ns('BeobachterPuls');
- tasks.push({id:uid('srv_task'),name:'Server_BeobachterPuls_Verarbeiten',scope:'stage',description:'Mit areaId: observe-Recht → Raum-Aggregat. Ohne: Übersicht eigener Beobachtungsräume',
+ tasks.push({id:uid('srv_task'),name:'Server_BeobachterPuls_Verarbeiten_v2',scope:'stage',description:'Mit areaId: observe-Recht → Raum-Aggregat. Ohne: Übersicht eigener Beobachtungsräume',
   actionSequence:withGuard(n,[
    n.cond('Bereich angegeben?','body.areaId','truthy',true,[
     n.call('Recht'),
@@ -146,22 +213,31 @@ const childGuard=(n,inner,perm='viewChild',msg='Nur eigene, bestätigt zugeordne
 }
 
 // --- Stage zusammensetzen ----------------------------------------------------
+// endpunkte eindeutig umbenennen, damit sie im JSON nicht mit alten verwechselt werden
 const endpoints=[
- ['/api/cms/parent/my-children','Ep_ElternKinder','Server_ElternKinder_Verarbeiten'],
- ['/api/cms/parent/child-activity','Ep_ElternAktivitaet','Server_ElternAktivitaet_Verarbeiten'],
- ['/api/cms/parent/child-progress','Ep_ElternBewertungen','Server_ElternBewertungen_Verarbeiten'],
- ['/api/cms/parent/set-budget','Ep_ElternBudget','Server_ElternBudget_Verarbeiten'],
- ['/api/cms/parent/approve-budget','Ep_ElternBudgetOk','Server_ElternBudgetOk_Verarbeiten'],
- ['/api/cms/parent/room-pulse','Ep_BeobachterPuls','Server_BeobachterPuls_Verarbeiten']
+ ['/api/cms/parent/my-children','Ep_ElternKinder_v2','Server_ElternKinder_Verarbeiten_v2'],
+ ['/api/cms/parent/child-activity','Ep_ElternAktivitaet_v2','Server_ElternAktivitaet_Verarbeiten_v2'],
+ ['/api/cms/parent/child-progress','Ep_ElternBewertungen_v2','Server_ElternBewertungen_Verarbeiten_v2'],
+ ['/api/cms/parent/set-budget','Ep_ElternBudget_v2','Server_ElternBudget_Verarbeiten_v2'],
+ ['/api/cms/parent/approve-budget','Ep_ElternBudgetOk_v2','Server_ElternBudgetOk_Verarbeiten_v2'],
+ ['/api/cms/parent/child-rooms','Ep_KindRaeume','Server_KindRaeume_Verarbeiten'],
+ ['/api/cms/parent/child-membership','Ep_KindZutritt','Server_KindZutritt_Verarbeiten'],
+ ['/api/cms/parent/start-game-for-child','Ep_SpielFuerKind','Server_SpielFuerKind_Verarbeiten'],
+ ['/api/cms/parent/child-cards','Ep_KindKarten','Server_KindKarten_Verarbeiten'],
+ ['/api/cms/parent/child-card-save','Ep_KindKarteSpeichern','Server_KindKarteSpeichern_Verarbeiten'],
+ ['/api/cms/parent/child-card-delete','Ep_KindKarteLoeschen','Server_KindKarteLoeschen_Verarbeiten'],
+ ['/api/cms/parent/room-pulse','Ep_BeobachterPuls_v2','Server_BeobachterPuls_Verarbeiten_v2']
 ];
 const objects=endpoints.map(([p,name,task],i)=>comp('TServerEndpoint',name,{endpointPath:p,httpMethod:'POST',traceEnabled:true,events:{onRequest:task},x:16,y:2+i*4}));
 objects.push(comp('TServerSession','Kontositzung',{x:2,y:2}),
              comp('TServerValidate','EingabePruefung',{x:2,y:7}),
              comp('TServerQuery','Datenbestand',{x:2,y:12}),
              comp('TServerStore','DatenSpeicher',{x:2,y:17}),
-             comp('TServerResponse','AntwortSenden',{x:2,y:22}));
-eltern.x=2;eltern.y=27;objects.push(eltern);
-eltern.events={onChildren:'Server_ElternKinder_Verarbeiten',onActivity:'Server_ElternAktivitaet_Verarbeiten',onProgress:'Server_ElternBewertungen_Verarbeiten',onSetBudget:'Server_ElternBudget_Verarbeiten',onApproveBudget:'Server_ElternBudgetOk_Verarbeiten',onPulse:'Server_BeobachterPuls_Verarbeiten'};
+             comp('TServerResponse','AntwortSenden',{x:2,y:22}),
+             comp('TServerParty','PartyVerwaltung',{x:2,y:27}),
+             comp('TServerCards','Karten',{x:2,y:32}));
+eltern.x=2;eltern.y=32;objects.push(eltern);
+eltern.events={onChildren:'Server_ElternKinder_Verarbeiten_v2',onActivity:'Server_ElternAktivitaet_Verarbeiten_v2',onProgress:'Server_ElternBewertungen_Verarbeiten_v2',onSetBudget:'Server_ElternBudget_Verarbeiten_v2',onApproveBudget:'Server_ElternBudgetOk_Verarbeiten_v2',onPulse:'Server_BeobachterPuls_Verarbeiten_v2'};
 
 actions.unshift(
  {id:uid('srv_act'),name:'Act_KontoRolle_Pruefen',type:'call_method',target:'Kontositzung',method:'requireRole',params:['account'],resultVariable:'Pruefung',scope:'stage'},
@@ -169,6 +245,7 @@ actions.unshift(
 
 Object.assign(stage,{generatedBy:'cms-add-parent-server-stage.cjs',
  objects,tasks,actions,
- variables:['Pruefung','Sicht','Kinder','Karte','Sitzungen','Eintraege','Minuten','Fenster','AndereEltern','Budget','Vorschlag','Ergebnis','Beob','Puls'].map(variable)});
+ variables:['Pruefung','Sicht','Kinder','Karte','Sitzungen','Eintraege','Minuten','Fenster','AndereEltern','Budget','Vorschlag','Ergebnis','Beob','Puls','Raeume','Gestartet','KartenListe'].map(variable),
+ features:[{id:'stage_server_parent_parent-v2',name:'Eltern- und Beobachterzugang',description:'Serverseitige Endpunkte für Elternsicht und Beobachter mit Kind-Räumen und Spielstart.',tags:['CMS','Server'],userStoryIds:[],blueprintTaskNames:tasks.map(t=>t.name)}]});
 fs.writeFileSync(file,JSON.stringify(project,null,1));
-console.log('stage_server_parent: 6 Endpunkte umgebaut');
+console.log('stage_server_parent: '+endpoints.length+' Endpunkte umgebaut');

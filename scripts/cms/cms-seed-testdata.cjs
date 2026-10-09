@@ -23,7 +23,7 @@ const guardian = (childId, guardianId, status = 'confirmed', extra = {}) => ({
 const code = (personId, areaId, seq) => ({ personId, areaId, sequence: seq });
 
 const db = {
-  version: 5,
+  version: 7,
   areas: [
     { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     { id: 'house-sun', name: 'Haus Sonne', type: 'house', parentId: 'root', active: true, avatar: '🏡', maxDailyMinutes: 120 },
@@ -168,6 +168,8 @@ const db = {
     { id: 'req-1', personId: 'child-finn', type: 'access-help', status: 'open', at: iso(NOW - 2 * H) },
     { id: 'req-2', personId: 'child-emil', type: 'access-help', status: 'resolved', at: iso(NOW - 3 * D) },
   ],
+  flashcards: [],
+  cardDecks: [],
   audit: [
     { id: 'audit-1', at: iso(NOW - 10 * D), actor: 'super-admin', action: 'house-create', areaId: 'root' },
     { id: 'audit-2', at: iso(NOW - 9 * D), actor: 'admin-sun', action: 'room-create', areaId: 'house-sun' },
@@ -213,7 +215,7 @@ const db = {
 // Alle übrigen Entitäten entstehen später ausschließlich über echte CMS-Wege.
 function buildMinimalDb(now = Date.now()) {
   const db = {
-    version: 5,
+    version: 7,
     areas: [
       { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     ],
@@ -226,7 +228,7 @@ function buildMinimalDb(now = Date.now()) {
     memberships: [], guardians: [], games: [], grants: [], codes: [], invites: [],
     timeBudgets: [], playSessions: [], progress: [], deviceGrants: [], parties: [],
     gameInvitations: [], notifications: [], temporaryRoomAccess: [],
-    audit: [], profileRequests: [],
+    audit: [], profileRequests: [], flashcards: [], cardDecks: [],
     meta: { generatedBy: 'cms-seed-testdata.cjs', generatedAt: new Date(now).toISOString(), purpose: 'Aufbau ab null: Minimalbestand, synthetisch' },
     testMeta: { password: TEST_PASSWORD, mode: 'minimal' },
   };

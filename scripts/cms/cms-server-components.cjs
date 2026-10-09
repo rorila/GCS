@@ -22,6 +22,12 @@ const sniffImage=b=>b.length>11&&b[0]===0x89&&b[1]===0x50&&b[2]===0x4E&&b[3]===0
 // bestätigte Erziehungsberechtigte des Kindes (guardians) oder
 // HouseAdmin — areaAdmin-Rolle auf einer Area vom Typ 'house', in der
 // die Zielperson aktive Mitgliedschaft hat.
+const isHouseAdmin=(db,session,houseId)=>{
+ if(!session||!houseId)return false;
+ const ar=session.activeRole;
+ return !!(ar?.role==='areaAdmin'&&ar.areaId===houseId&&db.areas.find(a=>a.id===houseId)?.type==='house'
+  &&areaActive(db,houseId)&&db.roles.some(r=>r.personId===session.personId&&r.role==='areaAdmin'&&r.areaId===houseId&&r.active));
+};
 const canAssignAvatar=(db,session,target)=>{
  if(!session||!target)return false;
  // Verwaltungspfade gelten nur in der gewählten Admin-Rolle der Sitzung
@@ -120,6 +126,9 @@ function expireInvitations(ctx){
  }
 }
 
+// Karteikasten-DTO: Karten werden flach für Listen/Quiz ausgeliefert.
+const cardDto=(db,c)=>{const by=db.people.find(p=>p.id===c.createdBy);return{id:c.id,childId:c.childId,subject:c.subject,topic:c.topic,question:c.question,answers:c.answers,answerFormat:c.answerFormat,box:c.box,boxLabel:c.box===6?'✔ gelernt':'Fach '+c.box,createdBy:c.createdBy,createdByName:by?.name||'',createdAt:c.createdAt,updatedAt:c.updatedAt,lastReviewedAt:c.lastReviewedAt,active:c.active};};
+
 const methods={
  TServerSession:{
   requireRole(ctx,_component,params){
@@ -150,6 +159,8 @@ const methods={
    const list=ctx.session?.adminRoles||ctx.session?.accountRoles||[];
    const match=list.find(r=>r.role===sel.role&&r.areaId===sel.areaId);
    if(!match)return{ok:false,message:'Diese Rolle steht nicht zur Verfügung.'};
+   // Abgeleitete Kontextrolle Spieler ist nie in db.roles; Eltern/Beobachter
+   // wählen ihren Kontext über den Passwort-Login (stage_admin_login), nicht hier.
    if(match.role!=='player'&&!db.roles.some(r=>r.personId===ctx.session.personId&&r.role===match.role&&r.areaId===match.areaId&&r.active&&(r.areaId==='root'||areaActive(db,r.areaId))))
     return{ok:false,message:'Diese Rolle steht nicht mehr zur Verfügung.'};
    ctx.session.activeRole=match;
@@ -219,6 +230,9 @@ const methods={
    return d;
   }
  },
+ // Platzhalter-Komponente: Stage-definierte Endpunkte/TServerParentAccount
+ // brauchen keine eigenen Methoden, da ihre Events auf Tasks verweisen.
+ TServerParentAccount:{},
  TServerResponse:{
   // send({feld:expr, merge:objVar}) — 'merge' breitet ein Ergebnisobjekt (z. B. Kind-Karte) in die Antwort aus.
   send(ctx,_component,params){const p=params?.[0]||{},merge=p.merge&&typeof p.merge==='object'?p.merge:{};const rest={...p};delete rest.merge;ctx.result={status:200,data:{ok:true,...merge,...rest}};},
@@ -372,8 +386,11 @@ const methods={
    return card?{ok:true,found:true,item:card}:{ok:true,found:false,item:null};
   },
   childCards(ctx){const db=ctx.core.db,personId=ctx.session.personId;
+   // Bestätigte UND ausstehende Zuordnungen werden gelistet (E01/E02): die
+   // Übersicht zeigt pending-Karten markiert; Detailzugriff bleibt weiterhin
+   // an viewChild (nur confirmed) gebunden.
    return{items:db.guardians.filter(g=>g.guardianId===personId&&(g.status==='confirmed'||g.status==='pending'))
-    .map(g=>{const c=childCardOf(db,g.childId);return c?{...c,pendingApproval:g.status!=='confirmed'||!!c.pendingApproval,guardianStatus:g.status}:null}).filter(Boolean)};},
+    .map(g=>{const c=childCardOf(db,g.childId);return c?{...c,pendingApproval:g.status==='pending'||!!c.pendingApproval,guardianStatus:g.status}:null}).filter(Boolean)};},
   // Letzte Spielsitzungen eines Kindes (neueste zuerst, max. 10), mit Spieltitel.
   recentSessions(ctx,_component,params){
    const childId=exprOf(ctx,params?.[0],{}),db=ctx.core.db;
@@ -388,18 +405,46 @@ const methods={
    return{items:(ctx.core.db.progress||[]).filter(r=>r.childId===childId)
     .map(r=>({metric:r.metric,value:r.value,unit:r.unit,reportedAt:r.reportedAt,source:r.source,gameId:r.gameId}))};
   },
+  // --- Erziehungsberechtigte: Räume des Kindes + Zutritt verwalten (E07) ---
+  childRooms(ctx,_component,params){
+   const childId=exprOf(ctx,params?.[0],{}),db=ctx.core.db,session=ctx.session;
+   if(!ctx.core.can(session,'viewChild',{childId}))return{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'};
+   const houseId=session.houseId;
+   const items=db.areas.filter(a=>a.type==='room'&&areaActive(db,a.id))
+    .map(a=>{
+     const house=houseOf(db,a.id);
+     const member=db.memberships.find(m=>m.personId===childId&&m.areaId===a.id);
+     return{areaId:a.id,name:a.name,avatar:a.avatar||'🚪',houseId:house?.id,active:!!member?.active,hasAccess:!!member};
+    })
+    .filter(r=>r.houseId===houseId);
+   return{ok:true,items,message:items.length?'Räume des Kindes':'Keine Räume im Haus'};
+  },
+  setChildMembership(ctx,_component,params){
+   const spec=params?.[0]||{},scope={},db=ctx.core.db,session=ctx.session;
+   const childId=exprOf(ctx,spec.childId,scope),areaId=exprOf(ctx,spec.areaId,scope),active=!!exprOf(ctx,spec.active,scope);
+   if(!ctx.core.can(session,'viewChild',{childId}))return{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'};
+   const room=db.areas.find(a=>a.id===areaId&&a.type==='room');
+   if(!room)return{ok:false,status:404,message:'Raum nicht gefunden.'};
+   const house=houseOf(db,areaId);
+   if(house?.id!==session.houseId)return{ok:false,status:403,message:'Raum gehört nicht zum aktuellen Haus.'};
+   ctx.commit(session,'parent-child-membership',areaId,next=>{
+    let row=next.memberships.find(m=>m.personId===childId&&m.areaId===areaId);
+    if(!row){row={personId:childId,areaId};next.memberships.push(row);}
+    row.active=active;
+   });
+   return{ok:true,message:active?'Zutritt gewährt.':'Zutritt entzogen.'};
+  },
   // Bereichs-Flags der Anmeldung — steuern nur die Bereichsnavigation (keine
   // Rechte; jede Aktion wird serverseitig einzeln geprüft). Nutzt die
   // Verwaltungssitzung (ctx.adminSession) und/oder die Konto-Sitzung.
   contexts(ctx){
    const db=ctx.core.db,personId=ctx.adminSession?.personId||ctx.session?.personId;
    const person=personId&&db.people.find(p=>p.id===personId&&p.active);
-   const flags={admin:false,house:false,super:false,parent:false,observer:false};
+   const flags={admin:false,house:false,super:false,parent:false,observer:false,player:false};
    if(person){
     const role=(r,areaId)=>db.roles.some(x=>x.personId===personId&&x.role===r&&x.areaId===areaId&&x.active&&areaActive(db,x.areaId));
     if(ctx.adminSession){flags.super=role('superAdmin','root');flags.admin=flags.super||db.roles.some(r=>r.personId===personId&&r.role==='areaAdmin'&&r.active&&areaActive(db,r.areaId));flags.house=flags.super||db.roles.some(r=>r.personId===personId&&r.role==='areaAdmin'&&r.active&&db.areas.find(a=>a.id===r.areaId)?.type==='house'&&areaActive(db,r.areaId));}
-    flags.parent=!!ctx.session&&db.guardians.some(g=>g.guardianId===personId&&(g.status==='confirmed'||g.status==='pending'));
-    flags.observer=!!ctx.session&&db.roles.some(r=>r.personId===personId&&r.role==='observer'&&r.active&&areaActive(db,r.areaId));
+    if(ctx.session){flags.parent=db.guardians.some(g=>g.guardianId===personId&&g.status==='confirmed');flags.observer=db.roles.some(r=>r.personId===personId&&r.role==='observer'&&r.active&&areaActive(db,r.areaId));flags.player=ctx.session.assurance==='profile';}
     flags.verwaltung=flags.admin||flags.house;
    }
    return{ok:true,...flags,name:person?.name||''};
@@ -1166,6 +1211,42 @@ const methods={
   },
   notifications(ctx){expireInvitations(ctx);const db=ctx.core.db;return{ok:true,items:(db.notifications||[]).filter(n=>n.recipientPersonId===ctx.session.personId).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).map(n=>({id:n.id,type:n.type,read:!!n.read,invitationId:n.invitationId||'',createdAt:n.createdAt}))};},
   markNotification(ctx,_component,params){const id=exprOf(ctx,params?.[0],{}),n=(ctx.core.db.notifications||[]).find(x=>x.id===id&&x.recipientPersonId===ctx.session.personId);if(!n)return{ok:false,status:404,message:'Hinweis nicht gefunden.'};ctx.commit(ctx.session,'notification-read','root',next=>{next.notifications.find(x=>x.id===id).read=true;});return{ok:true};},
+  // --- Erziehungsberechtigte: Mehrspieler-Spiel für Kind starten (E07) ---
+  startGameForChild(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,session=ctx.session;
+   const childId=exprOf(ctx,spec.childId,{}),gameId=exprOf(ctx,spec.gameId,{}),areaId=exprOf(ctx,spec.areaId,{}),personId=exprOf(ctx,spec.personId,{});
+   if(!ctx.core.can(session,'viewChild',{childId}))return{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'};
+   const game=db.games.find(g=>g.id===gameId);
+   if(!game||game.status!=='published'||!ctx.core.can({...session,personId:childId},'play',{game,areaId}))return{ok:false,status:403,message:'Spiel oder Raum für das Kind nicht freigegeben.'};
+   const house=houseOf(db,areaId);
+   // Kind-Sitzung starten (Zeitbudget greift auf das Kind).
+   const childSession={personId:childId,assurance:'profile'};
+   const started=ctx.play.api(childSession,'start',{gameId,areaId});
+   if(!started.data.ok)return{ok:false,status:started.status,message:started.data.message};
+   const now=Date.now();
+   if(personId){
+    // Einladungsvariante: ein weiterer Bewohner wird eingeladen.
+    const invitee=db.people.find(p=>p.id===personId&&p.active);
+    if(!invitee||!db.memberships.some(m=>m.personId===personId&&m.areaId===house?.id&&m.active))
+     return{ok:false,status:403,message:'Nur aktive Bewohner dieses Hauses können eingeladen werden.'};
+    if(db.parties.some(q=>q.status!=='ended'&&q.members.some(m=>m.personId===personId&&!m.leftAt)))
+     return{ok:false,status:409,message:'Diese Person ist bereits in einer Partie.'};
+    const partyId='party-'+crypto.randomUUID(),invitationId='invite-'+crypto.randomUUID(),expiresAt=now+5*60*1000;
+    ctx.commit(session,'parent-party-start-invite',areaId,next=>{
+     next.parties.push({id:partyId,gameId:game.id,gameVersion:game.version||1,file:game.file,areaId,houseId:house?.id||'',hostId:childId,status:'open',oneClick:true,members:[{personId:childId,playSessionId:started.data.playSessionId,joinedAt:new Date(now).toISOString()}],actions:[],createdAt:new Date(now).toISOString()});
+     next.gameInvitations.push({id:invitationId,sessionId:partyId,inviterPersonId:session.personId,invitedPersonId:personId,roomId:areaId,status:'pending',createdAt:new Date(now).toISOString(),expiresAt});
+     next.temporaryRoomAccess.push({id:'temp-room-'+crypto.randomUUID(),sessionId:partyId,invitationId,personId,roomId:areaId,active:true,createdAt:new Date(now).toISOString(),expiresAt});
+     next.notifications.push({id:'notification-'+crypto.randomUUID(),recipientPersonId:personId,type:'game-invitation',invitationId,read:false,createdAt:new Date(now).toISOString()});
+    });
+    const key=crypto.randomBytes(24).toString('hex');
+    ctx.launches.set(key,{token:started.token,gameId,areaId,playSessionId:started.data.playSessionId,partyId});
+    return{ok:true,partyId,invitationId,launch:'/play/'+key,message:invitee.name+' wurde eingeladen — Spiel wird für '+db.people.find(p=>p.id===childId)?.name+' geöffnet.'};
+   }
+   // Solospiel direkt starten (keine Partie, aber Launch für die Elternansicht).
+   const key=crypto.randomBytes(24).toString('hex');
+   ctx.launches.set(key,{token:started.token,gameId,areaId,playSessionId:started.data.playSessionId});
+   return{ok:true,launch:'/play/'+key,message:'Spiel wird für '+db.people.find(p=>p.id===childId)?.name+' geöffnet.'};
+  },
   // Offene Partien eines Raums (Raumzugehörigkeit prüft der Task).
   partyList(ctx,_component,params){
    const db=ctx.core.db,areaId=exprOf(ctx,params?.[0],{});
@@ -1281,6 +1362,136 @@ const methods={
    for(const m of db.parties.find(x=>x.id===p.id).members.filter(m=>!m.leftAt))
     ctx.play.api({personId:m.personId},'end',{playSessionId:m.playSessionId});
    return{ok:true};
+  }
+ },
+ // --- Karteikästen (Leitner): der Kasten ist implizit — ein Kind besitzt
+ // genau die Menge seiner flashcards (childId). box 1..5 = Lernfächer,
+ // box 6 = Ablage "gelernt" (aus der Ziehung ausgeschlossen, löschbar). ------
+ TServerCards:{
+  dto(ctx,_component,params){
+   const c=params?.[0]||{},db=ctx.core.db,by=db.people.find(p=>p.id===c.createdBy);
+   return{id:c.id,childId:c.childId,subject:c.subject,topic:c.topic,question:c.question,answers:c.answers,answerFormat:c.answerFormat,box:c.box,boxLabel:c.box===6?'✔ gelernt':'Fach '+c.box,createdBy:c.createdBy,createdByName:by?.name||'',createdAt:c.createdAt,updatedAt:c.updatedAt,lastReviewedAt:c.lastReviewedAt,active:c.active};
+  },
+  // Gefilterte Liste + dynamische Fach-/Themenvorschläge aus dem Kasten.
+  list(ctx,component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,s=ctx.session;
+   const childId=exprOf(ctx,spec.childId,{})||s.personId;
+   if(!ctx.core.can(s,'viewCards',{childId}))return{ok:false,status:403,message:'Kein Zugriff auf diesen Karteikasten.'};
+   const subject=String(exprOf(ctx,spec.subject,{})??'').trim(),topic=String(exprOf(ctx,spec.topic,{})??'').trim(),box=Number(exprOf(ctx,spec.box,{})||0);
+   const own=db.flashcards.filter(c=>c.childId===childId&&c.active);
+   const items=own
+    .filter(c=>box?c.box===box:c.box<=5)
+    .filter(c=>!subject||c.subject===subject)
+    .filter(c=>!topic||c.topic===topic)
+    .map(c=>({...cardDto(db,c),editable:c.createdBy===s.personId||c.box===6||ctx.core.can(s,'viewChild',{childId})}));
+   const subjects=[...new Set(own.map(c=>c.subject).filter(Boolean))].sort();
+   const topics=[...new Set(own.map(c=>c.topic).filter(Boolean))].sort();
+   const childName=db.people.find(p=>p.id===childId)?.name||'';
+   return{ok:true,items,subjects,topics,subjectsText:subjects.join(', '),shown:items.length,total:own.length,childName,message:items.length?items.length+' Karten':'Noch keine Karten gefunden.'};
+  },
+  // Einzelne Karte für die Bearbeitungs-Stage — gleiche Regeln wie save():
+  // Kind nur selbst angelegte Karten, Eltern alle Karten zugeordneter Kinder.
+  info(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,s=ctx.session;
+   const card=db.flashcards.find(c=>c.id===exprOf(ctx,spec.cardId,{})&&c.active!==false);
+   if(!card||!card.childId)return{ok:false,status:404,message:'Karte nicht gefunden.'};
+   if(!ctx.core.can(s,'manageCards',{childId:card.childId}))return{ok:false,status:403,message:'Kein Zugriff auf diesen Karteikasten.'};
+   const editable=card.createdBy===s.personId||card.box===6||ctx.core.can(s,'viewChild',{childId:card.childId});
+   if(!editable)return{ok:false,status:403,message:'Nur selbst angelegte Karten können geändert werden.'};
+   return{ok:true,card:{...cardDto(db,card),answersText:(card.answers||[]).join('; ')}};
+  },
+  // Anlegen oder Aktualisieren. Kind: nur eigener Kasten + selbst angelegte
+  // Karten; Eltern: alle Karten zugeordneter Kinder. Inhaltsänderung an
+  // question/answers setzt den Lernstand zurück auf Fach 1.
+  save(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,s=ctx.session;
+   const childId=exprOf(ctx,spec.childId,{})||s.personId,cardId=exprOf(ctx,spec.cardId,{});
+   if(!ctx.core.can(s,'manageCards',{childId}))return{ok:false,status:403,message:'Kein Zugriff auf diesen Karteikasten.'};
+   const norm=v=>String(v??'').trim();
+   const question=norm(exprOf(ctx,spec.question,{})),subject=norm(exprOf(ctx,spec.subject,{})),topic=norm(exprOf(ctx,spec.topic,{}));
+   const answersRaw=exprOf(ctx,spec.answers,{});
+   const answers=(Array.isArray(answersRaw)?answersRaw:String(answersRaw||'').split(/\r?\n|;|\|/)).map(a=>norm(a)).filter(Boolean);
+   const answerFormat=['text','self'].includes(exprOf(ctx,spec.answerFormat,{}))?exprOf(ctx,spec.answerFormat,{}):'text';
+   if(!question||!subject)return{ok:false,status:400,message:'Frage und Schulfach sind Pflicht.'};
+   if(answerFormat==='text'&&!answers.length)return{ok:false,status:400,message:'Mindestens eine akzeptierte Antwort angeben.'};
+   if(cardId){
+    const card=db.flashcards.find(c=>c.id===cardId&&c.childId===childId&&c.active);
+    if(!card)return{ok:false,status:404,message:'Karte nicht gefunden.'};
+    const isParent=ctx.core.can(s,'viewChild',{childId});
+    if(!isParent&&card.createdBy!==s.personId)return{ok:false,status:403,message:'Nur selbst angelegte Karten können geändert werden.'};
+    const contentChanged=card.question!==question||JSON.stringify(card.answers)!==JSON.stringify(answers)||card.answerFormat!==answerFormat;
+    ctx.commit(s,'card-update',childId,next=>{
+     const c=next.flashcards.find(x=>x.id===cardId);
+     c.question=question;c.subject=subject;c.topic=topic;c.answers=answers;c.answerFormat=answerFormat;
+     if(contentChanged)c.box=1;
+     c.updatedAt=new Date().toISOString();
+    });
+    return{ok:true,cardId,message:contentChanged?'Karte gespeichert — Lernstand zurück auf Fach 1.':'Karte gespeichert.'};
+   }
+   const cardId2='card-'+crypto.randomUUID(),now=new Date().toISOString();
+   ctx.commit(s,'card-create',childId,next=>{
+    next.flashcards.push({id:cardId2,childId,subject,topic,question,answers,answerFormat,box:1,status:'active',createdBy:s.personId,createdAt:now,updatedAt:now,lastReviewedAt:null,active:true});
+   });
+   return{ok:true,cardId:cardId2,message:'Karte angelegt (Fach 1).'};
+  },
+  // Löschen: Eltern alle; Kind nur eigene Karten — außer Fach 6 (gelernt),
+  // dort dürfen auch Kinder fremd angelegte Karten entfernen.
+  remove(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,s=ctx.session;
+   const childId=exprOf(ctx,spec.childId,{})||s.personId,cardId=exprOf(ctx,spec.cardId,{});
+   if(!ctx.core.can(s,'manageCards',{childId}))return{ok:false,status:403,message:'Kein Zugriff auf diesen Karteikasten.'};
+   const card=db.flashcards.find(c=>c.id===cardId&&c.childId===childId);
+   if(!card||!card.active)return{ok:false,status:404,message:'Karte nicht gefunden.'};
+   const isParent=ctx.core.can(s,'viewChild',{childId});
+   if(!isParent&&card.createdBy!==s.personId&&card.box!==6)return{ok:false,status:403,message:'Nur selbst angelegte Karten können gelöscht werden.'};
+   ctx.commit(s,'card-delete',childId,next=>{const c=next.flashcards.find(x=>x.id===cardId);if(c)c.active=false;});
+   return{ok:true,message:'Karte gelöscht.'};
+  },
+  // Leitner-Übergang. Nur der Kastenbesitzer selbst bewertet (Lernstand).
+  answer(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,s=ctx.session;
+   const cardId=exprOf(ctx,spec.cardId,{}),correct=!!exprOf(ctx,spec.correct,{});
+   const card=db.flashcards.find(c=>c.id===cardId&&c.active);
+   if(!card)return{ok:false,status:404,message:'Karte nicht gefunden.'};
+   if(card.childId!==s.personId)return{ok:false,status:403,message:'Nur der Kastenbesitzer bewertet Karten.'};
+   ctx.commit(s,'card-answer',card.childId,next=>{
+    const c=next.flashcards.find(x=>x.id===cardId);
+    c.box=correct?Math.min(c.box+1,6):1;
+    c.lastReviewedAt=new Date().toISOString();
+   });
+   const cur=db.flashcards.find(x=>x.id===cardId);
+   return{ok:true,box:cur.box,mastered:cur.box===6,message:cur.box===6?'Gelernt — Karte wandert in die Ablage.':correct?'Richtig — Fach '+cur.box:'Falsch — zurück auf Fach 1'};
+  },
+  // Technisches Primitive: Kandidatenliste aus dem Kasten (nur Fach 1–5
+  // ziehbar; Fach 6 = Ablage). Die eigentliche Ziehregel („welches Fach,
+  // welche Reihenfolge") liegt deklarativ im Endpoint-Task.
+  // spec: subject, topic, boxMin/boxMax, formats[], excludeIds[]
+  filter(ctx,_component,params){
+   const spec=params?.[0]||{},db=ctx.core.db,s=ctx.session;
+   const childId=exprOf(ctx,spec.childId,{})||s.personId;
+   if(!ctx.core.can(s,'viewCards',{childId}))return{ok:false,status:403,message:'Kein Zugriff auf diesen Karteikasten.'};
+   const subject=String(exprOf(ctx,spec.subject,{})??'').trim(),topic=String(exprOf(ctx,spec.topic,{})??'').trim();
+   const boxMin=Math.max(1,Number(exprOf(ctx,spec.boxMin,{}))||1),boxMax=Math.min(5,Number(exprOf(ctx,spec.boxMax,{}))||5);
+   const fmtRaw=exprOf(ctx,spec.formats,{}),formats=(Array.isArray(fmtRaw)?fmtRaw:String(fmtRaw||'').split(/[;,]/)).map(f=>String(f).trim()).filter(Boolean);
+   const exRaw=exprOf(ctx,spec.excludeIds,{}),exclude=new Set((Array.isArray(exRaw)?exRaw:String(exRaw||'').split(/[;,]/)).map(f=>String(f).trim()).filter(Boolean));
+   const pool=db.flashcards.filter(c=>c.childId===childId&&c.active&&c.box>=boxMin&&c.box<=boxMax
+    &&(!subject||c.subject===subject)&&(!topic||c.topic===topic)
+    &&(!formats.length||formats.includes(c.answerFormat))&&!exclude.has(c.id));
+   return{ok:true,items:pool.map(c=>cardDto(db,c)),available:pool.length};
+  },
+  // Technisches Primitive: wählt eine Karte aus einer übergebenen Liste.
+  // modes: 'oldest'  → je Fach älteste zuerst (lastReviewedAt||createdAt,
+  //                    innerhalb eines Fachs; Fächer aufsteigend)
+  //        'random'  → zufällig, 'first' → erste der Liste.
+  pick(ctx,_component,params){
+   const db=ctx.core.db,itemsRaw=exprOf(ctx,params?.[0],{}),mode=String(exprOf(ctx,params?.[1],{})||'oldest');
+   const items=(Array.isArray(itemsRaw)?itemsRaw:[]);
+   if(!items.length)return{ok:true,empty:true,message:'Keine passende Karte.'};
+   let card;
+   if(mode==='random')card=items[Math.floor(Math.random()*items.length)];
+   else if(mode==='first')card=items[0];
+   else card=[...items].sort((a,b)=>(a.box-b.box)||String(a.lastReviewedAt||a.createdAt).localeCompare(String(b.lastReviewedAt||b.createdAt)))[0];
+   return{ok:true,card};
   }
  },
  // --- Uploads: TServerUpload trägt kind/maxBytes/Meldungen; der Transport
@@ -1559,4 +1770,7 @@ function pathOf(path,scope,ctx){
  return root;
 }
 
+// Kartenstapel-Methoden (TServerDecks) kommen aus dem eigenen Modul —
+// exprOf wird injiziert, damit kein Require-Zyklus entsteht.
+Object.assign(methods,require('./cms-server-decks.cjs')({exprOf}));
 module.exports={methods};

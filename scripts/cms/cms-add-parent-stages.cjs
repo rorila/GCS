@@ -121,40 +121,51 @@ mpStage.features.push({ id: 'server-mp', name: 'Lobbys, Beitritt, Aktionslog, Pa
 const parent = stageShell('stage_parent', 'Eltern · Meine Kinder');
 const P = bind(parent);
 parent.objects.push(
-  label('Titel', 'MEINE KINDER', 4, 2, 56, 2, 28),
-  label('Status', '', 4, 5, 56, 2),
-  button('NeuLaden', '↻ Aktualisieren', 44, 5, 12, 2, 'Sperre_KinderLaden'),
+  label('Titel', 'MEINE KINDER', 4, 1, 40, 2, 28),
+  label('Status', '', 4, 4, 40, 2),
+  button('NeuLaden', '↻ Aktualisieren', 48, 4, 12, 2, 'Sperre_KinderLaden'),
   objList('Kinder', 'Bestätigt zugeordnete Kinder; Datenquelle der KinderTabelle.'),
-  table('KinderTabelle', 4, 8, 28, 15, 'Kinder', [
-    { field: 'avatar', label: '', width: '70px' }, { field: 'name', label: 'Kind' },
-    { field: 'spiel', label: 'Spiel' }, { field: 'heute', label: 'Heute (Min)' },
-  ], 'Kind_Auswaehlen'),
-  label('DetailTitel', 'AKTIVITÄT & BEWERTUNGEN', 36, 8, 24, 2),
-  objList('Sitzungen', 'Letzte Spielsitzungen des gewählten Kindes.'),
-  table('SitzungTabelle', 36, 11, 24, 9, 'Sitzungen', [
-    { field: 'title', label: 'Spiel' }, { field: 'status', label: 'Status' }, { field: 'minutes', label: 'Min', width: '60px' },
-  ]),
-  objList('Bewertungen', 'Gemeldete Bewertungen des gewählten Kindes.'),
-  table('BewertungTabelle', 36, 21, 24, 9, 'Bewertungen', [
-    { field: 'metric', label: 'Metrik' }, { field: 'value', label: 'Wert', width: '60px' },
-    { field: 'unit', label: 'Einheit', width: '80px' }, { field: 'source', label: 'Quelle', width: '80px' },
-  ]),
-  label('BudgetTitel', 'ZEITBUDGET (MINUTEN PRO TAG)', 4, 25, 28, 2),
-  edit('BudgetMinuten', 4, 28, 10, 3, { inputType: 'number', placeholder: 'Minuten', maxLength: 4 }),
-  button('BudgetSpeichern', 'Budget speichern', 16, 28, 16, 3, 'Sperre_BudgetSpeichern'),
-  button('BudgetBestaetigen', 'Änderung bestätigen', 16, 32, 16, 3, 'Sperre_BudgetBestaetigen', { visible: false }),
-  label('BudgetHinweis', '', 34, 28, 26, 4, 15),
-  button('Navigation_stage_admin_login', '🔑 Anmeldung', 4, 37, 14, 2, 'Navigation_stage_admin_login'),
+  Object.assign(table('KinderTabelle', 4, 7, 28, 7, 'Kinder', [
+    { field: 'avatar', label: '', x: 0.5, y: 0.7, width: 3, height: 3, style: { fontSize: 28, textAlign: 'center' } },
+    { field: 'name', label: 'Kind', type: 'header', x: 4, y: 1, width: 6.5, height: 2, style: { fontSize: 16 } },
+    { field: 'spiel', label: 'Spiel', type: 'meta', x: 4, y: 3, width: 6.5, height: 1.2 },
+    { field: 'heute', label: 'Heute', type: 'meta', x: 4, y: 4.15, width: 6.5, height: 1.2 },
+  ], 'Kind_Auswaehlen'), { cardConfig: { width: 200, height: 96, gap: 14 } }),
+  button('SpielFuerKind', '🎮 Spiel für Kind starten', 4, 15, 28, 2, 'Spiel_Fuer_Kind_Oeffnen', { visible: false }),
+  label('RaeumeTitel', 'RÄUME DES KINDES', 4, 18, 28, 2),
+  objList('KindRaeume', 'Räume des Kindes im Haus mit Zutritt.'),
+  Object.assign(table('RaeumeTabelle', 4, 20, 28, 8, 'KindRaeume', [
+    { field: 'name', label: 'Raum' }, { field: 'active', label: 'Zutritt', width: '90px' },
+  ], 'Raeume_Zutritt_Umschalten'), { displayMode: 'table' }),
+  label('BudgetTitel', 'ZEITBUDGET (MINUTEN PRO TAG)', 4, 30, 28, 2),
+  edit('BudgetMinuten', 4, 32, 10, 3, { inputType: 'number', placeholder: 'Minuten', maxLength: 4 }),
+  button('BudgetSpeichern', 'Budget speichern', 15, 32, 17, 3, 'Sperre_BudgetSpeichern'),
+  button('BudgetBestaetigen', 'Änderung bestätigen', 4, 36, 28, 2, 'Sperre_BudgetBestaetigen', { visible: false }),
+  button('Navigation_stage_admin_login', '🔑 Anmeldung', 4, 38, 12, 2, 'Navigation_stage_admin_login'),
   // Bereichsnavigation nur für berechtigte Kontexte — Kontexte_Pruefen
   // blendet die Buttons nach /api/cms/contexts ein (Sichtbarkeit != Recht).
-  button('Navigation_stage_admin', '🛠 Verwaltung', 20, 37, 14, 2, 'Navigation_stage_admin', { visible: false }),
-  button('Navigation_stage_observer', '👁 Beobachtung', 36, 37, 16, 2, 'Navigation_stage_observer', { visible: false }),
+  button('Navigation_stage_player_roles', '↩ Rollenwahl', 17, 38, 12, 2, 'Navigation_stage_player_roles', { visible: false }),
+  button('Navigation_stage_admin', '🛠 Verwaltung', 30, 38, 12, 2, 'Navigation_stage_admin', { visible: false }),
+  button('Navigation_stage_observer', '👁 Beobachtung', 43, 38, 13, 2, 'Navigation_stage_observer', { visible: false }),
+  label('DetailTitel', 'AKTIVITÄT & BEWERTUNGEN', 36, 7, 24, 2),
+  objList('Sitzungen', 'Letzte Spielsitzungen des gewählten Kindes.'),
+  Object.assign(table('SitzungTabelle', 36, 9, 24, 9, 'Sitzungen', [
+    { field: 'title', label: 'Spiel' }, { field: 'status', label: 'Status' }, { field: 'minutes', label: 'Min', width: '60px' },
+  ]), { displayMode: 'table' }),
+  objList('Bewertungen', 'Gemeldete Bewertungen des gewählten Kindes.'),
+  Object.assign(table('BewertungTabelle', 36, 19, 24, 9, 'Bewertungen', [
+    { field: 'metric', label: 'Metrik' }, { field: 'value', label: 'Wert', width: '60px' },
+    { field: 'unit', label: 'Einheit', width: '80px' }, { field: 'source', label: 'Quelle', width: '80px' },
+  ]), { displayMode: 'table' }),
+  label('BudgetHinweis', '', 36, 34, 24, 4, 15),
   { className: 'TTimer', id: uid('timer'), name: 'InitialLaden', scope: 'stage', isService: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', events: { onTimer: 'ElternInit' }, visible: true, x: 1, y: 1, width: 4, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, interval: 350, enabled: true, maxInterval: 1, currentInterval: 0 },
 );
 parent.variables.push(
   strVar('Kind'), objVar('KinderAntwort'), boolVar('KinderGueltig'), objVar('DetailAntwort'),
   boolVar('SitzungsGueltig'), objVar('FortschrittAntwort'), boolVar('FortschrittGueltig'),
   objVar('BudgetAntwort'), intVar('Busy'), objVar('KontextAntwort'),
+  objVar('RaeumeAntwort'), boolVar('RaeumeGueltig'), strVar('RaumZutritt'),
+  objVar('SpielFuerKindAntwort'), strVar('GewaehltesSpiel'), strVar('GewaehlterRaum'), strVar('GewaehlterBewohner'),
 );
 parent.tasks.push(
   task('Kinder_Laden', [
@@ -180,11 +191,12 @@ parent.tasks.push(
   ]),
   task('Kind_Details_Anzeigen', [
     P.call('Act_Sitzungen_Uebernehmen', 'Sitzungen', 'tryReplaceRecords', ['${DetailAntwort.sessions}'], 'SitzungsGueltig'),
-    P.prop('Act_Budget_Anzeigen', { 'BudgetMinuten.text': '${DetailAntwort.budgetMinutes}' }),
+    P.prop('Act_Budget_Anzeigen', { 'BudgetMinuten.text': '${DetailAntwort.budgetMinutes}', 'SpielFuerKind.visible': true }),
     cond('DetailAntwort.pendingApproval', true,
       [P.prop('Act_Genehmigung_Anzeigen', { 'BudgetBestaetigen.visible': true, 'BudgetHinweis.text': 'Budgetänderung wartet auf ein zweites Elternteil.' })],
       [P.prop('Act_Genehmigung_Verbergen', { 'BudgetBestaetigen.visible': false, 'BudgetHinweis.text': '' })]),
     callTask('Fortschritt_Laden'),
+    callTask('Raeume_Des_Kindes_Laden'),
   ]),
   task('Fortschritt_Laden', [
     P.http('Act_Fortschritt_Server', '/api/cms/parent/child-progress', { childId: '${Kind}' }, 'FortschrittAntwort'),
@@ -212,12 +224,38 @@ parent.tasks.push(
       [callTask('Budget_Fehler')]),
   ]),
   task('Budget_Fehler', [P.prop('Act_Budget_Fehler', { Busy: 0, 'Status.text': '${BudgetAntwort.message}' })]),
+  // --- Räume des Kindes + Zutritt ---
+  task('Raeume_Des_Kindes_Laden', [
+    P.http('Act_Raeume_Server', '/api/cms/parent/child-rooms', { childId: '${Kind}' }, 'RaeumeAntwort'),
+    cond('RaeumeAntwort.ok', true, [callTask('Raeume_Anzeigen')], [callTask('Raeume_Fehler')]),
+  ]),
+  task('Raeume_Anzeigen', [
+    P.call('Act_Raeume_Uebernehmen', 'KindRaeume', 'tryReplaceRecords', ['${RaeumeAntwort.items}'], 'RaeumeGueltig'),
+    cond('RaeumeGueltig', true,
+      [P.prop('Act_Raeume_Fertig', { Busy: 0, 'RaeumeTabelle.visible': true })],
+      [P.prop('Act_Raeume_Datenfehler', { Busy: 0, 'Status.text': 'Raumdaten ungültig.' })]),
+  ]),
+  task('Raeume_Fehler', [P.prop('Act_Raeume_Fehler_Anzeigen', { Busy: 0, 'Status.text': '${RaeumeAntwort.message}' })]),
+  task('Raeume_Zutritt_Umschalten', busyGuard([
+    P.prop('Act_Raum_Merken', { RaumZutritt: '${RaeumeTabelle.selectedKey}' }),
+    P.http('Act_RaumZutritt_Server', '/api/cms/parent/child-membership', { childId: '${Kind}', areaId: '${RaeumeTabelle.selectedKey}', active: '${!RaeumeTabelle.selectedRecord.active}' }),
+    cond('Antwort.ok', true, [callTask('Raeume_Des_Kindes_Laden')], [callTask('Raeume_Fehler')]),
+  ])),
+  // --- Spiel für Kind starten (vereinfacht: aktueller Raum + letztes Spiel) ---
+  task('Spiel_Fuer_Kind_Oeffnen', busyGuard([
+    P.prop('Act_Spiel_Fuer_Kind_Oeffnen', { Busy: 1, 'Status.text': 'Spiel wird gestartet …' }),
+    // Standard: aktiver Raum des Kindes (erste Zeile), Spiel vom letzten aktiven Spiel, kein Bewohner.
+    P.http('Act_Spiel_Fuer_Kind_Server', '/api/cms/parent/start-game-for-child', { childId: '${Kind}', areaId: '${RaeumeTabelle.selectedKey}', gameId: '${DetailAntwort.playing.gameId}' }, 'SpielFuerKindAntwort'),
+    cond('SpielFuerKindAntwort.ok', true, [P.prop('Act_Spiel_Fuer_Kind_Fertig', { Busy: 0, SpielURL: '${SpielFuerKindAntwort.launch}', 'Status.text': '${SpielFuerKindAntwort.message}' })], [callTask('Spiel_Fuer_Kind_Fehler')]),
+  ])),
+  task('Spiel_Fuer_Kind_Fehler', [P.prop('Act_Spiel_Fuer_Kind_Fehler', { Busy: 0, 'Status.text': '${SpielFuerKindAntwort.message}' })]),
   task('Sperre_KinderLaden', busyGuard([callTask('Kinder_Laden')])),
   task('Sperre_BudgetSpeichern', busyGuard([callTask('Budget_Speichern')])),
   task('Sperre_BudgetBestaetigen', busyGuard([callTask('Budget_Bestaetigen')])),
   task('Kontexte_Pruefen', [
     P.http('Act_Kontexte_der_Sitzung_lesen', '/api/cms/contexts', {}, 'KontextAntwort'),
     cond('KontextAntwort.ok', true, [P.prop('Act_Kontextnavigation_einblenden', {
+      'Navigation_stage_player_roles.visible': '${KontextAntwort.player}',
       'Navigation_stage_admin.visible': '${KontextAntwort.verwaltung}',
       'Navigation_stage_observer.visible': '${KontextAntwort.observer}',
     })]),
@@ -226,6 +264,7 @@ parent.tasks.push(
   // darf eine laufende Navigation nicht zuruecksetzen.
   task('ElternInit', [callTask('Kontexte_Pruefen'), cond('Kind', '', [callTask('Sperre_KinderLaden')])]),
   task('Navigation_stage_admin_login', busyGuard([P.nav('Act_Nav_Admin_Login', 'stage_admin_login')])),
+  task('Navigation_stage_player_roles', busyGuard([P.nav('Act_Nav_Rollenwahl', 'stage_player_roles')])),
   // „Verwaltung“ führt in den höchsten verfügbaren Arbeitsbereich.
   task('Navigation_stage_admin', busyGuard([
     cond('KontextAntwort.super', true, [P.nav('Act_Nav_Super_Parent', 'stage_super')]),
@@ -298,7 +337,7 @@ const L = bind(login);
 login.objects = login.objects.filter(o => !['KinderOeffnen', 'BeobachtungOeffnen'].includes(o.name));
 login.objects.push(
   button('KinderOeffnen', 'Meine Kinder öffnen →', 12, 35, 40, 2, 'Navigation_stage_parent', { visible: false, style: { backgroundColor: 'transparent', borderColor: 'transparent', borderWidth: 0 } }),
-  button('BeobachtungOeffnen', 'Beobachtung öffnen →', 12, 38, 40, 2, 'Navigation_stage_observer', { visible: false, style: { backgroundColor: 'transparent', borderColor: 'transparent', borderWidth: 0 } }),
+  button('BeobachtungOeffnen', 'Beobachtung öffnen →', 12, 41, 40, 2, 'Navigation_stage_observer', { visible: false, style: { backgroundColor: 'transparent', borderColor: 'transparent', borderWidth: 0 } }),
 );
 login.tasks = login.tasks.filter(t => !['Navigation_stage_parent', 'Navigation_stage_observer', 'Kontexte_Anzeigen'].includes(t.name));
 login.actions = login.actions.filter(a => !['Act_Nav_Parent_Login', 'Act_Nav_Observer_Login'].includes(a.name));
@@ -322,8 +361,9 @@ if (erfolg && !erfolg.actionSequence.some(s => s.name === 'Kontexte_Anzeigen')) 
 // ============================================================
 // 5. HouseAdmin-Stage: Kinder-/Eltern-Verwaltung + Beobachter
 // ============================================================
-const house = project.stages.find(s => s.name === 'HouseAdmin · Haus verwalten');
+const house = project.stages.find(s => s.id === 'stage_house');
 const H = bind(house);
+if (!house) { console.error('stage_house nicht gefunden.'); process.exit(1); }
 const OWN_HOUSE_OBJ = ['KinderTab', 'ElternTab', 'ElternEinladen', 'BeobachterEinladen'];
 const OWN_HOUSE_TASKS = ['KinderTask', 'ElternTask', 'WaehleKind', 'WaehleZuordnung', 'ElternEinladenTask', 'BeobachterEinladenTask', 'GuardianApproveTask', 'Sperre_Kinder', 'Sperre_Eltern', 'Sperre_ElternEinladen', 'Sperre_BeobachterEinladen'];
 const OWN_HOUSE_ACTS = ['Act_Kinder_oeffnen', 'Act_Eltern_oeffnen', 'Act_Kind_gewaehlt', 'Act_Zuordnung_gewaehlt', 'Act_Eltern_Einladen_Warten', 'Act_Eltern_Einladen_Server', 'Act_Beobachter_Einladen_Server', 'Act_Zuordnung_Bestaetigen_Server'];
@@ -342,23 +382,23 @@ house.variables.push(strVar('Kind'), strVar('Zuordnung'));
 house.tasks.push(
   task('KinderTask', [
     H.prop('Act_Kinder_oeffnen', { Seite: 0, 'Confirm.visible': false, VerwaltungsModus: 'house-children', 'Status.text': 'Kind wählen, Elternname eingeben, dann „Einladen“.' }),
-    callTask('Laden'),
+    callTask('HaeuserLaden'),
   ]),
   task('ElternTask', [
     H.prop('Act_Eltern_oeffnen', { Seite: 0, 'Confirm.visible': false, VerwaltungsModus: 'guardian-pending', 'Status.text': 'Ausstehende Zuordnung wählen und mit „Confirm“ bestätigen.' }),
-    callTask('Laden'),
+    callTask('HaeuserLaden'),
   ]),
   task('WaehleKind', [H.prop('Act_Kind_gewaehlt', { Kind: '${Auswahl}', 'Status.text': 'Kind ${AuswahlName} gewählt — Elternname eingeben und „Einladen“.' })]),
   task('WaehleZuordnung', [H.prop('Act_Zuordnung_gewaehlt', { Zuordnung: '${Auswahl}', 'Confirm.visible': true, 'Status.text': 'Zuordnung gewählt — mit „Confirm“ bestätigen.' })]),
   task('ElternEinladenTask', [
     H.prop('Act_Eltern_Einladen_Warten', { Busy: 1 }),
     H.http('Act_Eltern_Einladen_Server', '/api/cms/admin/parent-invite', { houseId: '${Haus}', childId: '${Kind}', name: '${NameEingabe.text}' }),
-    callTask('Meldung'),
+    callTask('HausInit'),
   ]),
   task('BeobachterEinladenTask', [
     { type: 'action', name: 'Act_Eltern_Einladen_Warten' },
     H.http('Act_Beobachter_Einladen_Server', '/api/cms/admin/observer-invite', { houseId: '${Haus}', areaId: '${Raum}', name: '${NameEingabe.text}' }),
-    callTask('Meldung'),
+    callTask('HausInit'),
   ]),
   task('GuardianApproveTask', [
     { type: 'action', name: 'Act_Eltern_Einladen_Warten' },
@@ -388,20 +428,29 @@ if (adminSet && !adminSet.actionSequence.some(s => s.name === 'Branch: Verwaltun
   ];
 }
 
-// SuperAdmin landet direkt auf stage_super — der Umweg über die
-// Raum-Stage ist für ihn fachlich falsch (er hat Verwaltung gewählt).
+// Kontextauswahl nach der Anmeldung (E01): Hat die Person neben der
+// Verwaltung weitere Kontexte (Eltern/Beobachter), wird nicht direkt
+// weitergeleitet — sie wählt zwischen „Verwaltung öffnen", „Meine Kinder"
+// und „Beobachtung". Reine Verwaltungskonten laufen wie bisher direkt weiter.
 const loginStage = project.stages.find(s => s.id === 'stage_admin_login');
-// SuperAdmin wird nach erfolgreicher Anmeldung sofort weitergeleitet —
-// ohne den Zwischenschritt über die Erfolgsansicht (er hat Verwaltung
-// gewählt, die Kontext-Auswahl ist für ihn ohne Belang).
 const loginErfolg = loginStage.tasks.find(t => t.name === 'Anmeldung_Erfolgreich');
-if (loginErfolg && !JSON.stringify(loginErfolg).includes('Act_Navigation_stage_house')) {
+if (loginErfolg) {
+  const auswahl = [
+    { type: 'action', name: 'Act_Erfolg_Und_Verwaltungslink_Anzeigen' },
+    callTask('Kontexte_Anzeigen'),
+  ];
   loginErfolg.actionSequence = [
-    cond('Antwort.super', true,
-      [{ type: 'action', name: 'Act_Navigation_stage_super' }],
-      [cond('Antwort.house', true,
-        [{ type: 'action', name: 'Act_Navigation_stage_house' }],
-        loginErfolg.actionSequence)]),
+    cond('Antwort.parent', true, auswahl, [
+      cond('Antwort.observer', true, auswahl, [
+        cond('Antwort.needRole', true,
+          [{ type: 'action', name: 'Act_Navigation_stage_admin_roles' }],
+          [cond('Antwort.super', true,
+            [{ type: 'action', name: 'Act_Navigation_stage_super' }],
+            [cond('Antwort.house', true,
+              [{ type: 'action', name: 'Act_Navigation_stage_house' }],
+              auswahl)])]),
+      ]),
+    ]),
   ];
 }
 const navVerwaltung = loginStage.tasks.find(t => t.name === 'Navigation_VerwaltungOeffnen');
@@ -626,7 +675,7 @@ if (adminStage) {
     adminStage.objects.push(uxTimer('InitialLaden', 'AdminInit'));
     const st = uxObj(adminStage, 'Status'); if (st) st.text = 'Räume werden geladen …';
   }
-  uxInitGuard(adminStage, 'AdminInit', 'Raum', 'Sperre_Raeume');
+  uxInitGuard(adminStage, 'AdminInit', 'Raum', 'EigeneRaeume_Laden');
   uxAutoSelect(adminStage, 'rooms', 'Raum', null, 'Act_Einzigen_Raum_automatisch_waehlen',
     { Auswahl: '${Slot0}', AuswahlName: '${Name0}', Ziel: '${Next0}' }, 'WaehleRaum');
 }
@@ -660,7 +709,7 @@ if (adminStage) {
     house.objects.push(uxTimer('InitialLaden', 'HausInit'));
     const st = uxObj(house, 'Status'); if (st) st.text = 'Häuser werden geladen …';
   }
-  uxInitGuard(house, 'HausInit', 'Haus', 'Sperre_Haeuser');
+  uxInitGuard(house, 'HausInit', 'Haus', 'Sperre_HaeuserLaden');
   uxAutoSelect(house, 'houses', 'Haus', null, 'Act_Einziges_Haus_automatisch_waehlen',
     { Auswahl: '${Slot0}', AuswahlName: '${Name0}', Ziel: '${Active0}' }, 'WaehleHaus');
 }
