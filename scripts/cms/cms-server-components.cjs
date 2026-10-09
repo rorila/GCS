@@ -1,6 +1,7 @@
 const crypto=require('node:crypto'),fs=require('node:fs'),path=require('node:path');
-const {areaActive,canonEmojiSeq,avatarGlyph,EMOJI_IDS,childrenOf,guardiansOf,within,houseOf}=require('./cms-core.cjs');
+const {areaActive,canonEmojiSeq,avatarGlyph,EMOJI_IDS,childrenOf,guardiansOf,within,houseOf,houseOfPerson}=require('./cms-core.cjs');
 const {isSuper}=require('./cms-super.cjs');
+const {createPrivacy}=require('./cms-privacy.cjs');
 
 /** Serverseitige Komponentenmethoden: das einzige Code-Vocabulary, das die Server-Runtime aufrufen darf.
  *  Jede Methode erhält (ctx, component, params) — ctx enthält session, body, core, admin, commit, credentialPath, emit, vars, result. */
@@ -203,7 +204,9 @@ const methods={
   throttle(ctx,_component,params){
    const spec=params?.[0]||{},key=String(spec.bucket||'login')+':'+String(ctx.remoteAddress||'local');
    const limit=Number(spec.limit)||20,windowMs=Number(spec.windowMs)||60000,now=Date.now();
-   if(THROTTLES.size>1000)THROTTLES.clear();
+   // Begrenzung des Speichers: ältesten Eintrag entfernen (Map ist
+   // einfügegeordnet) — kein globaler Reset, der alle Zähler zurücksetzt.
+   if(THROTTLES.size>1000)THROTTLES.delete(THROTTLES.keys().next().value);
    let b=THROTTLES.get(key);if(!b||now-b.time>windowMs){b={time:now,n:0};THROTTLES.set(key,b);}
    return{ok:++b.n<=limit};
   },
@@ -409,7 +412,9 @@ const methods={
   childRooms(ctx,_component,params){
    const childId=exprOf(ctx,params?.[0],{}),db=ctx.core.db,session=ctx.session;
    if(!ctx.core.can(session,'viewChild',{childId}))return{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'};
-   const houseId=session.houseId;
+   // Spieler-Sessions tragen ihr Haus; Eltern-Account-Sessions nicht —
+   // dann zählt das Haus des Kindes (gleiche Domäne für die Zutrittsregel).
+   const houseId=session.houseId||houseOfPerson(db,childId);
    const items=db.areas.filter(a=>a.type==='room'&&areaActive(db,a.id))
     .map(a=>{
      const house=houseOf(db,a.id);
@@ -420,13 +425,15 @@ const methods={
    return{ok:true,items,message:items.length?'Räume des Kindes':'Keine Räume im Haus'};
   },
   setChildMembership(ctx,_component,params){
-   const spec=params?.[0]||{},scope={},db=ctx.core.db,session=ctx.session;
+   // '$body' kommt als Literal — erst per exprOf zum Request-Body auflösen.
+   const spec=exprOf(ctx,params?.[0],{})||{},scope={},db=ctx.core.db,session=ctx.session;
    const childId=exprOf(ctx,spec.childId,scope),areaId=exprOf(ctx,spec.areaId,scope),active=!!exprOf(ctx,spec.active,scope);
    if(!ctx.core.can(session,'viewChild',{childId}))return{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'};
    const room=db.areas.find(a=>a.id===areaId&&a.type==='room');
    if(!room)return{ok:false,status:404,message:'Raum nicht gefunden.'};
    const house=houseOf(db,areaId);
-   if(house?.id!==session.houseId)return{ok:false,status:403,message:'Raum gehört nicht zum aktuellen Haus.'};
+   const childHouse=session.houseId||houseOfPerson(db,childId);
+   if(house?.id!==childHouse)return{ok:false,status:403,message:'Raum gehört nicht zum Haus des Kindes.'};
    ctx.commit(session,'parent-child-membership',areaId,next=>{
     let row=next.memberships.find(m=>m.personId===childId&&m.areaId===areaId);
     if(!row){row={personId:childId,areaId};next.memberships.push(row);}
@@ -1025,6 +1032,24 @@ const methods={
     memberNames:active.map(m=>db.people.find(x=>x.id===m.personId)?.name||m.personId).join(', ')};
   }
  },
+ // --- Betroffenenrechte (Art. 15/17/20 DSGVO): personenbezogener Export und
+ // Löschung eines Kindes. Guard (viewChild) läuft deklarativ in den Tasks —
+ // hier zudem Defense-in-Depth erneut geprüft.
+ TServerPrivacy:{
+  exportPerson(ctx,_component,params){
+   const childId=exprOf(ctx,params?.[0],{});
+   if(!ctx.core.can(ctx.session,'viewChild',{childId}))return{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'};
+   const data=createPrivacy(ctx.core,ctx.store,ctx.uploads).exportPerson(childId);
+   if(!data)return{ok:false,status:404,message:'Kind nicht gefunden.'};
+   return{ok:true,data,json:JSON.stringify(data,null,2)};
+  },
+  deletePerson(ctx,_component,params){
+   const childId=exprOf(ctx,params?.[0],{});
+   if(!ctx.core.can(ctx.session,'viewChild',{childId}))return{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'};
+   const r=createPrivacy(ctx.core,ctx.store,ctx.uploads).deletePerson(ctx.session.personId,childId);
+   return r.ok?{ok:true,message:r.message}:{ok:false,status:400,message:r.message};
+  },
+ },
  TServerParty:{
   startInvite(ctx,_component,params){
    const spec=params?.[0]||{},db=ctx.core.db,gameId=exprOf(ctx,spec.gameId,{}),areaId=exprOf(ctx,spec.areaId,{}),personId=exprOf(ctx,spec.personId,{});
@@ -1213,7 +1238,7 @@ const methods={
   markNotification(ctx,_component,params){const id=exprOf(ctx,params?.[0],{}),n=(ctx.core.db.notifications||[]).find(x=>x.id===id&&x.recipientPersonId===ctx.session.personId);if(!n)return{ok:false,status:404,message:'Hinweis nicht gefunden.'};ctx.commit(ctx.session,'notification-read','root',next=>{next.notifications.find(x=>x.id===id).read=true;});return{ok:true};},
   // --- Erziehungsberechtigte: Mehrspieler-Spiel für Kind starten (E07) ---
   startGameForChild(ctx,_component,params){
-   const spec=params?.[0]||{},db=ctx.core.db,session=ctx.session;
+   const spec=exprOf(ctx,params?.[0],{})||{},db=ctx.core.db,session=ctx.session;
    const childId=exprOf(ctx,spec.childId,{}),gameId=exprOf(ctx,spec.gameId,{}),areaId=exprOf(ctx,spec.areaId,{}),personId=exprOf(ctx,spec.personId,{});
    if(!ctx.core.can(session,'viewChild',{childId}))return{ok:false,status:403,message:'Nur eigene, bestätigt zugeordnete Kinder.'};
    const game=db.games.find(g=>g.id===gameId);

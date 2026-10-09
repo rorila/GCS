@@ -375,6 +375,11 @@ for (const s of [cardsServer, ...project.stages.filter(x => ['stage_cards', 'sta
 }
 if (missing) { console.error(missing + ' fehlende Referenzen — Abbruch.'); process.exit(1); }
 
+// Design-System anwenden (Styles + Panel-Bänder) — siehe cms-style.cjs.
+const { applyCmsTheme } = require('./cms-style.cjs');
+const themeResult = applyCmsTheme(project);
+console.log(`Theme: ${themeResult.styled} Objekte, ${themeResult.paneled} Panels.`);
+
 fs.writeFileSync(FILE, JSON.stringify(project, null, 1));
 console.log('Stages eingefügt: stage_server_cards, stage_cards, stage_child_cards, stage_card_edit');
 console.log('Erweitert: stage_gallery (MeinKarteikasten), stage_parent (KindKarteikasten)');

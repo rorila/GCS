@@ -20,6 +20,10 @@ const cmsFile=path.join(root,'game-server/public/projects/GCS-CMS.json');
 function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}={}){
  if(!fs.existsSync(dataPath)){fs.mkdirSync(path.dirname(dataPath),{recursive:true});fs.copyFileSync(path.join(__dirname,'cms-demo.json'),dataPath,fs.constants.COPYFILE_EXCL);}
  const store=createJsonStore({dataPath}),core=createCore(store.load()),launches=new Map();
+ // Produktionshärtung: Diagnose-Schalter dürfen außerhalb lokaler Entwicklung
+ // nicht auf 'off' stehen (unmaskierte Anmeldecodes, ungeschützte Trace-Abrufe).
+ if(process.env.CMS_TRACE_MASK==='off'||process.env.CMS_TRACE_ADMIN==='off')
+  console.warn('[CMS] WARNUNG: Diagnose-Schutz deaktiviert (CMS_TRACE_MASK/CMS_TRACE_ADMIN=off) — nur für lokale Entwicklung!');
  const admin=createAdmin(core,dataPath,{store}),traces=createTraceStore();
  // Serverseitige Runtime: TServerEndpoint-Tasks aus der Projektdatei werden deklarativ ausgeführt.
  const runtime=loadRuntime(cmsFile);
@@ -30,7 +34,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  const commit=(s,action,areaId,change,opts)=>store.commit(core.db,{actor:s.personId,action,areaId,...opts},change);
  const play=require('./cms-play.cjs').createPlay(core,store,cmsFile,'stage_server_play');
  const mp=require('./cms-mp.cjs').createMp(core,store,play,cmsFile,launches);
- const parent=createParent(core,credentialPath,store,cmsFile,'stage_server_parent');
+ const parent=createParent(core,credentialPath,store,cmsFile,'stage_server_parent',{uploads});
  parent.setPlayAdapter(play,launches);
  parent.enroll=b=>enrollParent(core,credentialPath,b.ticket,b.username,b.password,commit);
  parent.enrollObserver=b=>enrollObserver(core,credentialPath,b.ticket,b.username,b.password,commit);
@@ -182,22 +186,31 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const playCsp="sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"+hs+"; style-src 'unsafe-inline'"+hs+"; img-src "+mediaSrc+"; media-src "+mediaSrc+"; font-src 'self' data:"+hs+"; worker-src 'self' blob:"+hs+"; connect-src 'none'; base-uri 'self'; form-action 'none'";
     if(rel){
      let mgame=null;
-     // Subressourcen des sandboxed Frames senden keine Cookies — der
-     // nicht ratbare Launch-Schlüssel trägt die Berechtigung bereits.
-     if(launch&&launch.preview){mgame=core.db.games.find(g=>g.id===launch.gameId);}
+     // Subressourcen des sandboxed Frames senden keine Cookies — der nicht
+     // ratbare Launch-Schlüssel trägt die Berechtigung bereits.
+     // Vorschau-Grants sind kurzlebig (10 Min.): der Ablauf wird bei jeder
+     // Anfrage geprüft, nicht nur beim Anlegen neuer Schlüssel.
+     if(launch&&launch.preview){
+      if(Date.now()-Number(launch.created||0)>600e3){launches.delete(launchKey);return reply(res,403,{error:'Vorschau abgelaufen'});}
+      mgame=core.db.games.find(g=>g.id===launch.gameId);
+     }
      else{const msession=launch&&core.session(launch.token);mgame=launch&&core.db.games.find(g=>g.id===launch.gameId);if(!launch||!msession||!core.can(msession,'play',{game:mgame,areaId:launch.areaId}))return reply(res,403,{error:'Spiel nicht freigegeben'});}
      const mf=mgame&&uploads.gameMedia(mgame,rel);if(!mf)return reply(res,404,{ok:false});
-     // Kein CSP-Header auf Subressourcen — der Browser wertet ihn als
-     // Dokument-Response und blockt das Bild (ORB). nosniff reicht: die
-     // Whitelist erlaubt ohnehin nur Medientypen, SVG läuft als <img>
-     // ohne Skripte.
-     res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Cache-Control','public, max-age=3600');
-     res.writeHead(200,{'Content-Type':uploads.mediaType(rel)});return res.end(fs.readFileSync(mf));
+     const mt=uploads.mediaType(rel);
+     // Als Dokument nutzbare Typen (HTML/SVG) tragen dieselbe Sandbox-CSP wie
+     // die Einstiegsseite — sonst läuft Bundle-Skript bei direkter Navigation
+     // im CMS-Origin mit den Sitzungs-Cookies des Betrachters. Reine Medien
+     // bekommen nosniff + Cache (CSP würde dort als Dokument wirken, ORB).
+     res.setHeader('X-Content-Type-Options','nosniff');
+     if(mt==='text/html'||mt==='image/svg+xml'){res.setHeader('Content-Security-Policy',playCsp);res.setHeader('Cache-Control','no-store');}
+     else res.setHeader('Cache-Control','public, max-age=3600');
+     res.writeHead(200,{'Content-Type':mt});return res.end(fs.readFileSync(mf));
     }
     // Begutachtung (Vorschau-Launch): hochgeladenes Projekt für Verwaltung
     // zeigen — ohne Spielsitzung, Zeitbuchung und Spielfreigabe, aber mit
     // derselben Sandbox-/CSP-Härtung wie freigegebene Uploads.
     if(launch&&launch.preview){
+     if(Date.now()-Number(launch.created||0)>600e3){launches.delete(launchKey);return reply(res,403,{error:'Vorschau abgelaufen'});}
      const pgame=core.db.games.find(g=>g.id===launch.gameId),pfile=pgame&&uploads.game(pgame);
      if(!admin.readSession(req)||!pgame||!pfile)return reply(res,403,{error:'Vorschau nicht freigegeben'});
      res.setHeader('Content-Security-Policy',playCsp);
@@ -359,7 +372,7 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     const trace=traces.begin(req,ep.endpoint.traceEnabled!==false);if(trace){trace.project='GCS-CMS.json';res.setHeader('X-GCS-Trace-ID',trace.id);}
     const emit=(label,data)=>traces.step(trace,label,data);
     emit('Request empfangen',{method:req.method,url:url.pathname,body});
-    const result=runtime.run(ep,{session,adminSession:admin.readSession(req),body,emit,core,admin,commit,credentialPath,play,mp,launches,uploads,remoteAddress:req.socket.remoteAddress});
+    const result=runtime.run(ep,{session,adminSession:admin.readSession(req),body,emit,core,admin,store,commit,credentialPath,play,mp,launches,uploads,remoteAddress:req.socket.remoteAddress});
     emit('Response gesendet',{status:result.status,body:result.data});
     return reply(res,result.status,result.data);
    }
@@ -367,9 +380,22 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
   }catch(error){console.error('[CMS]',error.message);if(!res.headersSent)reply(res,500,{ok:false,message:'⚠ Bitte erneut versuchen'});else res.end();}
  });
  const sweepTimer=setInterval(sweepSessions,sweepIntervalMs);sweepTimer.unref?.();
- server.on('close',()=>clearInterval(sweepTimer));sweepSessions();
+ // Speicherbegrenzung (Art. 5 Abs. 1 lit. e DSGVO): Verhaltensdaten werden
+ // nach CMS_RETENTION_DAYS Tagen entfernt — Standard 30 Tage, rohe
+ // Sitzungen und Bewertungen laufen in der Ops-Datei mit.
+ const retentionDays=Math.max(1,Number(process.env.CMS_RETENTION_DAYS)||30);
+ const sweepRetention=()=>{try{
+  const cutoff=Date.now()-retentionDays*864e5;
+  if(!core.db.playSessions.some(s=>+new Date(s.startedAt)<cutoff)&&!(core.db.progress||[]).some(r=>+new Date(r.reportedAt)<cutoff))return;
+  store.commit(core.db,{actor:'system',action:'retention-sweep',areaId:null},next=>{
+   next.playSessions=next.playSessions.filter(s=>+new Date(s.startedAt)>=cutoff);
+   next.progress=(next.progress||[]).filter(r=>+new Date(r.reportedAt)>=cutoff);
+  });
+ }catch(e){console.error('[CMS retention-sweep]',e.message)}};
+ const retentionTimer=setInterval(sweepRetention,6*3600e3);retentionTimer.unref?.();
+ server.on('close',()=>{clearInterval(sweepTimer);clearInterval(retentionTimer)});sweepSessions();sweepRetention();
  live.attach(server);
- return {server,core,store};
+ return {server,core,store,launches};
 }
 if(require.main===module){const {server}=createServer();server.listen(Number(process.env.CMS_PORT||8081),'127.0.0.1',()=>console.log('GCS-CMS: http://localhost:'+(process.env.CMS_PORT||8081)));}
  // Diagnose: beim Start anzeigen, ob die Rollenwahl-Endpunkte in der Runtime sind.

@@ -132,8 +132,10 @@ function can(db,session,action,{areaId,game,childId,deck}={}){
  }
  // Verwaltungsrollenwahl: noch nicht gewählte Rolle (null) sperrt, die
  // gewählte scopet die Sitzung; Sitzungen ohne Feld (legacy) nutzen alle Rollen.
+ // Die gewählte Rolle wird gegen db.roles neu geprüft — ein widerrufener
+ // Rollendatensatz (active=false) entfaltet sofort keine Wirkung mehr.
  if(session.activeRole===null)return false;
- const roles=session.activeRole?[session.activeRole]:db.roles.filter(r=>r.personId===session.personId&&r.active&&areaActive(db,r.areaId));
+ const roles=activeRoles(db,session);
  if(action==='moderate')return roles.some(r=>r.role==='oversight'&&r.areaId==='root');
  if(action==='publish'||action==='editOwnGame')return roles.some(r=>r.role==='superAdmin'&&r.areaId==='root')&&(!game||game.ownerId===session.personId);
  if(action==='manageArea')return roles.some(r=>['areaAdmin','superAdmin'].includes(r.role)&&within(db,areaId,r.areaId));

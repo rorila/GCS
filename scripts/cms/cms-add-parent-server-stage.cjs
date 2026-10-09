@@ -192,6 +192,34 @@ const childGuard=(n,inner,perm='viewChild',msg='Nur eigene, bestätigt zugeordne
   n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
 }
 
+// --- child-export / child-delete: Betroffenenrechte (Art. 15/17/20 DSGVO) ---
+{const n=ns('KindExport');
+ tasks.push({id:uid('srv_task'),name:'Server_KindExport_Verarbeiten',scope:'stage',description:'viewChild → personenbezogener Export des Kindes als JSON',
+  actionSequence:childGuard(n,[
+   n.call('Exportieren'),
+   n.cond('Export gelungen?','Export.ok','==',true,[n.call('Antworten')],[n.call('FehlerFachlich')])
+  ])});
+ actions.push(
+  n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
+  n.act('Exportieren','Privatsphaere','exportPerson',['$body.childId'],'Export'),
+  n.act('Antworten','AntwortSenden','send',[{export:'${Export.data}',json:'${Export.json}',message:'${Export.message}'}]),
+  n.act('FehlerFachlich','AntwortSenden','fail',['${Export.status}','${Export.message}']),
+  n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
+}
+{const n=ns('KindLoeschen');
+ tasks.push({id:uid('srv_task'),name:'Server_KindLoeschen_Verarbeiten',scope:'stage',description:'viewChild → Kind-Konto anonymisieren (unwiderruflich)',
+  actionSequence:childGuard(n,[
+   n.call('Loeschen'),
+   n.cond('Gelöscht?','Ergebnis.ok','==',true,[n.call('Antworten')],[n.call('FehlerFachlich')])
+  ])});
+ actions.push(
+  n.act('KindSehen','Datenbestand','can',['viewChild',{childId:'$body.childId'}],'Sicht'),
+  n.act('Loeschen','Privatsphaere','deletePerson',['$body.childId'],'Ergebnis'),
+  n.act('Antworten','AntwortSenden','send',[{merge:'${Ergebnis}'}]),
+  n.act('FehlerFachlich','AntwortSenden','fail',['${Ergebnis.status}','${Ergebnis.message}']),
+  n.act('FehlerSicht','AntwortSenden','fail',[403,'Nur eigene, bestätigt zugeordnete Kinder.']));
+}
+
 // --- room-pulse (E01 Beobachter) ----------------------------------------------
 {const n=ns('BeobachterPuls');
  tasks.push({id:uid('srv_task'),name:'Server_BeobachterPuls_Verarbeiten_v2',scope:'stage',description:'Mit areaId: observe-Recht → Raum-Aggregat. Ohne: Übersicht eigener Beobachtungsräume',
@@ -226,6 +254,8 @@ const endpoints=[
  ['/api/cms/parent/child-cards','Ep_KindKarten','Server_KindKarten_Verarbeiten'],
  ['/api/cms/parent/child-card-save','Ep_KindKarteSpeichern','Server_KindKarteSpeichern_Verarbeiten'],
  ['/api/cms/parent/child-card-delete','Ep_KindKarteLoeschen','Server_KindKarteLoeschen_Verarbeiten'],
+ ['/api/cms/parent/child-export','Ep_KindExport','Server_KindExport_Verarbeiten'],
+ ['/api/cms/parent/child-delete','Ep_KindLoeschen','Server_KindLoeschen_Verarbeiten'],
  ['/api/cms/parent/room-pulse','Ep_BeobachterPuls_v2','Server_BeobachterPuls_Verarbeiten_v2']
 ];
 const objects=endpoints.map(([p,name,task],i)=>comp('TServerEndpoint',name,{endpointPath:p,httpMethod:'POST',traceEnabled:true,events:{onRequest:task},x:16,y:2+i*4}));
@@ -235,7 +265,8 @@ objects.push(comp('TServerSession','Kontositzung',{x:2,y:2}),
              comp('TServerStore','DatenSpeicher',{x:2,y:17}),
              comp('TServerResponse','AntwortSenden',{x:2,y:22}),
              comp('TServerParty','PartyVerwaltung',{x:2,y:27}),
-             comp('TServerCards','Karten',{x:2,y:32}));
+             comp('TServerCards','Karten',{x:2,y:32}),
+             comp('TServerPrivacy','Privatsphaere',{x:2,y:37}));
 eltern.x=2;eltern.y=32;objects.push(eltern);
 eltern.events={onChildren:'Server_ElternKinder_Verarbeiten_v2',onActivity:'Server_ElternAktivitaet_Verarbeiten_v2',onProgress:'Server_ElternBewertungen_Verarbeiten_v2',onSetBudget:'Server_ElternBudget_Verarbeiten_v2',onApproveBudget:'Server_ElternBudgetOk_Verarbeiten_v2',onPulse:'Server_BeobachterPuls_Verarbeiten_v2'};
 
@@ -245,7 +276,7 @@ actions.unshift(
 
 Object.assign(stage,{generatedBy:'cms-add-parent-server-stage.cjs',
  objects,tasks,actions,
- variables:['Pruefung','Sicht','Kinder','Karte','Sitzungen','Eintraege','Minuten','Fenster','AndereEltern','Budget','Vorschlag','Ergebnis','Beob','Puls','Raeume','Gestartet','KartenListe'].map(variable),
+ variables:['Pruefung','Sicht','Kinder','Karte','Sitzungen','Eintraege','Minuten','Fenster','AndereEltern','Budget','Vorschlag','Ergebnis','Beob','Puls','Raeume','Gestartet','KartenListe','Export'].map(variable),
  features:[{id:'stage_server_parent_parent-v2',name:'Eltern- und Beobachterzugang',description:'Serverseitige Endpunkte für Elternsicht und Beobachter mit Kind-Räumen und Spielstart.',tags:['CMS','Server'],userStoryIds:[],blueprintTaskNames:tasks.map(t=>t.name)}]});
 fs.writeFileSync(file,JSON.stringify(project,null,1));
 console.log('stage_server_parent: '+endpoints.length+' Endpunkte umgebaut');

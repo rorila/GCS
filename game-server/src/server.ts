@@ -25,6 +25,10 @@ import { setupWebSocket } from './websocket/roomManager';
 
 const PORT = parseInt(process.env.PORT || '8080');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-prod';
+// Entwicklungs-/Editor-Server: standardmäßig nur Loopback — der öffentliche
+// Spielbetrieb läuft über den CMS-Server (Port 8081). GCS_HOST=0.0.0.0 öffnet
+// diese Schnittstelle bewusst nach außen (z. B. LAN-Test im selben Haus).
+const HOST = process.env.GCS_HOST || '127.0.0.1';
 
 // ─────────────────────────────────────────────
 // Express App Setup
@@ -66,10 +70,10 @@ const wss = new WebSocketServer({ server });
 setupWebSocket(wss);
 
 // Start server
-server.listen(PORT, () => {
-    console.log(`🎮 Game Server running on port ${PORT}`);
-    console.log(`   WebSocket: ws://localhost:${PORT}`);
-    console.log(`   REST API:  http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+    console.log(`🎮 Game Server running on ${HOST}:${PORT}`);
+    console.log(`   WebSocket: ws://${HOST}:${PORT}`);
+    console.log(`   REST API:  http://${HOST}:${PORT}`);
     console.log(`   Games dir: ${UPLOADED_GAMES_DIR}`);
     console.log(`   Runtimes:  ${RUNTIMES_DIR}`);
 });

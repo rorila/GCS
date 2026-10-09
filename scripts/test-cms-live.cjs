@@ -14,10 +14,12 @@ const wsConnect=(port,key)=>new Promise((resolve,reject)=>{
  socket.once('connect',()=>socket.write(
   `GET /api/cms/party/live?launchKey=${key} HTTP/1.1\r\nHost: localhost:${port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: ${wsKey}\r\nSec-WebSocket-Version: 13\r\n\r\n`));
  let buffer=Buffer.alloc(0),handshook=false;
- const pending=[],queue=[],client={send:body=>{const payload=Buffer.from(JSON.stringify(body)),mask=crypto.randomBytes(4);
-   const header=payload.length<126?Buffer.from([0x81,0x80|payload.length]):Buffer.from([0x81,0x80|126,payload.length>>8,payload.length&0xff]);
-   const masked=Buffer.from(payload);for(let i=0;i<masked.length;i++)masked[i]^=mask[i&3];
-   socket.write(Buffer.concat([header,mask,masked]));},recv:()=>queue.length?Promise.resolve(queue.shift()):client.closed?Promise.resolve(null):new Promise(r=>pending.push(r)),close:()=>socket.destroy()};
+ const frame=text=>{const payload=Buffer.from(text),mask=crypto.randomBytes(4);
+  const header=payload.length<126?Buffer.from([0x81,0x80|payload.length]):Buffer.from([0x81,0x80|126,payload.length>>8,payload.length&0xff]);
+  const masked=Buffer.from(payload);for(let i=0;i<masked.length;i++)masked[i]^=mask[i&3];
+  socket.write(Buffer.concat([header,mask,masked]));};
+ const pending=[],queue=[],client={send:body=>frame(JSON.stringify(body)),sendRaw:frame,
+  recv:()=>queue.length?Promise.resolve(queue.shift()):client.closed?Promise.resolve(null):new Promise(r=>pending.push(r)),close:()=>socket.destroy()};
  socket.on('data',chunk=>{
   buffer=Buffer.concat([buffer,chunk]);
   if(!handshook){const idx=buffer.indexOf('\r\n\r\n');if(idx<0)return;const head=buffer.subarray(0,idx).toString();
@@ -82,6 +84,13 @@ const wsRequest=(client,body)=>new Promise(resolve=>{const id='t'+crypto.randomB
   const r=await wsRequest(host,{state:{...state(2),phase:'cheat'},since:0});
   assert.equal(r.status,400,JSON.stringify(r));
  });
+ await check('Strukturlos ungueltige Nachricht (null) wird abgelehnt, Verbindung bleibt',async()=>{
+  guest.sendRaw('null');
+  const bad=await (async()=>{for(let i=0;i<5;i++){const m=await Promise.race([guest.recv(),new Promise(r=>setTimeout(()=>r(null),1500))]);if(!m)return null;if(m.id&&String(m.id).startsWith('bad'))return m;}return null;})();
+  assert.ok(bad&&bad.status===400,'keine 400-Antwort auf null-Frame: '+JSON.stringify(bad));
+  const ok=await wsRequest(guest,{since:0});
+  assert.equal(ok&&ok.status,200,'Verbindung nach null-Nachricht nicht mehr nutzbar');
+ });
  await check('Nachrichtenraten-Limit greift (429)',async()=>{
   const statuses=[];for(let i=0;i<35;i++)statuses.push((await wsRequest(host,{since:0}))?.status);
   assert.ok(statuses.includes(429),'keine 429-Antwort: '+statuses.join(','));
@@ -92,6 +101,26 @@ const wsRequest=(client,body)=>new Promise(resolve=>{const id='t'+crypto.randomB
   await new Promise(r=>setTimeout(r,1200));
   const r=await wsRequest(host,{since:0});
   assert.ok(!r||r.data?.ended===true||r.data?.status==='ended','erwartete geschlossene/beendete Verbindung: '+JSON.stringify(r));
+ });
+ // Audit #5: Widerruf muss in laufender Verbindung wirken — Grant-Entzug an
+ // der naechsten Nachricht, Sitzungswiderruf auch ohne weitere Nachricht.
+ await check('Entfernter Launch-Grant schliesst die Verbindung bei naechster Nachricht',async()=>{
+  const r=await call('start-invite',lina.token,{gameId:'game-pingpong-remote',areaId:'room-sun-play',personId:'child-emil'});
+  assert.equal(r.status,200,JSON.stringify(r.data));
+  const k2=r.data.launch.split('/play/')[1];
+  const acc=await call('respond',emil.token,{invitationId:r.data.invitationId,accept:true});
+  const gk2=acc.data.launch.split('/play/')[1];
+  const h2=await wsConnect(port,k2),g2=await wsConnect(port,gk2);
+  app.launches.delete(k2);
+  const ans=await wsRequest(h2,{since:0});
+  assert.ok(ans===null,'Verbindung trotz entferntem Grant offen: '+JSON.stringify(ans));
+  h2.close();
+  const gtoken=app.launches.get(gk2)?.token;assert.ok(gtoken,'Gast-Grant fehlt');
+  app.core.logout(gtoken);
+  await new Promise(r=>setTimeout(r,1400));
+  const g=await wsRequest(g2,{since:0});
+  assert.ok(g===null,'Verbindung trotz widerrufener Sitzung offen: '+JSON.stringify(g));
+  g2.close();
  });
 }finally{try{host?.close();guest?.close();}catch{}await new Promise(r=>app.server.close(r));}
  const failed=results.filter(x=>x[0]==='FEHLER');for(const [s,n]of results)console.log(s.padEnd(7),n);console.log('\n'+(results.length-failed.length)+'/'+results.length+' bestanden');process.exitCode=failed.length?1:0;

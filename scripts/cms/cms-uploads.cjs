@@ -1,4 +1,4 @@
-const fs=require('node:fs'),path=require('node:path'),sharp=require('sharp'),{unzipSync}=require('fflate');
+const fs=require('node:fs'),path=require('node:path'),sharp=require('sharp');
 // Erlaubte Mediendateien in Spiel-Bundles — bewusst keine aktiven Typen
 // (html/js/json), damit ein Upload keine eigene Angriffsfläche ausliefert.
 const MEDIA_EXT=new Set(['png','jpg','jpeg','gif','webp','svg','ico','bmp','wav','mp3','ogg','m4a','mp4','webm','woff','woff2','ttf','otf']);
@@ -8,34 +8,8 @@ const HTML_ASSET_EXT=new Set([...MEDIA_EXT,'html','htm','css','js','mjs','json',
 const MEDIA_MIME={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml',ico:'image/x-icon',bmp:'image/bmp',wav:'audio/wav',mp3:'audio/mpeg',ogg:'audio/ogg',m4a:'audio/mp4',mp4:'video/mp4',webm:'video/webm',woff:'font/woff',woff2:'font/woff2',ttf:'font/ttf',otf:'font/otf',html:'text/html',htm:'text/html',css:'text/css',js:'text/javascript',mjs:'text/javascript',json:'application/json',map:'application/json',wasm:'application/wasm',txt:'text/plain'};
 const isZip=bytes=>bytes.length>4&&bytes[0]===0x50&&bytes[1]===0x4b;
 function cleanRel(name){const norm=String(name).replace(/\\/g,'/').replace(/^\.?\//,'');if(!norm||norm.endsWith('/')||norm.split('/').some(s=>!s||s==='.'||s==='..'))return null;return norm;}
-/** ZIP-Bundle: entweder genau eine .json + Medien (GCS) oder index.html +
- *  Assets (Fremdspiel). Gibt {kind:'json'|'html', entry, media:Map} oder
- *  null bei Nicht-ZIP. */
-function unpackGameBundle(bytes){
- if(!isZip(bytes))return null;
- let entries;try{entries=unzipSync(new Uint8Array(bytes.buffer,bytes.byteOffset,bytes.byteLength))}catch{throw Error('ZIP-Archiv konnte nicht gelesen werden.')}
- const norms=Object.keys(entries).map(n=>cleanRel(n));
- const isHtml=norms.some(n=>n&&/^index\.html?$/i.test(n));
- let json=null,html=null,total=0;const media=new Map();
- for(const [name,data]of Object.entries(entries)){
-  const norm=cleanRel(name);if(!norm){if(String(name).endsWith('/'))continue;throw Error('Ungültiger Pfad im ZIP: '+name);}
-  const ext=norm.split('.').pop().toLowerCase();total+=data.length;
-  if(total>50*1024*1024)throw Error('ZIP-Bundle ist zu groß (max. 50 MB entpackt).');
-  if(media.size>500)throw Error('Zu viele Dateien im ZIP.');
-  if(isHtml){
-   if(!HTML_ASSET_EXT.has(ext))throw Error('Dateityp im ZIP nicht erlaubt: '+norm);
-   if(/^index\.html?$/i.test(norm)){if(html)throw Error('Mehrere index.html im ZIP.');html=Buffer.from(data);}
-   else media.set(norm,Buffer.from(data));
-  }else{
-   if(ext==='json'){if(json)throw Error('Genau eine Projektdatei (.json) im ZIP erforderlich.');json=Buffer.from(data);}
-   else if(MEDIA_EXT.has(ext))media.set(norm,Buffer.from(data));
-   else throw Error('Dateityp im ZIP nicht erlaubt: '+norm);
-  }
- }
- if(isHtml){if(!html)throw Error('Keine index.html im ZIP gefunden.');return{kind:'html',entry:html,media};}
- if(!json)throw Error('Keine Projektdatei (.json) im ZIP gefunden.');
- return{kind:'json',entry:json,media};
-}
+// ZIP parsing and bounded decompression are isolated for security tests.
+const {unpackGameBundle}=require('./cms-zip.cjs');
 function validateGame(bytes,bundleMedia){
  const p=JSON.parse(bytes.toString('utf8'));if(!p||typeof p!=='object'||!Array.isArray(p.stages)||!p.stages.length||p.stages.length>100)throw Error('GCS-Projekt mit Stages erforderlich.');
  if(!p.stages.some(s=>s.id===p.activeStageId&&s.type!=='blueprint'))throw Error('Eine spielbare Start-Stage auswählen.');

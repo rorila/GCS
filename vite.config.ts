@@ -99,9 +99,9 @@ export default defineConfig({
         proxy: {
             '/play/': {target:'http://127.0.0.1:8081',changeOrigin:false},
             '/api/cms': {target:'http://127.0.0.1:8081',changeOrigin:false},
-            '/api': 'http://localhost:8080',
-            '/platform': 'http://localhost:8080',
-            '/kb/kb.json': 'http://localhost:8080'
+            '/api': 'http://127.0.0.1:8080',
+            '/platform': 'http://127.0.0.1:8080',
+            '/kb/kb.json': 'http://127.0.0.1:8080'
         }
     },
     build: {

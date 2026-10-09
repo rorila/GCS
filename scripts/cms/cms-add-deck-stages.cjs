@@ -645,6 +645,11 @@ for (const s of [decksServer, galleryStage, decksStage, assignStage, createStage
 }
 if (missing) { console.error(missing + ' fehlende Referenzen — Abbruch.'); process.exit(1); }
 
+// Design-System anwenden (Styles + Panel-Bänder) — siehe cms-style.cjs.
+const { applyCmsTheme } = require('./cms-style.cjs');
+const themeResult = applyCmsTheme(project);
+console.log(`Theme: ${themeResult.styled} Objekte, ${themeResult.paneled} Panels.`);
+
 fs.writeFileSync(FILE, JSON.stringify(project, null, 1));
 console.log('Stages eingefügt: stage_server_decks, stage_card_gallery, stage_decks, stage_decks_assign, stage_decks_create, stage_decks_edit');
 console.log('Erweitert: stage_parent (KartenstapelVerwalten), stage_house (Sidebar), stage_blueprint (DeckHerkunft, DeckKontextId, DeckKontextName)');

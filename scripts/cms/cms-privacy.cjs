@@ -1,7 +1,8 @@
 // Datenschutz-Funktionen (P1.6): personenbezogener Export und Löschung.
 // Löschung = Anonymisierung + Entfernen personenbezogener Kanten; die
 // Löschliste überlebt Wiederherstellungen (liegt außerhalb der Daten-Datei).
-function createPrivacy(core, store) {
+const fs = require('node:fs'), path = require('node:path');
+function createPrivacy(core, store, uploads) {
   const db = core.db;
 
   // Alle personenbezogenen Daten einer Person. Emoji-Sequenzen sind
@@ -37,10 +38,13 @@ function createPrivacy(core, store) {
     if (!person) return { ok: false, message: 'Person nicht gefunden.' };
     if (person.anonymizedAt) return { ok: false, message: 'Person ist bereits gelöscht.' };
     if (db.games.some(g => g.ownerId === personId)) return { ok: false, message: 'Person besitzt Spiele — zuerst übertragen oder entfernen.' };
+    // Art. 17: die Avatar-Bilddatei darf nicht zurückbleiben — Referenz
+    // sichern, im Commit leeren, Datei danach physisch entfernen.
+    const avatarRef = person.avatarImage;
     store.commit(db, { actor, action: 'person-delete', areaId: null }, next => {
       const at = new Date().toISOString();
       const target = next.people.find(p => p.id === personId);
-      Object.assign(target, { name: '[gelöscht]', avatar: '🗑', active: false, anonymizedAt: at });
+      Object.assign(target, { name: '[gelöscht]', avatar: '🗑', avatarImage: null, active: false, anonymizedAt: at });
       next.memberships = next.memberships.filter(m => m.personId !== personId);
       next.roles = next.roles.filter(r => r.personId !== personId);
       next.codes = next.codes.filter(c => c.personId !== personId);
@@ -62,6 +66,13 @@ function createPrivacy(core, store) {
     });
     store.addDeletion({ personId, at: new Date().toISOString(), actor });
     core.dropPerson(personId);
+    // Physische Datei nach erfolgreichem Commit löschen — uploads.asset()
+    // prüft die DB-Referenz (jetzt leer), daher direkter Pfad mit derselben
+    // strengen Dateinamen-Regel (nur UUID.png, kein Traversal möglich).
+    if (avatarRef && uploads?.directory) {
+      const name = String(avatarRef).replace(/^\/avatars\//, '');
+      if (/^[a-f0-9-]{36}\.png$/.test(name)) { try { fs.unlinkSync(path.join(uploads.directory, name)); } catch { /* bereits weg */ } }
+    }
     return { ok: true, message: 'Person anonymisiert; Löschung übersteht Wiederherstellungen.' };
   }
 

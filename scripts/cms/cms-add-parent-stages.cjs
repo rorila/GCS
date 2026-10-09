@@ -1,6 +1,9 @@
 // Baut die Phase-2-Stages in GCS-CMS.json programmatisch (kein Hand-JSON):
 //   stage_server_parent — TServerParentAccount (vom Server-Modul validiert)
-//   stage_parent        — Eltern: Meine Kinder (Aktivität, Bewertungen, Zeitbudget)
+//   stage_parent        — Eltern: Meine Kinder (Hub: Kind wählen + Aufgabe)
+//   stage_child_activity — Eltern: Aktivität & Bewertungen des Kindes
+//   stage_child_rooms    — Eltern: Räume, Zutritt und Spielstart des Kindes
+//   stage_child_budget   — Eltern: Zeitbudget des Kindes
 //   stage_observer      — Beobachter: aggregierte Raumübersicht
 // Erweitert außerdem: Verwaltungs-Anmeldung (Kontext-Buttons) und
 // HouseAdmin-Stage (Kinder-/Eltern-Listen, Einladen, Bestätigen, Beobachter).
@@ -116,56 +119,50 @@ for (const [, taskName, method] of MP_OPS) {
 mpStage.features.push({ id: 'server-mp', name: 'Lobbys, Beitritt, Aktionslog, Partieende', blueprintTaskNames: MP_OPS.map(([, t]) => t) });
 
 // ============================================================
-// 2. Client-Stage: Eltern · Meine Kinder
+// 2. Client-Stages: Eltern · Meine Kinder (Übersicht) + Kind-Arbeitsstages.
+//    Der Hub wählt Kind + Aufgabe; Aktivität, Räume und Zeitbudget liegen in
+//    eigenen Stages. Der Kind-Kontext läuft über CMSKindId (Blueprint).
 // ============================================================
 const parent = stageShell('stage_parent', 'Eltern · Meine Kinder');
 const P = bind(parent);
 parent.objects.push(
-  label('Titel', 'MEINE KINDER', 4, 1, 40, 2, 28),
-  label('Status', '', 4, 4, 40, 2),
-  button('NeuLaden', '↻ Aktualisieren', 48, 4, 12, 2, 'Sperre_KinderLaden'),
+  label('Titel', 'MEINE KINDER', 4, 1, 36, 2, 28),
+  label('Status', '', 4, 4, 30, 2),
+  button('NeuLaden', '↻ Aktualisieren', 38, 4, 12, 2, 'Sperre_KinderLaden'),
   objList('Kinder', 'Bestätigt zugeordnete Kinder; Datenquelle der KinderTabelle.'),
-  Object.assign(table('KinderTabelle', 4, 7, 28, 7, 'Kinder', [
+  Object.assign(table('KinderTabelle', 4, 7, 28, 12, 'Kinder', [
     { field: 'avatar', label: '', x: 0.5, y: 0.7, width: 3, height: 3, style: { fontSize: 28, textAlign: 'center' } },
     { field: 'name', label: 'Kind', type: 'header', x: 4, y: 1, width: 6.5, height: 2, style: { fontSize: 16 } },
     { field: 'spiel', label: 'Spiel', type: 'meta', x: 4, y: 3, width: 6.5, height: 1.2 },
     { field: 'heute', label: 'Heute', type: 'meta', x: 4, y: 4.15, width: 6.5, height: 1.2 },
   ], 'Kind_Auswaehlen'), { cardConfig: { width: 200, height: 96, gap: 14 } }),
-  button('SpielFuerKind', '🎮 Spiel für Kind starten', 4, 15, 28, 2, 'Spiel_Fuer_Kind_Oeffnen', { visible: false }),
-  label('RaeumeTitel', 'RÄUME DES KINDES', 4, 18, 28, 2),
-  objList('KindRaeume', 'Räume des Kindes im Haus mit Zutritt.'),
-  Object.assign(table('RaeumeTabelle', 4, 20, 28, 8, 'KindRaeume', [
-    { field: 'name', label: 'Raum' }, { field: 'active', label: 'Zutritt', width: '90px' },
-  ], 'Raeume_Zutritt_Umschalten'), { displayMode: 'table' }),
-  label('BudgetTitel', 'ZEITBUDGET (MINUTEN PRO TAG)', 4, 30, 28, 2),
-  edit('BudgetMinuten', 4, 32, 10, 3, { inputType: 'number', placeholder: 'Minuten', maxLength: 4 }),
-  button('BudgetSpeichern', 'Budget speichern', 15, 32, 17, 3, 'Sperre_BudgetSpeichern'),
-  button('BudgetBestaetigen', 'Änderung bestätigen', 4, 36, 28, 2, 'Sperre_BudgetBestaetigen', { visible: false }),
-  button('Navigation_stage_admin_login', '🔑 Anmeldung', 4, 38, 12, 2, 'Navigation_stage_admin_login'),
+  label('AufgabenTitel', 'KIND-AUFGABEN', 36, 7, 24, 2),
+  button('NavAktivitaet', '📊 Aktivität & Bewertungen', 36, 10, 24, 3, 'Navigation_stage_child_activity', { visible: false }),
+  button('NavRaeume', '🚪 Räume & Zutritt', 36, 14, 24, 3, 'Navigation_stage_child_rooms', { visible: false }),
+  button('NavBudget', '⏱ Zeitbudget', 36, 18, 24, 3, 'Navigation_stage_child_budget', { visible: false }),
+  // Objektnamen wie in cms-add-card-stages/-deck-stages — deren Injektion erkennt sie und setzt aus.
+  button('KindKarteikasten', '🗂 Karteikasten', 36, 22, 24, 3, 'Navigation_stage_child_cards', { visible: false }),
+  button('KartenstapelVerwalten', '📦 Kartenstapel', 36, 26, 24, 3, 'Navigation_stage_decks', { visible: false }),
+  // Betroffenenrechte (Art. 15/17/20 DSGVO): Export + Löschung des Kind-Kontos.
+  button('KindExport', '📤 Datenexport', 36, 30, 24, 3, 'Sperre_KindExport', { visible: false }),
+  button('KindLoeschen', '🗑 Konto löschen', 36, 34, 24, 3, 'Sperre_KindLoeschen', { visible: false }),
+  // Lösch-Bestätigung + Export-Ansicht (links, unter der Kinder-Tabelle).
+  Object.assign(label('LoeschenFrage', 'Konto wirklich endgültig löschen?', 4, 21, 16, 2.5, 15), { visible: false }),
+  button('LoeschenJa', 'Ja, löschen', 21, 21, 5, 2.5, 'Sperre_LoeschenJa', { visible: false }),
+  button('LoeschenNein', 'Nein', 27, 21, 6, 2.5, 'Sperre_LoeschenNein', { visible: false }),
+  base('TMemo', 'ExportAnzeige', 4, 24, 28, 8, { text: '', readOnly: true, visible: false, style: { backgroundColor: '#0e1d28', borderColor: '#1b3446', borderWidth: 1, borderRadius: 8, color: '#9cdcfe', fontFamily: 'monospace', fontSize: 12, padding: 8 } }),
+  label('KontoTitel', 'KONTO & BEREICHE', 4, 33, 28, 2),
+  button('Navigation_stage_admin_login', '🔑 Anmeldung', 4, 36, 12, 2.5, 'Navigation_stage_admin_login'),
   // Bereichsnavigation nur für berechtigte Kontexte — Kontexte_Pruefen
   // blendet die Buttons nach /api/cms/contexts ein (Sichtbarkeit != Recht).
-  button('Navigation_stage_player_roles', '↩ Rollenwahl', 17, 38, 12, 2, 'Navigation_stage_player_roles', { visible: false }),
-  button('Navigation_stage_admin', '🛠 Verwaltung', 30, 38, 12, 2, 'Navigation_stage_admin', { visible: false }),
-  button('Navigation_stage_observer', '👁 Beobachtung', 43, 38, 13, 2, 'Navigation_stage_observer', { visible: false }),
-  label('DetailTitel', 'AKTIVITÄT & BEWERTUNGEN', 36, 7, 24, 2),
-  objList('Sitzungen', 'Letzte Spielsitzungen des gewählten Kindes.'),
-  Object.assign(table('SitzungTabelle', 36, 9, 24, 9, 'Sitzungen', [
-    { field: 'title', label: 'Spiel' }, { field: 'status', label: 'Status' }, { field: 'minutes', label: 'Min', width: '60px' },
-  ]), { displayMode: 'table' }),
-  objList('Bewertungen', 'Gemeldete Bewertungen des gewählten Kindes.'),
-  Object.assign(table('BewertungTabelle', 36, 19, 24, 9, 'Bewertungen', [
-    { field: 'metric', label: 'Metrik' }, { field: 'value', label: 'Wert', width: '60px' },
-    { field: 'unit', label: 'Einheit', width: '80px' }, { field: 'source', label: 'Quelle', width: '80px' },
-  ]), { displayMode: 'table' }),
-  label('BudgetHinweis', '', 36, 34, 24, 4, 15),
+  button('Navigation_stage_player_roles', '↩ Rollenwahl', 17, 36, 12, 2.5, 'Navigation_stage_player_roles', { visible: false }),
+  button('Navigation_stage_admin', '🛠 Verwaltung', 30, 36, 12, 2.5, 'Navigation_stage_admin', { visible: false }),
+  button('Navigation_stage_observer', '👁 Beobachtung', 43, 36, 13, 2.5, 'Navigation_stage_observer', { visible: false }),
   { className: 'TTimer', id: uid('timer'), name: 'InitialLaden', scope: 'stage', isService: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', events: { onTimer: 'ElternInit' }, visible: true, x: 1, y: 1, width: 4, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, interval: 350, enabled: true, maxInterval: 1, currentInterval: 0 },
 );
 parent.variables.push(
-  strVar('Kind'), objVar('KinderAntwort'), boolVar('KinderGueltig'), objVar('DetailAntwort'),
-  boolVar('SitzungsGueltig'), objVar('FortschrittAntwort'), boolVar('FortschrittGueltig'),
-  objVar('BudgetAntwort'), intVar('Busy'), objVar('KontextAntwort'),
-  objVar('RaeumeAntwort'), boolVar('RaeumeGueltig'), strVar('RaumZutritt'),
-  objVar('SpielFuerKindAntwort'), strVar('GewaehltesSpiel'), strVar('GewaehlterRaum'), strVar('GewaehlterBewohner'),
+  strVar('Kind'), objVar('KinderAntwort'), boolVar('KinderGueltig'), intVar('Busy'), objVar('KontextAntwort'),
+  objVar('ExportAntwort'), objVar('LoeschAntwort'),
 );
 parent.tasks.push(
   task('Kinder_Laden', [
@@ -181,77 +178,53 @@ parent.tasks.push(
   ]),
   task('Kinder_Fehler', [P.prop('Act_Kinder_Fehler_Anzeigen', { Busy: 0, 'Status.text': '${KinderAntwort.message}' })]),
   task('Kind_Auswaehlen', busyGuard([
-    P.prop('Act_Kind_Uebernehmen', { Kind: '${KinderTabelle.selectedKey}', 'BudgetBestaetigen.visible': false, 'BudgetHinweis.text': '' }),
-    callTask('Kind_Details_Laden'),
+    // Kind merken + Kind-Kontext für die Arbeitsstages setzen.
+    P.prop('Act_Kind_Uebernehmen', {
+      Kind: '${KinderTabelle.selectedKey}', CMSKindId: '${KinderTabelle.selectedKey}',
+      'NavAktivitaet.visible': true, 'NavRaeume.visible': true, 'NavBudget.visible': true,
+      'KindKarteikasten.visible': true, 'KartenstapelVerwalten.visible': true,
+      'KindExport.visible': true, 'KindLoeschen.visible': true,
+      'LoeschenFrage.visible': false, 'LoeschenJa.visible': false, 'LoeschenNein.visible': false,
+      'ExportAnzeige.visible': false,
+      'Status.text': 'Kind gewählt — Aufgabe rechts auswählen.',
+    }),
   ])),
-  task('Kind_Details_Laden', [
-    P.prop('Act_Details_Warten', { Busy: 1, 'Status.text': 'Aktivität wird geladen …' }),
-    P.http('Act_Details_Server', '/api/cms/parent/child-activity', { childId: '${Kind}' }, 'DetailAntwort'),
-    cond('DetailAntwort.ok', true, [callTask('Kind_Details_Anzeigen')], [callTask('Detail_Fehler')]),
-  ]),
-  task('Kind_Details_Anzeigen', [
-    P.call('Act_Sitzungen_Uebernehmen', 'Sitzungen', 'tryReplaceRecords', ['${DetailAntwort.sessions}'], 'SitzungsGueltig'),
-    P.prop('Act_Budget_Anzeigen', { 'BudgetMinuten.text': '${DetailAntwort.budgetMinutes}', 'SpielFuerKind.visible': true }),
-    cond('DetailAntwort.pendingApproval', true,
-      [P.prop('Act_Genehmigung_Anzeigen', { 'BudgetBestaetigen.visible': true, 'BudgetHinweis.text': 'Budgetänderung wartet auf ein zweites Elternteil.' })],
-      [P.prop('Act_Genehmigung_Verbergen', { 'BudgetBestaetigen.visible': false, 'BudgetHinweis.text': '' })]),
-    callTask('Fortschritt_Laden'),
-    callTask('Raeume_Des_Kindes_Laden'),
-  ]),
-  task('Fortschritt_Laden', [
-    P.http('Act_Fortschritt_Server', '/api/cms/parent/child-progress', { childId: '${Kind}' }, 'FortschrittAntwort'),
-    cond('FortschrittAntwort.ok', true,
-      [P.call('Act_Bewertungen_Uebernehmen', 'Bewertungen', 'tryReplaceRecords', ['${FortschrittAntwort.items}'], 'FortschrittGueltig'), P.prop('Act_Details_Fertig', { Busy: 0, 'Status.text': 'Bereit.' })],
-      [callTask('Detail_Fehler')]),
-  ]),
-  task('Detail_Fehler', [P.prop('Act_Detail_Fehler', { Busy: 0, 'Status.text': '${DetailAntwort.message}' })]),
-  task('Budget_Speichern', [
-    P.prop('Act_Budget_Warten', { Busy: 1, 'Status.text': 'Budget wird gespeichert …' }),
-    P.http('Act_Budget_Server', '/api/cms/parent/set-budget', { childId: '${Kind}', dailyMinutes: '${BudgetMinuten.text}' }, 'BudgetAntwort'),
-    cond('BudgetAntwort.ok', true, [callTask('Budget_Gespeichert')], [callTask('Budget_Fehler')]),
-  ]),
-  task('Budget_Gespeichert', [
-    P.prop('Act_Budget_Meldung', { Busy: 0, 'Status.text': '${BudgetAntwort.message}' }),
-    cond('BudgetAntwort.pending', true,
-      [P.prop('Act_Budget_Pending_Anzeigen', { 'BudgetBestaetigen.visible': true, 'BudgetHinweis.text': 'Lockerung wartet auf Zustimmung eines zweiten Elternteils.' })],
-      [P.prop('Act_Budget_Pending_Aus', { 'BudgetBestaetigen.visible': false, 'BudgetHinweis.text': '' })]),
-  ]),
-  task('Budget_Bestaetigen', [
-    P.prop('Act_Bestaetigen_Warten', { Busy: 1, 'Status.text': 'Änderung wird bestätigt …' }),
-    P.http('Act_Bestaetigen_Server', '/api/cms/parent/approve-budget', { childId: '${Kind}' }, 'BudgetAntwort'),
-    cond('BudgetAntwort.ok', true,
-      [P.prop('Act_Bestaetigt', { Busy: 0, 'BudgetBestaetigen.visible': false, 'BudgetHinweis.text': '', 'Status.text': '${BudgetAntwort.message}' })],
-      [callTask('Budget_Fehler')]),
-  ]),
-  task('Budget_Fehler', [P.prop('Act_Budget_Fehler', { Busy: 0, 'Status.text': '${BudgetAntwort.message}' })]),
-  // --- Räume des Kindes + Zutritt ---
-  task('Raeume_Des_Kindes_Laden', [
-    P.http('Act_Raeume_Server', '/api/cms/parent/child-rooms', { childId: '${Kind}' }, 'RaeumeAntwort'),
-    cond('RaeumeAntwort.ok', true, [callTask('Raeume_Anzeigen')], [callTask('Raeume_Fehler')]),
-  ]),
-  task('Raeume_Anzeigen', [
-    P.call('Act_Raeume_Uebernehmen', 'KindRaeume', 'tryReplaceRecords', ['${RaeumeAntwort.items}'], 'RaeumeGueltig'),
-    cond('RaeumeGueltig', true,
-      [P.prop('Act_Raeume_Fertig', { Busy: 0, 'RaeumeTabelle.visible': true })],
-      [P.prop('Act_Raeume_Datenfehler', { Busy: 0, 'Status.text': 'Raumdaten ungültig.' })]),
-  ]),
-  task('Raeume_Fehler', [P.prop('Act_Raeume_Fehler_Anzeigen', { Busy: 0, 'Status.text': '${RaeumeAntwort.message}' })]),
-  task('Raeume_Zutritt_Umschalten', busyGuard([
-    P.prop('Act_Raum_Merken', { RaumZutritt: '${RaeumeTabelle.selectedKey}' }),
-    P.http('Act_RaumZutritt_Server', '/api/cms/parent/child-membership', { childId: '${Kind}', areaId: '${RaeumeTabelle.selectedKey}', active: '${!RaeumeTabelle.selectedRecord.active}' }),
-    cond('Antwort.ok', true, [callTask('Raeume_Des_Kindes_Laden')], [callTask('Raeume_Fehler')]),
+  // Task-/Actionnamen wie von den Karten-/Deck-Generatoren injiziert —
+  // beide erkennen die Objekte und überspringen ihre Erweiterung.
+  task('Navigation_stage_child_cards', busyGuard([
+    P.prop('Act_KindId_Setzen', { CMSKindId: '${Kind}' }),
+    P.nav('Act_Nav_Kindkasten', 'stage_child_cards'),
+  ]), 'Karteikasten des gewählten Kindes öffnen'),
+  task('Navigation_stage_decks', busyGuard([
+    P.prop('Act_Herkunft_Eltern', { DeckHerkunft: 'parent' }),
+    P.nav('Act_Nav_StapelVerwaltung', 'stage_decks'),
+  ]), 'Kartenstapel-Verwaltung öffnen'),
+  task('Navigation_stage_child_activity', busyGuard([P.nav('Act_Nav_KindAktivitaet', 'stage_child_activity')])),
+  task('Navigation_stage_child_rooms', busyGuard([P.nav('Act_Nav_KindRaeume', 'stage_child_rooms')])),
+  task('Navigation_stage_child_budget', busyGuard([P.nav('Act_Nav_KindBudget', 'stage_child_budget')])),
+  // Betroffenenrechte: Export anzeigen (TMemo, kopierbar) und Löschung mit
+  // expliziter Bestätigung — danach Kind-Auswahl zurücksetzen und Liste neu laden.
+  task('Sperre_KindExport', busyGuard([
+    P.prop('Act_Export_Warten', { Busy: 1, 'ExportAnzeige.visible': false, 'Status.text': 'Export wird erstellt …' }),
+    P.http('Act_Export_Server', '/api/cms/parent/child-export', { childId: '${CMSKindId}' }, 'ExportAntwort'),
+    cond('ExportAntwort.ok', true,
+      [P.prop('Act_Export_Anzeigen', { Busy: 0, 'ExportAnzeige.text': '${ExportAntwort.json}', 'ExportAnzeige.visible': true, 'Status.text': 'Export bereit — Text kopieren und sicher aufbewahren.' })],
+      [P.prop('Act_Export_Fehler', { Busy: 0, 'Status.text': '${ExportAntwort.message}' })]),
   ])),
-  // --- Spiel für Kind starten (vereinfacht: aktueller Raum + letztes Spiel) ---
-  task('Spiel_Fuer_Kind_Oeffnen', busyGuard([
-    P.prop('Act_Spiel_Fuer_Kind_Oeffnen', { Busy: 1, 'Status.text': 'Spiel wird gestartet …' }),
-    // Standard: aktiver Raum des Kindes (erste Zeile), Spiel vom letzten aktiven Spiel, kein Bewohner.
-    P.http('Act_Spiel_Fuer_Kind_Server', '/api/cms/parent/start-game-for-child', { childId: '${Kind}', areaId: '${RaeumeTabelle.selectedKey}', gameId: '${DetailAntwort.playing.gameId}' }, 'SpielFuerKindAntwort'),
-    cond('SpielFuerKindAntwort.ok', true, [P.prop('Act_Spiel_Fuer_Kind_Fertig', { Busy: 0, SpielURL: '${SpielFuerKindAntwort.launch}', 'Status.text': '${SpielFuerKindAntwort.message}' })], [callTask('Spiel_Fuer_Kind_Fehler')]),
+  task('Sperre_KindLoeschen', busyGuard([
+    P.prop('Act_Loeschen_Fragen', { 'LoeschenFrage.visible': true, 'LoeschenJa.visible': true, 'LoeschenNein.visible': true, 'Status.text': 'Endgültig löschen? Dies kann nicht rückgängig gemacht werden.' }),
   ])),
-  task('Spiel_Fuer_Kind_Fehler', [P.prop('Act_Spiel_Fuer_Kind_Fehler', { Busy: 0, 'Status.text': '${SpielFuerKindAntwort.message}' })]),
+  task('Sperre_LoeschenNein', busyGuard([
+    P.prop('Act_Loeschen_Abbruch', { 'LoeschenFrage.visible': false, 'LoeschenJa.visible': false, 'LoeschenNein.visible': false, 'Status.text': 'Löschung abgebrochen.' }),
+  ])),
+  task('Sperre_LoeschenJa', busyGuard([
+    P.prop('Act_Loeschen_Warten', { Busy: 1, 'Status.text': 'Konto wird gelöscht …' }),
+    P.http('Act_Loeschen_Server', '/api/cms/parent/child-delete', { childId: '${CMSKindId}' }, 'LoeschAntwort'),
+    cond('LoeschAntwort.ok', true,
+      [P.prop('Act_Loeschen_Fertig', { Busy: 0, Kind: '', CMSKindId: '', 'LoeschenFrage.visible': false, 'LoeschenJa.visible': false, 'LoeschenNein.visible': false, 'KindExport.visible': false, 'KindLoeschen.visible': false, 'NavAktivitaet.visible': false, 'NavRaeume.visible': false, 'NavBudget.visible': false, 'KindKarteikasten.visible': false, 'KartenstapelVerwalten.visible': false, 'Status.text': '${LoeschAntwort.message}' }), callTask('Sperre_KinderLaden')],
+      [P.prop('Act_Loeschen_Fehler', { Busy: 0, 'Status.text': '${LoeschAntwort.message}' })]),
+  ])),
   task('Sperre_KinderLaden', busyGuard([callTask('Kinder_Laden')])),
-  task('Sperre_BudgetSpeichern', busyGuard([callTask('Budget_Speichern')])),
-  task('Sperre_BudgetBestaetigen', busyGuard([callTask('Budget_Bestaetigen')])),
   task('Kontexte_Pruefen', [
     P.http('Act_Kontexte_der_Sitzung_lesen', '/api/cms/contexts', {}, 'KontextAntwort'),
     cond('KontextAntwort.ok', true, [P.prop('Act_Kontextnavigation_einblenden', {
@@ -272,6 +245,167 @@ parent.tasks.push(
     P.nav('Act_Nav_Admin', 'stage_admin'),
   ])),
   task('Navigation_stage_observer', busyGuard([P.nav('Act_Nav_Observer', 'stage_observer')])),
+);
+
+// --- Arbeitsstage: Aktivität & Bewertungen (nur lesen) ---
+const activity = stageShell('stage_child_activity', 'Eltern · Aktivität & Bewertungen');
+const A = bind(activity);
+activity.objects.push(
+  label('Titel', 'AKTIVITÄT & BEWERTUNGEN', 4, 1, 36, 2, 28),
+  label('Status', '', 4, 4, 30, 2),
+  button('Aktualisieren', '↻ Aktualisieren', 38, 4, 11, 2, 'Sperre_AktivitaetLaden'),
+  button('Zurueck', '← Zurück', 50, 4, 10, 2, 'Navigation_stage_parent'),
+  label('SitzungenTitel', 'LETZTE SITZUNGEN', 4, 7, 28, 2),
+  objList('Sitzungen', 'Letzte Spielsitzungen des gewählten Kindes.'),
+  Object.assign(table('SitzungTabelle', 4, 9, 28, 16, 'Sitzungen', [
+    { field: 'title', label: 'Spiel' }, { field: 'status', label: 'Status' }, { field: 'minutes', label: 'Min', width: '60px' },
+  ]), { displayMode: 'table' }),
+  label('BewertungenTitel', 'BEWERTUNGEN', 36, 7, 24, 2),
+  objList('Bewertungen', 'Gemeldete Bewertungen des gewählten Kindes.'),
+  Object.assign(table('BewertungTabelle', 36, 9, 24, 16, 'Bewertungen', [
+    { field: 'metric', label: 'Metrik' }, { field: 'value', label: 'Wert', width: '60px' },
+    { field: 'unit', label: 'Einheit', width: '80px' }, { field: 'source', label: 'Quelle', width: '80px' },
+  ]), { displayMode: 'table' }),
+  { className: 'TTimer', id: uid('timer'), name: 'InitialLaden', scope: 'stage', isService: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', events: { onTimer: 'AktivitaetInit' }, visible: true, x: 1, y: 1, width: 4, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, interval: 350, enabled: true, maxInterval: 1, currentInterval: 0 },
+);
+activity.variables.push(objVar('DetailAntwort'), boolVar('SitzungsGueltig'), objVar('FortschrittAntwort'), boolVar('FortschrittGueltig'), intVar('Busy'));
+activity.tasks.push(
+  task('AktivitaetInit', [cond('CMSKindId', '',
+    [A.prop('Act_Kein_Kind_Akt', { 'Status.text': 'Kein Kind gewählt — zuerst in „Meine Kinder“ markieren.' })],
+    [callTask('Sperre_AktivitaetLaden')])]),
+  task('Aktivitaet_Laden', [
+    A.prop('Act_Aktivitaet_Warten', { Busy: 1, 'Status.text': 'Aktivität wird geladen …' }),
+    A.http('Act_Details_Server', '/api/cms/parent/child-activity', { childId: '${CMSKindId}' }, 'DetailAntwort'),
+    cond('DetailAntwort.ok', true, [callTask('Aktivitaet_Anzeigen')], [callTask('Detail_Fehler')]),
+  ]),
+  task('Aktivitaet_Anzeigen', [
+    A.call('Act_Sitzungen_Uebernehmen', 'Sitzungen', 'tryReplaceRecords', ['${DetailAntwort.sessions}'], 'SitzungsGueltig'),
+    cond('SitzungsGueltig', true, [callTask('Fortschritt_Laden')],
+      [A.prop('Act_Sitzungen_Datenfehler', { Busy: 0, 'Status.text': 'Antwortdaten ungültig.' })]),
+  ]),
+  task('Fortschritt_Laden', [
+    A.http('Act_Fortschritt_Server', '/api/cms/parent/child-progress', { childId: '${CMSKindId}' }, 'FortschrittAntwort'),
+    cond('FortschrittAntwort.ok', true,
+      [A.call('Act_Bewertungen_Uebernehmen', 'Bewertungen', 'tryReplaceRecords', ['${FortschrittAntwort.items}'], 'FortschrittGueltig'), A.prop('Act_Aktivitaet_Fertig', { Busy: 0, 'Status.text': 'Bereit.' })],
+      [callTask('Detail_Fehler')]),
+  ]),
+  task('Detail_Fehler', [A.prop('Act_Detail_Fehler', { Busy: 0, 'Status.text': '${DetailAntwort.message}' })]),
+  task('Sperre_AktivitaetLaden', busyGuard([callTask('Aktivitaet_Laden')])),
+  task('Navigation_stage_parent', busyGuard([A.nav('Act_Nav_Parent_Akt', 'stage_parent')])),
+);
+
+// --- Arbeitsstage: Räume & Zutritt (+ Spielstart im gewählten Raum) ---
+const rooms = stageShell('stage_child_rooms', 'Eltern · Räume & Zutritt');
+const R = bind(rooms);
+rooms.objects.push(
+  label('Titel', 'RÄUME & ZUTRITT', 4, 1, 36, 2, 28),
+  label('Status', '', 4, 4, 30, 2),
+  button('Aktualisieren', '↻ Aktualisieren', 38, 4, 11, 2, 'Sperre_RaeumeLaden'),
+  button('Zurueck', '← Zurück', 50, 4, 10, 2, 'Navigation_stage_parent'),
+  label('Hinweis', 'Raum markieren, dann Zutritt umschalten oder letztes Spiel starten.', 4, 7, 56, 2, 15),
+  objList('KindRaeume', 'Räume des Kindes im Haus mit Zutritt.'),
+  Object.assign(table('RaeumeTabelle', 4, 9, 56, 14, 'KindRaeume', [
+    { field: 'name', label: 'Raum' }, { field: 'active', label: 'Zutritt', width: '90px' },
+  ], 'Raum_Auswaehlen'), { displayMode: 'table' }),
+  button('ZutrittUmschalten', '⇄ Zutritt umschalten', 4, 24, 18, 3, 'Sperre_ZutrittUmschalten', { visible: false }),
+  button('SpielFuerKind', '🎮 Letztes Spiel im Raum starten', 26, 24, 24, 3, 'Sperre_SpielStart', { visible: false }),
+  { className: 'TTimer', id: uid('timer'), name: 'InitialLaden', scope: 'stage', isService: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', events: { onTimer: 'RaeumeInit' }, visible: true, x: 1, y: 1, width: 4, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, interval: 350, enabled: true, maxInterval: 1, currentInterval: 0 },
+);
+rooms.variables.push(objVar('RaeumeAntwort'), boolVar('RaeumeGueltig'), strVar('RaumZutritt'), objVar('DetailAntwort'), objVar('SpielFuerKindAntwort'), intVar('Busy'));
+rooms.tasks.push(
+  task('RaeumeInit', [cond('CMSKindId', '',
+    [R.prop('Act_Kein_Kind_Raeume', { 'Status.text': 'Kein Kind gewählt — zuerst in „Meine Kinder“ markieren.' })],
+    [callTask('Sperre_RaeumeLaden')])]),
+  task('Raeume_Des_Kindes_Laden', [
+    R.prop('Act_Raeume_Warten', { Busy: 1, 'Status.text': 'Räume werden geladen …', 'ZutrittUmschalten.visible': false, 'SpielFuerKind.visible': false }),
+    R.http('Act_Raeume_Server', '/api/cms/parent/child-rooms', { childId: '${CMSKindId}' }, 'RaeumeAntwort'),
+    cond('RaeumeAntwort.ok', true, [callTask('Raeume_Anzeigen'), callTask('Aktivitaet_Lesen')], [callTask('Raeume_Fehler')]),
+  ]),
+  task('Raeume_Anzeigen', [
+    R.call('Act_Raeume_Uebernehmen', 'KindRaeume', 'tryReplaceRecords', ['${RaeumeAntwort.items}'], 'RaeumeGueltig'),
+    cond('RaeumeGueltig', true,
+      [R.prop('Act_Raeume_Fertig', { Busy: 0, 'RaeumeTabelle.visible': true, 'Status.text': '${RaeumeAntwort.message}' })],
+      [R.prop('Act_Raeume_Datenfehler', { Busy: 0, 'Status.text': 'Raumdaten ungültig.' })]),
+  ]),
+  task('Raeume_Fehler', [R.prop('Act_Raeume_Fehler_Anzeigen', { Busy: 0, 'Status.text': '${RaeumeAntwort.message}' })]),
+  task('Raum_Auswaehlen', busyGuard([
+    R.prop('Act_Raum_Uebernehmen', { RaumZutritt: '${RaeumeTabelle.selectedKey}', 'ZutrittUmschalten.visible': true }),
+    // „Spiel starten“ braucht das zuletzt gespielte Spiel (playing) aus der Aktivität.
+    cond('DetailAntwort.ok', true, [R.prop('Act_SpielButton_Anzeigen', { 'SpielFuerKind.visible': true })]),
+  ])),
+  task('Aktivitaet_Lesen', [
+    R.http('Act_Aktivitaet_Server', '/api/cms/parent/child-activity', { childId: '${CMSKindId}' }, 'DetailAntwort'),
+  ]),
+  task('Raeume_Zutritt_Umschalten', busyGuard([
+    R.http('Act_RaumZutritt_Server', '/api/cms/parent/child-membership', { childId: '${CMSKindId}', areaId: '${RaumZutritt}', active: '${!RaeumeTabelle.selectedRecord.active}' }),
+    cond('Antwort.ok', true, [callTask('Raeume_Des_Kindes_Laden')], [callTask('Raeume_Fehler')]),
+  ])),
+  task('Spiel_Fuer_Kind_Oeffnen', busyGuard([
+    R.prop('Act_Spiel_Fuer_Kind_Oeffnen', { Busy: 1, 'Status.text': 'Spiel wird gestartet …' }),
+    R.http('Act_Spiel_Fuer_Kind_Server', '/api/cms/parent/start-game-for-child', { childId: '${CMSKindId}', areaId: '${RaumZutritt}', gameId: '${DetailAntwort.playing.gameId}' }, 'SpielFuerKindAntwort'),
+    cond('SpielFuerKindAntwort.ok', true, [R.prop('Act_Spiel_Fuer_Kind_Fertig', { Busy: 0, SpielURL: '${SpielFuerKindAntwort.launch}', 'Status.text': '${SpielFuerKindAntwort.message}' })], [callTask('Spiel_Fuer_Kind_Fehler')]),
+  ])),
+  task('Spiel_Fuer_Kind_Fehler', [R.prop('Act_Spiel_Fuer_Kind_Fehler', { Busy: 0, 'Status.text': '${SpielFuerKindAntwort.message}' })]),
+  task('Sperre_RaeumeLaden', busyGuard([callTask('Raeume_Des_Kindes_Laden')])),
+  task('Sperre_ZutrittUmschalten', busyGuard([callTask('Raeume_Zutritt_Umschalten')])),
+  task('Sperre_SpielStart', busyGuard([callTask('Spiel_Fuer_Kind_Oeffnen')])),
+  task('Navigation_stage_parent', busyGuard([R.nav('Act_Nav_Parent_Raeume', 'stage_parent')])),
+);
+
+// --- Arbeitsstage: Zeitbudget (Minuten pro Tag + Zwei-Eltern-Bestätigung) ---
+const budget = stageShell('stage_child_budget', 'Eltern · Zeitbudget');
+const Bu = bind(budget);
+budget.objects.push(
+  label('Titel', 'ZEITBUDGET', 4, 1, 36, 2, 28),
+  label('Status', '', 4, 4, 30, 2),
+  button('Zurueck', '← Zurück', 50, 4, 10, 2, 'Navigation_stage_parent'),
+  label('Hinweis', 'Minuten pro Tag. Lockerungen muss ggf. ein zweites Elternteil bestätigen.', 4, 7, 56, 3, 15),
+  label('BudgetTitel', 'MINUTEN PRO TAG', 4, 11, 28, 2),
+  edit('BudgetMinuten', 4, 13, 12, 3, { inputType: 'number', placeholder: 'Minuten', maxLength: 4 }),
+  button('BudgetSpeichern', 'Budget speichern', 20, 13, 20, 3, 'Sperre_BudgetSpeichern'),
+  button('BudgetBestaetigen', 'Änderung bestätigen', 4, 17, 36, 3, 'Sperre_BudgetBestaetigen', { visible: false }),
+  label('BudgetHinweis', '', 4, 21, 56, 5, 15),
+  { className: 'TTimer', id: uid('timer'), name: 'InitialLaden', scope: 'stage', isService: true, isHiddenInRun: true, draggable: false, droppable: false, dragMode: 'move', events: { onTimer: 'BudgetInit' }, visible: true, x: 1, y: 1, width: 4, height: 2, zIndex: 0, rotation: 0, align: 'NONE', collisionEnabled: false, style: {}, interval: 350, enabled: true, maxInterval: 1, currentInterval: 0 },
+);
+budget.variables.push(objVar('DetailAntwort'), objVar('BudgetAntwort'), intVar('Busy'));
+budget.tasks.push(
+  task('BudgetInit', [cond('CMSKindId', '',
+    [Bu.prop('Act_Kein_Kind_Budget', { 'Status.text': 'Kein Kind gewählt — zuerst in „Meine Kinder“ markieren.' })],
+    [callTask('Budget_Laden')])]),
+  task('Budget_Laden', [
+    Bu.prop('Act_BudgetLaden_Warten', { Busy: 1, 'Status.text': 'Budget wird geladen …' }),
+    Bu.http('Act_BudgetLaden_Server', '/api/cms/parent/child-activity', { childId: '${CMSKindId}' }, 'DetailAntwort'),
+    cond('DetailAntwort.ok', true, [callTask('Budget_Anzeigen')], [callTask('Budget_Laden_Fehler')]),
+  ]),
+  task('Budget_Anzeigen', [
+    Bu.prop('Act_Budget_Anzeigen', { Busy: 0, 'BudgetMinuten.text': '${DetailAntwort.budgetMinutes}', 'Status.text': 'Bereit.' }),
+    cond('DetailAntwort.pendingApproval', true,
+      [Bu.prop('Act_Genehmigung_Anzeigen', { 'BudgetBestaetigen.visible': true, 'BudgetHinweis.text': 'Budgetänderung wartet auf ein zweites Elternteil.' })],
+      [Bu.prop('Act_Genehmigung_Verbergen', { 'BudgetBestaetigen.visible': false, 'BudgetHinweis.text': '' })]),
+  ]),
+  task('Budget_Laden_Fehler', [Bu.prop('Act_BudgetLaden_Fehler', { Busy: 0, 'Status.text': '${DetailAntwort.message}' })]),
+  task('Budget_Speichern', [
+    Bu.prop('Act_Budget_Warten', { Busy: 1, 'Status.text': 'Budget wird gespeichert …' }),
+    Bu.http('Act_Budget_Server', '/api/cms/parent/set-budget', { childId: '${CMSKindId}', dailyMinutes: '${BudgetMinuten.text}' }, 'BudgetAntwort'),
+    cond('BudgetAntwort.ok', true, [callTask('Budget_Gespeichert')], [callTask('Budget_Fehler')]),
+  ]),
+  task('Budget_Gespeichert', [
+    Bu.prop('Act_Budget_Meldung', { Busy: 0, 'Status.text': '${BudgetAntwort.message}' }),
+    cond('BudgetAntwort.pending', true,
+      [Bu.prop('Act_Budget_Pending_Anzeigen', { 'BudgetBestaetigen.visible': true, 'BudgetHinweis.text': 'Lockerung wartet auf Zustimmung eines zweiten Elternteils.' })],
+      [Bu.prop('Act_Budget_Pending_Aus', { 'BudgetBestaetigen.visible': false, 'BudgetHinweis.text': '' })]),
+  ]),
+  task('Budget_Bestaetigen', [
+    Bu.prop('Act_Bestaetigen_Warten', { Busy: 1, 'Status.text': 'Änderung wird bestätigt …' }),
+    Bu.http('Act_Bestaetigen_Server', '/api/cms/parent/approve-budget', { childId: '${CMSKindId}' }, 'BudgetAntwort'),
+    cond('BudgetAntwort.ok', true,
+      [Bu.prop('Act_Bestaetigt', { Busy: 0, 'BudgetBestaetigen.visible': false, 'BudgetHinweis.text': '', 'Status.text': '${BudgetAntwort.message}' })],
+      [callTask('Budget_Fehler')]),
+  ]),
+  task('Budget_Fehler', [Bu.prop('Act_Budget_Fehler', { Busy: 0, 'Status.text': '${BudgetAntwort.message}' })]),
+  task('Sperre_BudgetSpeichern', busyGuard([callTask('Budget_Speichern')])),
+  task('Sperre_BudgetBestaetigen', busyGuard([callTask('Budget_Bestaetigen')])),
+  task('Navigation_stage_parent', busyGuard([Bu.nav('Act_Nav_Parent_Budget', 'stage_parent')])),
 );
 
 // ============================================================
@@ -1149,16 +1283,19 @@ if (libraryStage) {
 // Die Admin-Verwaltung (Hausübersicht + Admin-Detailseite) wird im Projekt
 // gepflegt (JSON ist Master) — vorhandene Stages bleiben unangetastet.
 const existingHouse = project.stages.find(s => s.id === 'stage_super_house');
-project.stages = project.stages.filter(s => !['stage_server_parent', 'stage_server_play', 'stage_server_mp', 'stage_parent', 'stage_observer', 'stage_super_houses', 'stage_super_house', 'stage_super_admins'].includes(s.id));
+project.stages = project.stages.filter(s => !['stage_server_parent', 'stage_server_play', 'stage_server_mp', 'stage_parent', 'stage_child_activity', 'stage_child_rooms', 'stage_child_budget', 'stage_observer', 'stage_super_houses', 'stage_super_house', 'stage_super_admins'].includes(s.id));
 serverStage.group = 'Server';
 playStage.group = 'Server';
 mpStage.group = 'Server';
 parent.group = 'Eltern & Beobachtung';
+activity.group = 'Eltern & Beobachtung';
+rooms.group = 'Eltern & Beobachtung';
+budget.group = 'Eltern & Beobachtung';
 observer.group = 'Eltern & Beobachtung';
 housesStage.group = 'Verwaltung';
 houseStage.group = 'Verwaltung';
 adminsStage.group = 'Verwaltung';
-project.stages.push(serverStage, playStage, mpStage, parent, observer, housesStage, existingHouse || houseStage, adminsStage);
+project.stages.push(serverStage, playStage, mpStage, parent, activity, rooms, budget, observer, housesStage, existingHouse || houseStage, adminsStage);
 
 // Fachliche Gruppierung (E04): deklaratives group-Feld, das der Editor
 // als Menü-Überschrift nutzt. Ungruppierte Stages bleiben flach.
@@ -1166,6 +1303,7 @@ const GROUPS = {
   stage_main: 'Spiel', stage_gallery: 'Spiel', stage_library: 'Spiel', stage_profile: 'Spiel',
   stage_admin_login: 'Verwaltung', stage_admin: 'Verwaltung', stage_house: 'Verwaltung', stage_super: 'Verwaltung',
   stage_parent: 'Eltern & Beobachtung', stage_observer: 'Eltern & Beobachtung',
+  stage_child_activity: 'Eltern & Beobachtung', stage_child_rooms: 'Eltern & Beobachtung', stage_child_budget: 'Eltern & Beobachtung',
 };
 for (const s of project.stages) {
   if (s.id.startsWith('stage_server_')) s.group = 'Server';
@@ -1189,7 +1327,11 @@ for (const s of project.stages) {
 }
 if (problems.length) { console.error('REFERENZFEHLER:\n' + problems.join('\n')); process.exit(1); }
 
+// Design-System anwenden (Styles + Panel-Bänder) — siehe cms-style.cjs.
+const { applyCmsTheme } = require('./cms-style.cjs');
+applyCmsTheme(project);
+
 fs.writeFileSync(FILE + '.tmp', JSON.stringify(project, null, 2));
 fs.renameSync(FILE + '.tmp', FILE);
-console.log('Stages eingefügt: stage_server_parent, stage_server_play, stage_parent, stage_observer');
+console.log('Stages eingefügt: stage_server_parent, stage_server_play, stage_parent (+ stage_child_activity/rooms/budget), stage_observer');
 console.log('Erweitert: stage_admin_login (Kontexte), HouseAdmin-Stage (Kinder/Eltern/Beobachter)');

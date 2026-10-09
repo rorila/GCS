@@ -38,6 +38,12 @@ function createLiveSync({core,launches,component={}}={}){
    const party=core.db.parties.find(p=>p.id===partyId);
    if(!party||party.status==='ended')for(const client of [...set]){send(client,{type:'live-result',id:'party-ended',status:200,data:snapshotFor(client,party,0)});close(client,1000,'Partie beendet');}
   }
+  // Auch stille Verbindungen kontrollieren: entfernter Launch-Grant oder
+  // ungültige Sitzung schließen den Socket, ohne dass eine Nachricht nötig ist.
+  for(const client of [...clients]){
+   const grant=launches.get(client.launchKey);
+   if(!grant||!core.session(grant.token))close(client,1008,'Sitzung ungültig');
+  }
  },1000);
  endedCheck.unref?.();
  const parseFrames=(client,chunk)=>{
@@ -61,14 +67,20 @@ function createLiveSync({core,launches,component={}}={}){
   }
  };
  const result=(client,id,status,data)=>send(client,{type:'live-result',id,status,data});
- const handleMessage=(client,raw)=>{
+ const handleMessage=(client,raw)=>{try{
   let message;
   try{message=JSON.parse(raw)}catch{return result(client,'bad-json',400,{ok:false,message:'Ungültige Live-Nachricht.'});}
+  if(!message||typeof message!=='object'||Array.isArray(message))return result(client,'bad-message',400,{ok:false,message:'Ungültige Live-Nachricht.'});
   const id=typeof message.id==='string'&&message.id.length<=80?message.id:'';
   if(message.type!=='live'||!id||!message.body||typeof message.body!=='object'||Array.isArray(message.body))return result(client,id||'bad-message',400,{ok:false,message:'Ungültige Live-Anfrage.'});
   const now=Date.now();client.times=client.times.filter(t=>now-t<1000);
   if(client.times.length>=cfg.maxMessagesPerSecond)return result(client,id,429,{ok:false,message:'Zu viele Live-Nachrichten.'});
   client.times.push(now);
+  // Sitzung und Launch-Grant vor jeder Nachricht neu prüfen — Widerruf,
+  // Ablauf oder Deaktivierung der Person wirken sofort (nicht nur beim Upgrade).
+  const grant=launches.get(client.launchKey),freshSession=grant&&core.session(grant.token);
+  if(!grant||!freshSession)return close(client,1008,'Sitzung ungültig');
+  client.session=freshSession;
   const party=core.db.parties.find(p=>p.id===client.partyId);
   if(!party)return result(client,id,404,{ok:false,message:'Partie nicht gefunden.'});
   if(!party.members.some(m=>m.personId===client.personId&&!m.leftAt))return result(client,id,403,{ok:false,message:'Kein Mitglied dieser Partie.'});
@@ -91,7 +103,7 @@ function createLiveSync({core,launches,component={}}={}){
   const data=snapshotFor(client,party,Number(body.since)||0);
   client.lastSeq=Number(data.lastSeq)||client.lastSeq||0;
   return result(client,id,200,data);
- };
+ }catch(error){close(client,1011,'Verarbeitungsfehler');}};
  const upgrade=(req,socket,head)=>{
   try{
    const host=String(req.headers.host||'');

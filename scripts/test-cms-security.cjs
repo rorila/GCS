@@ -4,6 +4,7 @@
 const fs = require('node:fs'), path = require('node:path'), os = require('node:os'), assert = require('node:assert/strict');
 const { createServer } = require('./cms/cms-server.cjs');
 const { redact } = require('./cms/cms-trace.cjs');
+const { can } = require('./cms/cms-core.cjs');
 
 (async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gcs-sec-'));
@@ -44,6 +45,26 @@ const { redact } = require('./cms/cms-trace.cjs');
     check('Deaktivierte Person: laufende Sitzung sofort ungültig', (await post('rooms', { token: login2.data.token })).status === 401);
     p.active = true;
 
+    // --- Rollenwiderruf (Audit #4): gecachte session.activeRole darf nach
+    // Deaktivierung des Rollendatensatzes keine Rechte mehr entfalten.
+    const rdb = {
+      people: [{ id: 'p1', active: true }],
+      areas: [{ id: 'h1', type: 'house', active: true }, { id: 'r1', type: 'room', parentId: 'h1', active: true }],
+      roles: [{ personId: 'p1', role: 'areaAdmin', areaId: 'h1', active: true }],
+      memberships: [],
+    };
+    const admSess = { personId: 'p1', assurance: 'admin', activeRole: { role: 'areaAdmin', areaId: 'h1' } };
+    check('Gewählte Hausadmin-Rolle: manageArea erlaubt', can(rdb, admSess, 'manageArea', { areaId: 'r1' }) === true);
+    rdb.roles[0].active = false;
+    check('Widerrufene Hausadmin-Rolle: manageArea sofort gesperrt', can(rdb, admSess, 'manageArea', { areaId: 'r1' }) === false);
+    check('Widerrufene Rolle: moderate ebenfalls gesperrt', can(rdb, admSess, 'moderate', {}) === false);
+    // RaumAdmin über Konto-Sitzung (assurance profile) — derselbe Widerruf-Pfad.
+    const accSess = { personId: 'p1', assurance: 'profile', activeRole: { role: 'areaAdmin', areaId: 'r1' } };
+    rdb.roles[0] = { personId: 'p1', role: 'areaAdmin', areaId: 'r1', active: true };
+    check('Gewählte Raumadmin-Rolle: manageArea erlaubt', can(rdb, accSess, 'manageArea', { areaId: 'r1' }) === true);
+    rdb.roles[0].active = false;
+    check('Widerrufene Raumadmin-Rolle: manageArea sofort gesperrt', can(rdb, accSess, 'manageArea', { areaId: 'r1' }) === false);
+
     // --- Origin-/Request-Schutz ---
     check('Fremder Origin: 403', (await post('rooms', { token }, { Origin: 'http://evil.example' })).status === 403);
     check('Zu großer Body: 413', (await fetch(base + '/api/cms/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: 'x'.repeat(9000) })).status === 413);
@@ -55,7 +76,7 @@ const { redact } = require('./cms/cms-trace.cjs');
     check('Rate-Limit greift (429 nach 20/min)', lastStatus === 429);
 
     // --- Diagnose- und Player-Grenzen ---
-    // .env setzt CMS_TRACE_ADMIN=off (Entwicklung); Produktions-Default prüfen:
+    // Explizit sichere Konfiguration sicherstellen (unabhängig vom .env-Stand):
     const prevTraceAdmin = process.env.CMS_TRACE_ADMIN; process.env.CMS_TRACE_ADMIN = 'on';
     check('Trace-Abruf ohne Admin: 403', (await fetch(base + '/api/cms/debug/traces/' + 'a'.repeat(36))).status === 403);
     if (prevTraceAdmin === undefined) delete process.env.CMS_TRACE_ADMIN; else process.env.CMS_TRACE_ADMIN = prevTraceAdmin;
@@ -64,7 +85,7 @@ const { redact } = require('./cms/cms-trace.cjs');
     // --- Trace-Maskierung (Unit-Ebene) ---
     const masked = redact({ password: 'geheim', token: 'abc', sequence: ['dog'], nested: { hash: 'ff', safe: 'sichtbar' } });
     check('Trace maskiert Secrets', masked.password === '[maskiert]' && masked.token === '[maskiert]' && masked.nested.hash === '[maskiert]');
-    // .env setzt CMS_TRACE_MASK=off (Entwicklung); Produktions-Default prüfen:
+    // Explizit sichere Konfiguration sicherstellen (unabhängig vom .env-Stand):
     const prevMask = process.env.CMS_TRACE_MASK; process.env.CMS_TRACE_MASK = 'on';
     check('Trace maskiert Emoji-Codes (DEVMASK)', redact({ sequence: ['dog'] }).sequence === '[maskiert]');
     if (prevMask === undefined) delete process.env.CMS_TRACE_MASK; else process.env.CMS_TRACE_MASK = prevMask;

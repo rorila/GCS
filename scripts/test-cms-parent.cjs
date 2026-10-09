@@ -18,7 +18,7 @@ const store = createJsonStore({ dataPath });
 const core = createCore(store.load());
 const db = core.db;
 const commit = (s, action, areaId, change) => store.commit(db, { actor: s.personId, action, areaId }, change);
-const parent = createParent(core, credentialPath, store);
+const parent = createParent(core, credentialPath, store, undefined, undefined, { uploads: { directory: path.join(dir, 'uploads') } });
 
 const results = [];
 const check = (name, fn) => Promise.resolve().then(fn).then(() => results.push(['OK', name])).catch(e => results.push(['FEHLER', name + ' :: ' + e.message]));
@@ -213,6 +213,55 @@ await check('Nicht-Beobachter: room-pulse → 403', () => {
   assert.strictEqual(api(accountSession('parent-lina'), 'room-pulse', { areaId: 'room-sun-play' }).status, 403);
 });
 
+// --- Räume des Kindes: Haus kommt aus dem Kindeskontext, nicht aus der Session ---
+// (admin-parent, weil parent-linas Zuordnung im Widerruf-Test oben entzogen wurde)
+await check('child-rooms: Eltern-Account sieht die Räume des Kind-Hauses', () => {
+  const r = api(accountSession('admin-parent'), 'child-rooms', { childId: 'child-lina' });
+  assert.strictEqual(r.status, 200);
+  assert.deepStrictEqual(r.data.items.map(i => i.areaId).sort(), ['room-sun-learn', 'room-sun-play'],
+    'aktive Räume von house-sun; inaktiver Raum und Fremdhaus fehlen');
+});
+
+await check('child-rooms: ausstehende Zuordnung → 403', () => {
+  assert.strictEqual(api(accountSession('parent-lina'), 'child-rooms', { childId: 'child-mia' }).status, 403);
+});
+
+await check('child-membership: Zutritt umschalten wirkt auf das Kind', () => {
+  const sess = accountSession('admin-parent');
+  const off = api(sess, 'child-membership', { childId: 'child-lina', areaId: 'room-sun-play', active: false });
+  assert.strictEqual(off.status, 200);
+  assert.strictEqual(db.memberships.find(m => m.personId === 'child-lina' && m.areaId === 'room-sun-play').active, false);
+  const on = api(sess, 'child-membership', { childId: 'child-lina', areaId: 'room-sun-play', active: true });
+  assert.strictEqual(on.status, 200);
+  assert.strictEqual(db.memberships.find(m => m.personId === 'child-lina' && m.areaId === 'room-sun-play').active, true);
+});
+
+await check('child-membership: Raum aus Fremdhaus → 403', () => {
+  assert.strictEqual(api(accountSession('parent-lina'), 'child-membership', { childId: 'child-lina', areaId: 'room-moon-play', active: true }).status, 403);
+});
+
+await check('child-membership: ausstehende Zuordnung → 403', () => {
+  assert.strictEqual(api(accountSession('parent-lina'), 'child-membership', { childId: 'child-mia', areaId: 'room-moon-play', active: true }).status, 403);
+});
+
+// --- Betroffenenrechte (Art. 15/17/20 DSGVO): Export + Löschung -------------
+await check('child-export: Eltern erhalten vollständigen Export', () => {
+  const r = api(accountSession('admin-parent'), 'child-export', { childId: 'child-lina' });
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.data.export.person.id, 'child-lina');
+  assert.ok(Array.isArray(r.data.export.playSessions));
+  assert.ok(!('sequence' in (r.data.export.codes[0] || {})), 'Emoji-Code im Klartext exportiert');
+  assert.ok(typeof r.data.json === 'string' && r.data.json.includes('child-lina'));
+});
+
+await check('child-export: fremdes Kind → 403', () => {
+  assert.strictEqual(api(accountSession('admin-parent'), 'child-export', { childId: 'child-mia' }).status, 403);
+});
+
+await check('child-delete: fremdes Kind → 403', () => {
+  assert.strictEqual(api(accountSession('parent-lina'), 'child-delete', { childId: 'child-mia' }).status, 403);
+});
+
 // --- Mehrfachrolle: admin-parent ist HausAdmin UND Elternteil ---
 await check('Mehrfachrolle: Elternsicht nur über Guardian, nicht über areaAdmin', () => {
   const sess = accountSession('admin-parent');
@@ -352,11 +401,26 @@ await check('Kontext-Login: falsches Passwort → generischer Fehler', async () 
   assert.ok(r.error && !r.personId);
 });
 
+// Destruktiv zuletzt: löscht Kind + verknüpfte Kanten in der Testdatenbank.
+await check('child-delete: Kind anonymisiert + Avatar-Datei entfernt', () => {
+  const uploadsDir = path.join(dir, 'uploads');
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  const fname = '12345678-1234-1234-1234-123456789def.png';
+  fs.writeFileSync(path.join(uploadsDir, fname), 'PNG');
+  db.people.find(p => p.id === 'child-tom').avatarImage = '/avatars/' + fname;
+  const r = api(accountSession('admin-parent'), 'child-delete', { childId: 'child-tom' });
+  assert.strictEqual(r.status, 200, r.data.message);
+  const p = db.people.find(x => x.id === 'child-tom');
+  assert.strictEqual(p.name, '[gelöscht]');
+  assert.strictEqual(p.avatarImage, null);
+  assert.ok(!fs.existsSync(path.join(uploadsDir, fname)), 'Avatar-Datei blieb liegen');
+});
+
 // --- Integrität: Endpunkte und Tasks sind in der Projektdatei verdrahtet ---
 const cmsFile = path.resolve('game-server/public/projects/GCS-CMS.json');
 await check('Runtime: alle Eltern-Endpunkte registriert', () => {
   const rt = require('./cms/cms-runtime.cjs').loadRuntime(cmsFile);
-  for (const r of ['my-children', 'child-activity', 'child-progress', 'set-budget', 'approve-budget', 'room-pulse'])
+  for (const r of ['my-children', 'child-activity', 'child-progress', 'set-budget', 'approve-budget', 'room-pulse', 'child-export', 'child-delete'])
     assert.ok(rt.find('/api/cms/parent/' + r, 'POST'), 'fehlt: ' + r);
 });
 await check('Integrität: stage_server_parent ist vollständig verdrahtet', () => {

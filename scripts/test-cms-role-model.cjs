@@ -38,7 +38,7 @@ const {chromium}=require('playwright');
  const post=async(route,body={},auth=cookie)=>{const r=await fetch(base+'/api/cms/'+route,{method:'POST',headers:{Connection:'close','Content-Type':'application/json',Origin:base,Cookie:auth},body:JSON.stringify(body)});return{status:r.status,data:await r.json()};};
  try{
   await new Promise(resolve=>app.server.listen(15187,'127.0.0.1',resolve));
-  check('Schema wurde auf Version 5 migriert',app.core.db.version===5);
+  check('Schema wurde auf aktuelle Version migriert',app.core.db.version===require(v2+'/scripts/cms/cms-migrations.cjs').SCHEMA_VERSION);
   check('Vorhandene Raumzuordnung erzeugt Hausmitgliedschaft',app.core.db.memberships.some(m=>m.personId==='demo-child'&&m.areaId==='demo-house'&&m.active));
   check('Mehrfachrolle erzeugt getrennte Hausmitgliedschaft',app.core.db.memberships.some(m=>m.personId==='demo-adult'&&m.areaId==='other-house'&&m.active));
   const login=await fetch(base+'/admin-login',{method:'POST',headers:{Connection:'close',Origin:base,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:'hausadmin',password}),redirect:'manual'});
@@ -117,7 +117,8 @@ const {chromium}=require('playwright');
   check('Kind darf nicht den HouseAdmin-Zutritt ändern',(await childPost('membership',{areaId:'garden',personId:'demo-adult',active:false})).status===403);
   check('Kind darf keinen fremden Raum verwalten',(await childPost('members',{areaId:'other-room'})).status===403);
   check('Kind darf keine fremde Person hinzufügen',(await childPost('membership',{areaId:'garden',personId:'other-child',active:true})).status===403);
-  check('Kind darf keine allgemeine Admin-Aktion ausführen',(await post('admin/house-room-detail',{houseId:'demo-house',areaId:'garden',token:childToken},'')).status===401);
+  // 401 = nicht angemeldet, 403 = angemeldet, aber ohne Zuständigkeit; beides ist eine Ablehnung.
+  check('Kind darf keine allgemeine Admin-Aktion ausführen',[401,403].includes((await post('admin/house-room-detail',{houseId:'demo-house',areaId:'garden',token:childToken},'')).status));
   check('Kind erlaubt Hausbewohner Zutritt',(await childPost('membership',{areaId:'garden',personId,active:true})).status===200&&app.core.db.memberships.some(m=>m.personId===personId&&m.areaId==='garden'&&m.active));
   check('Kind entzieht Hausbewohner Zutritt',(await childPost('membership',{areaId:'garden',personId,active:false})).status===200&&app.core.db.memberships.some(m=>m.personId===personId&&m.areaId==='garden'&&!m.active));
   check('Kinderzutritt wird persistent gespeichert',JSON.parse(fs.readFileSync(dataPath,'utf8')).memberships.some(m=>m.personId===personId&&m.areaId==='garden'&&!m.active));
@@ -144,10 +145,26 @@ const {chromium}=require('playwright');
   const page=await browser.newPage({viewport:{width:1280,height:960}}),browserErrors=[];
   page.on('pageerror',error=>browserErrors.push(error.message));
   await page.goto(base+'/admin');
+  await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_admin_login');
   await page.locator('[name=username]').fill('hausadmin');
   await page.locator('[name=password]').fill(password);
-  await page.locator('[name=password]').press('Enter');
-  await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_house'&&window.player.runtime.getObjects().find(o=>o.name==='HausListe')?.records?.length>0);
+  // Die Anmeldeseite ist eine GCS-Stage — das Login-Event geht über die Runtime,
+  // nicht über ein HTML-Submit.
+  await page.evaluate(()=>{const r=window.player.runtime,o=r.getObjects().find(x=>x.name==='Anmelden');if(!o)throw Error('GCS-Objekt fehlt: Anmelden');r.handleEvent(o.id,'onClick');});
+  // demo-adult hat neben der Verwaltung auch einen Elternkontext — dann zeigt
+  // die Stage erst „Verwaltung öffnen"; sonst geht es direkt zur Hausverwaltung.
+  try{
+   await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_house'||window.player.runtime.getObjects().find(o=>o.name==='VerwaltungOeffnen')?.visible===true,{timeout:15000});
+   const onHouse=await page.evaluate(()=>window.player.runtime.stage.id==='stage_house');
+   if(!onHouse)await page.evaluate(()=>{const r=window.player.runtime,o=r.getObjects().find(x=>x.name==='VerwaltungOeffnen');r.handleEvent(o.id,'onClick');});
+  }catch{}
+  try{
+   await page.waitForFunction(()=>window.player?.runtime?.stage?.id==='stage_house'&&window.player.runtime.getObjects().find(o=>o.name==='HausListe')?.records?.length>0);
+  }catch(e){
+   const diag=await page.evaluate(()=>{const g=n=>window.player?.runtime?.getObjects?.().find(o=>o.name===n);return{url:location.href,stage:window.player?.runtime?.stage?.id,player:!!window.player,user:g('username')?.text,pw:g('password')?.text,busy:g('Busy')?.value,gueltig:g('EingabenGueltig')?.value,status:g('Status')?.text,hausListe:g('HausListe')?.records?.length};}).catch(()=>null);
+   console.log('DIAG stage_house-Wartezeit:',JSON.stringify(diag),'| Seitenfehler:',JSON.stringify(browserErrors));
+   throw e;
+  }
   const event=async name=>{
    await page.evaluate(name=>{const r=window.player.runtime,o=r.getObjects().find(x=>x.name===name);if(!o)throw Error('GCS-Objekt fehlt: '+name);r.handleEvent(o.id,'onClick');},name);
    await page.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Busy')?.value===0);
@@ -164,12 +181,16 @@ const {chromium}=require('playwright');
   const browserPerson=app.core.db.people.find(p=>p.name==='Browserkind');
   check('GCS-Button legt Hausbewohner ohne Raum an',!!browserPerson&&app.core.db.memberships.some(m=>m.personId===browserPerson.id&&m.areaId==='demo-house'&&m.active));
   const row=page.locator('[data-id="'+await page.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='BewohnerTabelle').id)+'"] tbody tr').filter({hasText:'Browserkind'});
+  await row.first().waitFor({state:'attached',timeout:8000}).catch(()=>{});
   check('Neuer Bewohner erscheint in der GCS-Tabelle',await row.count()===1);
   const persistedAfterBrowser=JSON.parse(fs.readFileSync(dataPath,'utf8'));
   check('Browserworkflow aktualisiert die JSON-Datei',persistedAfterBrowser.people.some(p=>p.id===browserPerson?.id&&p.name==='Browserkind')&&persistedAfterBrowser.codes.some(c=>c.personId===browserPerson?.id&&c.areaId==='demo-house'));
   await row.click();
-  await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_house_resident_detail'&&window.player.runtime.getObjects().find(o=>o.name==='Busy')?.value===0);
-  check('Tabellenklick öffnet die Bewohner-Detailstage',await page.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='ProfilName')?.text==='Browserkind'));
+  await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_house_resident_detail');
+  // InitialLaden-Timer (350 ms) lädt die Detaildaten asynchron nach.
+  await page.waitForFunction(()=>{const d=window.player.runtime.getObjects().find(o=>o.name==='BewohnerDetail')?.value;return d&&d.ok===true;},{timeout:8000});
+  const pnDiag=await page.evaluate(()=>{const g=n=>window.player.runtime.getObjects().find(o=>o.name===n);return{stage:window.player.runtime.stage.id,pn:g('ProfilName')?.text,pid:g('CMSPersonId')?.value,status:g('Status')?.text,detail:g('BewohnerDetail')?.value};});
+  check('Tabellenklick öffnet die Bewohner-Detailstage',pnDiag.pn==='Browserkind'||((console.log('DIAG ProfilName:',JSON.stringify(pnDiag)),false)));
   check('Detailstage meldet gesetzten Emoji-Code',await page.evaluate(()=>window.player.runtime.getObjects().find(o=>o.name==='CodeStatus')?.text==='Emoji-Code ist gesetzt'));
   await page.evaluate(()=>{const r=window.player.runtime.getObjects();r.find(o=>o.name==='ProfilName').text='Browserkind Aktiv';const avatar=r.find(o=>o.name==='AvatarWahl');avatar.selectedIndex=5;avatar.selectedValue='🦊';const art=r.find(o=>o.name==='ProfilArt');art.selectedIndex=1;art.selectedValue='adult';});
   await event('ProfilSpeichern');

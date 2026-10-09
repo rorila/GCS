@@ -60,6 +60,18 @@ check('Spieleigentümer wird nicht gelöscht', () => {
 check('Doppelte Löschung abgelehnt', () => {
   assert.strictEqual(privacy.deletePerson('super-admin', 'child-finn').ok, false);
 });
+check('Löschung entfernt Avatar-Datei physisch (Art. 17)', () => {
+  const uploadsDir = path.join(dir, 'uploads');
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  const fname = '12345678-1234-1234-1234-123456789abc.png';
+  fs.writeFileSync(path.join(uploadsDir, fname), 'PNG');
+  db.people.find(p => p.id === 'child-emil').avatarImage = '/avatars/' + fname;
+  const p2 = createPrivacy(core, store, { directory: uploadsDir });
+  const r = p2.deletePerson('super-admin', 'child-emil');
+  assert.ok(r.ok, r.message);
+  assert.strictEqual(db.people.find(p => p.id === 'child-emil').avatarImage, null);
+  assert.ok(!fs.existsSync(path.join(uploadsDir, fname)), 'Avatar-Datei blieb liegen');
+});
 check('Reload wendet Tombstones an (Löschung überlebt Reload)', () => {
   const core2 = createCore(store.load());
   const p = core2.db.people.find(x => x.id === 'child-finn');

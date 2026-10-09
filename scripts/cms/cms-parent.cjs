@@ -47,7 +47,7 @@ function createParent(core, credentialPath, store, cmsFile, stageName, opts = {}
         && (!b.childId || !core.can(session, 'viewChild', { childId: b.childId })))
       return fail(403, 'Nur eigene, bestätigt zugeordnete Kinder.');
     const ep = rt().find('/api/cms/parent/' + route, 'POST');
-    return ep ? rt().run(ep, { session, body: b, core, commit, credentialPath, play: playAdapter, launches }, { strict: true })
+    return ep ? rt().run(ep, { session, body: b, core, store, uploads: opts.uploads, commit, credentialPath, play: playAdapter, launches }, { strict: true })
               : fail(404, 'Unbekannte Aktion.');
   }
 

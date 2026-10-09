@@ -79,7 +79,7 @@ export class TableRenderer {
 
             card.onmouseenter = () => { if (!card.__flipping) card.style.transform = 'translateY(-2px)'; };
             card.onmouseleave = () => { if (!card.__flipping) card.style.transform = 'none'; };
-            card.onclick = (e) => {
+            card.onclick = (e: MouseEvent) => {
                 e.stopPropagation();
                 console.log('[KarteFlip] Klick auf', obj.name, '| flippable =', obj.flippable, '| flipped =', !!row.__flipped);
                 if (obj.flippable) {
@@ -176,10 +176,10 @@ export class TableRenderer {
         if (obj.showHeader !== false && cols.length > 0) {
             const thead = document.createElement('thead');
             const hRow = document.createElement('tr');
-            hRow.style.cssText = 'background:rgba(0,0,0,0.05); position:sticky; top:0; z-index:1;';
+            hRow.style.cssText = 'background:rgba(16,34,48,0.9); position:sticky; top:0; z-index:1;';
             cols.forEach((col: any) => {
                 const th = document.createElement('th');
-                th.style.cssText = `padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.1); width:${col.width || 'auto'}; font-weight:600;`;
+                th.style.cssText = `padding:8px 12px; border-bottom:1px solid #1c384d; width:${col.width || 'auto'}; font-weight:600; font-size:11px; letter-spacing:0.04em; text-transform:uppercase; opacity:0.85;`;
                 th.innerText = col.label ?? col.field ?? col.property;
                 hRow.appendChild(th);
             });
@@ -199,11 +199,13 @@ export class TableRenderer {
         } else {
             rawData.forEach((row: any, idx: number) => {
                 const tr = document.createElement('tr');
-                tr.style.cssText = `border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; height:${obj.rowHeight || 30}px;`;
+                tr.style.cssText = `border-bottom:1px solid #172d3d; cursor:pointer; height:${obj.rowHeight || 30}px; transition:background 0.12s;`;
                 const isSelected = idx === obj.selectedIndex;
                 const isStriped = obj.striped !== false && (idx % 2 === 1);
-                tr.style.backgroundColor = isSelected ? 'rgba(0,0,0,0.1)' : (isStriped ? 'rgba(0,0,0,0.02)' : 'transparent');
-                tr.onclick = (e) => {
+                tr.style.backgroundColor = isSelected ? '#163042' : (isStriped ? 'rgba(255,255,255,0.015)' : 'transparent');
+                tr.onmouseenter = () => { if (idx !== obj.selectedIndex) tr.style.backgroundColor = '#142838'; };
+                tr.onmouseleave = () => { if (idx !== obj.selectedIndex) tr.style.backgroundColor = isStriped ? 'rgba(255,255,255,0.015)' : 'transparent'; };
+                tr.onclick = (e: MouseEvent) => {
                     e.stopPropagation();
                     const changed = obj.selectedIndex !== idx || obj.selectedRecord !== row;
                 if (typeof obj.selectRow === 'function') obj.selectRow(idx); else obj.selectedIndex = idx;
@@ -253,7 +255,7 @@ export class TableRenderer {
                         btn.innerText = col.actionLabel || '✎';
                         btn.title = col.title || col.actionName || '';
                         btn.style.cssText = 'padding:2px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer;font-size:12px;';
-                        btn.onclick = (e) => {
+                        btn.onclick = (e: MouseEvent) => {
                             e.stopPropagation();
                             if (typeof obj.selectRow === 'function') obj.selectRow(idx); else obj.selectedIndex = idx;
                             if (onEvent) {
