@@ -41,12 +41,7 @@ const busyGuard = inner => [cond('Busy', 0, inner)];
 const stageShell = (id, name) => ({ id, type: 'standard', name, grid: { cols: 64, rows: 40, cellSize: 18, visible: false, snapToGrid: true, backgroundColor: '#122b39' }, objects: [], tasks: [], actions: [], variables: [], flowCharts: {}, events: {}, startAnimation: 'none', features: [] });
 
 // Stage-gebundene Action-Registrierung: def in stage.actions + Referenz in der Sequenz.
-const bind = stage => ({
-  prop: (name, changes) => (stage.actions.push({ id: uid('act'), name, type: 'property', changes, scope: 'stage' }), { type: 'action', name }),
-  http: (name, url, body, resultVariable = 'Antwort') => (stage.actions.push({ id: uid('act'), name, type: 'http', url, method: 'POST', body, resultVariable, scope: 'stage', queryOperator: '==' }), { type: 'action', name }),
-  call: (name, target, method, params = [], resultVariable) => (stage.actions.push({ id: uid('act'), name, type: 'call_method', target, method, params, ...(resultVariable ? { resultVariable } : {}), scope: 'stage' }), { type: 'action', name }),
-  nav: (name, stageId) => (stage.actions.push({ id: uid('act'), name, type: 'navigate_stage', stageId, reset: false, scope: 'stage' }), { type: 'action', name }),
-});
+const { bindActions: bind, cleanRetiredProperties } = require('./cms-ui-integrity.cjs');
 
 // ============================================================
 // 1. Server-Stage: Eltern- und Beobachterzugang
@@ -1330,6 +1325,7 @@ if (problems.length) { console.error('REFERENZFEHLER:\n' + problems.join('\n'));
 // Design-System anwenden (Styles + Panel-Bänder) — siehe cms-style.cjs.
 const { applyCmsTheme } = require('./cms-style.cjs');
 applyCmsTheme(project);
+cleanRetiredProperties(project);
 
 fs.writeFileSync(FILE + '.tmp', JSON.stringify(project, null, 2));
 fs.renameSync(FILE + '.tmp', FILE);

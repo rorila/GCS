@@ -1,3 +1,23 @@
+### 2026-10-11
+[UC-2026-10-11-Game-Lifecycle-Flow-Overview]
+Beschreibung: Interaktive Spielablauf- & Konzept-Übersicht (Game Lifecycle) im Flow-Editor mit anklickbaren Tasks und Features. Visualisiert Spielphasen (Stages), Transitions (navigate_stage), Features und Tasks als interaktives Mermaid-Diagramm. Klick auf einen Task öffnet direkt dessen Flow; Klick auf ein Feature öffnet den Feature-Kontext.
+Beteiligte Dateien:
+- src/model/GameLifecycleAnalysis.ts (Z. 1–244): [NEU] Read-Only Analyzer zur Extraktion von Phasen, Features, Tasks und Stage-Navigationen aus dem GameProject-JSON sowie Mermaid-Code-Generierung.
+- src/editor/services/flow/GameLifecycleManager.ts (Z. 1–207): [NEU] Renderer für das interaktive SVG-Diagramm im Flow-Canvas mit Toolbar (Mermaid-Kopieren, Aktualisieren), Quelltext-Akkordeon und Klick-Verlinkung zu Tasks und Features.
+- tests/game_lifecycle_analysis.test.ts (Z. 1–110): [NEU] Regressionstests für Gutfall (4 Phasen, Tasks, Transitions, Features) und Schlechtfall (leeres Projekt).
+- src/editor/services/FlowToolbarManager.ts (Z. 65–72, 155–163, 281): [GEÄNDERT] Schnelleinstieg-Button "🎮 Spielablauf" in Toolbar und Option "🎮 Spielablauf (Lifecycle)" in OVERVIEWS-Dropdown ergänzt; Sicherheits-Check angepasst.
+- src/editor/flow/FlowStateManager.ts (Z. 332): [GEÄNDERT] 'game-lifecycle' als isSpecialContext() registriert.
+- src/editor/services/FlowGraphHydrator.ts (Z. 21, 62–67): [GEÄNDERT] Weiterleitung an lifecycleManager.generateGameLifecycle() bei Kontextwechsel auf 'game-lifecycle'.
+- src/editor/services/FlowSyncManager.ts (Z. 72, 322): [GEÄNDERT] 'game-lifecycle' von Projekt-Rückschreibung und Stage-Zuordnung ausgenommen.
+- src/editor/services/SyncValidator.ts (Z. 169): [GEÄNDERT] 'game-lifecycle' zu reservedKeys hinzugefügt.
+- src/editor/services/FlowPascalManager.ts (Z. 108): [GEÄNDERT] 'game-lifecycle' als Overview-Kontext im Pascal-Code-Panel berücksichtigt.
+- src/editor/FlowEditor.ts (Z. 34, 53, 305, 587, 977): [GEÄNDERT] GameLifecycleManager instanziiert und verdrahtet; Einhaltung des 1000-Zeilen-Limits sichergestellt.
+Ergebnis: Alle 37 Test-Suiten bestanden, TypeScript-Kompilierung und Vite-Produktions-Build fehlerfrei.
+Nachtrag (vertikales Layout & Kontextwechsel-Fix):
+- src/model/GameLifecycleAnalysis.ts (Z. 1–287): [GEÄNDERT] GRID_COLUMNS (Z. 27), findCalledTasks() (Z. 63–71) für Task→Task-Aufrufe, analyzeGameLifecycle() (Z. 73–196) liefert zusätzlich phase.calls und nodeLinks, buildMermaid() (Z. 204–287) erzeugt vertikales Layout mit Aufrufkanten, Einstiegs-Raster (~~~) und blendet leere Blueprint-Phase aus.
+- src/editor/services/flow/GameLifecycleManager.ts (Z. 1–222): [GEÄNDERT] generateGameLifecycle() (Z. 48) mit Zoom-Umschalter und Aufräumen vor Neuaufbau; bindInteractiveLinks() (Z. 171) ordnet Klicks über Mermaid-Knoten-ID zu; removeOverview() (Z. 204); applyZoom() (Z. 209).
+- src/editor/services/FlowGraphHydrator.ts (Z. 49–50): [GEÄNDERT] loadFromProject() entfernt '.gcs-game-lifecycle-view' bei jedem Kontextwechsel.
+
 ### 2026-10-07
 [UC-2026-10-07-Autosave-Revision-Guard]
 Beschreibung: Schutz vor dem Überschreiben extern (durch KI oder Editor) optimierter Projektdateien durch den AutoSave des Browsers.

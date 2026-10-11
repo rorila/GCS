@@ -172,6 +172,18 @@ await check('cardNext: am längsten wartende Fach-1-Karte zuerst', () => {
   assert.strictEqual(r.data.card.id, neu, 'nie wiederholte Karte wartet länger');
 });
 
+await check('Falsche Karte landet auch bei gleichen Zeitstempeln hinten in Fach 1', () => {
+  const first = cardsApi(child('child-finn'), 'save', { subject: 'Mathe', topic: 'Wiedervorlage', question: '2+2', answers: '4' }).data.cardId;
+  const second = cardsApi(child('child-finn'), 'save', { subject: 'Mathe', topic: 'Wiedervorlage', question: '3+3', answers: '6' }).data.cardId;
+  const timestamp = new Date(Date.now() + 1000).toISOString();
+  for (const id of [first, second]) db.flashcards.find(c => c.id === id).lastReviewedAt = timestamp;
+  playApi(child('child-finn'), 'cardAnswer', { cardId: first, correct: false });
+  assert.strictEqual(db.flashcards.find(c => c.id === first).box, 1);
+  assert.strictEqual(playApi(child('child-finn'), 'cardNext', { subject: 'Mathe', topic: 'Wiedervorlage' }).data.card.id, second);
+  playApi(child('child-finn'), 'cardAnswer', { cardId: second, correct: true });
+  assert.strictEqual(playApi(child('child-finn'), 'cardNext', { subject: 'Mathe', topic: 'Wiedervorlage', excludeIds: [second] }).data.card.id, first);
+});
+
 await check('cardNext: formats-Filter — self-Karte wird bei [text] nicht gezogen', () => {
   const s = cardsApi(child('child-finn'), 'save', { subject: 'Bio', question: 'Was ist Fotosynthese?', answers: 'Licht→Energie', answerFormat: 'self' });
   const r = playApi(child('child-finn'), 'cardNext', { subject: 'Bio', formats: ['text'] });

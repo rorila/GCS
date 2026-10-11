@@ -4,7 +4,7 @@ const os = require('os');
 
 // Standard Windows AppData Roaming Path
 const appData = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming');
-const targetAppFolder = path.join(appData, 'game-builder-v1');
+const targetAppFolder = path.join(appData, 'game-builder-v2');
 
 // Nur die hartnäckigen Caches, Code-Caches und Service-Worker löschen
 const dirsToClean = [

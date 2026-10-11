@@ -52,9 +52,10 @@ function resolveCollection(name: string, context: any): any {
     if (context.vars[name] !== undefined) return PropertyHelper.resolveValue(context.vars[name]);
     // 2. Globale Vars
     if (context.contextVars[name] !== undefined) return PropertyHelper.resolveValue(context.contextVars[name]);
-    // 3. TVariable-Objekt
-    const varObj = findVariableObject(name, context);
-    if (varObj) return PropertyHelper.resolveValue(varObj);
+    // 3. Components may also supply maps (e.g. TCmsLiveSync). ID references
+    // must resolve these just like a component stored under its name in vars.
+    const source = context.objects?.find((object: any) => object.name === name || object.id === name);
+    if (source) return PropertyHelper.resolveValue(source);
 
     return undefined;
 }

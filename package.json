@@ -1,5 +1,5 @@
 {
-  "name": "game-builder-v1",
+  "name": "game-builder-v2",
   "private": true,
   "version": "3.9.1",
   "type": "module",
@@ -33,7 +33,9 @@
     "lint": "eslint src --ext .ts --max-warnings 999",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\""
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "start:cms": "node scripts/cms/cms-server.cjs",
+    "setup:speech": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Install_LocalSpeech.ps1"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

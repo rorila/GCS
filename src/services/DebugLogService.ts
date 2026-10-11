@@ -4,6 +4,12 @@ import { LogLevel } from '../utils/LogTypes';
 
 export type LogType = 'Event' | 'Task' | 'Action' | 'Variable' | 'Condition' | 'System';
 
+export interface LogSource {
+    player: number;
+    instanceId: string;
+    label: string;
+}
+
 export interface LogEntry {
     id: string;
     type: LogType;
@@ -15,6 +21,7 @@ export interface LogEntry {
     data?: any;
     objectName?: string;
     eventName?: string;
+    source?: LogSource;
 }
 
 export type LogListener = (logs: LogEntry[]) => void;
@@ -24,20 +31,23 @@ export class DebugLogService {
     private logs: LogEntry[] = [];
     private entryMap: Map<string, LogEntry> = new Map(); // O(1) Lookup statt rekursiver Baumsuche
     private listeners: LogListener[] = [];
+    private entryListeners = new Set<(entry: LogEntry) => void>();
     private filterPredicate?: (type: LogType, objectName?: string, eventName?: string) => boolean;
     private maxLogs = 2000; // Erhöht auf 2000, da Start-Events sonst bei Timer-Spam nach 10s verschwinden
     private maxChildren = 50; // Reduziert (ursprünglich 50)
     private counter = 0;
     private contextStack: string[] = [];
     private enabled = false;
+    private recordingListeners = new Set<(enabled: boolean) => void>();
     private notifyScheduled = false;
 
     private constructor() {
         // Register bridge to central Logger
         Logger.setLogHandler((level: LogLevel, prefix: string, message: string, useCase?: string) => {
             // Only log INFO and above to DebugLogService to avoid cluttering with DEBUG logs
+            if (level < LogLevel.INFO) return;
             this.log('System', `${prefix}${message}`, {
-                level: String(level),
+                level,
                 category: useCase
             });
         });
@@ -72,9 +82,15 @@ export class DebugLogService {
     public setEnabled(enabled: boolean) {
         DebugLogService.logger.info(`setEnabled(${enabled})`);
         this.enabled = enabled;
+        this.recordingListeners.forEach(listener => listener(enabled));
     }
 
     private _droppedDueToDisabled = 0;
+
+    public subscribeRecording(listener: (enabled: boolean) => void): () => void {
+        this.recordingListeners.add(listener);
+        return () => this.recordingListeners.delete(listener);
+    }
 
     public isEnabled(): boolean {
         return this.enabled;
@@ -97,7 +113,11 @@ export class DebugLogService {
         eventName?: string,
         flatten?: boolean,
         level?: any,
-        category?: any
+        category?: any,
+        source?: LogSource,
+        remoteId?: string,
+        timestamp?: number,
+        external?: boolean
     } = {}): string {
         if(options.data !== undefined) options = {...options, data:redactDebug(options.data)};
         message = redactDebugMessage(message);
@@ -137,20 +157,22 @@ export class DebugLogService {
 
         // AUTO-PARENT: If no parentId provided, check if we are in a scoped context (Task/Action)
         // But ONLY if not flattened
-        const parentId = options.flatten ? undefined : (options.parentId || this.getCurrentContextId());
+        const parentId = options.flatten ? undefined : (options.parentId || (options.external ? undefined : this.getCurrentContextId()));
 
-        const id = `log-${Date.now()}-${this.counter++}`;
+        const id = options.remoteId || `log-${Date.now()}-${this.counter++}`;
+        if (this.entryMap.has(id)) return id;
         const entry: LogEntry = {
             id,
             type,
             message,
-            timestamp: Date.now(),
+            timestamp: options.timestamp ?? Date.now(),
             parentId: parentId,
             children: [],
             isExpanded: false, // Standardmäßig eingeklappt - User kann durch Klick auf Pfeil erweitern
             data: options.data,
             objectName: options.objectName,
-            eventName: options.eventName
+            eventName: options.eventName,
+            source: options.source
         };
 
         if (parentId) {
@@ -168,6 +190,7 @@ export class DebugLogService {
                     this.entryMap.delete(removed.id);
                 }
                 this.entryMap.set(id, entry);
+                this.emitEntry(entry);
                 this.scheduleNotify();
                 return id;
             }
@@ -191,6 +214,7 @@ export class DebugLogService {
             // Entferne Entry + alle Children aus der Map
             this.removeFromMap(removed);
         }
+        this.emitEntry(entry);
         this.scheduleNotify();
         return id;
     }
@@ -217,6 +241,30 @@ export class DebugLogService {
         for (const child of entry.children) {
             this.removeFromMap(child);
         }
+    }
+
+    /** Emits each accepted entry once, before later children are attached. */
+    public subscribeEntries(listener: (entry: LogEntry) => void): () => void {
+        this.entryListeners.add(listener);
+        return () => this.entryListeners.delete(listener);
+    }
+
+    private emitEntry(entry: LogEntry): void {
+        this.entryListeners.forEach(listener => listener(entry));
+    }
+
+    /** Namespace IDs so the two players never share a parent or overwrite entries. */
+    public importEntry(entry: LogEntry, source: LogSource): void {
+        if (!entry || typeof entry.id !== 'string' || typeof entry.message !== 'string' ||
+            !['Event', 'Task', 'Action', 'Variable', 'Condition', 'System'].includes(entry.type)) return;
+        const prefix = source.instanceId + ':';
+        this.log(entry.type, entry.message, {
+            remoteId: prefix + entry.id,
+            parentId: entry.parentId ? prefix + entry.parentId : undefined,
+            timestamp: Number.isFinite(entry.timestamp) ? entry.timestamp : Date.now(),
+            objectName: entry.objectName, eventName: entry.eventName,
+            data: entry.data, source, external: true
+        });
     }
 
     public getLogs(): LogEntry[] {

@@ -1,3 +1,5 @@
+import { collectShelfItems, isAutomaticShelfObject, ShelfItem } from './EditorShelfModel';
+import { openMultiplayerTest } from './services/EditorMultiplayerTest';
 import { coreStore } from '../services/registry/CoreStore';
 import { Stage } from './Stage';
 import { NotificationToast } from './ui/NotificationToast';
@@ -369,7 +371,7 @@ export class Editor implements IViewHost {
     public createObjectInstance(type: string, name: string, x: number, y: number) { return this.commandManager.createObjectInstance(type, name, x, y); }
     public setRunMode(running: boolean) { this.runManager.setRunMode(running); }
     public isRunning(): boolean { return this.runManager.runtime !== null; }
-    public switchView(view: ViewType) { this.viewManager.switchView(view); }
+    public switchView(view: ViewType) { this.viewManager.switchView(view); this.refreshSidepanel(); }
     public createStage(type: StageType, name?: string) { return this.stageManager.createStage(type, name); }
     public openThemeEditor() { this.themeStageService.enterThemeEditor(); }
     public editActiveTheme() { this.themeStageService.enterThemeEditor(themeRegistry.getActiveThemeId()); }
@@ -481,8 +483,12 @@ export class Editor implements IViewHost {
     public exportTheme() { this.dataManager.exportTheme(); }
     public loadFromServer() { this.dataManager.loadFromServer(); }
     public startMultiplayer() {
-        const lobby = document.getElementById('multiplayer-lobby');
-        if (lobby) lobby.style.display = 'flex';
+        this.syncStageObjectsToProject();
+        this.flowEditor?.syncAllTasksFromFlow(this.project);
+        openMultiplayerTest(this.project, this.debugLog || undefined, () => {
+            this.flowEditor?.syncAllTasksFromFlow(this.project);
+            return this.project;
+        });
     }
     public playbackControls: any = null;
 
@@ -585,12 +591,17 @@ export class Editor implements IViewHost {
         this.sidePanel.callbacks = {
             onSelect: (id) => this.selectObject(id),
             onRename: (id, newName) => {
-                const raw = this.findRawObjectInProject(id);
-                if (raw) {
-                    raw.name = newName;
-                    this.render();
-                    this.autoSaveToLocalStorage();
-                }
+                snapshotManager.pushSnapshot(this.project, 'Regal: Umbenennen');
+                this.renameObjectWithRefactoring(id, newName);
+                this.render();
+            },
+            onDuplicate: id => {
+                const object = this.stage.onCopyCallback?.(id);
+                if (!object) return;
+                snapshotManager.pushSnapshot(this.project, 'Regal: Duplizieren');
+                object.scope = this.getActiveStage()?.type === 'blueprint' ? 'global' : 'stage';
+                delete object.isInherited; delete object.isFromBlueprint; delete object.isGhost;
+                this.stage.onPasteCallback?.(object, object.x || 0, object.y || 0);
             },
             onDelete: (id) => this.removeObjectWithConfirm(id),
             onRestoreToStage: (id) => this.moveObjectFromSidepanel(id),
@@ -624,15 +635,16 @@ export class Editor implements IViewHost {
 
     public refreshSidepanel(): void {
         if (!this.sidePanel) return;
-        this.sidePanel.loadObjects(this.getSidepanelObjectSources());
+        this.sidePanel.setViewActive(this.currentView === 'stage');
+        if (this.currentView === 'stage') this.sidePanel.loadObjects(this.getSidepanelObjectSources(), this.currentSelectedId);
     }
 
-    private getSidepanelObjectSources(): { id: string; name: string; className: string }[] {
-        const activeStage = this.getActiveStage();
-        if (!activeStage?.objects) return [];
-        return activeStage.objects
-            .filter((o: any) => o.isManagedInSidepanel === true)
-            .map((o: any) => ({ id: o.id, name: o.name, className: o.className }));
+    private getSidepanelObjectSources(): ShelfItem[] {
+        return collectShelfItems(this.project, this.stageManager.getActiveStage(), this.getResolvedInheritanceObjects());
+    }
+
+    public getShelfObjects(): any[] {
+        return this.getSidepanelObjectSources().map(item => item.object);
     }
 
     public isDialog(className?: string): boolean {
@@ -643,6 +655,7 @@ export class Editor implements IViewHost {
     public canMoveToSidepanel(objOrClassName: any): boolean {
         const className = typeof objOrClassName === 'string' ? objOrClassName : objOrClassName?.className;
         if (!className) return false;
+        if (isAutomaticShelfObject(objOrClassName)) return true;
         if (objOrClassName?.isHiddenInRun === true) return true;
         if (objOrClassName?.isVariable === true) return true;
         return this.isDialog(className);

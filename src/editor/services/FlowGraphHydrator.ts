@@ -18,6 +18,7 @@ export interface FlowGraphHydrationHost {
     syncManager: any;
     graphManager: any;
     mapManager: any;
+    lifecycleManager?: any;
     onNodesChanged?: (nodes: FlowElement[]) => void;
 
     getActiveStage(): any;
@@ -45,8 +46,8 @@ export class FlowGraphHydrator {
 
         this.host.isLoading = true;
         this.host.clearFlowCanvas();
-        // Feature-Container-Layer des vorherigen Kontexts entfernen
-        this.host.canvas.querySelectorAll('.gcs-feature-layer').forEach(el => el.remove());
+        // Feature-Container-Layer und Spielablauf-Übersicht des vorherigen Kontexts entfernen
+        this.host.canvas.querySelectorAll('.gcs-feature-layer, .gcs-game-lifecycle-view').forEach(el => el.remove());
 
         if (this.host.currentFlowContext === 'event-map') {
             this.host.mapManager.generateEventMap();
@@ -55,6 +56,13 @@ export class FlowGraphHydrator {
 
         if (this.host.currentFlowContext === 'element-overview') {
             this.host.mapManager.generateElementOverview();
+            return;
+        }
+
+        if (this.host.currentFlowContext === 'game-lifecycle') {
+            if (this.host.lifecycleManager) {
+                this.host.lifecycleManager.generateGameLifecycle();
+            }
             return;
         }
 

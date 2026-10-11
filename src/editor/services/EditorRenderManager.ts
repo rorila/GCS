@@ -1,3 +1,4 @@
+import { isAutomaticShelfObject } from '../EditorShelfModel';
 import { Logger } from '../../utils/Logger';
 import { GameProject, StageDefinition } from '../../model/types';
 import { ViewType } from '../EditorViewManager';
@@ -30,6 +31,7 @@ export interface EditorRenderHost {
     updateStagesMenu(): void;
     updateStageLabel(): void;
     objectStore: ObjectStore;
+    getShelfObjects?(): any[];
 }
 
 export class EditorRenderManager {
@@ -71,14 +73,23 @@ export class EditorRenderManager {
             // CRITICAL: Always get fresh objects from runtime if available
             let objectsToRender = this.host.runtime ? this.host.runtime.getObjects() : (this.host.runtimeObjects || this.host.getResolvedInheritanceObjects());
 
+            if (!this.host.runtime) {
+                const ids = new Set(objectsToRender.map((object: any) => object.id || object.name));
+                for (const object of this.host.getShelfObjects?.() || []) {
+                    const id = object.id || object.name;
+                    if (!ids.has(id)) { ids.add(id); objectsToRender.push(object); }
+                }
+            }
             // Resolve preview (bindings, etc) for non-run mode
             if (!this.host.runtime) {
                 objectsToRender = objectsToRender.map((obj: any) => this.resolveObjectPreview(obj, previewVarContext!));
             }
 
+            // Keep the complete selection set independent from the canvas-only list.
+            const allObjects = objectsToRender;
             // Sidepanel: verwaltete Objekte auf der Stage ausblenden, wenn gewünscht
-            if ((this.host as any).hideManagedObjectsOnStage) {
-                objectsToRender = objectsToRender.filter((obj: any) => !obj.isManagedInSidepanel);
+            if (!this.host.runtime && (this.host as any).hideManagedObjectsOnStage) {
+                objectsToRender = objectsToRender.filter((obj: any) => !obj.isManagedInSidepanel && !isAutomaticShelfObject(obj));
             }
 
             stage.renderObjects(objectsToRender);
@@ -91,7 +102,7 @@ export class EditorRenderManager {
             }
 
             // ARCHITEKTUR: ObjectStore als Single Source of Truth aktualisieren.
-            this.host.objectStore?.setObjects(objectsToRender);
+            this.host.objectStore?.setObjects(allObjects);
         } catch (err) {
             this.logger.error('Render error:', err);
         }

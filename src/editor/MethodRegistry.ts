@@ -18,6 +18,8 @@ export const MethodReturnMap: Record<string, boolean> = {
 };
 
 export const MethodRegistry: Record<string, MethodParamDef[]> = {
+    'speak': [{ name: 'text', type: 'string', label: 'Sprechtext', optional: true }],
+    'prefetch': [{ name: 'text', type: 'string', label: 'Ansage vorladen', optional: true }],
     'setVelocity': [
         { name: 'vx', type: 'number', label: 'Velocity X' },
         { name: 'vy', type: 'number', label: 'Velocity Y' }

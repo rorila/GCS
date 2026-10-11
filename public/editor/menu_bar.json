@@ -104,7 +104,7 @@
             "items": [
                 {
                     "id": "multiplayer",
-                    "label": "Plattform-Lobby",
+                    "label": "Multiplayer testen",
                     "action": "multiplayer",
                     "icon": "🌐"
                 },

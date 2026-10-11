@@ -162,6 +162,15 @@ console.log('\n[Test 14: map_keys]');
     assert(globalVars['invKeys'].length === 3, 'Hat 3 Keys');
 }
 
+// Regression: editor ID references must resolve non-variable live components.
+{
+    const live = { id: 'live-component-id', name: 'LiveSync', className: 'TCmsLiveSync', remoteInput: { card: 7 } };
+    const componentExecutor = new ActionExecutor([live]);
+    const result: Record<string, any> = {};
+    await componentExecutor.execute({ type: 'map_get', target: live.id, key: 'remoteInput', resultVariable: 'input' }, {}, result);
+    assert(result.input?.card === 7, 'ID reference reads guest input from LiveSync component');
+}
+
 // ─── Zusammenfassung ───
 console.log('\n═══════════════════════════════════════');
 console.log(`Collection-Actions Tests: ${passed} passed, ${failed} failed`);

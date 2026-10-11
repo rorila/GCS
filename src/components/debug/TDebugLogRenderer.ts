@@ -10,6 +10,7 @@ export interface DebugLogFilters {
     taskFilter: string;
     actionFilter: string;
     showDetails: boolean;
+    sourceFilter?: string;
 }
 
 export interface DebugLogRendererContext {
@@ -32,6 +33,8 @@ export class TDebugLogRenderer {
         const logList = this.context.getLogList();
         logList.innerHTML = '';
 
+        const sourceFilterForServer = this.context.getFilters().sourceFilter;
+        if (sourceFilterForServer) logs = logs.filter(entry => String(entry.source?.player ?? 'editor') === sourceFilterForServer);
         if (this.context.serverTraceMode()) {
             const project = this.context.getProject();
             const editor = this.context.getEditor();
@@ -51,7 +54,7 @@ export class TDebugLogRenderer {
         // Root entries are shown if they or any child matches the filter
         // Root context check happens inside recursive filter
         const filters = this.context.getFilters();
-        const filtered = logs.filter(e => this.shouldShowRecursive(e, false, filters));
+        const filtered = logs.filter(e => this.shouldShowRecursive(e, false, filters)).sort((a, b) => a.timestamp - b.timestamp);
         filtered.forEach(entry => this.renderEntry(entry, logList, 0, this.isContextMatch(entry, filters), filters));
 
         // Auto-scroll to bottom
@@ -216,12 +219,17 @@ export class TDebugLogRenderer {
         const cleanMessage = entry.message.replace(/<[^>]*>?/gm, ''); // Strip potential HTML tags for tooltip
         const fullTooltip = `${entry.type}: ${cleanMessage}${detailText ? '\n' + detailText : ''}`;
 
+        const sourceText = entry.source ? entry.source.label + ' · ' + entry.source.instanceId : 'Editor';
+        row.dataset.logSource = String(entry.source?.player ?? 'editor');
+        row.dataset.logInstance = entry.source?.instanceId || 'editor';
+        const sourceLabel = '<div class="debug-log-source" style="color:' + (entry.source?.player === 2 ? '#d8a6ff' : '#76d9ff') + ';font-size:10px;overflow-wrap:anywhere">' + escapeLogHtml(sourceText) + '</div>';
         row.innerHTML = `
             <span style="color: #888; width: 10px; font-size: 8px; margin-top: 4px;">${icon}</span>
             <div style="flex: 1; overflow: hidden;" title="${escapeLogHtml(fullTooltip)}">
                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     ${typeLabel} ${escapeLogHtml(entry.message)}
                 </div>
+                ${sourceLabel}
                 ${details}
             </div>
             ${timeLabel}

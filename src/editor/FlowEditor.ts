@@ -31,11 +31,8 @@ import { FlowNodeFactory, FlowNodeHost } from './services/FlowNodeFactory';
 import { FlowPascalManager, FlowPascalHost } from './services/FlowPascalManager';
 import { FlowToolbarManager, FlowToolbarHost } from './services/FlowToolbarManager';
 import { openSequenceDiagramDialog } from './services/SequenceDiagramDialog';
+import { GameLifecycleManager } from './services/flow/GameLifecycleManager';
 import { Editor } from './Editor';
-
-const logger = Logger.get('FlowEditor');
-
-
 
 export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHost, FlowNavigationHost, FlowGraphHydrationHost, FlowUIHost, FlowTaskHost, FlowNodeHost, FlowPascalHost, FlowToolbarHost {
     private static logger = Logger.get('FlowEditor', 'Flow_Synchronization');
@@ -51,6 +48,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     public syncManager: FlowSyncManager;
 
     public mapManager: FlowMapManager;
+    public lifecycleManager: GameLifecycleManager;
     public menuProvider: FlowContextMenuProvider;
     public selectionManager: FlowSelectionManager;
     public graphManager: FlowGraphManager;
@@ -185,7 +183,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             (node as any).setShowDetails?.(this.showDetails, this.project);
         }
 
-        logger.info(`[FlowEditor] Successfully synced visuals for node ${nodeId}`);
+        FlowEditor.logger.info(`[FlowEditor] Successfully synced visuals for node ${nodeId}`);
     }
 
 
@@ -300,8 +298,9 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         // Initialize Sync Manager
         this.syncManager = new FlowSyncManager(this);
 
-        // Initialize Map Manager
+        // Initialize Map Manager & Lifecycle Manager
         this.mapManager = new FlowMapManager(this);
+        this.lifecycleManager = new GameLifecycleManager(this);
 
         // Initialize Context Menu Provider
         this.menuProvider = new FlowContextMenuProvider(this as any as FlowContextMenuHost);
@@ -347,9 +346,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
         canvasWrapper.insertBefore(this.canvas, canvasWrapper.firstChild); // Canvas kommt VOR das Pascal-Panel
         this.container.appendChild(canvasWrapper);
-
-
-
 
         // Global interaction listener for handle dragging
         document.addEventListener('mousemove', (e) => this.interactionManager.handleGlobalMove(e));
@@ -481,7 +477,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         if (!blueprint.flowCharts) blueprint.flowCharts = {};
 
         let migrated = false;
-
         // Tasks migrieren
         if (this.project.tasks && this.project.tasks.length > 0) {
             const existingNames = new Set(blueprint.tasks.map(t => t.name));
@@ -494,7 +489,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             }
             this.project.tasks = [];
         }
-
         // Actions migrieren
         if (this.project.actions && this.project.actions.length > 0) {
             const existingNames = new Set(blueprint.actions.map(a => a.name));
@@ -507,7 +501,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             }
             this.project.actions = [];
         }
-
         // Variables migrieren
         if (this.project.variables && this.project.variables.length > 0) {
             const existingNames = new Set(blueprint.variables.map((v: any) => v.name));
@@ -532,7 +525,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             }
             this.project.flowCharts = {};
         }
-
         if (migrated) {
             FlowEditor.logger.info('[MIGRATION] Root-Level-Daten erfolgreich in Blueprint-Stage migriert.');
         }
@@ -588,7 +580,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             if (found?.stage?.id && found.stage.id !== coreStore.getActiveStageId()) {
                 coreStore.setActiveStageId(found.stage.id);
             }
-        } else if (context !== 'global' && context !== 'event-map' && context !== 'element-overview') {
+        } else if (context !== 'global' && context !== 'event-map' && context !== 'element-overview' && context !== 'game-lifecycle') {
             const container = projectTaskRegistry.getTaskContainer(context);
             if (container.type === 'stage' && container.stageId) {
                 FlowEditor.logger.info(`Auto-switching projectRegistry.activeStageId to ${container.stageId} for task ${context}`);
@@ -602,9 +594,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         // 5. Load new state
         this.loadFromProject();
         this.updatePascalPanel();
-
-
-        // cleanup
 
         // 7. Update dropdown to show current context
         this.toolbarManager.flowSelect.value = context;
@@ -981,7 +970,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         // Neu: Da sich die Höhe/Breite der Knoten ändert, formatiert sich das Layout automatisch neu,
         // um schräge Verbindungen zu korrigieren. Delay stellt sicher, dass DOM-Größen messbar sind.
         setTimeout(() => {
-            if (this.currentFlowContext !== 'global' && this.currentFlowContext !== 'event-map' && this.currentFlowContext !== 'element-overview') {
+            if (this.currentFlowContext !== 'global' && this.currentFlowContext !== 'event-map' && this.currentFlowContext !== 'element-overview' && this.currentFlowContext !== 'game-lifecycle') {
                 this.formatLayout();
                 this.syncToProject();
             }

@@ -149,8 +149,7 @@ export class EditorMenuManager {
             ); break;
             case 'export-exe': NotificationToast.show('Exe-Export ist für eine zukünftige Version geplant.', 'info'); break;
             case 'multiplayer': {
-                const lobby = document.getElementById('multiplayer-lobby');
-                if (lobby) lobby.style.display = 'flex';
+                this.host.startMultiplayer();
                 break;
             }
             case 'new-stage': {

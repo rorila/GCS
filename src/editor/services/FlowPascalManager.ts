@@ -105,7 +105,7 @@ export class FlowPascalManager {
         let code = '';
         let title = '';
 
-        if (ctx === 'global' || ctx === 'event-map' || ctx === 'element-overview') {
+        if (ctx === 'global' || ctx === 'event-map' || ctx === 'element-overview' || ctx === 'game-lifecycle') {
             title = '🔤 Stage: ' + (activeStage ? activeStage.name : 'Global');
             code = PascalCodeGenerator.generateFullProgram(this.host.project, true, activeStage || undefined);
         } else {

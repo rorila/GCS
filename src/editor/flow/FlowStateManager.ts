@@ -330,7 +330,8 @@ export class FlowStateManager {
      */
     public isSpecialContext(): boolean {
         return this._currentContext === 'event-map' ||
-            this._currentContext === 'element-overview';
+            this._currentContext === 'element-overview' ||
+            this._currentContext === 'game-lifecycle';
     }
 
     /**

@@ -128,7 +128,7 @@ function createLiveSync({core,launches,component={}}={}){
   }catch(error){deny(socket,500,'Live-Sync-Fehler');}
  };
  const closeAll=()=>{clearInterval(endedCheck);for(const client of [...clients])close(client,1001,'Server beendet');};
- return{attach(server){server.on('upgrade',upgrade);server.on('close',closeAll);return{close:closeAll}},close:closeAll};
+ return{upgrade,attach(server,delegate){server.on('upgrade',(req,socket,head)=>{if(!delegate?.(req,socket,head))upgrade(req,socket,head)});server.on('close',closeAll);return{close:closeAll}},close:closeAll};
 }
 
 module.exports={createLiveSync};

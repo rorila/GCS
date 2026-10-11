@@ -27,9 +27,19 @@
 | Befehl | Zweck |
 |:---|:---|
 | `npm run test` | Vollständige Regression-Suite |
+| `npm run test -- --fast` | Regression ohne automatisch gestartete E2E-/Aufbau-Server; aktualisiert den QA-Bericht |
+| `node --test scripts/test-cms-ui-integrity.cjs` | CMS-Referenzen, gezielte Bereinigung und Generator-Wiederholung im Speicher; keine Serverstarts oder Master-Neugenerierung |
 | `npm run validate` | Projekt-Validierung |
 | `npm run build` | Produktions-Build |
 | `npm run bundle:runtime` | Runtime-Bundle (zwingend nach Runtime-Änderungen!) |
+
+### Lokale Spracheingabe
+
+- `node --import tsx --test tests/speech_quiz.test.ts tests/speech_quiz_flow.test.ts tests/speech_transport.test.ts` prueft Zahlwoerter, Komponentenabbruch, den echten Quiz-Task-/Timer-Ablauf und die Transportgrenzen ohne Serverstart oder Mikrofonaufnahme; auch im Schnelllauf enthalten.
+- `CMS_SPEECH_URL` ist eine Betriebs-Umgebungsvariable, kein Feld der CMS-/Spielprojektdatei. Sie muss auf den `/inference`-Endpunkt eines separat gestarteten `whisper-server` auf einer Loopback-IP zeigen (beispielsweise `http://127.0.0.1:8178/inference`). Ohne Konfiguration liefert die Spracheingabe einen sichtbaren Verfuegbarkeitsfehler, niemals einen Cloud-Fallback.
+- Der Dienst benoetigt ein mehrsprachiges Whisper-Modell (nicht `.en`); die Anbindung sendet WAV PCM16/mono/16 kHz, `language=de`, `response_format=json`. Dienst nur lokal binden; Audio-/Transkriptlogging und Debug-Dumps beim Dienst deaktiviert halten. Die CMS-Anbindung speichert keine Aufnahmen.
+- Tablet-Betrieb benoetigt vertrauenswuerdiges HTTPS und eine gesondert abgestimmte Bereitstellung: der bestehende CMS-Server akzeptiert nur lokale Hosts/Origins. Host-/Origin-Schutz nicht fuer einen LAN-Test pauschal ausschalten. Erste Mikrofonfreigabe erfolgt sichtbar im vertrauenswuerdigen Spielhost, nicht im sandboxed Upload.
+- Nach Aenderungen an Sprachkomponente oder Host ist das Runtime-Bundle erforderlich. Builds, Dienststarts und echte Tablet-/Mikrofontests fuehrt der Nutzer aus, sofern nicht ausdruecklich anders beauftragt.
 
 ## 3. State & Datenfluss
 
@@ -100,6 +110,16 @@
 
 - `switchActionFlow(taskName)` erzeugt automatisch einen Task-Knoten. KEIN weiteres `createNode('Task', ...)` aufrufen!
 - `nodes.find(n => n.getType() === 'task')` nutzen, um den auto-generierten Knoten zu referenzieren.
+
+### Game Lifecycle & Spielablauf-Visualisierung (v3.25.0)
+
+- **Kontext `'game-lifecycle'`**: Reservierter Flow-Kontext für die übergeordnete Phasen- und Task-Übersicht des Spiels.
+- **Isolierte Analyse**: `GameLifecycleAnalysis.ts` liest das Projekt rein passiv (Read-Only) und generiert Mermaid-Code; kein Rückschreiben in `project.json`.
+- **Interaktivität**: Tasks und Features im Mermaid-SVG sind mit `host.switchActionFlow(name)` verlinkt, sodass Entwickler direkt in die entsprechende Implementierung springen können.
+- **Sicherheits-Regel**: `'game-lifecycle'` ist in `FlowStateManager.isSpecialContext()`, `FlowSyncManager.syncToProject()`, `SyncValidator` (reservedKeys) und `FlowToolbarManager` als Ausnahme zu führen, um versehentliches Überschreiben von Task-Daten zu verhindern.
+- **Vertikales Layout (Mermaid)**: Unverbundene Knoten in einem Subgraph legt Mermaid in **eine Zeile** → extrem breite Diagramme. Lösung in `buildMermaid()`: Task→Task-Aufrufe als Kanten (`-->`) erzeugen echte Ebenen; Einstiegs-Tasks ohne Aufrufer per unsichtbarer Kante (`~~~`) in ein Raster mit `GRID_COLUMNS` Spalten umbrechen.
+- **Klick-Zuordnung im SVG**: Über die Mermaid-Knoten-ID (`flowchart-<NodeId>-<n>`) und `model.nodeLinks` – **nicht** über Teilstring-Suche im Text.
+- **DO NOT**: Eigene DOM-Overlays im Flow-Canvas (Übersichten, Layer) sich selbst überlassen. `clearFlowCanvas()` entfernt nur Knoten und Verbindungen! Overlays müssen in `FlowGraphHydrator.loadFromProject()` per CSS-Klasse entfernt werden (z. B. `.gcs-feature-layer, .gcs-game-lifecycle-view`), sonst bleiben sie beim Kontextwechsel sichtbar.
 
 ### restoreConnection API
 
@@ -601,3 +621,15 @@ agent.addFor('SpawnLoop', 'i', '${spawnStart}', '${spawnEnd}',
 ### Inspector-Metadaten für nicht visuelle Komponenten
 
 Rein visuelle Basisfelder mit `visualOnly: true` kennzeichnen. Ausschließlich die Inspector-Sektionen filtern; niemals deshalb Definitionen aus `getInspectorProperties()` entfernen, da diese auch die Serialisierung steuern. Funktionale Geometrie (z.B. Spawn-Koordinaten) oder Animationssteuerung nicht pauschal nach Gruppennamen ausblenden. Verborgene Vorlagen/Overlays mit eigener visueller Konfiguration können `hasVisualInspector` überschreiben.
+
+
+### CMS-Testkontext im RunTab (v3.x)
+
+Projekte, die eine `CMS_LAUNCH`-Variable deklarieren (z.B. `Karteikasten-Quiz.json`), können im RunTab über den Button **🧪 CMS-TESTKONTEXT** getestet werden.
+
+- **Server:** `scripts/cms/cms-editor-test.cjs` — Route-Familie `/api/cms/editor-test/*` auf dem CMS-Server. Pro Start ein isolierter In-Memory-Datenbestand (eigenes `createCore` + flüchtiger Store mit echter commit-Semantik, keine Datei-/Audit-Schreibpfade). Synthetische Testkinder `test-a/b/c`, Testdecks `math`/`self`/`empty`.
+- **Isolation:** Testkontexte können echte CMS-Daten niemals anfassen — sie besitzen eine eigene DB-Kopie aus `buildDb()`. Schlüssel sind zufällig (48 Hex), Kontexte laufen nach 30 min ab, max. 5 parallel, nur Loopback; `/start` verlangt zusätzlich den Header `X-GCS-Editor-Test: 1`.
+- **Seite:** `GET /api/cms/editor-test/page/<key>` rendert dieselbe Spielseite wie `/play/<key>` (Sandbox-CSP, Bridge, Heartbeat) — nur mit dem aktuellen Editor-Projektstand statt der gespeicherten Datei.
+- **Editor:** `src/editor/services/EditorCmsTest.ts` (Overlay + Bridge-Weiterleitung), Integration in `EditorRunManager.createOrShowStartButton`. `attachCmsSpeechHost`/`attachCmsTtsHost` akzeptieren einen optionalen `apiBase`-Parameter (Standard `/api/cms`).
+- **Deaktivierung:** `CMS_EDITOR_TEST=off` schaltet den Testkontext serverseitig ab.
+- **Tests:** `tests/editor_cms_test.test.ts` (in der Sprach-/Quiz-Suite des Test-Runners).

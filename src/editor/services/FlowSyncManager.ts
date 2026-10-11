@@ -69,7 +69,7 @@ export class FlowSyncManager {
     public syncToProject(currentContext: string) {
         if (!this.host.project) return;
         FlowSyncManager.logger.info(`[TRACE] syncToProject start (Context: ${currentContext})`);
-        if (currentContext === 'event-map' || currentContext === 'element-overview' || isFeatureContext(currentContext)) {
+        if (currentContext === 'event-map' || currentContext === 'element-overview' || currentContext === 'game-lifecycle' || isFeatureContext(currentContext)) {
             // Feature-Übersicht ist read-only/abgeleitet — kein Rückschreiben.
             FlowSyncManager.logger.debug(`syncToProject skipped for special context: ${currentContext}`);
             return;
@@ -319,7 +319,7 @@ export class FlowSyncManager {
      */
     private getStageForContext(context: string): any | null {
         if (!this.host.project?.stages) return null;
-        if (context === 'global' || context === 'event-map' || context === 'element-overview') return null;
+        if (context === 'global' || context === 'event-map' || context === 'element-overview' || context === 'game-lifecycle') return null;
 
         // PRIORITÄT: aktive Stage zuerst prüfen, damit gleichnamige Tasks in mehreren
         // Stages nicht zur falschen (ersten) Stage zugeordnet werden.

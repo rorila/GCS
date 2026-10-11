@@ -231,6 +231,10 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
     }
 
     private connectSocket(): Promise<boolean> {
+        // Isolated editor-test frames use the parent bridge: connect-src forbids direct sockets.
+        if (window.parent !== window && new URLSearchParams(location.search).get('editorTest')?.startsWith('gcs-mp-preview-')) {
+            return Promise.resolve(false);
+        }
         if (this.socket?.readyState === WebSocket.OPEN) return Promise.resolve(true);
         if (this.socketFailed && Date.now() - this.socketFailedAt < 3000) return Promise.resolve(false);
         if (this.socketFailed) { this.socketFailed = false; this.socketReady = null; }
@@ -279,7 +283,12 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
     private inputSeqInternal = 0;
 
     private async request(extra: Record<string, any>): Promise<any> {
-        if (this.inflight) return { ok: false, status: 409, message: 'Live-Synchronisation läuft bereits.' };
+        if (this.inflight) {
+            // Polls may share the current response; game moves must never be dropped.
+            if (!extra.state && !extra.input) return this.inflight;
+            await this.inflight;
+            return this.request(extra);
+        }
         if (this.enabled !== true || !this.launchKey || !this.partyId) {
             return this.fail('Live-Synchronisation ist nicht aktiv.');
         }

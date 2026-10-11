@@ -1,4 +1,7 @@
 import { DebugLogService } from '../services/DebugLogService';
+import { attachCmsSpeechHost } from './CmsSpeechHost';
+
+if (typeof window !== 'undefined') (window as any).attachCmsSpeechHost = attachCmsSpeechHost;
 
 /** Bridges the existing CMS SpielURL contract to the editor/player browser host. */
 export function attachCmsGameHost(getRuntime: () => any): () => void {
@@ -6,6 +9,7 @@ export function attachCmsGameHost(getRuntime: () => any): () => void {
     if (document.querySelector('script[src="/cms-shell.js"]')) return () => {};
     let layer: HTMLElement | undefined;
     let frame: HTMLIFrameElement | undefined;
+    let speech: ReturnType<typeof attachCmsSpeechHost> | undefined;
     let request: AbortController | undefined;
     let partyActionButton: HTMLButtonElement | undefined;
     let disposed = false;
@@ -65,6 +69,7 @@ export function attachCmsGameHost(getRuntime: () => any): () => void {
     window.addEventListener('message', onMessage);
     const log = (message: string) => DebugLogService.getInstance().log('System', message, {objectName: 'SpielURL'});
     const close = () => {
+        speech?.dispose(); speech = undefined;
         request?.abort();
         liveSocket?.close();
         liveSocket = undefined;
@@ -172,6 +177,7 @@ export function attachCmsGameHost(getRuntime: () => any): () => void {
             frame.src = url;
             status.remove();
             layer.append(frame);
+            speech = attachCmsSpeechHost(frame, launchKey);
             log('Freigegebenes Spiel im Player geöffnet');
         } catch (error) {
             if (disposed || request !== controller || !layer) return;

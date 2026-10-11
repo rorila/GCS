@@ -17,7 +17,7 @@ const {createLiveSync}=require('./cms-live.cjs');
 const root=path.resolve(__dirname,'../..');
 const {renderCms}=require('./cms-project.cjs');
 const cmsFile=path.join(root,'game-server/public/projects/GCS-CMS.json');
-function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}={}){
+function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-server/data/cms-v1.json'),ttsCacheDirectory=process.env.CMS_TTS_CACHE_DIR}={}){
  if(!fs.existsSync(dataPath)){fs.mkdirSync(path.dirname(dataPath),{recursive:true});fs.copyFileSync(path.join(__dirname,'cms-demo.json'),dataPath,fs.constants.COPYFILE_EXCL);}
  const store=createJsonStore({dataPath}),core=createCore(store.load()),launches=new Map();
  // Produktionshärtung: Diagnose-Schalter dürfen außerhalb lokaler Entwicklung
@@ -41,6 +41,9 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  const playComponent=runtime.find('/api/cms/play/status','POST')?.stage?.objects?.find(o=>o.className==='TServerPlaySession')||{};
  const liveComponent=runtime.find('/api/cms/mp/state','POST')?.stage?.objects?.find(o=>o.className==='TServerLiveSync')||{};
  const live=createLiveSync({core,launches,component:liveComponent});
+ const speech=require('./cms-speech.cjs').createSpeechService({core,launches});
+ const tts=require('./cms-tts.cjs').createTtsService({core,launches,store,cacheDirectory:ttsCacheDirectory});
+ const editorTest=require('./cms-editor-test.cjs').createEditorTestService({cmsFile});
  const sweepIntervalMs=Math.max(5000,Number(playComponent.sweepIntervalMs)||30000);
  const sweepSessions=()=>{try{methods.TServerPlaySession.sweep({session:{personId:'system'},core,commit,play,launches},playComponent,[])}catch(e){console.error('[CMS session-sweep]',e.message)}};
  const cookie=(req,name)=>(req.headers.cookie||'').split('; ').find(s=>s.startsWith(name+'='))?.slice(name.length+1);
@@ -54,6 +57,16 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  const server=http.createServer(async(req,res)=>{
   try{
    const url=new URL(req.url,'http://localhost');if(!/^(localhost|127\.0\.0\.1):\d+$/.test(req.headers.host||'')){res.writeHead(403);return res.end();}res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');
+   if(['/api/cms/speech','/api/cms/speech/status'].includes(url.pathname)){const result=await speech.handle(req);return reply(res,result.status,result.data);}
+   if(url.pathname==='/api/cms/tts'){const result=await tts.handle(req);return reply(res,result.status,result.data);}
+   if(url.pathname==='/api/cms/tts/preferences'){const result=await tts.preferences(req);return reply(res,result.status,result.data);}
+   if(url.pathname==='/api/cms/tts/admin'){const result=await tts.manage(req,admin.readSession(req));return reply(res,result.status,result.data);}
+   if(req.method==='GET'&&url.pathname==='/super/audio'){
+    if(!require('./cms-super.cjs').isSuper(core.db,admin.readSession(req))){res.writeHead(303,{Location:'/super','Cache-Control':'no-store'});return res.end();}
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; object-src 'none'; frame-ancestors 'none'"});
+    return res.end(fs.readFileSync(path.join(__dirname,'cms-audio-admin.html')));
+   }
+
    if(req.method==='GET'&&url.pathname==='/api/cms/health')return reply(res,200,{ok:true,message:'🟢 CMS-Server erreichbar'});
    if(req.method==='GET'&&url.pathname==='/library'){
     res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','no-store');return res.end(admin.readSession(req)?renderCms(cmsFile,'stage_library'):loginPage());
@@ -169,6 +182,13 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
     if(url.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(renderCms(cmsFile,'stage_main'));}
     const file=url.pathname.slice(1);const location=file==='cms-shell.js'?path.join(__dirname,file):path.join(root,'public',file);
     res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript; charset=utf-8':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(fs.readFileSync(location));
+   }
+   // Isolierter Editor-Testkontext (synthetische Daten, nur Loopback): eigene
+   // Route-Familie, die echten Bestand berühren diese Aufrufe niemals.
+   if(url.pathname.startsWith('/api/cms/editor-test/')){
+    const result=await editorTest.handle(req);
+    if(result&&result.html!==undefined){res.writeHead(result.status,{'Content-Type':'text/html; charset=utf-8',...(result.headers||{})});return res.end(result.html);}
+    return reply(res,result.status,result.data);
    }
    if(req.method==='GET'&&url.pathname.startsWith('/play/')){
     // /play/<key> liefert die Spielseite, /play/<key>/<pfad> Mediendateien
@@ -400,10 +420,30 @@ function createServer({dataPath=path.join(root,'game-server/data/cms-v1.json')}=
  }catch(e){console.error('[CMS retention-sweep]',e.message)}};
  const retentionTimer=setInterval(sweepRetention,6*3600e3);retentionTimer.unref?.();
  server.on('close',()=>{clearInterval(sweepTimer);clearInterval(retentionTimer)});sweepSessions();sweepRetention();
- live.attach(server);
- return {server,core,store,launches};
+ live.attach(server,editorTest.upgrade);
+ server.on('close',editorTest.dispose);
+ return {server,core,store,launches,closeLive:()=>{live.close();editorTest.dispose()}};
 }
-if(require.main===module){const {server}=createServer();server.listen(Number(process.env.CMS_PORT||8081),'127.0.0.1',()=>console.log('GCS-CMS: http://localhost:'+(process.env.CMS_PORT||8081)));}
- // Diagnose: beim Start anzeigen, ob die Rollenwahl-Endpunkte in der Runtime sind.
- if(require.main===module){const {loadRuntime:_lr}=require('./cms-runtime.cjs');const _rt=_lr(cmsFile);for(const p of ['/api/cms/admin/roles','/api/cms/admin/role','/api/cms/account-roles','/api/cms/account-role'])console.log('  [Rollenwahl-EP]',p,_rt.find(p,'POST')?'OK':'FEHLT');}
-module.exports={createServer};
+
+async function startCms({port=Number(process.env.CMS_PORT||8081),dataPath,ttsCacheDirectory,manageServices=process.env.CMS_SERVICES_MANAGED!=='1'}={}){
+ const {startLocalServices,portFree}=require('./cms-local-services.cjs');
+ if(!await portFree(port))throw Error('CMS-Port '+port+' ist belegt. Die laufende CMS-Instanz zuerst beenden.');
+ let services,runtime,stopping;const startup=new AbortController();
+ const shutdown=()=>stopping||=(async()=>{
+  process.removeListener('SIGINT',onSignal);process.removeListener('SIGTERM',onSignal);
+  if(runtime){runtime.closeLive();runtime.server.closeAllConnections?.();if(runtime.server.listening)await new Promise(resolve=>runtime.server.close(resolve));}
+  await services?.stop();
+ })();
+ const onSignal=()=>{startup.abort();if(runtime)void shutdown().catch(error=>{console.error('[CMS shutdown]',error.message);process.exitCode=1;});};
+ process.once('SIGINT',onSignal);process.once('SIGTERM',onSignal);
+ try{
+  if(manageServices){services=await startLocalServices({signal:startup.signal});Object.assign(process.env,services.env);}
+  runtime=createServer({dataPath,ttsCacheDirectory});
+  await new Promise((resolve,reject)=>{runtime.server.once('error',reject);runtime.server.listen(port,'127.0.0.1',()=>{runtime.server.removeListener('error',reject);resolve();});});
+  runtime.server.once('close',()=>{void shutdown();});
+  console.log('GCS-CMS: http://localhost:'+runtime.server.address().port);
+  return {...runtime,stop:shutdown};
+ }catch(error){await shutdown();throw error;}
+}
+if(require.main===module)startCms().catch(error=>{console.error('[CMS Start]',error.message);process.exitCode=1;});
+module.exports={createServer,startCms};

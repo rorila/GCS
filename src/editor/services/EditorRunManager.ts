@@ -1,4 +1,5 @@
 import { attachCmsGameHost } from '../../adapters/CmsGameHost';
+import { openEditorCmsTest, closeEditorCmsTest, projectUsesCms } from './EditorCmsTest';
 import { Editor } from '../Editor';
 import { Stage } from '../Stage';
 import { GameRuntime } from '../../runtime/GameRuntime';
@@ -237,6 +238,7 @@ export class EditorRunManager {
         } else {
             this.removeStartButton();
             this.stopRuntime();
+            void closeEditorCmsTest();
             if (this.runStage) {
                 this.runStage.element.remove();
                 this.runStage = null;
@@ -423,6 +425,13 @@ export class EditorRunManager {
 
             btn.onclick = () => {
                 if (!this.isGameStarted) {
+                    // CMS-Projekte brauchen Sitzung + Karteikasten: die Direkt-
+                    // Runtime kann sie nicht ausführen — stattdessen öffnet
+                    // sich der isolierte CMS-Testkontext auf der RunStage.
+                    if (projectUsesCms(this.editor.project)) {
+                        openEditorCmsTest(() => this.editor.project);
+                        return;
+                    }
                     DebugLogService.getInstance().clear();
                     // Erster Klick: Spiel starten
                     this.isGameStarted = true;
@@ -521,6 +530,38 @@ export class EditorRunManager {
             } else {
                 footer.appendChild(restartBtn);
             }
+        }
+
+        // CMS-Testkontext: nur bei Projekten, die CMS_LAUNCH verwenden.
+        let cmsBtn = document.getElementById('run-cms-test-btn');
+        if (projectUsesCms(this.editor.project)) {
+            if (!cmsBtn) {
+                cmsBtn = document.createElement('button');
+                cmsBtn.id = 'run-cms-test-btn';
+                cmsBtn.style.cssText = `
+                    display: block;
+                    width: calc(100% - 24px);
+                    margin: 0 12px 8px 12px;
+                    background: #2a8a7e;
+                    color: #ffd166;
+                    border: none;
+                    padding: 8px;
+                    cursor: pointer;
+                    font-family: 'Segoe UI', sans-serif;
+                    font-size: 12px;
+                    font-weight: bold;
+                    border-radius: 6px;
+                    text-align: center;
+                    letter-spacing: 1px;
+                `;
+                cmsBtn.innerHTML = '🧪 CMS-TESTKONTEXT';
+                cmsBtn.title = 'Im isolierten CMS-Testkontext starten: synthetisches Testkind mit eigenem Karteikasten (keine echten Daten)';
+                cmsBtn.onclick = () => openEditorCmsTest(() => this.editor.project);
+                footer.insertBefore(cmsBtn, restartBtn?.nextSibling ?? null);
+            }
+            cmsBtn.style.display = 'block';
+        } else if (cmsBtn) {
+            cmsBtn.style.display = 'none';
         }
         
         // Reset state

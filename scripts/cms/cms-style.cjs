@@ -15,6 +15,7 @@
 // In Generatoren:    require('./cms-style.cjs').applyCmsTheme(project) vor dem Schreiben.
 
 const fs = require('node:fs'), path = require('node:path');
+const { panelName } = require('./cms-ui-integrity.cjs');
 
 const TOKENS = {
   bg: '#0a151d',            // Body-Hintergrund
@@ -94,6 +95,7 @@ function addChromePanels(stage) {
   }
   const maxRows = stage.grid?.rows || 40;
   const panels = [];
+  const names = new Set(stage.objects.map(o => o.name));
   let prevBottom = 0;
   for (const b of merged) {
     // Padding, aber niemals in das vorherige Panel hineinragen.
@@ -102,7 +104,7 @@ function addChromePanels(stage) {
     if (bottom - y < 1.2) continue;
     prevBottom = y + (bottom - y);
     panels.push({
-      className: 'TPanel', id: uid(), name: 'Panel', scope: 'stage', cmsChrome: true,
+      className: 'TPanel', id: uid(), name: panelName(stage.id, names), scope: 'stage', cmsChrome: true,
       draggable: false, droppable: false, dragMode: 'move', visible: true,
       x: 1, y, width: 62, height: bottom - y,
       zIndex: -1, rotation: 0, align: 'NONE', collisionEnabled: false,

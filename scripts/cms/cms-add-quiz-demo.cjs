@@ -146,6 +146,7 @@ const project = {
 };
 
 // Referenzprüfung
+require('./cms-quiz-speech.cjs').configureSpeechQuiz(project);
 const actionNames = new Set(actions.map(a => a.name));
 const taskNames = new Set(stage.tasks.map(t => t.name));
 let missing = 0;

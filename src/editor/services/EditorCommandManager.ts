@@ -1,3 +1,5 @@
+import { isAutomaticShelfObject } from '../EditorShelfModel';
+import { snapshotManager } from './SnapshotManager';
 import { projectActionRegistry } from '../../services/registry/ActionRegistry';
 import { coreStore } from '../../services/registry/CoreStore';
 import { Editor } from '../Editor';
@@ -50,6 +52,7 @@ export class EditorCommandManager {
         const newObj = this.createObjectInstance(type, name, x, y);
         if (!newObj) return;
 
+        snapshotManager.pushSnapshot(this.editor.project, 'Komponente erstellen');
         // Scoping Rules
         const activeStage = this.editor.getActiveStage();
         const actualBlueprintId = coreStore.project?.stages?.find(s => s.id === 'stage_blueprint' || s.id === 'blueprint' || s.type === 'blueprint')?.id;
@@ -86,7 +89,7 @@ export class EditorCommandManager {
         }
 
         let parentDialog: any = null;
-        for (const dialog of dialogContainers) {
+        for (const dialog of isAutomaticShelfObject(newObj) ? [] : dialogContainers) {
             if (dialog.containsObject && dialog.containsObject(newObj)) {
                 parentDialog = dialog;
                 break;
@@ -120,6 +123,7 @@ export class EditorCommandManager {
 
     public removeObject(idOrIds: string | string[]) {
         const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+        snapshotManager.pushSnapshot(this.editor.project, 'Komponente löschen');
 
         ids.forEach(id => {
             const obj = this.editor.findObjectById(id);
@@ -350,7 +354,7 @@ export class EditorCommandManager {
             const obj = this.editor.findObjectById(id);
             this.editor.stage.selectedObject = obj || null;
             if (this.editor.inspector) this.editor.inspector.update(obj || null);
-            if (focus && obj) this.editor.stage.focusObject(id);
+            if (focus && obj && !isAutomaticShelfObject(obj) && !obj.isManagedInSidepanel) this.editor.stage.focusObject(id);
         } else {
             this.editor.stage.selectedObject = null;
             if (this.editor.inspector) {
@@ -422,6 +426,10 @@ export class EditorCommandManager {
                 }
             }
         }
+
+        // Shelf entries may be global or legacy variables without a canvas representation.
+        const shelfObject = this.editor.getShelfObjects().find(object => object.id === id || object.name === id);
+        if (shelfObject) return shelfObject;
 
         // 2. Fallback: Flow Nodes/Connections (nicht im ObjectStore)
         if (this.editor.flowEditor) {

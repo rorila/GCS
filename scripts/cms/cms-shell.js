@@ -1,5 +1,8 @@
 // Vorschau-Host: Spiel einbetten und zurückkehren. Einwahl/Galerie laufen als GCS-Tasks.
 document.addEventListener('DOMContentLoaded',()=>{
+ if(location.pathname==='/super'){
+  const audioLink=document.createElement('a');audioLink.href='/super/audio';audioLink.textContent='🎧 Stimmen & Audio-Cache';audioLink.style.cssText='position:fixed;right:12px;bottom:12px;z-index:9000;background:#173d4e;color:white;padding:14px;border:2px solid #58bdb2;border-radius:8px;font:18px system-ui';document.body.append(audioLink);
+ }
  const objects=()=>window.player?.runtime?.getObjects()||[],value=name=>objects().find(o=>o.name===name)?.value;
  const layer=document.createElement('section');layer.hidden=true;layer.style.cssText='position:fixed;inset:0;background:#08151b;z-index:10000';
  const back=document.createElement('button');back.textContent='⬅ Schließen';back.setAttribute('aria-label','Spiel schließen');back.style.cssText='height:52px;width:180px;font-size:22px;cursor:pointer';
@@ -8,6 +11,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const status=document.createElement('div');status.hidden=true;status.style.cssText='position:absolute;left:15%;right:15%;top:65px;padding:24px;background:#173d4e;color:white;border:2px solid #58bdb2;border-radius:12px;text-align:center;font:20px system-ui;z-index:2';
  layer.append(back,partyAction,frame,status);document.body.append(layer);
  const key=()=>frame.getAttribute('src')?.match(/^\/play\/([a-f0-9]{48})$/)?.[1];
+ const speech=window.attachCmsSpeechHost?.(frame,key);
  let host=false;
  let liveSocket,liveOpening;const livePending=new Map();
  const liveFail=reason=>{for(const p of livePending.values()){clearTimeout(p.timer);p.reject(reason);}livePending.clear();};
@@ -39,7 +43,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const namesText=items=>items.length>1?items.join(', '):String(items[0]||'');
  const gameText=(state,remaining)=>{const labels={active:'aktiv',paused:'pausiert',disconnected:'getrennt',ended:'beendet'};const rest=Number.isFinite(Number(remaining))?` · noch ${Number(remaining)} Min.`:'';return 'Spiel: '+(labels[state]||state||'unbekannt')+rest;};
  const refreshStatus=async()=>{if(!objects().some(o=>o.name==='CMSServerPruefung')){statusPanel.hidden=true;return;}try{const response=await fetch('/api/cms/contexts',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',credentials:'omit'});setLine(serverLine,response.ok?'Server: verbunden':'Server: nicht erreichbar',response.ok?'ok':'error');}catch{setLine(serverLine,'Server: nicht erreichbar','error');}const launchKey=key();if(!launchKey){setLine(gameLine,'');return;}try{const response=await fetch('/api/cms/play',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({launchKey,action:'status'}),credentials:'omit'});const data=await response.json();setLine(gameLine,data.ok?gameText(data.status,data.remainingMinutes):'Spiel: '+(data.message||'Status unbekannt'),data.ok?(data.status==='active'?'ok':['paused','disconnected'].includes(data.status)?'warn':'error'):'warn');}catch{setLine(gameLine,'Spiel: Status nicht erreichbar','warn');}};
- const hideGame=()=>{const party=objects().find(o=>o.name==='CMSMpPartyId');if(party)party.value='';liveSocket?.close();liveSocket=undefined;liveFail(new Error('Spiel geschlossen'));partyAction.hidden=true;frame.src='about:blank';layer.hidden=true;status.hidden=true;setLine(gameLine,'');setLine(partyLine,'');};
+ const hideGame=()=>{speech?.cancel();const party=objects().find(o=>o.name==='CMSMpPartyId');if(party)party.value='';liveSocket?.close();liveSocket=undefined;liveFail(new Error('Spiel geschlossen'));partyAction.hidden=true;frame.src='about:blank';layer.hidden=true;status.hidden=true;setLine(gameLine,'');setLine(partyLine,'');};
  back.onclick=hideGame;
  partyAction.onclick=async()=>{const launchKey=key(),partyId=value('CMSMpPartyId'),party=objects().find(o=>o.name==='CMSMpPartyId');if(!launchKey||!partyId)return hideGame();try{const r=await fetch('/api/cms/party',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({launchKey,partyId,op:host?'end':'leave'})});const data=await r.json();if(data.ok){if(party)party.value='';hideGame();}else{status.textContent=data.message||'Partie konnte nicht beendet werden.';status.hidden=false;}}catch{status.textContent='Server nicht erreichbar.';status.hidden=false;}};
  addEventListener('message',async event=>{

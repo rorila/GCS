@@ -1,5 +1,5 @@
 /**
- * ObjectStore – Single Source of Truth für alle aktuell sichtbaren Objekte.
+ * ObjectStore – Vollständiger Auswahlbestand einschließlich Komponenten im Regal.
  *
  * Löst das Kernproblem der 4 parallelen Objekt-Listen:
  *   1. stage.lastRenderedObjects

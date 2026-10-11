@@ -12,6 +12,16 @@ export class TDebugLog {
     private typeFilters: Set<LogType> = new Set(['Event', 'Task', 'Action', 'Variable', 'Condition', 'System']);
     private showDetails: boolean = true;
     private serverTraceMode = false;
+    private sourceFilter = '';
+    public showRuntimeLogs() {
+        this.serverTraceMode = false;
+        this.element.style.zIndex = '30001';
+        this.sourceFilter = '';
+        const select = this.element.querySelector<HTMLSelectElement>('#source-filter');
+        if (select) select.value = '';
+        this.setPanelVisible(true);
+        this.renderer.renderLogs(this.service.getLogs());
+    }
     public showServerTraces() {
         this.serverTraceMode = true;
         this.setPanelVisible(true);
@@ -84,6 +94,7 @@ export class TDebugLog {
                 taskFilter: this.taskFilter,
                 actionFilter: this.actionFilter,
                 showDetails: this.showDetails,
+                sourceFilter: this.sourceFilter,
             }),
         });
 
@@ -158,6 +169,7 @@ export class TDebugLog {
                 box-shadow: 0 4px 15px rgba(0,0,0,0.5);
                 transition: all 0.2s;
             `;
+            if (document.getElementById('gcs-multiplayer-test')) btn.style.display = 'none';
             document.body.appendChild(btn);
         }
 
@@ -251,6 +263,14 @@ export class TDebugLog {
         header.append(traceButton);
         header.appendChild(closeBtn);
         this.element.appendChild(header);
+
+        const sourceSelect = document.createElement('select');
+        sourceSelect.id = 'source-filter';
+        sourceSelect.setAttribute('aria-label', 'Logquelle');
+        sourceSelect.style.cssText = 'margin:8px 12px;background:#333;color:white;padding:6px';
+        [['', 'Alle Instanzen'], ['editor', 'Editor'], ['1', 'Spieler 1'], ['2', 'Spieler 2'], ['3', 'Spieler 3'], ['4', 'Spieler 4']].forEach(([value, label]) => sourceSelect.add(new Option(label, value)));
+        sourceSelect.onchange = () => { this.sourceFilter = sourceSelect.value; this.renderer.renderLogs(this.service.getLogs()); };
+        this.element.append(sourceSelect);
 
         // Filters
         this.filterContainer = document.createElement('div');

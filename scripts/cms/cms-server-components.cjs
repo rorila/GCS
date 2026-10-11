@@ -1486,7 +1486,9 @@ const methods={
    ctx.commit(s,'card-answer',card.childId,next=>{
     const c=next.flashcards.find(x=>x.id===cardId);
     c.box=correct?Math.min(c.box+1,6):1;
-    c.lastReviewedAt=new Date().toISOString();
+    let reviewedAt=Date.now();
+    for(const other of next.flashcards)if(other.childId===c.childId&&other.active&&other.box===c.box){const time=Date.parse(other.lastReviewedAt||other.createdAt);if(Number.isFinite(time))reviewedAt=Math.max(reviewedAt,time+1);}
+    c.lastReviewedAt=new Date(reviewedAt).toISOString();
    });
    const cur=db.flashcards.find(x=>x.id===cardId);
    return{ok:true,box:cur.box,mastered:cur.box===6,message:cur.box===6?'Gelernt — Karte wandert in die Ablage.':correct?'Richtig — Fach '+cur.box:'Falsch — zurück auf Fach 1'};

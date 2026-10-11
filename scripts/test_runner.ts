@@ -625,6 +625,24 @@ async function main() {
             }
         });
 
+        await timer.measure('Spracheingabe und Karteikasten-Quiz', () => {
+            try {
+                const output = execSync(`"${process.execPath}" --import tsx --test tests/speech_quiz.test.ts tests/speech_quiz_flow.test.ts tests/speech_transport.test.ts tests/quiz_tts_transport.test.ts tests/editor_cms_test.test.ts`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'Spracheingabe, Quizablauf und Transportgrenzen', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.match(/# tests (\d+)/)?.[1] + ' Einzeltests bestanden' });
+            } catch (error: any) {
+                allResults.push({ name: 'Spracheingabe, Quizablauf und Transportgrenzen', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
+        await timer.measure('CMS UI-Integritaet', () => {
+            try {
+                const output = execSync(`"${process.execPath}" --test scripts/test-cms-ui-integrity.cjs`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'CMS UI-Integritaet und Generator-Wiederholung', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.match(/# tests (\d+)/)?.[1] + ' Einzeltests bestanden' });
+            } catch (error: any) {
+                allResults.push({ name: 'CMS UI-Integritaet und Generator-Wiederholung', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
         // 🌐 Browser E2E Tests (Playwright)
         // Die Server startet Playwright selbst ueber webServer in playwright.config.ts
         // (Vite 5173 + Game-Server 8080); ein Vorab-Portcheck ist nicht noetig.

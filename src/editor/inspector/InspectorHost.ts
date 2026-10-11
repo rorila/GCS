@@ -250,7 +250,7 @@ export class InspectorHost implements IInspectorContext {
     }
 
     public getSelectedObject(): any {
-        return this.runtime.getVariable('selectedObject');
+        return this.selectedObject;
     }
 
     public setFlowContext(_nodes: any[] | null): void {

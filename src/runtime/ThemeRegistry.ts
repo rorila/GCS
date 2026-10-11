@@ -750,7 +750,7 @@ export class ThemeRegistry {
             }
             const urls: string[] = await response.json();
             if (!Array.isArray(urls)) return;
-            const base = indexUrl.substring(0, indexUrl.lastIndexOf('/') + 1);
+            const base = new URL(indexUrl, document.baseURI).href;
             for (const relativeUrl of urls) {
                 const resolved = relativeUrl.startsWith('http') ? relativeUrl : new URL(relativeUrl, base).href;
                 await this.loadThemeFromUrl(resolved);

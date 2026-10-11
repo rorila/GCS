@@ -1,6 +1,6 @@
 /** Gemeinsame Maskierung vor Speicherung im Debug-Log. Keine Zugangsdaten im Export. */
 // Immer maskiert: echte Zugangsdaten. devKey nur bei VITE_CMS_TRACE_MASK=on (Default).
-export const debugSecretKey=/(password|passwort|secret|authorization|cookie|token|ticket|api.?key|credential|^salt$|^hash$)/i;
+export const debugSecretKey=/(password|passwort|launchKey|CMS_LAUNCH|secret|authorization|cookie|token|ticket|api.?key|credential|^salt$|^hash$)/i;
 const devKey=/(sequence|authcode|^code\d*$)/i;
 const traceMaskOn=String(((import.meta as any).env||{}).VITE_CMS_TRACE_MASK||'on').toLowerCase()!=='off';
 export function isSensitiveKey(key:string):boolean{return debugSecretKey.test(key)||(traceMaskOn&&devKey.test(key));}
@@ -13,7 +13,7 @@ export function redactDebug(value:any,depth=0,state={seen:new WeakSet<object>(),
  if(depth>8)return '[Tiefe begrenzt]';
  if(typeof value==='string'){
   try{if(value.length<16384&&/^[\[{]/.test(value.trim()))return redactDebug(JSON.parse(value),depth+1,state);}catch{}
-  return maskText(value).replace(/([?&](?:token|ticket|password|secret|code|key)=)[^&#\s]*/gi,'$1[maskiert]').slice(0,8192);
+  return maskText(value).replace(/([?&](?:token|ticket|password|secret|code|key|launchKey)=)[^&#\s]*/gi,'$1[maskiert]').slice(0,8192);
  }
  if(Array.isArray(value))return value.slice(0,100).map(v=>redactDebug(v,depth+1,state));
  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).slice(0,100).map(([key,item])=>{if(isSensitiveKey(key)||(key==='value'&&isSensitiveKey(String(value.name||value.variableName||'')))){remember(item);return [key,'[maskiert]'];}return [key,redactDebug(item,depth+1,state)];}));

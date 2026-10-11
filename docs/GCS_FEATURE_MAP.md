@@ -37,6 +37,13 @@ Die Gliedeurng folgt den im `UseCaseManager` definierten Kern-Kategorien.
 - **Spezial UI:** `TImage`, `TShape`, `TTable`, `TStatusBar`, `TToast`, `TVideo`, `TPlaybackControls`
 - **Kern-Dateien:** `src/components/*.ts`
 
+### Spracheingabe (TSpeechRecognition)
+- **Beschreibung:** Wiederverwendbare Service-Komponente fuer kurze gesprochene Antworten. `prepare/start/stop/cancel`, Ergebnisse ueber `onResult`, Stille und Fehler separat. Aufnahme erfolgt nach expliziter Hostfreigabe ausserhalb der Upload-Sandbox; ein eigener lokaler Whisper-Dienst liefert Text. Keine Cloud-Ausweichloesung und keine dauerhafte Speicherung der Aufnahme durch die CMS-Anbindung.
+- **Kern-Dateien:** `src/components/TSpeechRecognition.ts`, `src/ports/ISpeechRecognitionAdapter.ts`, `src/adapters/BrowserSpeechRecognitionAdapter.ts`, `src/adapters/CmsSpeechHost.ts`, `src/adapters/SpeechAudioCapture.ts`, `scripts/cms/cms-speech.cjs`.
+- **Zahlantworten:** `src/utils/SpokenNumber.ts` normalisiert deutsche Zahlen; reine Ausdrucksfunktion `checkNumberAnswer(eingabe, antworten)` liefert `{valid, correct, solution}`. Zahlwort-Ganzzahlen bis 999999, negative Zahlen und einfache Dezimalzahlen; keine freie Bedeutungsinterpretation. Unklare Eingaben werden nicht als falsch gebucht.
+- **Beispiel:** `Karteikasten-Quiz.json`: manueller Start, Sprache oder explizit Tastatur, automatische Folgekarte; falsche Antwort zeigt zwei Sekunden die Loesung und wandert hinten in Fach 1. Nur richtig beantwortete Karten werden fuer die restliche Runde ausgeschlossen. Self-Karten behalten ihren Aufdeckmodus.
+- **Pruefung:** `node --import tsx --test tests/speech_quiz.test.ts tests/speech_quiz_flow.test.ts tests/speech_transport.test.ts`; Leitner-Wiedervorlage in `scripts/test-cms-cards.cjs`. Echte Tablet-/Kinderstimmen-Qualitaet separat pruefen.
+
 ### Bildaufteiler (TImageSplitter)
 - **Beschreibung:** Bilddatei im Inspector wählen, Zeilen und Spalten konfigurieren und die rechteckigen Ausschnitte direkt auf der Stage sehen. Seitenverhältnis bleibt erhalten; Trennlinien und Vorschau-Abstand sind einstellbar. Erst „Teile erzeugen“ schreibt Ausschnitt-Datensätze mit Matchwerten in eine ausgewählte `TObjectList`. Keine Puzzle-Spiellogik und keine Änderung der Quelldatei.
 - **Kern-Dateien:** `src/components/TImageSplitter.ts`, `src/utils/ImageSplitterModel.ts`, `src/editor/services/renderers/ImageSplitterRenderer.ts`, `src/editor/inspector/ImageSplitterActions.ts`
@@ -212,3 +219,6 @@ Hausübersicht (stage_super_house) zeigt nur die Admins des Hauses; „+ Admin h
 
 ## CMS: Sitzungsschutz der Verwaltungsanmeldung (24.09.2026)
 stage_admin_login ohne Bereichsnavigation; Sitzung_Pruefen erkennt eine bestehende Verwaltungssitzung („Angemeldet als …" mit Weiter/Abmelden). Verwaltungsseiten (stage_admin, stage_house, stage_super*, stage_library) starten mit Zugang_Pruefen und leiten ohne Sitzung zur Anmeldung. Server: jeder Anmeldeversuch beendet vorherige Verwaltungs- und Kontositzungen und löscht die Cookies bei Fehlschlag. Test: test-cms-login-session.cjs.
+
+### Quiz-Sprachausgabe
+`TTextToSpeech`, `CmsSpeechAudioAdapter`, `CmsTtsHost` und `scripts/cms/cms-tts.cjs` binden Piper mit MP3-Cache in den CMS-Spielhost ein. `cms-quiz-tts.cjs` erhält die deklarativen Quiz-Tasks auch bei erneuter Generierung. Mikrofon und Lösungsanzeige warten auf das Audio-Ende.

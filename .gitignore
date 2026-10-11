@@ -71,7 +71,7 @@ scratch.js
 # Private lokale Trainingsdaten und Modelladapter
 game-server/private-training/
 
-# Private lokale CMS-Daten und Verwaltungszugänge
+# Private lokale CMS-Daten und VerwaltungszugÃ¤nge
 /game-server/data/cms-admin-auth.json
 /game-server/data/CMS-VERWALTUNGSZUGANG.txt
 /game-server/data/cms-v1.json
@@ -103,3 +103,15 @@ projects/master_test/
 game-server/public/projects/* - Kopie.json
 game-server/public/projects/MyCoolGame.json
 game-server/public/projects/project.json
+
+# Lokaler Spracherkennungsdienst (Binaerdateien/Modelle)
+tools/speech-service/
+
+game-server/data/tts-cache/
+
+# Projektlokale Sprachlaufzeit und Dienststatus
+/game-server/tts/.venv/
+/game-server/tts/voices/
+/game-server/tts/run/
+/game-server/data/tts-editor-cache/
+/.codex-work/

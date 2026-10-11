@@ -1,4 +1,5 @@
 import { createTrainingRouter } from './TrainingRouter';
+import { createSpeechRouter } from './tts/SpeechRouter';
 import { WebSocketServer } from 'ws';
 import express from 'express';
 import cors from 'cors';
@@ -35,6 +36,7 @@ const HOST = process.env.GCS_HOST || '127.0.0.1';
 // ─────────────────────────────────────────────
 const app = express();
 app.use(cors());
+app.use('/api/tts', express.json({ limit: '4kb' }), createSpeechRouter(path.resolve(process.env.TTS_CACHE_DIR || path.resolve(__dirname, '../data/tts-editor-cache'))));
 app.use(express.json({ limit: '50mb' }));
 app.use('/api/training', createTrainingRouter(path.resolve(__dirname, '../..')));
 

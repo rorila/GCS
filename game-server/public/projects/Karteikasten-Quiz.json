@@ -1,1236 +1,2992 @@
 {
- "meta": {
-  "name": "Karteikasten-Quiz",
-  "description": "Eigenständiges Muster-Quiz: zieht Karten aus dem persönlichen Karteikasten des angemeldeten Kindes (Leitner 1–5, Ablage 6). KartenFach/KartenThema = Art der Karten; leer = alles. Zum Kopieren in eigene Spiele oder als Overlay-Stage gedacht.",
-  "generatedBy": "cms-add-quiz-demo.cjs",
-  "generatedAt": "2026-10-09T17:10:08.962Z"
- },
- "activeStageId": "stage_quiz",
- "schemaVersion": 3,
- "flow": {},
- "stages": [
-  {
-   "id": "stage_quiz",
-   "type": "standard",
-   "name": "Karteikasten-Quiz",
-   "grid": {
-    "cols": 64,
-    "rows": 40,
-    "cellSize": 18,
-    "visible": false,
-    "snapToGrid": true,
-    "backgroundColor": "#122b39"
-   },
-   "objects": [
+  "meta": {
+    "name": "Karteikasten-Quiz",
+    "description": "Karteikasten-Quiz mit serverseitigem Vorlesen, lokaler Spracheingabe oder Tastatur. Mikrofon erst nach der Frage; falsche Lösungen mindestens zwei Sekunden und bis zum Ende der Ansage.",
+    "generatedBy": "cms-add-quiz-demo.cjs",
+    "generatedAt": "2026-10-09T17:10:08.962Z",
+    "_sourcePath": "projects/Karteikasten-Quiz.json"
+  },
+  "activeStageId": "stage_quiz",
+  "schemaVersion": "4.0.0",
+  "flow": {},
+  "stages": [
     {
-     "className": "TLabel",
-     "id": "q_lbl-f5f93d72-b809-4d59-8506-530486109fbf",
-     "name": "Titel",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "KARTEIKASTEN-QUIZ",
-     "visible": true,
-     "x": 4,
-     "y": 2,
-     "width": 56,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {
-      "color": "#edf7f4",
-      "fontSize": 30,
-      "textAlign": "center",
-      "backgroundColor": "transparent",
-      "borderColor": "transparent",
-      "borderWidth": 0
-     }
-    },
-    {
-     "className": "TLabel",
-     "id": "q_lbl-e5fd3c2e-ef65-4298-9161-1e4e76b17e62",
-     "name": "FachLabel",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "",
-     "visible": true,
-     "x": 4,
-     "y": 5,
-     "width": 56,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {
-      "color": "#edf7f4",
-      "fontSize": 16,
-      "textAlign": "center",
-      "backgroundColor": "transparent",
-      "borderColor": "transparent",
-      "borderWidth": 0
-     }
-    },
-    {
-     "className": "TLabel",
-     "id": "q_lbl-5489ecd3-ff09-4862-bfd1-c7260ad58632",
-     "name": "ZaehlerLabel",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "Richtig: 0 · Falsch: 0",
-     "visible": true,
-     "x": 4,
-     "y": 7,
-     "width": 56,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {
-      "color": "#edf7f4",
-      "fontSize": 14,
-      "textAlign": "center",
-      "backgroundColor": "transparent",
-      "borderColor": "transparent",
-      "borderWidth": 0
-     }
-    },
-    {
-     "className": "TLabel",
-     "id": "q_lbl-0a20f535-5d93-41c3-83cd-d27973831681",
-     "name": "FrageLabel",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "",
-     "visible": true,
-     "x": 8,
-     "y": 11,
-     "width": 48,
-     "height": 6,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {
-      "color": "#edf7f4",
-      "fontSize": 24,
-      "textAlign": "center",
-      "backgroundColor": "transparent",
-      "borderColor": "transparent",
-      "borderWidth": 0
-     }
-    },
-    {
-     "className": "TLabel",
-     "id": "q_lbl-a46b024f-d522-483a-bf60-9b4930664514",
-     "name": "LoesungLabel",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "",
-     "visible": true,
-     "x": 8,
-     "y": 17,
-     "width": 48,
-     "height": 4,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {
-      "color": "#edf7f4",
-      "fontSize": 18,
-      "textAlign": "center",
-      "backgroundColor": "transparent",
-      "borderColor": "transparent",
-      "borderWidth": 0
-     }
-    },
-    {
-     "className": "TEdit",
-     "id": "q_edit-467cabc9-1005-4ab6-8dc0-1a0c19470dfa",
-     "name": "AntwortEdit",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "",
-     "visible": false,
-     "x": 12,
-     "y": 22,
-     "width": 24,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "placeholder": "Deine Antwort …"
-    },
-    {
-     "className": "TButton",
-     "id": "q_btn-e66d6e3a-1f6c-4548-99d2-5429357eba4f",
-     "name": "AntwortZeigen",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "👁 Antwort zeigen",
-     "icon": "",
-     "visible": false,
-     "x": 40,
-     "y": 22,
-     "width": 16,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "events": {
-      "onClick": "Antwort_Zeigen"
-     }
-    },
-    {
-     "className": "TButton",
-     "id": "q_btn-e8e2e827-ae84-4d9b-ae77-a48e4bbf4540",
-     "name": "Pruefen",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "✔ Prüfen",
-     "icon": "",
-     "visible": false,
-     "x": 12,
-     "y": 26,
-     "width": 12,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "events": {
-      "onClick": "Antwort_Pruefen"
-     }
-    },
-    {
-     "className": "TButton",
-     "id": "q_btn-9f557e0a-9322-4c97-84e0-f169096018f5",
-     "name": "Richtig",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "👍 Richtig",
-     "icon": "",
-     "visible": false,
-     "x": 26,
-     "y": 26,
-     "width": 12,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "events": {
-      "onClick": "Selbst_Richtig"
-     }
-    },
-    {
-     "className": "TButton",
-     "id": "q_btn-2b7dfbb3-70c7-4e64-bb3a-fca7d4f685f5",
-     "name": "FalschSelbst",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "👎 Falsch",
-     "icon": "",
-     "visible": false,
-     "x": 40,
-     "y": 26,
-     "width": 12,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "events": {
-      "onClick": "Selbst_Falsch"
-     }
-    },
-    {
-     "className": "TButton",
-     "id": "q_btn-78fc489f-a42e-4481-949e-836952c7af2b",
-     "name": "Naechste",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "➡ Nächste Karte",
-     "icon": "",
-     "visible": false,
-     "x": 26,
-     "y": 31,
-     "width": 16,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "events": {
-      "onClick": "Karte_Ziehen"
-     }
-    },
-    {
-     "className": "TButton",
-     "id": "q_btn-1f95ae76-e702-47d8-8341-7053708a0012",
-     "name": "Beenden",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "🏁 Beenden",
-     "icon": "",
-     "visible": true,
-     "x": 8,
-     "y": 36,
-     "width": 14,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "events": {
-      "onClick": "Quiz_Beenden"
-     }
-    },
-    {
-     "className": "TLabel",
-     "id": "q_lbl-70f4ee31-7d68-4a6a-8ea6-96980cf31e5c",
-     "name": "StatusLabel",
-     "scope": "stage",
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "text": "",
-     "visible": true,
-     "x": 8,
-     "y": 33,
-     "width": 48,
-     "height": 3,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {
-      "color": "#edf7f4",
-      "fontSize": 18,
-      "textAlign": "center",
-      "backgroundColor": "transparent",
-      "borderColor": "transparent",
-      "borderWidth": 0
-     }
-    },
-    {
-     "className": "TTimer",
-     "id": "q_timer-c6a07717-0c1a-4977-af96-d6209e53c3d4",
-     "name": "QuizInit",
-     "scope": "stage",
-     "isService": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "visible": true,
-     "x": 1,
-     "y": 1,
-     "width": 4,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "interval": 400,
-     "enabled": true,
-     "maxInterval": 1,
-     "currentInterval": 0,
-     "events": {
-      "onTimer": "Quiz_Start"
-     }
-    }
-   ],
-   "variables": [
-    {
-     "className": "TStringVariable",
-     "id": "q_var-5d4a7fe4-d8ef-4160-9bf7-86bf31cce287",
-     "name": "CMS_LAUNCH",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "string",
-     "defaultValue": "",
-     "value": "",
-     "objectModel": ""
-    },
-    {
-     "className": "TStringVariable",
-     "id": "q_var-92f95fb4-8b5a-4263-8625-c777607ebeb1",
-     "name": "KartenFach",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "string",
-     "defaultValue": "Mathe",
-     "value": "Mathe",
-     "objectModel": ""
-    },
-    {
-     "className": "TStringVariable",
-     "id": "q_var-ca3e3742-72a8-4998-a849-bdd1023989e8",
-     "name": "KartenThema",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "string",
-     "defaultValue": "",
-     "value": "",
-     "objectModel": ""
-    },
-    {
-     "className": "TStringVariable",
-     "id": "q_var-4a0b26f9-11de-497d-a317-f61e58a5f477",
-     "name": "GezogeneIds",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "string",
-     "defaultValue": "",
-     "value": "",
-     "objectModel": ""
-    },
-    {
-     "className": "TObjectVariable",
-     "id": "q_var-1303cfbc-07aa-41a0-8c11-c13201cee7a3",
-     "name": "AktuelleKarte",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "object",
-     "defaultValue": null,
-     "value": null,
-     "objectModel": ""
-    },
-    {
-     "className": "TObjectVariable",
-     "id": "q_var-28e91f79-de78-4b58-bed5-f701d17578f7",
-     "name": "KartenAntwort",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "object",
-     "defaultValue": null,
-     "value": null,
-     "objectModel": ""
-    },
-    {
-     "className": "TObjectVariable",
-     "id": "q_var-5816104b-37b1-4a03-a218-350e2cbdb2cc",
-     "name": "BewertungAntwort",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "object",
-     "defaultValue": null,
-     "value": null,
-     "objectModel": ""
-    },
-    {
-     "className": "TObjectVariable",
-     "id": "q_var-401a2c43-018f-439e-95ce-cb6053370e24",
-     "name": "EndeAntwort",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "object",
-     "defaultValue": null,
-     "value": null,
-     "objectModel": ""
-    },
-    {
-     "className": "TIntegerVariable",
-     "id": "q_var-d2ac0a55-e056-4a06-8ba0-0022a05b6bb8",
-     "name": "Richtig",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "integer",
-     "defaultValue": 0,
-     "value": 0,
-     "objectModel": ""
-    },
-    {
-     "className": "TIntegerVariable",
-     "id": "q_var-96f59ec8-9672-4246-b2fe-c66fcc1ed398",
-     "name": "Falsch",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "integer",
-     "defaultValue": 0,
-     "value": 0,
-     "objectModel": ""
-    },
-    {
-     "className": "TIntegerVariable",
-     "id": "q_var-14209cbf-3602-43b8-b62a-e57b2dcb9bbe",
-     "name": "Busy",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "integer",
-     "defaultValue": 0,
-     "value": 0,
-     "objectModel": ""
-    },
-    {
-     "className": "TStringVariable",
-     "id": "q_var-97c63633-1b1b-48fa-b622-459c1fe27c7f",
-     "name": "AktuelleAntwort",
-     "scope": "stage",
-     "isVariable": true,
-     "isHiddenInRun": true,
-     "draggable": false,
-     "droppable": false,
-     "dragMode": "move",
-     "description": "",
-     "visible": true,
-     "x": 0,
-     "y": 0,
-     "width": 6,
-     "height": 2,
-     "zIndex": 0,
-     "rotation": 0,
-     "align": "NONE",
-     "collisionEnabled": false,
-     "style": {},
-     "type": "string",
-     "defaultValue": "",
-     "value": "",
-     "objectModel": ""
-    }
-   ],
-   "tasks": [
-    {
-     "id": "q_task-3f219049-e62c-4426-a537-44036b49c26e",
-     "name": "Quiz_Start",
-     "description": "Erstladung: erste Karte aus dem Karteikasten ordern",
-     "actionSequence": [
-      {
-       "type": "task",
-       "name": "Karte_Ziehen"
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
-    },
-    {
-     "id": "q_task-d2d85ebd-cff3-486e-8842-e957fedd01c9",
-     "name": "Karte_Ziehen",
-     "description": "Server ordert die nächste Karte: Fach aufsteigend, je Fach älteste zuerst",
-     "actionSequence": [
-      {
-       "type": "condition",
-       "name": "Runde läuft?",
-       "condition": {
-        "variable": "Busy",
-        "operator": "==",
-        "value": 0
-       },
-       "body": [
+      "id": "stage_quiz",
+      "type": "standard",
+      "name": "Karteikasten-Quiz",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "visible": false,
+        "snapToGrid": true,
+        "backgroundColor": "#122b39"
+      },
+      "objects": [
         {
-         "type": "action",
-         "name": "Act_Ziehen_Start"
+          "className": "TLabel",
+          "id": "q_lbl-f5f93d72-b809-4d59-8506-530486109fbf",
+          "name": "Titel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 1,
+          "width": 56,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 30,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "KARTEIKASTEN-QUIZ"
         },
         {
-         "type": "action",
-         "name": "Act_Karte_Server"
+          "className": "TLabel",
+          "id": "q_lbl-e5fd3c2e-ef65-4298-9161-1e4e76b17e62",
+          "name": "FachLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 5,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 16,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
         },
         {
-         "type": "condition",
-         "name": "Server antwortet?",
-         "condition": {
-          "variable": "KartenAntwort.ok",
-          "operator": "!=",
-          "value": true
-         },
-         "body": [
-          {
-           "type": "action",
-           "name": "Act_ZiehFehler"
-          }
-         ],
-         "elseBody": [
-          {
-           "type": "condition",
-           "name": "Karte gefunden?",
-           "condition": {
-            "variable": "KartenAntwort.card",
-            "operator": "truthy",
-            "value": true
-           },
-           "body": [
+          "className": "TLabel",
+          "id": "q_lbl-5489ecd3-ff09-4862-bfd1-c7260ad58632",
+          "name": "ZaehlerLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 6,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 14,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Richtig: 0 · Falsch: 0"
+        },
+        {
+          "className": "TLabel",
+          "id": "q_lbl-0a20f535-5d93-41c3-83cd-d27973831681",
+          "name": "FrageLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 8,
+          "width": 48,
+          "height": 6,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 24,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "q_lbl-a46b024f-d522-483a-bf60-9b4930664514",
+          "name": "LoesungLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 14,
+          "width": 48,
+          "height": 4,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 18,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TEdit",
+          "id": "q_edit-467cabc9-1005-4ab6-8dc0-1a0c19470dfa",
+          "name": "AntwortEdit",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 10,
+          "y": 19,
+          "width": 24,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#cccccc",
+            "borderWidth": 1
+          },
+          "text": "",
+          "inputType": "text",
+          "autocomplete": "off",
+          "placeholder": "Deine Antwort …",
+          "maxLength": 100
+        },
+        {
+          "className": "TButton",
+          "id": "q_btn-e66d6e3a-1f6c-4548-99d2-5429357eba4f",
+          "name": "AntwortZeigen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Antwort_Zeigen"
+          },
+          "visible": false,
+          "x": 39,
+          "y": 19,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "👁 Antwort zeigen",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "q_btn-e8e2e827-ae84-4d9b-ae77-a48e4bbf4540",
+          "name": "Pruefen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Antwort_Pruefen"
+          },
+          "visible": false,
+          "x": 11,
+          "y": 23,
+          "width": 12,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "✔ Prüfen",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "q_btn-9f557e0a-9322-4c97-84e0-f169096018f5",
+          "name": "RichtigSelbst",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Selbst_Richtig"
+          },
+          "visible": false,
+          "x": 25,
+          "y": 23,
+          "width": 12,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "👍 Richtig",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "q_btn-2b7dfbb3-70c7-4e64-bb3a-fca7d4f685f5",
+          "name": "FalschSelbst",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Selbst_Falsch"
+          },
+          "visible": false,
+          "x": 39,
+          "y": 23,
+          "width": 12,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "👎 Falsch",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "q_btn-78fc489f-a42e-4481-949e-836952c7af2b",
+          "name": "Naechste",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Laden_Wiederholen"
+          },
+          "visible": false,
+          "x": 23,
+          "y": 35,
+          "width": 16,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Erneut laden",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "q_btn-1f95ae76-e702-47d8-8341-7053708a0012",
+          "name": "Beenden",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Quiz_Beenden"
+          },
+          "visible": true,
+          "x": 8,
+          "y": 35,
+          "width": 14,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "🏁 Beenden",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "q_lbl-70f4ee31-7d68-4a6a-8ea6-96980cf31e5c",
+          "name": "StatusLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 30,
+          "width": 48,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 18,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Klicke auf Start und gib das Mikrofon frei."
+        },
+        {
+          "className": "TTimer",
+          "id": "q_timer-c6a07717-0c1a-4977-af96-d6209e53c3d4",
+          "name": "QuizInit",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "Quiz_Start"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 5,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 400,
+          "enabled": false,
+          "maxInterval": 1,
+          "currentInterval": 0
+        },
+        {
+          "className": "TSpeechRecognition",
+          "id": "quiz_speech_Spracheingabe",
+          "name": "Spracheingabe",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onReady": "Sprache_Bereit",
+            "onResult": "Sprachantwort_Pruefen",
+            "onNoSpeech": "Antwort_Unverstanden",
+            "onError": "Sprachfehler"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 3,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "language": "de-DE",
+          "maxDurationMs": 12000,
+          "silenceMs": 1000,
+          "prompt": "Mögliche Antworten sind Zahlen: eins zwei drei vier fünf sechs sieben acht neun zehn elf zwölf dreizehn vierzehn fünfzehn sechzehn siebzehn achtzehn neunzehn zwanzig dreißig vierzig fünfzig sechzig siebzig achtzig neunzig hundert."
+        },
+        {
+          "className": "TTimer",
+          "id": "quiz_speech_LoesungsTimer",
+          "name": "LoesungsTimer",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "Loesungszeit_Vorbei"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 2000,
+          "enabled": false,
+          "maxInterval": 1,
+          "currentInterval": 0
+        },
+        {
+          "className": "TButton",
+          "id": "quiz_speech_Start",
+          "name": "Start",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Quiz_Start"
+          },
+          "visible": true,
+          "x": 21,
+          "y": 19,
+          "width": 20,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Start",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "quiz_speech_Tastatur",
+          "name": "Tastatur",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Tastatur_Waehlen"
+          },
+          "visible": true,
+          "x": 40,
+          "y": 35,
+          "width": 20,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Tastatur verwenden",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "quiz_speech_Wiederholen",
+          "name": "Wiederholen",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "Sprache_Wiederholen"
+          },
+          "visible": false,
+          "x": 21,
+          "y": 24,
+          "width": 20,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Noch einmal sprechen",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "quiz_tts_SprachStatus",
+          "name": "SprachStatus",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 32,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 14,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "quiz_answer_SpielerAntwortLabel",
+          "name": "SpielerAntwortLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 27,
+          "width": 48,
+          "height": 3,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 18,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        }
+      ],
+      "variables": [
+        {
+          "className": "TStringVariable",
+          "id": "q_var-5d4a7fe4-d8ef-4160-9bf7-86bf31cce287",
+          "name": "CMS_LAUNCH",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 14,
+          "y": 7,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "q_var-92f95fb4-8b5a-4263-8625-c777607ebeb1",
+          "name": "KartenFach",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 8,
+          "y": 7,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "Mathe",
+          "value": "Mathe",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "q_var-ca3e3742-72a8-4998-a849-bdd1023989e8",
+          "name": "KartenThema",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 14,
+          "y": 5,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "q_var-4a0b26f9-11de-497d-a317-f61e58a5f477",
+          "name": "GezogeneIds",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 8,
+          "y": 5,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "q_var-1303cfbc-07aa-41a0-8c11-c13201cee7a3",
+          "name": "AktuelleKarte",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 14,
+          "y": 3,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "q_var-28e91f79-de78-4b58-bed5-f701d17578f7",
+          "name": "KartenAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 8,
+          "y": 3,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "q_var-5816104b-37b1-4a03-a218-350e2cbdb2cc",
+          "name": "BewertungAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 14,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "q_var-401a2c43-018f-439e-95ce-cb6053370e24",
+          "name": "EndeAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 8,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "q_var-d2ac0a55-e056-4a06-8ba0-0022a05b6bb8",
+          "name": "Richtig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 32,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "q_var-96f59ec8-9672-4246-b2fe-c66fcc1ed398",
+          "name": "Falsch",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 30,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "q_var-14209cbf-3602-43b8-b62a-e57b2dcb9bbe",
+          "name": "Busy",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 28,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "q_var-97c63633-1b1b-48fa-b622-459c1fe27c7f",
+          "name": "AktuelleAntwort",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 26,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "quiz_speech_Phase",
+          "name": "Phase",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 24,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "idle",
+          "value": "idle",
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "quiz_speech_EingabeModus",
+          "name": "EingabeModus",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 22,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "speech",
+          "value": "speech",
+          "objectModel": ""
+        },
+        {
+          "className": "TObjectVariable",
+          "id": "quiz_speech_AntwortPruefung",
+          "name": "AntwortPruefung",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 20,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "object",
+          "objectModel": "",
+          "defaultValue": null,
+          "value": null
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "quiz_speech_FeedbackFertig",
+          "name": "FeedbackFertig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 18,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "quiz_speech_BuchungFertig",
+          "name": "BuchungFertig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 16,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        },
+        {
+          "className": "TStringVariable",
+          "id": "quiz_tts_AnsageArt",
+          "name": "AnsageArt",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 14,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "",
+          "objectModel": ""
+        },
+        {
+          "className": "TBooleanVariable",
+          "id": "quiz_tts_SprachFeedbackFertig",
+          "name": "SprachFeedbackFertig",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "",
+          "visible": true,
+          "x": 1,
+          "y": 12,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "tasks": [
+        {
+          "id": "q_task-3f219049-e62c-4426-a537-44036b49c26e",
+          "name": "Quiz_Start",
+          "description": "Erstladung: erste Karte aus dem Karteikasten ordern",
+          "actionSequence": [
             {
-             "type": "action",
-             "name": "Act_Karte_Objekt"
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "in",
+                "value": [
+                  "idle",
+                  "speech-error"
+                ]
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Start_Sprache"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Sprache_Vorbereiten"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "q_task-d2d85ebd-cff3-486e-8842-e957fedd01c9",
+          "name": "Karte_Ziehen",
+          "description": "Server ordert die nächste Karte: Fach aufsteigend, je Fach älteste zuerst",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "next"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Ansage_Stop"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Sprache_Abbrechen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Ziehen_Start"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Karte_Server"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "Phase",
+                    "operator": "==",
+                    "value": "loading"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "KartenAntwort.ok",
+                        "operator": "==",
+                        "value": true
+                      },
+                      "body": [
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "variable": "KartenAntwort.card",
+                            "operator": "truthy",
+                            "value": true
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_Karte_Objekt"
+                            },
+                            {
+                              "type": "action",
+                              "name": "Act_Karte_Uebernehmen"
+                            },
+                            {
+                              "type": "task",
+                              "name": "Eingabe_Bereit"
+                            }
+                          ],
+                          "elseBody": [
+                            {
+                              "type": "action",
+                              "name": "Act_QuizEnde"
+                            },
+                            {
+                              "type": "task",
+                              "name": "Quiz_Beenden"
+                            }
+                          ]
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "action",
+                          "name": "Act_ZiehFehler"
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "q_task-04c9692f-052e-4db0-ae4f-d5470adaae31",
+          "name": "Antwort_Pruefen",
+          "description": "Texteingabe gegen answers-Array prüfen (case-sensitiv; Varianten einzeln hinterlegen)",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Texteingabe"
+                },
+                {
+                  "type": "task",
+                  "name": "Antwort_Auswerten"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "q_task-129928b9-b855-4968-8ab2-d222e59a3fa2",
+          "name": "Antwort_Zeigen",
+          "description": "Selbstbewertung: Lösung aufdecken, Richtig/Falsch-Buttons",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Texteingabe"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Antwort_Anzeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Loesung_Anzeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_SelbstLoesung_Vorlesen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_SelbstLoesung_Sprechen"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "q_task-4d1b5660-cd59-416c-b236-907b92265140",
+          "name": "Selbst_Richtig",
+          "description": "Selbst_Richtig",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "Bewerten_Richtig"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "q_task-fdfd3636-e77a-4b1b-aa3b-7f4e3da248c1",
+          "name": "Selbst_Falsch",
+          "description": "Selbst_Falsch",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "Bewerten_Falsch"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "q_task-9a46d363-8762-41fb-8faf-d3c14a73d953",
+          "name": "Bewerten_Richtig",
+          "description": "Richtig: Lernfach +1 (Fach 5 → Ablage 6), Karte in Rundenliste",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Ansage_Stop"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Sprache_Abbrechen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_BewertenR_Start"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_BewertungR_Server"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "Phase",
+                    "operator": "==",
+                    "value": "saving"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "BewertungAntwort.ok",
+                        "operator": "==",
+                        "value": true
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_Richtig_Plus"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_BewertetR"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_Naechste_Bereit"
+                        },
+                        {
+                          "type": "task",
+                          "name": "Karte_Ziehen"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "task",
+                          "name": "Buchungsfehler"
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "q_task-8504fe50-4518-44c9-b59d-2899f07cbf2a",
+          "name": "Bewerten_Falsch",
+          "description": "Falsch: zurück auf Lernfach 1, Karte in Rundenliste",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Ansage_Stop"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Sprache_Abbrechen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_BewertenF_Start"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Loesung_Vorlesen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Loesung_Sprechen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_BewertungF_Server"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "Phase",
+                    "operator": "==",
+                    "value": "feedback"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "BewertungAntwort.ok",
+                        "operator": "==",
+                        "value": true
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "Act_Falsch_Plus"
+                        },
+                        {
+                          "type": "action",
+                          "name": "Act_BewertetF"
+                        },
+                        {
+                          "type": "task",
+                          "name": "Weiter_Nach_Feedback"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "task",
+                          "name": "Buchungsfehler"
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "q_task-19ed4f23-3bdf-49da-8c37-15be8d379c10",
+          "name": "Quiz_Beenden",
+          "description": "Spielsitzung sauber beenden (Zeitbuchung abschließen)",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "!=",
+                "value": "ended"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Ansage_Stop"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Quiz_Stop"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Sprache_Abbrechen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Sitzung_Ende"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "EndeAntwort.ok",
+                    "operator": "!=",
+                    "value": true
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Ende_Fehler"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "scope": "stage"
+        },
+        {
+          "id": "quiz_speech_Sprache_Bereit",
+          "name": "Sprache_Bereit",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "preparing"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "AktuelleKarte",
+                    "operator": "truthy",
+                    "value": true
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Sprache_Fortsetzen"
+                    },
+                    {
+                      "type": "task",
+                      "name": "Eingabe_Bereit"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Act_Naechste_Bereit"
+                    },
+                    {
+                      "type": "task",
+                      "name": "Karte_Ziehen"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Tastatur_Waehlen",
+          "name": "Tastatur_Waehlen",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "in",
+                "value": [
+                  "idle",
+                  "preparing",
+                  "answering",
+                  "speech-error",
+                  "reading"
+                ]
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Ansage_Stop"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Sprache_Abbrechen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Tastatur_Waehlen"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "AktuelleKarte",
+                    "operator": "truthy",
+                    "value": true
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Tastatur_Fortsetzen"
+                    },
+                    {
+                      "type": "task",
+                      "name": "Eingabe_Bereit"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Act_Naechste_Bereit"
+                    },
+                    {
+                      "type": "task",
+                      "name": "Karte_Ziehen"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Laden_Wiederholen",
+          "name": "Laden_Wiederholen",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "load-error"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Naechste_Bereit"
+                },
+                {
+                  "type": "task",
+                  "name": "Karte_Ziehen"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Eingabe_Bereit",
+          "name": "Eingabe_Bereit",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Ansage_Stop"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Sprache_Abbrechen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Frage_Vorlesen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Frage_Sprechen"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Sprachantwort_Pruefen",
+          "name": "Sprachantwort_Pruefen",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "EingabeModus",
+                    "operator": "==",
+                    "value": "speech"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Sprachantwort"
+                    },
+                    {
+                      "type": "task",
+                      "name": "Antwort_Auswerten"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Antwort_Auswerten",
+          "name": "Antwort_Auswerten",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Antwort_Anzeigen"
+                },
+                {
+                  "type": "action",
+                  "name": "Act_Zahlantwort_Pruefen"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "AntwortPruefung.valid",
+                    "operator": "==",
+                    "value": true
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "AntwortPruefung.correct",
+                        "operator": "==",
+                        "value": true
+                      },
+                      "body": [
+                        {
+                          "type": "task",
+                          "name": "Bewerten_Richtig"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "type": "task",
+                          "name": "Bewerten_Falsch"
+                        }
+                      ]
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "task",
+                      "name": "Antwort_Unverstanden"
+                    }
+                  ]
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Antwort_Unverstanden",
+          "name": "Antwort_Unverstanden",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Unverstanden"
+                },
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "EingabeModus",
+                    "operator": "==",
+                    "value": "speech"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Wiederholen_Sichtbar"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Sprachfehler",
+          "name": "Sprachfehler",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "in",
+                "value": [
+                  "preparing",
+                  "answering"
+                ]
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Sprachfehler"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Sprache_Wiederholen",
+          "name": "Sprache_Wiederholen",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "answering"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "EingabeModus",
+                    "operator": "==",
+                    "value": "speech"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Erneut_Hoeren"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Sprache_Hoeren"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Loesungszeit_Vorbei",
+          "name": "Loesungszeit_Vorbei",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "Phase",
+                "operator": "==",
+                "value": "feedback"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_Feedback_Ende"
+                },
+                {
+                  "type": "task",
+                  "name": "Weiter_Nach_Feedback"
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Weiter_Nach_Feedback",
+          "name": "Weiter_Nach_Feedback",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "SprachFeedbackFertig",
+                "operator": "==",
+                "value": true
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "Phase",
+                    "operator": "==",
+                    "value": "feedback"
+                  },
+                  "body": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "FeedbackFertig",
+                        "operator": "==",
+                        "value": true
+                      },
+                      "body": [
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "variable": "BuchungFertig",
+                            "operator": "==",
+                            "value": true
+                          },
+                          "body": [
+                            {
+                              "type": "action",
+                              "name": "Act_Naechste_Bereit"
+                            },
+                            {
+                              "type": "task",
+                              "name": "Karte_Ziehen"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_speech_Buchungsfehler",
+          "name": "Buchungsfehler",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Buchungsfehler"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_tts_AntwortEingabe_Bereit",
+          "name": "AntwortEingabe_Bereit",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Eingabe_Zuruecksetzen"
             },
             {
-             "type": "action",
-             "name": "Act_Karte_Uebernehmen"
+              "type": "condition",
+              "condition": {
+                "variable": "AktuelleKarte.answerFormat",
+                "operator": "==",
+                "value": "self"
+              },
+              "body": [
+                {
+                  "type": "action",
+                  "name": "Act_SelfBereit"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "EingabeModus",
+                    "operator": "==",
+                    "value": "speech"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Sprechbereit"
+                    },
+                    {
+                      "type": "action",
+                      "name": "Act_Sprache_Hoeren"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "action",
+                      "name": "Act_TextBereit"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_tts_Ansage_Ende",
+          "name": "Ansage_Ende",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "AnsageArt",
+                "operator": "==",
+                "value": "question"
+              },
+              "body": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "Phase",
+                    "operator": "==",
+                    "value": "reading"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Frage_Gelesen"
+                    },
+                    {
+                      "type": "task",
+                      "name": "AntwortEingabe_Bereit"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "AnsageArt",
+                    "operator": "==",
+                    "value": "solution"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "Act_Loesung_Gelesen"
+                    },
+                    {
+                      "type": "task",
+                      "name": "Weiter_Nach_Feedback"
+                    }
+                  ],
+                  "elseBody": []
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        },
+        {
+          "id": "quiz_tts_Ansage_Fehler",
+          "name": "Ansage_Fehler",
+          "scope": "stage",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Act_Ansage_Fehler"
             },
             {
-             "type": "condition",
-             "name": "Eingabe-Format?",
-             "condition": {
-              "variable": "KartenAntwort.card.answerFormat",
-              "operator": "==",
-              "value": "text"
-             },
-             "body": [
-              {
-               "type": "action",
-               "name": "Act_TextBereit"
-              }
-             ],
-             "elseBody": [
-              {
-               "type": "action",
-               "name": "Act_SelfBereit"
-              }
-             ]
+              "type": "task",
+              "name": "Ansage_Ende"
             }
-           ],
-           "elseBody": [
-            {
-             "type": "action",
-             "name": "Act_QuizEnde"
-            }
-           ]
+          ],
+          "triggerMode": "local-sync",
+          "params": []
+        }
+      ],
+      "actions": [
+        {
+          "id": "q_act-939b082d-cc71-4256-a6c2-84c569d6ace0",
+          "name": "Act_Ziehen_Start",
+          "type": "property",
+          "changes": {
+            "Start.visible": false,
+            "Pruefen.visible": false,
+            "AntwortEdit.visible": false,
+            "AntwortZeigen.visible": false,
+            "RichtigSelbst.visible": false,
+            "FalschSelbst.visible": false,
+            "Naechste.visible": false,
+            "Wiederholen.visible": false,
+            "Phase": "loading",
+            "Busy": 1,
+            "StatusLabel.text": "Aufgabe wird geladen.",
+            "LoesungLabel.text": "",
+            "AntwortEdit.text": "",
+            "AktuelleAntwort": "",
+            "LoesungsTimer.enabled": false
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-39233c18-a56b-4493-afa5-a196060c20d8",
+          "name": "Act_Karte_Server",
+          "type": "http",
+          "url": "/api/cms/play",
+          "method": "POST",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardNext\",\"subject\":\"${KartenFach}\",\"topic\":\"${KartenThema}\",\"formats\":[\"text\",\"self\"],\"excludeIds\":\"${GezogeneIds}\"}",
+          "resultVariable": "KartenAntwort",
+          "scope": "stage",
+          "queryOperator": "==",
+          "resultVariable_ref": "q_var-28e91f79-de78-4b58-bed5-f701d17578f7"
+        },
+        {
+          "id": "q_act-3c5debdf-e5d4-4271-b14f-1460319fe777",
+          "name": "Act_ZiehFehler",
+          "type": "property",
+          "changes": {
+            "Phase": "load-error",
+            "Busy": 0,
+            "StatusLabel.text": "${KartenAntwort.message}",
+            "Naechste.visible": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-3fafb879-d115-4634-ba0c-af1356cff25f",
+          "name": "Act_Karte_Objekt",
+          "type": "variable",
+          "source": "KartenAntwort",
+          "sourceProperty": "card",
+          "variableName": "AktuelleKarte",
+          "scope": "stage",
+          "variableName_ref": "q_var-1303cfbc-07aa-41a0-8c11-c13201cee7a3",
+          "source_ref": "q_var-28e91f79-de78-4b58-bed5-f701d17578f7"
+        },
+        {
+          "id": "q_act-e76b6c1b-b02a-4281-be43-696982335c81",
+          "name": "Act_Karte_Uebernehmen",
+          "type": "property",
+          "changes": {
+            "FrageLabel.text": "${KartenAntwort.card.question}",
+            "FachLabel.text": "${KartenAntwort.card.subject} · ${KartenAntwort.card.topic} · Fach ${KartenAntwort.card.box}",
+            "Busy": 0,
+            "Phase": "answering"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-072700c5-f13e-422f-9903-34de39382890",
+          "name": "Act_TextBereit",
+          "type": "property",
+          "changes": {
+            "AntwortEdit.visible": true,
+            "Pruefen.visible": true,
+            "StatusLabel.text": "Antwort eingeben und prüfen."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-461ee078-691a-4361-95a1-7d213a4a5585",
+          "name": "Act_SelfBereit",
+          "type": "property",
+          "changes": {
+            "AntwortZeigen.visible": true,
+            "StatusLabel.text": "Antwort eingeben, dann Lösung aufdecken und selbst bewerten.",
+            "AntwortEdit.visible": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-bc0131ee-17d3-42ca-8001-1625e9d813ef",
+          "name": "Act_QuizEnde",
+          "type": "property",
+          "changes": {
+            "Phase": "complete",
+            "FrageLabel.text": "Fertig!",
+            "StatusLabel.text": "Alle Karten dieser Runde richtig beantwortet.",
+            "FachLabel.text": ""
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-64377ff1-3fde-427a-ad15-60f6a89e14a3",
+          "name": "Act_Loesung_Anzeigen",
+          "type": "property",
+          "changes": {
+            "LoesungLabel.text": "${AktuelleKarte.answers}",
+            "RichtigSelbst.visible": true,
+            "FalschSelbst.visible": true,
+            "AntwortZeigen.visible": false
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-73c421a1-788e-4ffa-a1c7-7a8ff2c4370e",
+          "name": "Act_BewertenR_Start",
+          "type": "property",
+          "changes": {
+            "Start.visible": false,
+            "Pruefen.visible": false,
+            "AntwortEdit.visible": false,
+            "AntwortZeigen.visible": false,
+            "RichtigSelbst.visible": false,
+            "FalschSelbst.visible": false,
+            "Naechste.visible": false,
+            "Wiederholen.visible": false,
+            "Phase": "saving",
+            "Busy": 1,
+            "StatusLabel.text": "Richtig. Lernstand wird gespeichert."
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-19247639-86d3-4dca-88b3-cc7bd71d6ebc",
+          "name": "Act_BewertungR_Server",
+          "type": "http",
+          "url": "/api/cms/play",
+          "method": "POST",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":true}",
+          "resultVariable": "BewertungAntwort",
+          "scope": "stage",
+          "queryOperator": "==",
+          "resultVariable_ref": "q_var-5816104b-37b1-4a03-a218-350e2cbdb2cc"
+        },
+        {
+          "id": "q_act-d1d5248c-f832-4f63-90c0-48f43f5b505e",
+          "name": "Act_Richtig_Plus",
+          "type": "calculate",
+          "formula": "Richtig + 1",
+          "resultVariable": "Richtig",
+          "scope": "stage",
+          "resultVariable_ref": "q_var-d2ac0a55-e056-4a06-8ba0-0022a05b6bb8"
+        },
+        {
+          "id": "q_act-f97e4c75-1f0c-47da-84fd-b268941a32e6",
+          "name": "Act_BewertetR",
+          "type": "property",
+          "changes": {
+            "GezogeneIds": "${GezogeneIds}${AktuelleKarte.id},",
+            "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-b26eed71-a554-4c14-b730-492509d521c7",
+          "name": "Act_BuchFehler",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "StatusLabel.text": "${BewertungAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-395a321e-4eeb-4268-91fd-0cdaf4c2830a",
+          "name": "Act_BewertenF_Start",
+          "type": "property",
+          "changes": {
+            "Start.visible": false,
+            "Pruefen.visible": false,
+            "AntwortEdit.visible": false,
+            "AntwortZeigen.visible": false,
+            "RichtigSelbst.visible": false,
+            "FalschSelbst.visible": false,
+            "Naechste.visible": false,
+            "Wiederholen.visible": false,
+            "Phase": "feedback",
+            "Busy": 1,
+            "FeedbackFertig": false,
+            "BuchungFertig": false,
+            "LoesungLabel.text": "Richtige Antwort: ${AktuelleKarte.answers}",
+            "StatusLabel.text": "Die Karte kommt hinten in Fach 1.",
+            "LoesungsTimer.currentInterval": 0,
+            "LoesungsTimer.enabled": true
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-2c72601e-a920-46af-89ca-216774314571",
+          "name": "Act_BewertungF_Server",
+          "type": "http",
+          "url": "/api/cms/play",
+          "method": "POST",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":false}",
+          "resultVariable": "BewertungAntwort",
+          "scope": "stage",
+          "queryOperator": "==",
+          "resultVariable_ref": "q_var-5816104b-37b1-4a03-a218-350e2cbdb2cc"
+        },
+        {
+          "id": "q_act-947e5b37-8069-4d1a-a09c-a924f42a8e19",
+          "name": "Act_Falsch_Plus",
+          "type": "calculate",
+          "formula": "Falsch + 1",
+          "resultVariable": "Falsch",
+          "scope": "stage",
+          "resultVariable_ref": "q_var-96f59ec8-9672-4246-b2fe-c66fcc1ed398"
+        },
+        {
+          "id": "q_act-be507a2e-7195-46e4-afee-5817e97299a7",
+          "name": "Act_BewertetF",
+          "type": "property",
+          "changes": {
+            "BuchungFertig": true,
+            "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-a0032ee3-4b47-433a-bb42-e83c4577357f",
+          "name": "Act_BuchFehlerF",
+          "type": "property",
+          "changes": {
+            "Busy": 0,
+            "StatusLabel.text": "${BewertungAntwort.message}"
+          },
+          "scope": "stage"
+        },
+        {
+          "id": "q_act-d68b0cf5-0e8a-406c-8efd-7ba16d2ff674",
+          "name": "Act_Sitzung_Ende",
+          "type": "http",
+          "url": "/api/cms/play",
+          "method": "POST",
+          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"end\"}",
+          "resultVariable": "EndeAntwort",
+          "scope": "stage",
+          "queryOperator": "==",
+          "resultVariable_ref": "q_var-401a2c43-018f-439e-95ce-cb6053370e24"
+        },
+        {
+          "id": "quiz_speech_Act_Sprachantwort",
+          "name": "Act_Sprachantwort",
+          "scope": "stage",
+          "type": "variable",
+          "source": "Spracheingabe",
+          "sourceProperty": "transcript",
+          "variableName": "AktuelleAntwort",
+          "variableName_ref": "q_var-97c63633-1b1b-48fa-b622-459c1fe27c7f",
+          "source_ref": "quiz_speech_Spracheingabe"
+        },
+        {
+          "id": "quiz_speech_Act_Sprache_Abbrechen",
+          "name": "Act_Sprache_Abbrechen",
+          "scope": "stage",
+          "type": "call_method",
+          "target": "Spracheingabe",
+          "method": "cancel",
+          "params": [],
+          "target_ref": "quiz_speech_Spracheingabe"
+        },
+        {
+          "id": "quiz_speech_Act_Sprache_Hoeren",
+          "name": "Act_Sprache_Hoeren",
+          "scope": "stage",
+          "type": "call_method",
+          "target": "Spracheingabe",
+          "method": "start",
+          "params": [],
+          "target_ref": "quiz_speech_Spracheingabe"
+        },
+        {
+          "id": "quiz_speech_Act_Sprache_Vorbereiten",
+          "name": "Act_Sprache_Vorbereiten",
+          "scope": "stage",
+          "type": "call_method",
+          "target": "Spracheingabe",
+          "method": "prepare",
+          "params": [
+            "${CMS_LAUNCH}"
+          ],
+          "target_ref": "quiz_speech_Spracheingabe"
+        },
+        {
+          "id": "quiz_speech_Act_Naechste_Bereit",
+          "name": "Act_Naechste_Bereit",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Phase": "next",
+            "Busy": 0
           }
-         ]
-        }
-       ]
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
-    },
-    {
-     "id": "q_task-04c9692f-052e-4db0-ae4f-d5470adaae31",
-     "name": "Antwort_Pruefen",
-     "description": "Texteingabe gegen answers-Array prüfen (case-sensitiv; Varianten einzeln hinterlegen)",
-     "actionSequence": [
-      {
-       "type": "condition",
-       "name": "Antwort akzeptiert?",
-       "condition": {
-        "variable": "AntwortEdit.text",
-        "operator": "in",
-        "value": "${AktuelleKarte.answers}"
-       },
-       "body": [
-        {
-         "type": "task",
-         "name": "Bewerten_Richtig"
-        }
-       ],
-       "elseBody": [
-        {
-         "type": "task",
-         "name": "Bewerten_Falsch"
-        }
-       ]
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
-    },
-    {
-     "id": "q_task-129928b9-b855-4968-8ab2-d222e59a3fa2",
-     "name": "Antwort_Zeigen",
-     "description": "Selbstbewertung: Lösung aufdecken, Richtig/Falsch-Buttons",
-     "actionSequence": [
-      {
-       "type": "action",
-       "name": "Act_Loesung_Anzeigen"
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
-    },
-    {
-     "id": "q_task-4d1b5660-cd59-416c-b236-907b92265140",
-     "name": "Selbst_Richtig",
-     "description": "Selbst_Richtig",
-     "actionSequence": [
-      {
-       "type": "task",
-       "name": "Bewerten_Richtig"
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
-    },
-    {
-     "id": "q_task-fdfd3636-e77a-4b1b-aa3b-7f4e3da248c1",
-     "name": "Selbst_Falsch",
-     "description": "Selbst_Falsch",
-     "actionSequence": [
-      {
-       "type": "task",
-       "name": "Bewerten_Falsch"
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
-    },
-    {
-     "id": "q_task-9a46d363-8762-41fb-8faf-d3c14a73d953",
-     "name": "Bewerten_Richtig",
-     "description": "Richtig: Lernfach +1 (Fach 5 → Ablage 6), Karte in Rundenliste",
-     "actionSequence": [
-      {
-       "type": "action",
-       "name": "Act_BewertenR_Start"
-      },
-      {
-       "type": "action",
-       "name": "Act_BewertungR_Server"
-      },
-      {
-       "type": "condition",
-       "name": "Gebucht?",
-       "condition": {
-        "variable": "BewertungAntwort.ok",
-        "operator": "==",
-        "value": true
-       },
-       "body": [
-        {
-         "type": "action",
-         "name": "Act_Richtig_Plus"
         },
         {
-         "type": "action",
-         "name": "Act_BewertetR"
-        }
-       ],
-       "elseBody": [
-        {
-         "type": "action",
-         "name": "Act_BuchFehler"
-        }
-       ]
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
-    },
-    {
-     "id": "q_task-8504fe50-4518-44c9-b59d-2899f07cbf2a",
-     "name": "Bewerten_Falsch",
-     "description": "Falsch: zurück auf Lernfach 1, Karte in Rundenliste",
-     "actionSequence": [
-      {
-       "type": "action",
-       "name": "Act_BewertenF_Start"
-      },
-      {
-       "type": "action",
-       "name": "Act_BewertungF_Server"
-      },
-      {
-       "type": "condition",
-       "name": "Gebucht?",
-       "condition": {
-        "variable": "BewertungAntwort.ok",
-        "operator": "==",
-        "value": true
-       },
-       "body": [
-        {
-         "type": "action",
-         "name": "Act_Falsch_Plus"
+          "id": "quiz_speech_Act_Start_Sprache",
+          "name": "Act_Start_Sprache",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Phase": "preparing",
+            "EingabeModus": "speech",
+            "Start.visible": false,
+            "StatusLabel.text": "Mikrofon im Spielhost freigeben."
+          }
         },
         {
-         "type": "action",
-         "name": "Act_BewertetF"
-        }
-       ],
-       "elseBody": [
+          "id": "quiz_speech_Act_Sprache_Fortsetzen",
+          "name": "Act_Sprache_Fortsetzen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Phase": "answering"
+          }
+        },
         {
-         "type": "action",
-         "name": "Act_BuchFehlerF"
+          "id": "quiz_speech_Act_Tastatur_Waehlen",
+          "name": "Act_Tastatur_Waehlen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "EingabeModus": "keyboard",
+            "Start.visible": false
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Tastatur_Fortsetzen",
+          "name": "Act_Tastatur_Fortsetzen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Phase": "answering"
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Eingabe_Zuruecksetzen",
+          "name": "Act_Eingabe_Zuruecksetzen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Start.visible": false,
+            "Pruefen.visible": false,
+            "AntwortEdit.visible": false,
+            "AntwortZeigen.visible": false,
+            "RichtigSelbst.visible": false,
+            "FalschSelbst.visible": false,
+            "Naechste.visible": false,
+            "Wiederholen.visible": false,
+            "StatusLabel.text": "",
+            "AntwortEdit.text": ""
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Sprechbereit",
+          "name": "Act_Sprechbereit",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Bitte antworte laut."
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Texteingabe",
+          "name": "Act_Texteingabe",
+          "scope": "stage",
+          "type": "variable",
+          "source": "AntwortEdit",
+          "sourceProperty": "text",
+          "variableName": "AktuelleAntwort",
+          "variableName_ref": "q_var-97c63633-1b1b-48fa-b622-459c1fe27c7f",
+          "source_ref": "q_edit-467cabc9-1005-4ab6-8dc0-1a0c19470dfa"
+        },
+        {
+          "id": "quiz_speech_Act_Zahlantwort_Pruefen",
+          "name": "Act_Zahlantwort_Pruefen",
+          "scope": "stage",
+          "type": "calculate",
+          "formula": "checkNumberAnswer(AktuelleAntwort, AktuelleKarte.value.answers)",
+          "resultVariable": "AntwortPruefung",
+          "resultVariable_ref": "quiz_speech_AntwortPruefung"
+        },
+        {
+          "id": "quiz_speech_Act_Unverstanden",
+          "name": "Act_Unverstanden",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Keine eindeutige Zahl verstanden. Bitte auf „Noch einmal sprechen“ klicken.",
+            "Wiederholen.visible": false
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Sprachfehler",
+          "name": "Act_Sprachfehler",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Phase": "speech-error",
+            "StatusLabel.text": "${Spracheingabe.errorMessage}",
+            "Start.visible": true,
+            "Wiederholen.visible": false
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Erneut_Hoeren",
+          "name": "Act_Erneut_Hoeren",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Wiederholen.visible": false,
+            "StatusLabel.text": "Bitte antworte laut."
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Feedback_Ende",
+          "name": "Act_Feedback_Ende",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "FeedbackFertig": true,
+            "LoesungsTimer.enabled": false
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Buchungsfehler",
+          "name": "Act_Buchungsfehler",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Phase": "save-error",
+            "LoesungsTimer.enabled": false,
+            "StatusLabel.text": "Lernstand konnte nicht sicher gespeichert werden. Bitte Spiel beenden und Verbindung prüfen."
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Quiz_Stop",
+          "name": "Act_Quiz_Stop",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Start.visible": false,
+            "Pruefen.visible": false,
+            "AntwortEdit.visible": false,
+            "AntwortZeigen.visible": false,
+            "RichtigSelbst.visible": false,
+            "FalschSelbst.visible": false,
+            "Naechste.visible": false,
+            "Wiederholen.visible": false,
+            "Phase": "ended",
+            "Busy": 1,
+            "LoesungsTimer.enabled": false,
+            "Tastatur.visible": false,
+            "StatusLabel.text": "Spiel beendet. Richtig: ${Richtig} · Falsch: ${Falsch}"
+          }
+        },
+        {
+          "id": "quiz_speech_Act_Ende_Fehler",
+          "name": "Act_Ende_Fehler",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "StatusLabel.text": "Sitzungsende nicht bestätigt. Bitte über den Spielhost schließen."
+          }
+        },
+        {
+          "id": "quiz_tts_Act_Ansage_Stop",
+          "name": "Act_Ansage_Stop",
+          "scope": "stage",
+          "type": "call_method",
+          "target": "SprachAusgabe",
+          "method": "stop",
+          "params": [],
+          "target_ref": "quiz_tts_SprachAusgabe"
+        },
+        {
+          "id": "quiz_tts_Act_Frage_Vorlesen",
+          "name": "Act_Frage_Vorlesen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Phase": "reading",
+            "AnsageArt": "question",
+            "SprachStatus.text": "",
+            "StatusLabel.text": "Die Frage wird vorgelesen.",
+            "AntwortEdit.visible": false,
+            "Pruefen.visible": false,
+            "AntwortZeigen.visible": false,
+            "Wiederholen.visible": false
+          }
+        },
+        {
+          "id": "quiz_tts_Act_Frage_Sprechen",
+          "name": "Act_Frage_Sprechen",
+          "scope": "stage",
+          "type": "call_method",
+          "target": "SprachAusgabe",
+          "method": "speak",
+          "params": [
+            "${AktuelleKarte.question}"
+          ],
+          "target_ref": "quiz_tts_SprachAusgabe"
+        },
+        {
+          "id": "quiz_tts_Act_Frage_Gelesen",
+          "name": "Act_Frage_Gelesen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Phase": "answering",
+            "AnsageArt": ""
+          }
+        },
+        {
+          "id": "quiz_tts_Act_Loesung_Gelesen",
+          "name": "Act_Loesung_Gelesen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "AnsageArt": "",
+            "SprachFeedbackFertig": true
+          }
+        },
+        {
+          "id": "quiz_tts_Act_Ansage_Fehler",
+          "name": "Act_Ansage_Fehler",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "SprachStatus.text": "Sprachausgabe nicht verfügbar. Bitte den Text lesen."
+          }
+        },
+        {
+          "id": "quiz_tts_Act_Loesung_Vorlesen",
+          "name": "Act_Loesung_Vorlesen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "AnsageArt": "solution",
+            "SprachFeedbackFertig": false
+          }
+        },
+        {
+          "id": "quiz_tts_Act_Loesung_Sprechen",
+          "name": "Act_Loesung_Sprechen",
+          "scope": "stage",
+          "type": "call_method",
+          "target": "SprachAusgabe",
+          "method": "speak",
+          "params": [
+            "Die richtige Antwort ist ${AktuelleKarte.answers.0}."
+          ],
+          "target_ref": "quiz_tts_SprachAusgabe"
+        },
+        {
+          "id": "quiz_tts_Act_SelbstLoesung_Vorlesen",
+          "name": "Act_SelbstLoesung_Vorlesen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "AnsageArt": "self"
+          }
+        },
+        {
+          "id": "quiz_tts_Act_SelbstLoesung_Sprechen",
+          "name": "Act_SelbstLoesung_Sprechen",
+          "scope": "stage",
+          "type": "call_method",
+          "target": "SprachAusgabe",
+          "method": "speak",
+          "params": [
+            "Die Antwort ist ${AktuelleKarte.answers.0}."
+          ],
+          "target_ref": "quiz_tts_SprachAusgabe"
+        },
+        {
+          "id": "quiz_speech_Act_Wiederholen_Sichtbar",
+          "name": "Act_Wiederholen_Sichtbar",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "Wiederholen.visible": true
+          }
+        },
+        {
+          "id": "quiz_answer_Act_Antwort_Anzeigen",
+          "name": "Act_Antwort_Anzeigen",
+          "scope": "stage",
+          "type": "property",
+          "changes": {
+            "SpielerAntwortLabel.text": "Deine letzte Antwort: ${AktuelleAntwort}"
+          }
         }
-       ]
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
+      ],
+      "events": {},
+      "features": [
+        {
+          "id": "quiz-karteikasten",
+          "name": "Karteikasten-Quiz",
+          "description": "Muster: Karteikasten andocken (KartenFach/KartenThema), cardNext-Loop, Leitner-Buchung. Als Overlay-Blaupause für andere Spiele gedacht.",
+          "tags": [
+            "Karteikasten",
+            "Quiz",
+            "Muster"
+          ],
+          "userStoryIds": [],
+          "blueprintTaskNames": [
+            "Quiz_Start",
+            "Karte_Ziehen",
+            "Antwort_Pruefen",
+            "Bewerten_Richtig",
+            "Bewerten_Falsch"
+          ]
+        }
+      ],
+      "flowCharts": {}
     },
     {
-     "id": "q_task-19ed4f23-3bdf-49da-8c37-15be8d379c10",
-     "name": "Quiz_Beenden",
-     "description": "Spielsitzung sauber beenden (Zeitbuchung abschließen)",
-     "actionSequence": [
-      {
-       "type": "action",
-       "name": "Act_Sitzung_Ende"
-      }
-     ],
-     "triggerMode": "local-sync",
-     "params": [],
-     "scope": "stage"
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18
+      },
+      "objects": [
+        {
+          "className": "TTextToSpeech",
+          "id": "quiz_tts_SprachAusgabe",
+          "name": "SprachAusgabe",
+          "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onEnded": "Ansage_Ende",
+            "onError": "Ansage_Fehler"
+          },
+          "visible": true,
+          "x": 1,
+          "y": 5,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "backgroundColor": "#7e57c2",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "endpoint": "/api/tts",
+          "text": "",
+          "voice": "default",
+          "volume": 1,
+          "active": true
+        }
+      ],
+      "variables": [
+        {
+          "className": "TBooleanVariable",
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "description": "System internal flag to track unsaved changes",
+          "visible": true,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "flowCharts": {}
     }
-   ],
-   "actions": [
-    {
-     "id": "q_act-939b082d-cc71-4256-a6c2-84c569d6ace0",
-     "name": "Act_Ziehen_Start",
-     "type": "property",
-     "changes": {
-      "Busy": 1,
-      "StatusLabel.text": "Karte wird geladen …",
-      "LoesungLabel.text": "",
-      "Naechste.visible": false,
-      "Pruefen.visible": false,
-      "Richtig.visible": false,
-      "FalschSelbst.visible": false,
-      "AntwortZeigen.visible": false,
-      "AntwortEdit.visible": false,
-      "AntwortEdit.text": ""
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-39233c18-a56b-4493-afa5-a196060c20d8",
-     "name": "Act_Karte_Server",
-     "type": "http",
-     "url": "/api/cms/play",
-     "method": "POST",
-     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardNext\",\"subject\":\"${KartenFach}\",\"topic\":\"${KartenThema}\",\"formats\":[\"text\",\"self\"],\"excludeIds\":\"${GezogeneIds}\"}",
-     "resultVariable": "KartenAntwort",
-     "scope": "stage",
-     "queryOperator": "=="
-    },
-    {
-     "id": "q_act-3c5debdf-e5d4-4271-b14f-1460319fe777",
-     "name": "Act_ZiehFehler",
-     "type": "property",
-     "changes": {
-      "Busy": 0,
-      "FrageLabel.text": "⚠️ Verbindungsproblem",
-      "StatusLabel.text": "${KartenAntwort.message}",
-      "FachLabel.text": ""
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-3fafb879-d115-4634-ba0c-af1356cff25f",
-     "name": "Act_Karte_Objekt",
-     "type": "variable",
-     "source": "KartenAntwort",
-     "sourceProperty": "card",
-     "variableName": "AktuelleKarte",
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-e76b6c1b-b02a-4281-be43-696982335c81",
-     "name": "Act_Karte_Uebernehmen",
-     "type": "property",
-     "changes": {
-      "FrageLabel.text": "${KartenAntwort.card.question}",
-      "FachLabel.text": "${KartenAntwort.card.subject} · ${KartenAntwort.card.topic} · Fach ${KartenAntwort.card.box}",
-      "Busy": 0
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-072700c5-f13e-422f-9903-34de39382890",
-     "name": "Act_TextBereit",
-     "type": "property",
-     "changes": {
-      "AntwortEdit.visible": true,
-      "Pruefen.visible": true,
-      "AntwortEdit.text": ""
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-461ee078-691a-4361-95a1-7d213a4a5585",
-     "name": "Act_SelfBereit",
-     "type": "property",
-     "changes": {
-      "AntwortZeigen.visible": true
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-bc0131ee-17d3-42ca-8001-1625e9d813ef",
-     "name": "Act_QuizEnde",
-     "type": "property",
-     "changes": {
-      "Busy": 0,
-      "FrageLabel.text": "🎉 Fertig!",
-      "StatusLabel.text": "Keine passenden Karten mehr — Richtig: ${Richtig} · Falsch: ${Falsch}",
-      "FachLabel.text": ""
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-64377ff1-3fde-427a-ad15-60f6a89e14a3",
-     "name": "Act_Loesung_Anzeigen",
-     "type": "property",
-     "changes": {
-      "LoesungLabel.text": "${AktuelleKarte.answers}",
-      "Richtig.visible": true,
-      "FalschSelbst.visible": true,
-      "AntwortZeigen.visible": false
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-73c421a1-788e-4ffa-a1c7-7a8ff2c4370e",
-     "name": "Act_BewertenR_Start",
-     "type": "property",
-     "changes": {
-      "Busy": 1,
-      "StatusLabel.text": "Wird gebucht …"
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-19247639-86d3-4dca-88b3-cc7bd71d6ebc",
-     "name": "Act_BewertungR_Server",
-     "type": "http",
-     "url": "/api/cms/play",
-     "method": "POST",
-     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":true}",
-     "resultVariable": "BewertungAntwort",
-     "scope": "stage",
-     "queryOperator": "=="
-    },
-    {
-     "id": "q_act-d1d5248c-f832-4f63-90c0-48f43f5b505e",
-     "name": "Act_Richtig_Plus",
-     "type": "calculate",
-     "formula": "Richtig + 1",
-     "resultVariable": "Richtig",
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-f97e4c75-1f0c-47da-84fd-b268941a32e6",
-     "name": "Act_BewertetR",
-     "type": "property",
-     "changes": {
-      "Busy": 0,
-      "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
-      "StatusLabel.text": "${BewertungAntwort.message}",
-      "Naechste.visible": true,
-      "LoesungLabel.text": "${AktuelleKarte.answers}",
-      "Pruefen.visible": false,
-      "AntwortEdit.visible": false,
-      "Richtig.visible": false,
-      "FalschSelbst.visible": false,
-      "GezogeneIds": "${GezogeneIds}${AktuelleKarte.id},"
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-b26eed71-a554-4c14-b730-492509d521c7",
-     "name": "Act_BuchFehler",
-     "type": "property",
-     "changes": {
-      "Busy": 0,
-      "StatusLabel.text": "${BewertungAntwort.message}"
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-395a321e-4eeb-4268-91fd-0cdaf4c2830a",
-     "name": "Act_BewertenF_Start",
-     "type": "property",
-     "changes": {
-      "Busy": 1,
-      "StatusLabel.text": "Wird gebucht …"
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-2c72601e-a920-46af-89ca-216774314571",
-     "name": "Act_BewertungF_Server",
-     "type": "http",
-     "url": "/api/cms/play",
-     "method": "POST",
-     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":false}",
-     "resultVariable": "BewertungAntwort",
-     "scope": "stage",
-     "queryOperator": "=="
-    },
-    {
-     "id": "q_act-947e5b37-8069-4d1a-a09c-a924f42a8e19",
-     "name": "Act_Falsch_Plus",
-     "type": "calculate",
-     "formula": "Falsch + 1",
-     "resultVariable": "Falsch",
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-be507a2e-7195-46e4-afee-5817e97299a7",
-     "name": "Act_BewertetF",
-     "type": "property",
-     "changes": {
-      "Busy": 0,
-      "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
-      "StatusLabel.text": "${BewertungAntwort.message}",
-      "Naechste.visible": true,
-      "LoesungLabel.text": "${AktuelleKarte.answers}",
-      "Pruefen.visible": false,
-      "AntwortEdit.visible": false,
-      "Richtig.visible": false,
-      "FalschSelbst.visible": false,
-      "GezogeneIds": "${GezogeneIds}${AktuelleKarte.id},"
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-a0032ee3-4b47-433a-bb42-e83c4577357f",
-     "name": "Act_BuchFehlerF",
-     "type": "property",
-     "changes": {
-      "Busy": 0,
-      "StatusLabel.text": "${BewertungAntwort.message}"
-     },
-     "scope": "stage"
-    },
-    {
-     "id": "q_act-d68b0cf5-0e8a-406c-8efd-7ba16d2ff674",
-     "name": "Act_Sitzung_Ende",
-     "type": "http",
-     "url": "/api/cms/play",
-     "method": "POST",
-     "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"end\"}",
-     "resultVariable": "EndeAntwort",
-     "scope": "stage",
-     "queryOperator": "=="
-    }
-   ],
-   "events": {},
-   "features": [
-    {
-     "id": "quiz-karteikasten",
-     "name": "Karteikasten-Quiz",
-     "description": "Muster: Karteikasten andocken (KartenFach/KartenThema), cardNext-Loop, Leitner-Buchung. Als Overlay-Blaupause für andere Spiele gedacht.",
-     "tags": [
-      "Karteikasten",
-      "Quiz",
-      "Muster"
-     ],
-     "userStoryIds": [],
-     "blueprintTaskNames": [
-      "Quiz_Start",
-      "Karte_Ziehen",
-      "Antwort_Pruefen",
-      "Bewerten_Richtig",
-      "Bewerten_Falsch"
-     ]
-    }
-   ]
-  }
- ],
- "userStories": [],
- "objects": [],
- "variables": [],
- "tasks": [],
- "actions": []
+  ],
+  "userStories": {
+    "userStories": []
+  },
+  "objects": [],
+  "variables": [],
+  "tasks": [],
+  "actions": []
 }

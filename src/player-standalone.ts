@@ -1,3 +1,4 @@
+import { attachMultiplayerDebugBridge } from './adapters/MultiplayerDebugBridge';
 import { attachCmsGameHost } from './adapters/CmsGameHost';
 import {TDebugLog} from './components/TDebugLog';
 import { GameRuntime } from './runtime/GameRuntime';
@@ -26,7 +27,8 @@ installTauriFSAdapter();
 // Mit ?debug=1 (oder ?debug=DEBUG|INFO|WARN) lässt sich das Logging wieder einschalten.
 function applyPlayerLogLevel(): void {
     if (typeof window === 'undefined') return;
-    const param = new URLSearchParams(window.location.search).get('debug');
+    const params = new URLSearchParams(window.location.search);
+    const param = params.get('debug') || (params.get('editorTest')?.startsWith('gcs-mp-preview-') ? 'INFO' : null);
     if (!param) {
         Logger.setGlobalLevel(LogLevel.ERROR);
         return;
@@ -41,6 +43,7 @@ function applyPlayerLogLevel(): void {
     }
 }
 applyPlayerLogLevel();
+attachMultiplayerDebugBridge();
 if (typeof window !== 'undefined') {
     (window as any).__GCS_RUNTIME_VERSION__ = RUNTIME_VERSION;
 }
@@ -100,6 +103,7 @@ class UniversalPlayer implements StageHost {
     public element: HTMLElement; // From StageHost
     private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat', 'TCmsLiveSync', 'TStageController'];
     private currentProject: GameProject | null = null;
+    private networkProject: GameProject | null = null;
     private isStarted: boolean = false;
     private animationTickerId: number | null = null;
     private renderer: StageRenderer;
@@ -172,8 +176,12 @@ class UniversalPlayer implements StageHost {
             vv.addEventListener('scroll', () => this.scheduleScaling());
         }
 
-        // 2. Connect to Network (Platform always uses network if available)
-        try {
+        // CMS parties synchronize through TCmsLiveSync, independently of game-server rooms.
+        const embeddedProject = (window as any).PROJECT;
+        const cmsParty = embeddedProject?.stages?.some((stage: any) =>
+            stage.variables?.some((variable: any) => variable.name === 'CMS_LAUNCH' && variable.value));
+        // 2. Connect to the room server for ordinary platform games.
+        if (!cmsParty) try {
             await network.connect();
             logger.info('[UniversalPlayer] Connected to game server');
         } catch (e) {
@@ -204,7 +212,19 @@ class UniversalPlayer implements StageHost {
         const gameFile = params.get('game');
         const hostMode = params.get('host') === 'true';
 
-        if (roomCode) {
+        const preview = params.get('preview');
+        if (preview?.startsWith('gcs-mp-preview-')) {
+            try {
+                const snapshot = sessionStorage.getItem(preview);
+                if (!snapshot) throw new Error('Testprojekt nicht mehr verfügbar.');
+                if (network.state !== 'connected') throw new Error('Game-Server nicht erreichbar. Bitte npm start verwenden.');
+                await this.startProject(JSON.parse(snapshot));
+                network.createRoom(this.currentProject?.meta?.name || 'Editor-Test');
+                this.showOverlay('Warte auf Spieler 2 …', '');
+            } catch (error) {
+                window.parent.postMessage({editorTest: params.get('editorTest'), type: 'error', message: String(error)}, location.origin);
+            }
+        } else if (roomCode) {
             // Join existing room - project will arrive via 'project_data'
             logger.info(`[UniversalPlayer] Joining room: ${roomCode}`);
             network.joinRoom(roomCode);
@@ -249,6 +269,10 @@ class UniversalPlayer implements StageHost {
     }
 
     private handleNetworkMessage(msg: ServerMessage) {
+        const editorTest = new URLSearchParams(location.search).get('editorTest');
+        if (editorTest?.startsWith('gcs-mp-preview-') && ['room_created', 'game_start', 'error'].includes(msg.type)) {
+            window.parent.postMessage({...msg, editorTest}, location.origin);
+        }
         switch (msg.type) {
             case 'project_data':
                 logger.info('[UniversalPlayer] Received project JSON from server');
@@ -259,7 +283,7 @@ class UniversalPlayer implements StageHost {
                 this.showOverlay('Raum erstellt', msg.roomCode);
                 // If we are Master and just started a project, sync it to server
                 if (this.currentProject) {
-                    network.syncProject(this.currentProject);
+                    network.syncProject(this.networkProject);
                 }
                 // Signal ready as Master
                 network.ready();
@@ -439,6 +463,7 @@ class UniversalPlayer implements StageHost {
             this.element.innerHTML = '';
         }
 
+        if (project !== this.currentProject) this.networkProject = JSON.parse(JSON.stringify(project));
         this.currentProject = project;
         const startStageId = project.stages?.find((s: any) => s.type === 'splash')?.id ||
             (project as any).activeStageId ||
@@ -471,7 +496,9 @@ class UniversalPlayer implements StageHost {
             },
             onSpriteRender: (sprites: any[], dirtySprites?: any[]) => this.renderSpritesOnly(sprites, dirtySprites),
             makeReactive: true,
-            multiplayerManager: network,
+            multiplayerManager: project.stages?.some(stage =>
+                stage.variables?.some(variable => variable.name === 'CMS_LAUNCH' && variable.value))
+                ? undefined : network,
             onNavigate: (target: string) => this.handleNavigation(target),
             onStageSwitch: (_stageId: string) => {
                 this.setupScaling();
@@ -500,6 +527,10 @@ class UniversalPlayer implements StageHost {
             this.runtime.start();
             this.startAnimationTicker();
         }
+        const testParams = new URLSearchParams(location.search);
+        if (testParams.get('editorTest')?.startsWith('gcs-mp-preview-') && window.parent !== window) {
+            window.parent.postMessage({type:'gcs_player_ready',editorTest:testParams.get('editorTest'),instanceId:testParams.get('instanceId')},location.origin);
+        }
         logger.info(`[UniversalPlayer] Project "${project.meta?.name}" started`);
 
         // If we are in a room, signal that we are ready
@@ -509,7 +540,7 @@ class UniversalPlayer implements StageHost {
 
             // If Master (P1), also ensure project is synced
             if (network.playerNumber === 1) {
-                network.syncProject(project);
+                network.syncProject(this.networkProject);
             }
         }
     }

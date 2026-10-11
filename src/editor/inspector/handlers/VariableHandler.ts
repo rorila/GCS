@@ -1,3 +1,4 @@
+import { isShelfVariable } from '../../EditorShelfModel';
 
 import { IInspectorHandler, PropertyChangeEvent } from '../types';
 import { GameProject } from '../../../model/types';
@@ -10,7 +11,7 @@ export class VariableHandler implements IInspectorHandler {
 
     canHandle(obj: any): boolean {
         // Check for TVariable components or objects with isVariable flag
-        return obj?.isVariable === true || obj?.className?.includes('Variable') || obj?.constructor?.name?.includes('Variable');
+        return isShelfVariable(obj) || obj?.constructor?.name?.includes('Variable');
     }
 
     getInspectorTemplate(_obj: any): string | null {

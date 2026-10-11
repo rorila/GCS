@@ -166,7 +166,7 @@ export class SyncValidator {
     private static validateTaskFlowCharts(project: GameProject, autoRepair: boolean): ValidationResult[] {
         const results: ValidationResult[] = [];
         const validTaskNames = this.collectAllNames(project, 'task');
-        const reservedKeys = new Set(['global', 'event-map', 'element-overview', '__legacy_flow__']);
+        const reservedKeys = new Set(['global', 'event-map', 'element-overview', 'game-lifecycle', '__legacy_flow__']);
 
         const checkCharts = (charts: Record<string, any> | undefined, location: string) => {
             if (!charts) return;

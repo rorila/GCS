@@ -22,6 +22,7 @@ const logger = Logger.get('Proxy', 'Variable_Management');
 // socket) — die Reaktivitaet solcher Werte ist ohnehin nicht sinnvoll.
 function isAsyncOrDomApi(value: any): boolean {
     return value instanceof Promise || typeof value?.then === 'function' ||
+        (typeof AbortController !== 'undefined' && value instanceof AbortController) ||
         (typeof EventTarget !== 'undefined' && value instanceof EventTarget);
 }
 

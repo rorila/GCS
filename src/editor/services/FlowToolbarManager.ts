@@ -62,6 +62,14 @@ export class FlowToolbarManager {
         this.seqDiagramBtn.onclick = () => this.host.openSequenceDiagram?.();
         toolbar.appendChild(this.seqDiagramBtn);
 
+        // Spielablauf (Lifecycle & Brainstorming) Button
+        const lifecycleBtn = document.createElement('button');
+        lifecycleBtn.innerText = '🎮 Spielablauf';
+        lifecycleBtn.title = 'Gesamten Spielablauf (Lifecycle & Brainstorming) visualisieren';
+        lifecycleBtn.style.cssText = 'padding:5px 10px;background:#1a365d;color:#90cdf4;border:1px solid #2b6cb0;border-radius:4px;cursor:pointer;margin-right:5px;font-weight:600';
+        lifecycleBtn.onclick = () => this.host.switchActionFlow('game-lifecycle');
+        toolbar.appendChild(lifecycleBtn);
+
         // New Task Button
         const newFlowBtn = document.createElement('button');
         newFlowBtn.innerText = '+';
@@ -148,6 +156,12 @@ export class FlowToolbarManager {
         overOpt.innerText = '📊 Elementenübersicht';
         overOpt.selected = currentFlowContext === 'element-overview';
         optOverviewGroup.appendChild(overOpt);
+
+        const lifecycleOpt = document.createElement('option');
+        lifecycleOpt.value = 'game-lifecycle';
+        lifecycleOpt.innerText = '🎮 Spielablauf (Lifecycle)';
+        lifecycleOpt.selected = currentFlowContext === 'game-lifecycle';
+        optOverviewGroup.appendChild(lifecycleOpt);
 
         this.flowSelect.appendChild(optOverviewGroup);
 
@@ -264,7 +278,7 @@ export class FlowToolbarManager {
         }
 
         // --- SAFETY CHECK ---
-        if (currentFlowContext && currentFlowContext !== 'global' && currentFlowContext !== 'event-map' && currentFlowContext !== 'element-overview') {
+        if (currentFlowContext && currentFlowContext !== 'global' && currentFlowContext !== 'event-map' && currentFlowContext !== 'element-overview' && currentFlowContext !== 'game-lifecycle') {
             let found = false;
             for (let i = 0; i < this.flowSelect.options.length; i++) {
                 if (this.flowSelect.options[i].value === currentFlowContext) {

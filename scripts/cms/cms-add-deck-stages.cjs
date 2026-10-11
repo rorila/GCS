@@ -42,12 +42,7 @@ const mergeByName = (existing = [], generated = []) => {
   const names = new Set(generated.map(nameOf));
   return [...existing.filter(x => !names.has(nameOf(x))), ...generated];
 };
-const bind = stage => ({
-  prop: (name, changes) => (stage.actions.push({ id: uid('act'), name, type: 'property', changes, scope: 'stage' }), { type: 'action', name }),
-  http: (name, url, body, resultVariable = 'Antwort') => (stage.actions.push({ id: uid('act'), name, type: 'http', url, method: 'POST', body, resultVariable, scope: 'stage', queryOperator: '==' }), { type: 'action', name }),
-  call: (name, target, method, params = [], resultVariable) => (stage.actions.push({ id: uid('act'), name, type: 'call_method', target, method, params, ...(resultVariable ? { resultVariable } : {}), scope: 'stage' }), { type: 'action', name }),
-  nav: (name, stageId) => (stage.actions.push({ id: uid('act'), name, type: 'navigate_stage', stageId, reset: false, scope: 'stage' }), { type: 'action', name }),
-});
+const { bindActions: bind } = require('./cms-ui-integrity.cjs');
 
 // ============================================================
 // 1. Server-Stage: stage_server_decks — Endpunkte /api/cms/decks/*
