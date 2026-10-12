@@ -74543,7 +74543,7 @@
    "objects": [
     {
      "className": "TServerEndpoint",
-     "id": "srv_483b56a7-2f0f-4a8e-832d-16a23353d3ed",
+     "id": "srv_da8914d9-d6b3-46ad-b504-d0a467e9e7eb",
      "name": "Ep_SpielStart",
      "scope": "stage",
      "isService": true,
@@ -74562,7 +74562,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_75e2407d-41ac-4fdd-9c63-d98ea722216c",
+     "id": "srv_059c73a6-b082-44a6-a0c6-4b5db7d33286",
      "name": "Ep_SpielStatus",
      "scope": "stage",
      "isService": true,
@@ -74581,7 +74581,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_672e6845-eb4b-4b9a-8335-44bfe08f7ec2",
+     "id": "srv_dd8c97b7-bd64-4802-89a0-ee83e002aa38",
      "name": "Ep_SpielHeartbeat",
      "scope": "stage",
      "isService": true,
@@ -74600,7 +74600,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_dbd808cf-817d-4b53-97bb-181f4f83b71b",
+     "id": "srv_2cc50128-e557-4ffa-9809-bc97b1951454",
      "name": "Ep_SpielPausieren",
      "scope": "stage",
      "isService": true,
@@ -74619,7 +74619,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_f18ab325-8168-4f83-a256-41bdcee00298",
+     "id": "srv_e80580db-9127-4ec9-a4e3-0a7f279b6ecb",
      "name": "Ep_SpielFortsetzen",
      "scope": "stage",
      "isService": true,
@@ -74638,7 +74638,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_d7329c22-45f6-40d1-9002-7a583759004f",
+     "id": "srv_c809df7c-54f7-4b2f-8e5c-3c6b82e6a5ab",
      "name": "Ep_SpielBeenden",
      "scope": "stage",
      "isService": true,
@@ -74657,7 +74657,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_2b8e9a47-9cfa-4efc-9c90-3ac90d9c020a",
+     "id": "srv_08cda376-d091-4b29-8fe5-feac10216f83",
      "name": "Ep_BewertungMelden",
      "scope": "stage",
      "isService": true,
@@ -74676,7 +74676,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_3790ab19-443d-4366-b335-b331805376d8",
+     "id": "srv_368218d4-8ca2-40de-af39-ec24fb44e56f",
      "name": "Ep_KartenListe",
      "scope": "stage",
      "isService": true,
@@ -74695,7 +74695,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_6a5f6beb-6d4d-4982-b083-37ccc1c1d6a7",
+     "id": "srv_ad922b3b-364f-4952-96bb-c63632aac368",
      "name": "Ep_KarteZiehen",
      "scope": "stage",
      "isService": true,
@@ -74714,7 +74714,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_114fa336-62c9-4ea6-8a09-92d30291f792",
+     "id": "srv_8eb98d34-b024-4469-a13b-8b459c26d377",
      "name": "Ep_KarteBewerten",
      "scope": "stage",
      "isService": true,
@@ -74732,8 +74732,27 @@
      }
     },
     {
+     "className": "TServerEndpoint",
+     "id": "srv_7a2b1d8a-f4f3-440b-9824-ba741b20ee3f",
+     "name": "Ep_Lernpunkte",
+     "scope": "stage",
+     "isService": true,
+     "isHiddenInRun": true,
+     "executionSide": "server",
+     "x": 16,
+     "y": 42,
+     "width": 12,
+     "height": 3,
+     "endpointPath": "/api/cms/play/cardPointSummary",
+     "httpMethod": "POST",
+     "traceEnabled": true,
+     "events": {
+      "onRequest": "Server_Lernpunkte_Verarbeiten"
+     }
+    },
+    {
      "className": "TServerSession",
-     "id": "srv_3454c81d-57e4-42ec-84ad-a06c900c3e90",
+     "id": "srv_e6a2a51a-b2b3-4bf3-a0a6-4e5a747b5769",
      "name": "Kontositzung",
      "scope": "stage",
      "isService": true,
@@ -74746,7 +74765,7 @@
     },
     {
      "className": "TServerValidate",
-     "id": "srv_ed9b9920-f510-4607-953b-f909b5c0e2ed",
+     "id": "srv_1a041e34-f4ee-4351-8ad6-4f788573bb65",
      "name": "EingabePruefung",
      "scope": "stage",
      "isService": true,
@@ -74759,7 +74778,7 @@
     },
     {
      "className": "TServerQuery",
-     "id": "srv_a22e1da4-7106-466f-80ea-ba0b511c5dab",
+     "id": "srv_6b7d61a7-4f29-4aeb-a259-350678ddc5cb",
      "name": "Datenbestand",
      "scope": "stage",
      "isService": true,
@@ -74772,7 +74791,7 @@
     },
     {
      "className": "TServerStore",
-     "id": "srv_d29d6287-f663-42ff-a966-046ff7e8f520",
+     "id": "srv_ffc2e2da-3e19-4f19-954c-9841f359b82d",
      "name": "DatenSpeicher",
      "scope": "stage",
      "isService": true,
@@ -74785,7 +74804,7 @@
     },
     {
      "className": "TServerResponse",
-     "id": "srv_37f0c5c3-b904-4872-b0e4-49202f30ddce",
+     "id": "srv_3cf53b17-105a-42b2-a57d-12bfc3772a26",
      "name": "AntwortSenden",
      "scope": "stage",
      "isService": true,
@@ -74798,7 +74817,7 @@
     },
     {
      "className": "TServerCards",
-     "id": "srv_46873bf5-e211-4580-9594-1f3b4315c489",
+     "id": "srv_4dd654a1-271b-40f1-8522-ac212c2844ca",
      "name": "Karten",
      "scope": "stage",
      "isService": true,
@@ -74839,7 +74858,7 @@
    ],
    "tasks": [
     {
-     "id": "srv_task_3b50fa27-b003-4f2b-b54a-a527ba3b46c9",
+     "id": "srv_task_5b0defa8-f553-44fd-9121-e76342491ca9",
      "name": "Server_SpielStart_Verarbeiten",
      "scope": "stage",
      "description": "can(play) → keine laufende Sitzung → Budget nicht aufgebraucht → starten",
@@ -74943,7 +74962,7 @@
      ]
     },
     {
-     "id": "srv_task_e30aad81-f2f7-49e4-bfa3-ab723590a1b2",
+     "id": "srv_task_22389fbc-13eb-4c6f-b1fc-d0d0e915744a",
      "name": "Server_SpielStatus_Verarbeiten",
      "scope": "stage",
      "description": "Eigene Sitzung lesen → Status/Restbudget ohne Zeitbuchung antworten",
@@ -75001,7 +75020,7 @@
      ]
     },
     {
-     "id": "srv_task_50e0b20b-37e3-4949-a59c-2a23cd13305a",
+     "id": "srv_task_382c364f-1242-4306-b943-b25ebe48562e",
      "name": "Server_SpielHeartbeat_Verarbeiten",
      "scope": "stage",
      "description": "Eigene Sitzung → Reconnect → Server-Delta buchen → Status/Warnstufe antworten",
@@ -75063,7 +75082,7 @@
      ]
     },
     {
-     "id": "srv_task_1db1d599-9334-4c70-8993-9a63686ebd95",
+     "id": "srv_task_dfba505f-bc0c-44c7-8909-27797458bd32",
      "name": "Server_SpielPausieren_Verarbeiten",
      "scope": "stage",
      "description": "Nur aktive Sitzung pausierbar → Statuswechsel buchen",
@@ -75138,7 +75157,7 @@
      ]
     },
     {
-     "id": "srv_task_d41dcc22-adc2-4780-928c-2768727e8fdb",
+     "id": "srv_task_1521280a-b513-4617-aa65-a062110ce37d",
      "name": "Server_SpielFortsetzen_Verarbeiten",
      "scope": "stage",
      "description": "Pausierte/getrennte Sitzung → Restbudget prüfen → fortsetzen",
@@ -75237,7 +75256,7 @@
      ]
     },
     {
-     "id": "srv_task_faebcab4-c9e2-414c-89df-219a3624fffe",
+     "id": "srv_task_33fc4a7d-5573-4088-956f-505b5d94de60",
      "name": "Server_SpielBeenden_Verarbeiten",
      "scope": "stage",
      "description": "Sitzung beenden (idempotent) → gebuchte Minuten antworten",
@@ -75295,7 +75314,7 @@
      ]
     },
     {
-     "id": "srv_task_8cd9b2a2-9093-4415-8bd7-b5cefd6ed78b",
+     "id": "srv_task_eb260d4c-3e97-41ed-8b14-47a7a4e91ef4",
      "name": "Server_BewertungMelden_Verarbeiten",
      "scope": "stage",
      "description": "Laufende Sitzung → ratings/Metrik/eventId prüfen → dedupliziert verbuchen",
@@ -75474,7 +75493,7 @@
      ]
     },
     {
-     "id": "srv_task_5be85c05-22b1-4d4e-9975-d40329c09bc2",
+     "id": "srv_task_11f3fbb3-9590-4fbb-a660-844b707b12a0",
      "name": "Server_KartenListe_Verarbeiten",
      "scope": "stage",
      "description": "Konto-Sitzung → Kandidatenliste des Kindes (subject/topic/formats-Filter, Fach 1–5)",
@@ -75528,7 +75547,7 @@
      ]
     },
     {
-     "id": "srv_task_2a85a354-afc9-433e-8a0d-fb3dc2e1531d",
+     "id": "srv_task_c70c17c0-d1eb-479f-93d8-0f160c6b3a5a",
      "name": "Server_KarteZiehen_Verarbeiten",
      "scope": "stage",
      "description": "Fachaufsteigend: je Fach die älteste Karte zuerst; leeres Fach → nächstes Fach; alles leer → empty",
@@ -75686,7 +75705,7 @@
      ]
     },
     {
-     "id": "srv_task_e9f1baa5-f229-432c-874f-05e4a015cc89",
+     "id": "srv_task_a5b6a623-4c06-4185-a13f-5398d587394e",
      "name": "Server_KarteBewerten_Verarbeiten",
      "scope": "stage",
      "description": "Konto-Sitzung → Leitner-Übergang (richtig: +1, Fach5→6 gelernt; falsch: →1)",
@@ -75738,11 +75757,65 @@
        ]
       }
      ]
+    },
+    {
+     "id": "srv_task_b18246c2-acb1-4e3e-9002-d30bd73ea296",
+     "name": "Server_Lernpunkte_Verarbeiten",
+     "scope": "stage",
+     "description": "Konto-Sitzung → schlanke Karteikasten-Lernpunktzusammenfassung (revision/modeRevision, keine Items)",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "Act_KontoRolle_Pruefen"
+      },
+      {
+       "type": "condition",
+       "name": "Sitzung gültig?",
+       "condition": {
+        "variable": "Pruefung.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "action",
+         "name": "Lernpunkte_Laden"
+        },
+        {
+         "type": "condition",
+         "name": "Geladen?",
+         "condition": {
+          "variable": "Geladen.ok",
+          "operator": "==",
+          "value": true
+         },
+         "then": [
+          {
+           "type": "action",
+           "name": "Lernpunkte_Antworten"
+          }
+         ],
+         "else": [
+          {
+           "type": "action",
+           "name": "Lernpunkte_Fehler"
+          }
+         ]
+        }
+       ],
+       "else": [
+        {
+         "type": "action",
+         "name": "Act_Fehler_Rolle"
+        }
+       ]
+      }
+     ]
     }
    ],
    "actions": [
     {
-     "id": "srv_act_868670fc-4825-43a2-a6ab-e619da225fd1",
+     "id": "srv_act_1843a405-bcdd-4eb2-819f-6ce27e336832",
      "name": "Act_KontoRolle_Pruefen",
      "type": "call_method",
      "target": "Kontositzung",
@@ -75754,7 +75827,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a2fb7bdf-b9bf-457c-87f2-28daf7c68d50",
+     "id": "srv_act_b390bd35-91c3-47dd-81e4-11cb29f792bf",
      "name": "Act_Fehler_Rolle",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -75766,7 +75839,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d7ec97b6-d3d8-411a-94fb-caac2022d019",
+     "id": "srv_act_b3b28283-0314-452a-99b7-523105956de1",
      "name": "SpielStart_SpielLaden",
      "type": "call_method",
      "target": "Datenbestand",
@@ -75783,7 +75856,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ff3e11de-b237-48e1-9757-ac0bfdaae68a",
+     "id": "srv_act_098f9867-cb33-44f1-9d23-ebc938145188",
      "name": "SpielStart_Freigabe",
      "type": "call_method",
      "target": "Datenbestand",
@@ -75799,7 +75872,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_65fab83c-0afe-4210-898c-4f8b1c3de467",
+     "id": "srv_act_e9d2ab22-06c3-4616-ac4b-1a0c1ebef593",
      "name": "SpielStart_LaufendePruefen",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -75811,7 +75884,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_2d3b8e5e-7e69-421b-b6fc-69e96b527a67",
+     "id": "srv_act_46d33dea-caf8-461c-a28d-d37d620407e2",
      "name": "SpielStart_BudgetPruefen",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -75826,7 +75899,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_df6c7676-15d1-480d-ad2b-36c27fd64064",
+     "id": "srv_act_f94e0a83-5766-4540-b631-bc79b5e2210d",
      "name": "SpielStart_Starten",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -75841,7 +75914,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_9ca40e0f-44e6-4411-b3d1-cf2f4113bf2f",
+     "id": "srv_act_ee8da1a4-6410-4871-9e8f-0e8b96b5da53",
      "name": "SpielStart_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -75854,7 +75927,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_1ccc583d-6056-4ff9-8d1d-ec974271e267",
+     "id": "srv_act_101b5d3b-1bd5-46fe-bfdd-09af0af4995d",
      "name": "SpielStart_FehlerDoppelt",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -75869,7 +75942,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_bff78563-c4d8-4f98-991f-7925d8384c77",
+     "id": "srv_act_1624077b-ee19-46df-9e7f-fc95a2fc64da",
      "name": "SpielStart_FehlerBudget",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -75881,7 +75954,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_8e7db672-5cac-4d0f-a2ac-7e57ef7aeadd",
+     "id": "srv_act_6c0ab746-87c0-454f-9697-e2ba5996708e",
      "name": "SpielStart_FehlerFreigabe",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -75893,7 +75966,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_f710b53c-9c3d-4c85-86a1-dafb65c64665",
+     "id": "srv_act_0e210d8e-af3b-421c-ae6c-59a1df112b30",
      "name": "SpielStatus_SitzungLaden",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -75905,7 +75978,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d930ae3a-cd8e-4618-8fdf-46732b1ef0bb",
+     "id": "srv_act_ee12e6fb-8381-4bbb-8530-f4437c42b423",
      "name": "SpielStatus_BudgetPruefen",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -75920,7 +75993,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_afa71dfb-8d47-4f64-83a6-336e7df88e3b",
+     "id": "srv_act_c64f6b70-c6f0-415f-8835-d91fca099901",
      "name": "SpielStatus_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -75938,7 +76011,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_837ce5fa-f2bb-414f-804a-269f60a6ad34",
+     "id": "srv_act_74143db5-82cf-4573-abf0-3623d66597bb",
      "name": "SpielStatus_FehlerSitzung",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -75950,7 +76023,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_1b1cae16-37b9-46c1-bc1b-1aaa61b6a127",
+     "id": "srv_act_1ef26353-4fa1-4aee-9627-cb0347679951",
      "name": "SpielHeartbeat_SitzungLaden",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -75962,7 +76035,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_0ee02a77-b1a1-4528-93c8-4ff2ffb8c1d5",
+     "id": "srv_act_7dd97b17-666a-4ccb-b1db-a89885b8b47f",
      "name": "SpielHeartbeat_Reconnect",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -75974,7 +76047,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_99ae8a88-9b7e-4c7c-a515-9573496db565",
+     "id": "srv_act_44ddf5c8-fa78-4d03-aa0e-29df9e35a8a2",
      "name": "SpielHeartbeat_Buchen",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -75986,7 +76059,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_9ef3343c-37be-4935-8621-ad8a2af4bce5",
+     "id": "srv_act_bcad8eeb-4dfd-4d0d-8e24-974ac89cf9ba",
      "name": "SpielHeartbeat_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -75999,7 +76072,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_3e56f795-141a-4551-9aa0-81f7418dbde6",
+     "id": "srv_act_79941f11-1d94-434b-902b-fcac8ca5822c",
      "name": "SpielHeartbeat_FehlerSitzung",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76011,7 +76084,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_45ff0584-1f78-4df9-9197-9efad33ebed9",
+     "id": "srv_act_897ff755-6a4e-46f5-bad5-6586e0144265",
      "name": "SpielPausieren_SitzungLaden",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76023,7 +76096,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_57a053e5-5cab-45d3-af24-7d8646497914",
+     "id": "srv_act_78e21542-45ad-499e-a3ec-bd340fc1e982",
      "name": "SpielPausieren_Wechseln",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76038,7 +76111,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c2aa956d-3273-400a-8cc2-51ddce635c57",
+     "id": "srv_act_375607fd-c90f-4536-8f27-940700d48de0",
      "name": "SpielPausieren_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76052,7 +76125,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c5fb93ac-a030-477b-8204-c0af37333251",
+     "id": "srv_act_5d375e1d-57c8-4d26-a04f-718002589448",
      "name": "SpielPausieren_FehlerStatus",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76064,7 +76137,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_92b2f9ac-73cd-4835-a84c-6b17e8f4f6fd",
+     "id": "srv_act_6cd36cdf-a3da-4306-9fc4-763b509760dc",
      "name": "SpielPausieren_FehlerSitzung",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76076,7 +76149,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_270f197d-d770-46f5-8ac9-d413c245c22f",
+     "id": "srv_act_e22ef6df-86f5-4acd-826a-94dc5ce7b2a3",
      "name": "SpielFortsetzen_SitzungLaden",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76088,7 +76161,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b6572443-87c6-4c59-b4de-87ee40ead9b1",
+     "id": "srv_act_7b184c92-677e-4bc1-b318-2d28729de6bb",
      "name": "SpielFortsetzen_BudgetPruefen",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76103,7 +76176,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_50c4236e-54b9-4017-96e5-c7a7675a2436",
+     "id": "srv_act_ef4068c3-b1f8-4fa5-ab1b-71f9a2df68af",
      "name": "SpielFortsetzen_Wechseln",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76118,7 +76191,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_835f3ae3-6243-4421-a318-336f1a5e5ed8",
+     "id": "srv_act_108bc277-2edc-4e05-b847-28874d110228",
      "name": "SpielFortsetzen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76132,7 +76205,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_56d2336a-2b85-4ca0-9768-361c0971a1bb",
+     "id": "srv_act_adec3bfd-32fb-47f6-8299-dede78b1463d",
      "name": "SpielFortsetzen_FehlerBudget",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76144,7 +76217,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_5f26870a-4407-4721-974a-2411762c8aed",
+     "id": "srv_act_71613829-2be0-48a3-8355-d0d5f901d251",
      "name": "SpielFortsetzen_FehlerStatus",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76156,7 +76229,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b1980b94-68ce-4d50-9c44-372d64487ffc",
+     "id": "srv_act_6839e846-c4c5-4b33-a8a9-b213f40106a5",
      "name": "SpielFortsetzen_FehlerSitzung",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76168,7 +76241,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_0b7de491-73cd-4490-bd7d-2fce4cd4bf9b",
+     "id": "srv_act_87d566e7-e03e-4a60-b834-2daf609c0fb9",
      "name": "SpielBeenden_SitzungLaden",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76180,7 +76253,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_797965d0-3bfa-48a2-b756-eb81204b237f",
+     "id": "srv_act_053d9cb0-29d2-4bda-9dd9-9ca84b3d736c",
      "name": "SpielBeenden_Beenden",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76195,21 +76268,20 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_e9378bc0-4f53-4ff2-81bd-ac4a3baa8ebd",
+     "id": "srv_act_984815ab-719b-4f44-b077-8d32dc178b8c",
      "name": "SpielBeenden_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
      "method": "send",
      "params": [
       {
-       "status": "ended",
-       "minutes": "${Beendet.minutes}"
+       "merge": "${Beendet}"
       }
      ],
      "scope": "stage"
     },
     {
-     "id": "srv_act_b10f857a-133d-4a3a-9765-91184dd2488f",
+     "id": "srv_act_50bd98cf-6313-4b85-8f0b-650213d0143e",
      "name": "SpielBeenden_FehlerSitzung",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76221,7 +76293,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_360f9eda-24b5-4ada-954f-b77e74b7b377",
+     "id": "srv_act_2b72c4df-1266-4308-b3b7-bfd59b415dcf",
      "name": "BewertungMelden_SitzungLaden",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76233,7 +76305,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a8c4bd8e-4b77-4dae-b6fe-208b375c4866",
+     "id": "srv_act_d44997a0-6575-4a6f-b05a-cd29fcccb06a",
      "name": "BewertungMelden_SpielLaden",
      "type": "call_method",
      "target": "Datenbestand",
@@ -76250,7 +76322,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_6790f48d-ad67-4737-992f-fe5450177b37",
+     "id": "srv_act_d1517223-7b5b-438f-bbbf-6454958cb465",
      "name": "BewertungMelden_EreignisPruefen",
      "type": "call_method",
      "target": "EingabePruefung",
@@ -76262,7 +76334,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_7e6d5199-a26f-4ee7-8c58-05c4660e8f6c",
+     "id": "srv_act_f2ad8b68-9f43-4c35-a4d3-7d00fa5b2bec",
      "name": "BewertungMelden_WertPruefen",
      "type": "call_method",
      "target": "EingabePruefung",
@@ -76274,7 +76346,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_6b305673-ad5b-4ae4-b854-5ae505961b8e",
+     "id": "srv_act_8849e08d-91ad-4e04-8638-a11a94d9fa80",
      "name": "BewertungMelden_DuplikatPruefen",
      "type": "call_method",
      "target": "Datenbestand",
@@ -76291,7 +76363,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_83b43c0e-1e58-457f-836e-c829ba7455c6",
+     "id": "srv_act_54d23c70-ffac-4496-9bcd-92cac383f54c",
      "name": "BewertungMelden_Verbuchen",
      "type": "call_method",
      "target": "Spielsitzungen",
@@ -76310,7 +76382,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_db1f747a-cca1-429a-b622-eba838da661e",
+     "id": "srv_act_b6aa9230-6616-43d4-9968-b6390cba0126",
      "name": "BewertungMelden_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76323,7 +76395,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a0389734-7b96-407a-b35a-9d728933139c",
+     "id": "srv_act_04870a71-7e46-4550-82e3-68d693566023",
      "name": "BewertungMelden_AntwortDuplikat",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76337,7 +76409,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_1bed5acc-7597-49ac-867c-e14d8e4bea69",
+     "id": "srv_act_749affd6-01c9-4948-a82f-062b503d5dec",
      "name": "BewertungMelden_FehlerStatus",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76349,7 +76421,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ca8e84c1-e93c-4e50-adf9-dfe877d8d898",
+     "id": "srv_act_ab14a894-6784-4f57-af75-569aa60bcda3",
      "name": "BewertungMelden_FehlerRatings",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76361,7 +76433,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_734f6ec7-0793-4159-a9f7-04cd41e62976",
+     "id": "srv_act_35249e23-ec44-42bc-9efc-13f9dbf3ec2b",
      "name": "BewertungMelden_FehlerMetrik",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76373,7 +76445,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_6643124d-8e7a-40ce-88f9-2673e347c8fa",
+     "id": "srv_act_8d7fc5b1-3ef2-445e-9869-a269612fe2db",
      "name": "BewertungMelden_FehlerEingabe",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76385,7 +76457,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ae90a774-5ed1-4811-a065-9e6241a283e9",
+     "id": "srv_act_5c92b5a4-fdb4-4c0d-a44e-d518588eafc0",
      "name": "BewertungMelden_FehlerSitzung",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76397,7 +76469,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_1e5ab25a-1fe9-4693-be28-7ed782973247",
+     "id": "srv_act_4710f960-cc4d-4df9-8868-29f2e028eede",
      "name": "KartenListe_Laden",
      "type": "call_method",
      "target": "Karten",
@@ -76413,7 +76485,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_096878af-4539-4cce-86c1-2ce762f8d89d",
+     "id": "srv_act_f502dc7d-de35-4401-a81f-319beca69e13",
      "name": "KartenListe_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76426,7 +76498,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_aba01a53-f305-44be-91fd-249c64ffc9a1",
+     "id": "srv_act_3f3e12eb-960b-40cd-bb20-0992374b3eff",
      "name": "KartenListe_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76438,7 +76510,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_15f6282b-a5b6-4a50-a76e-b14570d121d5",
+     "id": "srv_act_7441bd19-af76-4e4b-923c-cfded0c7fe20",
      "name": "KarteZiehen_Fach1Laden",
      "type": "call_method",
      "target": "Karten",
@@ -76457,7 +76529,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_0e80201c-09d2-46bc-b818-232a91d7124f",
+     "id": "srv_act_f3646331-966d-4d4c-95aa-ee1e7918eb83",
      "name": "KarteZiehen_Fach1Ziehen",
      "type": "call_method",
      "target": "Karten",
@@ -76470,7 +76542,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ed90371b-65c5-4365-8f2e-acdfb98fa38c",
+     "id": "srv_act_1e59be97-72d3-4c9b-b56d-6ea7a4af6325",
      "name": "KarteZiehen_Fach2Laden",
      "type": "call_method",
      "target": "Karten",
@@ -76489,7 +76561,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ba4ac483-67df-418b-bb5f-35c8e4cc8a71",
+     "id": "srv_act_18c17f6c-b406-47d6-9b14-af20df926853",
      "name": "KarteZiehen_Fach2Ziehen",
      "type": "call_method",
      "target": "Karten",
@@ -76502,7 +76574,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_7c604f65-aea8-47d0-86fc-97e2e1573a27",
+     "id": "srv_act_919e6313-aed8-4b07-a827-b3c4d274226f",
      "name": "KarteZiehen_Fach3Laden",
      "type": "call_method",
      "target": "Karten",
@@ -76521,7 +76593,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c182e6f7-8ab2-4bbb-9da9-58141e823bfe",
+     "id": "srv_act_8f7456f0-f256-428b-b811-f78a4e9b5245",
      "name": "KarteZiehen_Fach3Ziehen",
      "type": "call_method",
      "target": "Karten",
@@ -76534,7 +76606,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_393fde07-041a-44ca-be1d-27457ed48556",
+     "id": "srv_act_10955727-a26d-46da-946f-2e1f55d1dc79",
      "name": "KarteZiehen_Fach4Laden",
      "type": "call_method",
      "target": "Karten",
@@ -76553,7 +76625,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b69f8fb6-816f-448c-b07a-40c229036215",
+     "id": "srv_act_7eadb8df-c0b2-47b5-8ae9-289fb215e7a4",
      "name": "KarteZiehen_Fach4Ziehen",
      "type": "call_method",
      "target": "Karten",
@@ -76566,7 +76638,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_96750a8b-3d73-4686-9b96-87f403754fc7",
+     "id": "srv_act_57d7165b-24ee-4692-9afd-96553e196ce6",
      "name": "KarteZiehen_Fach5Laden",
      "type": "call_method",
      "target": "Karten",
@@ -76585,7 +76657,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b83b0866-c39e-4038-a6cc-45cb74c87834",
+     "id": "srv_act_cdaaf165-1d14-45b1-bc89-7bc85527122f",
      "name": "KarteZiehen_Fach5Ziehen",
      "type": "call_method",
      "target": "Karten",
@@ -76598,7 +76670,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_60985bf6-14b9-4c7d-8e3e-a7cfe0f0b781",
+     "id": "srv_act_60a08454-e281-40a3-9eac-92fd459f9503",
      "name": "KarteZiehen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76611,7 +76683,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_9289d325-37f2-4b25-9cd7-6aad512c81ea",
+     "id": "srv_act_f9284b36-682d-4888-a810-62883eb571e8",
      "name": "KarteZiehen_AntwortLeer",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76624,7 +76696,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_37627bf3-d1ad-4519-a5a2-d71f84ffbf4e",
+     "id": "srv_act_7c96a26d-e123-41af-a3bc-6b5dd447bec0",
      "name": "KarteBewerten_Bewerten",
      "type": "call_method",
      "target": "Karten",
@@ -76639,7 +76711,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d0594d72-dbef-47dd-bd4f-b32a9582ee88",
+     "id": "srv_act_724be6e8-c0a8-420b-b66d-628066aaec5c",
      "name": "KarteBewerten_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76652,7 +76724,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d9d3f05f-5703-423b-9eb4-04caab8211b1",
+     "id": "srv_act_e8bbb9ca-d61d-4aea-87da-a5623e1a69e6",
      "name": "KarteBewerten_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -76662,12 +76734,47 @@
       "${Bewertet.message}"
      ],
      "scope": "stage"
+    },
+    {
+     "id": "srv_act_d47a8c34-4e4c-45bc-945d-9a21ec9304a8",
+     "name": "Lernpunkte_Laden",
+     "type": "call_method",
+     "target": "Karten",
+     "method": "cardPointSummary",
+     "params": [],
+     "resultVariable": "Geladen",
+     "scope": "stage"
+    },
+    {
+     "id": "srv_act_396f9980-f16c-4ae1-821d-bd8525962538",
+     "name": "Lernpunkte_Antworten",
+     "type": "call_method",
+     "target": "AntwortSenden",
+     "method": "send",
+     "params": [
+      {
+       "merge": "${Geladen}"
+      }
+     ],
+     "scope": "stage"
+    },
+    {
+     "id": "srv_act_22bb9b2e-2b31-4692-aedf-4aefb8d52006",
+     "name": "Lernpunkte_Fehler",
+     "type": "call_method",
+     "target": "AntwortSenden",
+     "method": "fail",
+     "params": [
+      "${Geladen.status}",
+      "${Geladen.message}"
+     ],
+     "scope": "stage"
     }
    ],
    "variables": [
     {
      "className": "TObjectVariable",
-     "id": "cms_var_75a929a4-d174-4f7a-909a-eef8b09bf7f8",
+     "id": "cms_var_052fc8e1-911f-4f35-9f9c-d045699ba5c0",
      "name": "Pruefung",
      "scope": "stage",
      "isVariable": true,
@@ -76693,7 +76800,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_68965c37-e0ac-419d-b25e-54c2d7e64f6b",
+     "id": "cms_var_d9ae1552-6255-489a-9947-039b02860383",
      "name": "Spiel",
      "scope": "stage",
      "isVariable": true,
@@ -76719,7 +76826,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_852d4872-4314-444c-b4db-8730ef1b6909",
+     "id": "cms_var_c6c3886e-6dd8-4d34-8c63-1be72d1f46fe",
      "name": "Erlaubt",
      "scope": "stage",
      "isVariable": true,
@@ -76745,7 +76852,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_e4b60ba5-756a-47e4-955c-43d49edd818b",
+     "id": "cms_var_34f6914c-0b4e-4507-a63e-a4e8b8cea739",
      "name": "Aktiv",
      "scope": "stage",
      "isVariable": true,
@@ -76771,7 +76878,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_62ece33b-fb7a-402c-b057-251b72f44fa6",
+     "id": "cms_var_7b7dd70b-b04a-44c0-9f43-faf1b58f65ed",
      "name": "Budget",
      "scope": "stage",
      "isVariable": true,
@@ -76797,7 +76904,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_03ea97ea-4201-4c44-89cf-832131fad979",
+     "id": "cms_var_d762ec5d-4858-485a-a15e-47f175321c52",
      "name": "Gestartet",
      "scope": "stage",
      "isVariable": true,
@@ -76823,7 +76930,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_e69451a5-e0ce-418e-b545-653c8802fd0d",
+     "id": "cms_var_a6ef6189-2bf5-4260-bc94-bf80cc77c9c8",
      "name": "Sitzung",
      "scope": "stage",
      "isVariable": true,
@@ -76849,7 +76956,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_43d31153-f409-47f5-a0ab-68474e62dd64",
+     "id": "cms_var_21c043e6-1896-4e2f-ae9e-ad27d7abd9ed",
      "name": "Wieder",
      "scope": "stage",
      "isVariable": true,
@@ -76875,7 +76982,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_4c88bdd3-673b-420a-afea-742a21d8e0ef",
+     "id": "cms_var_bfd1a178-772a-4695-bd93-a017c9d5592e",
      "name": "Gebucht",
      "scope": "stage",
      "isVariable": true,
@@ -76901,7 +77008,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_64d3711a-3118-4739-904c-b11b4c229c08",
+     "id": "cms_var_ef047f95-3172-468f-9d5b-91643d0a7c2b",
      "name": "Gewechselt",
      "scope": "stage",
      "isVariable": true,
@@ -76927,7 +77034,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_0b796b6c-3bd0-48e8-960e-a6507aecf144",
+     "id": "cms_var_9aa4fb42-4f52-4e31-a756-fae833896797",
      "name": "Beendet",
      "scope": "stage",
      "isVariable": true,
@@ -76953,7 +77060,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_7b80da28-85fa-404a-ba0a-c593ba87e983",
+     "id": "cms_var_4375ffdb-24f2-4cd1-8f3b-3b435edae6c2",
      "name": "Ereignis",
      "scope": "stage",
      "isVariable": true,
@@ -76979,7 +77086,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_1ba0d1fd-a976-464b-8f2f-4e26fbc313db",
+     "id": "cms_var_68bbb466-f112-40c5-aef4-8d74273fefae",
      "name": "Wert",
      "scope": "stage",
      "isVariable": true,
@@ -77005,7 +77112,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_e5161788-893f-423d-90cb-8e5afe3d978e",
+     "id": "cms_var_f3bae22d-30f0-4407-a6ea-540ae2f461ee",
      "name": "Belegt",
      "scope": "stage",
      "isVariable": true,
@@ -77031,7 +77138,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_50b096d4-e65a-47c5-8f47-68db1d1514e3",
+     "id": "cms_var_9b836c37-3564-4744-86a3-bec2ac3973c1",
      "name": "Ergebnis",
      "scope": "stage",
      "isVariable": true,
@@ -77057,7 +77164,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_103be1e8-8a8c-42f2-ac3d-a37a27104b73",
+     "id": "cms_var_70efabe6-9c48-437d-988d-1e9450ef5585",
      "name": "Geladen",
      "scope": "stage",
      "isVariable": true,
@@ -77083,7 +77190,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_1db47c34-6c49-453e-b86c-7030084d1420",
+     "id": "cms_var_578af005-1ee1-47c7-9f5f-872cf91b1a1d",
      "name": "Fach",
      "scope": "stage",
      "isVariable": true,
@@ -77109,7 +77216,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_a58e52a5-e87c-40ba-84ac-638ef4d85b19",
+     "id": "cms_var_fcc47a21-d1ae-479f-ba22-cca928bd514c",
      "name": "Karte",
      "scope": "stage",
      "isVariable": true,
@@ -77135,7 +77242,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_b3c94d49-29cb-408e-b7e0-5fbca5de39a2",
+     "id": "cms_var_7c050dc6-cb7e-4f9d-95e0-278c54119580",
      "name": "Bewertet",
      "scope": "stage",
      "isVariable": true,
@@ -77195,7 +77302,7 @@
    "objects": [
     {
      "className": "TServerEndpoint",
-     "id": "srv_4ea7240e-dae7-4f01-b3f1-f494e34acb15",
+     "id": "srv_dcc95dae-9c16-48df-b881-f45fdfaa3799",
      "name": "Ep_LobbyAngebot",
      "scope": "stage",
      "isService": true,
@@ -77214,7 +77321,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_1c1e2f94-2649-4699-a778-a558d5c0b859",
+     "id": "srv_7125aea9-5126-4125-aa8f-5efd0f2ea556",
      "name": "Ep_StartEinladen",
      "scope": "stage",
      "isService": true,
@@ -77233,7 +77340,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_2481a357-060b-4d63-9524-9523482af987",
+     "id": "srv_7e62de87-91ce-48f4-969d-e61fce3f9ce5",
      "name": "Ep_PartieFortsetzenInfo",
      "scope": "stage",
      "isService": true,
@@ -77252,7 +77359,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_132c3f25-d7d4-4f2c-8a85-f89e01b53611",
+     "id": "srv_9724a532-9d6d-4018-890f-3150c9f4d6f3",
      "name": "Ep_PartieFortsetzen",
      "scope": "stage",
      "isService": true,
@@ -77271,7 +77378,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_39e1ba8b-d90a-4c23-bb07-0e9ed18d56d4",
+     "id": "srv_e5c9493b-87db-49d2-9cd9-059fb1aca397",
      "name": "Ep_PartieWiederbeitrittInfo",
      "scope": "stage",
      "isService": true,
@@ -77290,7 +77397,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_efc0da99-d69d-411f-bac9-76d2ded0ad7b",
+     "id": "srv_04aa9c7b-92df-415a-b0a6-944b34eb7e42",
      "name": "Ep_PartieWiederbeitreten",
      "scope": "stage",
      "isService": true,
@@ -77309,7 +77416,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_145cf713-a4ad-4ab5-b944-4e7754c49265",
+     "id": "srv_057070eb-36df-4134-9a27-34d0cc816652",
      "name": "Ep_PartieListe",
      "scope": "stage",
      "isService": true,
@@ -77328,7 +77435,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_642f7fd8-ded8-423f-adaf-e5cace1a3cc7",
+     "id": "srv_d65e100e-ac8a-4305-a5eb-c11f531e4470",
      "name": "Ep_PartieErstellen",
      "scope": "stage",
      "isService": true,
@@ -77347,7 +77454,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_0bb9b942-44d2-4e8c-9490-619baa4e74ec",
+     "id": "srv_6ca9e6c4-6fd5-4c7f-86f1-885380536c3c",
      "name": "Ep_PartieBeitreten",
      "scope": "stage",
      "isService": true,
@@ -77366,7 +77473,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_5b678f3d-6479-4fe3-8e3f-db02c50b501c",
+     "id": "srv_4d24dfbd-7f99-4a34-bde3-79ec527ae101",
      "name": "Ep_PartieVerlassen",
      "scope": "stage",
      "isService": true,
@@ -77385,7 +77492,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_8b5c23d7-cb29-4d2f-b00d-c4e3be68437a",
+     "id": "srv_46f1ac26-e291-405c-8c8a-ee8565bba1c5",
      "name": "Ep_PartieStatus",
      "scope": "stage",
      "isService": true,
@@ -77404,7 +77511,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_11a5b4cc-d64c-40a3-995b-021aa0fe9d0a",
+     "id": "srv_858c06dd-cfb6-448b-a3cd-893de3abef86",
      "name": "Ep_PartieAktion",
      "scope": "stage",
      "isService": true,
@@ -77423,7 +77530,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_347538fd-517b-4e55-8b09-b36c7ef2f033",
+     "id": "srv_4ff96c9d-f432-41da-8ca8-956315106bf7",
      "name": "Ep_PartieBeginnen",
      "scope": "stage",
      "isService": true,
@@ -77442,7 +77549,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_c5c4b5ce-6ba2-4dab-9d7f-f9b806fd1a14",
+     "id": "srv_2100b36b-be48-44c0-91a2-0aae1e45b597",
      "name": "Ep_PartieBeenden",
      "scope": "stage",
      "isService": true,
@@ -77461,7 +77568,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_54f19139-6247-4f8f-bb9e-ef95100cba90",
+     "id": "srv_52038c82-9373-435e-b866-96e081063098",
      "name": "Ep_EinladbareBewohner",
      "scope": "stage",
      "isService": true,
@@ -77480,7 +77587,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_c605744e-d306-4e96-b1e0-218c12be77ea",
+     "id": "srv_9746ccb7-cd09-41fd-9a6c-02bce37efdaf",
      "name": "Ep_BewohnerEinladen",
      "scope": "stage",
      "isService": true,
@@ -77499,7 +77606,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_8ec1298c-aa26-411b-9984-4133f3cbc6e5",
+     "id": "srv_7f734f37-35e1-4a26-954b-9cf7519945e2",
      "name": "Ep_EinladungenLesen",
      "scope": "stage",
      "isService": true,
@@ -77518,7 +77625,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_411ac908-34c3-43c7-bfae-a54b477728e6",
+     "id": "srv_785891c3-b502-4afd-8aa8-697afd915ada",
      "name": "Ep_EinladungBeantworten",
      "scope": "stage",
      "isService": true,
@@ -77537,7 +77644,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_f48f5c0c-05e8-484b-8564-07fa4714e1c5",
+     "id": "srv_34fd12f6-e41a-4db7-99d2-7eaffa5e41f0",
      "name": "Ep_TeilnahmeZurueckziehen",
      "scope": "stage",
      "isService": true,
@@ -77556,7 +77663,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_c16e11dc-bc59-41da-ad0a-e5aa9b6bae57",
+     "id": "srv_b47b5917-4c4f-4f6c-9c3b-d6cbae135e1b",
      "name": "Ep_EinladungZuruecknehmen",
      "scope": "stage",
      "isService": true,
@@ -77575,7 +77682,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_3d0b0e8e-e339-4491-b100-f8c01db12f73",
+     "id": "srv_e10d1387-e22c-4b78-b50c-164ddae90199",
      "name": "Ep_HinweiseLesen",
      "scope": "stage",
      "isService": true,
@@ -77594,7 +77701,7 @@
     },
     {
      "className": "TServerEndpoint",
-     "id": "srv_ada7b070-2c57-43da-958f-febaad7a3f69",
+     "id": "srv_4335ba69-1686-45d4-b201-8c532ba5f1c5",
      "name": "Ep_HinweisGelesen",
      "scope": "stage",
      "isService": true,
@@ -77613,7 +77720,7 @@
     },
     {
      "className": "TServerSession",
-     "id": "srv_168bedfb-4e93-4d2f-a851-a8479deb2be3",
+     "id": "srv_08c9ef5d-c3e3-4108-bf4e-4ee913b3f2f9",
      "name": "Kontositzung",
      "scope": "stage",
      "isService": true,
@@ -77626,7 +77733,7 @@
     },
     {
      "className": "TServerValidate",
-     "id": "srv_bea4ec32-9fe9-4067-a790-2c211ee5fd24",
+     "id": "srv_8fec5fc1-0224-45fd-aa84-7782cb7e834f",
      "name": "EingabePruefung",
      "scope": "stage",
      "isService": true,
@@ -77639,7 +77746,7 @@
     },
     {
      "className": "TServerQuery",
-     "id": "srv_ac88c0d3-0da4-4be8-b414-3e08039e3ade",
+     "id": "srv_5f6cbedc-b12c-466c-90c2-7fa0e44e34d4",
      "name": "Datenbestand",
      "scope": "stage",
      "isService": true,
@@ -77652,7 +77759,7 @@
     },
     {
      "className": "TServerStore",
-     "id": "srv_e2d86558-c2dd-4052-9a19-5c3618773f69",
+     "id": "srv_310cbaf5-d3cc-491f-ac7c-9ec2f768cdf7",
      "name": "DatenSpeicher",
      "scope": "stage",
      "isService": true,
@@ -77665,7 +77772,7 @@
     },
     {
      "className": "TServerResponse",
-     "id": "srv_31f55b1c-6a0f-4a10-84ed-1dfb291c78e2",
+     "id": "srv_00ad3bed-9fb1-4f7f-8c26-e1a6eb55a9ac",
      "name": "AntwortSenden",
      "scope": "stage",
      "isService": true,
@@ -77735,7 +77842,7 @@
    ],
    "tasks": [
     {
-     "id": "srv_task_9ee47203-a6ed-4960-bb05-54f4835c188e",
+     "id": "srv_task_fcf76c76-49c9-4828-9fe3-8da1453a0889",
      "name": "Server_LobbyAngebot_Verarbeiten",
      "scope": "stage",
      "description": "Eigener aktiver Raum → freigegebene Mehrspieler-Spiele und aktive Hausbewohner",
@@ -77818,7 +77925,7 @@
      ]
     },
     {
-     "id": "srv_task_3c35d87c-a795-4b23-95f7-62a04bed0699",
+     "id": "srv_task_649829c5-40b9-4740-90f0-53d96f4469a8",
      "name": "Server_PartieListe_Verarbeiten",
      "scope": "stage",
      "description": "Mitgliedschaft im Raum → offene Partien mit Platzanzeige",
@@ -77876,7 +77983,7 @@
      ]
     },
     {
-     "id": "srv_task_5b91d225-045c-4f27-ab53-359bca5b5ad8",
+     "id": "srv_task_3b887eff-358d-484f-84b7-88296871e6c5",
      "name": "Server_PartieErstellen_Verarbeiten",
      "scope": "stage",
      "description": "multiplayer-Spiel → can(play) → keine laufende Partie → erstellen",
@@ -77993,7 +78100,7 @@
      ]
     },
     {
-     "id": "srv_task_273452e4-32f3-423d-9b06-8ed6479bd366",
+     "id": "srv_task_de3216f7-2298-43f1-bdd3-a1061e581f61",
      "name": "Server_PartieBeitreten_Verarbeiten",
      "scope": "stage",
      "description": "Offen → kein Mitglied → Version gleich → Freigabe → Platz frei → beitreten",
@@ -78218,7 +78325,7 @@
      ]
     },
     {
-     "id": "srv_task_d74abc98-055d-4937-9c38-49c45fb1894a",
+     "id": "srv_task_353a7ecc-2185-4b21-8d55-f2bd2412bd6d",
      "name": "Server_PartieVerlassen_Verarbeiten",
      "scope": "stage",
      "description": "Mitglied → leftAt buchen, leere Partie endet, eigene Sitzung endet",
@@ -78297,7 +78404,7 @@
      ]
     },
     {
-     "id": "srv_task_ff8074f4-b9d5-4666-b302-d77f867f1df3",
+     "id": "srv_task_c95928e5-0c93-4432-bef4-67d6aea896d3",
      "name": "Server_PartieStatus_Verarbeiten",
      "scope": "stage",
      "description": "Mitglied → Stand mit Delta ab seq (flache Felder für Clients)",
@@ -78376,7 +78483,7 @@
      ]
     },
     {
-     "id": "srv_task_d0723059-00c7-4339-b50c-eebbf4ac4ca7",
+     "id": "srv_task_e4762377-3117-46f0-ae69-09df06427c33",
      "name": "Server_PartieAktion_Verarbeiten",
      "scope": "stage",
      "description": "Mitglied → laufende Partie → Payload → Aktionslog mit seq",
@@ -78493,7 +78600,7 @@
      ]
     },
     {
-     "id": "srv_task_5201e2b9-1612-453c-9202-c7c669725e0d",
+     "id": "srv_task_a78422c3-9cd8-40a2-9dd0-bb9d6d82426d",
      "name": "Server_PartieBeginnen_Verarbeiten",
      "scope": "stage",
      "description": "Mitglied → nur Gastgeber → offen → Mindestspieler → starten",
@@ -78627,7 +78734,7 @@
      ]
     },
     {
-     "id": "srv_task_e136dd11-049c-4d23-b290-19468a0ac941",
+     "id": "srv_task_8a53ae78-3a91-4589-9b83-e745f03bebca",
      "name": "Server_PartieBeenden_Verarbeiten",
      "scope": "stage",
      "description": "Mitglied → nur Gastgeber → Partie + alle Mitglieds-Sitzungen enden",
@@ -78723,7 +78830,7 @@
      ]
     },
     {
-     "id": "srv_task_c8311d8b-0859-48fb-9d6b-834e8ddf282a",
+     "id": "srv_task_ee8a33fb-eb90-4eb7-8897-12261e4898ff",
      "name": "Server_StartEinladen_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -78777,7 +78884,7 @@
      ]
     },
     {
-     "id": "srv_task_86f18b4c-b303-47cc-8865-c1bd7c2e4fb8",
+     "id": "srv_task_3939ca33-75c4-4a5b-b419-54ccef8d4ad0",
      "name": "Server_PartieFortsetzenInfo_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -78831,7 +78938,7 @@
      ]
     },
     {
-     "id": "srv_task_42152c7d-1ff2-40c0-92f8-75a4eeab82dc",
+     "id": "srv_task_432c9b17-0f63-4e26-b46d-bee776c0d613",
      "name": "Server_PartieFortsetzen_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -78885,7 +78992,7 @@
      ]
     },
     {
-     "id": "srv_task_532cf3b2-41c0-49df-8715-0e4c75fb7a5a",
+     "id": "srv_task_9e21120c-6a81-44fb-8fe2-c039e84390c6",
      "name": "Server_PartieWiederbeitrittInfo_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -78939,7 +79046,7 @@
      ]
     },
     {
-     "id": "srv_task_540f14d7-ff9a-4d1c-85d0-ac9ecbd43661",
+     "id": "srv_task_00a659af-6634-4efd-8be8-e9a48e238b82",
      "name": "Server_PartieWiederbeitreten_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -78993,7 +79100,7 @@
      ]
     },
     {
-     "id": "srv_task_51cae793-a65a-46d4-a1cd-e3d04fbbba5e",
+     "id": "srv_task_10239769-40a2-4c9d-b071-f8f4cb5cf83d",
      "name": "Server_EinladbareBewohner_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -79047,7 +79154,7 @@
      ]
     },
     {
-     "id": "srv_task_ab269c82-ff1e-415b-8fa8-8abeb51382d6",
+     "id": "srv_task_763ac7b9-4a34-48a8-902f-d1cea9f1174b",
      "name": "Server_BewohnerEinladen_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -79101,7 +79208,7 @@
      ]
     },
     {
-     "id": "srv_task_7fe88a61-be34-4cc3-ad47-d6edb2da8c98",
+     "id": "srv_task_58a533ca-eee9-4567-a97f-767e630789ae",
      "name": "Server_EinladungenLesen_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -79155,7 +79262,7 @@
      ]
     },
     {
-     "id": "srv_task_b24e5f9d-5bc9-4fc7-ad97-19398ed23874",
+     "id": "srv_task_83cfdd24-f6ec-499c-aeb0-126938363577",
      "name": "Server_EinladungBeantworten_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -79209,7 +79316,7 @@
      ]
     },
     {
-     "id": "srv_task_b61a7810-b911-4b85-af12-aaa201626244",
+     "id": "srv_task_0d72805c-645d-483b-9659-02757ddd0718",
      "name": "Server_TeilnahmeZurueckziehen_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -79263,7 +79370,7 @@
      ]
     },
     {
-     "id": "srv_task_c06af970-2834-4594-95a2-937dd17667a8",
+     "id": "srv_task_2eccba73-6493-49fb-8284-ab2e5760037f",
      "name": "Server_EinladungZuruecknehmen_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -79317,7 +79424,7 @@
      ]
     },
     {
-     "id": "srv_task_12116520-feea-4409-ad31-6126f57fdb09",
+     "id": "srv_task_4fba5997-d863-4b8f-a10b-3b27cc974192",
      "name": "Server_HinweiseLesen_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -79371,7 +79478,7 @@
      ]
     },
     {
-     "id": "srv_task_065bb04c-a58d-45e2-bb62-cf2a729c8320",
+     "id": "srv_task_2c0747b5-2442-404f-ac4d-b50356ad6c5b",
      "name": "Server_HinweisGelesen_Verarbeiten",
      "scope": "stage",
      "description": "Multiplayer-Einladung serverseitig prüfen und verarbeiten",
@@ -79427,7 +79534,7 @@
    ],
    "actions": [
     {
-     "id": "srv_act_4c0a7543-6822-4cec-b3f0-50a61d36bdd4",
+     "id": "srv_act_d0b16979-a47c-4e4f-bf5d-8d6828db16b1",
      "name": "Act_KontoRolle_Pruefen",
      "type": "call_method",
      "target": "Kontositzung",
@@ -79439,7 +79546,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_1080fba7-e875-4e9c-a66a-6f73d1458271",
+     "id": "srv_act_0037696b-94c4-447c-bbfb-af9ff33f1710",
      "name": "Act_Fehler_Rolle",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79451,7 +79558,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c7809407-1cff-4d16-8a28-a0d66d47ceb7",
+     "id": "srv_act_fc3e2926-5887-4d84-a3f5-439da12d4ccd",
      "name": "LobbyAngebot_RaumPruefen",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79478,7 +79585,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a9ff536a-8ce2-4534-801f-9cf6d6526afa",
+     "id": "srv_act_9d29f3fd-5ce5-4bfe-8e0e-d9a3eb13f9ea",
      "name": "LobbyAngebot_HausLaden",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79490,7 +79597,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_cb00d755-3b24-4d2f-b788-974207eb5b2d",
+     "id": "srv_act_752e5108-c9d3-4d12-b6f6-2da7404d2c07",
      "name": "LobbyAngebot_SpieleLaden",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79533,7 +79640,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_26136f49-c218-4bb1-93bf-4a5c5a9e1626",
+     "id": "srv_act_5b0edeb6-88e3-484c-bb0d-f874c87a7b70",
      "name": "LobbyAngebot_BewohnerLaden",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79567,7 +79674,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b5437230-8bc7-447c-b267-30c375995f3b",
+     "id": "srv_act_8984a02a-0151-4452-acb8-705701902162",
      "name": "LobbyAngebot_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79581,7 +79688,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_743cf983-3111-4166-b1c3-77dcf5f7516f",
+     "id": "srv_act_254c499e-b94e-45de-b50b-64a41022fada",
      "name": "LobbyAngebot_FehlerRaum",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79593,7 +79700,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b123544b-9ff2-4a6a-890d-4d9268499541",
+     "id": "srv_act_de16503b-6802-4c05-bb94-ddf8f5ab19d7",
      "name": "PartieListe_RaumPruefen",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79620,7 +79727,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_5daf32fa-22bd-4505-a243-35f1c35c3cb3",
+     "id": "srv_act_d9598897-9cf4-4ff3-8644-6d43a90c166c",
      "name": "PartieListe_Laden",
      "type": "call_method",
      "target": "Partien",
@@ -79632,7 +79739,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ca1d6227-959c-4219-8361-9cc5c697ece4",
+     "id": "srv_act_9e0b495e-4e14-4825-aba4-cc67bc5c76e6",
      "name": "PartieListe_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79645,7 +79752,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_5aefdd08-bdf8-4c2a-a4d2-ee5e160896a1",
+     "id": "srv_act_5b59ad8d-d498-4deb-a2f5-f619063153d5",
      "name": "PartieListe_FehlerRaum",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79657,7 +79764,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_5c6b3239-7a8d-400e-9129-7d334de181bc",
+     "id": "srv_act_85ba117e-5e47-4aa6-b0dd-c3ccd798d1c9",
      "name": "PartieErstellen_SpielLaden",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79674,7 +79781,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_723cbe57-061e-407d-a083-4c7fc106b201",
+     "id": "srv_act_05426409-e3fa-4b22-85da-b5f11a30f515",
      "name": "PartieErstellen_Freigabe",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79690,7 +79797,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_8ad3f553-5738-44fe-912e-9e3438fdf34c",
+     "id": "srv_act_a0255ed0-fabf-4a74-a636-37d837f37e8c",
      "name": "PartieErstellen_InPartiePruefen",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79717,7 +79824,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a31d9436-5174-478f-a7cb-88d2ff51198c",
+     "id": "srv_act_ed036b7b-e363-4d56-ba29-f303fc4a6255",
      "name": "PartieErstellen_Erstellen",
      "type": "call_method",
      "target": "Partien",
@@ -79732,7 +79839,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_fbff92ab-b691-4dc0-862b-7e4909e29b18",
+     "id": "srv_act_d6f1401d-f291-4de5-aab0-db50ff2d4b7e",
      "name": "PartieErstellen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79746,7 +79853,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d4123515-8d1d-4fcf-a4a6-a568c7c09c9d",
+     "id": "srv_act_b6e9d8bd-086f-4501-8519-0df498344c70",
      "name": "PartieErstellen_FehlerErstellung",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79758,7 +79865,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_57c8094b-7abe-424d-82a0-63229b70820d",
+     "id": "srv_act_3d12d310-32dd-4017-862e-426917ea565b",
      "name": "PartieErstellen_FehlerSpiel",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79770,7 +79877,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_00a5341c-242a-4c63-9a58-9115bdb20fd5",
+     "id": "srv_act_77fe5f7d-16e7-48c8-9409-74d8aefb8768",
      "name": "PartieErstellen_FehlerFreigabe",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79782,7 +79889,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_e7507d6c-ebb9-4d4b-a004-cdd6602bc882",
+     "id": "srv_act_1f13021e-c0d1-4e12-a86f-bb9ac161f44b",
      "name": "PartieErstellen_FehlerInPartie",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79794,7 +79901,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_5b182b6b-1c54-4ed6-a9ce-2398868e4cba",
+     "id": "srv_act_5e6bcafd-cac5-4a19-b268-7f9389f73d31",
      "name": "PartieBeitreten_PartieLaden",
      "type": "call_method",
      "target": "Partien",
@@ -79806,7 +79913,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_9c987285-b20a-4230-a8b6-62a83ca61bba",
+     "id": "srv_act_ae2c2612-cad7-44c7-a056-84099ab504f3",
      "name": "PartieBeitreten_MitgliedPruefen",
      "type": "call_method",
      "target": "Partien",
@@ -79820,7 +79927,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_eddc1ac4-2a4b-4824-9983-e89c6dbbdc9d",
+     "id": "srv_act_5cb93b57-183c-44c5-af65-1a47d787371c",
      "name": "PartieBeitreten_SpielLaden",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79837,7 +79944,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c5c61590-8fc8-4427-ab8c-9a65f5a4839c",
+     "id": "srv_act_b5eb6dd5-f73c-4fc9-8b6c-5461d81da940",
      "name": "PartieBeitreten_Freigabe",
      "type": "call_method",
      "target": "Datenbestand",
@@ -79853,7 +79960,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ff5fca19-9f7f-4e15-9746-750ecbfd2286",
+     "id": "srv_act_d7ba1a37-fe2f-43db-b401-50d21d4a07e8",
      "name": "PartieBeitreten_Plaetze",
      "type": "call_method",
      "target": "Partien",
@@ -79865,7 +79972,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_e746daf1-bec6-439e-9068-c831fafaaaf5",
+     "id": "srv_act_07ed7be7-7d0b-48c5-a485-8b33c2120bce",
      "name": "PartieBeitreten_Beitreten",
      "type": "call_method",
      "target": "Partien",
@@ -79879,7 +79986,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_3586de87-4be8-4c2f-8120-edb96fcfde48",
+     "id": "srv_act_9191ea2f-dab4-45a8-aa84-314a39c09142",
      "name": "PartieBeitreten_NachJoin",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79892,7 +79999,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_f2b27ec6-c19d-4001-b30c-b807fda47416",
+     "id": "srv_act_0206570c-e7b6-4238-bfb8-644b82ba38e7",
      "name": "PartieBeitreten_FehlerBeitritt",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79904,7 +80011,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_37fc5d85-a98f-4422-af62-31a70e48bfc4",
+     "id": "srv_act_14ea7a4c-a626-4543-8bf0-04bde2c4e14a",
      "name": "PartieBeitreten_FehlerPartie",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79916,7 +80023,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_1b3c64aa-dd07-4768-a544-7ae28d3b185e",
+     "id": "srv_act_2abcbbd2-6824-4f15-9f8a-1e9572a38a72",
      "name": "PartieBeitreten_FehlerOffen",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79928,7 +80035,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d237caed-601c-421f-8ebb-db1c645e1aad",
+     "id": "srv_act_6dc81b59-7d50-4878-abea-78171805df7b",
      "name": "PartieBeitreten_FehlerDoppelt",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79940,7 +80047,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_235dae98-d0fc-4edb-9630-04f7f5725602",
+     "id": "srv_act_73663ee3-b580-4429-8b75-9e4dcc7bb68f",
      "name": "PartieBeitreten_FehlerVersion",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79952,7 +80059,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_eb0808ba-9639-48ff-9d61-3f016dc33f09",
+     "id": "srv_act_46c9434b-56cd-4d59-b03f-99eeb1980955",
      "name": "PartieBeitreten_FehlerZutritt",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79964,7 +80071,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_91717443-4efe-49af-8205-01a6ec25cd2d",
+     "id": "srv_act_131bf3b9-e5c7-466a-ac6c-6bb46945b5b6",
      "name": "PartieBeitreten_FehlerVoll",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -79976,7 +80083,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_477ae692-fa45-4020-8077-78665a21572b",
+     "id": "srv_act_94d85b5b-09b1-4e7d-8e87-ec4faf4465b9",
      "name": "PartieVerlassen_PartieLaden",
      "type": "call_method",
      "target": "Partien",
@@ -79988,7 +80095,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a3feea50-3bc5-468f-a854-598793d86342",
+     "id": "srv_act_bbd86036-8d7a-4de9-ab90-f76390131f64",
      "name": "PartieVerlassen_MitgliedPruefen",
      "type": "call_method",
      "target": "Partien",
@@ -80002,7 +80109,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_3447c398-47ab-4005-a352-777dac7a716b",
+     "id": "srv_act_6aeb601d-2ab6-4302-99be-dc855d22168b",
      "name": "PartieVerlassen_Verlassen",
      "type": "call_method",
      "target": "Partien",
@@ -80016,7 +80123,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a0b5a325-25c2-48ea-9430-aa7252cbc55d",
+     "id": "srv_act_bd82ec2c-92e6-4d57-a038-32f4e3807b6c",
      "name": "PartieVerlassen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80029,7 +80136,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b24d224d-475e-4c59-b9d7-b4bca7d5cce4",
+     "id": "srv_act_4a94394b-a123-4824-9347-cf27d0474512",
      "name": "PartieVerlassen_FehlerPartie",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80041,7 +80148,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_959605ca-65a6-4a51-96d9-482a9a4129ba",
+     "id": "srv_act_fb7f80f1-c928-42b8-81ca-1ed255f561a9",
      "name": "PartieVerlassen_FehlerMitglied",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80053,7 +80160,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_fa2fad62-9ef4-43e8-97e0-1acc41b41d24",
+     "id": "srv_act_dc300054-03ce-42fb-8e91-bc574fd45378",
      "name": "PartieStatus_PartieLaden",
      "type": "call_method",
      "target": "Partien",
@@ -80065,7 +80172,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_9ef70af0-f6c0-4d4e-aa03-0031101e1ec7",
+     "id": "srv_act_7bc57bde-1d5d-4283-8db3-62d892bf1bcb",
      "name": "PartieStatus_MitgliedPruefen",
      "type": "call_method",
      "target": "Partien",
@@ -80079,7 +80186,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c7096184-bc5b-44e6-bf03-0b70416f9441",
+     "id": "srv_act_b58d49e3-7b8a-4414-a19d-4df042f57f18",
      "name": "PartieStatus_Zustand",
      "type": "call_method",
      "target": "Partien",
@@ -80094,7 +80201,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_6501909e-95db-4417-bfd1-09931578696d",
+     "id": "srv_act_4d89ae1b-b1d2-4a81-9085-74a91a5b06f2",
      "name": "PartieStatus_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80107,7 +80214,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_52372a67-8688-4385-8e1b-06ad452b7b68",
+     "id": "srv_act_4743490d-5d32-4b1b-b16b-5af4e192b7b6",
      "name": "PartieStatus_FehlerPartie",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80119,7 +80226,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_6cd7d39f-3e0b-46ec-b048-b99add2f870c",
+     "id": "srv_act_12900fa8-2d48-474b-81bd-b943fecd205a",
      "name": "PartieStatus_FehlerMitglied",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80131,7 +80238,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_883f3b88-fe45-4542-b511-aae3a28c1376",
+     "id": "srv_act_db974942-7dfb-433a-a8fb-8589dc990aa1",
      "name": "PartieAktion_PartieLaden",
      "type": "call_method",
      "target": "Partien",
@@ -80143,7 +80250,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_edeb375f-b638-4ad9-be65-9c8e6318940a",
+     "id": "srv_act_934a78ea-99ee-4f0e-af85-a0a8e5bf9538",
      "name": "PartieAktion_MitgliedPruefen",
      "type": "call_method",
      "target": "Partien",
@@ -80157,7 +80264,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_209fb7ea-26eb-4709-9433-e77fcc250335",
+     "id": "srv_act_2d6ace8b-f4e6-483d-98e7-9c98b05aeed1",
      "name": "PartieAktion_PayloadPruefen",
      "type": "call_method",
      "target": "EingabePruefung",
@@ -80169,7 +80276,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_dda8f96e-03c9-4d40-b5e3-785c1d355157",
+     "id": "srv_act_8f3bfb83-ac99-42a4-95d7-43c28868ecc9",
      "name": "PartieAktion_Buchen",
      "type": "call_method",
      "target": "Partien",
@@ -80184,7 +80291,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_1c94e7e0-28f5-4812-ab1d-de5679f77a78",
+     "id": "srv_act_a68c2531-a280-4caa-aa45-4d4318292c98",
      "name": "PartieAktion_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80198,7 +80305,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_6ee1ed68-c59d-4589-8ed8-5de570ce7a29",
+     "id": "srv_act_5e8480af-8b27-4a31-b02d-2b2ca6e36da9",
      "name": "PartieAktion_FehlerPartie",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80210,7 +80317,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_f3ab0c3d-0b2d-4129-ae77-61ff84cc5a8b",
+     "id": "srv_act_c6c6bd47-d9a1-4026-9cab-0af527e9eb8c",
      "name": "PartieAktion_FehlerMitglied",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80222,7 +80329,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_f4ad4c1b-12d6-45f0-b773-001f11b86bce",
+     "id": "srv_act_f9136b40-3c3f-454c-847e-9f342b6c40b8",
      "name": "PartieAktion_FehlerLauf",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80234,7 +80341,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_5a1e652c-92eb-4535-927b-185b43622b81",
+     "id": "srv_act_ffe26a80-ea47-45bf-ad01-1d87c46806a4",
      "name": "PartieAktion_FehlerPayload",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80246,7 +80353,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_294f9e96-6e64-4847-aa9e-a97bd00e9dc0",
+     "id": "srv_act_0c2d8dce-508e-4e8b-a853-9868dabad8fc",
      "name": "PartieBeginnen_PartieLaden",
      "type": "call_method",
      "target": "Partien",
@@ -80258,7 +80365,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_e29d8619-7f23-4390-b67b-8c3f3bf8769d",
+     "id": "srv_act_d46042b5-3633-45e0-9643-f60df6b2fe09",
      "name": "PartieBeginnen_MitgliedPruefen",
      "type": "call_method",
      "target": "Partien",
@@ -80272,7 +80379,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d4075df7-5292-44e5-a862-5b9a97963a74",
+     "id": "srv_act_ef4c92f0-c156-48b6-9a86-c11e42ecbde9",
      "name": "PartieBeginnen_Plaetze",
      "type": "call_method",
      "target": "Partien",
@@ -80284,7 +80391,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_3a072b00-4e77-4ca4-bfa8-1b493c2d5883",
+     "id": "srv_act_b9b58bf6-a6d1-486e-b7f3-6e0ad2f6fdeb",
      "name": "PartieBeginnen_Beginnen",
      "type": "call_method",
      "target": "Partien",
@@ -80296,7 +80403,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c503d9a3-9eba-4dee-846a-6ff24b73429b",
+     "id": "srv_act_2f664eff-a33d-4ecc-a679-2251406df179",
      "name": "PartieBeginnen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80309,7 +80416,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_dfa63b12-752a-46c7-afca-5534dea79fa7",
+     "id": "srv_act_c1490c1a-2eed-4276-bd12-2ba261be09a2",
      "name": "PartieBeginnen_FehlerPartie",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80321,7 +80428,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_51eb0126-2453-43fb-ae9a-2f07522e2697",
+     "id": "srv_act_d015f65a-ea44-4552-a16d-a2ca90fe54ba",
      "name": "PartieBeginnen_FehlerMitglied",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80333,7 +80440,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_fba7c956-4e11-45c6-943a-c30897d1d76a",
+     "id": "srv_act_95eb17e9-2e7f-435b-b503-35b785cf88ca",
      "name": "PartieBeginnen_FehlerHost",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80345,7 +80452,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_f9d8b34b-2431-4b24-a6f7-7265a24e1173",
+     "id": "srv_act_e716407e-b388-4db5-b501-187497dbc085",
      "name": "PartieBeginnen_FehlerOffen",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80357,7 +80464,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c21b7e2a-1015-4989-8817-4d5732987803",
+     "id": "srv_act_669d37aa-5976-4c08-9976-c03cd0503fa0",
      "name": "PartieBeginnen_FehlerMin",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80369,7 +80476,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_53946754-7bce-49d8-add2-943fe01154e1",
+     "id": "srv_act_61f176b2-dd03-4dab-86ed-422d155a81a2",
      "name": "PartieBeenden_PartieLaden",
      "type": "call_method",
      "target": "Partien",
@@ -80381,7 +80488,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_27ab0db8-cf2a-4c4d-a71a-e1441e349fe1",
+     "id": "srv_act_d98f27d1-b42c-4701-ac55-30aa14b10db6",
      "name": "PartieBeenden_MitgliedPruefen",
      "type": "call_method",
      "target": "Partien",
@@ -80395,7 +80502,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_18acd459-ad3a-4180-baa5-9cefb79935d9",
+     "id": "srv_act_db7f32d5-9bb4-47c4-9678-0ff6490e6222",
      "name": "PartieBeenden_Beenden",
      "type": "call_method",
      "target": "Partien",
@@ -80407,7 +80514,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_2c44f0ca-7f56-4fa1-9123-c68d085375f4",
+     "id": "srv_act_a10becab-5321-4acb-8bdb-af593909ad76",
      "name": "PartieBeenden_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80420,7 +80527,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_468ec9a0-41f1-42d8-8ab4-f511c6d08917",
+     "id": "srv_act_ba18f43b-06e0-47fe-8004-2404eee43406",
      "name": "PartieBeenden_FehlerPartie",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80432,7 +80539,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_9c69b18d-2599-412b-8abe-e66fc7fcf0d1",
+     "id": "srv_act_eacb26e4-e809-42cd-9eda-489096b6f8c1",
      "name": "PartieBeenden_FehlerMitglied",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80444,7 +80551,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_00e25d35-7b2d-49cd-a8a9-3ea00ce6fc99",
+     "id": "srv_act_edbd7c1e-ec14-4b20-acdc-b0121ff4fbfb",
      "name": "PartieBeenden_FehlerHost",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80456,7 +80563,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_3c885312-b847-473b-9148-805989af9b30",
+     "id": "srv_act_fc08b59c-d938-4ef0-9633-351143e3a62f",
      "name": "StartEinladen_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80472,7 +80579,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_de98c134-8c09-4ee5-92ec-d4148764a92c",
+     "id": "srv_act_4a8a4cbd-98b7-4400-b720-65e293e5c62f",
      "name": "StartEinladen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80485,7 +80592,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_3c352350-e3c3-48ae-8ef1-b8451a3b301c",
+     "id": "srv_act_24560526-f92d-4c1f-aa6c-a77e878d898a",
      "name": "StartEinladen_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80497,7 +80604,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_8755750e-5553-47ec-be93-96fef1ad0966",
+     "id": "srv_act_650e0903-2daa-4bbb-ad0b-91b4da34fc9a",
      "name": "PartieFortsetzenInfo_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80507,7 +80614,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_eec1ec32-cdc4-4a99-b15f-2c702de9106c",
+     "id": "srv_act_007c4ee2-a80f-4630-ab96-45e743dcc315",
      "name": "PartieFortsetzenInfo_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80520,7 +80627,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c5801182-26b1-4354-b390-978131dfc71d",
+     "id": "srv_act_87f98fd1-c37e-4f48-9160-3cf217fc21dd",
      "name": "PartieFortsetzenInfo_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80532,7 +80639,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a0710931-7a79-4708-a5e0-693870158202",
+     "id": "srv_act_6e6b2bb6-0af0-4961-8145-f78b65cab7e3",
      "name": "PartieFortsetzen_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80542,7 +80649,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ec250f63-253a-4cc4-9030-2d584d9949b0",
+     "id": "srv_act_11022abe-68f5-4956-8feb-0d856edfe6fc",
      "name": "PartieFortsetzen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80555,7 +80662,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_356c1dc7-ded1-4eb0-9e3e-a8c3877e5ee3",
+     "id": "srv_act_93ebf2cb-7e7e-48d6-beb9-7d6fbf9fad3a",
      "name": "PartieFortsetzen_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80567,7 +80674,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d5415cb9-56e2-4ed5-88f0-b11d863048d6",
+     "id": "srv_act_b241d23f-1a5f-42ac-910b-d3b51083dd05",
      "name": "PartieWiederbeitrittInfo_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80577,7 +80684,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_9c357c33-4199-4545-b5d2-9ac7b9e033dc",
+     "id": "srv_act_9209063c-50a6-4668-9b10-fdcc4db07e5f",
      "name": "PartieWiederbeitrittInfo_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80590,7 +80697,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_8bce5727-dda7-40b7-9fc0-995521b6df9b",
+     "id": "srv_act_d021bfc3-f43f-4026-b312-437f6e5e9386",
      "name": "PartieWiederbeitrittInfo_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80602,7 +80709,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_e61bf349-2749-4ec2-addc-65aa2509a3a0",
+     "id": "srv_act_76c87239-0102-41d0-976b-8652b1cc7ddf",
      "name": "PartieWiederbeitreten_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80612,7 +80719,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_321844e2-63d9-4fa5-8a61-01c34a3f1a0b",
+     "id": "srv_act_078e9638-758c-474b-827a-ec88f457cfde",
      "name": "PartieWiederbeitreten_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80625,7 +80732,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b7ccae55-3a32-4670-8617-ec70dba9a4fe",
+     "id": "srv_act_6ec1b8ce-f2d8-4cfc-8381-bf13932db0f6",
      "name": "PartieWiederbeitreten_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80637,7 +80744,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a3165135-5db3-4c0b-84f3-cd802856976a",
+     "id": "srv_act_e8615c85-8d6d-45a9-b5f8-e6a677ec3102",
      "name": "EinladbareBewohner_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80649,7 +80756,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a6bbe744-d40a-492d-aaf0-fe3938490d75",
+     "id": "srv_act_3fed6f7a-68e5-4176-8f2e-d238a661f269",
      "name": "EinladbareBewohner_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80662,7 +80769,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d491399e-861a-4d2f-94a5-451dd5b04c91",
+     "id": "srv_act_0f8074ec-fd31-403e-a8ab-e3b5e964e943",
      "name": "EinladbareBewohner_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80674,7 +80781,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_5d438c2c-395f-43b0-ae21-faefd771da7c",
+     "id": "srv_act_28ed845c-9d99-464c-9c02-54d016d62ddb",
      "name": "BewohnerEinladen_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80689,7 +80796,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_99d4519e-1fae-4642-a328-27edb6b73828",
+     "id": "srv_act_519d66de-ea1e-4e95-a2e5-6d1a5a391a15",
      "name": "BewohnerEinladen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80702,7 +80809,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_e7c69504-ca9e-400b-a7c4-8f0fd664ae6b",
+     "id": "srv_act_9bfab1f1-085c-4c8c-8217-b271354213c3",
      "name": "BewohnerEinladen_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80714,7 +80821,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_90f5dd5d-f71b-415b-ac54-2412f18f7bae",
+     "id": "srv_act_10227d4d-ea8c-4f0d-a4a4-e323368079f8",
      "name": "EinladungenLesen_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80724,7 +80831,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_2d629b13-6131-4b6f-857c-36fd0b687af9",
+     "id": "srv_act_2e6e518f-05cd-4f32-942c-78a28d7cf511",
      "name": "EinladungenLesen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80737,7 +80844,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_756136ce-c019-44f0-958d-b08c0d9c5856",
+     "id": "srv_act_b0d5ba99-0cee-4166-be46-2b5a4fcd8ffa",
      "name": "EinladungenLesen_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80749,7 +80856,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_792926c3-0699-40f8-a93c-b15e0d6406fa",
+     "id": "srv_act_67780012-0d56-4ad2-ae18-3047df5afd99",
      "name": "EinladungBeantworten_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80764,7 +80871,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_d144a7cf-9942-4fa3-9b65-8360818c84d7",
+     "id": "srv_act_924a5f97-d1c3-4c8c-9ab6-b0afb7f61bc6",
      "name": "EinladungBeantworten_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80777,7 +80884,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_4f11aa5f-561b-4f95-ac67-d2cf136c68e1",
+     "id": "srv_act_de61812a-86ea-497d-bce6-90a029e432b1",
      "name": "EinladungBeantworten_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80789,7 +80896,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_9f026c6e-bc07-4954-9aa5-d6e20f7fa50c",
+     "id": "srv_act_68bc2f61-a81c-4e07-8971-c46c5312c709",
      "name": "TeilnahmeZurueckziehen_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80801,7 +80908,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_498b5282-8829-4d23-b832-330750027f7a",
+     "id": "srv_act_f80117dc-6f0d-4d56-b367-c166cf5f7610",
      "name": "TeilnahmeZurueckziehen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80814,7 +80921,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ee832be4-ee6e-4da3-9a8b-6dc01060ceae",
+     "id": "srv_act_175e30b0-3cb0-4412-ac05-eb72da17b875",
      "name": "TeilnahmeZurueckziehen_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80826,7 +80933,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_a8d64a9d-4636-44fe-a47e-66157043ba5f",
+     "id": "srv_act_ff18b19b-9352-4eaf-ba3a-8961a079ac7e",
      "name": "EinladungZuruecknehmen_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80838,7 +80945,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_f0c35b77-57b5-43a1-97d0-1b1fd6885f89",
+     "id": "srv_act_f2ad4144-4763-407c-bbb3-4747a0443337",
      "name": "EinladungZuruecknehmen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80851,7 +80958,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_8d3e65bb-a277-49e8-8ef1-b8f1c11ff0c3",
+     "id": "srv_act_8fd87c1e-ad57-4d29-b708-aa382ce9b578",
      "name": "EinladungZuruecknehmen_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80863,7 +80970,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_ed031c39-97d3-4836-a4a0-6e123390a012",
+     "id": "srv_act_c1e9aea6-4868-4026-bf5d-7cdf2e60d6ee",
      "name": "HinweiseLesen_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80873,7 +80980,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_c96b8acd-fc27-42d6-9fbf-2e1ee2618cff",
+     "id": "srv_act_565c51ae-85f5-4788-88bd-36b921e3820b",
      "name": "HinweiseLesen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80886,7 +80993,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_5b444522-8f1d-4551-a4df-e4547e9c28d4",
+     "id": "srv_act_fc1e46b3-4834-45dc-a30f-a85f2c2abd66",
      "name": "HinweiseLesen_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80898,7 +81005,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_42dc4bd6-9b04-489c-8af0-352e4fc88208",
+     "id": "srv_act_a6b7c4d3-dd49-46f1-b97a-ffff08db74a0",
      "name": "HinweisGelesen_Ausfuehren",
      "type": "call_method",
      "target": "Partien",
@@ -80910,7 +81017,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_b34d6939-c5e5-4eab-9228-dedbd0f33ed4",
+     "id": "srv_act_59100ccf-5dd4-4754-bb87-6b2c15045c61",
      "name": "HinweisGelesen_Antworten",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80923,7 +81030,7 @@
      "scope": "stage"
     },
     {
-     "id": "srv_act_64e8825a-65f6-44e3-b37d-9b6787fe8d4d",
+     "id": "srv_act_3ec79a23-32d2-4702-924b-2cbdbb845ea5",
      "name": "HinweisGelesen_Fehler",
      "type": "call_method",
      "target": "AntwortSenden",
@@ -80938,7 +81045,7 @@
    "variables": [
     {
      "className": "TObjectVariable",
-     "id": "cms_var_ff03166d-983e-4b65-a796-10627a0f0e30",
+     "id": "cms_var_287002c1-f21a-4c6e-be55-13f31f2ae392",
      "name": "Pruefung",
      "scope": "stage",
      "isVariable": true,
@@ -80964,7 +81071,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_df9e77fb-2bb6-4777-95e3-917c40fb8f94",
+     "id": "cms_var_c4e69e3e-eae8-4d5e-a677-905e9367a34c",
      "name": "Raum",
      "scope": "stage",
      "isVariable": true,
@@ -80990,7 +81097,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_e378be63-58ec-44e3-8507-d3fdd25dd807",
+     "id": "cms_var_18930e10-f870-4b8f-a68b-d0fdfacff086",
      "name": "Haus",
      "scope": "stage",
      "isVariable": true,
@@ -81016,7 +81123,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_12dd9553-e98f-4282-8b3d-211657020048",
+     "id": "cms_var_60854c81-4658-4efb-92eb-41dd2188ba8c",
      "name": "Spiele",
      "scope": "stage",
      "isVariable": true,
@@ -81042,7 +81149,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_ab39f4e8-f290-4fbf-b5ef-9b9e4b8770ab",
+     "id": "cms_var_2dde57a4-dfd9-4f62-b26c-ce883f16a69b",
      "name": "Partien",
      "scope": "stage",
      "isVariable": true,
@@ -81068,7 +81175,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_5d4224eb-1f16-4bd6-bfe6-498b2cee9970",
+     "id": "cms_var_272e1e61-2639-428c-9db2-2143711f817c",
      "name": "Spiel",
      "scope": "stage",
      "isVariable": true,
@@ -81094,7 +81201,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_7effa91c-692c-4927-9bb0-902799c6b975",
+     "id": "cms_var_05d3cf32-999f-4d7e-8bac-c8ed377a4b6b",
      "name": "Erlaubt",
      "scope": "stage",
      "isVariable": true,
@@ -81120,7 +81227,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_7a998b91-10cd-43b8-bdac-f336b2315885",
+     "id": "cms_var_5c3e46f1-31b3-41bb-b5e2-682846188694",
      "name": "InPartie",
      "scope": "stage",
      "isVariable": true,
@@ -81146,7 +81253,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_8eb7eed2-7d94-48aa-8dea-c892d949103e",
+     "id": "cms_var_24006526-2f72-4020-87ad-2a0541b8ce2a",
      "name": "Partie",
      "scope": "stage",
      "isVariable": true,
@@ -81172,7 +81279,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_24608dcb-84ec-4a59-b2c0-49bbc88fb2fc",
+     "id": "cms_var_8c15d5c3-60d6-495a-867b-1df7ac0fae39",
      "name": "Mitglied",
      "scope": "stage",
      "isVariable": true,
@@ -81198,7 +81305,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_642d9cef-1e52-40bf-884c-c819d3c3e3aa",
+     "id": "cms_var_fd26f2e2-03dc-484a-8263-cff396abfd4c",
      "name": "Plaetze",
      "scope": "stage",
      "isVariable": true,
@@ -81224,7 +81331,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_79105a61-d0d9-490d-b18e-250e319aa134",
+     "id": "cms_var_90825afc-dee4-43f4-ba7b-2bd0c18b204d",
      "name": "Erstellt",
      "scope": "stage",
      "isVariable": true,
@@ -81250,7 +81357,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_1c8e98f4-14db-4461-a9bb-b7f31ac7e893",
+     "id": "cms_var_b5cd3ec9-3728-4a40-a15e-9be2b484759e",
      "name": "Beitritt",
      "scope": "stage",
      "isVariable": true,
@@ -81276,7 +81383,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_94f7e479-c1e3-4f29-a369-779d33e314f5",
+     "id": "cms_var_df3832ba-772b-422b-9d0c-247720eb82d7",
      "name": "VerlassenErgebnis",
      "scope": "stage",
      "isVariable": true,
@@ -81302,7 +81409,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_4a0b3965-274c-47ad-9af3-d1bfda774e61",
+     "id": "cms_var_7f5ae01a-a6e0-440e-9978-6f56f124c49b",
      "name": "Zustand",
      "scope": "stage",
      "isVariable": true,
@@ -81328,7 +81435,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_ddbb3953-74bb-4254-b44a-63d5c4046f26",
+     "id": "cms_var_d917c519-3f5e-47e9-940f-140d6402bbc1",
      "name": "Nutzlast",
      "scope": "stage",
      "isVariable": true,
@@ -81354,7 +81461,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_5610e2c8-c783-4e1a-a495-e28698e7d458",
+     "id": "cms_var_7e2eaa91-dd3f-4e6c-94ac-275231a091e5",
      "name": "Gebucht",
      "scope": "stage",
      "isVariable": true,
@@ -81380,7 +81487,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_a9282059-06f7-4c9b-9421-8f01c7b66b05",
+     "id": "cms_var_92126300-77a7-4cec-8f0e-6b45c8b6bb3a",
      "name": "Begonnen",
      "scope": "stage",
      "isVariable": true,
@@ -81406,7 +81513,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_a38bcfce-1dc7-40dc-8acd-67e1c33e7c88",
+     "id": "cms_var_4e62e042-cbce-41f9-937a-77dc2f5470a0",
      "name": "Beendet",
      "scope": "stage",
      "isVariable": true,
@@ -81432,7 +81539,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_66161636-8c49-46a6-9a88-c03b75225ee2",
+     "id": "cms_var_20861a2a-5549-465e-acf3-793ddfc7fb90",
      "name": "Kandidaten",
      "scope": "stage",
      "isVariable": true,
@@ -81458,7 +81565,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_97b04d76-2d2b-4b5c-bdbb-ac7658ba17a6",
+     "id": "cms_var_f808a97f-a471-40e5-a4b9-3875e67c5d3b",
      "name": "StartEinladung",
      "scope": "stage",
      "isVariable": true,
@@ -81484,7 +81591,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_daff5d86-5ee9-408e-b642-f65138e1c35d",
+     "id": "cms_var_53b577b1-34b9-4294-99ea-6f500f70d21e",
      "name": "FortsetzenInfo",
      "scope": "stage",
      "isVariable": true,
@@ -81510,7 +81617,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_068c8789-4a59-4e5d-8196-a9f5faee9747",
+     "id": "cms_var_1a78f593-96ac-41ac-a09f-16d1f310a48f",
      "name": "Fortsetzen",
      "scope": "stage",
      "isVariable": true,
@@ -81536,7 +81643,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_fc88db02-b6ed-49dd-8597-767ed83e803b",
+     "id": "cms_var_0571204a-4639-43c7-93ff-06404812cecc",
      "name": "WiederbeitrittInfo",
      "scope": "stage",
      "isVariable": true,
@@ -81562,7 +81669,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_5b8a8e69-fec5-4c0b-ad3b-99f50073a029",
+     "id": "cms_var_f261ce6d-212c-476f-83d5-26a539ec1a85",
      "name": "Wiederbeitritt",
      "scope": "stage",
      "isVariable": true,
@@ -81588,7 +81695,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_92cc45bf-d968-4431-a017-84ebc1dd3b28",
+     "id": "cms_var_999f9330-eb0f-4a7b-af75-627b1a33c0c0",
      "name": "Einladung",
      "scope": "stage",
      "isVariable": true,
@@ -81614,7 +81721,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_0693db10-f878-4b06-8471-1ede5a0358f8",
+     "id": "cms_var_fe718bfb-f5fa-4bc9-adb9-71c56b6a3d26",
      "name": "Einladungen",
      "scope": "stage",
      "isVariable": true,
@@ -81640,7 +81747,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_da20d30a-7d11-4f18-89e2-80c7e1047124",
+     "id": "cms_var_405aa366-ea6e-4b60-9dcc-4b0d484fef48",
      "name": "Einladungsantwort",
      "scope": "stage",
      "isVariable": true,
@@ -81666,7 +81773,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_81c26168-32d1-4104-9774-0c1068659487",
+     "id": "cms_var_13db56f1-2b45-4f35-b724-3407d2578a83",
      "name": "Rueckzug",
      "scope": "stage",
      "isVariable": true,
@@ -81692,7 +81799,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_e4e65466-5085-47f4-a4cc-e11ce36e12c6",
+     "id": "cms_var_789ed1b2-d349-4fb5-a6a2-52fab3b4b74d",
      "name": "Stornierung",
      "scope": "stage",
      "isVariable": true,
@@ -81718,7 +81825,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_e86d19dd-94bc-4587-b327-f604b3a76a0e",
+     "id": "cms_var_6e714f75-99da-4049-940d-e8a4713c0587",
      "name": "Hinweise",
      "scope": "stage",
      "isVariable": true,
@@ -81744,7 +81851,7 @@
     },
     {
      "className": "TObjectVariable",
-     "id": "cms_var_c1a564c1-5d95-4921-a470-d97530c88b2f",
+     "id": "cms_var_0a7d7335-4559-43ba-b9e4-68e6d51b2c9f",
      "name": "Hinweisstatus",
      "scope": "stage",
      "isVariable": true,

@@ -15,15 +15,64 @@ async function main(){
   const origin='http://127.0.0.1:'+cms.server.address().port,token=cms.core.issueSession('child-finn','profile');
   cms.launches.set('browser-points-launch',{token,gameId:'game-math',areaId:'room-sun-play',playSessionId:'browser-play'});
   browser=await chromium.launchPersistentContext(path.join(dir,'browser-profile'),{channel:'msedge',headless:true,viewport:{width:1280,height:950}});
-  const page=await browser.newPage(),errors=[];page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
+  const page=await browser.newPage(),errors=[];let summaryRequests=0;page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
+  page.on('request',r=>{if(r.url()===origin+'/api/cms/play'&&r.method()==='POST'&&r.postDataJSON()?.action==='cardPointSummary')summaryRequests++;});
   const obj=name=>page.locator('[data-id="'+quiz.stages[0].objects.find(o=>o.name===name).id+'"]');
-  await page.goto(origin+'/play/browser-points-launch');await obj('Tastatur').click();
+  await page.goto(origin+'/play/browser-points-launch');
+  await page.waitForFunction(()=>window.player?.runtime?.getObjects().length>0);
+  assert.ok(await page.evaluate(()=>window.player.runtime.getObjects().some(o=>o.className==='TLearningPointsOverlay')), 'Runtime-Bundle fehlt oder ist veraltet: bitte npm run bundle:runtime ausführen.');
+  await page.locator('#loading-overlay').waitFor({state:'hidden'});
+  const points=page.locator('[data-id="quiz_learning_points"]'),help=page.locator('[data-id="quiz_help_overlay"]');
+  await page.waitForFunction(()=>document.querySelector('[data-id="quiz_learning_points"]')?.textContent.includes('0 Lernpunkte'));
+  const interactionRegression=await page.evaluate(()=>{
+   const runtime=window.player.runtime,o=runtime.getObjects().find(x=>x.id==='quiz_learning_points');
+   const original={events:o.events,activationAction:o.activationAction,expandedModal:o.expandedModal};
+   const originalHandle=runtime.handleEvent;let clicks=0;
+   runtime.handleEvent=function(id,event,...args){if(id===o.id&&event==='onClick'){clicks++;return;}return originalHandle.call(this,id,event,...args);};
+   try{
+    o.events={...o.events,onClick:'RegressionTask'};o.activationAction='none';runtime.options.onRender();
+    let el=document.querySelector('[data-id="quiz_learning_points"]');el.click();
+    el.__wasTouchStart=true;el.click();el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+    o.activationAction='eventOnly';runtime.options.onRender();el=document.querySelector('[data-id="quiz_learning_points"]');el.click();
+    const eventOnlyClicks=clicks;
+    o.activationAction='none';runtime.options.onRender();document.querySelector('[data-id="quiz_learning_points"]').click();
+    const afterDisableClicks=clicks;
+    o.expandedModal=true;o.expand();
+    const dialog=document.createElement('div');dialog.className='dialog-root';dialog.style.cssText='position:fixed;top:0;left:0;z-index:20000';
+    const button=document.createElement('button');dialog.append(button);document.body.append(dialog);button.focus();
+    const dialogKeepsFocus=document.activeElement===button;
+    button.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    const inlineStaysOpen=o.isExpanded;dialog.remove();
+    document.querySelector('[data-id="quiz_learning_points"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    return {eventOnlyClicks,afterDisableClicks,dialogKeepsFocus,inlineStaysOpen,inlineClosed:!o.isExpanded};
+   }finally{o.collapse();Object.assign(o,original);runtime.handleEvent=originalHandle;runtime.options.onRender();}
+  });
+  assert.deepEqual(interactionRegression,{eventOnlyClicks:1,afterDisableClicks:1,dialogKeepsFocus:true,inlineStaysOpen:true,inlineClosed:true});
+  await help.focus();await page.keyboard.press('Enter');await help.locator('[data-overlay-close]').waitFor();
+  await page.keyboard.press('Escape');assert.equal(await help.getAttribute('aria-expanded'),'false');
+  await points.click();await points.locator('[data-overlay-close]').waitFor();
+  await page.keyboard.press('Escape');assert.equal(await points.getAttribute('aria-expanded'),'false');
+  const ending=page.waitForResponse(r=>r.url()===origin+'/api/cms/play'&&r.request().postDataJSON()?.action==='end');
+  await obj('Tastatur').click();
   await page.getByPlaceholder('Deine Antwort …').fill('4');
   const response=page.waitForResponse(async r=>r.url()===origin+'/api/cms/play'&&r.request().postDataJSON()?.action==='cardAnswer');
   await obj('Pruefen').click();const answer=await (await response).json();assert.equal(answer.ok,true);assert.equal(answer.box,6);assert.equal(answer.pointsDelta,1);
-  await page.waitForFunction(()=>document.querySelector('[data-id="quiz_learning_points"]')?.textContent.includes('Lernpunkte: 1'));
+  // Lernpunkteanzeige ist jetzt TLearningPointsOverlay (gleiche Objekt-ID).
+  // Kompakttext '⭐ 1 Lernpunkte'; direkt nach der Buchung kurz der Hinweis
+  // '+1 · Karte abgeschlossen · ⭐ 1' — beides enthaelt '⭐ 1'.
+  await page.waitForFunction(()=>document.querySelector('[data-id="quiz_learning_points"]')?.textContent.includes('⭐ 1'));
+  const end=await (await ending).json();assert.equal(end.ok,true);assert.equal(end.learning.totalPoints,1);
+  await page.waitForFunction(()=>document.querySelector('[data-id="quiz_learning_points"]')?.textContent.includes('Endstand'));
+  const previousRequests=summaryRequests;
+  await page.evaluate(()=>window.player.runtime.getObjects().find(o=>o.id==='quiz_learning_points').refresh());await page.waitForTimeout(100);
+  assert.equal(summaryRequests,previousRequests,'Endstand darf keinen weiteren Abruf auslösen');
   assert.equal(cms.core.db.flashcards[0].box,6);assert.equal(cms.core.db.performanceLedger.filter(e=>e.cardLearningEvent).length,1);
   const artifacts=path.join(__dirname,'../.codex-work');fs.mkdirSync(artifacts,{recursive:true});await page.screenshot({path:path.join(artifacts,'card-learning-points.png'),fullPage:true});
+  await points.click();await points.locator('[data-overlay-close]').waitFor();
+  await points.getByText('Endstand (Sitzung beendet)',{exact:true}).waitFor();
+  await page.screenshot({path:path.join(artifacts,'card-learning-points-expanded.png'),fullPage:true});
+  await page.keyboard.press('Escape');assert.equal(await points.getAttribute('aria-expanded'),'false');
+  assert.equal(await points.evaluate(el=>document.activeElement===el),true);
   await browser.addCookies([{name:'cms_account',value:cms.core.issueSession('parent-multi','account'),url:origin}]);
   await page.goto(origin+'/parent');await page.getByText('Finn',{exact:true}).filter({visible:true}).click();
   const click=async(stage,name)=>page.locator('[data-id="'+project.stages.find(s=>s.id===stage).objects.find(o=>o.name===name).id+'"]').click();

@@ -130,6 +130,14 @@ function expireInvitations(ctx){
 // Karteikasten-DTO: Karten werden flach für Listen/Quiz ausgeliefert.
 const cardDto=(db,c)=>{const by=db.people.find(p=>p.id===c.createdBy);return{id:c.id,childId:c.childId,subject:c.subject,topic:c.topic,question:c.question,answers:c.answers,answerFormat:c.answerFormat,box:c.box,boxLabel:c.box===6?'✔ gelernt':'Fach '+c.box,createdBy:c.createdBy,createdByName:by?.name||'',createdAt:c.createdAt,updatedAt:c.updatedAt,lastReviewedAt:c.lastReviewedAt,active:c.active};};
 
+// Endstand-Lernpunkte fuer Sitzungs-Abschlussantworten (end/heartbeat/
+// bereits beendet). Der Launch-Schluessel wird nach dem bestaetigten Ende
+// entfernt — deshalb geht der Stand hier mit, statt ihn spaeter lesen zu
+// lassen. Defensiv: ohne Karteikasten-/Ledgerdaten liefert es den Nullstand.
+const learningSummary=(db,childId)=>{
+ try{return require('./cms-card-points.cjs').summary(db,childId);}catch(e){return null;}
+};
+
 const methods={
  TServerSession:{
   requireRole(ctx,_component,params){
@@ -909,7 +917,7 @@ const methods={
    const id=exprOf(ctx,params?.[0],{}),db=ctx.core.db,s=refreshSession(db,db.playSessions.find(x=>x.id===id));
    if(!s||s.childId!==ctx.session.personId)return{ok:false,status:404,message:'Spielsitzung nicht gefunden.'};
    if(s.status==='disconnected')s.status='active'; // Reconnect ohne Commit nötig
-   if(s.status!=='active')return{ok:true,status:s.status,ended:s.status==='ended'};
+   if(s.status!=='active')return{ok:true,status:s.status,ended:s.status==='ended',...(s.status==='ended'?{learning:learningSummary(db,s.childId)}:{})};
    if(db.parties.some(p=>p.oneClick&&p.status==='open'&&p.members.some(m=>m.playSessionId===id&&!m.leftAt))){
     ctx.commit(ctx.session,'play-heartbeat-wait',s.areaId,next=>{next.playSessions.find(x=>x.id===id).lastHeartbeatAt=new Date().toISOString();},{audit:false});
     return{ok:true,status:'active',remainingMinutes:remainingFor(db,s.childId,s.areaId)};
@@ -927,22 +935,25 @@ const methods={
     if(ns.graceUntil&&Date.now()>new Date(ns.graceUntil).getTime()){ns.status='ended';ns.endedAt=new Date().toISOString();}
    },{audit:false});
    const cur=db.playSessions.find(x=>x.id===s.id);
-   return{ok:true,status:cur.status,remainingMinutes:remainingFor(db,cur.childId,cur.areaId),warn:warnLevelOf(db,cur.childId,cur),ended:cur.status==='ended'};
+   return{ok:true,status:cur.status,remainingMinutes:remainingFor(db,cur.childId,cur.areaId),warn:warnLevelOf(db,cur.childId,cur),ended:cur.status==='ended',...(cur.status==='ended'?{learning:learningSummary(db,cur.childId)}:{})};
   },
   // Statusübergang (paused/active/ended) — Zulässigkeit prüft der Task.
+  // Beim bestaetigten Ende geht der endgueltige Lernpunktestand mit der
+  // Antwort: der Launch-Schluessel wird danach entfernt, ein Ruecklesen
+  // waere unmoeglich. Das Overlay friert diesen Stand ein.
   setStatus(ctx,_component,params){
    const spec=params?.[0]||{},scope={},db=ctx.core.db;
    const id=exprOf(ctx,spec.id,scope),target=exprOf(ctx,spec.status,scope);
    const s=db.playSessions.find(x=>x.id===id);
    if(!s)return{ok:false,status:404,message:'Spielsitzung nicht gefunden.'};
-   if(target==='ended'&&s.status==='ended')return{ok:true,status:'ended',minutes:s.minutes};
+   if(target==='ended'&&s.status==='ended')return{ok:true,status:'ended',minutes:s.minutes,learning:learningSummary(db,s.childId)};
    ctx.commit(ctx.session,'play-'+({paused:'pause',active:'resume',ended:'end'}[target]||target),s.areaId,next=>{
     const ns=next.playSessions.find(x=>x.id===s.id);
     ns.status=target;ns.lastHeartbeatAt=new Date().toISOString();
     if(target==='ended')ns.endedAt=new Date().toISOString();
    });
    const cur=db.playSessions.find(x=>x.id===s.id);
-   return{ok:true,status:cur.status,minutes:cur.minutes,remainingMinutes:remainingFor(db,cur.childId,cur.areaId)};
+   return{ok:true,status:cur.status,minutes:cur.minutes,remainingMinutes:remainingFor(db,cur.childId,cur.areaId),...(cur.status==='ended'?{learning:learningSummary(db,cur.childId)}:{})};
   },
   // Spielstart + Launch-Grant (E08): /play/<Schlüssel> ist die begrenzte
   // Berechtigung für die Player-Seite — sie kennt das Spieler-Token nicht.
@@ -1849,6 +1860,7 @@ Object.assign(methods,require('./cms-sponsor-components.cjs')({exprOf}));
 const sponsorAdmin=require('./cms-sponsor-admin.cjs');
 Object.assign(methods.TServerCards,{
  pointSummary:require('./cms-card-points.cjs').pointSummary,
+ cardPointSummary:require('./cms-card-points.cjs').cardPointSummary,
  setPointMode:require('./cms-card-points.cjs').setPointMode,
 });
 Object.assign(methods.TServerAccess,{

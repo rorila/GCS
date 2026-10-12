@@ -23,6 +23,10 @@ export interface StageHost {
     runtime?: { getRawObject(id: string): any | undefined } | any;
     /** Liefert Variablenwerte für die Auflösung von ${...}-Bindings im Editor. */
     getVariableContext?(): Record<string, any>;
+    /** Designwert-Aenderung der Overlay-Detailflaeche (undo-faehig, Editor). */
+    onObjectBoundsEdit?: (id: string, bounds: { x: number; y: number; width: number; height: number }) => void;
+    /** Auswahl-Callback des Editors (z.B. Klick auf die Overlay-Detailflaeche). */
+    onSelectCallback?: ((ids: string[]) => void) | null;
 }
 
 export class StageRenderer {
@@ -350,7 +354,9 @@ export class StageRenderer {
             // das Panel auf die Sprite-Ebene zurueckwerfen.
             if (el.dataset.dialogZ) {
                 el.style.zIndex = el.dataset.dialogZ;
-            } else if (obj.zIndex !== undefined) {
+            } else if (obj.zIndex !== undefined && !(obj.isExpanded === true && typeof (obj as any).getEffectiveBounds === 'function')) {
+                // Aufgeklappte Inline-Overlays verwalten ihre Ebene (EXPANDED_Z)
+                // selbst — ein Einzelupdate darf sie nicht zurueckwerfen.
                 el.style.zIndex = String(obj.zIndex);
             }
         } else if (obj.opacity !== undefined) {

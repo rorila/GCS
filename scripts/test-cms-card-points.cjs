@@ -77,6 +77,47 @@ test('Selbstbewertung zählt beim Sponsor erst nach elterlicher Anerkennung',()=
  const row=f.db.progress.find(e=>e.eventId.startsWith('card-learning:'));const r=f.api('/api/cms/parent/sponsor-performance-recognize',{childId:'child-finn',metricKey:'cards.promotions',value:1,unit:'transition',progressEventId:row.eventId},{personId:'parent-multi',assurance:'account'});assert.equal(r.status,200);
  assert.equal(perf.countedPoints(f.db,f.db.sponsorships[0],v.terms).points,1);assert.equal(f.db.rewardClaims.length,1);assert.equal(f.summary().totalPoints,1);
 });
+test('cardPointSummary: schlanke Hülle ohne Items, fremde childId wirkungslos',()=>{
+ const f=fixture();f.answer(f.draw(),true);
+ const r=f.api('/api/cms/play/cardPointSummary',{playSessionId:'points-play',childId:'child-emil'});
+ assert.equal(r.status,200);assert.equal(r.data.ok,true);
+ assert.equal(r.data.learning.totalPoints,1);assert.equal(r.data.learning.revision,1);assert.equal(r.data.learning.modeRevision,0);
+ assert.equal(r.data.items,undefined);assert.equal(r.data.learning.items,undefined);
+ assert.ok(!('question' in r.data)&&!('answers' in r.data),'keine Fragen/Antworten in der Zusammenfassung');
+ // fehlende oder beendete Launch-Sitzung → abgewiesen
+ assert.equal(f.api('/api/cms/play/cardPointSummary',{playSessionId:'fremd'}).status,403);
+ assert.equal(f.api('/api/cms/play/cardPointSummary',{}).status,403);
+});
+test('Endstand: end-Antwort trägt learning, Timeout/Sweep ohne Antwort sperrt Lesen',()=>{
+ const f=fixture();f.answer(f.draw(),true);f.answer(f.draw(),true); // +2, Karte bei Fach 3
+ const end=f.api('/api/cms/play/end',{playSessionId:'points-play'});
+ assert.equal(end.status,200);assert.equal(end.data.status,'ended');
+ assert.equal(end.data.learning.totalPoints,2);assert.equal(end.data.learning.revision,2);
+ assert.equal(f.api('/api/cms/play/cardPointSummary',{playSessionId:'points-play'}).status,403);
+ // Timeout/Sweep ohne end-Aufruf: Status direkt auf ended → ebenfalls gesperrt
+ const g=fixture();g.db.playSessions.find(p=>p.id==='points-play').status='ended';
+ assert.equal(g.api('/api/cms/play/cardPointSummary',{playSessionId:'points-play'}).status,403);
+});
+test('learningEventId ist Quellereignis, stabil und bei Wiederholung unverändert',()=>{
+ const f=fixture(),card=f.draw();
+ const r1=f.answer(card,true);assert.equal(r1.data.learningEventId,'card-learning:'+card.attemptId);
+ assert.ok(!r1.data.learningEventId.startsWith('led-'),'nicht der Ledger-Key');
+ const r2=f.answer(card,true);assert.equal(r2.data.reused,true);assert.equal(r2.data.learningEventId,r1.data.learningEventId);
+});
+test('Zählregel-Version zählt nur tatsächliche Wechsel (effektiver Modus)',()=>{
+ const f=fixture(),p={personId:'parent-multi',assurance:'account'},person=()=>f.db.people.find(x=>x.id==='child-finn');
+ delete person().cardPointMode;delete person().cardPointModeRevision;
+ // ausdrückliches Setzen des wirksamen Standardmodus zählt nicht
+ const r1=f.api('/api/cms/parent/child-card-point-mode',{childId:'child-finn',mode:'progress'},p);
+ assert.equal(r1.status,200);assert.equal(r1.data.changed,false);assert.equal(person().cardPointModeRevision??0,0);
+ // echter Wechsel zählt +1
+ const r2=f.api('/api/cms/parent/child-card-point-mode',{childId:'child-finn',mode:'strict'},p);
+ assert.equal(r2.data.changed,true);assert.equal(person().cardPointModeRevision,1);
+ // erneutes Setzen desselben Modus zählt nicht erneut
+ f.api('/api/cms/parent/child-card-point-mode',{childId:'child-finn',mode:'strict'},p);
+ assert.equal(person().cardPointModeRevision,1);
+ assert.equal(f.api('/api/cms/play/cardPointSummary',{playSessionId:'points-play'}).data.learning.modeRevision,1);
+});
 test('Generator und Quiz-Erweiterung sind idempotent',()=>{
  const p=JSON.parse(fs.readFileSync(projectPath)),apply=require('./cms/cms-add-card-points.cjs').apply;apply(p);const first=JSON.stringify(p);apply(p);assert.equal(JSON.stringify(p),first);
  const q=JSON.parse(fs.readFileSync(path.join(__dirname,'../game-server/public/projects/Karteikasten-Quiz.json'))),configure=require('./cms/cms-quiz-points.cjs').configureQuizPoints;configure(q);const snapshot=JSON.stringify(q);configure(q);assert.equal(JSON.stringify(q),snapshot);

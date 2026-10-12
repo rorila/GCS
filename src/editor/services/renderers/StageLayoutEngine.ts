@@ -400,10 +400,23 @@ export class StageLayoutEngine {
         const layoutW = this.getLayoutValue(obj, 'width', objects);
         const layoutH = this.getLayoutValue(obj, 'height', objects);
 
-        const finalX = isPixelBased ? absX : absX * cellSize;
-        const finalY = isPixelBased ? absY : absY * cellSize;
-        const finalW = isPixelBased ? layoutW : layoutW * cellSize;
-        const finalH = isPixelBased ? layoutH : layoutH * cellSize;
+        let finalX = isPixelBased ? absX : absX * cellSize;
+        let finalY = isPixelBased ? absY : absY * cellSize;
+        let finalW = isPixelBased ? layoutW : layoutW * cellSize;
+        let finalH = isPixelBased ? layoutH : layoutH * cellSize;
+
+        // Komponenten mit dynamischer Laufzeitgeometrie (aufklappbare
+        // Inline-Overlays): Einzelupdates duerfen die Detailgeometrie nicht
+        // auf die kompakten Designwerte zuruecksetzen.
+        if (this.host.runMode && typeof obj.getEffectiveBounds === 'function') {
+            const eb = obj.getEffectiveBounds();
+            if (eb && [eb.x, eb.y, eb.width, eb.height].every(Number.isFinite)) {
+                finalX = eb.x * cellSize;
+                finalY = eb.y * cellSize;
+                finalW = eb.width * cellSize;
+                finalH = eb.height * cellSize;
+            }
+        }
 
         // Determine if this object is a dialog or child of a dialog
         let parentDialog: any = null;

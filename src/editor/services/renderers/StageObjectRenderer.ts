@@ -19,6 +19,7 @@ import { VirtualGamepadRenderer } from './VirtualGamepadRenderer';
 import { TextObjectRenderer } from './TextObjectRenderer';
 import { ComplexComponentRenderer } from './ComplexComponentRenderer';
 import { SpecialComponentRenderer, ISpecialComponentContext } from './SpecialComponentRenderer';
+import { StageOverlayRenderer } from './StageOverlayRenderer';
 import { StageLayoutEngine } from './StageLayoutEngine';
 import { StageAnimationPreviewManager } from './StageAnimationPreviewManager';
 import { themeRegistry } from '../../../runtime/ThemeRegistry';
@@ -112,6 +113,19 @@ export class StageObjectRenderer {
             finalY = absY * gridConfig.cellSize;
             finalW = this.ctx.layoutEngine.getResolvedNumber(obj, 'width', objects) * gridConfig.cellSize;
             finalH = this.ctx.layoutEngine.getResolvedNumber(obj, 'height', objects) * gridConfig.cellSize;
+        }
+
+        // Komponenten mit dynamischer Laufzeitgeometrie (aufklappbare
+        // Inline-Overlays) melden ihre wirksamen Grenzen selbst — generisch
+        // ueber den Methodenvertrag, nicht ueber Klassen- oder Objektnamen.
+        if (this.ctx.host.runMode && typeof (obj as any).getEffectiveBounds === 'function') {
+            const eb = (obj as any).getEffectiveBounds();
+            if (eb && [eb.x, eb.y, eb.width, eb.height].every(Number.isFinite)) {
+                finalX = eb.x * gridConfig.cellSize;
+                finalY = eb.y * gridConfig.cellSize;
+                finalW = eb.width * gridConfig.cellSize;
+                finalH = eb.height * gridConfig.cellSize;
+            }
         }
 
         let parentDialog: any = null;
@@ -225,6 +239,12 @@ export class StageObjectRenderer {
             el.style.pointerEvents = 'auto';
         }
 
+        // Passthrough-Overlays: die Flaeche laesst Eingaben durch (nur Anzeige).
+        if (this.ctx.host.runMode && typeof (obj as any).getRuntimePointerMode === 'function'
+            && (obj as any).getRuntimePointerMode() === 'none') {
+            el.style.pointerEvents = 'none';
+        }
+
         const opacity = (obj.style && obj.style.opacity !== undefined && obj.style.opacity !== null)
             ? this.ctx.layoutEngine.getResolvedStyleValue(obj, 'opacity', objects)
             : (obj.imageOpacity !== undefined ? obj.imageOpacity : undefined);
@@ -301,7 +321,11 @@ export class StageObjectRenderer {
                 el.dataset.dialogZ = el.style.zIndex;
             } else if (obj.zIndex !== undefined) {
                 delete el.dataset.dialogZ;
-                el.style.zIndex = String(obj.zIndex);
+                // Aufgeklappte Inline-Overlays halten EXPANDED_Z selbst —
+                // kein Zurueckwerfen bei Re-Render.
+                if (!(this.ctx.host.runMode && obj.isExpanded === true && typeof (obj as any).getEffectiveBounds === 'function')) {
+                    el.style.zIndex = String(obj.zIndex);
+                }
             } else if (obj.name && (obj.name.startsWith('Overlay') || obj.name.startsWith('Btn') || obj.name.startsWith('Input')) || obj.className === 'TStatusBar') {
                 el.style.zIndex = '2000';
             }
@@ -317,7 +341,11 @@ export class StageObjectRenderer {
 
         const hasTaskClick = (obj.Tasks && (obj.Tasks.onClick || obj.Tasks.onSingleClick || obj.Tasks.onMultiClick)) ||
             (obj.events && (obj.events.onClick || obj.events.onSingleClick || obj.events.onMultiClick));
-        const isClickable = hasTaskClick || (this.ctx.host.runMode && className === 'TButton');
+        const isOverlayActivatable = this.ctx.host.runMode
+            && typeof (obj as any).isActivatable === 'function' && (obj as any).isActivatable();
+        const managesActivation = typeof (obj as any).isActivatable === 'function';
+        const isClickable = managesActivation ? isOverlayActivatable
+            : hasTaskClick || (this.ctx.host.runMode && className === 'TButton');
 
         if (this.ctx.host.runMode && isClickable) {
             el.style.cursor = 'pointer';
@@ -325,16 +353,27 @@ export class StageObjectRenderer {
                 e.stopPropagation();
                 const wasTouchStart = (el as any).__wasTouchStart;
                 (el as any).__wasTouchStart = false;
-                if (wasTouchStart) return;
+                // Touch-Tap: onTouchStart-Task feuerte bereits am pointerdown —
+                // der synthetische Klick darf kein zweites Mal zaehlen. Ausnahme:
+                // aktivierbare Overlays; ihre eingebaute Aktivierung ist keine
+                // Task-Ausfuehrung und gehoert genau einmal ans Ende des Taps.
+                const overlayActivate = isOverlayActivatable && typeof (obj as any).activate === 'function';
+                if (wasTouchStart && !overlayActivate) return;
 
                 logger.debug(`Click on ${obj.name} (${obj.id}). Task: ${obj.events?.onClick || obj.Tasks?.onClick || 'none'}`);
+                // Aktivierbare Overlays fuehren zuerst ihren eingebauten
+                // Zustandswechsel aus und feuern onClick selbst (mit Zustand).
+                if (overlayActivate) {
+                    (obj as any).activate(wasTouchStart ? 'touch' : 'mouse');
+                    return;
+                }
                 if (this.ctx.host.onEvent) {
                     this.ctx.host.onEvent(obj.id, 'onClick');
                 }
             };
         } else if (this.ctx.host.runMode) {
             el.style.cursor = 'default';
-            if (isNew) el.onclick = null;
+            el.onclick = null;
         }
 
         if (this.ctx.host.runMode) {
@@ -691,7 +730,10 @@ export class StageObjectRenderer {
             getVariableContext: this.ctx.getVariableContext
         };
 
-        if (className === 'TCheckbox') InputRenderer.renderCheckbox(ctx, el, obj, isNew);
+        // Inline-Overlays (TInlineOverlay + Fachklassen): generisch ueber den
+        // Methodenvertrag erkannt, nicht ueber den Klassennamen.
+        if (typeof (obj as any).getEffectiveBounds === 'function' && typeof (obj as any).renderCompactContent === 'function') StageOverlayRenderer.render(this.ctx, el, obj);
+        else if (className === 'TCheckbox') InputRenderer.renderCheckbox(ctx, el, obj, isNew);
         else if (className === 'TNumberInput') InputRenderer.renderNumberInput(ctx, el, obj, isNew);
         else if (className === 'TEdit' || className === 'TTextInput') InputRenderer.renderTextInput(ctx, el, obj, isNew);
         else if (className === 'TGameCard') TextObjectRenderer.renderGameCard(ctx, el, obj, isNew);

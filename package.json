@@ -21,6 +21,7 @@
     "test": "node scripts/run-tests.mjs",
     "test:fast": "node scripts/run-tests.mjs --fast",
     "test:cms:sponsor": "node scripts/test-cms-sponsor-regressions.cjs",
+    "test:overlays": "tsx --test scripts/test-inline-overlays.ts",
     "test:cms:card-points": "node scripts/test-cms-card-points.cjs",
     "test:cms:card-points:ui": "node scripts/test-cms-card-points-ui.cjs",
     "test:cms:sponsor-admin": "node scripts/test-cms-sponsor-admin.cjs",

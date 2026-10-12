@@ -104,6 +104,8 @@ import { TDataList } from '../components/TDataList';
 import { TAuthService } from '../components/TAuthService';
 import { TUserManager } from '../components/TUserManager';
 import { TSidePanel } from '../components/TSidePanel';
+import { TInlineOverlay } from '../components/TInlineOverlay';
+import { TLearningPointsOverlay } from '../components/TLearningPointsOverlay';
 import { TThemeDialog } from '../components/TThemeDialog';
 import { TSpawner } from '../components/TSpawner';
 import { TAnimation } from '../components/TAnimation';
@@ -236,6 +238,8 @@ export class ComponentRegistry {
         this.register('TAuthService', TAuthService);
         this.register('TUserManager', TUserManager);
         this.register('TSidePanel', TSidePanel);
+        this.register('TInlineOverlay', TInlineOverlay);
+        this.register('TLearningPointsOverlay', TLearningPointsOverlay);
 
         // Variablen & Spezial-Variablen
         this.register('TVariable', TVariable);
@@ -334,6 +338,8 @@ export class ComponentRegistry {
         this.typeMapping.set('DataStore', 'TDataStore');
         this.typeMapping.set('DataList', 'TDataList');
         this.typeMapping.set('SidePanel', 'TSidePanel');
+        this.typeMapping.set('InlineOverlay', 'TInlineOverlay');
+        this.typeMapping.set('LearningPointsOverlay', 'TLearningPointsOverlay');
         this.typeMapping.set('Card', 'TCard');
         this.typeMapping.set('CardZone', 'TCardZone');
     }

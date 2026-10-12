@@ -104,6 +104,10 @@ export class TWindow extends TComponent {
     // Rotation in Grad (0-360)
     public rotation: number = 0;
 
+    // Opt-in: Dieses Objekt darf von Overlay-Einblendungen nicht verdeckt
+    // werden — der Editor meldet Ueberschneidungen als Warnhinweis.
+    public protectFromOverlay: boolean = false;
+
     // Animation flag - wenn true, wird Physik pausiert
     public isAnimating: boolean = false;
 
@@ -257,6 +261,7 @@ export class TWindow extends TComponent {
             { name: 'rotation', label: 'Rotation', type: 'number', group: 'GEOMETRIE', min: 0, max: 360, step: 90, hint: 'Winkel in Grad' },
             { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'], inline: true },
             { name: 'collisionEnabled', label: 'Kollision aktiv', type: 'boolean', group: 'PHYSIK' },
+            { name: 'protectFromOverlay', label: 'Vor Overlays schützen', type: 'boolean', group: 'GEOMETRIE', hint: 'Editor warn­t bei Überdeckung durch Einblendungen (kompakt und aufgeklappt).' },
             { name: 'style.color', label: 'Textfarbe', type: 'color', group: 'TYPOGRAFIE' },
             { name: 'style.fontSize', label: 'Schriftgröße', type: 'number', group: 'TYPOGRAFIE', min: 6, max: 120, step: 1, inline: true },
             { name: 'style.fontFamily', label: 'Schriftart', type: 'select', group: 'TYPOGRAFIE', options: [{value: '', label: 'Standard'}, {value: 'Arial', label: 'Arial'}, {value: 'Segoe UI, Arial, sans-serif', label: 'Segoe UI'}, {value: 'Verdana', label: 'Verdana'}, {value: 'Times New Roman', label: 'Times New Roman'}, {value: 'Courier New', label: 'Courier New'}, {value: 'Georgia', label: 'Georgia'}] },

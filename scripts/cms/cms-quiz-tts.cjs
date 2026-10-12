@@ -22,7 +22,7 @@ function configureQuizTts(project) {
   upsert(blueprint.objects, 'SprachAusgabe', { className: 'TTextToSpeech', scope: 'global', x: 1, y: 5, width: 4, height: 2,
     isService: true, isHiddenInRun: true, endpoint: '/api/tts', voice: 'default', volume: 1, active: true,
     events: { onEnded: 'Ansage_Ende', onError: 'Ansage_Fehler' } });
-  upsert(stage.objects, 'SprachStatus', { className: 'TLabel', x: 4, y: 36, width: 56, height: 2, visible: true, text: '',
+  upsert(stage.objects, 'SprachStatus', { className: 'TLabel', x: 4, y: 29, width: 56, height: 2, visible: true, text: '',
     style: { color: '#edf7f4', fontSize: 14, backgroundColor: 'transparent', textAlign: 'center' } });
   // Beim wiederholten Ausführen des Generators wird der ursprüngliche Eingabe-Task neu angelegt.
   const input = stage.tasks.find(item => item.name === 'Eingabe_Bereit');

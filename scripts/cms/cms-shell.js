@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const data=event.data,launchKey=key();
   if(!launchKey||data?.type!=='gcs-cms-bridge'||typeof data.id!=='string'||data.id.length>80||!['/api/cms/party','/api/cms/play'].includes(data.route)||data.body?.launchKey!==launchKey||JSON.stringify(data.body).length>4096)return;
   if(data.route==='/api/cms/party'&&!['list','state','action','begin','end','join','leave','create','live'].includes(data.body.op))return;
-  if(data.route==='/api/cms/play'&&!['heartbeat','end','progress','pause','resume','status','cards','cardNext','cardAnswer'].includes(data.body.action))return;
+  if(data.route==='/api/cms/play'&&!['heartbeat','end','progress','pause','resume','status','cards','cardNext','cardAnswer','cardPointSummary'].includes(data.body.action))return;
   let result,code;
   if(data.body.op==='live'){const live=await livePost(launchKey,data.id,data.body);code=live.status;result=live.data;}
   else{try{const response=await fetch(data.route,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data.body),credentials:'omit'});code=response.status;result=await response.json();}catch{code=503;result={ok:false,message:'Spielserver nicht erreichbar.'};}}

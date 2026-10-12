@@ -23,6 +23,7 @@ import { InputManager } from './InputManager';
 import { RenderLoop } from './RenderLoop';
 import { CollisionManager, BoundsInfo } from './CollisionManager';
 import { LoopLifecycle, type ILoopHost, type GameLoopState } from './LoopLifecycle';
+import { unwrap } from './ReactiveProperty';
 
 const logger = Logger.get('GameLoopManager', 'Runtime_Execution');
 
@@ -32,6 +33,8 @@ export class GameLoopManager implements ILoopHost {
     private static instance: GameLoopManager | null = null;
 
     private lifecycle: LoopLifecycle;
+    private pauseOwners = new Set<object>();
+    private manualPause = false;
     private renderLoop: RenderLoop;
     private collisionManager: CollisionManager;
     private inputManager: InputManager;
@@ -94,7 +97,9 @@ export class GameLoopManager implements ILoopHost {
         spriteRenderCallback?: (sprites: any[], dirtySprites?: any[]) => void
     ): void {
         // Stop any existing loop
+        const pauseOwners = new Set([...this.pauseOwners].filter(owner => objects.some(obj => unwrap(obj) === owner)));
         this.stop();
+        this.pauseOwners = pauseOwners;
 
         this.gridConfig = gridConfig;
 
@@ -187,6 +192,7 @@ export class GameLoopManager implements ILoopHost {
      */
     public start(): void {
         this.lifecycle.start();
+        if (this.manualPause || this.pauseOwners.size > 0) this.lifecycle.pause();
     }
 
     /**
@@ -194,6 +200,8 @@ export class GameLoopManager implements ILoopHost {
      */
     public stop(): void {
         this.lifecycle.stop();
+        this.pauseOwners.clear();
+        this.manualPause = false;
 
         // Clear tracking and cooldowns to prevent memory leaks and state carryover
         this.collisionManager.clear();
@@ -219,6 +227,7 @@ export class GameLoopManager implements ILoopHost {
      * Pause the game loop
      */
     public pause(): void {
+        this.manualPause = true;
         this.lifecycle.pause();
     }
 
@@ -226,7 +235,19 @@ export class GameLoopManager implements ILoopHost {
      * Resume the game loop
      */
     public resume(): void {
-        this.lifecycle.resume();
+        this.manualPause = false;
+        if (this.pauseOwners.size === 0) this.lifecycle.resume();
+    }
+
+    public acquirePause(owner: object): void {
+        this.pauseOwners.add(unwrap(owner));
+        this.lifecycle.pause();
+    }
+
+    public releasePause(owner: object): void {
+        if (this.pauseOwners.delete(unwrap(owner)) && this.pauseOwners.size === 0 && !this.manualPause) {
+            this.lifecycle.resume();
+        }
     }
 
     /**

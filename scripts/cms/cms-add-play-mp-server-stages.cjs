@@ -154,7 +154,9 @@ const playFns=[
   actions.push(
    n.act('SitzungLaden','Spielsitzungen','load',['$body.playSessionId'],'Sitzung'),
    n.act('Beenden','Spielsitzungen','setStatus',[{id:'$body.playSessionId',status:'ended'}],'Beendet'),
-   n.act('Antworten','AntwortSenden','send',[{status:'ended',minutes:'${Beendet.minutes}'}]),
+   // merge leitet u. a. Beendet.learning weiter — der endgueltige
+   // Lernpunktestand, weil der Launch-Schluessel danach ungueltig ist.
+   n.act('Antworten','AntwortSenden','send',[{merge:'${Beendet}'}]),
    n.act('FehlerSitzung','AntwortSenden','fail',[404,'Spielsitzung nicht gefunden.']));
  },
  // progress (E07): laufende Sitzung → Spiel mit ratings → bekannte Metrik →
@@ -247,6 +249,20 @@ const playFns=[
    n.act('Bewerten','Karten','answer',[{cardId:'$body.cardId',correct:'$body.correct'}],'Bewertet'),
    n.act('Antworten','AntwortSenden','send',[{merge:'${Bewertet}'}]),
    n.act('Fehler','AntwortSenden','fail',['${Bewertet.status}','${Bewertet.message}']));
+ },
+ // cardPointSummary: schlanke Karteikasten-Lernpunktzusammenfassung fuer das
+ // TLearningPointsOverlay. Kind kommt strikt aus dem Launch-/Sitzungs-
+ // kontext; ein body.childId wird nicht ausgewertet. Keine Items/Journale.
+ (tasks,actions)=>{const n=ns('Lernpunkte');
+  tasks.push({id:uid('srv_task'),name:'Server_Lernpunkte_Verarbeiten',scope:'stage',description:'Konto-Sitzung → schlanke Karteikasten-Lernpunktzusammenfassung (revision/modeRevision, keine Items)',
+   actionSequence:withGuard(n,[
+    n.call('Laden'),
+    n.cond('Geladen?','Geladen.ok','==',true,[n.call('Antworten')],[n.call('Fehler')])
+   ])});
+  actions.push(
+   n.act('Laden','Karten','cardPointSummary',[],'Geladen'),
+   n.act('Antworten','AntwortSenden','send',[{merge:'${Geladen}'}]),
+   n.act('Fehler','AntwortSenden','fail',['${Geladen.status}','${Geladen.message}']));
  }
 ];
 const play=build('stage_server_play','TServerPlaySession','Spielsitzungen',playFns,[
@@ -259,7 +275,8 @@ const play=build('stage_server_play','TServerPlaySession','Spielsitzungen',playF
  ['/api/cms/play/progress','Ep_BewertungMelden','Server_BewertungMelden_Verarbeiten'],
  ['/api/cms/play/cards','Ep_KartenListe','Server_KartenListe_Verarbeiten'],
  ['/api/cms/play/cardNext','Ep_KarteZiehen','Server_KarteZiehen_Verarbeiten'],
- ['/api/cms/play/cardAnswer','Ep_KarteBewerten','Server_KarteBewerten_Verarbeiten']
+ ['/api/cms/play/cardAnswer','Ep_KarteBewerten','Server_KarteBewerten_Verarbeiten'],
+ ['/api/cms/play/cardPointSummary','Ep_Lernpunkte','Server_Lernpunkte_Verarbeiten']
 ],['Pruefung','Spiel','Erlaubt','Aktiv','Budget','Gestartet','Sitzung','Wieder','Gebucht','Gewechselt','Beendet','Ereignis','Wert','Belegt','Ergebnis','Geladen','Fach','Karte','Bewertet'],
  [comp('TServerCards','Karten',{x:2,y:32})]);
 play.marker.events={onStart:'Server_SpielStart_Verarbeiten',onHeartbeat:'Server_SpielHeartbeat_Verarbeiten',onPause:'Server_SpielPausieren_Verarbeiten',onResume:'Server_SpielFortsetzen_Verarbeiten',onEnd:'Server_SpielBeenden_Verarbeiten',onProgress:'Server_BewertungMelden_Verarbeiten'};

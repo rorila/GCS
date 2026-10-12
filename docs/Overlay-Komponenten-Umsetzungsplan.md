@@ -2,6 +2,8 @@
 
 Stand: 12.10.2026. Status: Planung; die hier vorgeschlagenen neuen Komponenten und Schnittstellen sind noch nicht implementiert.
 
+Review ergänzt: Host-Bridge-Allowlists, schlanke Spielmethode, Lazy-Versionierung, getrennte Events und gezielte Hosttests. Der vorgeschlagene Basisname lautet nach dem Review `TInlineOverlay`, um ihn vom bestehenden iframe-`TOverlay` zu unterscheiden.
+
 ## 1. Ziel und vereinbarte Anforderungen
 
 Overlays sollen wie andere Komponenten auf der Stage platziert werden können. Im Editor bestimmt der Ersteller Position, Größe, Sichtbarkeit und Ebene. Eine Anzeige kann rein informativ sein oder auf einen Klick reagieren, zum Beispiel durch Vergrößern, Aufklappen oder das Auslösen eines Tasks.
@@ -17,6 +19,8 @@ Die Umsetzung soll ermöglichen:
 3. Frei konfigurierbare Aktionen statt einer fest eingebauten Klickfunktion.
 4. Weitere fachliche Anzeigen auf derselben technischen Grundlage, etwa Timer, Fortschritt oder Belohnungshinweise.
 5. Eine spätere animierte Darstellung ohne Änderung der CMS-Punkteberechnung.
+6. Die Overlay-Komponente soll als eigenständige Komponente implementiert werden, die in der Stage platziert werden kann.
+7. Die Overlay-Komponenten sollen in der Toolbar des Editors verfügbar sein. Dafür muss die Toolbar um eine Section erweitert werden.
 
 ## 2. Befund im bestehenden Projekt
 
@@ -39,7 +43,7 @@ Die neue Lösung ergänzt die vorhandenen Overlays. Eine generelle Migration all
 
 ### 3.1 Drei getrennte Verantwortlichkeiten
 
-**Gemeinsame Overlay-Grundlage:** Ein neuer Baustein `TStageOverlay` verwaltet Geometrie, kompakte und aufgeklappte Zustände, Interaktion, Fokus und Events. Er kennt keine Punkteberechnung und lädt kein eigenes Projekt.
+**Gemeinsame Overlay-Grundlage:** Ein neuer Baustein `TInlineOverlay` verwaltet Geometrie, kompakte und aufgeklappte Zustände, Interaktion, Fokus und Events. Er kennt keine Punkteberechnung und lädt kein eigenes Projekt.
 
 **Fachliche Komponente:** `TLearningPointsOverlay` verwendet diese Grundlage für Lernpunkte, Zählregel und abgeschlossene Karten. Sie nimmt geprüfte CMS-Daten entgegen. Belohnungsfortschritt wird später separat ergänzt, weil seine Vertragsregel vom persönlichen Punktestand abweichen kann.
 
@@ -57,7 +61,7 @@ CmsCardLearningPointsAdapter → LearningPointsController
                              TLearningPointsOverlay
                                       │
                                       ▼
-                              TStageOverlay
+                              TInlineOverlay
                                       │
                                       ▼
                          Textdarstellung, später Animation
@@ -105,14 +109,14 @@ Bei `eventOnly` verändert die Komponente ihren Zustand nicht selbst. Der zugewi
 
 ### 4.3 Ereignisse und Methoden
 
-| Event | Wann | Wesentliche Daten |
-| --- | --- | --- |
-| `onClick` | Genau einmal pro Aktivierung | Eingabequelle und aktueller Zustand |
-| `onExpanded` | Tatsächlicher Wechsel nach aufgeklappt | Kompakte und wirksame Detailgeometrie |
-| `onCollapsed` | Tatsächlicher Wechsel nach kompakt | Anlass: Klick, Escape, Schließen oder Task |
-| `onPointsChanged` | Neue bestätigte lokale Punktebuchung | Ereigniskennung, Gesamtpunkte, Änderung, Fachwechsel |
-| `onDataUpdated` | Neue gültige Zusammenfassung | Punktestand, Zählregel und abgeschlossene Karten |
-| `onDataError` | Datenabruf fehlgeschlagen | Fehlerstatus; keine Zugangsdaten |
+| Komponente | Event | Wann | Wesentliche Daten |
+| --- | --- | --- | --- |
+| Grundlage | `onClick` | Genau einmal pro Aktivierung | Eingabequelle und aktueller Zustand |
+| Grundlage | `onExpanded` | Tatsächlicher Wechsel nach aufgeklappt | Kompakte und wirksame Detailgeometrie |
+| Grundlage | `onCollapsed` | Tatsächlicher Wechsel nach kompakt | Anlass: Klick, Escape, Schließen oder Task |
+| Nur `TLearningPointsOverlay` | `onPointsChanged` | Neue bestätigte lokale Punktebuchung | Ereigniskennung, Gesamtpunkte, Änderung, Fachwechsel |
+| Nur `TLearningPointsOverlay` | `onDataUpdated` | Neue gültige Zusammenfassung | Punktestand, Zählregel und abgeschlossene Karten |
+| Nur `TLearningPointsOverlay` | `onDataError` | Datenabruf fehlgeschlagen | Fehlerstatus; keine Zugangsdaten |
 
 Vorgesehene Methoden der Grundlage: `expand()`, `collapse()`, `toggleExpanded()`, `show()`, `hide()`.
 
@@ -199,6 +203,8 @@ Das Spiel bekommt einen neuen lesenden Ablauf `/api/cms/play/cardPointSummary`, 
 
 Der Server bestimmt Kind und Spielsitzung aus der Berechtigung. Eine vom Client übergebene fremde `childId` darf den gelesenen Punktestand nicht verändern. Die Methode prüft eine gültige eigene Spielsitzung und liefert keine Fragen, Antworten oder vollständigen Familienjournale.
 
+Dafür wird eine **eigene schlanke Methode `cardPointSummary` auf `TServerCards`** implementiert. Sie verwendet die interne Berechnungsfunktion `summary(db, childId)`, jedoch nicht den API-Adapter `pointSummary(ctx)`. Letzterer akzeptiert für Kind-/Elternansichten `childId` und liefert die letzten 100 Buchungen als `items`; sein Verhalten und die bestehenden Endpunkte bleiben erhalten. Die neue Spielmethode liefert ausschließlich die definierte Zusammenfassung des angemeldeten Kindes und erhält ihre `playSessionId` aus dem Launch-Kontext.
+
 Vorgeschlagene Antwort:
 
 ```json
@@ -217,11 +223,36 @@ Vorgeschlagene Antwort:
 
 `revision` wird aus der Anzahl der append-only Lernpunktebuchungen dieses Kindes gebildet. `modeRevision` ist ein zusätzlicher Zähler der persönlichen Regeländerungen, gespeichert als optionales Personenfeld `cardPointModeRevision`. Für bestehende Personen ist der Ausgangswert 0; jeder erfolgreiche tatsächliche Regelwechsel erhöht ihn im selben Commit. Die Darstellung verwirft Antworten, bei denen einer dieser Stände hinter dem bereits übernommenen Stand liegt, und lädt bei einem widersprüchlichen Versionspaar erneut. Zusätzlich verhindert eine Requestgeneration, dass beendete oder überholte Abrufe noch angewendet werden. Beide Werte sind technische Versionsstände, keine Punkte.
 
-Auch hochgeladene Spiele können den bestehenden `/api/cms/play`-Bridgeweg verwenden. Keine zusätzliche allgemeine API-Freigabe in der Sandbox und keine Übergabe von Konto-Tokens.
+Die Regelversion wird lazy initialisiert: Lesen mit `person.cardPointModeRevision ?? 0`, Schreiben beim tatsächlichen Regelwechsel als `(person.cardPointModeRevision ?? 0) + 1` im Commit von `setPointMode`. Der Vergleich erfolgt **innerhalb des Commits gegen den effektiven Standardmodus**, damit die ausdrückliche Auswahl des bisher wirksamen Modus nicht fälschlich als Änderung zählt:
+
+```js
+const previousMode = person.cardPointMode ?? 'progress';
+if (previousMode !== requestedMode) {
+  person.cardPointMode = requestedMode;
+  person.cardPointModeRevision = (person.cardPointModeRevision ?? 0) + 1;
+}
+```
+
+Es gibt dafür keine Datenmigration und keine neue Datenversionsnummer; optionale Properties im Komponenten-/Datenvertrag und deren Validierung werden dennoch dokumentiert und getestet.
+
+Hochgeladene Spiele laufen mit `connect-src 'none'` im sandboxed iframe und verwenden den bestehenden `/api/cms/play`-Bridgeweg. Das physisch vorhandene Referenzquiz wird dagegen direkt ausgeliefert; ein erfolgreicher Referenzquiztest allein belegt deshalb nicht die Sandbox-Integration.
+
+Die neue Action `cardPointSummary` muss **gezielt an beiden manuell gepflegten Host-Allowlists** ergänzt werden: `src/adapters/CmsGameHost.ts` und `scripts/cms/cms-shell.js`. Ohne diese Ergänzung verwirft der Host die Nachricht; die Spielbridge läuft später in ihren Antworttimeout. Route, Launch-Schlüssel, Quelle/Origin und Payloadgrenzen bleiben geprüft. Weder eine allgemeine Sandbox-Netzfreigabe noch ein Konto-Token ist erforderlich.
+
+`EditorCmsTest.ts` und `EditorCmsMultiplayerTest.ts` werden ebenfalls geprüft. Sie besitzen aktuell Bridge-Prüfungen, aber nicht dieselbe explizite Action-Liste wie die beiden Produktivhosts. Daher keine vermeintlich identische Liste blind ergänzen; den neuen Ablauf in beiden Testkontexten ausführen und Unterschiede der Prüfung dokumentieren. Eine Zusammenführung der Allowlists ist eine optionale spätere Wartungsverbesserung. Der eigenständige `cms-shell.js` wird durch `bundle-runtime.mjs` nicht automatisch mitgeändert.
+
+**Endstand und Sitzungsende.** Der Server entfernt den Launch-Schlüssel beim bestätigten Sitzungsende (`/api/cms/play`-Handler nach erfolgreicher `end`-Antwort) sowie bei der Sitzungsbereinigung (`TServerPlaySession.sweep` bei Timeout/Heartbeat-Verlust). Eine Lesemethode ohne `active`-Prüfung wäre danach trotzdem nicht erreichbar und wird nicht angestrebt. Stattdessen gilt:
+
+- Die erfolgreiche `end`-Antwort trägt den endgültigen Punktestand als `learning`-Zusammenfassung (inklusive `revision`/`modeRevision`) mit.
+- Die Anzeige übernimmt diesen Stand, zeigt ihn als Endstand weiter an und beendet alle automatischen Abrufe.
+- Verliert die Komponente die Berechtigung ohne `end`-Antwort (Timeout, Sweep, serverseitiges Beenden), friert sie den letzten bekannten Stand als Endstand ein und stoppt ebenfalls die Abrufe.
+- Abgelaufene oder widerrufene Berechtigungen bleiben abgewiesen; die Spielberechtigung wird nicht künstlich verlängert.
+
+Damit bleibt die Ergebnisansicht nach Rundenende und nach Zeitüberschreitung erhalten, ohne einen Lesezugriff über die gelöschte Spielberechtigung hinaus zu öffnen.
 
 ### 7.3 Aktualisierung nach einer Antwort
 
-Die vorhandene Antwortbuchung enthält bereits `learning` und `pointsDelta`. Ergänzt werden eine stabile fachliche `learningEventId` sowie `previousBox` und `box` als Grundlage für Rückmeldung und spätere Animation. Die Fachwechselwerte sind bereits vorhanden.
+Die vorhandene Antwortbuchung enthält bereits `learning`, `pointsDelta`, `previousBox` und `box`. **Neu ergänzt wird ausschließlich die stabile fachliche `learningEventId`** als zusätzliches Responsefeld. Sie verwendet den vorhandenen Quellereignisschlüssel `card-learning:<attempt>`, nicht den mit `led-` präfixierten Ledgerzeilenschlüssel. Die Kennung wird auch im gespeicherten Versuchsergebnis abgelegt und bei einer idempotenten Wiederholung unverändert zurückgegeben. Fachwechselwerte werden weiterverwendet und nicht erneut eingeführt.
 
 Der Quiztask übergibt die erfolgreiche Antwort an `Lernpunkte.applyLearningResult(BewertungAntwort)`. Erst nach erfolgreicher Serverbuchung erscheint „+1“ oder „−1“. Fehler in Fach 1 haben Änderung 0 und lösen keine Gewinn-/Verlustanimation aus.
 
@@ -237,6 +268,7 @@ Eine wiederholte Antwort mit derselben Ereigniskennung aktualisiert höchstens d
 - Bei ausgeblendetem Tab, Stagewechsel oder Runtime-Stopp werden Timer und Requests beendet beziehungsweise passend neu gebunden.
 - Cache und Ereigniskennungen gehören zur autorisierten Spielsitzung und werden bei deren Wechsel verworfen.
 - Reine Aktualisierungen aus einem anderen Spiel ändern die Zahl; sie erfinden keine lokale Fachwechselmeldung.
+- Nach übernommenem Endstand (durch `end`-Antwort oder Berechtigungsverlust) laufen keine weiteren Abrufe; die Anzeige bleibt als Endstand sichtbar.
 
 Für die erste Version reicht diese Kombination aus direkter Antwortübernahme und begrenztem Abruf. Ein allgemeiner WebSocket-Dienst ist dafür nicht erforderlich.
 
@@ -247,7 +279,8 @@ Für die erste Version reicht diese Kombination aus direkter Antwortübernahme u
 | Noch keine Daten | „Lernpunkte werden geladen …“; keine erfundene 0 |
 | Erfolgreich | Kompakter Punktestand |
 | Vorübergehender Fehler | Letzter bekannter Stand mit Hinweis „Stand nicht aktualisiert“ |
-| Keine Berechtigung / Sitzung abgelaufen | „Lernpunkte nicht verfügbar“; keine alten personenbezogenen Daten stehen lassen |
+| Nie berechtigt / Sitzung abgelaufen vor erstem Abruf | „Lernpunkte nicht verfügbar“; keine erfundenen Daten |
+| Berechtigung nach geladenem Stand verloren (Ende, Timeout, Sweep) | Letzter bekannter Stand als Endstand eingefroren; keine weiteren Abrufe; personenbezogene Laufzeitdaten werden nicht erneut gesendet |
 | Editor | Beispielwerte, ausdrücklich als Vorschau gekennzeichnet |
 
 Die Punktekomponente unterbricht bei einem Anzeigeproblem nicht selbst den Quizablauf. Eine fachlich fehlgeschlagene Kartenbuchung bleibt weiterhin ein Fehler des Spiels.
@@ -280,6 +313,8 @@ Vorgeschlagenes Projektobjekt, exemplarische Geometrie noch kein fertiges Quizla
 
 Gespeichert werden nur Gestaltung, Bindings und Verhalten. Punktestand, Launch-Schlüssel, Netzwerkfehler, Timer, Requestobjekte und Ereignis-Deduplizierung sind Laufzeitdaten und dürfen nicht in eine gespeicherte Projektdatei gelangen. `toDTO()` und Hydration müssen das ausdrücklich gewährleisten; nur „readonly im Inspector“ genügt nicht.
 
+`zIndex: 100` im Beispiel ist ein normaler Anzeigevorschlag, keine neue globale Ebenenkonvention. Aktuell verwendet das iframe-`TOverlay` beim Öffnen 9999 und einen Backdrop auf 9998; Dialoge haben ohne explizite Vorgabe eine Basis von 20000, SidePanels von 100000. Explizite Projektwerte können davon abweichen. Die neue Anzeige muss mit `data-dialog-z`, Backdrops und den vorhandenen Stacking-Kontexten abgestimmt werden. Eine optionale modale Detailansicht benutzt später die gemeinsame Modalverwaltung; ein dauerhaft festes `zIndex=100` wäre dafür unzureichend.
+
 Der Editor bietet Properties in den Gruppen Geometrie, Detailansicht, Interaktion, Darstellung und Datenanbindung. Optionen, die sich widersprechen, werden erklärt bzw. deaktiviert. Die erste Version unterstützt achsenparallele Overlayflächen; freie Rotation wird für diese Komponenten nicht angeboten.
 
 ## 9. Vorbereitung für die spätere Animation
@@ -309,7 +344,7 @@ Neue Dateinamen in dieser Tabelle sind Vorschläge für die Umsetzung.
 
 | Datei | Geplante Änderung | Schritt |
 | --- | --- | --- |
-| `src/components/TStageOverlay.ts` **neu** | Gemeinsame Zustände, Geometrie, Properties, Methoden und Events. | 1 |
+| `src/components/TInlineOverlay.ts` **neu** | Gemeinsame Zustände, Geometrie, Properties, Methoden und Events. | 1 |
 | `src/components/TLearningPointsOverlay.ts` **neu** | Fachliche Anzeige, Datenübernahme und Events für Lernpunkte. | 3 |
 | `src/components/index.ts` | Export der neuen Komponenten für den Runtime-Bundleweg. | 1, 3 |
 | `src/services/ComponentRegistry.ts` | Editorregistrierung, Klassen und Typzuordnung. | 1, 3 |
@@ -329,12 +364,16 @@ Neue Dateinamen in dieser Tabelle sind Vorschläge für die Umsetzung.
 | `src/utils/Serialization.ts` | Bestehende Hydration prüfen; gezielt anpassen, falls neue DTOs oder Designwerte sonst verloren gehen. | 1, 3 |
 | `src/ports/ICardLearningPointsPort.ts` **neu** | Vertrag für lesende Punkteabfrage. | 3 |
 | `src/adapters/CmsCardLearningPointsAdapter.ts` **neu** | Bestehenden Spiel-API-/Bridgeweg verwenden, Requests abbrechbar machen. | 3 |
+| `src/adapters/CmsGameHost.ts` | Produktive `/api/cms/play`-Action-Allowlist gezielt um `cardPointSummary` erweitern. | 3 |
+| `scripts/cms/cms-shell.js` | Zweite eigenständig gepflegte Host-Allowlist ebenfalls erweitern; nicht automatisch gebundelt. | 3 |
+| `src/editor/services/EditorCmsTest.ts` | Neuen Bridgeablauf im Solo-Editor-Testkontext prüfen; bestehende Route-/Launch-/Originprüfungen erhalten. | 3 |
+| `src/editor/services/EditorCmsMultiplayerTest.ts` | Neuen Bridgeablauf je Testspieler prüfen; keine Kind-/Launch-Verwechslung zwischen Frames. | 3 |
 | `src/runtime/services/LearningPointsController.ts` **neu** | Geteilte Datenquelle, Aktualisierung, Versionierung und Deduplizierung. | 3 |
 | `src/model/LearningPointsPresentation.ts` **neu** | Darstellungsschnittstelle für Text und spätere Animation. | 3 |
 | `src/runtime/GameRuntime.ts` | Lifecycle-/Kontextanbindung des Controllers, falls nicht vollständig über Komponenten-Callbacks lösbar. | 3 |
 | `src/runtime/services/RuntimeLifecycleService.ts` | Kontrollieren, dass Stop/Stagewechsel alle neuen Requests, Timer und Listener beseitigen. | 3 |
 | `scripts/cms/cms-card-points.cjs` | Lesende Spielzusammenfassung, Versionsinformation und stabile Buchungskennung ergänzen. | 3 |
-| `scripts/cms/cms-server-components.cjs` | Neue TServerCards-Methode registrieren; Rechte in der Fachmethode prüfen. | 3 |
+| `scripts/cms/cms-server-components.cjs` | Neue TServerCards-Methode registrieren; Rechte in der Fachmethode prüfen. `TServerPlaySession.setStatus` liefert bei `status:'ended'` zusätzlich die `learning`-Zusammenfassung (Endstand), damit alle Endpfade — `end`-Endpoint, Sweep und Partystatus — denselben Stand zurückgeben. | 3 |
 | `src/components/TServerCards.ts` | Sichtbaren Komponentenvertrag um neue Lesemethode ergänzen. | 3 |
 | `scripts/cms/cms-add-card-points.cjs` | Neuen Spielendpoint idempotent registrieren, bestehende IDs erhalten. | 3 |
 | `game-server/public/projects/GCS-CMS.json` | Generierten lesenden Serverflow ergänzen. | 3 |
@@ -342,18 +381,21 @@ Neue Dateinamen in dieser Tabelle sind Vorschläge für die Umsetzung.
 | `game-server/public/projects/Karteikasten-Quiz.json` | Neue Anzeige, freie kompakte und aufgeklappte Fläche, angepasste Tasks. | 4 |
 | `scripts/test-cms-card-points-ui.cjs` | Browserprüfung auf die neue Komponente und ihre Details umstellen. | 4 |
 | `scripts/test-cms-card-points.cjs` | Leserechte, fremde Kind-ID, Versionierung und Ereigniskennung prüfen. | 3 |
+| `scripts/test-cms-solo-bridge.cjs` | Sandbox-Spielbridge um Zusammenfassung, Response-Allowlist und ungültige Berechtigungen erweitern. Dieser Test allein umgeht die Produktivhost-Allowlists. | 3 |
+| `scripts/test-cms-card-points-host-bridge.cjs` **neu** | Beide echten Hostweiterleitungen prüfen: neue Action erlaubt, unbekannte Action und fremder Frame/Launch abgewiesen; Editor-Testkontexte ergänzend prüfen. | 3 |
+| `scripts/bundle-runtime.mjs` | Nach Komponentenänderungen erneut ausführen; generiertes `public/runtime-standalone.js` nicht manuell bearbeiten. | 3, 4 |
 | `package.json` | Gezielte Komponententests und Browserprüfung erreichbar machen. | 1–4 |
 | `docs/CMS-Karteikasten-Lernpunkte.md` | Bedienung, Mehrspielnutzung und Einbau der Anzeige dokumentieren. | 4 |
 
 Zu prüfen, nicht pauschal umzubauen: bestehende `TOverlay`, `TDialogRoot`, `TSidePanel`, `GameLoopManager` und deren Renderer. Für Modalität/Pausen nur die tatsächlich fehlende gemeinsame Verwaltung ergänzen.
 
-Es ist keine Änderung der Punkteformel, Elternzustimmung oder Sponsorrollen erforderlich. Eine neue CMS-Datenmigration ist nur nötig, wenn die gewählte Versionsbildung ein neues persistentes Feld erfordert; bevorzugt bestehende Buchungen verwenden.
+Es ist keine Änderung der Punkteformel, Elternzustimmung oder Sponsorrollen erforderlich. Für die definierte Versionsbildung ist ebenfalls **keine CMS-Datenmigration erforderlich**: Die Buchungsversion wird aus vorhandenen Einträgen abgeleitet; das optionale Personenfeld für Regeländerungen wird mit Standard 0 lazy initialisiert.
 
 ## 11. Umsetzung in reviewbaren Schritten
 
 ### Schritt 1: Gemeinsame Komponente und Editorregistrierung
 
-`TStageOverlay`, Registrierung, Paletteneinträge, Schema und einfache Textdarstellung erstellen. Zustände, Properties, Events und DTO festlegen. Die Komponente lässt sich platzieren, speichern und wieder laden. Bestehende Overlays unverändert prüfen.
+`TInlineOverlay`, Registrierung, Paletteneinträge, Schema und einfache Textdarstellung erstellen. Zustände, Properties, Events und DTO festlegen. Die Komponente lässt sich platzieren, speichern und wieder laden. Bestehende Overlays unverändert prüfen.
 
 **Abnahme:** In Editor und Standalone dieselbe Geometrie; kein Netzwerkzugriff durch die generische Komponente; keine Laufzeitdaten im Projekt-JSON.
 
@@ -368,6 +410,8 @@ Aufklappen, Schließen, eigene Task-Aktivierung, Durchleitung, Tastatur und Touc
 Vorhandene Zusammenfassung über den Launch-geschützten Spielweg anbieten. Datenmodell, Versionsregel, Adapter und geteilten Controller ergänzen. Eigene Kind-ID serverseitig bestimmen. Lade-/Fehlerzustände und Ereignis-Deduplizierung implementieren.
 
 **Abnahme:** Zwei getrennte Spielinstanzen sehen denselben CMS-Stand. Eine Anzeige verursacht selbst keine Buchung. Alte Antworten überschreiben keine neueren Daten.
+
+Zusätzlich zwingend: Die neue Action funktioniert über beide Produktivhosts im Upload-Sandboxweg sowie in den beiden Editor-Testkontexten. Der Solo-Bridge-Test mit direkter Serverweiterleitung ersetzt diese Hostprüfung nicht.
 
 ### Schritt 4: Karteikasten-Quiz umstellen
 
@@ -410,6 +454,14 @@ Die Textdarstellung an `LearningPointsPresentation` durch eine Animation ergänz
 | Antwortreihenfolge vertauscht | Neuester bestätigter Stand bleibt sichtbar. |
 | Zwei Anzeigen einer Runtime | Ein geteilter Abruf, gleiche Werte. |
 | Zwei Spiele mit demselben Kind | Stand nach bestätigter Buchung und Aktualisierung identisch. |
+| Sandbox-Upload über `CmsGameHost` und `cms-shell.js` | `cardPointSummary` wird weitergeleitet und beantwortet; beide Host-Allowlists sind getestet. |
+| Unbekannte Action, fremder Frame oder falscher Launch am Host | Keine unberechtigte Weiterleitung; Schutzprüfungen bleiben erhalten. |
+| Solo- und Multiplayer-Editor-Testhost | Zusammenfassung des jeweiligen Kindes ohne Frame-/Sitzungsverwechslung. |
+| Schlanke Spielantwort | Kein `items`-Journal, keine Fragen, Antworten oder fremden Kinddaten. |
+| Bestandsdaten ohne `cardPointModeRevision` | Gelesene Version 0; tatsächlicher Regelwechsel erhöht atomar auf 1; unveränderter Modus erhöht nicht. |
+| `end`-Antwort nach geladenem Stand | Antwort enthält `learning`-Endstand; Anzeige friert ihn ein und sendet keine Abrufe mehr. |
+| Timeout/Sweep ohne `end`-Antwort | Nächster Abruf wird abgewiesen; letzter bekannter Stand bleibt als Endstand sichtbar. |
+| `cardPointSummary` nach Sitzungsende | Abgewiesen — der Launch-Schlüssel existiert nicht mehr; kein Lesezugriff über die Spielberechtigung hinaus. |
 | Eltern ändern die Zählregel | Regelanzeige aktualisiert sich; historische Punkte bleiben erhalten. |
 | Stagewechsel und Runtime-Stopp | Keine verbliebenen Timer, Listener, Backdrops oder Requests. |
 | Editorvorschau | Keine echten CMS-Anfragen, keine Spielaktionen. |

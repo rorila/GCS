@@ -189,6 +189,36 @@ export class EditorInteractionManager {
             this.host.autoSaveToLocalStorage();
         };
 
+        // Detailflaeche eines Inline-Overlays: Drag/Resize des gestrichelten
+        // Rahmens schreibt undo-faehig in expandedBounds (Designwert).
+        (stage as any).onObjectBoundsEdit = (id: string, bounds: { x: number; y: number; width: number; height: number }) => {
+            const mutations: ProjectMutation[] = [];
+            const apply = (target: any) => {
+                if (!target?.expandedBounds) return;
+                mutations.push(
+                    { type: 'SET_PROPERTY', target, path: 'expandedBounds.x', value: bounds.x },
+                    { type: 'SET_PROPERTY', target, path: 'expandedBounds.y', value: bounds.y },
+                    { type: 'SET_PROPERTY', target, path: 'expandedBounds.width', value: bounds.width },
+                    { type: 'SET_PROPERTY', target, path: 'expandedBounds.height', value: bounds.height }
+                );
+            };
+            const obj = this.host.findObjectById(id);
+            if (obj) apply(obj);
+            const rawObj = this.getOriginalObject(id, obj?.name || id);
+            if (rawObj && rawObj !== obj) apply(rawObj);
+
+            if (mutations.length > 0) {
+                projectStore.dispatch({
+                    type: 'BATCH',
+                    label: `Overlay-Detailfläche ${id}`,
+                    mutations
+                });
+            }
+
+            this.host.render();
+            this.host.autoSaveToLocalStorage();
+        };
+
         stage.onCopyCallback = (id: string) => {
             const obj = this.host.findObjectById(id);
             if (obj) {

@@ -132,6 +132,16 @@
  ],
  "grants": [
   {
+   "areaId": "demo-house",
+   "gameId": "breakout",
+   "active": true
+  },
+  {
+   "areaId": "demo-house",
+   "gameId": "snake",
+   "active": true
+  },
+  {
    "areaId": "garden",
    "gameId": "snake",
    "active": true

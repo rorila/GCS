@@ -93,11 +93,38 @@ test('Solo-GCS-Upload: geschuetzte Kartenanfragen ohne Netzwerk-Listener', async
         const invalid = await request(app, '/api/cms/play', { launchKey: 'invalid', action: 'cardNext' });
         assert.equal(invalid.status, 401);
       });
+      await t.test('cardPointSummary liefert schlanke Zusammenfassung ueber die Bridge', async () => {
+        // Echter Lernpunktefluss: Ziehen mit learningPoints bucht einen Versuch,
+        // Antwort mit attemptId schreibt die Lernpunktebuchung.
+        const draw = await call('cardNext', { subject: 'Mathe', formats: ['text'], learningPoints: true });
+        assert.equal(draw.status, 200);
+        assert.ok(draw.data.card.attemptId, 'Versuch wird ausgestellt');
+        const booked = await call('cardAnswer', { cardId: draw.data.card.id, attemptId: draw.data.card.attemptId, correct: true, answer: '4' });
+        assert.equal(booked.data.ok, true);
+        assert.equal(booked.data.learningEventId, 'card-learning:' + draw.data.card.attemptId);
+        assert.equal(booked.data.learning.totalPoints, 1);
+
+        const sum = await call('cardPointSummary', { childId: 'child-emil' });
+        assert.equal(sum.status, 200);
+        assert.equal(sum.data.ok, true);
+        // Stand des Launch-Kindes; fremde childId wirkungslos
+        assert.equal(sum.data.learning.totalPoints, 1);
+        assert.equal(sum.data.learning.revision, 1);
+        assert.equal(sum.data.items, undefined, 'keine Ledger-Items im Spielweg');
+        assert.equal(runtime.directRequests(), 0);
+      });
       await t.test('Heartbeat und explizites Ende funktionieren fuer Solo', async () => {
         assert.equal((await call('heartbeat')).data.ok, true);
-        assert.equal((await call('end')).data.status, 'ended');
+        const end = await call('end');
+        assert.equal(end.data.status, 'ended');
+        assert.equal(end.data.learning.totalPoints, 1, 'Endstand reist in der end-Antwort');
         assert.equal(app.launches.has(key), false);
         assert.equal(runtime.directRequests(), 0);
+      });
+      await t.test('cardPointSummary nach Ende wird vom Server abgelehnt', async () => {
+        const late = await call('cardPointSummary');
+        assert.equal(late.status, 401, 'Launch geloescht → Server lehnt ab');
+        assert.equal(late.data.ok, false);
       });
     } finally { runtime.close(); }
     await t.test('Antworten fremder Fenster oder Origins werden ignoriert', async () => {
