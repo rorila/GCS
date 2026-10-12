@@ -71642,6 +71642,44 @@
      "y": 37,
      "width": 12,
      "height": 3
+    },
+    {
+     "id": "eb9af36b-6790-4068-88ae-34a0608559da",
+     "name": "ParentCardPointsEndpoint",
+     "className": "TServerEndpoint",
+     "scope": "stage",
+     "executionSide": "server",
+     "isService": true,
+     "isHiddenInRun": true,
+     "endpointPath": "/api/cms/parent/child-card-points",
+     "httpMethod": "POST",
+     "traceEnabled": true,
+     "events": {
+      "onRequest": "ParentCardPointsTask"
+     },
+     "x": 32,
+     "y": 30,
+     "width": 12,
+     "height": 3
+    },
+    {
+     "id": "c0de7483-cee6-43b5-8de2-65b97fd51945",
+     "name": "ParentCardModeEndpoint",
+     "className": "TServerEndpoint",
+     "scope": "stage",
+     "executionSide": "server",
+     "isService": true,
+     "isHiddenInRun": true,
+     "endpointPath": "/api/cms/parent/child-card-point-mode",
+     "httpMethod": "POST",
+     "traceEnabled": true,
+     "events": {
+      "onRequest": "ParentCardModeTask"
+     },
+     "x": 32,
+     "y": 30,
+     "width": 12,
+     "height": 3
     }
    ],
    "tasks": [
@@ -72658,6 +72696,76 @@
         {
          "type": "action",
          "name": "Act_Fehler_Rolle"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "1a077c74-3eb7-4f24-aa1a-fec0a2e3af78",
+     "name": "ParentCardPointsTask",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "ParentCardPointsTask",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "ParentCardPointsCall"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Ergebnis.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "action",
+         "name": "ParentCardPointsSend"
+        }
+       ],
+       "else": [
+        {
+         "type": "action",
+         "name": "ParentCardPointsFail"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "33593ac7-c625-4b39-ac14-57042517f8da",
+     "name": "ParentCardModeTask",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "ParentCardModeTask",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "ParentCardModeCall"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Ergebnis.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "action",
+         "name": "ParentCardModeSend"
+        }
+       ],
+       "else": [
+        {
+         "type": "action",
+         "name": "ParentCardModeFail"
         }
        ]
       }
@@ -73754,6 +73862,76 @@
      ],
      "scope": "stage",
      "target_ref": "srv_68efef94-c3ff-4228-bb3a-ab3bddeb4fba"
+    },
+    {
+     "id": "df723dd0-a5ff-41c5-a833-a84adbb42fd8",
+     "name": "ParentCardPointsCall",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "Karten",
+     "method": "pointSummary",
+     "params": [],
+     "resultVariable": "Ergebnis"
+    },
+    {
+     "id": "13530f2d-9984-4312-b8c5-51b6ae1916a1",
+     "name": "ParentCardPointsSend",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "AntwortSenden",
+     "method": "send",
+     "params": [
+      {
+       "merge": "${Ergebnis}"
+      }
+     ]
+    },
+    {
+     "id": "1cb1fdb7-151d-4ff8-a8e4-ecea39a2f32e",
+     "name": "ParentCardPointsFail",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "AntwortSenden",
+     "method": "fail",
+     "params": [
+      "${Ergebnis.status}",
+      "${Ergebnis.message}"
+     ]
+    },
+    {
+     "id": "4ce54daa-e97a-41d4-9710-9fbeda7ed399",
+     "name": "ParentCardModeCall",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "Karten",
+     "method": "setPointMode",
+     "params": [],
+     "resultVariable": "Ergebnis"
+    },
+    {
+     "id": "7fdf9e98-4a05-4963-a046-d0216cb43795",
+     "name": "ParentCardModeSend",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "AntwortSenden",
+     "method": "send",
+     "params": [
+      {
+       "merge": "${Ergebnis}"
+      }
+     ]
+    },
+    {
+     "id": "2bc78a36-8de2-43a0-9130-26733f42b123",
+     "name": "ParentCardModeFail",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "AntwortSenden",
+     "method": "fail",
+     "params": [
+      "${Ergebnis.status}",
+      "${Ergebnis.message}"
+     ]
     }
    ],
    "variables": [
@@ -76440,9 +76618,7 @@
      "method": "send",
      "params": [
       {
-       "ok": true,
-       "empty": true,
-       "message": "Keine passenden Karten im Karteikasten."
+       "merge": "${Karte}"
       }
      ],
      "scope": "stage"
@@ -94481,6 +94657,25 @@
      "y": 17,
      "width": 12,
      "height": 3
+    },
+    {
+     "id": "023a4e89-aec7-4029-bd5a-b45dd4aea001",
+     "name": "CardPointsEndpoint",
+     "className": "TServerEndpoint",
+     "scope": "stage",
+     "executionSide": "server",
+     "isService": true,
+     "isHiddenInRun": true,
+     "endpointPath": "/api/cms/cards/points",
+     "httpMethod": "POST",
+     "traceEnabled": true,
+     "events": {
+      "onRequest": "CardPointsTask"
+     },
+     "x": 32,
+     "y": 30,
+     "width": 12,
+     "height": 3
     }
    ],
    "tasks": [
@@ -94699,6 +94894,41 @@
        ]
       }
      ]
+    },
+    {
+     "id": "4e96bc1f-4c4d-4fb6-9158-3b5b7f358d78",
+     "name": "CardPointsTask",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "CardPointsTask",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "CardPointsCall"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Ergebnis.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "action",
+         "name": "CardPointsSend"
+        }
+       ],
+       "else": [
+        {
+         "type": "action",
+         "name": "CardPointsFail"
+        }
+       ]
+      }
+     ]
     }
    ],
    "actions": [
@@ -94910,6 +95140,41 @@
      ],
      "scope": "stage",
      "target_ref": "srv-30298810-f982-4e21-8ba3-d50277b3bff8"
+    },
+    {
+     "id": "b36349c1-22a0-4a18-adbf-a0002fcc9e0a",
+     "name": "CardPointsCall",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "Karten",
+     "method": "pointSummary",
+     "params": [],
+     "resultVariable": "Ergebnis"
+    },
+    {
+     "id": "2ba8ae4d-7364-4ce4-9a60-437533509691",
+     "name": "CardPointsSend",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "AntwortSenden",
+     "method": "send",
+     "params": [
+      {
+       "merge": "${Ergebnis}"
+      }
+     ]
+    },
+    {
+     "id": "eaf284bd-f4cf-48a0-9e37-d42cae2d14b1",
+     "name": "CardPointsFail",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "AntwortSenden",
+     "method": "fail",
+     "params": [
+      "${Ergebnis.status}",
+      "${Ergebnis.message}"
+     ]
     }
    ],
    "variables": [
@@ -95916,6 +96181,29 @@
      "enabled": true,
      "maxInterval": 1,
      "currentInterval": 0
+    },
+    {
+     "id": "46911b27-0940-44c5-97dd-33294b00b312",
+     "className": "TButton",
+     "name": "MeineLernpunkte",
+     "text": "Lernpunkte",
+     "x": 2,
+     "y": 34,
+     "width": 16,
+     "height": 2,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "MeineLernpunkte"
+     }
     }
    ],
    "tasks": [
@@ -96360,6 +96648,20 @@
      "triggerMode": "local-sync",
      "params": [],
      "scope": "stage"
+    },
+    {
+     "id": "9702e3af-359a-4efa-8894-8d424b7b98ca",
+     "name": "MeineLernpunkte",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "MeineLernpunkte",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "MeineLernpunkteNav"
+      }
+     ]
     }
    ],
    "actions": [
@@ -96552,6 +96854,14 @@
      "stageId": "stage_gallery",
      "reset": false,
      "scope": "stage"
+    },
+    {
+     "id": "dee29ce7-02fd-4693-a975-4fc73d38acd4",
+     "name": "MeineLernpunkteNav",
+     "type": "navigate_stage",
+     "scope": "stage",
+     "stageId": "stage_card_points",
+     "reset": false
     }
    ],
    "variables": [
@@ -97564,6 +97874,29 @@
      "enabled": true,
      "maxInterval": 1,
      "currentInterval": 0
+    },
+    {
+     "id": "e088b274-6525-488b-9358-80b6be8b432c",
+     "className": "TButton",
+     "name": "ElternLernpunkte",
+     "text": "Lernpunkte",
+     "x": 2,
+     "y": 34,
+     "width": 16,
+     "height": 2,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "ElternLernpunkte"
+     }
     }
    ],
    "tasks": [
@@ -97978,6 +98311,20 @@
      "triggerMode": "local-sync",
      "params": [],
      "scope": "stage"
+    },
+    {
+     "id": "5ce0f9b0-bc41-44a9-9fb8-28c3a1a40d54",
+     "name": "ElternLernpunkte",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "ElternLernpunkte",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "ElternLernpunkteNav"
+      }
+     ]
     }
    ],
    "actions": [
@@ -98154,6 +98501,14 @@
      "stageId": "stage_parent",
      "reset": false,
      "scope": "stage"
+    },
+    {
+     "id": "b0bd817c-81b7-4b9b-b629-54a50d0184cb",
+     "name": "ElternLernpunkteNav",
+     "type": "navigate_stage",
+     "scope": "stage",
+     "stageId": "stage_parent_card_points",
+     "reset": false
     }
    ],
    "variables": [
@@ -111438,6 +111793,25 @@
      "y": 27,
      "width": 12,
      "height": 3
+    },
+    {
+     "id": "fe0da87a-3c00-45d7-b196-98cea3a7035b",
+     "name": "CardRewardEndpoint",
+     "className": "TServerEndpoint",
+     "scope": "stage",
+     "executionSide": "server",
+     "isService": true,
+     "isHiddenInRun": true,
+     "endpointPath": "/api/cms/sponsorship/card-agreement-propose",
+     "httpMethod": "POST",
+     "traceEnabled": true,
+     "events": {
+      "onRequest": "CardRewardTask"
+     },
+     "x": 32,
+     "y": 30,
+     "width": 12,
+     "height": 3
     }
    ],
    "tasks": [
@@ -114464,6 +114838,41 @@
        ]
       }
      ]
+    },
+    {
+     "id": "ab964a0c-8a6f-449b-a629-772a25c38e6f",
+     "name": "CardRewardTask",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "CardRewardTask",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "CardRewardCall"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Ergebnis.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "action",
+         "name": "CardRewardSend"
+        }
+       ],
+       "else": [
+        {
+         "type": "action",
+         "name": "CardRewardFail"
+        }
+       ]
+      }
+     ]
     }
    ],
    "actions": [
@@ -116562,6 +116971,43 @@
       "${Ergebnis.message}"
      ],
      "scope": "stage"
+    },
+    {
+     "id": "40e24d75-505c-4209-80a5-b609d9a42516",
+     "name": "CardRewardCall",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "SponsorVereinbarung",
+     "method": "propose",
+     "params": [
+      "$body"
+     ],
+     "resultVariable": "Ergebnis"
+    },
+    {
+     "id": "cefe17b0-0ffd-4435-af4b-b221e19f7606",
+     "name": "CardRewardSend",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "AntwortSenden",
+     "method": "send",
+     "params": [
+      {
+       "merge": "${Ergebnis}"
+      }
+     ]
+    },
+    {
+     "id": "e0c489b2-ab59-4eb7-9065-670f95f9b684",
+     "name": "CardRewardFail",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "AntwortSenden",
+     "method": "fail",
+     "params": [
+      "${Ergebnis.status}",
+      "${Ergebnis.message}"
+     ]
     }
    ],
    "variables": [
@@ -118877,6 +119323,29 @@
      "events": {
       "onTimer": "SponsorDetail_Init"
      }
+    },
+    {
+     "id": "84021153-a3fc-49b3-92d0-3660c2208401",
+     "className": "TButton",
+     "name": "KartenBelohnung",
+     "text": "Kartenbelohnung",
+     "x": 1,
+     "y": 13,
+     "width": 12,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "KartenBelohnung"
+     }
     }
    ],
    "variables": [
@@ -119490,6 +119959,20 @@
      "triggerMode": "local-sync",
      "params": [],
      "scope": "stage"
+    },
+    {
+     "id": "f46d2989-154c-4e0f-9958-81a8ed7f2ae6",
+     "name": "KartenBelohnung",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "KartenBelohnung",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "KartenBelohnungNav"
+      }
+     ]
     }
    ],
    "actions": [
@@ -119749,6 +120232,14 @@
       "${Antwort.items}"
      ],
      "resultVariable": "DatenGueltig"
+    },
+    {
+     "id": "40091a50-6bed-4f34-a0ab-33bf4ee81618",
+     "name": "KartenBelohnungNav",
+     "type": "navigate_stage",
+     "scope": "stage",
+     "stageId": "stage_card_reward_agreement",
+     "reset": false
     }
    ],
    "flowCharts": [],
@@ -123633,6 +124124,29 @@
      "events": {
       "onClick": "Begleitung_Fortsetzen"
      }
+    },
+    {
+     "id": "f76a75b2-9c48-4dc6-b3f3-d7dbf9330c18",
+     "className": "TButton",
+     "name": "KartenBelohnung",
+     "text": "Kartenbelohnung",
+     "x": 1,
+     "y": 26,
+     "width": 12,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "KartenBelohnung"
+     }
     }
    ],
    "variables": [
@@ -124512,6 +125026,20 @@
      "triggerMode": "local-sync",
      "params": [],
      "scope": "stage"
+    },
+    {
+     "id": "f505eeed-92bb-401d-8fce-2c88f1e65ba5",
+     "name": "KartenBelohnung",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "KartenBelohnung",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "KartenBelohnungNav"
+      }
+     ]
     }
    ],
    "actions": [
@@ -124877,6 +125405,14 @@
      },
      "resultVariable": "Antwort",
      "queryOperator": "=="
+    },
+    {
+     "id": "b48f7d68-3a03-4922-8814-5b698313bae3",
+     "name": "KartenBelohnungNav",
+     "type": "navigate_stage",
+     "scope": "stage",
+     "stageId": "stage_card_reward_agreement",
+     "reset": false
     }
    ],
    "flowCharts": [],
@@ -132301,6 +132837,1145 @@
    "flowCharts": [],
    "features": [],
    "startAnimation": "none"
+  },
+  {
+   "id": "stage_card_points",
+   "name": "Meine Lernpunkte",
+   "type": "standard",
+   "generatedBy": "cms-add-card-points.cjs",
+   "grid": {
+    "cols": 64,
+    "rows": 48,
+    "cellSize": 18,
+    "visible": false,
+    "backgroundColor": "#122b39"
+   },
+   "objects": [
+    {
+     "id": "19a8db34-16ff-4bd2-893f-0415a672adc4",
+     "className": "TLabel",
+     "name": "Titel",
+     "text": "MEINE LERNPUNKTE",
+     "x": 3,
+     "y": 4,
+     "width": 58,
+     "height": 2,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "65022ffb-58a4-438f-9c6b-a1eedda07516",
+     "className": "TLabel",
+     "name": "Status",
+     "text": "Wird geladen …",
+     "x": 3,
+     "y": 8,
+     "width": 58,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "a09505d8-e680-437a-8c5e-b37dcbccb88c",
+     "className": "TLabel",
+     "name": "Hinweis",
+     "text": "Ein Aufstieg bringt +1. Fach 6 bedeutet abgeschlossen. Bei einem Rückfall nach Fach 1 entscheidet die Elternregel über den Abzug. Wiederholte Fehler in Fach 1 kosten nichts.",
+     "x": 3,
+     "y": 11,
+     "width": 58,
+     "height": 5,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "61a263ff-efc9-4f99-9741-06df1a14015a",
+     "className": "TButton",
+     "name": "Zurueck",
+     "text": "Zum Karteikasten",
+     "x": 3,
+     "y": 41,
+     "width": 24,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "Zurueck"
+     }
+    },
+    {
+     "id": "428c56ce-9220-4e5c-8068-b74412c52a9b",
+     "className": "TObjectList",
+     "name": "PunkteListe",
+     "text": "",
+     "x": 0,
+     "y": 0,
+     "width": 1,
+     "height": 1,
+     "scope": "stage",
+     "visible": false,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     },
+     "isService": true,
+     "isHiddenInRun": true,
+     "sourceMode": "records",
+     "recordKey": "eventId",
+     "records": []
+    },
+    {
+     "id": "f087b55d-1bd2-4b33-943a-c14d2bb60541",
+     "className": "TTable",
+     "name": "PunkteTabelle",
+     "text": "",
+     "x": 3,
+     "y": 18,
+     "width": 58,
+     "height": 17,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     },
+     "dataSource": "PunkteListe",
+     "keyField": "eventId",
+     "columns": [
+      {
+       "field": "at",
+       "label": "Zeit",
+       "type": "text"
+      },
+      {
+       "field": "subject",
+       "label": "Schulfach",
+       "type": "text"
+      },
+      {
+       "field": "fromBox",
+       "label": "Von",
+       "type": "number"
+      },
+      {
+       "field": "toBox",
+       "label": "Nach",
+       "type": "number"
+      },
+      {
+       "field": "points",
+       "label": "Punkte",
+       "type": "number"
+      },
+      {
+       "field": "verification",
+       "label": "Nachweis",
+       "type": "text"
+      }
+     ]
+    },
+    {
+     "id": "34b69141-5b63-4bc3-8e8c-6ec79e099228",
+     "className": "TTimer",
+     "name": "InitTimer",
+     "text": "",
+     "x": 0,
+     "y": 0,
+     "width": 1,
+     "height": 1,
+     "scope": "stage",
+     "visible": false,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     },
+     "isService": true,
+     "isHiddenInRun": true,
+     "interval": 350,
+     "enabled": true,
+     "maxInterval": 1,
+     "currentInterval": 0,
+     "events": {
+      "onTimer": "Laden"
+     }
+    }
+   ],
+   "variables": [
+    {
+     "id": "7d5c5a17-0b37-4ce5-8ef5-d7c3030bc246",
+     "name": "Antwort",
+     "className": "TObjectVariable",
+     "scope": "stage",
+     "isVariable": true,
+     "type": "object",
+     "defaultValue": null,
+     "value": null
+    }
+   ],
+   "actions": [
+    {
+     "id": "057b9aaf-4b2c-4b83-9579-5634b45c881a",
+     "name": "LadenServer",
+     "type": "http",
+     "scope": "stage",
+     "url": "/api/cms/cards/points",
+     "method": "POST",
+     "body": {
+      "token": "${Token}"
+     },
+     "resultVariable": "Antwort"
+    },
+    {
+     "id": "639d0ec2-f07f-4e7e-bdc3-2ac9aa86c316",
+     "name": "Meldung",
+     "type": "property",
+     "scope": "stage",
+     "changes": {
+      "Status.text": "${Antwort.message}"
+     }
+    },
+    {
+     "id": "e6c660b8-a226-492a-9e92-fa59a45cc50d",
+     "name": "Liste",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "PunkteListe",
+     "method": "tryReplaceRecords",
+     "params": [
+      "${Antwort.items}"
+     ]
+    },
+    {
+     "id": "64998d37-7f69-4b40-954c-7e0ff6cb3211",
+     "name": "ZurueckNav",
+     "type": "navigate_stage",
+     "scope": "stage",
+     "stageId": "stage_cards",
+     "reset": false
+    }
+   ],
+   "tasks": [
+    {
+     "id": "e6fc69bd-01a6-4c45-adeb-ea4f569e26d6",
+     "name": "Laden",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "Laden",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "LadenServer"
+      },
+      {
+       "type": "action",
+       "name": "Meldung"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Antwort.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "action",
+         "name": "Liste"
+        }
+       ],
+       "else": []
+      }
+     ]
+    },
+    {
+     "id": "07c977b2-777d-4125-ade4-4eca3e4a8213",
+     "name": "Zurueck",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "Zurueck",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "ZurueckNav"
+      }
+     ]
+    }
+   ],
+   "features": [],
+   "events": {},
+   "flowCharts": []
+  },
+  {
+   "id": "stage_parent_card_points",
+   "name": "Eltern · Lernpunkte",
+   "type": "standard",
+   "generatedBy": "cms-add-card-points.cjs",
+   "grid": {
+    "cols": 64,
+    "rows": 48,
+    "cellSize": 18,
+    "visible": false,
+    "backgroundColor": "#122b39"
+   },
+   "objects": [
+    {
+     "id": "a2577838-278b-4da6-a510-094da7aaa319",
+     "className": "TLabel",
+     "name": "Titel",
+     "text": "KARTEIKASTEN · LERNPUNKTE",
+     "x": 3,
+     "y": 4,
+     "width": 58,
+     "height": 2,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "f4ae97f4-33ae-44d1-bebf-637ce3d27857",
+     "className": "TLabel",
+     "name": "Status",
+     "text": "Wird geladen …",
+     "x": 3,
+     "y": 8,
+     "width": 58,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "ab5ea808-d7dd-4434-962f-150c27529cf4",
+     "className": "TLabel",
+     "name": "Hinweis",
+     "text": "Ein Aufstieg bringt +1. Fach 6 bedeutet abgeschlossen. Bei einem Rückfall nach Fach 1 entscheidet die Elternregel über den Abzug. Wiederholte Fehler in Fach 1 kosten nichts.",
+     "x": 3,
+     "y": 11,
+     "width": 58,
+     "height": 5,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "d8acc424-54fb-4166-80d9-5d7bb66d9608",
+     "className": "TButton",
+     "name": "Zurueck",
+     "text": "Zum Karteikasten",
+     "x": 3,
+     "y": 41,
+     "width": 24,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "Zurueck"
+     }
+    },
+    {
+     "id": "16835ebf-b766-4448-b978-5f7ee4ffae68",
+     "className": "TObjectList",
+     "name": "PunkteListe",
+     "text": "",
+     "x": 0,
+     "y": 0,
+     "width": 1,
+     "height": 1,
+     "scope": "stage",
+     "visible": false,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     },
+     "isService": true,
+     "isHiddenInRun": true,
+     "sourceMode": "records",
+     "recordKey": "eventId",
+     "records": []
+    },
+    {
+     "id": "b91690cb-39ed-4fb9-bb03-af8f6cb8a3b6",
+     "className": "TTable",
+     "name": "PunkteTabelle",
+     "text": "",
+     "x": 3,
+     "y": 18,
+     "width": 58,
+     "height": 17,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     },
+     "dataSource": "PunkteListe",
+     "keyField": "eventId",
+     "columns": [
+      {
+       "field": "at",
+       "label": "Zeit",
+       "type": "text"
+      },
+      {
+       "field": "subject",
+       "label": "Schulfach",
+       "type": "text"
+      },
+      {
+       "field": "fromBox",
+       "label": "Von",
+       "type": "number"
+      },
+      {
+       "field": "toBox",
+       "label": "Nach",
+       "type": "number"
+      },
+      {
+       "field": "points",
+       "label": "Punkte",
+       "type": "number"
+      },
+      {
+       "field": "verification",
+       "label": "Nachweis",
+       "type": "text"
+      }
+     ]
+    },
+    {
+     "id": "7fbd1f74-847b-49e0-91af-5e782c33fdae",
+     "className": "TTimer",
+     "name": "InitTimer",
+     "text": "",
+     "x": 0,
+     "y": 0,
+     "width": 1,
+     "height": 1,
+     "scope": "stage",
+     "visible": false,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     },
+     "isService": true,
+     "isHiddenInRun": true,
+     "interval": 350,
+     "enabled": true,
+     "maxInterval": 1,
+     "currentInterval": 0,
+     "events": {
+      "onTimer": "Laden"
+     }
+    },
+    {
+     "id": "1c9ba76c-8255-4eb6-93e5-68a2f87ab996",
+     "className": "TButton",
+     "name": "Fortschritt",
+     "text": "+1 · ohne Abzug",
+     "x": 3,
+     "y": 36.5,
+     "width": 26,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "Fortschritt"
+     }
+    },
+    {
+     "id": "adcf2830-6e8d-4217-afe9-4695828fdb22",
+     "className": "TButton",
+     "name": "Konsequent",
+     "text": "+1 · mit −1 Rückfall",
+     "x": 32,
+     "y": 36.5,
+     "width": 29,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "Konsequent"
+     }
+    }
+   ],
+   "variables": [
+    {
+     "id": "9cb9776f-8aba-45ca-b31f-56a517b5c46c",
+     "name": "Antwort",
+     "className": "TObjectVariable",
+     "scope": "stage",
+     "isVariable": true,
+     "type": "object",
+     "defaultValue": null,
+     "value": null
+    }
+   ],
+   "actions": [
+    {
+     "id": "4361c7cf-2b7b-427d-8510-48b66d826a99",
+     "name": "LadenServer",
+     "type": "http",
+     "scope": "stage",
+     "url": "/api/cms/parent/child-card-points",
+     "method": "POST",
+     "body": {
+      "childId": "${CMSKindId}"
+     },
+     "resultVariable": "Antwort"
+    },
+    {
+     "id": "e697db64-f3ea-4fc9-81df-f02515fadd97",
+     "name": "Meldung",
+     "type": "property",
+     "scope": "stage",
+     "changes": {
+      "Status.text": "${Antwort.message}"
+     }
+    },
+    {
+     "id": "ce72d091-6ba0-43b2-8617-62724f402b56",
+     "name": "Liste",
+     "type": "call_method",
+     "scope": "stage",
+     "target": "PunkteListe",
+     "method": "tryReplaceRecords",
+     "params": [
+      "${Antwort.items}"
+     ]
+    },
+    {
+     "id": "19ed9bb0-3884-4b66-8074-f268aa118c00",
+     "name": "ZurueckNav",
+     "type": "navigate_stage",
+     "scope": "stage",
+     "stageId": "stage_child_cards",
+     "reset": false
+    },
+    {
+     "id": "ccee5eff-7221-4c71-bba2-47ee15f438a3",
+     "name": "FortschrittServer",
+     "type": "http",
+     "scope": "stage",
+     "url": "/api/cms/parent/child-card-point-mode",
+     "method": "POST",
+     "body": {
+      "childId": "${CMSKindId}",
+      "mode": "progress"
+     },
+     "resultVariable": "Antwort"
+    },
+    {
+     "id": "a03c7023-9fc5-4c53-ab2b-23da0d645f79",
+     "name": "KonsequentServer",
+     "type": "http",
+     "scope": "stage",
+     "url": "/api/cms/parent/child-card-point-mode",
+     "method": "POST",
+     "body": {
+      "childId": "${CMSKindId}",
+      "mode": "strict"
+     },
+     "resultVariable": "Antwort"
+    }
+   ],
+   "tasks": [
+    {
+     "id": "564e57da-a431-4f28-a6de-e5bdda78678c",
+     "name": "Laden",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "Laden",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "LadenServer"
+      },
+      {
+       "type": "action",
+       "name": "Meldung"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Antwort.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "action",
+         "name": "Liste"
+        }
+       ],
+       "else": []
+      }
+     ]
+    },
+    {
+     "id": "bb0cc889-f01c-474e-acf5-0a3ff96570c3",
+     "name": "Zurueck",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "Zurueck",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "ZurueckNav"
+      }
+     ]
+    },
+    {
+     "id": "a7ec4280-57ec-4848-be54-8b9fa7dfbae7",
+     "name": "Fortschritt",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "Fortschritt",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "FortschrittServer"
+      },
+      {
+       "type": "action",
+       "name": "Meldung"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Antwort.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "task",
+         "name": "Laden"
+        }
+       ],
+       "else": []
+      }
+     ]
+    },
+    {
+     "id": "84b30423-c093-45b4-9a29-a406ebe68bf9",
+     "name": "Konsequent",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "Konsequent",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "KonsequentServer"
+      },
+      {
+       "type": "action",
+       "name": "Meldung"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Antwort.ok",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "task",
+         "name": "Laden"
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ],
+   "features": [],
+   "events": {},
+   "flowCharts": []
+  },
+  {
+   "id": "stage_card_reward_agreement",
+   "name": "Karteikasten · Sponsorvereinbarung",
+   "type": "standard",
+   "generatedBy": "cms-add-card-points.cjs",
+   "grid": {
+    "cols": 64,
+    "rows": 48,
+    "cellSize": 18,
+    "visible": false,
+    "backgroundColor": "#122b39"
+   },
+   "objects": [
+    {
+     "id": "87650a88-be5e-4837-936f-36f83bbfe7a8",
+     "className": "TLabel",
+     "name": "Titel",
+     "text": "KARTEIKASTEN · BELOHNUNG VEREINBAREN",
+     "x": 3,
+     "y": 4,
+     "width": 58,
+     "height": 2,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "5c5038cf-0d94-4b54-9639-f61f498288a7",
+     "className": "TLabel",
+     "name": "Status",
+     "text": "Zuerst eine Begleitung in deren Übersicht auswählen.",
+     "x": 3,
+     "y": 8,
+     "width": 58,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "9ea09d4f-8b4f-4780-bc6b-897ff76d1b5b",
+     "className": "TLabel",
+     "name": "Hinweis",
+     "text": "Eltern und Sponsor müssen dem Vorschlag zustimmen. Fortschritt zählt Aufstiege (+1); konsequent zählt zusätzlich Rückfälle (−1). Die persönliche Lernpunkteinstellung ändert diese Vereinbarung nicht.",
+     "x": 3,
+     "y": 10,
+     "width": 58,
+     "height": 6,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    },
+    {
+     "id": "33ea717c-31ce-4a25-85b0-0a023c7e63b9",
+     "className": "TEdit",
+     "name": "Ziel",
+     "text": "",
+     "x": 3,
+     "y": 18,
+     "width": 20,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     },
+     "placeholder": "Punkteziel"
+    },
+    {
+     "id": "abd2d284-1d3b-44e4-b125-2f6065a9c2a9",
+     "className": "TEdit",
+     "name": "Belohnung",
+     "text": "",
+     "x": 25,
+     "y": 18,
+     "width": 36,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     },
+     "placeholder": "Vereinbarte Belohnung"
+    },
+    {
+     "id": "f6719c44-5377-41c2-a9c3-3031be56830b",
+     "className": "TButton",
+     "name": "FortschrittVertrag",
+     "text": "Vorschlag: +1 ohne Abzug",
+     "x": 3,
+     "y": 24,
+     "width": 58,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "FortschrittVertrag"
+     }
+    },
+    {
+     "id": "189009fb-210f-4570-abdf-f8cc773b0b6f",
+     "className": "TButton",
+     "name": "KonsequentVertrag",
+     "text": "Vorschlag: +1 und −1 Rückfall",
+     "x": 3,
+     "y": 29,
+     "width": 58,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "KonsequentVertrag"
+     }
+    },
+    {
+     "id": "08b45f80-c060-4862-a3a4-98c4bfd2913d",
+     "className": "TButton",
+     "name": "Zurueck",
+     "text": "Begleitungen / Freigaben",
+     "x": 3,
+     "y": 40,
+     "width": 32,
+     "height": 3,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "#285464",
+      "borderRadius": 8
+     },
+     "events": {
+      "onClick": "Zurueck"
+     }
+    },
+    {
+     "id": "b5949298-9e61-4bb6-816d-8f747f4fd13b",
+     "className": "TLabel",
+     "name": "Vertrauenshinweis",
+     "text": "Selbstbewertungen zählen für Sponsorbelohnungen erst nach elterlicher Anerkennung. Bereits erreichte Ansprüche bleiben bei späteren Rückfällen erhalten.",
+     "x": 3,
+     "y": 34,
+     "width": 58,
+     "height": 5,
+     "scope": "stage",
+     "visible": true,
+     "align": "NONE",
+     "style": {
+      "color": "#e8f2f5",
+      "fontSize": 18,
+      "fontFamily": "Segoe UI, sans-serif",
+      "backgroundColor": "transparent",
+      "borderRadius": 8
+     }
+    }
+   ],
+   "variables": [
+    {
+     "id": "e3771a80-06c7-4896-9a47-57179800cadf",
+     "name": "Antwort",
+     "className": "TObjectVariable",
+     "scope": "stage",
+     "isVariable": true,
+     "type": "object",
+     "defaultValue": null,
+     "value": null
+    },
+    {
+     "id": "2958192e-c875-4b61-a0dd-eb21fae6b481",
+     "name": "KontextAntwort",
+     "className": "TObjectVariable",
+     "scope": "stage",
+     "isVariable": true,
+     "type": "object",
+     "defaultValue": null,
+     "value": null
+    }
+   ],
+   "actions": [
+    {
+     "id": "5302ff7d-41ab-4c02-b29e-91949ce6ffc7",
+     "name": "FortschrittVertragServer",
+     "type": "http",
+     "scope": "stage",
+     "url": "/api/cms/sponsorship/card-agreement-propose",
+     "method": "POST",
+     "body": {
+      "token": "${Token}",
+      "sponsorshipId": "${CMSBegleitungId}",
+      "cardPointMode": "progress",
+      "pointsTarget": "${Ziel.text}",
+      "rewardText": "${Belohnung.text}"
+     },
+     "resultVariable": "Antwort"
+    },
+    {
+     "id": "2def9f41-22f7-47ea-a0b4-55ba04ad9ab4",
+     "name": "KonsequentVertragServer",
+     "type": "http",
+     "scope": "stage",
+     "url": "/api/cms/sponsorship/card-agreement-propose",
+     "method": "POST",
+     "body": {
+      "token": "${Token}",
+      "sponsorshipId": "${CMSBegleitungId}",
+      "cardPointMode": "strict",
+      "pointsTarget": "${Ziel.text}",
+      "rewardText": "${Belohnung.text}"
+     },
+     "resultVariable": "Antwort"
+    },
+    {
+     "id": "8336cee1-0f3c-42d3-9ad7-5bf7992ad756",
+     "name": "Meldung",
+     "type": "property",
+     "scope": "stage",
+     "changes": {
+      "Status.text": "${Antwort.message}"
+     }
+    },
+    {
+     "id": "5fc7c928-394f-41d1-8102-360ed2c042a9",
+     "name": "ZurueckNav",
+     "type": "navigate_stage",
+     "scope": "stage",
+     "stageId": "stage_sponsor_detail",
+     "reset": false
+    },
+    {
+     "id": "f0fed4d8-cc31-4ca6-9dcb-321fcac7da2a",
+     "name": "KontextServer",
+     "type": "http",
+     "scope": "stage",
+     "url": "/api/cms/contexts",
+     "method": "POST",
+     "body": {},
+     "resultVariable": "Antwort"
+    },
+    {
+     "id": "12d0a852-0e94-44a8-989e-ab3f2ad592dd",
+     "name": "ElternZurueck",
+     "type": "navigate_stage",
+     "scope": "stage",
+     "stageId": "stage_parent_sponsor_detail",
+     "reset": false
+    }
+   ],
+   "tasks": [
+    {
+     "id": "3d4c5a1d-6f07-4fb9-b45e-dcf111e83af9",
+     "name": "FortschrittVertrag",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "FortschrittVertrag",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "FortschrittVertragServer"
+      },
+      {
+       "type": "action",
+       "name": "Meldung"
+      }
+     ]
+    },
+    {
+     "id": "45b5056c-a756-44d3-bde7-a2edd7ac3d5a",
+     "name": "KonsequentVertrag",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "KonsequentVertrag",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "KonsequentVertragServer"
+      },
+      {
+       "type": "action",
+       "name": "Meldung"
+      }
+     ]
+    },
+    {
+     "id": "045cba16-3181-4fe8-b6de-e40ae92328b4",
+     "name": "Zurueck",
+     "scope": "stage",
+     "triggerMode": "local-sync",
+     "params": [],
+     "description": "Zurueck",
+     "actionSequence": [
+      {
+       "type": "action",
+       "name": "KontextServer"
+      },
+      {
+       "type": "condition",
+       "name": "Erfolgreich?",
+       "condition": {
+        "variable": "Antwort.parent",
+        "operator": "==",
+        "value": true
+       },
+       "then": [
+        {
+         "type": "action",
+         "name": "ElternZurueck"
+        }
+       ],
+       "else": [
+        {
+         "type": "action",
+         "name": "ZurueckNav"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "features": [],
+   "events": {},
+   "flowCharts": []
   }
  ],
  "objects": [],

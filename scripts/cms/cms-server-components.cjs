@@ -1515,7 +1515,9 @@ const methods={
    const cardId=exprOf(ctx,spec.cardId,{}),correct=!!exprOf(ctx,spec.correct,{});
    const card=db.flashcards.find(c=>c.id===cardId&&c.active);
    if(!card)return{ok:false,status:404,message:'Karte nicht gefunden.'};
-   if(card.childId!==s.personId)return{ok:false,status:403,message:'Nur der Kastenbesitzer bewertet Karten.'};
+   if(card.childId!==s?.personId)return{ok:false,status:403,message:'Nur der Kastenbesitzer bewertet Karten.'};
+   if(ctx.body.attemptId)return require('./cms-card-points.cjs').answer(ctx,card,ctx.body.correct);
+   if(card.box===6)return{ok:true,box:6,mastered:true,pointsDelta:0,message:'Abgeschlossen — Karte bleibt in Fach 6.'};
    ctx.commit(s,'card-answer',card.childId,next=>{
     const c=next.flashcards.find(x=>x.id===cardId);
     c.box=correct?Math.min(c.box+1,6):1;
@@ -1550,12 +1552,14 @@ const methods={
   pick(ctx,_component,params){
    const db=ctx.core.db,itemsRaw=exprOf(ctx,params?.[0],{}),mode=String(exprOf(ctx,params?.[1],{})||'oldest');
    const items=(Array.isArray(itemsRaw)?itemsRaw:[]);
-   if(!items.length)return{ok:true,empty:true,message:'Keine passende Karte.'};
+   if(!items.length)return{ok:true,empty:true,message:'Keine passende Karte.',...(ctx.body.learningPoints===true?{learning:require('./cms-card-points.cjs').summary(ctx.core.db,ctx.session.personId)}:{})};
    let card;
    if(mode==='random')card=items[Math.floor(Math.random()*items.length)];
    else if(mode==='first')card=items[0];
    else card=[...items].sort((a,b)=>(a.box-b.box)||String(a.lastReviewedAt||a.createdAt).localeCompare(String(b.lastReviewedAt||b.createdAt)))[0];
-   return{ok:true,card};
+   const prepared=require('./cms-card-points.cjs').prepareAttempt(ctx,card);
+   if(!prepared)return{ok:false,status:403,message:'Aktive eigene Spielsitzung erforderlich.'};
+   return{ok:true,card:prepared};
   }
  },
  // --- Uploads: TServerUpload trägt kind/maxBytes/Meldungen; der Transport
@@ -1843,6 +1847,10 @@ const perfModule=require('./cms-performance.cjs');
 const sponsorModule=require('./cms-sponsor.cjs').createSponsor(null);
 Object.assign(methods,require('./cms-sponsor-components.cjs')({exprOf}));
 const sponsorAdmin=require('./cms-sponsor-admin.cjs');
+Object.assign(methods.TServerCards,{
+ pointSummary:require('./cms-card-points.cjs').pointSummary,
+ setPointMode:require('./cms-card-points.cjs').setPointMode,
+});
 Object.assign(methods.TServerAccess,{
  listSponsors:sponsorAdmin.listSponsors,
  setSponsor:sponsorAdmin.setSponsor,

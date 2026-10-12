@@ -57,6 +57,7 @@ function configureQuizTts(project) {
   const keyboard = stage.tasks.find(item => item.name === 'Tastatur_Waehlen').actionSequence[0];
   if (!keyboard.condition.value.includes('reading')) keyboard.condition.value.push('reading');
   project.meta.description = 'Karteikasten-Quiz mit serverseitigem Vorlesen, lokaler Spracheingabe oder Tastatur. Mikrofon erst nach der Frage; falsche Lösungen mindestens zwei Sekunden und bis zum Ende der Ansage.';
+  if(project.meta?.cardLearningPoints)require('./cms-quiz-points.cjs').configureQuizPoints(project);
   return project;
 }
 module.exports = { configureQuizTts };

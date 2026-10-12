@@ -1,7 +1,9 @@
 # CMS-Karteikasten (Leitner) — Umsetzungsdokumentation
 
 Stand: persönliche Karteikästen für Kinder mit Leitner-Lernfächern, Elternverwaltung
-und Andock-Schnittstelle für Spiele. Statistiken sind bewusst nicht enthalten.
+und Andock-Schnittstelle für Spiele. Lernpunkte und Sponsorbelohnungen für das
+Karteikasten-Quiz sind in [CMS-Karteikasten-Lernpunkte.md](CMS-Karteikasten-Lernpunkte.md)
+beschrieben.
 
 ## Was umgesetzt wurde
 

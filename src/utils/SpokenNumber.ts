@@ -59,3 +59,11 @@ export function checkNumberAnswer(input: unknown, answers: unknown): { valid: bo
     const expected = list.map(normalizeSpokenNumber).filter((n): n is number => n !== null);
     return { valid: actual !== null && expected.length > 0, correct: actual !== null && expected.includes(actual), solution: String(list[0] ?? '') };
 }
+
+/** Karteikasten: Zahlen einschließlich Sprachantworten, sonst explizite Textvarianten. */
+export function checkCardAnswer(input: unknown, answers: unknown): { valid: boolean; correct: boolean; solution: string } {
+    const list = Array.isArray(answers) ? answers : [];
+    if (list.length && list.every(answer => normalizeSpokenNumber(answer) !== null)) return checkNumberAnswer(input, list);
+    const text = typeof input === 'string' ? input.trim() : '';
+    return { valid: !!text && list.length > 0, correct: list.some(answer => String(answer).trim() === text), solution: String(list[0] ?? '') };
+}

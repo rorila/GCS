@@ -1327,6 +1327,7 @@ const { applyCmsTheme } = require('./cms-style.cjs');
 applyCmsTheme(project);
 cleanRetiredProperties(project);
 
+if (project.stages.some(s => s.id === 'stage_card_points')) require('./cms-add-card-points.cjs').apply(project);
 fs.writeFileSync(FILE + '.tmp', JSON.stringify(project, null, 2));
 fs.renameSync(FILE + '.tmp', FILE);
 console.log('Stages eingefügt: stage_server_parent, stage_server_play, stage_parent (+ stage_child_activity/rooms/budget), stage_observer');

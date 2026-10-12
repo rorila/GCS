@@ -521,5 +521,6 @@ if (bp) {
   ]);
 }
 
+if (project.stages.some(s => s.id === 'stage_card_points')) require('./cms-add-card-points.cjs').apply(project);
 fs.writeFileSync(file, JSON.stringify(project, null, 1));
 console.log('Sponsor-Stages erzeugt: ' + project.stages.filter(s => s.generatedBy === GENERATED).map(s => s.id).join(', '));

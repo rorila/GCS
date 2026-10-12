@@ -17,7 +17,7 @@ module.exports = ({ exprOf }) => {
   const csv = v => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
   // Flache Eingabefelder der Stages → terms-Objekt der Vereinbarung.
   const flatTerms = b => {
-    const keys = b.metricKeysCsv ? csv(b.metricKeysCsv) : (Array.isArray(b.metricKeys) ? b.metricKeys : []);
+    const keys = b.cardPointMode === 'strict' ? ['cards.promotions','cards.resets'] : b.cardPointMode === 'progress' ? ['cards.promotions'] : b.metricKeysCsv ? csv(b.metricKeysCsv) : (Array.isArray(b.metricKeys) ? b.metricKeys : []);
     const t = {
       metricKeys: keys,
       pointsTarget: Number(b.pointsTarget),
@@ -262,6 +262,7 @@ module.exports = ({ exprOf }) => {
       propose(ctx, _c, params) {
         const { s, b } = args(ctx, params);
         const gate = needSession(s); if (gate) return gate;
+        if (b.cardPointMode != null && !['progress','strict'].includes(b.cardPointMode)) return deny(400, 'Ungültige Karteikasten-Zählregel.');
         let out;
         ctx.commit(s, 'sponsor-agreement-propose', null, next => {
           let terms = parseJson(b.terms, null) || flatTerms(b);

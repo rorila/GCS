@@ -1,7 +1,7 @@
 // CMS-Schema-Migrationen. Jede Migration ist idempotent und wird einmal pro
 // Versionsgrenze ausgeführt; Reihenfolge strikt aufsteigend. Reihenfolge:
 // up() arbeitet auf einer Kopie, validate() entscheidet über das Ergebnis.
-const SCHEMA_VERSION = 8;
+const SCHEMA_VERSION = 9;
 
 // v1 -> v2: Zielmodellkern (E02/E03/E06/E07)
 // - people.kind: 'child'|'adult' (fachliche Grundlage für Eltern-/Kinderlogik)
@@ -156,6 +156,11 @@ function v7_to_v8(db) {
   return db;
 }
 
+function v8_to_v9(db) {
+ db.version=9;
+ require('./cms-card-point-rules.cjs').ensureCardPointRules(db);
+ return db;
+}
 const MIGRATIONS = [
   { from: 1, to: 2, up: v1_to_v2 },
   { from: 2, to: 3, up: v2_to_v3 },
@@ -164,6 +169,7 @@ const MIGRATIONS = [
   { from: 5, to: 6, up: v5_to_v6 },
   { from: 6, to: 7, up: v6_to_v7 },
   { from: 7, to: 8, up: v7_to_v8 },
+  { from: 8, to: 9, up: v8_to_v9 },
 ];
 
 // Führt alle anstehenden Migrationen auf einer Kopie aus (das Original bleibt

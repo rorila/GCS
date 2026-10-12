@@ -60,7 +60,9 @@ function configureSpeechQuiz(project) {
   task('Weiter_Nach_Feedback', [cond('Phase', '==', 'feedback', [cond('FeedbackFertig', '==', true, [cond('BuchungFertig', '==', true, [next, run('Karte_Ziehen')])])])]);
   task('Buchungsfehler', [prop('Act_Buchungsfehler', { Phase: 'save-error', 'LoesungsTimer.enabled': false, 'StatusLabel.text': 'Lernstand konnte nicht sicher gespeichert werden. Bitte Spiel beenden und Verbindung prüfen.' })]);
   task('Quiz_Beenden', [cond('Phase', '!=', 'ended', [prop('Act_Quiz_Stop', { ...hideInput, Phase: 'ended', Busy: 1, 'LoesungsTimer.enabled': false, 'Tastatur.visible': false, 'StatusLabel.text': 'Spiel beendet. Richtig: ${Richtig} · Falsch: ${Falsch}' }), cancel, runAction('Act_Sitzung_Ende'), cond('EndeAntwort.ok', '!=', true, [prop('Act_Ende_Fehler', { 'StatusLabel.text': 'Sitzungsende nicht bestätigt. Bitte über den Spielhost schließen.' })])])]);
-  return require('./cms-quiz-tts.cjs').configureQuizTts(project);
+  const configured=require('./cms-quiz-tts.cjs').configureQuizTts(project);
+  if(project.meta?.cardLearningPoints)require('./cms-quiz-points.cjs').configureQuizPoints(configured);
+  return configured;
 }
 function runAction(name) { return { type: 'action', name }; }
 module.exports = { configureSpeechQuiz };

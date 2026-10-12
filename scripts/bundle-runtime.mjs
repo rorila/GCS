@@ -50,3 +50,5 @@ await esbuild.build({
 });
 
 console.log(`Built public/runtime-standalone.js (VITE_LOG_LEVEL=${importMetaEnv.VITE_LOG_LEVEL ?? 'not set'})`);
+// Server und Quiz prüfen gesprochene Zahlen mit genau derselben Implementierung.
+await esbuild.build({entryPoints:['src/utils/SpokenNumber.ts'],bundle:true,platform:'node',format:'cjs',outfile:'scripts/cms/cms-spoken-number.cjs'});

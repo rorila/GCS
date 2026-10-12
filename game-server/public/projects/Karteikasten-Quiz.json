@@ -4,7 +4,8 @@
     "description": "Karteikasten-Quiz mit serverseitigem Vorlesen, lokaler Spracheingabe oder Tastatur. Mikrofon erst nach der Frage; falsche Lösungen mindestens zwei Sekunden und bis zum Ende der Ansage.",
     "generatedBy": "cms-add-quiz-demo.cjs",
     "generatedAt": "2026-10-09T17:10:08.962Z",
-    "_sourcePath": "projects/Karteikasten-Quiz.json"
+    "_sourcePath": "projects/Karteikasten-Quiz.json",
+    "cardLearningPoints": "leitner-v1"
   },
   "activeStageId": "stage_quiz",
   "schemaVersion": "4.0.0",
@@ -16,7 +17,7 @@
       "name": "Karteikasten-Quiz",
       "grid": {
         "cols": 64,
-        "rows": 40,
+        "rows": 43,
         "cellSize": 18,
         "visible": false,
         "snapToGrid": true,
@@ -618,6 +619,33 @@
             "borderWidth": 0
           },
           "text": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "quiz_learning_points",
+          "name": "LernpunkteLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 39,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "rotation": 0,
+          "align": "NONE",
+          "collisionEnabled": false,
+          "style": {
+            "color": "#edf7f4",
+            "fontSize": 16,
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Lernpunkte werden beim Start geladen."
         }
       ],
       "variables": [
@@ -2302,7 +2330,18 @@
           "type": "http",
           "url": "/api/cms/play",
           "method": "POST",
-          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardNext\",\"subject\":\"${KartenFach}\",\"topic\":\"${KartenThema}\",\"formats\":[\"text\",\"self\"],\"excludeIds\":\"${GezogeneIds}\"}",
+          "body": {
+            "launchKey": "${CMS_LAUNCH}",
+            "action": "cardNext",
+            "subject": "${KartenFach}",
+            "topic": "${KartenThema}",
+            "formats": [
+              "text",
+              "self"
+            ],
+            "excludeIds": "${GezogeneIds}",
+            "learningPoints": true
+          },
           "resultVariable": "KartenAntwort",
           "scope": "stage",
           "queryOperator": "==",
@@ -2339,7 +2378,8 @@
             "FrageLabel.text": "${KartenAntwort.card.question}",
             "FachLabel.text": "${KartenAntwort.card.subject} · ${KartenAntwort.card.topic} · Fach ${KartenAntwort.card.box}",
             "Busy": 0,
-            "Phase": "answering"
+            "Phase": "answering",
+            "LernpunkteLabel.text": "Lernpunkte: ${KartenAntwort.card.learning.totalPoints} · ${KartenAntwort.card.learning.modeLabel} · Abgeschlossen: ${KartenAntwort.card.learning.completedCards}"
           },
           "scope": "stage"
         },
@@ -2373,7 +2413,8 @@
             "Phase": "complete",
             "FrageLabel.text": "Fertig!",
             "StatusLabel.text": "Alle Karten dieser Runde richtig beantwortet.",
-            "FachLabel.text": ""
+            "FachLabel.text": "",
+            "LernpunkteLabel.text": "Lernpunkte: ${KartenAntwort.learning.totalPoints} · ${KartenAntwort.learning.modeLabel} · Abgeschlossen: ${KartenAntwort.learning.completedCards}"
           },
           "scope": "stage"
         },
@@ -2414,7 +2455,14 @@
           "type": "http",
           "url": "/api/cms/play",
           "method": "POST",
-          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":true}",
+          "body": {
+            "launchKey": "${CMS_LAUNCH}",
+            "action": "cardAnswer",
+            "cardId": "${AktuelleKarte.id}",
+            "correct": true,
+            "attemptId": "${AktuelleKarte.attemptId}",
+            "answer": "${AktuelleAntwort}"
+          },
           "resultVariable": "BewertungAntwort",
           "scope": "stage",
           "queryOperator": "==",
@@ -2435,7 +2483,8 @@
           "type": "property",
           "changes": {
             "GezogeneIds": "${GezogeneIds}${AktuelleKarte.id},",
-            "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}"
+            "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
+            "LernpunkteLabel.text": "Lernpunkte: ${BewertungAntwort.learning.totalPoints} · Änderung: ${BewertungAntwort.pointsDelta} · Abgeschlossen: ${BewertungAntwort.learning.completedCards}"
           },
           "scope": "stage"
         },
@@ -2479,7 +2528,14 @@
           "type": "http",
           "url": "/api/cms/play",
           "method": "POST",
-          "body": "{\"launchKey\":\"${CMS_LAUNCH}\",\"action\":\"cardAnswer\",\"cardId\":\"${AktuelleKarte.id}\",\"correct\":false}",
+          "body": {
+            "launchKey": "${CMS_LAUNCH}",
+            "action": "cardAnswer",
+            "cardId": "${AktuelleKarte.id}",
+            "correct": false,
+            "attemptId": "${AktuelleKarte.attemptId}",
+            "answer": "${AktuelleAntwort}"
+          },
           "resultVariable": "BewertungAntwort",
           "scope": "stage",
           "queryOperator": "==",
@@ -2500,7 +2556,8 @@
           "type": "property",
           "changes": {
             "BuchungFertig": true,
-            "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}"
+            "ZaehlerLabel.text": "Richtig: ${Richtig} · Falsch: ${Falsch}",
+            "LernpunkteLabel.text": "Lernpunkte: ${BewertungAntwort.learning.totalPoints} · Änderung: ${BewertungAntwort.pointsDelta} · Abgeschlossen: ${BewertungAntwort.learning.completedCards}"
           },
           "scope": "stage"
         },
@@ -2662,7 +2719,7 @@
           "name": "Act_Zahlantwort_Pruefen",
           "scope": "stage",
           "type": "calculate",
-          "formula": "checkNumberAnswer(AktuelleAntwort, AktuelleKarte.value.answers)",
+          "formula": "checkCardAnswer(AktuelleAntwort, AktuelleKarte.value.answers)",
           "resultVariable": "AntwortPruefung",
           "resultVariable_ref": "quiz_speech_AntwortPruefung"
         },
@@ -2672,7 +2729,7 @@
           "scope": "stage",
           "type": "property",
           "changes": {
-            "StatusLabel.text": "Keine eindeutige Zahl verstanden. Bitte auf „Noch einmal sprechen“ klicken.",
+            "StatusLabel.text": "Antwort nicht eindeutig erkannt. Bitte erneut antworten.",
             "Wiederholen.visible": false
           }
         },

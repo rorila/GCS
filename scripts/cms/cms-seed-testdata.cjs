@@ -23,7 +23,7 @@ const guardian = (childId, guardianId, status = 'confirmed', extra = {}) => ({
 const code = (personId, areaId, seq) => ({ personId, areaId, sequence: seq });
 
 const db = {
-  version: 8,
+  version: 9,
   areas: [
     { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     { id: 'house-sun', name: 'Haus Sonne', type: 'house', parentId: 'root', active: true, avatar: '🏡', maxDailyMinutes: 120 },
@@ -244,6 +244,7 @@ const db = {
   },
 };
 
+  require('./cms-card-point-rules.cjs').ensureCardPointRules(db);
   validate(db);
   return db;
 }
@@ -253,7 +254,7 @@ const db = {
 // Alle übrigen Entitäten entstehen später ausschließlich über echte CMS-Wege.
 function buildMinimalDb(now = Date.now()) {
   const db = {
-    version: 8,
+    version: 9,
     areas: [
       { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     ],
@@ -274,6 +275,7 @@ function buildMinimalDb(now = Date.now()) {
     meta: { generatedBy: 'cms-seed-testdata.cjs', generatedAt: new Date(now).toISOString(), purpose: 'Aufbau ab null: Minimalbestand, synthetisch' },
     testMeta: { password: TEST_PASSWORD, mode: 'minimal' },
   };
+  require('./cms-card-point-rules.cjs').ensureCardPointRules(db);
   validate(db);
   return db;
 }
