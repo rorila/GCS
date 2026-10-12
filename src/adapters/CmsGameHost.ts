@@ -36,7 +36,7 @@ export function attachCmsGameHost(getRuntime: () => any): () => void {
                     }
                 } catch { /* Ungueltige Live-Nachricht ignorieren. */ }
             };
-            ws.onclose = () => { if (liveSocket === ws) liveSocket = undefined; liveOpening = undefined; liveFail(new Error('Live-Verbindung geschlossen')); };
+            ws.onclose = () => { if (liveSocket === ws) liveSocket = undefined; liveOpening = undefined; liveFail(new Error('Live-Verbindung geschlossen')); if (launchKey() === key) frame?.contentWindow?.postMessage({type:'gcs-cms-live',data:{ok:false,message:'Live-Verbindung geschlossen.'}},'*'); };
             ws.onerror = () => { window.clearTimeout(timer); reject(new Error('Live-Verbindung fehlgeschlagen')); };
         });
         return liveOpening;

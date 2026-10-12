@@ -33,7 +33,7 @@ const prop=(name,changes)=>action(name,'property',{changes});
 const nav=(name,stageId)=>action(name,'navigate_stage',{stageId,reset:false});
 const call=(name,target,method,params,resultVariable)=>action(name,'call_method',{target,method,params,resultVariable});
 
-const HOUSE_NAV=[['stage_house','Meine Häuser'],['stage_house_overview','Übersicht'],['stage_house_rooms','Räume'],['stage_house_residents','Bewohner'],['stage_house_families','Familien'],['stage_house_games','Spiele'],['stage_house_invites','Einladungen']];
+const HOUSE_NAV=[['stage_house','Meine Häuser'],['stage_house_overview','Übersicht'],['stage_house_rooms','Räume'],['stage_house_residents','Bewohner'],['stage_house_families','Familien'],['stage_house_games','Spiele'],['stage_house_room_games','Spiele je Raum'],['stage_house_invites','Einladungen']];
 const ROOM_NAV=[['stage_admin','Meine Räume'],['stage_room_overview','Übersicht'],['stage_room_access','Zutritt'],['stage_room_games','Spiele']];
 
 function shell(id,name,title,navItems,activeId,contextKind='house'){
@@ -240,6 +240,38 @@ function addFeature(stage,id,name,tasks){stage.features.push({id:stage.id+'_'+id
  addLoad(s,{prefix:'Spiele',url:'/api/cms/admin/house-games',body:{houseId:'${CMSHausId}'},listName:'SpielListe',init:'SpieleInit'});addFeature(s,'games','Galeriespiele dem Haus zuordnen',['Spiele_Laden','Spiel_Umschalten']);replaceStage(s);
 }
 
+// ── HouseAdmin: Spiele je Raum — Hauskatalog-Spiele Räumen zuordnen ─────────
+// Der HouseAdmin bestimmt verbindlich, welches Katalogspiel in welchem Raum
+// gespielt werden darf. Raumwahl oben, Katalogspiele mit Raumstatus unten.
+{
+ const s=shell('stage_house_room_games','HouseAdmin · Spiele je Raum','Spiele je Raum zuordnen',HOUSE_NAV,'stage_house_room_games','house');
+ s.objects.push(
+  label('RaumSektion','1 · RAUM WÄHLEN',15,8.5,30,1.2,{style:detailSectionStyle}),
+  list('RaumListe','Räume des Hauses'),
+  table('RaumTabelle','RaumListe',[{field:'name',label:'Raum',type:'header',x:0,y:0},{field:'active',label:'Aktiv',type:'badge',x:16,y:0}],15,10,47,8,'Raum_Waehlen'),
+  label('SpielSektion','2 · KATALOGSPIELE FÜR DIESEN RAUM',15,19.5,40,1.2,{style:detailSectionStyle}),
+  list('SpielListe','Spiele des Hauskatalogs'),
+  table('SpielTabelle','SpielListe',[{field:'name',label:'Spiel',type:'header',x:0,y:0},{field:'active',label:'Im Raum',type:'badge',x:15,y:0}],15,21,47,15,'Spiel_Umschalten'),
+  label('RaumSpielHinweis','Nur Spiele aus dem Hauskatalog können Räumen zugeordnet werden. Ein Entzug beendet laufende Partien sofort; die Zuordnung bleibt gespeichert.',15,37,47,6,{style:detailHintStyle}));
+ s.variables.push(variable('RaumSpieleAntwort'));
+ s.actions.push(
+  prop('Act_Raum_Merken',{CMSRaumId:'${RaumTabelle.selectedKey}',CMSRaumName:'${RaumTabelle.selectedRecord.name}','Status.text':'Spiele für Raum ${RaumTabelle.selectedRecord.name} werden geladen …'}),
+  http('Act_RaumSpiele_Server','/api/cms/admin/games',{areaId:'${CMSRaumId}'}),
+  call('Act_RaumSpiele_Uebernehmen','SpielListe','tryReplaceRecords',['${Antwort.items}'],'DatenGueltig'),
+  prop('Act_RaumSpiele_Fertig',{Busy:0,'Status.text':'${Antwort.message}'}),
+  prop('Act_Spiel_Merken',{CMSAuswahlActive:'${SpielTabelle.selectedRecord.active}'}),
+  action('Act_Spiel_Berechnen','calculate',{formula:'CMSAuswahlActive ? false : true',resultVariable:'ZielAktiv'}),
+  http('Act_Spiel_Zuordnen_Server','/api/cms/admin/grant',{areaId:'${CMSRaumId}',id:'${SpielTabelle.selectedKey}',active:true}),
+  http('Act_Spiel_Entziehen_Server','/api/cms/admin/grant',{areaId:'${CMSRaumId}',id:'${SpielTabelle.selectedKey}',active:false}),
+  prop('Act_Spiel_Fertig',{Busy:0,'Status.text':'✓ Spielzuordnung gespeichert.'}));
+ s.tasks.push(
+  task('Raum_Waehlen',[C('Raum gewählt?','RaumTabelle.selectedKey','!=','',[A('Act_Raum_Merken'),T('RaumSpiele_Laden')],[])]),
+  task('RaumSpiele_Laden',[A('Act_RaumSpiele_Server'),C('Serverantwort erfolgreich?','Antwort.ok','==',true,[A('Act_RaumSpiele_Uebernehmen'),A('Act_RaumSpiele_Fertig')],[T('Fehler')])]),
+  task('Spiel_Umschalten',[A('Act_Spiel_Merken'),A('Act_Spiel_Berechnen'),C('Dem Raum zuordnen?','ZielAktiv','==',true,[A('Act_Spiel_Zuordnen_Server')],[A('Act_Spiel_Entziehen_Server')]),C('Zuordnung gespeichert?','Antwort.ok','==',true,[A('Act_Spiel_Fertig'),T('RaumSpiele_Laden')],[T('Fehler')])]));
+ addLoad(s,{prefix:'Raeume',url:'/api/cms/admin/house-rooms',body:{houseId:'${CMSHausId}'},listName:'RaumListe',init:'RaumSpieleInit'});
+ addFeature(s,'room_games','Hauskatalog-Spiele einzelnen Räumen zuordnen',['Raeume_Laden','Raum_Waehlen','RaumSpiele_Laden','Spiel_Umschalten']);replaceStage(s);
+}
+
 // ── HouseAdmin: Einladungen ────────────────────────────────────────────────
 {
  const s=shell('stage_house_invites','HouseAdmin · Einladungen','Einladungen verwalten',HOUSE_NAV,'stage_house_invites','house');
@@ -284,7 +316,7 @@ function addFeature(stage,id,name,tasks){stage.features.push({id:stage.id+'_'+id
 // ── RaumAdmin: Übersicht ───────────────────────────────────────────────────
 {
  const s=shell('stage_room_overview','RaumAdmin · Raumübersicht','Raumübersicht',ROOM_NAV,'stage_room_overview','room');
- s.objects.push(button('ZutrittKarte','Zutritt verwalten',15,11,22,7,'Navigation_stage_room_access'),button('SpieleKarte','Verfügbare Spiele',39,11,22,7,'Navigation_stage_room_games'),label('RaumHinweis','Du verwaltest ausschließlich den Zutritt bereits vorhandener Hausbewohner. Raumdaten und Hausfreigaben bleiben Aufgabe des HouseAdmins.',15,21,46,8,{style:{...textStyle,backgroundColor:'#193b49',borderColor:'#315565',borderWidth:1,borderRadius:10,padding:16}}),timer('RaumUebersichtInit'));
+ s.objects.push(button('ZutrittKarte','Zutritt verwalten',15,11,22,7,'Navigation_stage_room_access'),button('SpieleKarte','Verfügbare Spiele',39,11,22,7,'Navigation_stage_room_games'),label('RaumHinweis','Du verwaltest den Zutritt der Hausbewohner und kannst zugeordnete Spiele für diesen Raum sperren. Neue Spielzuordnungen, Raumdaten und Hausfreigaben legt der HouseAdmin fest.',15,21,46,8,{style:{...textStyle,backgroundColor:'#193b49',borderColor:'#315565',borderWidth:1,borderRadius:10,padding:16}}),timer('RaumUebersichtInit'));
  s.tasks.push(task('RaumUebersichtInit',[A('Act_Kontext_Anzeigen'),propStepFallback()]));s.actions.push(prop('Act_RaumUebersicht_Status',{Busy:0,'Status.text':'Zutritt und Spiele für diesen Raum verwalten.'}));s.tasks[ s.tasks.length-1 ].actionSequence[1]=A('Act_RaumUebersicht_Status');
  addFeature(s,'overview','Raumzuständigkeit anzeigen',['RaumUebersichtInit']);replaceStage(s);
 }
@@ -298,15 +330,18 @@ function addFeature(stage,id,name,tasks){stage.features.push({id:stage.id+'_'+id
  addLoad(s,{prefix:'Mitglieder',url:'/api/cms/admin/members',body:{token:'${Token}',areaId:'${CMSRaumId}'},listName:'MitgliederListe',init:'ZutrittInit'});addFeature(s,'access','Hausbewohnern Raumzutritt gewähren oder entziehen',['Mitglieder_Laden','Zutritt_Umschalten']);replaceStage(s);
 }
 
-// ── RaumAdmin: Spiele — Hauskatalog für den Raum umschalten ────────────────
+// ── RaumAdmin: Spiele — zugeordnete Spiele nur einschränken ────────────────
+// Der HouseAdmin ordnet Katalogspiele den Räumen zu; der RaumAdmin darf eine
+// vorhandene Zuordnung sperren, aber keine neue anlegen (Server prüft beides).
 {
  const s=shell('stage_room_games','RaumAdmin · Spiele','Verfügbare Spiele',ROOM_NAV,'stage_room_games','room');
- const spielTabelle=table('SpielTabelle','SpielListe',[{field:'name',label:'Spiel',type:'header',x:0,y:0},{field:'active',label:'Verfügbar',type:'badge',x:15,y:0}],15,9,47,29,'Spiel_Umschalten');
+ const spielTabelle=table('SpielTabelle','SpielListe',[{field:'name',label:'Spiel',type:'header',x:0,y:0},{field:'active',label:'Im Raum',type:'badge',x:15,y:0}],15,9,47,29,'Spiel_Umschalten');
  spielTabelle.events={onRowClick:'Spiel_Umschalten'};
- s.objects.push(list('SpielListe','Spiele des Hauses — für diesen Raum umschalten'),spielTabelle);
- s.actions.push(prop('Act_Spiel_Merken',{CMSAuswahlActive:'${SpielTabelle.selectedRecord.active}'}),action('Act_Spiel_Berechnen','calculate',{formula:'CMSAuswahlActive ? false : true',resultVariable:'ZielAktiv'}),http('Act_Spiel_Erlauben_Server','/api/cms/admin/grant',{token:'${Token}',areaId:'${CMSRaumId}',id:'${SpielTabelle.selectedKey}',active:true}),http('Act_Spiel_Entziehen_Server','/api/cms/admin/grant',{token:'${Token}',areaId:'${CMSRaumId}',id:'${SpielTabelle.selectedKey}',active:false}),prop('Act_Spiel_Fertig',{Busy:0,'Status.text':'✓ Spielfreigabe gespeichert.'}));
- s.tasks.push(task('Spiel_Umschalten',[A('Act_Spiel_Merken'),A('Act_Spiel_Berechnen'),C('Freigabe erlauben?','ZielAktiv','==',true,[A('Act_Spiel_Erlauben_Server')],[A('Act_Spiel_Entziehen_Server')]),C('Freigabe gespeichert?','Antwort.ok','==',true,[A('Act_Spiel_Fertig'),T('RaumSpiele_Laden')],[T('Fehler')])]));
- addLoad(s,{prefix:'RaumSpiele',url:'/api/cms/admin/games',body:{token:'${Token}',areaId:'${CMSRaumId}'},listName:'SpielListe',init:'RaumSpieleInit'});addFeature(s,'games','Haus-freigegebene Spiele für den Raum schalten',['RaumSpiele_Laden','Spiel_Umschalten']);replaceStage(s);
+ s.objects.push(list('SpielListe','Vom HouseAdmin zugeordnete Spiele — für diesen Raum sperrbar'),spielTabelle,
+  label('RaumSpielHinweis','Eine aktive Zuordnung kannst du für diesen Raum sperren. Neue Zuordnungen legt nur der HouseAdmin fest.',15,39,47,5,{style:detailHintStyle}));
+ s.actions.push(prop('Act_Spiel_Merken',{CMSAuswahlActive:'${SpielTabelle.selectedRecord.active}'}),action('Act_Spiel_Berechnen','calculate',{formula:'CMSAuswahlActive ? false : true',resultVariable:'ZielAktiv'}),http('Act_Spiel_Entziehen_Server','/api/cms/admin/grant',{token:'${Token}',areaId:'${CMSRaumId}',id:'${SpielTabelle.selectedKey}',active:false}),prop('Act_Spiel_Fertig',{Busy:0,'Status.text':'✓ Spielfreigabe gespeichert.'}),prop('Act_Spiel_NurHaus',{Busy:0,'Status.text':'🔒 Neue Zuordnungen legt nur der HouseAdmin fest.'}));
+ s.tasks.push(task('Spiel_Umschalten',[A('Act_Spiel_Merken'),A('Act_Spiel_Berechnen'),C('Zuordnung aktiv?','CMSAuswahlActive','==',true,[A('Act_Spiel_Entziehen_Server'),C('Sperrung gespeichert?','Antwort.ok','==',true,[A('Act_Spiel_Fertig'),T('RaumSpiele_Laden')],[T('Fehler')])],[A('Act_Spiel_NurHaus')])]));
+ addLoad(s,{prefix:'RaumSpiele',url:'/api/cms/admin/games',body:{token:'${Token}',areaId:'${CMSRaumId}'},listName:'SpielListe',init:'RaumSpieleInit'});addFeature(s,'games','Vom HouseAdmin zugeordnete Spiele für den Raum sperren',['RaumSpiele_Laden','Spiel_Umschalten']);replaceStage(s);
 }
 
 function propStepFallback(){return A('__wird_ersetzt__');}

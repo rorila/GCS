@@ -13,6 +13,11 @@ const {buildDb}=require('./cms/cms-seed-testdata.cjs'),{createServer}=require('.
  try{
   await new Promise(r=>app.server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+app.server.address().port;
   browser=await chromium.launch({channel:'msedge',headless:true});const hostPage=await browser.newPage({viewport:{width:1400,height:950}}),guestPage=await browser.newPage({viewport:{width:1400,height:950}}),errors=[];
+  await hostPage.addInitScript(() => {
+    const Original=window.WebSocket;
+    window.__testLiveSockets=[];
+    window.WebSocket=class extends Original {constructor(...args){super(...args);if(String(args[0]).includes('/api/cms/party/live'))window.__testLiveSockets.push(this);}};
+  });
   for(const page of [hostPage,guestPage])page.on('pageerror',e=>errors.push(e.message));
   const click=async(page,n)=>{await page.evaluate(n=>{const r=window.player.runtime,o=r.getObjects().find(x=>x.name===n);if(!o)throw Error('GCS-Objekt fehlt: '+n);r.handleEvent(o.id,'onClick')},n);await page.waitForTimeout(120)};
   const login=async(page,seq)=>{await page.goto(base);await page.waitForFunction(()=>window.player?.runtime?.getObjects().some(o=>o.name==='Emoji_house'));for(const n of seq.map(x=>'Emoji_'+x).concat('Anmelden'))await click(page,n);await page.waitForFunction(()=>window.player.runtime.stage.id==='stage_gallery',{timeout:8000});};
@@ -143,6 +148,11 @@ const {buildDb}=require('./cms/cms-seed-testdata.cjs'),{createServer}=require('.
   const hCards=[],gCards=[];for(let i=0;i<20;i++){hCards.push(await card(hostFrame,i));gCards.push(await card(guestFrame,i));}
   check('Alle Karten-Stati synchron (sel/mat)',hCards.every((c,i)=>c.sel===gCards[i].sel&&c.mat===gCards[i].mat));
   check('Alle Kartenbilder synchron',hCards.every((c,i)=>c.src===gCards[i].src));
+  const beforeSockets=await hostPage.evaluate(()=>window.__testLiveSockets.length);
+  await hostPage.evaluate(()=>window.__testLiveSockets.at(-1).close());
+  await hostFrame.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='LiveSync').status==='disconnected',undefined,{timeout:3000});
+  await hostFrame.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='LiveSync').status==='connected',undefined,{timeout:10000});
+  check('Live-Verbindung nach Abbruch automatisch wiederhergestellt',await hostPage.evaluate(n=>window.__testLiveSockets.length>n,beforeSockets));
   check('Multiplayer-Oberflaeche ohne Browserfehler',errors.length===0);
   console.log(JSON.stringify({passed:checks.length,checks},null,2));
  }finally{if(browser)await browser.close();await new Promise(r=>app.server.close(r));fs.rmSync(dir,{recursive:true,force:true});}

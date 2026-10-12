@@ -836,6 +836,33 @@ const methods={
    const key=crypto.randomBytes(24).toString('hex');
    ctx.launches.set(key,{preview:true,gameId:game.id,created:Date.now()});
    return{ok:true,launch:'/play/'+key,message:'Vorschau wird geöffnet.'};
+  },
+  // Entzogene Spielfreigabe („sofort beenden"): laufende Sitzungen und Partien
+  // des Spiels in den betroffenen Räumen beenden — einzelner Raum (areaId)
+  // oder alle Räume eines Hauses (houseId, Katalog-Entzug). Launch-Keys,
+  // Partiezugänge und offene Einladungen werden mitgeräumt; die
+  // Raumzuordnung selbst bleibt gespeichert (Reaktivierung wirkt wieder).
+  revokeGame(ctx,_component,params){
+   const spec=params?.[0]||{},scope={},db=ctx.core.db,now=new Date().toISOString();
+   const gameId=exprOf(ctx,spec.gameId,scope),roomId=exprOf(ctx,spec.areaId,scope),houseId=exprOf(ctx,spec.houseId,scope);
+   const roomIds=new Set(houseId?db.areas.filter(a=>a.type==='room'&&within(db,a.id,houseId)).map(a=>a.id):(roomId?[roomId]:[]));
+   if(!gameId||!roomIds.size)return{ok:true,endedSessions:0,endedParties:0};
+   const parties=db.parties.filter(p=>roomIds.has(p.areaId)&&p.gameId===gameId&&p.status!=='ended');
+   const sessionIds=new Set(db.playSessions.filter(s=>roomIds.has(s.areaId)&&s.gameId===gameId&&s.status!=='ended').map(s=>s.id));
+   for(const p of parties)for(const m of p.members.filter(m=>!m.leftAt&&m.playSessionId))sessionIds.add(m.playSessionId);
+   ctx.commit(ctx.session,'game-revoke',houseId||roomId||null,next=>{
+    const partyIds=new Set(parties.map(p=>p.id));
+    for(const p of next.parties.filter(p=>partyIds.has(p.id))){
+     p.status='ended';p.endedAt=now;
+     for(const a of next.temporaryRoomAccess.filter(a=>a.sessionId===p.id))a.active=false;
+    }
+    for(const i of next.gameInvitations.filter(i=>i.status==='pending'&&partyIds.has(i.sessionId))){
+     i.status='expired';const a=next.temporaryRoomAccess.find(x=>x.invitationId===i.id);if(a)a.active=false;
+    }
+    for(const s of next.playSessions.filter(s=>sessionIds.has(s.id)))if(s.status!=='ended'){s.status='ended';s.endedAt=now;}
+   });
+   removeLaunchesFor(ctx,[...sessionIds]);
+   return{ok:true,endedSessions:sessionIds.size,endedParties:parties.length};
   }
  },
  // --- Spielsitzungen (P3): Zeitbuchung serverseitig, State-Atoms --------------

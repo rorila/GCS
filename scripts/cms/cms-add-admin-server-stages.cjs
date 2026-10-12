@@ -76,8 +76,57 @@ admin.push({ns:'AdmMitglieder',path:'/api/cms/admin/members',task:'Server_Raummi
           n.act('Antworten','AntwortSenden','send',[{items:'${Mitglieder.items}',message:'${Mitglieder.message}'}]),
           n.act('Bereich403','AntwortSenden','fail',[403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.'])]});}
 
-// Freigabe/Mitgliedschaft umschalten — gleiche Struktur, andere Entität.
-for(const [slug,path,route,isGame]of [['Freigabe','/api/cms/admin/grant','grant',true],['Mitgliedschaft','/api/cms/admin/membership','membership',false]]){
+// Spielfreigabe umschalten — HouseAdmin ordnet zu und entzieht, RaumAdmin darf
+// eine bestehende Zuordnung nur einschränken. Entzug beendet laufende
+// Sitzungen/Partien des Spiels im Raum sofort („sofort beenden").
+{const n=ns('AdmFreigabe');
+admin.push({ns:'AdmFreigabe',path:'/api/cms/admin/grant',task:'Server_Freigabe_Verarbeiten',desc:'Bereich + Hausrecht: freigeben nur HouseAdmin (Katalog), einschränken auch RaumAdmin → laufende Sitzungen beenden',
+ inner:[
+  n.call('BereichLaden'),
+  n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[
+   n.call('AktivPruefen'),
+   n.cond('Zustand gültig?','AktivWert.ok','==',true,[
+    n.call('HausErmitteln'),
+    n.call('HausRechtPruefen'),
+    n.cond('Spiel freigeben?','AktivWert.value','==',true,[
+     n.cond('Hausverwaltung?','HausRecht','==',true,[
+      n.call('EintragPruefen'),
+      n.cond('Eintrag verfügbar?','Vorhanden','==',true,[
+       n.call('Speichern'),n.call('Antworten')
+      ],[n.call('Eintrag403')])
+     ],[n.call('NurHaus403')])
+    ],[
+     n.cond('Hausverwaltung?','HausRecht','==',true,[
+      n.call('Speichern'),n.call('LaufendeBeenden'),n.call('Antworten')
+     ],[
+      n.call('ZuordnungLaden'),
+      n.cond('Aktive Zuordnung vorhanden?','Zuordnung.found','==',true,[
+       n.call('Speichern'),n.call('LaufendeBeenden'),n.call('Antworten')
+      ],[n.call('Zuordnung404')])
+     ])
+    ])
+   ],[n.call('Aktiv400')])
+  ],[n.call('Bereich403')])
+ ],
+ actions:[n.act('BereichLaden','Datenbestand','find',[MANAGED_ROOM],'Bereich'),
+          n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),
+          n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
+          n.act('HausRechtPruefen','Datenbestand','can',['manageArea',{areaId:'$vars.Haus.item.id'}],'HausRecht'),
+          // Hauskatalog-Hoheit: nur haus-freigegebene, veröffentlichte Spiele
+          // sind durch den HouseAdmin im Raum schaltbar.
+          n.act('EintragPruefen','Datenbestand','exists',[{entity:'games',where:{id:'$body.id',status:'published',has:{entity:'grants',where:{gameId:'$body.id',areaId:'$vars.Haus.item.id',active:true}}}}],'Vorhanden'),
+          n.act('ZuordnungLaden','Datenbestand','find',[{entity:'grants',where:{gameId:'$body.id',areaId:'$body.areaId',active:true}}],'Zuordnung'),
+          n.act('Speichern','DatenSpeicher','upsert',[{entity:'grants',match:{areaId:'$body.areaId',gameId:'$body.id'},set:{active:'$vars.AktivWert.value'},audit:{action:'grant',areaId:'$body.areaId'}}],'Ergebnis'),
+          n.act('LaufendeBeenden','Zugangsverwaltung','revokeGame',[{gameId:'$body.id',areaId:'$body.areaId'}]),
+          n.act('Antworten','AntwortSenden','send',[{message:'Gespeichert'}]),
+          n.act('Eintrag403','AntwortSenden','fail',[403,'Eintrag nicht verfügbar.']),
+          n.act('NurHaus403','AntwortSenden','fail',[403,'Nur der HouseAdmin darf Spiele für Räume freigeben.']),
+          n.act('Zuordnung404','AntwortSenden','fail',[404,'Für diesen Raum liegt keine aktive Spielzuordnung vor.']),
+          n.act('Aktiv400','AntwortSenden','fail',[400,'Aktiver Zustand fehlt.']),
+          n.act('Bereich403','AntwortSenden','fail',[403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.'])]});}
+
+// Mitgliedschaft umschalten — Raumzutritt, unverändert rollenoffen im Bereich.
+for(const [slug,path,route,isGame]of [['Mitgliedschaft','/api/cms/admin/membership','membership',false]]){
  const n=ns('Adm'+slug);
  admin.push({ns:'Adm'+slug,path,task:'Server_'+slug+'_Verarbeiten',desc:'Bereich + Eintrag prüfen → Zustand speichern',
   inner:[
@@ -143,30 +192,42 @@ admin.push({ns:'AdmCode',path:'/api/cms/admin/code',task:'Server_EmojiCode_Verar
           n.act('Bereich403','AntwortSenden','fail',[403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.'])]});}
 
 {const n=ns('AdmBackup');
-admin.push({ns:'AdmBackup',path:'/api/cms/admin/backup',task:'Server_Raumsicherung_Verarbeiten',desc:'Bereich prüfen → Sicherung anlegen',
- inner:[n.call('BereichLaden'),n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[n.call('Sichern'),n.call('Antworten')],[n.call('Bereich403')])],
+admin.push({ns:'AdmBackup',path:'/api/cms/admin/backup',task:'Server_Raumsicherung_Verarbeiten',desc:'Bereich + Hausverwaltung prüfen → Sicherung anlegen',
+ inner:[n.call('BereichLaden'),n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[
+  n.call('HausErmitteln'),n.call('HausRechtPruefen'),
+  n.cond('Hausverwaltung?','HausRecht','==',true,[n.call('Sichern'),n.call('Antworten')],[n.call('Haus403')])
+ ],[n.call('Bereich403')])],
  actions:[n.act('BereichLaden','Datenbestand','find',[MANAGED_ROOM],'Bereich'),
+          n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
+          n.act('HausRechtPruefen','Datenbestand','can',['manageArea',{areaId:'$vars.Haus.item.id'}],'HausRecht'),
           n.act('Sichern','DatenSpeicher','roomBackup',[{areaId:'$body.areaId',audit:{action:'room-backup',areaId:'$body.areaId'}}],'Ergebnis'),
           n.act('Antworten','AntwortSenden','send',[{message:'Raumsicherung gespeichert (Mitglieder und Spielefreigaben).'}]),
+          n.act('Haus403','AntwortSenden','fail',[403,'Raumsicherungen sind Aufgabe des HouseAdmins.']),
           n.act('Bereich403','AntwortSenden','fail',[403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.'])]});}
 
 {const n=ns('AdmRestore');
-admin.push({ns:'AdmRestore',path:'/api/cms/admin/restore',task:'Server_RaumWiederherstellung_Verarbeiten',desc:'Bereich → Bestätigung → Sicherung vorhanden → wiederherstellen',
+admin.push({ns:'AdmRestore',path:'/api/cms/admin/restore',task:'Server_RaumWiederherstellung_Verarbeiten',desc:'Bereich + Hausverwaltung → Bestätigung → Sicherung vorhanden → wiederherstellen',
  inner:[
   n.call('BereichLaden'),
   n.cond('Bereich in Zuständigkeit?','Bereich.found','==',true,[
-   n.call('BestaetigungPruefen'),
-   n.cond('Bestätigt?','Bestaetigt.ok','==',true,[
-    n.call('SicherungPruefen'),
-    n.cond('Sicherung vorhanden?','Sicherung.found','==',true,[n.call('Wiederherstellen'),n.call('Antworten')],[n.call('Sicherung404')])
-   ],[n.call('Bestaetigung400')])
+   n.call('HausErmitteln'),n.call('HausRechtPruefen'),
+   n.cond('Hausverwaltung?','HausRecht','==',true,[
+    n.call('BestaetigungPruefen'),
+    n.cond('Bestätigt?','Bestaetigt.ok','==',true,[
+     n.call('SicherungPruefen'),
+     n.cond('Sicherung vorhanden?','Sicherung.found','==',true,[n.call('Wiederherstellen'),n.call('Antworten')],[n.call('Sicherung404')])
+    ],[n.call('Bestaetigung400')])
+   ],[n.call('Haus403')])
   ],[n.call('Bereich403')])
  ],
  actions:[n.act('BereichLaden','Datenbestand','find',[MANAGED_ROOM],'Bereich'),
+          n.act('HausErmitteln','Datenbestand','houseOf',['$body.areaId'],'Haus'),
+          n.act('HausRechtPruefen','Datenbestand','can',['manageArea',{areaId:'$vars.Haus.item.id'}],'HausRecht'),
           n.act('BestaetigungPruefen','EingabePruefung','confirmed',['confirm'],'Bestaetigt'),
           n.act('SicherungPruefen','Datenbestand','backup',['$body.areaId'],'Sicherung'),
           n.act('Wiederherstellen','DatenSpeicher','roomRestore',[{areaId:'$body.areaId',audit:{action:'room-restore',areaId:'$body.areaId'}}],'Ergebnis'),
           n.act('Antworten','AntwortSenden','send',[{message:'Raumsicherung wiederhergestellt'}]),
+          n.act('Haus403','AntwortSenden','fail',[403,'Raumsicherungen sind Aufgabe des HouseAdmins.']),
           n.act('Sicherung404','AntwortSenden','fail',[404,'Noch keine Raumsicherung vorhanden.']),
           n.act('Bestaetigung400','AntwortSenden','fail',[400,'Wiederherstellung bitte ausdrücklich bestätigen.']),
           n.act('Bereich403','AntwortSenden','fail',[403,'Dieser Raum gehört nicht zu deiner Zuständigkeit.'])]});}
@@ -593,8 +654,9 @@ house.push({ns:'HausSpiele',path:'/api/cms/admin/house-games',task:'Server_HausS
  actions:[n.act('Abfragen','Datenbestand','list',[{entity:'games',where:{status:'published'},fields:{id:'$item.id',name:'$item.title',label:{concat:['$item.avatar','  ','$item.title']},multiplayer:{exists:{entity:'games',where:{id:'$item.id',multiplayer:{truthy:true}}}},active:{exists:{entity:'grants',where:{gameId:'$item.id',areaId:'$body.houseId',active:true}}}}}],'HausSpiele'),n.act('Antworten','AntwortSenden','send',[{items:'${HausSpiele.items}',message:'Galeriespiele für dieses Haus'}])]});}
 
 {const n=ns('HausSpielSetzen');
-house.push({ns:'HausSpielSetzen',path:'/api/cms/admin/house-game-set',task:'Server_HausSpielSetzen_Verarbeiten',desc:'Haus → veröffentlichtes Spiel → Hausfreigabe setzen',inner:[n.call('AktivPruefen'),n.call('SpielPruefen'),n.cond('Eingabe gültig?','AktivWert.ok','==',true,[n.cond('Spiel verfügbar?','Vorhanden','==',true,[n.call('Speichern'),n.call('Antworten')],[n.call('Spiel403')])],[n.call('Eingabe400')])],
- actions:[n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),n.act('SpielPruefen','Datenbestand','exists',[{entity:'games',where:{id:'$body.gameId',status:'published'}}],'Vorhanden'),n.act('Speichern','DatenSpeicher','upsert',[{entity:'grants',match:{areaId:'$body.houseId',gameId:'$body.gameId'},set:{active:'$vars.AktivWert.value'},audit:{action:'house-game-set',areaId:'$body.houseId'}}],'Ergebnis'),n.act('Antworten','AntwortSenden','send',[{message:'Hausspiel-Zuordnung gespeichert.'}]),n.act('Spiel403','AntwortSenden','fail',[403,'Spiel ist nicht in der Galerie verfügbar.']),n.act('Eingabe400','AntwortSenden','fail',[400,'Aktiven Zustand angeben.'])]});}
+house.push({ns:'HausSpielSetzen',path:'/api/cms/admin/house-game-set',task:'Server_HausSpielSetzen_Verarbeiten',desc:'Haus → veröffentlichtes Spiel → Hausfreigabe setzen; Entzug beendet laufende Sitzungen/Partien in allen Räumen des Hauses',
+ inner:[n.call('AktivPruefen'),n.call('SpielPruefen'),n.cond('Eingabe gültig?','AktivWert.ok','==',true,[n.cond('Spiel verfügbar?','Vorhanden','==',true,[n.call('Speichern'),n.cond('Hausfreigabe entzogen?','AktivWert.value','==',false,[n.call('LaufendeBeenden')],[]),n.call('Antworten')],[n.call('Spiel403')])],[n.call('Eingabe400')])],
+ actions:[n.act('AktivPruefen','EingabePruefung','boolean',['active'],'AktivWert'),n.act('SpielPruefen','Datenbestand','exists',[{entity:'games',where:{id:'$body.gameId',status:'published'}}],'Vorhanden'),n.act('Speichern','DatenSpeicher','upsert',[{entity:'grants',match:{areaId:'$body.houseId',gameId:'$body.gameId'},set:{active:'$vars.AktivWert.value'},audit:{action:'house-game-set',areaId:'$body.houseId'}}],'Ergebnis'),n.act('LaufendeBeenden','Zugangsverwaltung','revokeGame',[{gameId:'$body.gameId',houseId:'$body.houseId'}]),n.act('Antworten','AntwortSenden','send',[{message:'Hausspiel-Zuordnung gespeichert.'}]),n.act('Spiel403','AntwortSenden','fail',[403,'Spiel ist nicht in der Galerie verfügbar.']),n.act('Eingabe400','AntwortSenden','fail',[400,'Aktiven Zustand angeben.'])]});}
 
 {const n=ns('HausEinladungen');
 house.push({ns:'HausEinladungen',path:'/api/cms/admin/house-invites',task:'Server_HausEinladungen_Verarbeiten',desc:'Haus prüfen → Einladungen ohne geheime Token auflisten',inner:[n.call('Abfragen'),n.call('Antworten')],

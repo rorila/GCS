@@ -73,7 +73,13 @@ function can(db,session,action,{areaId,game,childId,deck}={}){
   const permanent=rooms(db,session.personId).some(r=>r.id===areaId);
   const temporary=db.temporaryRoomAccess.some(a=>a.personId===session.personId&&a.roomId===areaId&&a.active&&a.expiresAt>Date.now());
   const house=houseOf(db,areaId);
-  const granted=db.grants.some(g=>g.gameId===game?.id&&g.active&&(g.areaId===areaId||g.areaId===house?.id));
+  // Raumzuordnung UND Hauskatalog: der HouseAdmin ordnet Spiele gezielt
+  // einzelnen Räumen zu; die Hausfreigabe allein schaltet keinen Raum frei.
+  // Raumzuordnungen bleiben bei Katalog-Entzug gespeichert und wirken
+  // bei Wiederaufnahme automatisch wieder.
+  const granted=!!house
+   &&db.grants.some(g=>g.gameId===game?.id&&g.active&&g.areaId===areaId)
+   &&db.grants.some(g=>g.gameId===game?.id&&g.active&&g.areaId===house.id);
   return game?.status==='published'&&(permanent||temporary)&&granted;
  }
  // Elternsicht: nur über bestätigte Beziehung, unabhängig von assurance/ Rolle.

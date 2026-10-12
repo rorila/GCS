@@ -78,7 +78,7 @@ function playPage(key, project, partyId) {
     if (o.name === 'BtnMitspielen' || o.name === 'BtnStarten') o.visible = false;
   }
   const encoded = JSON.stringify(clone).replace(/</g, '\\u003c');
-  const bridge = '<script>(function(){var K=' + JSON.stringify(key) + ',P=new Map(),F=window.fetch.bind(window);'
+  const bridge = '<script>(function(){var K=' + JSON.stringify(key) + ',P=new Map(),F=window.fetch.bind(window);window.__gcsCmsLiveBridge=true;'
     + 'window.fetch=function(u,o){var r=typeof u==="string"?u:u.url;if(!["/api/cms/party","/api/cms/play"].includes(r))return F(u,o);'
     + 'var b;try{b=JSON.parse(o&&o.body||"{}")}catch(err){console.error("[GCS-TEST-BRIDGE] Body nicht als JSON lesbar:",err);return Promise.reject(Error("Ungültige Spielanfrage"))}'
     + 'if(b.launchKey!==K){console.error("[GCS-TEST-BRIDGE] launchKey weicht ab:",JSON.stringify(b.launchKey),"erwartet wird der eingebettete Schlüssel — wurde CMS_LAUNCH nicht ersetzt?");return Promise.reject(Error("Ungültige Spielberechtigung"))}'

@@ -40,6 +40,11 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
   const adminRoles=core.db.roles
    .filter(r=>r.personId===c.personId&&r.active&&areaActive(core.db,r.areaId)&&(r.role==='superAdmin'||(r.role==='areaAdmin'&&core.db.areas.find(a=>a.id===r.areaId)?.type==='house')))
    .map(r=>({role:r.role,areaId:r.areaId,label:(r.role==='superAdmin'?'Super-Administration':'Hausverwaltung')+' · '+(core.db.areas.find(a=>a.id===r.areaId)?.name||r.areaId)}));
+  // Raumverwaltung: ohne Haus-/Super-Rolle bekommt der RaumAdmin seine
+  // Raumrollen als adminRoles — sonst bliebe activeRole null und die
+  // gesamte Raumverwaltung wäre für ihn gesperrt (Rollenweiche bei >1 Raum).
+  if(!adminRoles.length)for(const r of core.db.roles.filter(r=>r.personId===c.personId&&r.active&&areaActive(core.db,r.areaId)&&r.role==='areaAdmin'&&core.db.areas.find(a=>a.id===r.areaId)?.type==='room'))
+   adminRoles.push({role:r.role,areaId:r.areaId,label:'Raumverwaltung · '+(core.db.areas.find(a=>a.id===r.areaId)?.name||r.areaId)});
   s.adminRoles=adminRoles;s.activeRole=adminRoles.length===1?adminRoles[0]:null;
   console.log('[Rollenwahl] Login',c.personId,
    '| Rollen gesamt:',JSON.stringify(core.db.roles.filter(r=>r.personId===c.personId).map(r=>({role:r.role,areaId:r.areaId,active:r.active,type:core.db.areas.find(a=>a.id===r.areaId)?.type}))),

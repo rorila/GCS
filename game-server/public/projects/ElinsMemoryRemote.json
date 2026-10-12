@@ -2062,7 +2062,7 @@
             "borderColor": "#2e7d32",
             "borderWidth": 2
           },
-          "interval": 500,
+          "interval": 5000,
           "enabled": true,
           "maxInterval": 0,
           "currentInterval": 0
@@ -6266,7 +6266,7 @@
         },
         {
           "name": "LiveSynchronisieren",
-          "description": "TimerPoll: Moduserkennung (lokal vs. CMS-Launch), LiveSync-Initialisierung, Gast-Poll bzw. Host-Heartbeat.",
+          "description": "Initialisierung und Wiederverbindung; bei verbundener Live-Synchronisation keine Anfragen oder Spielstand-Sendungen.",
           "triggerMode": "local-sync",
           "params": [],
           "id": "mps_t_live_067",
@@ -6338,148 +6338,17 @@
                 {
                   "type": "condition",
                   "condition": {
-                    "variable": "RollenInit",
-                    "operator": "==",
+                    "variable": "LiveSync.pushConnected",
+                    "operator": "!=",
                     "value": "true"
                   },
                   "body": [
                     {
-                      "type": "condition",
-                      "condition": {
-                        "variable": "DuBistHost",
-                        "operator": "==",
-                        "value": "true"
-                      },
-                      "body": [
-                        {
-                          "type": "task",
-                          "name": "StandSenden"
-                        }
-                      ],
-                      "elseBody": [
-                        {
-                          "type": "action",
-                          "name": "Stand abrufen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Gueltigkeit lesen"
-                        },
-                        {
-                          "type": "condition",
-                          "condition": {
-                            "variable": "LiveOk",
-                            "operator": "==",
-                            "value": "true"
-                          },
-                          "body": [
-                            {
-                              "type": "action",
-                              "name": "Antwort-Host lesen"
-                            },
-                            {
-                              "type": "action",
-                              "name": "Antwort-Mitglieder lesen"
-                            },
-                            {
-                              "type": "action",
-                              "name": "Antwort-Status lesen"
-                            },
-                            {
-                              "type": "action",
-                              "name": "Antwort-Seq lesen"
-                            },
-                            {
-                              "type": "action",
-                              "name": "Antwort-Sitz lesen"
-                            },
-                            {
-                              "type": "action",
-                              "name": "Antwort-Mitglied-Ids lesen"
-                            },
-                            {
-                              "type": "action",
-                              "name": "Antwort-Namen lesen"
-                            },
-                            {
-                              "type": "action",
-                              "name": "Antwort-Stand lesen"
-                            },
-                            {
-                              "type": "action",
-                              "name": "Antwort-Fern lesen"
-                            },
-                            {
-                              "type": "task",
-                              "name": "EmpfangenAnwenden"
-                            }
-                          ],
-                          "elseBody": []
-                        }
-                      ]
-                    }
-                  ],
-                  "elseBody": [
-                    {
                       "type": "action",
                       "name": "Stand abrufen"
-                    },
-                    {
-                      "type": "action",
-                      "name": "Antwort-Gueltigkeit lesen"
-                    },
-                    {
-                      "type": "condition",
-                      "condition": {
-                        "variable": "LiveOk",
-                        "operator": "==",
-                        "value": "true"
-                      },
-                      "body": [
-                        {
-                          "type": "action",
-                          "name": "Antwort-Host lesen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Mitglieder lesen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Status lesen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Seq lesen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Sitz lesen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Mitglied-Ids lesen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Namen lesen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Stand lesen"
-                        },
-                        {
-                          "type": "action",
-                          "name": "Antwort-Fern lesen"
-                        },
-                        {
-                          "type": "task",
-                          "name": "EmpfangenAnwenden"
-                        }
-                      ],
-                      "elseBody": []
                     }
-                  ]
+                  ],
+                  "elseBody": []
                 }
               ],
               "elseBody": []

@@ -18,6 +18,10 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
     public enabled: boolean | string = false;
     public status: 'idle' | 'connected' | 'disconnected' = 'idle';
     public lastError: string = '';
+    public get pushConnected(): boolean {
+        return this.status === 'connected' && (!!this.socket && this.socket.readyState === WebSocket.OPEN ||
+            typeof window !== 'undefined' && (window as any).__gcsCmsLiveBridge === true);
+    }
     public youAreHost: boolean = false;
     public memberCount: number = 0;
     public partyStatus: string = '';
@@ -29,6 +33,11 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
     public live: any = null;
     public remoteInput: any = null;
     public actions: any[] = [];
+
+    private lastLiveSignature = '';
+    private lastSentGameState = '';
+    private lastGameStateResult: any = null;
+    private gameStateQueue: Promise<any> = Promise.resolve();
 
     private eventCallback: ((eventName: string, data?: any) => void) | null = null;
     private inflight: Promise<any> | null = null;
@@ -144,15 +153,21 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
      * es unveraendert an alle Partie-Mitglieder.
      */
     public async sendGameState(data: any, phase?: any, since?: any): Promise<any> {
-        this.stateTick += 1;
-        return this.request({
-            state: {
-                tick: this.stateTick,
-                phase: String(phase || 'play'),
-                data: jsonClone(data)
-            },
-            since: Number(since ?? this.lastSeq) || 0
-        });
+        const state = { phase: String(phase || 'play'), data: jsonClone(data) };
+        const signature = JSON.stringify([this.launchKey, this.partyId, state]);
+        const send = async () => {
+            if (this.status === 'connected' && signature === this.lastSentGameState) return this.lastGameStateResult;
+            this.stateTick = Math.max(this.stateTick, Number(this.live?.tick) || 0) + 1;
+            const result = await this.request({ state: { tick: this.stateTick, ...state }, since: Number(since ?? this.lastSeq) || 0 });
+            if (result?.ok && !result.stale) {
+                this.lastSentGameState = signature;
+                this.lastGameStateResult = result;
+            }
+            return result;
+        };
+        const pending = this.gameStateQueue.then(send, send);
+        this.gameStateQueue = pending.then(() => undefined, () => undefined);
+        return pending;
     }
 
     /**
@@ -228,11 +243,14 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
         try { this.socket?.close(); } catch { /* ignorieren */ }
         this.socket = null;
         this.socketReady = null;
+        this.status = 'idle';
+        this.lastSentGameState = '';
+        this.lastLiveSignature = '';
     }
 
     private connectSocket(): Promise<boolean> {
         // Isolated editor-test frames use the parent bridge: connect-src forbids direct sockets.
-        if (window.parent !== window && new URLSearchParams(location.search).get('editorTest')?.startsWith('gcs-mp-preview-')) {
+        if ((window as any).__gcsCmsLiveBridge === true || window.parent !== window && new URLSearchParams(location.search).get('editorTest')?.startsWith('gcs-mp-preview-')) {
             return Promise.resolve(false);
         }
         if (this.socket?.readyState === WebSocket.OPEN) return Promise.resolve(true);
@@ -331,7 +349,16 @@ export class TCmsLiveSync extends TWindow implements IRuntimeComponent {
             this.seatIndex = Number(data.seatIndex ?? -1);
             this.memberIds = Array.isArray(data.memberIds) ? data.memberIds : [];
             if (!wasConnected) this.emit('onConnected', data);
-            this.emit('onLive', data);
+            // Transport age changes alone are not new game events.
+            const signature = JSON.stringify([
+                this.launchKey, this.partyId, this.youAreHost, this.memberCount,
+                this.partyStatus, this.lastSeq, this.seatIndex, this.memberIds,
+                data.memberNames, this.live, this.remoteInput
+            ], (key, value) => key === 'ageMs' ? undefined : value);
+            if (!wasConnected || signature !== this.lastLiveSignature) {
+                this.lastLiveSignature = signature;
+                this.emit('onLive', data);
+            }
             return data;
         }
 

@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    const timer=setTimeout(()=>{ws.close();reject(new Error('Zeitüberschreitung'));},5000);
    ws.onopen=()=>{clearTimeout(timer);liveSocket=ws;resolve(ws);};
    ws.onmessage=event=>{try{const m=JSON.parse(event.data);if(m.type==='live-result'){const p=livePending.get(m.id);if(p){livePending.delete(m.id);clearTimeout(p.timer);p.resolve(m);}}else if((m.type==='live-update'||(m.type==='live-result'&&m.data))&&key()===launchKey)frame.contentWindow?.postMessage({type:'gcs-cms-live',data:m.data},'*');}catch{}};
-   ws.onclose=()=>{if(liveSocket===ws)liveSocket=undefined;liveOpening=undefined;liveFail(new Error('Live-Verbindung geschlossen'));};
+   ws.onclose=()=>{if(liveSocket===ws)liveSocket=undefined;liveOpening=undefined;liveFail(new Error('Live-Verbindung geschlossen'));if(key()===launchKey)frame.contentWindow?.postMessage({type:'gcs-cms-live',data:{ok:false,message:'Live-Verbindung geschlossen.'}},'*');};
    ws.onerror=()=>{clearTimeout(timer);reject(new Error('Live-Verbindung fehlgeschlagen'));};
   });
   return liveOpening;

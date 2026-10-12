@@ -68,6 +68,14 @@ check('Widerrufene Freigabe blockiert Start', () => {
   const s = loginAs('child-lina');
   assert.ok(!core.can(s, 'play', { game: db.games.find(g => g.id === 'game-snake'), areaId: 'room-sun-learn' }));
 });
+check('Raumzuordnung ist Pflicht zusätzlich zum Hauskatalog', () => {
+  const s = loginAs('child-emil');
+  const game = id => db.games.find(g => g.id === id);
+  // game-mp ist im Hauskatalog aktiv, aber room-sun-learn ohne Zuordnung → nicht spielbar.
+  assert.ok(!core.can(s, 'play', { game: game('game-mp'), areaId: 'room-sun-learn' }));
+  // Gegenprobe: Hauskatalog + aktive Raumzuordnung + Mitgliedschaft → spielbar.
+  assert.ok(core.can(s, 'play', { game: game('game-math'), areaId: 'room-sun-learn' }));
+});
 check('Hausgrenze: Mond-Kind kann nicht in Sonnen-Raum spielen', () => {
   const s = loginAs('child-mia');
   assert.ok(!core.can(s, 'play', { game: db.games.find(g => g.id === 'game-snake'), areaId: 'room-sun-play' }));

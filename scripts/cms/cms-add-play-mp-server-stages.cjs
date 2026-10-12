@@ -283,8 +283,11 @@ const mpFns=[
    n.act('HausLaden','Datenbestand','houseOf',['$body.areaId'],'Haus'),
    n.act('SpieleLaden','Datenbestand','list',[{
     entity:'games',
+    // Raumzuordnung UND Hauskatalog: nur Spiele, die der HouseAdmin diesem
+    // Raum zugeordnet hat und die im Hauskatalog aktiv sind.
     where:{status:'published',multiplayer:{truthy:true},has:{entity:'grants',where:{
-     gameId:'$item.id',active:true,areaId:{in:{union:['$body.areaId','$vars.Haus.item.id']}}
+     gameId:'$item.id',active:true,areaId:'$body.areaId',
+     has:{entity:'grants',where:{gameId:'$item.id',areaId:'$vars.Haus.item.id',active:true}}
     }}},
     fields:{id:'$item.id',title:'$item.title',avatar:'$item.avatar',multiplayer:true,modes:'$item.modes'}
    }],'Spiele'),

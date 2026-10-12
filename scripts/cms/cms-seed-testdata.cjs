@@ -116,6 +116,16 @@ const db = {
     { id: 'game-blocked', title: 'Gesperrtes Spiel', avatar: '⛔', ownerId: 'super-admin', status: 'blocked', file: 'Tetris.json', modes: ['solo'] },
   ],
   grants: [
+    // Hauskatalog (HouseAdmin): welche Spiele dem Haus gehören. Erst die
+    // Raumzuordnung (darunter) macht ein Katalogspiel im Raum spielbar.
+    { gameId: 'game-snake', areaId: 'house-sun', active: true },
+    { gameId: 'game-math', areaId: 'house-sun', active: true },
+    { gameId: 'game-mp', areaId: 'house-sun', active: true },
+    { gameId: 'game-memory-remote', areaId: 'house-sun', active: true },
+    { gameId: 'game-pingpong-remote', areaId: 'house-sun', active: true },
+    { gameId: 'game-madn-remote', areaId: 'house-sun', active: true },
+    { gameId: 'game-snake', areaId: 'house-moon', active: true },
+    // Raumzuordnungen (HouseAdmin → Raum): spielbar nur bei aktivem Katalog UND Zuordnung.
     { gameId: 'game-snake', areaId: 'room-sun-play', active: true },
     { gameId: 'game-math', areaId: 'room-sun-play', active: true },
     { gameId: 'game-math', areaId: 'room-sun-learn', active: true },

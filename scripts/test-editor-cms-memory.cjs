@@ -3,7 +3,7 @@ const {chromium}=require('playwright'),esbuild=require('esbuild');
 const {createEditorTestService}=require('./cms/cms-editor-test.cjs');
 (async()=>{
  const service=createEditorTestService({cmsFile:path.resolve('game-server/public/projects/GCS-CMS.json')});
- const builds=await Promise.all([esbuild.build({entryPoints:['src/player-standalone.ts'],bundle:true,write:false,format:'iife',define:{'import.meta.env':'{}'}}),esbuild.build({stdin:{contents:"export { openMultiplayerTest } from './src/editor/services/EditorMultiplayerTest'; export { SchemaMigrator } from './src/services/SchemaMigrator'; export { actionRegistry } from './src/runtime/ActionRegistry'; export { registerStandardActions } from './src/runtime/actions/StandardActions';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,format:'iife',define:{'import.meta.env':'{}'},globalName:'Preview'})]);
+ const builds=await Promise.all([esbuild.build({entryPoints:['src/player-standalone.ts'],bundle:true,write:false,format:'iife',define:{'import.meta.env':'{}'}}),esbuild.build({stdin:{contents:"export { openMultiplayerTest } from './src/editor/services/EditorMultiplayerTest'; export { SchemaMigrator } from './src/services/SchemaMigrator'; export { actionRegistry } from './src/runtime/ActionRegistry'; export { registerStandardActions } from './src/runtime/actions/StandardActions'; export { TCmsLiveSync } from './src/components/TCmsLiveSync';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,format:'iife',define:{'import.meta.env':'{}'},globalName:'Preview'})]);
  const project=JSON.parse(fs.readFileSync(process.env.MEMORY_PROJECT || 'game-server/public/projects/ElinsMemoryRemote.json','utf8'));
  const server=http.createServer(async(req,res)=>{
   try {
@@ -17,13 +17,35 @@ const {createEditorTestService}=require('./cms/cms-editor-test.cjs');
  const browser=await chromium.launch({headless:true});
  try {
  const page=await browser.newPage({viewport:{width:1920,height:1080}});const errors=[];page.on('pageerror',e=>errors.push(e.message));const warnings=[];page.on('console',m=>{if(m.type()==='error')console.log('BROWSER ERROR',m.text());});page.on('console',m=>{if(m.text().includes('Cannot send message')||m.text().includes('Content Security Policy'))warnings.push(m.text());});
+ let liveMessages=0;
+ page.on('websocket',socket=>socket.on('framesent',frame=>{try{if(JSON.parse(String(frame.payload)).type==='live')liveMessages++;}catch{}}));
+ const assertIdle = async () => {await page.waitForTimeout(500);const before=liveMessages;await page.waitForTimeout(5500);assert.equal(liveMessages,before,'Idle game must send no live network messages');};
  await page.goto('http://127.0.0.1:'+server.address().port);
+ await page.evaluate(async () => {
+    const live = new Preview.TCmsLiveSync('Regression');
+    live.enabled=true;live.launchKey='test';live.partyId='party';live.status='connected';
+    let requests=0,events=0,fail=false;
+    live.request=async()=>{requests++;return fail?{ok:false}:{ok:true};};
+    const first=await Promise.all([live.sendGameState({card:1}),live.sendGameState({card:1})]);
+    if(requests!==1||live.stateTick!==1)throw Error('Duplicate concurrent game states sent');
+    await live.sendGameState({card:2});
+    if(requests!==2)throw Error('Changed state was not sent');
+    fail=true;await live.sendGameState({card:3});fail=false;await live.sendGameState({card:3});
+    if(requests!==4)throw Error('Failed state could not be retried');
+    live.eventCallback=name=>{if(name==='onLive')events++;};
+    live.applyResponse(200,{ok:true,status:'playing',live:{tick:1,ageMs:0}});
+    live.applyResponse(200,{ok:true,status:'playing',live:{tick:1,ageMs:10}});
+    if(events!==1)throw Error('Duplicate response emitted onLive');
+    live.applyResponse(200,{ok:true,status:'playing',live:{tick:2,ageMs:0}});
+    if(events!==2)throw Error('Changed response did not emit onLive');
+ });
  await page.evaluate(project=>{Preview.registerStandardActions();Preview.SchemaMigrator.migrateToV4(project);Preview.SchemaMigrator.applyRegistryDefaults(project,type=>Preview.actionRegistry.getMetadata(type)?.parameters||null);Preview.SchemaMigrator.applyReferenceIds(project,type=>Preview.actionRegistry.getMetadata(type)?.parameters||null);window.testProject=project;Preview.openMultiplayerTest(project,undefined,()=>window.testProject);},project);
 
  await page.getByRole('button',{name:'Test starten',exact:true}).click();
  try {await page.getByText('2 Testspieler · Test läuft',{exact:true}).waitFor({timeout:20000});} catch(error) {console.log('START DIAG',await page.locator('#gcs-multiplayer-test').innerText(),errors,await Promise.all(page.frames().slice(1).map(f=>f.evaluate(()=>({text:document.body.innerText.slice(0,500),player:!!window.player,live:window.player?.runtime?.getObjects().filter(o=>o.name==='LiveSync').map(o=>({status:o.status,error:o.lastError}))})))));throw error;}
  const frames=page.frames().slice(1);
  for(const frame of frames)await frame.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='LiveSync')?.status==='connected',{timeout:20000});
+ await assertIdle();
  await frames[0].locator('.game-object[data-id="emr_100"]').click({timeout:10000});
  for(const frame of frames)await frame.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Var_Phase')?.value==='wahl',{timeout:10000});
  const beginner=Number(process.env.MEMORY_BEGINNER||1);
@@ -41,8 +63,9 @@ const {createEditorTestService}=require('./cms/cms-editor-test.cjs');
  await frames[2-Number(current)].locator('[data-id="obj_import_1787575018821_r7x7"]').click();
  try {await frames[0].waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='Var_IsFirstCardShown').value===true,null,{timeout:5000});}catch(error){console.log('GUEST DIAG',await Promise.all(frames.map(f=>f.evaluate(()=>Object.fromEntries(window.player.runtime.getObjects().filter(o=>['IntentData','IntentSeq','LetzterInputSeq','IntentSeat','IntentSpieler','IntentKarte','Var_CurrListIndex','Var_IsCardSelected','Var_SelectIsFree','Var_Phase','Var_CurrPlayer','FernBy','MitgliedIds','FernEingabe','LiveSync'].includes(o.name)).map(o=>[o.name,o.name==='LiveSync'?{remoteInput:o.remoteInput,lastError:o.lastError}:o.items??o.value]))))));throw error;}
  for(const frame of frames)await frame.waitForFunction(()=>window.player.runtime.getObjects().find(o=>o.name==='SyncSicht').items[0]>0);
+ await assertIdle();
  fs.mkdirSync('.codex-work',{recursive:true});await page.screenshot({path:'.codex-work/cms-memory-test.png'});
  assert.equal(warnings.length,0,'CMS game must not send tasks to disconnected room transport');assert.deepEqual(errors,[]);
- console.log('Memory-CMS-Browsertest erfolgreich: Editor-ID-Referenzen, Spielstart, Zugwechsel, Kartenklick des jeweils aktiven Spielers beim Gastgeber umgesetzt, synchronisierte Sichtbarkeit, keine CSP- oder Raumtransport-Warnungen.');
+ console.log('Memory-CMS-Browsertest erfolgreich: Editor-ID-Referenzen, Spielstart, Zugwechsel, Kartenklick des jeweils aktiven Spielers beim Gastgeber umgesetzt, synchronisierte Sichtbarkeit, keine Live-Netzlast im Leerlauf, Komponenten-Deduplizierung und Wiederholung fehlgeschlagener Sendungen.');
  }finally{service.dispose();await browser.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);process.exitCode=1;});
