@@ -337,42 +337,61 @@
         {
           "name": "list",
           "description": "Offene Partien eines Raums mit Platzanzeige",
-          "params": ["areaId"]
+          "params": [
+            "areaId"
+          ]
         },
         {
           "name": "create",
           "description": "Gastgeber eröffnet Partie; eigene Spielsitzung startet sofort",
-          "params": ["gameId", "areaId"]
+          "params": [
+            "gameId",
+            "areaId"
+          ]
         },
         {
           "name": "join",
           "description": "Beitritt nur in offene Partie, gleiches Haus/Raum, gleiche Spielversion, freies Budget, Platz frei",
-          "params": ["partyId"]
+          "params": [
+            "partyId"
+          ]
         },
         {
           "name": "begin",
           "description": "Nur Gastgeber; mindestens minPlayers Mitglieder",
-          "params": ["partyId"]
+          "params": [
+            "partyId"
+          ]
         },
         {
           "name": "state",
           "description": "Mitglieder + Verbindungsstatus + Aktionen seit seq (nur für Mitglieder)",
-          "params": ["partyId", "since"]
+          "params": [
+            "partyId",
+            "since"
+          ]
         },
         {
           "name": "action",
           "description": "Spielzug eines Mitglieds; nur in 'playing'; fortlaufende seq",
-          "params": ["partyId", "payload"]
+          "params": [
+            "partyId",
+            "payload"
+          ]
         },
         {
           "name": "leave",
           "description": "Mitglied verlässt Partie; eigene Sitzung endet",
-          "params": ["partyId"]
+          "params": [
+            "partyId"
+          ]
         },
         {
           "name": "end",
           "description": "Nur Gastgeber; beendet Partie und alle Mitglieds-Sitzungen",
-          "params": ["partyId"]
+          "params": [
+            "partyId"
+          ]
         }
       ],
       "events": [
@@ -425,17 +444,26 @@
         {
           "name": "input",
           "description": "Validiert eine Nicht-Host-Eingabe (seq, dir) und liefert den normalisierten Wert",
-          "params": ["payload"]
+          "params": [
+            "payload"
+          ]
         },
         {
           "name": "state",
           "description": "Validiert einen Host-Syncpunkt und liefert den normalisierten Wert",
-          "params": ["payload"]
+          "params": [
+            "payload"
+          ]
         },
         {
           "name": "snapshot",
           "description": "Liefert Partie-Status, Aktions-Delta, Host-State und relevante Fern-Eingabe",
-          "params": ["party", "live", "personId", "since"]
+          "params": [
+            "party",
+            "live",
+            "personId",
+            "since"
+          ]
         }
       ],
       "events": [
@@ -487,7 +515,7 @@
       "status": "implementiert"
     },
     "TServerInvite": {
-      "description": "Generalisierte Einladungen (aus adminInvites): purpose admin-setup|parent|observer|device; einmalig, befristet, gehasht gespeichert.",
+      "description": "Generalisierte Einladungen (aus adminInvites): purpose admin-setup|admin-reset|sponsor-setup|parent|observer|device; einmalig, befristet, gehasht gespeichert. sponsor-setup ist ausschließlich für neue Erwachsene vorgesehen; bestehende Erwachsene erhalten sponsor@root zusätzlich zu ihren anderen Rollen.",
       "stage": "server",
       "category": "server",
       "properties": {
@@ -655,6 +683,365 @@
         "Sitzung mit assurance=account gewährt keinen Verwaltungszugang"
       ],
       "status": "Implementiert (Phase 2)"
+    },
+    "TServerSponsorship": {
+      "stage": "server",
+      "category": "server",
+      "description": "Sponsor-Kind-Begleitungen: Kontakt-Fähigkeiten, Anfrage, Quorum-Entscheidung aller Eltern, Zustandsautomat (requested/active/paused/ended/rejected/withdrawn/expired), Sichtfreigabe-Versionen, Familienhistorie, strukturierte Mitteilungen, Benachrichtigungen.",
+      "properties": {
+        "sponsorshipPolicy": {
+          "type": "string",
+          "default": "Zugriff nur aus konkreter genehmigter Beziehung",
+          "description": "Verbindliche Begleitungsregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "contactCodeCreate",
+          "description": "Eltern stellen einmaligen Kontaktcode aus (Klartext nur in der Antwort)",
+          "params": [
+            "childId",
+            "label"
+          ]
+        },
+        {
+          "name": "contactCodes",
+          "description": "Ausgestellte Kontaktcodes eines Kindes (nur Eltern)",
+          "params": [
+            "childId"
+          ]
+        },
+        {
+          "name": "contactCodeRevoke",
+          "description": "Kontaktcode widerrufen (nur Eltern)",
+          "params": [
+            "capabilityId"
+          ]
+        },
+        {
+          "name": "requestCreate",
+          "description": "Sponsor-Anfrage ueber Kontaktcode; idempotent ueber requestId; verbraucht die Faehigkeit",
+          "params": [
+            "contactCode",
+            "purpose",
+            "periodEnd|periodDays",
+            "notes",
+            "requestId"
+          ]
+        },
+        {
+          "name": "requestWithdraw",
+          "description": "Sponsor zieht offene Anfrage zurueck",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "requestDecide",
+          "description": "Elternentscheid; Zustimmung erst bei Quorum aller zustimmungspflichtigen Eltern wirksam",
+          "params": [
+            "sponsorshipId",
+            "approve",
+            "scope?"
+          ]
+        },
+        {
+          "name": "childDecision",
+          "description": "Kind lehnt ab oder beendet eigene Pause",
+          "params": [
+            "sponsorshipId",
+            "accept"
+          ]
+        },
+        {
+          "name": "pause",
+          "description": "Eltern/Kind/Sponsor pausieren; Zugriff sofort gesperrt",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "resume",
+          "description": "Fortsetzen; vom Kind ausgeloeste Pause loest nur das Kind",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "end",
+          "description": "Beenden entzieht Zugriff sofort; Ansprueche werden zum Stichtag bewertet",
+          "params": [
+            "sponsorshipId",
+            "reason"
+          ]
+        },
+        {
+          "name": "accessPropose",
+          "description": "Sichtfreigabe-Version vorschlagen; Einschraenkung sofort, Erweiterung mit Elternquorum",
+          "params": [
+            "sponsorshipId",
+            "scope|subjectsCsv/activitiesCsv/detailLevel/windowDays"
+          ]
+        },
+        {
+          "name": "accessConsent",
+          "description": "Elternzustimmung zu Sichtversion; wirksam bei Quorum",
+          "params": [
+            "sponsorshipId",
+            "versionId",
+            "approve"
+          ]
+        },
+        {
+          "name": "listSponsor",
+          "description": "Begleitungen des Sponsors (DTO-Allowlist)",
+          "params": []
+        },
+        {
+          "name": "listParent",
+          "description": "Begleitungen + Kontaktcodes eines Kindes (nur Eltern)",
+          "params": [
+            "childId",
+            "sponsorshipId?"
+          ]
+        },
+        {
+          "name": "listChild",
+          "description": "Begleiter des Kindes",
+          "params": []
+        },
+        {
+          "name": "progress",
+          "description": "Sichtgefilterte Leistungspunkte; Sponsor nur bei aktiver Begleitung",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "history",
+          "description": "Ereignisprotokoll; Sponsor nur eigene Begleitung bis zum Ende",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "obligations",
+          "description": "Freigegebene/erfuellte Belohnungen des Sponsors",
+          "params": []
+        },
+        {
+          "name": "messageSend",
+          "description": "Strukturierte Mitteilung (familiensichtbar, kein Privatchat)",
+          "params": [
+            "sponsorshipId",
+            "targetType",
+            "targetId",
+            "text"
+          ]
+        },
+        {
+          "name": "messageList",
+          "description": "Mitteilungen der Begleitung",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "notifications",
+          "description": "In-App-Benachrichtigungen der Sitzung",
+          "params": []
+        },
+        {
+          "name": "notificationRead",
+          "description": "Benachrichtigung als gelesen markieren",
+          "params": [
+            "notificationId"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Kein Datenzugriff vor elterlicher Genehmigung (status=active + wirksame Sichtfreigabe + Laufzeit)",
+        "Zustimmungsquorum: alle zum Aktivierungszeitpunkt bestaetigten aktiven Eltern (requiredGuardianIds eingefroren)",
+        "Jeder Elternteil kann jederzeit einschraenken, pausieren oder beenden — ohne Quorum",
+        "Kind kann ablehnen und pausieren; kindseitige Pause loest nur das Kind",
+        "Beendigung/Pause sperrt Sponsorzugriff sofort — auch ueber direkte API-Aufrufe",
+        "Sponsor sieht ausschliesslich Feld-Allowlist-DTOs; keine Rohantworten, Fehler, Karten oder Fremddaten",
+        "Historie ist fuer Eltern vollstaendig; Sponsor und Kind koennen sie nicht unbemerkt veraendern",
+        "Keine privaten Nachrichten: Mitteilungen sind an Objekte gebunden und familiensichtbar"
+      ],
+      "status": "Implementiert (v8)"
+    },
+    "TServerSponsorAgreement": {
+      "stage": "server",
+      "category": "server",
+      "description": "Versionierte Belohnungsvereinbarungen: Vorschlaege durch Eltern/Sponsor/Kind; wirksam erst bei Zustimmung aller erforderlichen Eltern UND des Sponsors derselben Version; veroeffentlichte Versionen unveraenderlich; Diff zur bisherigen Fassung.",
+      "properties": {
+        "agreementPolicy": {
+          "type": "string",
+          "default": "Zustimmung an konkrete Version gebunden",
+          "description": "Verbindliche Vereinbarungsregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "list",
+          "description": "Vereinbarungen + Versionen einer Begleitung",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "propose",
+          "description": "Neue Version vorschlagen; proposende Partei stimmt automatisch zu",
+          "params": [
+            "sponsorshipId",
+            "terms|metricKeysCsv/pointsTarget/rewardText/from/until/consumePoints/carryOver/validUntil",
+            "proposalId?"
+          ]
+        },
+        {
+          "name": "consent",
+          "description": "Zustimmung/Ablehnung zu exakt einer Version; bei Quorum sofortige Aktivierung + Anspruchsbewertung im selben Commit",
+          "params": [
+            "agreementId",
+            "version",
+            "approve"
+          ]
+        },
+        {
+          "name": "diff",
+          "description": "Verstaendlicher Unterschied zur aktiven Version",
+          "params": [
+            "agreementId",
+            "version"
+          ]
+        }
+      ],
+      "guarantees": [
+        "Wirksamkeit nur mit Zustimmung aller requiredGuardianIds + Sponsor an dieselbe Version",
+        "Veroeffentlichte Versionen sind unveraenderlich (Neue Version statt Aenderung)",
+        "Bis zur Freigabe gilt die bisherige aktive Version weiter",
+        "Punkteziel 1..1000000, Leistungsarten nur aus veroeffentlichten Regelversionen",
+        "Erreichte Ansprueche entfallen durch Versionswechsel nicht"
+      ],
+      "status": "Implementiert (v8)"
+    },
+    "TServerReward": {
+      "stage": "server",
+      "category": "server",
+      "description": "Belohnungsansprueche: genau ein Anspruch je entitlementKey; Zustaende earned/requested/released/fulfilled/cancelled; optionales Punktekonto (reserve/release/consume) bei consumePoints-Vereinbarungen.",
+      "properties": {
+        "rewardPolicy": {
+          "type": "string",
+          "default": "Keine doppelte Vergabe; Erfuellung zweistufig",
+          "description": "Verbindliche Belohnungsregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "list",
+          "description": "Ansprueche + Punktekonto einer Begleitung",
+          "params": [
+            "sponsorshipId"
+          ]
+        },
+        {
+          "name": "request",
+          "description": "Einloesewunsch (Kind oder Eltern); reserviert Punkte bei consumePoints",
+          "params": [
+            "claimKey",
+            "requestId?"
+          ]
+        },
+        {
+          "name": "decision",
+          "description": "Eltern: Einloesung freigeben (released) oder zurueckweisen (zurueck zu earned)",
+          "params": [
+            "claimKey",
+            "approve",
+            "reason?"
+          ]
+        },
+        {
+          "name": "cancel",
+          "description": "Eltern: Anspruch mit Begruendung stornieren",
+          "params": [
+            "claimKey",
+            "reason"
+          ]
+        },
+        {
+          "name": "fulfillmentReport",
+          "description": "Sponsor meldet Erfuellung (einmalig, aendert Anspruch noch nicht)",
+          "params": [
+            "claimKey",
+            "note?"
+          ]
+        },
+        {
+          "name": "fulfillmentConfirm",
+          "description": "Eltern bestaetigen Erfuellung — genau einmal; verbraucht reservierte Punkte",
+          "params": [
+            "claimKey"
+          ]
+        }
+      ],
+      "guarantees": [
+        "entitlementKey eindeutig — keine doppelte Vergabe",
+        "Einloesung nur aus Zustand earned; Freigabe nur durch Erziehungsberechtigte",
+        "Erfuellung erst nach Sponsormeldung + Elternbestaetigung (idempotent, genau einmal)",
+        "Ansprueche ueberleben Pause, Versionswechsel und Beendigung",
+        "Reservierte Punkte werden bei Zurueckweisung/Storno freigegeben",
+        "Keine Zahlungsabwicklung"
+      ],
+      "status": "Implementiert (v8)"
+    },
+    "TServerPerformance": {
+      "stage": "server",
+      "category": "server",
+      "description": "Gepruefte Leistungspunkte: performanceLedger ist die einzige Anspruchsquelle; Eintraege entstehen serverseitig verifiziert (Regelversion deckt Spiel+Metrik+Wertebereich) oder elterlich anerkannt; Rohmeldungen zaehlen nie direkt.",
+      "properties": {
+        "performancePolicy": {
+          "type": "string",
+          "default": "Nur gepruefte Ledger-Eintraege zaehlen",
+          "description": "Verbindliche Leistungsregel"
+        }
+      },
+      "methods": [
+        {
+          "name": "recognize",
+          "description": "Eltern erkennen eine Leistung an (guardian-confirmed)",
+          "params": [
+            "childId",
+            "metricKey",
+            "value",
+            "unit?",
+            "occurredAt?",
+            "progressEventId?",
+            "note?"
+          ]
+        },
+        {
+          "name": "ledger",
+          "description": "Geprueftes Leistungskonto eines Kindes (nur Eltern)",
+          "params": [
+            "childId"
+          ]
+        },
+        {
+          "name": "rules",
+          "description": "Veroeffentlichte Leistungsarten fuer Vereinbarungen",
+          "params": []
+        }
+      ],
+      "guarantees": [
+        "Nur verification=verified|guardian-confirmed zaehlt; reported nie",
+        "Dedup ueber fachlichen Ereignisschluessel (Quelle + Regelversion)",
+        "Endliche Werte, deklarierte Einheit und Wertebereich serverseitig erzwungen",
+        "Sponsor kann Leistungen weder melden noch veraendern",
+        "Append-only: Korrekturen als reversalOf-Gegenbuchung"
+      ],
+      "status": "Implementiert (v8)"
     }
   }
 }

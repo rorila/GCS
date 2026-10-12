@@ -25,8 +25,8 @@ function createAdmin(core,dataPath,{store,cmsFile}={}){
   let entries=[];if(fs.existsSync(credentialPath))entries=JSON.parse(fs.readFileSync(credentialPath,'utf8'));const c=entries.find(c=>c.username===body.username),salt=c?.salt||'00000000000000000000000000000000';
   const hash=crypto.scryptSync(String(body.password||''),salt,64);
   const valid=!!c&&crypto.timingSafeEqual(hash,Buffer.from(c.hash,'hex'))&&core.db.people.some(p=>p.id===c.personId&&p.active);emit('Passwort und Person prüfen',{valid:!!valid});if(!valid)return {error:'Anmeldung nicht möglich.'};
-  // Kontexte der Person (E01): Verwaltung, Eltern (bestätigte Zuordnung), Beobachtung.
-  const contexts=[];if(core.childrenOf(c.personId).length)contexts.push('parent');if(core.db.roles.some(r=>r.personId===c.personId&&r.role==='observer'&&r.active&&areaActive(core.db,r.areaId)))contexts.push('observer');
+  // Kontexte der Person (E01): Verwaltung, Eltern (bestätigte Zuordnung), Beobachtung, Sponsor.
+  const contexts=[];if(core.childrenOf(c.personId).length)contexts.push('parent');if(core.db.roles.some(r=>r.personId===c.personId&&r.role==='observer'&&r.active&&areaActive(core.db,r.areaId)))contexts.push('observer');if(core.db.roles.some(r=>r.personId===c.personId&&r.role==='sponsor'&&r.areaId==='root'&&r.active))contexts.push('sponsor');
   const s={personId:c.personId,assurance:'admin',authVersion:core.db.people.find(p=>p.id===c.personId)?.authVersion||0,expires:Date.now()+1800000};const allowed=core.db.areas.some(a=>a.active&&core.can(s,'manageArea',{areaId:a.id}));emit('Verwaltungszuständigkeit prüfen',{allowed});
   if(!allowed)return contexts.length?{personId:c.personId,contexts}:{error:'Keine Verwaltungszuständigkeit.'};
   // SuperAdmin landet direkt auf der SuperAdmin-Stage (E01: kein Umweg);

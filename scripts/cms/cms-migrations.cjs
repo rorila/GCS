@@ -1,7 +1,7 @@
 // CMS-Schema-Migrationen. Jede Migration ist idempotent und wird einmal pro
 // Versionsgrenze ausgeführt; Reihenfolge strikt aufsteigend. Reihenfolge:
 // up() arbeitet auf einer Kopie, validate() entscheidet über das Ergebnis.
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
 
 // v1 -> v2: Zielmodellkern (E02/E03/E06/E07)
 // - people.kind: 'child'|'adult' (fachliche Grundlage für Eltern-/Kinderlogik)
@@ -137,6 +137,25 @@ function v6_to_v7(db) {
   return db;
 }
 
+// v7 -> v8: Sponsor-Begleitungen. Neue Collections fuer Kontakt-Faehigkeiten,
+// Begleitungen, Sichtfreigaben, Vereinbarungen (Versionen + Zustimmungen),
+// gepruefte Leistungspunkte, Belohnungsansprueche, optionales Punktekonto,
+// Familienhistorie, Kommandobelege und strukturierte Kommentare.
+// Bestandsdaten bleiben unveraendert — alle Collections starten leer.
+function v7_to_v8(db) {
+  db.version = 8;
+  for (const key of [
+    'sponsorshipRequestCapabilities', 'sponsorships', 'sponsorAccessVersions',
+    'sponsorAgreements', 'sponsorAgreementVersions', 'sponsorApprovals',
+    'performanceRuleVersions', 'performanceLedger', 'rewardClaims',
+    'rewardPointEntries', 'sponsorEvents', 'sponsorCommandReceipts', 'sponsorMessages',
+  ]) {
+    if (!Array.isArray(db[key])) db[key] = [];
+  }
+  db.meta = { ...(db.meta || {}), migratedFrom: 7, migratedAt: new Date().toISOString() };
+  return db;
+}
+
 const MIGRATIONS = [
   { from: 1, to: 2, up: v1_to_v2 },
   { from: 2, to: 3, up: v2_to_v3 },
@@ -144,6 +163,7 @@ const MIGRATIONS = [
   { from: 4, to: 5, up: v4_to_v5 },
   { from: 5, to: 6, up: v5_to_v6 },
   { from: 6, to: 7, up: v6_to_v7 },
+  { from: 7, to: 8, up: v7_to_v8 },
 ];
 
 // Führt alle anstehenden Migrationen auf einer Kopie aus (das Original bleibt

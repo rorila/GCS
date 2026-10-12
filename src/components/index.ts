@@ -116,6 +116,10 @@ export * from './TServerParty';
 export * from './TServerLiveSync';
 export * from './TServerCards';
 export * from './TServerDecks';
+export * from './TServerSponsorship';
+export * from './TServerSponsorAgreement';
+export * from './TServerReward';
+export * from './TServerPerformance';
 
 export * from './TFilePicker';
 export * from './TFileUpload';

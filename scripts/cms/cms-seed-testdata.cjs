@@ -23,7 +23,7 @@ const guardian = (childId, guardianId, status = 'confirmed', extra = {}) => ({
 const code = (personId, areaId, seq) => ({ personId, areaId, sequence: seq });
 
 const db = {
-  version: 7,
+  version: 8,
   areas: [
     { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     { id: 'house-sun', name: 'Haus Sonne', type: 'house', parentId: 'root', active: true, avatar: '🏡', maxDailyMinutes: 120 },
@@ -47,6 +47,8 @@ const db = {
     person('parent-tom-a', 'Tina Mutter von Tom', 'adult'),
     person('parent-tom-b', 'Tim Vater von Tom', 'adult'),
     person('adult-revoked', 'Rita früherer Kontakt', 'adult'),
+    person('sponsor-fritz', 'Fritz Förderer', 'adult', { avatar: '🎁' }),
+    person('sponsor-greta', 'Greta Großtante', 'adult', { avatar: '🧸' }),
     person('child-lina', 'Lina', 'child', { avatar: '🦉' }),
     person('child-tom', 'Tom', 'child', { avatar: '🐘' }),
     person('child-finn', 'Finn', 'child', { avatar: '🐷' }),
@@ -81,6 +83,8 @@ const db = {
     role('admin-sun', 'room-sun-learn', 'areaAdmin'),
     role('admin-moon', 'room-moon-play', 'areaAdmin'),
     role('observer-sun', 'room-sun-play', 'observer'),
+    role('sponsor-fritz', 'root', 'sponsor'),
+    role('sponsor-greta', 'root', 'sponsor'),
     role('child-lina', 'room-sun-play', 'player'), role('child-lina', 'room-sun-learn', 'player'),
     role('child-tom', 'room-sun-play', 'player'), role('child-finn', 'room-sun-play', 'player'),
     role('child-emil', 'room-sun-learn', 'player'), role('child-mia', 'room-moon-play', 'player'),
@@ -180,6 +184,29 @@ const db = {
   ],
   flashcards: [],
   cardDecks: [],
+  // Sponsoring (v8): Fritz hat einen aktiven Kontaktcode für Finn; Greta hat
+  // noch nichts. Begleitungen entstehen in den Tests über die echten Wege.
+  sponsorshipRequestCapabilities: [
+    { id: 'cap-finn-1', childId: 'child-finn', tokenHash: hash('sponsor-code-finn'), label: 'Kontaktcode für Finns Patentante', issuedBy: 'parent-multi', createdAt: iso(NOW - D), expiresAt: iso(NOW + 90 * D), revokedAt: null, status: 'active', consumedBy: null },
+  ],
+  sponsorships: [],
+  sponsorAccessVersions: [],
+  sponsorAgreements: [],
+  sponsorAgreementVersions: [],
+  sponsorApprovals: [],
+  // Regelwerk: nur serverseitig geprüfte, endliche Werte zählen Leistungspunkte.
+  performanceRuleVersions: [
+    { id: 'rule-math-1', version: 1, subjectKey: 'math', activityKey: 'round', gameId: 'game-math', metric: 'round_complete', unit: 'bool', minValue: 1, maxValue: 1, pointsPerUnit: 10, trustClass: 'server-checked', status: 'published', createdAt: iso(NOW - 30 * D), createdBy: 'super-admin' },
+    { id: 'rule-math-2', version: 1, subjectKey: 'math', activityKey: 'tasks', gameId: 'game-math', metric: 'tasks_correct', unit: 'count', minValue: 1, maxValue: 100, pointsPerUnit: 1, trustClass: 'server-checked', status: 'published', createdAt: iso(NOW - 30 * D), createdBy: 'super-admin' },
+    { id: 'rule-math-3', version: 1, subjectKey: 'math', activityKey: 'tasks', gameId: 'game-math', metric: 'tasks_done', unit: 'count', minValue: 1, maxValue: 100, pointsPerUnit: 0, trustClass: 'server-checked', status: 'published', createdAt: iso(NOW - 30 * D), createdBy: 'super-admin' },
+    { id: 'rule-reading-1', version: 1, subjectKey: 'reading', activityKey: 'session', gameId: null, metric: 'minutes_read', unit: 'minutes', minValue: 1, maxValue: 240, pointsPerUnit: 2, trustClass: 'guardian-confirmed', status: 'published', createdAt: iso(NOW - 30 * D), createdBy: 'super-admin' },
+  ],
+  performanceLedger: [],
+  rewardClaims: [],
+  rewardPointEntries: [],
+  sponsorEvents: [],
+  sponsorCommandReceipts: [],
+  sponsorMessages: [],
   audit: [
     { id: 'audit-1', at: iso(NOW - 10 * D), actor: 'super-admin', action: 'house-create', areaId: 'root' },
     { id: 'audit-2', at: iso(NOW - 9 * D), actor: 'admin-sun', action: 'room-create', areaId: 'house-sun' },
@@ -189,6 +216,7 @@ const db = {
   testMeta: {
     password: TEST_PASSWORD,
     inviteTokens: { valid: 'test-token-valid', expired: 'test-token-expired', used: 'test-token-used', observer: 'test-token-observer' },
+    sponsorCodes: { finn: 'sponsor-code-finn' },
     visibility: [
       { account: 'parent-lina', seesChildren: ['child-lina'], notChildren: ['child-finn', 'child-tom', 'child-emil', 'child-mia'], pendingOnly: ['child-mia'] },
       { account: 'parent-multi', seesChildren: ['child-finn', 'child-emil'], notChildren: ['child-lina', 'child-tom', 'child-mia'] },
@@ -225,7 +253,7 @@ const db = {
 // Alle übrigen Entitäten entstehen später ausschließlich über echte CMS-Wege.
 function buildMinimalDb(now = Date.now()) {
   const db = {
-    version: 7,
+    version: 8,
     areas: [
       { id: 'root', name: 'Plattform', type: 'root', parentId: null, active: true },
     ],
@@ -239,6 +267,10 @@ function buildMinimalDb(now = Date.now()) {
     timeBudgets: [], playSessions: [], progress: [], deviceGrants: [], parties: [],
     gameInvitations: [], notifications: [], temporaryRoomAccess: [],
     audit: [], profileRequests: [], flashcards: [], cardDecks: [],
+    sponsorshipRequestCapabilities: [], sponsorships: [], sponsorAccessVersions: [],
+    sponsorAgreements: [], sponsorAgreementVersions: [], sponsorApprovals: [],
+    performanceRuleVersions: [], performanceLedger: [], rewardClaims: [],
+    rewardPointEntries: [], sponsorEvents: [], sponsorCommandReceipts: [], sponsorMessages: [],
     meta: { generatedBy: 'cms-seed-testdata.cjs', generatedAt: new Date(now).toISOString(), purpose: 'Aufbau ab null: Minimalbestand, synthetisch' },
     testMeta: { password: TEST_PASSWORD, mode: 'minimal' },
   };
@@ -264,6 +296,7 @@ const authUsers = [
   ['admin-moon', 'admin.mond'], ['teacher-sun', 'erzieher.tobias'], ['observer-sun', 'beobachter.olga'],
   ['parent-lina', 'eltern.petra'], ['parent-multi', 'eltern.martin'],
   ['parent-tom-a', 'eltern.tina'], ['parent-tom-b', 'eltern.tim'], ['adult-revoked', 'kontakt.rita'],
+  ['sponsor-fritz', 'sponsor.fritz'], ['sponsor-greta', 'sponsor.greta'],
 ];
 const authFile = path.join(outDir, 'cms-testdata-auth.json');
 const entries = authUsers.map(([personId, username]) => {

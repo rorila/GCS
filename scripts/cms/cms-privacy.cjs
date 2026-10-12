@@ -27,6 +27,30 @@ function createPrivacy(core, store, uploads) {
       invites: db.invites.filter(i => i.personId === personId).map(i => ({ id: i.id, purpose: i.purpose, houseId: i.houseId, expires: i.expires, usedAt: i.usedAt || null })),
       auditEntries: store.readAudit().filter(a => a.actor === personId).map(a => ({ at: a.at, action: a.action, areaId: a.areaId })),
       deviceGrantsIssued: (db.deviceGrants || []).filter(d => d.issuedBy === personId).map(d => ({ id: d.id, houseId: d.houseId, label: d.label })),
+      // Sponsoring: eigene Begleitungen als Sponsor/Kind/Elternteil plus die
+      // zugehörigen freigegebenen Sichten, Vereinbarungen, Zustimmungen,
+      // Leistungspunkte, Ansprüche, Ereignisse und Mitteilungen.
+      ...(() => {
+        const own = db.sponsorships.filter(s => s.sponsorId === personId || s.childId === personId || (s.requiredGuardianIds || []).includes(personId));
+        const ids = new Set(own.map(s => s.id));
+        const agreementIds = new Set(db.sponsorAgreements.filter(a => ids.has(a.sponsorshipId)).map(a => a.id));
+        return {
+          sponsorshipsAsSponsor: db.sponsorships.filter(s => s.sponsorId === personId),
+          sponsorshipsAsChild: db.sponsorships.filter(s => s.childId === personId),
+          sponsorshipsAsGuardian: db.sponsorships.filter(s => (s.requiredGuardianIds || []).includes(personId) && s.sponsorId !== personId && s.childId !== personId),
+          contactCapabilities: db.sponsorshipRequestCapabilities.filter(c => c.childId === personId || c.issuedBy === personId).map(({ tokenHash, ...c }) => c),
+          sponsorAccessVersions: db.sponsorAccessVersions.filter(v => ids.has(v.sponsorshipId)),
+          sponsorAgreements: db.sponsorAgreements.filter(a => ids.has(a.sponsorshipId)),
+          sponsorAgreementVersions: db.sponsorAgreementVersions.filter(v => agreementIds.has(v.agreementId)),
+          sponsorApprovals: db.sponsorApprovals.filter(a => a.actorId === personId),
+          performanceLedger: db.performanceLedger.filter(e => e.childId === personId),
+          rewardClaims: db.rewardClaims.filter(c => c.childId === personId || c.sponsorId === personId),
+          rewardPointEntries: db.rewardPointEntries.filter(e => ids.has(e.sponsorshipId)),
+          sponsorEvents: db.sponsorEvents.filter(e => e.actorId === personId || ids.has(e.sponsorshipId)),
+          sponsorMessages: db.sponsorMessages.filter(m => m.authorId === personId || ids.has(m.sponsorshipId)),
+          notifications: db.notifications.filter(n => n.recipientPersonId === personId),
+        };
+      })(),
     };
   }
 
@@ -63,6 +87,20 @@ function createPrivacy(core, store, uploads) {
         for (const m of p.members) if (m.personId === personId && !m.leftAt) m.leftAt = at;
         for (const a of p.actions) if (a.by === personId) a.by = '[gelöscht]';
       }
+      // Sponsoring: laufende Begleitungen der Person werden beendet (Zugriff
+      // entfällt sofort), Historie und Ansprüche bleiben als anonymisierte
+      // Familienfakten bestehen — niemals stillschweigend gelöscht.
+      for (const s of next.sponsorships || []) {
+        if ((s.sponsorId === personId || s.childId === personId) && !['ended', 'rejected', 'withdrawn', 'expired'].includes(s.status)) {
+          Object.assign(s, { status: 'ended', endedAt: at, endReason: 'person-deleted' });
+        }
+      }
+      for (const c of next.sponsorshipRequestCapabilities || []) {
+        if ((c.childId === personId || c.issuedBy === personId) && c.status === 'active') { c.status = 'revoked'; c.revokedAt = at; }
+      }
+      for (const e of next.sponsorEvents || []) if (e.actorId === personId) e.actorId = '[gelöscht]';
+      for (const m of next.sponsorMessages || []) if (m.authorId === personId) m.authorId = '[gelöscht]';
+      next.notifications = next.notifications.filter(n => n.recipientPersonId !== personId);
     });
     store.addDeletion({ personId, at: new Date().toISOString(), actor });
     core.dropPerson(personId);

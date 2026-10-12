@@ -115,7 +115,8 @@ if(enroll&&enroll.generatedBy!==BUILDER){console.log('stage_server_enroll wurde 
 const eRoutes=[
  ['/parent-enroll','ElternEinrichtung','parent','Server_ElternEinrichtung_Verarbeiten'],
  ['/observer-enroll','BeobachterEinrichtung','observer','Server_BeobachterEinrichtung_Verarbeiten'],
- ['/admin-enroll','VerwaltungsEinrichtung','admin','Server_VerwaltungsEinrichtung_Verarbeiten']
+ ['/admin-enroll','VerwaltungsEinrichtung','admin','Server_VerwaltungsEinrichtung_Verarbeiten'],
+ ['/sponsor-enroll','SponsorEinrichtung','sponsor','Server_SponsorEinrichtung']
 ];
 {const n=ns('Einrichtung');
  const etasks=[],eactions=[],eobjects=[];

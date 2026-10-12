@@ -1,7 +1,10 @@
 const crypto=require('node:crypto');
 // Immer maskiert: echte Zugangsdaten. DEVMASK nur bei CMS_TRACE_MASK=on (Default).
-const SECRET=/(password|passwort|secret|authorization|cookie|token|credential|^salt$|^hash$)/i;
-const DEVMASK=/(sequence|authcode|^code\d*$)/i;
+const SECRET=/(password|passwort|secret|authorization|cookie|token|credential|contactcode|^salt$|^hash$)/i;
+// Sponsoring-Inhalte (Zweck, Mitteilungen, Belohnungstexte, Sichtumfänge,
+// Anmerkungen) sind Familienkommunikation — im Entwicklungs-Trace maskiert,
+// bei Bedarf per CMS_TRACE_MASK=off einsehbar.
+const DEVMASK=/(sequence|authcode|^code\d*$|purpose|rewardtext|^note$|^notes$|^text$|^terms$|^scope$|fulfillmentnote|cancelreason|endreason)/i;
 const maskOn=()=>String(process.env.CMS_TRACE_MASK||'on').toLowerCase()!=='off';
 function redact(value,depth=0){
  if(depth>8)return '[Tiefe begrenzt]';if(Array.isArray(value))return value.slice(0,100).map(v=>redact(v,depth+1));

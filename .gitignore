@@ -77,6 +77,7 @@ game-server/private-training/
 /game-server/data/cms-v1.json
 /game-server/data/cms-v1.json.previous
 /game-server/data/cms-v1.json.tmp
+/game-server/data/*.lock
 /game-server/data/cms-v1-ops.json
 /game-server/data/cms-v1-ops.json.previous
 /game-server/data/cms-v1-log.jsonl

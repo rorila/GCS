@@ -11,6 +11,7 @@ const {createTraceStore}=require('./cms-trace.cjs');
 // Profil-Endpunkte laufen über die Server-Runtime (stage_server_profile).
 const {createUploads}=require('./cms-uploads.cjs');
 const {createParent,enrollParent,enrollObserver}=require('./cms-parent.cjs');
+const {enrollSponsor}=require('./cms-sponsor-admin.cjs');
 const {loadRuntime}=require('./cms-runtime.cjs');
 const {methods}=require('./cms-server-components.cjs');
 const {createLiveSync}=require('./cms-live.cjs');
@@ -124,19 +125,19 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
     return res.end(renderCms(cmsFile,{'/super':'stage_super','/house':'stage_house','/admin':'stage_admin'}[url.pathname]));
    }
    // Eltern- und Beobachterbereich: Konto-Sitzung (cms_account), kein Admin-Cookie nötig.
-   if(req.method==='GET'&&['/parent','/observer'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
+   if(req.method==='GET'&&['/parent','/observer','/sponsor'].includes(url.pathname)){res.setHeader('Referrer-Policy','same-origin');
     res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
     const session=core.session(cookie(req,'cms_account'));
-    return res.end(session?renderCms(cmsFile,{'/parent':'stage_parent','/observer':'stage_observer'}[url.pathname]):loginPage());
+    return res.end(session?renderCms(cmsFile,{'/parent':'stage_parent','/observer':'stage_observer','/sponsor':'stage_sponsor'}[url.pathname]):loginPage());
    }
    // Einrichtungslinks (Einladungen): GET rendert das Formular am Rand,
    // POST läuft deklarativ über stage_server_enroll — die Meldung wird HTML.
-   if(req.method==='POST'&&['/parent-enroll','/observer-enroll','/admin-enroll'].includes(url.pathname)){
+   if(req.method==='POST'&&['/parent-enroll','/observer-enroll','/admin-enroll','/sponsor-enroll'].includes(url.pathname)){
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
     if(req.headers.origin!==`http://${req.headers.host}`){res.statusCode=403;return res.end('Fremder Ursprung');}
     let raw='';for await(const c of req){raw+=c;if(raw.length>2048){res.statusCode=413;return res.end('Zu groß');}}
     const body=Object.fromEntries(new URLSearchParams(raw)),ep=runtime.find(url.pathname,'POST');
-    const result=ep?runtime.run(ep,{session:null,body,core,commit,credentialPath,enroll:{parent:parent.enroll,observer:parent.enrollObserver,admin:admin.enroll}}):{status:400,data:{message:'Endpunkt fehlt'}};
+    const result=ep?runtime.run(ep,{session:null,body,core,commit,credentialPath,enroll:{parent:parent.enroll,observer:parent.enrollObserver,admin:admin.enroll,sponsor:b=>enrollSponsor(core,credentialPath,b.ticket,b.username,b.password,commit)}}):{status:400,data:{message:'Endpunkt fehlt'}};
     if(url.pathname==='/admin-enroll'&&result.status===200&&result.data?.purpose==='admin-setup'){
      endPreviousSessions(req);
      const signedIn=admin.login(req,{username:body.username,password:body.password}),houseId=result.data.houseId;
@@ -150,6 +151,11 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
     }
     const back=url.pathname==='/admin-enroll'?'<a href="/admin">Zur Verwaltung</a>':'<a href="/">Zum CMS</a>';
     res.statusCode=result.status;return res.end('<!doctype html><meta charset="utf-8"><p>'+String(result.data?.message||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</p>'+back);
+   }
+   if(url.pathname==='/sponsor-enroll'&&req.method==='GET'){
+    res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
+    const ticket=url.searchParams.get('ticket')||'';if(!/^[a-f0-9]{64}$/.test(ticket)){res.statusCode=400;return res.end('Ungültiger Einladungslink.');}
+    return res.end('<!doctype html><html lang="de"><meta charset="utf-8"><title>Sponsorzugang einrichten</title><style>body{background:#122b39;color:white;font:20px Segoe UI;max-width:540px;margin:10vh auto}input,button{display:block;width:100%;padding:14px;margin:12px 0;box-sizing:border-box;font:inherit}</style><h1>Sponsorzugang einrichten</h1><p>Du richtest deinen persönlichen Zugang ein. Die Begleitung eines Kindes benötigt anschließend die Zustimmung seiner Eltern.</p><form method="post" action="/sponsor-enroll"><input type="hidden" name="ticket" value="'+ticket+'"><label>Benutzername<input name="username" required pattern="[a-zA-Z0-9_-]{3,40}" autocomplete="username"></label><label>Passwort (mindestens 12 Zeichen)<input name="password" type="password" minlength="12" maxlength="200" required autocomplete="new-password"></label><button>Zugang anlegen</button></form></html>');
    }
    if(url.pathname==='/observer-enroll'&&req.method==='GET'){
     res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/html; charset=utf-8');
@@ -176,7 +182,7 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
     const cookies=[];if(result.token)cookies.push(`cms_admin=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800`);
     // Konto-Cookie nur bei Eltern-/Beobachterkontext oder fehlender Verwaltungszuständigkeit.
     if(result.accountToken&&(result.contexts?.some(c=>c!=='admin')||!result.token))cookies.push(accountCookie(result.accountToken));
-    res.writeHead(303,{'Location':result.token?((result.roles||[]).length>1?'/roles':(result.super?'/super':result.house?'/house':'/admin')):(result.contexts||[]).includes('observer')?'/observer':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
+    res.writeHead(303,{'Location':result.token?((result.roles||[]).length>1?'/roles':(result.super?'/super':result.house?'/house':'/admin')):(result.contexts||[]).includes('observer')?'/observer':(result.contexts||[]).includes('parent')?'/parent':(result.contexts||[]).includes('sponsor')?'/sponsor':'/parent','Set-Cookie':cookies,'Cache-Control':'no-store'});return res.end();
    }
    if(req.method==='GET'&&['/','/runtime-standalone.js','/cms-shell.js'].includes(url.pathname)){
     if(url.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(renderCms(cmsFile,'stage_main'));}

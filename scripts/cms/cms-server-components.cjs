@@ -228,7 +228,7 @@ const methods={
   adminResult(ctx,_component,params){
    const spec=params?.[0]||{},tok=ctx.vars.Verwaltung?.token,acc=ctx.vars.Konto?.token,g=ctx.vars.Geprueft||{},ctxs=g.contexts||[];
    const ok=!!(tok||acc),d={ok,message:tok?spec.successMessage:acc?spec.accountMessage:(g.message||spec.failureMessage)};
-   if(ok)Object.assign(d,{contexts:ctxs,admin:ctxs.includes('admin'),parent:ctxs.includes('parent'),observer:ctxs.includes('observer'),super:!!g.super,house:!!g.house,roles:g.adminRoles||[],needRole:(g.adminRoles||[]).length>1});
+   if(ok)Object.assign(d,{contexts:ctxs,admin:ctxs.includes('admin'),parent:ctxs.includes('parent'),observer:ctxs.includes('observer'),sponsor:ctxs.includes('sponsor'),super:!!g.super,house:!!g.house,roles:g.adminRoles||[],needRole:(g.adminRoles||[]).length>1});
    if(tok)d.adminToken=tok;if(acc)d.accountToken=acc;if(g.personId)d.personId=g.personId;
    return d;
   }
@@ -447,11 +447,11 @@ const methods={
   contexts(ctx){
    const db=ctx.core.db,personId=ctx.adminSession?.personId||ctx.session?.personId;
    const person=personId&&db.people.find(p=>p.id===personId&&p.active);
-   const flags={admin:false,house:false,super:false,parent:false,observer:false,player:false};
+   const flags={admin:false,house:false,super:false,parent:false,observer:false,player:false,sponsor:false};
    if(person){
     const role=(r,areaId)=>db.roles.some(x=>x.personId===personId&&x.role===r&&x.areaId===areaId&&x.active&&areaActive(db,x.areaId));
     if(ctx.adminSession){flags.super=role('superAdmin','root');flags.admin=flags.super||db.roles.some(r=>r.personId===personId&&r.role==='areaAdmin'&&r.active&&areaActive(db,r.areaId));flags.house=flags.super||db.roles.some(r=>r.personId===personId&&r.role==='areaAdmin'&&r.active&&db.areas.find(a=>a.id===r.areaId)?.type==='house'&&areaActive(db,r.areaId));}
-    if(ctx.session){flags.parent=db.guardians.some(g=>g.guardianId===personId&&g.status==='confirmed');flags.observer=db.roles.some(r=>r.personId===personId&&r.role==='observer'&&r.active&&areaActive(db,r.areaId));flags.player=ctx.session.assurance==='profile';}
+    if(ctx.session){flags.parent=db.guardians.some(g=>g.guardianId===personId&&g.status==='confirmed');flags.observer=db.roles.some(r=>r.personId===personId&&r.role==='observer'&&r.active&&areaActive(db,r.areaId));flags.player=ctx.session.assurance==='profile';flags.sponsor=db.roles.some(r=>r.personId===personId&&r.role==='sponsor'&&r.areaId==='root'&&r.active);}
     flags.verwaltung=flags.admin||flags.house;
    }
    return{ok:true,...flags,name:person?.name||''};
@@ -962,9 +962,15 @@ const methods={
    const s=db.playSessions.find(x=>x.id===exprOf(ctx,spec.playSessionId,scope));
    if(!s)return{ok:false,status:404,message:'Spielsitzung nicht gefunden.'};
    ctx.commit(ctx.session,'progress-report',s.areaId,next=>{
-    next.progress.push({eventId:exprOf(ctx,spec.eventId,scope),childId:ctx.session.personId,gameId:s.gameId,sessionId:s.id,
+    const row={eventId:exprOf(ctx,spec.eventId,scope),childId:ctx.session.personId,gameId:s.gameId,sessionId:s.id,
      metric:exprOf(ctx,spec.metric,scope),value:exprOf(ctx,spec.value,scope),unit:String(exprOf(ctx,spec.unit,scope)||'count'),
-     reportedAt:new Date().toISOString(),source:'game',schemaVersion:Number(exprOf(ctx,spec.schemaVersion,scope))||1});
+     reportedAt:new Date().toISOString(),source:'game',schemaVersion:Number(exprOf(ctx,spec.schemaVersion,scope))||1};
+    next.progress.push(row);
+    // Sponsoring: gepruefte Leistungspunkte entstehen im selben Fachcommit
+    // (nur Einträge, die eine veröffentlichte Regelversion serverseitig deckt);
+    // anschließend Anspruchsbewertung aller Begleitungen des Kindes.
+    const added=perfModule.ingestProgress(next,row);
+    if(added.length)perfModule.evaluateAllForChild(next,row.childId,{notify:sponsorModule._i.notify});
    });
    return{ok:true};
   },
@@ -1831,4 +1837,16 @@ function pathOf(path,scope,ctx){
 // Kartenstapel-Methoden (TServerDecks) kommen aus dem eigenen Modul —
 // exprOf wird injiziert, damit kein Require-Zyklus entsteht.
 Object.assign(methods,require('./cms-server-decks.cjs')({exprOf}));
+// Sponsor-Komponenten (v8): Begleitungen, Vereinbarungen, Belohnungen,
+// gepruefte Leistungspunkte — jeweils atomare, registrierte Fachoperationen.
+const perfModule=require('./cms-performance.cjs');
+const sponsorModule=require('./cms-sponsor.cjs').createSponsor(null);
+Object.assign(methods,require('./cms-sponsor-components.cjs')({exprOf}));
+const sponsorAdmin=require('./cms-sponsor-admin.cjs');
+Object.assign(methods.TServerAccess,{
+ listSponsors:sponsorAdmin.listSponsors,
+ setSponsor:sponsorAdmin.setSponsor,
+ inviteSponsor:sponsorAdmin.inviteSponsor,
+ revokeSponsorInvite:sponsorAdmin.revokeSponsorInvite,
+});
 module.exports={methods};

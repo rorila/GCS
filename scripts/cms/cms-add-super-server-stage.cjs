@@ -519,6 +519,7 @@ if(require.main===module){
   if(idx>=0&&project.stages[idx].generatedBy!=='cms-add-super-server-stage.cjs'){console.log('stage_server_super wurde im Editor verändert — Abbruch (JSON ist Master).');process.exit(1);}
   if(idx>=0)project.stages[idx]=stage;else project.stages.push(stage);
  }
+ if(project.stages.some(s=>s.id==='stage_super_sponsors'))require('./cms-add-super-sponsor-stages.cjs').apply(project);
  fs.writeFileSync(file,JSON.stringify(project,null,1));
  console.log('stage_server_super aktualisiert'+(process.argv.includes('--management-only')?' (nur Admin-Verwaltung)':'')+'.');
 }

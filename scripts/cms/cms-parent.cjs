@@ -38,13 +38,27 @@ function createParent(core, credentialPath, store, cmsFile, stageName, opts = {}
     return { token: core.issueSession(c.personId, 'account') };
   }
 
+  // Sponsor-Bezüge tragen kein childId-Feld — das Gate löst das Kind aus der
+  // referenzierten Entität auf, bevor die Kindeszuständigkeit geprüft wird.
+  function sponsorRefChildId(b) {
+    const db = core.db;
+    const of = sid => db.sponsorships.find(x => x.id === sid)?.childId;
+    if (b.childId) return b.childId;
+    if (b.capabilityId) return db.sponsorshipRequestCapabilities.find(x => x.id === b.capabilityId)?.childId || null;
+    if (b.sponsorshipId) return of(b.sponsorshipId) || null;
+    if (b.agreementId) return of(db.sponsorAgreements.find(x => x.id === b.agreementId)?.sponsorshipId) || null;
+    if (b.versionId) return of(db.sponsorAccessVersions.find(x => x.id === b.versionId)?.sponsorshipId) || null;
+    if (b.claimKey) return db.rewardClaims.find(x => x.entitlementKey === b.claimKey)?.childId || null;
+    return null;
+  }
   // Modul-Adapter: Routen laufen über die TServerEndpoint-Tasks der Projektdatei
   // (stage_server_parent). 403-vor-404 bleibt: fremde Kinder werden vor dem
   // Route-Lookup abgewiesen — die kindbezogenen Tasks prüfen zusätzlich selbst.
   function api(session, route, b = {}) {
     if (!session) return fail(401, 'Bitte anmelden.');
+    const childId = sponsorRefChildId(b);
     if (route !== 'room-pulse' && route !== 'my-children'
-        && (!b.childId || !core.can(session, 'viewChild', { childId: b.childId })))
+        && (!childId || !core.can(session, 'viewChild', { childId })))
       return fail(403, 'Nur eigene, bestätigt zugeordnete Kinder.');
     const ep = rt().find('/api/cms/parent/' + route, 'POST');
     return ep ? rt().run(ep, { session, body: b, core, store, uploads: opts.uploads, commit, credentialPath, play: playAdapter, launches }, { strict: true })

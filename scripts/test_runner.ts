@@ -643,6 +643,24 @@ async function main() {
             }
         });
 
+        await timer.measure('CMS Sponsor-Berechtigungen und Workflows', () => {
+            try {
+                const output = execSync(`"${process.execPath}" scripts/test-cms-sponsor-regressions.cjs`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'CMS Sponsor-Berechtigungen und Workflows', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.trim().split('\n').at(-1) });
+            } catch (error: any) {
+                allResults.push({ name: 'CMS Sponsor-Berechtigungen und Workflows', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
+        await timer.measure('CMS SuperAdmin Sponsorverwaltung', () => {
+            try {
+                const output = execSync(`"${process.execPath}" scripts/test-cms-sponsor-admin.cjs`, { encoding: 'utf-8', stdio: 'pipe' });
+                allResults.push({ name: 'CMS SuperAdmin Sponsorverwaltung', passed: true, type: 'CMS Regression', expectedSuccess: true, actualSuccess: true, details: output.trim().split('\n').at(-1) });
+            } catch (error: any) {
+                allResults.push({ name: 'CMS SuperAdmin Sponsorverwaltung', passed: false, type: 'CMS Regression', expectedSuccess: true, actualSuccess: false, details: String(error.stdout || error.message) });
+            }
+        });
+
         // 🌐 Browser E2E Tests (Playwright)
         // Die Server startet Playwright selbst ueber webServer in playwright.config.ts
         // (Vite 5173 + Game-Server 8080); ein Vorab-Portcheck ist nicht noetig.

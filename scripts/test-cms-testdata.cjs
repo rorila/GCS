@@ -248,6 +248,158 @@ check('Einladungsbutton startet Partie und öffnet Spiel in einem Schritt', () =
   }
 });
 
+// ---- Sponsoring (v8): alle Abnahmefälle laufen über die echte GCS-Runtime —
+// runtime.find/run führt die deklarierten Server-Tasks aus stage_server_sponsor
+// aus (Sitzung → Fachmethode → Antwort), genau wie der HTTP-Server.
+const runtime = require('./cms/cms-runtime.cjs').loadRuntime(path.join(__dirname, '../game-server/public/projects/GCS-CMS.json'));
+const commit = (s, action, areaId, change) => store.commit(core.db, { actor: s?.personId || 'system', action, areaId }, change);
+const acct = id => core.session(core.issueSession(id, 'account'));
+// Parent-Routen laufen über denselben Modul-Adapter wie der HTTP-Server
+// (403-vor-404-Gate + Runtime-Dispatch) — so wird die echte Kette geprüft.
+const parentAdapter = require('./cms/cms-parent.cjs').createParent(core, path.join(dir, 'cms-admin-auth.json'), store, path.join(__dirname, '../game-server/public/projects/GCS-CMS.json'), 'stage_server_parent', {});
+const api = (route, session, body = {}) => {
+  if (route.startsWith('/api/cms/parent/')) return parentAdapter.api(session, route.slice('/api/cms/parent/'.length), body);
+  const ep = runtime.find(route, 'POST');
+  assert.ok(ep, 'Endpunkt fehlt: ' + route);
+  return runtime.run(ep, { session, body, emit() {}, core, commit }, { strict: true });
+};
+const fritz = acct('sponsor-fritz'), greta = acct('sponsor-greta');
+const martin = acct('parent-multi'), tina = acct('parent-tom-a'), tim = acct('parent-tom-b');
+const finn = loginAs('child-finn'), tom = loginAs('child-tom');
+
+let spnFinn = null, spnTom = null;
+check('Sponsor: Kontaktcode → Anfrage → kein Zugriff vor Genehmigung → Quorum-Freigabe', () => {
+  // Eltern stellen Kontaktcode aus; Fremd-Eltern werden abgewiesen.
+  const code = api('/api/cms/parent/sponsor-contact-create', martin, { childId: 'child-finn', label: 'Patenonkel Fritz' });
+  assert.strictEqual(code.status, 200, JSON.stringify(code.data));
+  assert.ok(code.data.contactCode, 'Klartext-Code fehlt in der Antwort');
+  assert.strictEqual(api('/api/cms/parent/sponsor-contact-create', tina, { childId: 'child-finn' }).status, 403);
+  // Sponsor stellt die Anfrage über den Code — idempotent über requestId.
+  const req = api('/api/cms/sponsor/request-create', fritz, { contactCode: code.data.contactCode, purpose: 'Lernpatenschaft Mathe', periodDays: 60, requestId: 'req-finn-1' });
+  assert.strictEqual(req.status, 200, JSON.stringify(req.data));
+  spnFinn = req.data.sponsorshipId;
+  const again = api('/api/cms/sponsor/request-create', fritz, { contactCode: code.data.contactCode, purpose: 'Lernpatenschaft Mathe', periodDays: 60, requestId: 'req-finn-1' });
+  assert.strictEqual(again.data.sponsorshipId, spnFinn, 'Idempotenz: wiederholte Anfrage erzeugt Duplikat');
+  assert.strictEqual(db.sponsorships.filter(s => s.sponsorId === 'sponsor-fritz' && s.childId === 'child-finn').length, 1);
+  // Vor Genehmigung: kein Leistungszugriff — auch nicht über direkte API-Aufrufe.
+  assert.strictEqual(api('/api/cms/sponsor/progress', fritz, { sponsorshipId: spnFinn }).status, 403);
+  // Zweite Anfrage mit verbrauchtem Code scheitert; fremde Codes unbekannt.
+  const code2 = api('/api/cms/parent/sponsor-contact-create', martin, { childId: 'child-finn' });
+  assert.strictEqual(api('/api/cms/sponsor/request-create', fritz, { contactCode: code2.data.contactCode, purpose: 'zweite', periodDays: 30, requestId: 'req-finn-2' }).status, 409);
+  assert.strictEqual(api('/api/cms/sponsor/request-create', greta, { contactCode: 'sponsor-code-finn', purpose: 'altes Seed', periodDays: 30, requestId: 'req-g-1' }).status, 200);
+  db.sponsorships.find(s => s.sponsorId === 'sponsor-greta' && s.childId === 'child-finn').status = 'withdrawn'; // Aufräumen: Greta bleibt für Tom
+  // Elternzustimmung (Finn: ein Elternteil) → sofort aktiv + Sichtfreigabe v1.
+  const dec = api('/api/cms/parent/sponsor-request-decision', martin, { sponsorshipId: spnFinn, approve: true });
+  assert.strictEqual(dec.status, 200, JSON.stringify(dec.data));
+  assert.strictEqual(dec.data.status, 'active');
+  assert.strictEqual(db.sponsorships.find(s => s.id === spnFinn).status, 'active');
+  assert.ok(db.sponsorAccessVersions.some(v => v.sponsorshipId === spnFinn && v.status === 'active'));
+  // Jetzt: Sponsor sieht Leistungssicht; Fremde sehen nichts.
+  assert.strictEqual(api('/api/cms/sponsor/progress', fritz, { sponsorshipId: spnFinn }).status, 200);
+  assert.strictEqual(api('/api/cms/sponsor/progress', greta, { sponsorshipId: spnFinn }).status, 403);
+  assert.strictEqual(api('/api/cms/parent/sponsorships', acct('parent-lina'), { childId: 'child-finn' }).status, 403);
+});
+check('Sponsor-Quorum: bei zwei Elternteilen wirkt Zustimmung erst gemeinsam', () => {
+  const code = api('/api/cms/parent/sponsor-contact-create', tina, { childId: 'child-tom', label: 'Großtante Greta' });
+  const req = api('/api/cms/sponsor/request-create', greta, { contactCode: code.data.contactCode, purpose: 'Lese-Patenschaft', periodDays: 90, requestId: 'req-tom-1' });
+  spnTom = req.data.sponsorshipId;
+  const first = api('/api/cms/parent/sponsor-request-decision', tina, { sponsorshipId: spnTom, approve: true });
+  assert.strictEqual(first.data.status, 'requested', 'Erste von zwei Zustimmungen darf nicht aktivieren');
+  assert.deepStrictEqual(first.data.pendingApprovals, ['parent-tom-b']);
+  assert.strictEqual(api('/api/cms/sponsor/progress', greta, { sponsorshipId: spnTom }).status, 403);
+  // Zweiter Elternteil doppelt abstimmen ändert nichts am Quorum-Stand.
+  api('/api/cms/parent/sponsor-request-decision', tina, { sponsorshipId: spnTom, approve: true });
+  assert.strictEqual(db.sponsorships.find(s => s.id === spnTom).status, 'requested');
+  const second = api('/api/cms/parent/sponsor-request-decision', tim, { sponsorshipId: spnTom, approve: true });
+  assert.strictEqual(second.data.status, 'active');
+});
+check('Sponsor darf keine Leistungen oder Punkte verändern', () => {
+  assert.strictEqual(api('/api/cms/parent/sponsor-performance-recognize', fritz, { childId: 'child-finn', metricKey: 'math.tasks', value: 50 }).status, 403);
+  assert.strictEqual(db.performanceLedger.filter(e => e.childId === 'child-finn').length, 0, 'Sponsor hat Ledger-Eintrag erzeugt');
+});
+let agFinn = null, claimKey = null;
+check('Vereinbarung: erst wirksam, wenn alle Eltern UND Sponsor derselben Version zustimmen', () => {
+  // Elterliche Leistungsanerkennung → 7 Punkte (Wert 7 × 1 Punkt/Einheit).
+  assert.strictEqual(api('/api/cms/parent/sponsor-performance-recognize', martin, { childId: 'child-finn', metricKey: 'math.tasks', value: 7, note: 'Rechenblatt' }).status, 200);
+  assert.strictEqual(db.performanceLedger.find(e => e.childId === 'child-finn').verification, 'guardian-confirmed');
+  const prop = api('/api/cms/sponsor/agreement-propose', fritz, { sponsorshipId: spnFinn, terms: { metricKeys: ['math.tasks'], pointsTarget: 5, rewardText: 'Eis essen gehen', consumePoints: false } });
+  assert.strictEqual(prop.status, 200, JSON.stringify(prop.data));
+  agFinn = prop.data.agreementId;
+  // Sponsor hat als Vorschlagender zugestimmt — Eltern fehlen noch.
+  const noEffect = api('/api/cms/sponsorship/agreements', martin, { sponsorshipId: spnFinn });
+  assert.strictEqual(noEffect.data.items.find(a => a.id === agFinn).activeVersion, 0);
+  const con = api('/api/cms/parent/sponsor-agreement-consent', martin, { agreementId: agFinn, version: 1, approve: true });
+  assert.strictEqual(con.data.status, 'active', JSON.stringify(con.data));
+  assert.strictEqual(db.sponsorAgreements.find(a => a.id === agFinn).activeVersion, 1);
+});
+check('Anspruch genau einmal; Einlösen → Elternfreigabe → zweistufige Erfüllung', () => {
+  // Aktivierung bewertete 7 ≥ 5 bereits → Anspruch 'earned' vorhanden.
+  const claims = db.rewardClaims.filter(c => c.sponsorshipId === spnFinn);
+  assert.strictEqual(claims.length, 1, 'genau ein Anspruch erwartet');
+  claimKey = claims[0].entitlementKey;
+  assert.strictEqual(claims[0].status, 'earned');
+  // Einlösen nur durch Kind/Eltern; Sponsor wird abgewiesen.
+  assert.strictEqual(api('/api/cms/sponsor/rewards', fritz, { claimKey }).status, 200); // Pflichtenliste lesbar
+  const reqClaim = api('/api/cms/child/sponsorship/reward-request', finn, { claimKey });
+  assert.strictEqual(reqClaim.status, 200, JSON.stringify(reqClaim.data));
+  assert.strictEqual(db.rewardClaims[0].status, 'requested');
+  // Eltern geben frei → Sponsor meldet Erfüllung → Eltern bestätigen.
+  assert.strictEqual(api('/api/cms/parent/sponsor-reward-decision', martin, { claimKey, approve: true }).status, 200);
+  assert.strictEqual(db.rewardClaims[0].status, 'released');
+  assert.strictEqual(api('/api/cms/sponsor/reward-fulfillment', fritz, { claimKey, note: 'Eis gekauft' }).status, 200);
+  assert.strictEqual(api('/api/cms/parent/sponsor-fulfillment-confirm', martin, { claimKey }).status, 200);
+  assert.strictEqual(db.rewardClaims[0].status, 'fulfilled');
+  const confirmedAt = db.rewardClaims[0].fulfilledAt;
+  api('/api/cms/parent/sponsor-fulfillment-confirm', martin, { claimKey });
+  assert.strictEqual(db.rewardClaims[0].fulfilledAt, confirmedAt, 'doppelte Bestätigung verändert den Anspruch');
+});
+check('Pause sperrt Sponsor sofort; kindseitige Pause löst nur das Kind', () => {
+  api('/api/cms/child/sponsorship/pause', finn, { sponsorshipId: spnFinn });
+  assert.strictEqual(db.sponsorships.find(s => s.id === spnFinn).status, 'paused');
+  assert.strictEqual(api('/api/cms/sponsor/progress', fritz, { sponsorshipId: spnFinn }).status, 403);
+  assert.strictEqual(api('/api/cms/parent/sponsor-resume', martin, { sponsorshipId: spnFinn }).status, 403);
+  assert.strictEqual(api('/api/cms/child/sponsorship/resume', finn, { sponsorshipId: spnFinn, accept: true }).status, 200);
+  assert.strictEqual(api('/api/cms/sponsor/progress', fritz, { sponsorshipId: spnFinn }).status, 200);
+});
+check('Beendigung entzieht Zugriff sofort; Ansprüche und Historie bleiben', () => {
+  assert.strictEqual(api('/api/cms/parent/sponsor-end', martin, { sponsorshipId: spnFinn, reason: 'Laufzeit vorbei' }).status, 200);
+  assert.strictEqual(api('/api/cms/sponsor/progress', fritz, { sponsorshipId: spnFinn }).status, 403);
+  assert.strictEqual(api('/api/cms/sponsor/messages', fritz, { sponsorshipId: spnFinn }).data.items.length, 0);
+  const parentView = api('/api/cms/parent/sponsorships', martin, { childId: 'child-finn', sponsorshipId: spnFinn });
+  assert.strictEqual(parentView.data.items[0].status, 'ended');
+  assert.strictEqual(db.rewardClaims[0].status, 'fulfilled', 'erfüllter Anspruch verloren');
+  assert.ok(api('/api/cms/parent/sponsor-history', martin, { sponsorshipId: spnFinn }).data.items.length >= 4, 'Historie unvollständig');
+});
+check('Kind sieht Begleiter und kann ablehnen', () => {
+  const list = api('/api/cms/child/sponsorship/list', finn, {});
+  assert.ok(list.data.items.some(i => i.id === spnFinn), 'Kind sieht eigene Begleitung nicht');
+  // Tom lehnt die aktive Begleitung ab → sofortiger Zugriffsentzug.
+  assert.strictEqual(api('/api/cms/child/sponsorship/decline', tom, { sponsorshipId: spnTom, accept: false }).status, 200);
+  assert.strictEqual(db.sponsorships.find(s => s.id === spnTom).status, 'rejected');
+  assert.strictEqual(api('/api/cms/sponsor/progress', greta, { sponsorshipId: spnTom }).status, 403);
+});
+check('Mitteilungen sind familiensichtbar — kein Privatkanal', () => {
+  api('/api/cms/child/sponsorship/resume', finn, { sponsorshipId: spnFinn, accept: true }); // ended → 409, harmlos
+  const send = api('/api/cms/parent/sponsor-message-send', martin, { sponsorshipId: spnFinn, targetType: 'sponsorship', targetId: spnFinn, text: 'Danke für die Begleitung!' });
+  assert.strictEqual(send.status, 200);
+  const view = api('/api/cms/parent/sponsor-messages', martin, { sponsorshipId: spnFinn });
+  assert.ok(view.data.items.some(m => m.text.includes('Danke')), 'Eltern sehen die Mitteilung nicht');
+});
+check('Sponsor-Sicht zeigt nur Feld-Allowlist, keine Rohdaten', () => {
+  const list = api('/api/cms/sponsor/companionships', fritz, {});
+  const item = list.data.items.find(i => i.id === spnFinn);
+  for (const k of ['purpose', 'notes', 'requiredGuardianIds', 'capabilityId']) assert.ok(!(k in item), 'Sponsor sieht internes Feld: ' + k);
+  const prog = api('/api/cms/parent/sponsor-progress', martin, { sponsorshipId: spnFinn });
+  const json = JSON.stringify(prog.data);
+  for (const forbidden of ['question', 'answers', 'hints_used']) assert.ok(!json.includes(forbidden), 'Rohinhalt in Fortschrittssicht: ' + forbidden);
+});
+check('Eltern erhalten Benachrichtigungen über Anfragen und Meilensteine', () => {
+  const n = api('/api/cms/account/notifications', martin, {});
+  const types = n.data.items.map(x => x.type);
+  assert.ok(types.includes('sponsor-request'), 'Anfrage-Meldung fehlt');
+  assert.ok(types.includes('sponsor-claim-earned'), 'Anspruchs-Meldung fehlt');
+});
+
 let failed = 0;
 for (const [s, n] of results) { if (s !== 'OK') failed++; console.log(s, n); }
 console.log(JSON.stringify({ passed: results.length - failed, failed }));
