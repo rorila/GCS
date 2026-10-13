@@ -193,7 +193,14 @@ export class LearningPointsController {
             modeLabel: s.modeLabel ?? '',
             completedCards: Number(s.completedCards) || 0,
             revision: Number(s.revision) || 0,
-            modeRevision: Number(s.modeRevision) || 0
+            modeRevision: Number(s.modeRevision) || 0,
+            rewards: Array.isArray(s.rewards) ? s.rewards.map((r: any) => ({
+                sponsorshipId: String(r.sponsorshipId || ''), sponsorName: String(r.sponsorName || 'Sponsor'),
+                points: Number(r.points) || 0, pointsTarget: Number(r.pointsTarget) || 0,
+                round: Number(r.round) || 1, reached: r.reached === true,
+                status: String(r.status || 'collecting'), pendingReward: r.pendingReward === true,
+                completedRounds: Number(r.completedRounds) || 0
+            })) : []
         };
     }
 

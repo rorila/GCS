@@ -3,10 +3,12 @@ document.addEventListener('DOMContentLoaded',()=>{
  // Mehrfachrollen teilen einen Zugang. Der Sponsorbereich bleibt neben den
  // bisherigen Erwachsenenrollen erreichbar, ohne einen zweiten Login anzulegen.
  fetch('/api/cms/contexts',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.json()).then(context=>{
-  if(!context.ok||!context.sponsor||context.player)return;
-  const links=[...(context.verwaltung?[['Verwaltung','/roles']]:[]),...(context.parent?[['Eltern','/parent']]:[]),...(context.observer?[['Beobachtung','/observer']]:[]),['Sponsor','/sponsor']];
+  if(!context.ok||context.player)return;
+  if(location.pathname==='/roles')return;
+  const links=[...(context.verwaltung?[['Verwaltung','/roles']]:[]),...(context.parent?[['Eltern','/parent']]:[]),...(context.observer?[['Beobachtung','/observer']]:[]),...(context.sponsor?[['Sponsor','/sponsor']]:[])];
   if(links.length<2)return;
   const menu=document.createElement('details');menu.setAttribute('aria-label','Meine Rollen');menu.style.cssText='position:fixed;left:12px;top:12px;z-index:9001;background:#173d4e;color:white;padding:12px;border:1px solid #58bdb2;border-radius:8px;font:16px system-ui';
+  menu.open=location.pathname==='/roles';
   const summary=document.createElement('summary');summary.textContent='Meine Rollen';summary.style.cursor='pointer';menu.append(summary);
   for(const [label,href] of links){const a=document.createElement('a');a.textContent=label;a.href=href;a.style.cssText='display:block;padding:10px 4px;color:white';menu.append(a);}document.body.append(menu);
  }).catch(()=>{});

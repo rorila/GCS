@@ -138,6 +138,13 @@ const learningSummary=(db,childId)=>{
  try{return require('./cms-card-points.cjs').summary(db,childId);}catch(e){return null;}
 };
 
+function selectableRoles(ctx) {
+ const roles=[...(ctx.session?.adminRoles||ctx.session?.accountRoles||[])];
+ if(ctx.session?.adminRoles && ctx.core.childrenOf(ctx.session.personId).length && !roles.some(r=>r.role==='parent'))
+  roles.push({role:'parent',areaId:'root',label:'Eltern · Meine Kinder'});
+ return roles;
+}
+
 const methods={
  TServerSession:{
   requireRole(ctx,_component,params){
@@ -152,7 +159,7 @@ const methods={
   // Rollenwahl: liefert die Kandidaten der Sitzung (Verwaltung: adminRoles,
   // Konto: accountRoles). Rein lesend — die Rechte entscheidet can().
   roles(ctx){
-   const list=ctx.session?.adminRoles||ctx.session?.accountRoles||[];
+   const list=selectableRoles(ctx);
    // Die Wahl-Tabellen speichern Datensätze über recordKey 'id'; die
    // fachliche Rolle selbst hat keinen Primärschlüssel. Die ID bleibt
    // deterministisch, damit Runde und Browser dieselbe Auswahl finden.
@@ -165,11 +172,15 @@ const methods={
   chooseRole(ctx,_component,params){
    console.log('[Rollenwahl] chooseRole ←',JSON.stringify(params?.[0]),'| session:',ctx.session?.personId||'KEINE');
    const sel=exprOf(ctx,params?.[0],{})||{},db=ctx.core.db;
-   const list=ctx.session?.adminRoles||ctx.session?.accountRoles||[];
+   const list=selectableRoles(ctx);
    const match=list.find(r=>r.role===sel.role&&r.areaId===sel.areaId);
    if(!match)return{ok:false,message:'Diese Rolle steht nicht zur Verfügung.'};
-   // Abgeleitete Kontextrolle Spieler ist nie in db.roles; Eltern/Beobachter
-   // wählen ihren Kontext über den Passwort-Login (stage_admin_login), nicht hier.
+   if(match.role==='parent') {
+    if(!ctx.core.childrenOf(ctx.session.personId).length)return{ok:false,message:'Keine bestätigte Elternbeziehung.'};
+    ctx.session.activeRole=null;
+    return{ok:true,target:'/parent',accountToken:ctx.core.issueSession(ctx.session.personId,'account')};
+   }
+   // Die abgeleitete Elternrolle wurde oben geprüft; Spieler steht nie in db.roles.
    if(match.role!=='player'&&!db.roles.some(r=>r.personId===ctx.session.personId&&r.role===match.role&&r.areaId===match.areaId&&r.active&&(r.areaId==='root'||areaActive(db,r.areaId))))
     return{ok:false,message:'Diese Rolle steht nicht mehr zur Verfügung.'};
    ctx.session.activeRole=match;

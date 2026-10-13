@@ -195,6 +195,8 @@ const ensureTask=(st,t)=>{const e=st.tasks.find(x=>x.name===t.name);if(!e)st.tas
 }
 
 /* ---------- 6a) Nachpflege: Füllergebnis auf bestehenden Rollen-Stages ---------- */
+const roleHint=stage('stage_admin_roles')?.objects.find(o=>o.name==='Hinweis');
+if(roleHint)roleHint.text='Wähle eine verfügbare Rolle. Als bestätigter Elternteil kannst du hier auch „Eltern · Meine Kinder“ öffnen.';
 for(const [sid,tname] of [['stage_admin_roles','VerwRollenInit'],['stage_player_roles','KontoRollenInit']]){
  const st=stage(sid);if(!st)continue;
  const gueltig=ensureVar(st,'RollenGueltig');

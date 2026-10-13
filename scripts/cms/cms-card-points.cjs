@@ -13,7 +13,12 @@ function summary(db,childId){
  // Personenfeld — Bestandsdaten ohne Feld lesen 0.
  return {mode:modeOf(db,childId),modeLabel:modeOf(db,childId)==='strict'?'+1 Aufstieg · −1 Rückfall':'+1 Aufstieg · kein Abzug',totalPoints:entries.reduce((s,e)=>s+(e.learningDelta||0),0),completedCards:db.flashcards.filter(c=>c.childId===childId&&c.active&&c.box===6).length,
   promotions:entries.filter(e=>e.fromBox<e.toBox).length,resets:entries.filter(e=>e.fromBox>1&&e.toBox===1).length,
-  revision:entries.length,modeRevision:person?.cardPointModeRevision??0};
+  revision:entries.length,modeRevision:person?.cardPointModeRevision??0,
+  rewards: db.sponsorships.filter(s=>s.childId===childId&&['active','paused'].includes(s.status)).flatMap(s=>{
+   const ag=db.sponsorAgreements.find(a=>a.sponsorshipId===s.id&&a.activeVersion);
+   const v=ag&&db.sponsorAgreementVersions.find(v=>v.agreementId===ag.id&&v.version===ag.activeVersion);
+   return v&&perf.isCardReward(v.terms)?[{sponsorshipId:s.id,sponsorName:db.people.find(p=>p.id===s.sponsorId)?.name||'Sponsor',...perf.rewardProgress(db,s,v)}]:[];
+  })};
 }
 function pointSummary(ctx){
  const s=ctx.session,id=ctx.body.childId||s?.personId;
@@ -93,13 +98,13 @@ function answer(ctx,card,correct){
   c.box=toBox;let reviewedAt=Date.now();
   for(const other of next.flashcards)if(other.childId===c.childId&&other.active&&other.box===toBox){const t=Date.parse(other.lastReviewedAt||other.createdAt);if(Number.isFinite(t))reviewedAt=Math.max(reviewedAt,t+1);}
   c.lastReviewedAt=new Date(reviewedAt).toISOString();c.updatedAt=at;
+  perf.evaluateAllForChild(next,c.childId,{notify:require('./cms-sponsor.cjs').createSponsor(null)._i.notify});
   const learning=summary(next,c.childId);
   // learningEventId = Quellereignis 'card-learning:<attempt>' (nicht die
   // Ledgerzeile 'led-…'). Liegt im gespeicherten Versuchsergebnis und wird
   // bei idempotenter Wiederholung unveraendert zurueckgegeben.
   const result={ok:true,box:toBox,previousBox:fromBox,mastered:toBox===6,pointsDelta:learningDelta,learning,learningEventId:eventId,verification:self?'reported':'verified',message:toBox===6?'Abgeschlossen — Karte bleibt in Fach 6.':correct?'Richtig — Fach '+toBox:fromBox===1?'Karte bleibt in Fach 1.':'Zurück in Fach 1.'};
   c.learningAttempt={...c.learningAttempt,answer:b.answer,correct,result};
-  perf.evaluateAllForChild(next,c.childId,{notify:require('./cms-sponsor.cjs').createSponsor(null)._i.notify});
   return result;
  });
 }

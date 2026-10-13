@@ -150,7 +150,7 @@ const CHILD_NAV = [['stage_gallery', 'Meine Spiele'], ['stage_child_sponsors', '
   );
   s.actions.push(
     http('Act_Fortschritt_Server', '/api/cms/sponsor/progress', { sponsorshipId: '${CMSBegleitungId}' }),
-    prop('Act_Fortschritt_Anzeigen', { 'PunkteAnzeige.text': '${Antwort.totalPoints} sichtbare Punkte', 'ZielAnzeige.text': 'Für Belohnung: ${Antwort.agreement.countedPoints} / ${Antwort.agreement.pointsTarget}', 'SichtAnzeige.text': 'Sicht: ${Antwort.scope.detailLevel} · ${Antwort.scope.windowDays} Tage' }),
+    prop('Act_Fortschritt_Anzeigen', { 'PunkteAnzeige.text': '${Antwort.totalPoints} Gesamtpunkte', 'ZielAnzeige.text': 'Für Belohnung: ${Antwort.agreement.countedPoints} / ${Antwort.agreement.pointsTarget}', 'SichtAnzeige.text': 'Sicht: ${Antwort.scope.detailLevel} · ${Antwort.scope.windowDays} Tage' }),
     prop('Act_Zustand_Anzeigen', { 'ZustandAnzeige.text': 'Status: ${Antwort.items.0.status}' }),
     http('Act_Status_Server', '/api/cms/sponsor/companionships', {}),
     http('Act_Pause_Server', '/api/cms/sponsor/pause', { sponsorshipId: '${CMSBegleitungId}' }),
@@ -158,7 +158,7 @@ const CHILD_NAV = [['stage_gallery', 'Meine Spiele'], ['stage_child_sponsors', '
     http('Act_Ende_Server', '/api/cms/sponsor/end', { sponsorshipId: '${CMSBegleitungId}' }),
     http('Act_SichtVorschlag_Server', '/api/cms/sponsor/access-propose', { sponsorshipId: '${CMSBegleitungId}', subjectsCsv: 'math,reading', detailLevel: 'aggregates', windowDays: 180 }),
     http('Act_Vertraege_Server', '/api/cms/sponsorship/agreements', { sponsorshipId: '${CMSBegleitungId}' }),
-    http('Act_VertragVorschlag_Server', '/api/cms/sponsor/agreement-propose', { sponsorshipId: '${CMSBegleitungId}', metricKeysCsv: 'math.tasks', pointsTarget: '${VertragZiel.text}', rewardText: '${VertragBelohnung.text}' }),
+    http('Act_VertragVorschlag_Server', '/api/cms/sponsor/agreement-propose', { sponsorshipId: '${CMSBegleitungId}', rewardMode: 'cardRounds', metricKeysCsv: 'cards.promotions,cards.resets', pointsTarget: '${VertragZiel.text}', rewardText: '${VertragBelohnung.text}' }),
     http('Act_VertragZustimmung_Server', '/api/cms/sponsor/agreement-consent', { agreementId: '${VertragTabelle.selectedRecord.agreementId}', version: '${VertragTabelle.selectedRecord.version}', approve: true }),
     http('Act_Nachrichten_Server', '/api/cms/sponsor/messages', { sponsorshipId: '${CMSBegleitungId}' }),
     http('Act_NachrichtSenden_Server', '/api/cms/sponsor/message-send', { sponsorshipId: '${CMSBegleitungId}', text: '${NachrichtText.text}' }),
@@ -189,12 +189,13 @@ const CHILD_NAV = [['stage_gallery', 'Meine Spiele'], ['stage_child_sponsors', '
 {
   const s = shell('stage_sponsor_rewards', 'Sponsor · Belohnungen', 'Erfüllungspflichten', SPONSOR_NAV, 'stage_sponsor_rewards');
   s.objects.push(
-    label('Hinweis', 'Freigegebene Belohnungen erfüllst du außerhalb des Systems — melde die Erfüllung hier, die Eltern bestätigen sie.', 15, 7, 47, 2.6, { style: hintStyle }),
+    label('Hinweis', 'Erreichte Ziele bleiben erhalten. Nach elterlicher Freigabe meldest du die Übergabe; die Eltern bestätigen sie. Dann beginnt die nächste Runde mit dem Überschuss.', 15, 7, 47, 2.6, { style: hintStyle }),
     list('PflichtListe', 'Freigegebene und erfüllte Belohnungen'),
     table('PflichtTabelle', 'PflichtListe', [
       { field: 'rewardText', label: 'Belohnung', type: 'header', x: 0, y: 0 },
       { field: 'childName', label: 'Kind', type: 'text', x: 24, y: 0 },
-      { field: 'status', label: 'Status', type: 'badge', x: 34, y: 0 },
+      { field: 'statusLabel', label: 'Status', type: 'badge', x: 34, y: 0 },
+      { field: 'round', label: 'Runde', type: 'number', x: 0, y: 1 },
     ], 15, 10, 47, 16, 'Pflicht_Waehlen'),
     edit('ErfuellungNotiz', 'Kurze Notiz zur Erfüllung (optional)', 15, 28, 34),
     button('ErfuellungMelden', 'Erfüllung melden', 50, 28, 12, 2.8, 'Erfuellung_Melden', true),
@@ -291,7 +292,7 @@ const CHILD_NAV = [['stage_gallery', 'Meine Spiele'], ['stage_child_sponsors', '
     button('VertragZustimmen', 'Zustimmen', 15, 31, 12, 2.6, 'Vertrag_Zustimmen', true), button('VertragAblehnen', 'Ablehnen', 28, 31, 12, 2.6, 'Vertrag_Ablehnen'),
     label('SektionBelohnung', 'BELOHNUNGEN', 15, 34.4, 47, 1.2, { style: sectionStyle }),
     list('AnspruchListe', 'Belohnungsansprüche'),
-    table('AnspruchTabelle', 'AnspruchListe', [{ field: 'rewardText', label: 'Belohnung', type: 'header', x: 0, y: 0 }, { field: 'status', label: 'Status', type: 'badge', x: 24, y: 0 }], 15, 35.8, 47, 5, 'Anspruch_Waehlen'),
+    table('AnspruchTabelle', 'AnspruchListe', [{ field: 'rewardText', label: 'Belohnung', type: 'header', x: 0, y: 0 }, { field: 'statusLabel', label: 'Status', type: 'badge', x: 24, y: 0 }], 15, 35.8, 47, 5, 'Anspruch_Waehlen'),
     button('EinloeseFreigeben', 'Einlösung freigeben', 15, 41.2, 15, 2.6, 'Einloese_Freigeben', true),
     button('EinloeseAblehnen', 'Zurückweisen', 31, 41.2, 14, 2.6, 'Einloese_Ablehnen'),
     button('ErfuellungBestaetigen', 'Erfüllung bestätigen', 46, 41.2, 16, 2.6, 'Erfuellung_Bestaetigen'),
@@ -302,7 +303,7 @@ const CHILD_NAV = [['stage_gallery', 'Meine Spiele'], ['stage_child_sponsors', '
   );
   s.actions.push(
     http('Act_Fortschritt_Server', '/api/cms/parent/sponsor-progress', { sponsorshipId: '${CMSBegleitungId}' }),
-    prop('Act_Fortschritt_Anzeigen', { 'PunkteAnzeige.text': '${Antwort.totalPoints} sichtbare Punkte', 'SichtAnzeige.text': 'Belohnung: ${Antwort.agreement.countedPoints} / ${Antwort.agreement.pointsTarget} · ${Antwort.scope.detailLevel} · ${Antwort.scope.windowDays} Tage' }),
+    prop('Act_Fortschritt_Anzeigen', { 'PunkteAnzeige.text': '${Antwort.totalPoints} Gesamtpunkte', 'SichtAnzeige.text': 'Belohnung: ${Antwort.agreement.countedPoints} / ${Antwort.agreement.pointsTarget} · ${Antwort.scope.detailLevel} · ${Antwort.scope.windowDays} Tage' }),
     http('Act_Liste_Server', '/api/cms/parent/sponsorships', { childId: '${CMSKindId}', sponsorshipId: '${CMSBegleitungId}' }),
     prop('Act_Zustand_Anzeigen', { 'ZustandAnzeige.text': 'Status: ${Antwort.items.0.status}' }),
     http('Act_Pause_Server', '/api/cms/parent/sponsor-pause', { sponsorshipId: '${CMSBegleitungId}' }),
@@ -366,8 +367,9 @@ const CHILD_NAV = [['stage_gallery', 'Meine Spiele'], ['stage_child_sponsors', '
     button('Pausieren', 'Pausieren', 28, 19.2, 12, 2.8, 'Begleitung_Pausieren'),
     button('Fortsetzen', 'Weitermachen', 41, 19.2, 13, 2.8, 'Begleitung_Fortsetzen', true),
     label('SektionBelohnung', 'BELOHNUNGEN', 15, 23.6, 47, 1.2, { style: sectionStyle }),
+    label('BelohnungsFortschritt', 'Wähle einen Begleiter für deinen Belohnungsfortschritt.', 15, 39, 47, 2, { style: hintStyle }),
     list('AnspruchListe', 'Erreichte Belohnungen'),
-    table('AnspruchTabelle', 'AnspruchListe', [{ field: 'rewardText', label: 'Belohnung', type: 'header', x: 0, y: 0 }, { field: 'status', label: 'Status', type: 'badge', x: 30, y: 0 }], 15, 25, 47, 7, 'Anspruch_Waehlen'),
+    table('AnspruchTabelle', 'AnspruchListe', [{ field: 'rewardText', label: 'Belohnung', type: 'header', x: 0, y: 0 }, { field: 'statusLabel', label: 'Status', type: 'badge', x: 30, y: 0 }], 15, 25, 47, 7, 'Anspruch_Waehlen'),
     button('Einloesen', 'Belohnung einlösen', 15, 32.6, 16, 2.8, 'Belohnung_Einloesen', true),
     label('SichtHinweis', '—', 15, 36, 47, 2, { style: hintStyle }),
     timer('KindSponsoren_Init'),
@@ -383,6 +385,7 @@ const CHILD_NAV = [['stage_gallery', 'Meine Spiele'], ['stage_child_sponsors', '
     http('Act_Fortsetzen_Server', '/api/cms/child/sponsorship/resume', { token: '${Token}', sponsorshipId: '${CMSBegleitungId}', accept: true }),
     http('Act_Ansprueche_Server', '/api/cms/child/sponsorship/rewards', { token: '${Token}', sponsorshipId: '${CMSBegleitungId}' }),
     call('Act_Ansprueche_Uebernehmen', 'AnspruchListe', 'tryReplaceRecords', ['${Antwort.items}'], 'DatenGueltig'),
+    prop('Act_BelohnungsFortschritt', { 'BelohnungsFortschritt.text': '${Antwort.progressText}' }),
     http('Act_Einloesen_Server', '/api/cms/child/sponsorship/reward-request', { token: '${Token}', claimKey: '${AnspruchTabelle.selectedRecord.entitlementKey}' }),
     prop('Act_Meldung', { 'Status.text': '${Antwort.message}' }),
   );
@@ -391,7 +394,7 @@ const CHILD_NAV = [['stage_gallery', 'Meine Spiele'], ['stage_child_sponsors', '
     task('Liste_Laden', [A('Act_Liste_Server'), C('Liste ok?', 'Antwort.ok', '==', true, [A('Act_Begleitungen_Uebernehmen')], [T('Fehler')])]),
     task('Begleitung_Waehlen', [A('Act_Begleitung_Merken'), T('Vorschau_Laden'), T('Ansprueche_Laden')]),
     task('Vorschau_Laden', [A('Act_Vorschau_Server'), C('Vorschau ok?', 'Antwort.ok', '==', true, [A('Act_Vorschau_Anzeigen')], [])]),
-    task('Ansprueche_Laden', [A('Act_Ansprueche_Server'), C('Ansprüche ok?', 'Antwort.ok', '==', true, [A('Act_Ansprueche_Uebernehmen')], [T('Fehler')])]),
+    task('Ansprueche_Laden', [A('Act_Ansprueche_Server'), C('Ansprüche ok?', 'Antwort.ok', '==', true, [A('Act_Ansprueche_Uebernehmen'), A('Act_BelohnungsFortschritt')], [T('Fehler')])]),
     task('Begleitung_Ablehnen', [A('Act_Ablehnen_Server'), C('Abgelehnt?', 'Antwort.ok', '==', true, [A('Act_Meldung'), T('Liste_Laden')], [T('Fehler')])]),
     task('Begleitung_Pausieren', [A('Act_Pause_Server'), C('Pausiert?', 'Antwort.ok', '==', true, [A('Act_Meldung'), T('Liste_Laden')], [T('Fehler')])]),
     task('Begleitung_Fortsetzen', [A('Act_Fortsetzen_Server'), C('Fortgesetzt?', 'Antwort.ok', '==', true, [A('Act_Meldung'), T('Liste_Laden')], [T('Fehler')])]),

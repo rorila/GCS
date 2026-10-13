@@ -9,6 +9,11 @@ async function main(){
  const dir=fs.mkdtempSync(path.join(__dirname,'../.tmp-card-points-ui-'));let cms,browser;
  try{
   const db=buildDb(),now=new Date().toISOString();db.games.find(g=>g.id==='game-math').file='Karteikasten-Quiz.json';
+  require('./cms/cms-card-point-rules.cjs').ensureCardPointRules(db);
+  const sponsor=require('./cms/cms-sponsor.cjs').createSponsor(null);
+  db.sponsorships.push({id:'browser-card-round',childId:'child-finn',sponsorId:'sponsor-fritz',status:'active',revision:1,requiredGuardianIds:['parent-multi'],periodStart:new Date(Date.now()-60000).toISOString(),periodEnd:null,pauseIntervals:[]});
+  const agreement=sponsor.proposeAgreement(db,{actorId:'sponsor-fritz',sponsorshipId:'browser-card-round',terms:{rewardMode:'cardRounds',metricKeys:['cards.promotions','cards.resets'],pointsTarget:1,rewardText:'Ein Ausflug'}});
+  assert.equal(agreement.ok,true);assert.equal(sponsor.consentAgreement(db,{actorId:'parent-multi',agreementId:agreement.agreementId,version:agreement.version,approve:true}).ok,true);
   db.flashcards=[{id:'browser-card',childId:'child-finn',subject:'Mathe',topic:'Test',question:'2+2?',answers:['4'],answerFormat:'text',box:5,active:true,status:'active',createdBy:'parent-multi',createdAt:now,updatedAt:now}];
   db.playSessions.push({id:'browser-play',childId:'child-finn',gameId:'game-math',areaId:'room-sun-play',status:'active',startedAt:now,lastHeartbeatAt:now,endedAt:null,minutes:0});
   const dataPath=path.join(dir,'data.json');fs.writeFileSync(dataPath,JSON.stringify(db));cms=createServer({dataPath});await new Promise(r=>cms.server.listen(0,'127.0.0.1',r));
@@ -70,6 +75,10 @@ async function main(){
   const artifacts=path.join(__dirname,'../.codex-work');fs.mkdirSync(artifacts,{recursive:true});await page.screenshot({path:path.join(artifacts,'card-learning-points.png'),fullPage:true});
   await points.click();await points.locator('[data-overlay-close]').waitFor();
   await points.getByText('Endstand (Sitzung beendet)',{exact:true}).waitFor();
+  await points.getByText('1 / 1',{exact:true}).waitFor();
+  await points.getByText('Erreicht · Übergabe ausstehend',{exact:true}).waitFor();
+  assert.equal(cms.core.db.rewardClaims.filter(c=>c.sponsorshipId==='browser-card-round').length,1);
+  assert.equal(cms.core.db.notifications.filter(n=>n.type==='sponsor-claim-earned').length,3);
   await page.screenshot({path:path.join(artifacts,'card-learning-points-expanded.png'),fullPage:true});
   await page.keyboard.press('Escape');assert.equal(await points.getAttribute('aria-expanded'),'false');
   assert.equal(await points.evaluate(el=>document.activeElement===el),true);

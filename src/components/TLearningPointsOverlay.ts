@@ -126,6 +126,11 @@ export class TLearningPointsOverlay extends TInlineOverlay {
         };
         if (s) {
             row('Gesamtpunkte', `⭐ ${s.totalPoints}`);
+            for (const reward of s.rewards || []) {
+                row(`${reward.sponsorName} · Runde ${reward.round}`, `${reward.points} / ${reward.pointsTarget}`);
+                if (reward.pendingReward) row('Belohnung', 'Erreicht · Übergabe ausstehend');
+                row('Übergebene Belohnungen', String(reward.completedRounds));
+            }
             row('Zählregel', s.modeLabel || s.mode);
             row('Abgeschlossene Karten', String(s.completedCards));
             if (m.lastEvent) {
@@ -156,7 +161,8 @@ export class TLearningPointsOverlay extends TInlineOverlay {
                 && (prev.state !== model.state || prev.summary?.revision !== model.summary.revision
                     || prev.summary?.modeRevision !== model.summary.modeRevision
                     || prev.summary?.completedCards !== model.summary.completedCards
-                    || prev.summary?.totalPoints !== model.summary.totalPoints)) {
+                    || prev.summary?.totalPoints !== model.summary.totalPoints
+                    || JSON.stringify(prev.summary?.rewards) !== JSON.stringify(model.summary.rewards))) {
                 this._handleEventRef()?.(this.id, 'onDataUpdated', { totalPoints: model.summary.totalPoints, mode: model.summary.mode });
             }
             if ((model.state === 'unavailable' || model.state === 'stale') && prev.state !== model.state) {

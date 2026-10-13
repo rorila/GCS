@@ -137,6 +137,8 @@ function validateTerms(db, terms) {
   if (!terms || typeof terms !== 'object') return 'Bedingungen fehlen.';
   if (!Number.isSafeInteger(terms.pointsTarget) || terms.pointsTarget < 1 || terms.pointsTarget > 1000000) return 'Punkteziel außerhalb 1..1000000.';
   if (!Array.isArray(terms.metricKeys) || terms.metricKeys.length < 1 || terms.metricKeys.length > 32) return 'Leistungsarten fehlen oder zu viele.';
+  if (terms.rewardMode !== undefined && terms.rewardMode !== 'cardRounds') return 'Unbekannter Belohnungsmodus.';
+  if (performance.isCardReward(terms) && !terms.metricKeys.every(k => ['cards.promotions', 'cards.resets'].includes(k))) return 'Kartenbelohnungen benötigen Karten-Leistungsarten.';
   const published = new Set(db.performanceRuleVersions.filter(r => r.status === 'published').map(r => r.subjectKey + '.' + r.activityKey));
   for (const k of terms.metricKeys) if (!published.has(k)) return 'Unbekannte Leistungsart: ' + k;
   if (terms.from && Number.isNaN(Date.parse(terms.from))) return 'Ungültiger Beginn.';
@@ -414,13 +416,14 @@ function createSponsor(core) {
       if (!a) { a = { id: rid('sag'), sponsorshipId: s.id, activeVersion: 0, createdAt: iso(Date.now()) }; db.sponsorAgreements.push(a); }
       const version = db.sponsorAgreementVersions.filter(v => v.agreementId === a.id).reduce((m, v) => Math.max(m, v.version), 0) + 1;
       const clean = {
-        metricKeys: terms.metricKeys.map(String),
+        ...(performance.isCardReward(terms) ? { rewardMode: 'cardRounds' } : {}),
+        metricKeys: performance.isCardReward(terms) ? ['cards.promotions', 'cards.resets'] : terms.metricKeys.map(String),
         pointsTarget: terms.pointsTarget,
         from: terms.from ? iso(Date.parse(terms.from)) : s.periodStart,
         until: terms.until ? iso(Date.parse(terms.until)) : s.periodEnd,
         rewardText: terms.rewardText.trim(),
-        consumePoints: terms.consumePoints === true,
-        carryOver: terms.carryOver === 'carry' ? 'carry' : 'none',
+        consumePoints: performance.isCardReward(terms) ? false : terms.consumePoints === true,
+        carryOver: performance.isCardReward(terms) || terms.carryOver === 'carry' ? 'carry' : 'none',
         validUntil: terms.validUntil ? iso(Date.parse(terms.validUntil)) : null,
       };
       const v = { agreementId: a.id, version, baseVersion: a.activeVersion, status: 'proposed', terms: clean, proposedBy: actorId, createdAt: iso(Date.now()), activatedAt: null };
@@ -461,6 +464,13 @@ function createSponsor(core) {
     if (missing.length) return done({ status: 'proposed', pendingApprovals: missing, message: 'Zustimmung erfasst — ausstehend: ' + missing.length + ' Partei(en).' });
     // Vor dem Versionswechsel bereits erreichte Ansprüche sichern.
     performance.evaluateSponsorship(db, s, { notify });
+    if (performance.isCardReward(v.terms) && db.rewardClaims.some(c => c.agreementId === a.id && !['fulfilled', 'cancelled'].includes(c.status))) {
+      for (const queued of db.sponsorAgreementVersions.filter(x => x.agreementId === a.id && x.status === 'approved-next')) queued.status = 'superseded';
+      v.status = 'approved-next';
+      notify(db, [s.childId, s.sponsorId, ...s.requiredGuardianIds], 'sponsor-agreement-next-round', s.id, 'Ziel für nächste Runde bestätigt', 'Das neue Ziel gilt nach Bestätigung der aktuellen Belohnung.');
+      db.sponsorEvents.push({ id: rid('sev'), sponsorshipId: s.id, type: 'agreement-next-round-approved', actorId, at: iso(Date.now()), detail: { agreementId, version } });
+      return done({ status: 'approved-next', agreementId, version, message: 'Bestätigt — gilt ab der nächsten Belohnungsrunde.' });
+    }
     for (const x of db.sponsorAgreementVersions.filter(x => x.agreementId === agreementId && x.status === 'active')) x.status = 'superseded';
     v.status = 'active'; v.activatedAt = iso(Date.now());
     v.countingFrom = version > 1 && v.terms.carryOver !== 'carry' ? v.activatedAt : v.terms.from;
@@ -476,10 +486,24 @@ function createSponsor(core) {
     const v = versionOf(db, agreementId, version);
     if (!v) return fail(404, 'Version nicht gefunden.');
     const cur = activeVersionOf(db, a);
-    const fields = ['metricKeys', 'pointsTarget', 'from', 'until', 'rewardText', 'consumePoints', 'carryOver', 'validUntil'];
+    const fields = ['metricKeys', 'pointsTarget', 'from', 'until', 'rewardText', 'consumePoints', 'carryOver', 'validUntil', 'rewardMode'];
     const changed = fields.filter(f => JSON.stringify(v.terms[f]) !== JSON.stringify(cur?.terms?.[f]))
       .map(f => ({ field: f, from: cur?.terms?.[f] ?? null, to: v.terms[f] }));
     return done({ agreementId, version, baseVersion: cur?.version || 0, changed });
+  }
+
+  function activatePendingAgreement(db, s, actorId) {
+    if (s.status !== 'active') return;
+    const a = agreementsOf(db, s.id).find(x => x.activeVersion && !x.closedAt);
+    if (!a) return;
+    const v = db.sponsorAgreementVersions.find(x => x.agreementId === a.id && x.status === 'approved-next');
+    if (!v) return;
+    const previous = activeVersionOf(db, a);
+    if (previous) previous.status = 'superseded';
+    v.countingFrom = previous?.countingFrom || previous?.terms.from || v.terms.from;
+    v.status = 'active'; v.activatedAt = iso(Date.now()); a.activeVersion = v.version;
+    db.sponsorEvents.push({ id: rid('sev'), sponsorshipId: s.id, type: 'agreement-activated', actorId, at: v.activatedAt, detail: { agreementId: a.id, version: v.version, nextRound: true } });
+    notify(db, [s.childId, s.sponsorId, ...s.requiredGuardianIds], 'sponsor-agreement-active', s.id, 'Neue Belohnungsrunde', 'Das gemeinsam bestätigte Ziel gilt jetzt. Überschüssige Punkte bleiben erhalten.');
   }
 
   // ---- Sichten ----
@@ -555,7 +579,10 @@ function createSponsor(core) {
     const av = ag && activeVersionOf(db, ag);
     if (av) {
       const { points } = performance.countedPoints(db, s, { ...av.terms, from: av.countingFrom || av.terms.from });
-      dto.agreement = { agreementId: ag.id, version: av.version, pointsTarget: av.terms.pointsTarget, countedPoints: points, reached: points >= av.terms.pointsTarget };
+      const round = performance.isCardReward(av.terms) ? performance.rewardProgress(db, s, av) : null;
+      dto.agreement = { agreementId: ag.id, version: av.version, pointsTarget: av.terms.pointsTarget, countedPoints: points, reached: points >= av.terms.pointsTarget,
+        ...(round ? { ...round, countedPoints: round.points } : {}) };
+      if (round) dto.totalPoints = require('./cms-card-points.cjs').summary(db, s.childId).totalPoints;
     }
     const claims = db.rewardClaims.filter(c => c.sponsorshipId === s.id);
     dto.claims = claims.map(c => ({ entitlementKey: c.entitlementKey, status: c.status, rewardText: c.snapshot?.rewardText, agreementVersion: c.agreementVersion }));
@@ -563,9 +590,10 @@ function createSponsor(core) {
   }
   // Sponsor-Pflichten: aktive und nach Ende noch offene Erfüllungen.
   function obligations(db, { sponsorId }) {
-    const items = db.rewardClaims.filter(c => c.sponsorId === sponsorId && ['released', 'fulfilled'].includes(c.status))
+    const items = db.rewardClaims.filter(c => c.sponsorId === sponsorId && ['earned', 'requested', 'released', 'fulfilled'].includes(c.status))
       .map(c => ({
         entitlementKey: c.entitlementKey, status: c.status, rewardText: c.snapshot?.rewardText,
+        round: c.round || 1, statusLabel: ({ earned: 'Erreicht', requested: 'Einlösung angefragt', released: 'Belohnung ausstehend', fulfilled: 'Übergeben' })[c.status],
         sponsorshipId: c.sponsorshipId, childName: person(db, c.childId)?.name,
         fulfillmentReportedAt: c.fulfillmentReportedAt || null, fulfilledAt: c.fulfilledAt || null,
       }));
@@ -623,7 +651,7 @@ function createSponsor(core) {
     createContactCode, listContactCodes, revokeContactCode,
     createRequest, withdrawRequest, decideRequest, childDecision, pause, resume, end,
     proposeAccess, consentAccess,
-    proposeAgreement, consentAgreement, diffAgreement,
+    proposeAgreement, consentAgreement, diffAgreement, activatePendingAgreement,
     listForSponsor, listForParent, listForChild, history, progress, obligations,
     sendMessage, listMessages, notificationsFor, markNotificationRead,
     // interne Helfer für andere Fachmodule/Komponenten

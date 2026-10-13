@@ -19,6 +19,7 @@ module.exports = ({ exprOf }) => {
   const flatTerms = b => {
     const keys = b.cardPointMode === 'strict' ? ['cards.promotions','cards.resets'] : b.cardPointMode === 'progress' ? ['cards.promotions'] : b.metricKeysCsv ? csv(b.metricKeysCsv) : (Array.isArray(b.metricKeys) ? b.metricKeys : []);
     const t = {
+      ...(b.rewardMode === 'cardRounds' ? { rewardMode: 'cardRounds' } : {}),
       metricKeys: keys,
       pointsTarget: Number(b.pointsTarget),
       rewardText: String(b.rewardText || ''),

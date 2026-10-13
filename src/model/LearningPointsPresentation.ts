@@ -7,6 +7,7 @@
  */
 
 export interface LearningPointsSummary {
+    rewards?: { sponsorshipId: string; sponsorName: string; points: number; pointsTarget: number; round: number; reached: boolean; status: string; pendingReward: boolean; completedRounds: number }[];
     /** Gesamtpunktestand des Karteikastens (kann negativ sein). */
     totalPoints: number;
     /** Persoenliche Zaehlregel. */

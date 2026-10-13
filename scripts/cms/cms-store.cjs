@@ -65,10 +65,22 @@ function acquireLock(dataPath, force) {
     return lockPath;
   };
   try { return claim(); } catch (e) { if (e.code !== 'EEXIST') throw e; }
-  let stale = null; try { stale = JSON.parse(fs.readFileSync(lockPath, 'utf8')); } catch { }
+  let stale = null;
+  let lockContents;
+  try { lockContents = fs.readFileSync(lockPath, 'utf8'); stale = JSON.parse(lockContents); }
+  catch (e) {
+    if (e.code === 'ENOENT') return claim();
+    throw Error('CMS-Sperrdatei kann nicht sicher geprüft werden: ' + lockPath);
+  }
   let alive = false;
-  if (stale?.pid && stale.pid !== process.pid) { try { process.kill(stale.pid, 0); alive = true; } catch { alive = false; } }
+  if (stale?.pid && stale.pid !== process.pid) { try { process.kill(stale.pid, 0); alive = true; } catch (e) { alive = e.code !== 'ESRCH'; } }
   if (alive && !force) throw Error('CMS-Datenbasis ist bereits geöffnet (PID ' + stale.pid + '). Zweite Writer-Instanz verweigert.');
+  if (stale?.pid === process.pid) { LOCKS.add(lockPath); return lockPath; }
+  if (!Number.isInteger(stale?.pid) || stale.pid <= 0) throw Error('Ungültige CMS-Sperrdatei: ' + lockPath);
+  // Reclaim only the file that was inspected; a competing writer must win
+  // through the exclusive create below, never by overwriting its lock.
+  if (fs.readFileSync(lockPath, 'utf8') !== lockContents) throw Error('CMS-Sperrdatei wurde während des Starts geändert. Bitte erneut starten.');
+  fs.unlinkSync(lockPath);
   return claim();
 }
 

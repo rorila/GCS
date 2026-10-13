@@ -2,6 +2,8 @@
 // optionales Punktekonto (rewardPointEntries) bei consumePoints-Vereinbarungen.
 // Zustände: earned -> requested -> released -> fulfilled; cancelled = storniert.
 // Genau ein Anspruch je entitlementKey (validate() erzwingt Eindeutigkeit).
+// cardRounds nutzt dieselbe Vereinbarung fortlaufend; nur der Rundenfortschritt
+// verbraucht bestätigte Ziele, niemals der Gesamtstand des Karteikastens.
 // Ansprüche überleben Beendigung und Versionswechsel (Anspruchserhalt).
 const crypto = require('node:crypto');
 const rid = p => p + '-' + crypto.randomBytes(6).toString('hex');
@@ -45,7 +47,7 @@ function createRewards(sponsorMod, perf) {
     if (actorId !== c.childId && !I.isGuardianOf(db, c.childId, actorId)) return fail(403, 'Nur das Kind oder die Eltern lösen ein.');
     if (['requested', 'released'].includes(c.status)) return done({ status: c.status, reused: true, message: 'Einlösewunsch bereits erfasst.' });
     if (c.status !== 'earned') return fail(409, 'Der Anspruch ist im Zustand "' + c.status + '" — kein Einlösewunsch möglich.');
-    if (c.snapshot?.consumePoints) {
+    if (c.snapshot?.consumePoints && c.rewardMode !== 'cardRounds') {
       const pts = c.snapshot.pointsTarget;
       if (balance(db, s.id, c.snapshot) < pts) return fail(409, 'Punktekonto reicht nicht für die Reservierung.');
       addEntry(db, s, 'reserve', pts, claimKey);
@@ -121,6 +123,12 @@ function createRewards(sponsorMod, perf) {
     if (!c.fulfillmentReportedAt) return fail(409, 'Der Sponsor hat die Erfüllung noch nicht gemeldet.');
     c.status = 'fulfilled'; c.fulfilledAt = iso(Date.now()); c.fulfilledBy = actorId;
     if (c.reservedPoints) { addEntry(db, s, 'release', c.reservedPoints, claimKey); addEntry(db, s, 'consume', c.reservedPoints, claimKey); c.consumedPoints = c.reservedPoints; c.reservedPoints = 0; }
+    if (c.rewardMode === 'cardRounds') {
+      c.consumedPoints = c.snapshot.pointsTarget;
+      addEntry(db, s, 'consume', c.consumedPoints, claimKey);
+    }
+    sponsorMod.activatePendingAgreement(db, s, actorId);
+    perf.evaluateSponsorship(db, s, { notify: I.notify });
     event(db, s, 'claim-fulfilled', actorId, { entitlementKey: claimKey });
     I.notify(db, [c.childId, c.sponsorId, ...s.requiredGuardianIds.filter(g => g !== actorId)], 'sponsor-claim-fulfilled', s.id, 'Belohnung erfüllt', 'Die Erfüllung wurde bestätigt.');
     return done({ status: 'fulfilled', message: 'Erfüllung bestätigt.' });
@@ -140,11 +148,16 @@ function createRewards(sponsorMod, perf) {
     const claims = db.rewardClaims.filter(c => c.sponsorshipId === s.id).map(c => ({
       id: c.entitlementKey, entitlementKey: c.entitlementKey, status: c.status, rewardText: c.snapshot?.rewardText,
       pointsTarget: c.snapshot?.pointsTarget, agreementVersion: c.agreementVersion,
+      round: c.round || 1, statusLabel: ({ earned: 'Erreicht', requested: 'Einlösung angefragt', released: 'Belohnung ausstehend', fulfilled: 'Übergeben', cancelled: 'Storniert' })[c.status],
       createdAt: c.createdAt, requestedAt: c.requestedAt, releasedAt: c.releasedAt,
       fulfillmentReportedAt: c.fulfillmentReportedAt, fulfilledAt: c.fulfilledAt,
       cancelledAt: c.cancelledAt, cancelReason: c.cancelReason,
     }));
-    return done({ items: claims, pointBalance: balance(db, s.id) });
+    const a = I.agreementsOf(db, s.id).find(a => a.activeVersion);
+    const v = a && I.activeVersionOf(db, a);
+    const round = v && perf.isCardReward(v.terms) ? perf.rewardProgress(db, s, v) : null;
+    return done({ items: claims, pointBalance: balance(db, s.id), rewardProgress: round,
+      progressText: round ? `Runde ${round.round}: ${round.points} / ${round.pointsTarget} · ${round.pendingReward ? 'Belohnung erreicht · Übergabe ausstehend' : 'Punkte sammeln'} · ${round.completedRounds} übergeben` : 'Keine aktive Kartenbelohnungsrunde.' });
   }
 
   return { requestRedemption, guardianDecision, cancelClaim, fulfillmentReport, confirmFulfillment, finalizeOnEnd, listFor, balance };

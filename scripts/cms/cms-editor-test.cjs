@@ -41,10 +41,12 @@ function memoryStore(db) {
     load: () => db,
     commit: (target, _meta, change) => {
       const next = structuredClone(target);
-      change(next);
+      const result = change(next);
+      if (result?.ok === false) return result;
       validate(next);
       Object.keys(target).forEach(k => delete target[k]);
       Object.assign(target, next);
+      return result;
     },
   };
 }
@@ -57,6 +59,7 @@ function buildContext({ player, deck, project, cmsFile }) {
   db.roles.push({ personId: player, areaId: AREA, role: 'player', active: true });
   db.games.push({ id: GAME_ID, name: 'Editor-Test', ownerId: 'super-admin', status: 'published', file: 'editor-test.json', storage: 'test', active: true });
   db.grants.push({ gameId: GAME_ID, areaId: AREA, active: true });
+  db.grants.push({ gameId: GAME_ID, areaId: 'house-sun', active: true });
   db.flashcards.push(...DECKS[deck].map(c => ({ ...c, childId: player, createdBy: player })));
   const core = createCore(db), store = memoryStore(db);
   const launches = new Map();
@@ -238,7 +241,7 @@ function createEditorTestService({ cmsFile, enabled = process.env.CMS_EDITOR_TES
     if (route === '/play') {
       const launch = ctx.launches.get(body.launchKey), session = launch && ctx.core.session(launch.token);
       if (!launch || !session) return fail(401, 'Testsitzung abgelaufen.');
-      if (typeof body.action !== 'string' || !['heartbeat', 'end', 'progress', 'pause', 'resume', 'status', 'cards', 'cardNext', 'cardAnswer'].includes(body.action)) return fail(400, 'Aktion fehlt oder unzulässig.');
+      if (typeof body.action !== 'string' || !['heartbeat', 'end', 'progress', 'pause', 'resume', 'status', 'cards', 'cardNext', 'cardAnswer', 'cardPointSummary'].includes(body.action)) return fail(400, 'Aktion fehlt oder unzulässig.');
       const result = ctx.play.api(session, body.action, { ...body, playSessionId: launch.playSessionId });
       if (result.status === 200 && result.data.status === 'ended') ctx.launches.delete(body.launchKey);
       return result;

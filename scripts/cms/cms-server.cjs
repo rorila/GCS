@@ -335,6 +335,10 @@ function createServer({dataPath=process.env.CMS_DATA_PATH||path.join(root,'game-
      // Zuständigkeit prüft weiterhin _manageable/manageArea pro Bereich.
      // Legacy-Endpunkte (admin.api) bleiben Admin-Cookie-only.
      result=runtime.run(ep,{session:admin.readSession(req)||core.session(body.token||cookie(req,'cms_account')),body,emit,core,admin,commit,credentialPath,uploads,launches});
+     if(url.pathname==='/api/cms/admin/role'&&result.data?.ok&&result.data.accountToken){
+      res.setHeader('Set-Cookie',accountCookie(result.data.accountToken));
+      delete result.data.accountToken;
+     }
      emit('Response gesendet',{status:result.status,body:result.data});
     }else{
      result=admin.api(req,url.pathname.slice('/api/cms/admin/'.length),body);
